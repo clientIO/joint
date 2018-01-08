@@ -1,32 +1,52 @@
-joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
+joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
 
-    opts = opts || {};
+    opt = opt || {};
 
-    var offset = opts.radius || 10;
+    var offset = opt.radius || 10;
 
-    var c1, c2, d1, d2, prev, next;
+    var path = new g.Path();
+    var segment;
 
-    // Construct the `d` attribute of the `<path>` element.
-    var d = ['M', sourcePoint.x, sourcePoint.y];
+    segment = g.Path.createSegment('M', sourcePoint);
+    path.appendSegment(segment);
 
+    var _13 = 1 / 3;
+    var _23 = 2 / 3;
+
+    var curr;
+    var prev, next;
+    var prevDistance, nextDistance;
+    var startMove, endMove;
+    var roundedStart, roundedEnd;
+    var control1, control2;
     joint.util.toArray(vertices).forEach(function(vertex, index) {
 
-        // the closest vertices
+        curr = new g.Point(vertex);
+
         prev = vertices[index - 1] || sourcePoint;
         next = vertices[index + 1] || targetPoint;
 
-        // a half distance to the closest vertex
-        d1 = d2 || g.point(vertex).distance(prev) / 2;
-        d2 = g.point(vertex).distance(next) / 2;
+        prevDistance = nextDistance || (curr.distance(prev) / 2);
+        nextDistance = curr.distance(next) / 2;
 
-        // control points
-        c1 = g.point(vertex).move(prev, -Math.min(offset, d1)).round();
-        c2 = g.point(vertex).move(next, -Math.min(offset, d2)).round();
+        startMove = -Math.min(offset, prevDistance);
+        endMove = -Math.min(offset, nextDistance);
 
-        d.push(c1.x, c1.y, 'S', vertex.x, vertex.y, c2.x, c2.y, 'L');
+        roundedStart = curr.clone().move(prev, startMove).round();
+        roundedEnd = curr.clone().move(next, endMove).round();
+
+        control1 = new g.Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+        control2 = new g.Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+
+        segment = g.Path.createSegment('L', roundedStart);
+        path.appendSegment(segment);
+
+        segment = g.Path.createSegment('C', control1, control2, roundedEnd);
+        path.appendSegment(segment);
     });
 
-    d.push(targetPoint.x, targetPoint.y);
+    segment = g.Path.createSegment('L', targetPoint);
+    path.appendSegment(segment);
 
-    return d.join(' ');
+    return path.serialize();
 };

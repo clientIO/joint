@@ -1,20 +1,93 @@
 export namespace g {
 
     export interface PlainPoint {
+
         x: number;
         y: number;
     }
 
     export interface PlainRect {
+
         x: number;
         y: number;
         width: number;
         height: number;
     }
 
+    export interface Scale {
+
+        sx: number;
+        sy: number;
+    }
+
+    export interface PrecisionOpt {
+
+        precision?: number;
+    }
+
+    export interface SubdivisionsOpt extends PrecisionOpt {
+
+        subdivisions?: Curve[];
+    }
+
+    export interface SegmentSubdivisionsOpt extends PrecisionOpt {
+
+        segmentSubdivisions?: Curve[][];
+    }
+
+    export interface Segment {
+
+        isSegment: boolean;
+        nextSegment: Segment | null;
+        previousSegment: Segment | null;
+        subpathStartSegment: Segment | null;
+
+        isInvisible?: boolean;
+        isSubpathStart?: boolean;
+
+        type: SegmentType;
+
+        start: Point | null | never; // getter, `never` for Moveto
+        end: Point | null; // getter or directly assigned
+
+        bbox(): Rect | null;
+
+        clone(): Segment;
+
+        equals(segment: Segment): boolean;
+
+        getSubdivisions(): Curve[];
+
+        length(): number;
+
+        pointAt(t?: number): Point;
+
+        pointAtLength(length?: number): Point;
+
+        scale(sx: number, sy: number, origin?: PlainPoint): this;
+
+        tangentAt(t?: number): Line | null;
+
+        tangentAtLength(length?: number): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        serialize(): string;
+
+        toString(): string;
+    }
+
+    export interface SegmentTypes {
+
+        [key: string]: Segment;
+    }
+
     type CardinalDirection = 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' | 'N';
 
-    type RectangleSides = 'left' | 'right' | 'top' | 'bottom';
+    type RectangleSide = 'left' | 'right' | 'top' | 'bottom';
+
+    type SegmentType = 'L' | 'C' | 'M' | 'Z';
 
     export function normalizeAngle(angle: number): number;
 
@@ -24,6 +97,68 @@ export namespace g {
 
     export function toRad(deg: number, over360?: boolean): number;
 
+    class Curve {
+
+        start: Point;
+        controlPoint1: Point;
+        controlPoint2: Point;
+        end: Point;
+
+        constructor(p1: PlainPoint | string, p2: PlainPoint | string, p3: PlainPoint | string, p4: PlainPoint | string);
+        constructor(curve: Curve);
+
+        bbox(): Rect;
+
+        clone(): Curve;
+
+        closestPoint(p: PlainPoint, opt?: SubdivisionsOpt): Point;
+
+        closestPointT(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
+        divide(t: number): [Curve, Curve];
+
+        endpointDistance(): number;
+
+        equals(c: Curve): boolean;
+
+        getSkeletonPoints(t: number): [Point, Point, Point, Point, Point];
+
+        getSubdivisions(opt?: PrecisionOpt): Curve[];
+
+        length(opt?: SubdivisionsOpt): number;
+
+        lengthAtT(t: number, opt?: PrecisionOpt): number;
+
+        pointAt(ratio: number, opt?: SubdivisionsOpt): Point;
+
+        pointAtLength(length: number, opt?: SubdivisionsOpt): Point;
+
+        pointAtT(t: number): Point;
+
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
+
+        tangentAt(ratio: number, opt?: SubdivisionsOpt): Line | null;
+
+        tangentAtLength(length: number, opt?: SubdivisionsOpt): Line | null;
+
+        tangentAtT(t: number): Line | null;
+
+        tAt(ratio: number, opt?: SubdivisionsOpt): number;
+
+        tAtLength(length: number, opt?: SubdivisionsOpt): number;
+
+        toPoints(opt?: SubdivisionsOpt): Point[];
+
+        toPolyline(opt?: SubdivisionsOpt): Polyline;
+
+        toString(): string;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        static throughPoints(points: PlainPoint[]): Curve[];
+    }
+
     class Ellipse {
 
         x: number;
@@ -31,7 +166,7 @@ export namespace g {
         a: number;
         b: number;
 
-        constructor(center: PlainPoint, a: number, b: number);
+        constructor(center: PlainPoint | string, a: number, b: number);
         constructor(ellipse: Ellipse);
 
         bbox(): Rect;
@@ -65,6 +200,8 @@ export namespace g {
         constructor(p1: PlainPoint | string, p2: PlainPoint | string);
         constructor(line: Line);
 
+        bbox(): Rect;
+
         bearing(): CardinalDirection;
 
         clone(): Line;
@@ -80,7 +217,22 @@ export namespace g {
 
         pointAt(t: number): Point;
 
+        pointAtLength(length: number): Point;
+
         pointOffset(p: PlainPoint): number;
+
+        rotate(origin: PlainPoint, angle: number): this;
+
+        round(precision?: number): this;
+
+        scale(sx: number, sy: number, origin?: PlainPoint): this;
+
+        tangentAt(t: number): Line | null;
+
+        tangentAtLength(length: number): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
 
         vector(): Point;
 
@@ -93,12 +245,89 @@ export namespace g {
         toString(): string;
     }
 
+    class Path {
+
+        segments: Segment[];
+
+        start: Point | null; // getter
+        end: Point | null; // getter
+
+        constructor();
+        constructor(pathData: string);
+        constructor(segments: Segment[]);
+        constructor(objects: (Line | Curve)[]);
+        constructor(segment: Segment);
+        constructor(line: Line);
+        constructor(curve: Curve);
+        constructor(polyline: Polyline);
+
+        appendSegment(segment: Segment): void;
+        appendSegment(segments: Segment[]): void;
+
+        bbox(): Rect | null;
+
+        clone(): Path;
+
+        equals(p: Path): boolean;
+
+        getSegment(index: number): Segment | null;
+
+        getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
+
+        insertSegment(index: number, segment: Segment): void;
+        insertSegment(index: number, segments: Segment[]): void;
+
+        isValid(): boolean;
+
+        length(opt?: SegmentSubdivisionsOpt): number;
+
+        pointAt(ratio: number, opt?: SegmentSubdivisionsOpt): Point | null;
+
+        pointAtLength(length: number, opt?: SegmentSubdivisionsOpt): Point | null;
+
+        removeSegment(index: number): void;
+
+        replaceSegment(index: number, segment: Segment): void;
+        replaceSegment(index: number, segments: Segment[]): void;
+
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
+
+        segmentAt(ratio: number, opt?: SegmentSubdivisionsOpt): Segment | null;
+
+        segmentAtLength(length: number, opt?: SegmentSubdivisionsOpt): Segment | null;
+
+        segmentIndexAt(ratio: number, opt?: SegmentSubdivisionsOpt): number | null;
+
+        segmentIndexAtLength(length: number, opt?: SegmentSubdivisionsOpt): number | null;
+
+        tangentAt(ratio: number, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        tangentAtLength(length: number, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        serialize(): string;
+
+        toString(): string;
+
+        private prepareSegment(segment: Segment, previousSegment?: Segment | null, nextSegment?: Segment | null): Segment;
+
+        private updateSubpathStartSegment(segment: Segment): void;
+
+        static createSegment(type: SegmentType, ...args: any[]): Segment;
+
+        static parse(pathData: string): Path;
+
+        static segmentTypes: SegmentTypes;
+    }
+
     class Point implements PlainPoint {
 
         x: number;
         y: number;
 
-        constructor(x: number, y: number);
+        constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
 
         adhereToRect(r: Rect): this;
@@ -109,7 +338,7 @@ export namespace g {
 
         clone(): Point;
 
-        difference(dx: number, dy?: number): Point;
+        difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
 
         distance(p: PlainPoint | string): number;
@@ -126,7 +355,7 @@ export namespace g {
 
         normalize(length: number): this;
 
-        offset(dx: number, dy?: number): this;
+        offset(dx?: number, dy?: number): this;
         offset(p: PlainPoint): this;
 
         reflection(ref: PlainPoint | string): Point;
@@ -141,17 +370,20 @@ export namespace g {
 
         theta(p: PlainPoint | string): number;
 
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
         angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
 
         vectorAngle(p: PlainPoint) : number;
 
         toJSON(): PlainPoint;
 
-        toPolar(origin: PlainPoint | string): this;
+        toPolar(origin?: PlainPoint | string): this;
 
         toString(): string;
 
-        update(x: number, y?: number): this;
+        update(x?: number, y?: number): this;
 
         dot(p: PlainPoint): number;
 
@@ -160,6 +392,51 @@ export namespace g {
         static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
+    }
+
+    class Polyline {
+
+        points: Point[];
+
+        start: Point | null; // getter
+        end: Point | null; // getter
+
+        constructor();
+        constructor(svgString: string);
+        constructor(points: Point[]);
+
+        bbox(): Rect | null;
+
+        clone(): Polyline;
+
+        convexHull(): Polyline;
+
+        equals(p: Polyline): boolean;
+
+        length(): number;
+
+        pointAt(ratio: number): Point | null;
+
+        pointAtLength(length: number): Point | null;
+
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
+
+        tangentAt(ratio: number): Line | null;
+
+        tangentAtLength(length: number): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        closestPoint(p: PlainPoint | string): Point;
+
+        closestPointLength(p: PlainPoint | string): Point;
+
+        serialize(): string;
+
+        toString(): string;
+
+        static parse(svgString: string): Polyline;
     }
 
     class Rect implements PlainRect {
@@ -179,6 +456,8 @@ export namespace g {
         bottomLine(): Line;
 
         bottomMiddle(): Point;
+
+        bottomRight(): Point;
 
         center(): Point;
 
@@ -202,7 +481,7 @@ export namespace g {
 
         moveAndExpand(r: PlainRect): this;
 
-        offset(dx: number, dy?: number): this;
+        offset(dx?: number, dy?: number): this;
         offset(p: PlainPoint): this;
 
         inflate(dx?: number, dy?: number): this;
@@ -221,15 +500,24 @@ export namespace g {
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
-        sideNearestToPoint(point: PlainPoint | string): RectangleSides;
+        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
+
+        maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
+
+        sideNearestToPoint(point: PlainPoint | string): RectangleSide;
 
         snapToGrid(gx: number, gy?: number): this;
+
+        topLeft(): Point;
 
         topLine(): Line;
 
         topMiddle(): Point;
 
         topRight(): Point;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
 
         toJSON(): PlainRect;
 

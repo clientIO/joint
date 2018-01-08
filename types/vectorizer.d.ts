@@ -112,12 +112,12 @@ export class Vectorizer {
     node: SVGElement;
 
     constructor(
-        svg: string | SVGElement,
+        el: string | SVGElement,
         attrs?: { [key: string]: any },
         children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]
     );
 
-    getTransformToElement(elem: SVGGElement | Vectorizer): SVGMatrix;
+    getTransformToElement(toElem: SVGGElement | Vectorizer): SVGMatrix;
 
     transform(): SVGMatrix;
     transform(matrix: SVGMatrix | Vectorizer.Matrix, opt?: Vectorizer.TransformOptions): this;
@@ -129,7 +129,7 @@ export class Vectorizer {
     rotate(angle: number, cx?: number, cy?: number, opt?: Vectorizer.RotateOptions): this;
 
     scale(): Vectorizer.Scale;
-    scale(sx: number, sy: number): this;
+    scale(sx: number, sy?: number): this;
 
     bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
 
@@ -143,6 +143,8 @@ export class Vectorizer {
     attr(name: string): string | null;
     attr(name: string, value: any): this;
     attr(attrs: { [key: string]: any }): this;
+
+    normalizePath(): this;
 
     remove(): this;
 
@@ -158,6 +160,8 @@ export class Vectorizer {
 
     // returns either this or Vectorizer, no point in specifying this.
     svg(): Vectorizer;
+
+    tagName(): string;
 
     defs(): Vectorizer | undefined;
 
@@ -284,6 +288,8 @@ export class Vectorizer {
     static convertRectToPathData(rect: string | SVGElement | Vectorizer): string;
 
     static rectToPath(r: Vectorizer.RoundedRect): string;
+
+    static normalizePathData(path: string): string;
 
     static toNode(el: SVGElement | Vectorizer | SVGElement[]): SVGElement;
 }

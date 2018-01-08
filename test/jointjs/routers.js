@@ -77,7 +77,7 @@ QUnit.module('routers', function(hooks) {
         var linkView = this.paper.findViewByModel(link);
         var pathData = linkView.$('.connection').attr('d');
 
-        assert.checkDataPath(pathData, 'M 216 90 150 200 150 90', 'link was correctly routed');
+        assert.checkDataPath(pathData, 'M 216 90 L 150 200 L 150 90', 'link was correctly routed');
     });
 
     QUnit.test('orthogonal routing', function(assert) {
@@ -99,7 +99,7 @@ QUnit.module('routers', function(hooks) {
         var l1View = this.paper.findViewByModel(l1);
         var l1PathData = l1View.$('.connection').attr('d');
 
-        assert.checkDataPath(l1PathData, 'M 225 90 225 200 150 200 150 90', 'link with one vertex was correctly routed');
+        assert.checkDataPath(l1PathData, 'M 225 90 L 225 200 L 150 200 L 150 90', 'link with one vertex was correctly routed');
 
         // No vertex.
 
@@ -117,7 +117,7 @@ QUnit.module('routers', function(hooks) {
         var l2View = this.paper.findViewByModel(l2);
         var l2PathData = l2View.$('.connection').attr('d');
 
-        assert.checkDataPath(l2PathData, 'M 90 55 245 55 245 120', 'link with no vertex was correctly routed');
+        assert.checkDataPath(l2PathData, 'M 90 55 L 245 55 L 245 120', 'link with no vertex was correctly routed');
 
         // Check for spikes.
 
@@ -136,7 +136,7 @@ QUnit.module('routers', function(hooks) {
         var l3View = this.paper.findViewByModel(l3);
         var l3PathData = l3View.$('.connection').attr('d');
 
-        assert.checkDataPath(l3PathData, 'M 225 90 225 200 150 200 150 55 350 55', 'no spike (a return path segment) was created');
+        assert.checkDataPath(l3PathData, 'M 225 90 L 225 200 L 150 200 L 150 55 L 350 55', 'no spike (a return path segment) was created');
     });
 
     QUnit.test('manhattan routing', function(assert) {
@@ -163,20 +163,20 @@ QUnit.module('routers', function(hooks) {
 
         var d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 80 300 80 300 120 600 120 600 80 620 80', 'Route avoids an obstacle.');
+        assert.checkDataPath(d, 'M 140 80 L 300 80 L 300 120 L 600 120 L 600 80 L 620 80', 'Route avoids an obstacle.');
 
         r1.translate(0, 50);
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 120 600 120 600 80 620 80',
+        assert.checkDataPath(d, 'M 140 120 L 600 120 L 600 80 L 620 80',
             'Source has been moved. Route recalculated starting from target.');
 
         r3.translate(0, -50);
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 120 600 120 600 20 620 20',
+        assert.checkDataPath(d, 'M 140 120 L 600 120 L 600 20 L 620 20',
             'Target has been moved. Route recalculated starting from source.');
 
         l0.set({
@@ -192,7 +192,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 120 280 120 280 0 580 0 580 20 620 20',
+        assert.checkDataPath(d, 'M 140 120 L 280 120 L 280 0 L 580 0 L 580 20 L 620 20',
             'The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.');
 
         assert.throws(function() {
@@ -220,7 +220,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 120 680 120 680 60',
+        assert.checkDataPath(d, 'M 140 120 L 680 120 L 680 60',
             'The default fallback router made an orthogonal link.');
 
         l0.set({
@@ -236,7 +236,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 80 80 80 20 20 20 20 0 600 0 600 20 620 20',
+        assert.checkDataPath(d, 'M 80 80 L 80 20 L 20 20 L 20 0 L 600 0 L 600 20 L 620 20',
             'A vertex was added. Route correctly recalculated.');
 
         l0.set({
@@ -245,7 +245,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 80 80 80 20 20 20 20 0 600 0 600 20 620 20',
+        assert.checkDataPath(d, 'M 80 80 L 80 20 L 20 20 L 20 0 L 600 0 L 600 20 L 620 20',
             'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
 
         assert.throws(function() {
@@ -282,7 +282,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 70 620 70',
+        assert.checkDataPath(d, 'M 140 70 L 620 70',
             'Set excludeTypes parameter to "basic.Rect" makes routing ignore those shapes.');
 
         r2.remove();
@@ -301,7 +301,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 80 800 80 800 100 760 100 760 80 740 80',
+        assert.checkDataPath(d, 'M 140 80 L 800 80 L 800 100 L 760 100 L 760 80 L 740 80',
             'Set excludeEnds parameter to "target" makes routing ignore target element.');
 
         l0.set({
@@ -319,7 +319,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 20 80 0 80 0 120 760 120 760 80 740 80',
+        assert.checkDataPath(d, 'M 20 80 L 0 80 L 0 120 L 760 120 L 760 80 L 740 80',
             'Set startDirections & endDirections parameters makes routing starts and ends from/to the given direction.');
 
     });
@@ -349,7 +349,7 @@ QUnit.module('routers', function(hooks) {
 
         var d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 80 160 80 400 320 440 320 680 560 680 630',
+        assert.checkDataPath(d, 'M 140 80 L 160 80 L 400 320 L 440 320 L 680 560 L 680 630',
             'Route avoids an obstacle.');
 
         l0.set('router', {
@@ -361,7 +361,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 80 70 81 70 680 670 680 670',
+        assert.checkDataPath(d, 'M 80 70 L 81 70 L 680 670 L 680 670',
             'The default fallback router made a metro link.');
 
     });
@@ -379,27 +379,27 @@ QUnit.module('routers', function(hooks) {
         // Left side
         l.set('router', { name: 'oneSide', args: { padding: 20, side: 'left' } });
         var d = v.$('.connection').attr('d');
-        assert.checkDataPath(d, 'M 20 70 0 70 0 370 320 370', 'Route goes only on the left side.');
+        assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 370 L 320 370', 'Route goes only on the left side.');
 
         // Padding option
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'left' } });
         d = v.$('.connection').attr('d');
-        assert.checkDataPath(d, 'M 20 70 -20 70 -20 370 320 370', 'Route respects the padding.');
+        assert.checkDataPath(d, 'M 20 70 L -20 70 L -20 370 L 320 370', 'Route respects the padding.');
 
         // Right side
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'right' } });
         d = v.$('.connection').attr('d');
-        assert.checkDataPath(d, 'M 140 70 480 70 480 370 440 370', 'Route goes only on the right side.');
+        assert.checkDataPath(d, 'M 140 70 L 480 70 L 480 370 L 440 370', 'Route goes only on the right side.');
 
         // Top side
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'top' } });
         d = v.$('.connection').attr('d');
-        assert.checkDataPath(d, 'M 80 30 80 -10 380 -10 380 330', 'Route goes only on the top.');
+        assert.checkDataPath(d, 'M 80 30 L 80 -10 L 380 -10 L 380 330', 'Route goes only on the top.');
 
         // Bottom side
         l.set('router', { name: 'oneSide', args: { padding: 40, side: 'bottom' } });
         d = v.$('.connection').attr('d');
-        assert.checkDataPath(d, 'M 80 110 80 450 380 450 380 410', 'Route goes only on the bottom');
+        assert.checkDataPath(d, 'M 80 110 L 80 450 L 380 450 L 380 410', 'Route goes only on the bottom');
 
         // Wrong side specified
         assert.throws(function() {

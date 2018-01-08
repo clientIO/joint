@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>curve.closestPointT(point [, opt])</code></pre>
+<p>Return the <code>t</code> value of the point on the curve that lies closest to <code>point</code>.</p>
+
+<p>The curve is first subdivided, according to <code>opt.precision</code> (refer to <code>curve.length()</code> <a href="geometry.html#g.curve.prototype.length">documentation</a> for more information about precision and curve flattening). Then, one subdivision is identified whose endpoints are the closest to <code>point</code>. A binary search is then performed on that subdivision, until a curve is found whose diffrence between endpoints' distance to <code>point</code> lies within <code>opt.precision</code>. The <code>t</code> value of the closest endpoint is returned by the function.</p>
+
+<p>The default value for <code>opt.precision</code> is 3; this corresponds to maximum observed error of 0.1%.</p>
+
+<p>The <code>opt.subdivisions</code> property may be specified, directly providing an array of pre-computed curve subdivisions with which to begin the algorithm. Use the <code>curve.getSubdivisions()</code> <a href="geometry.html#g.curve.prototype.getSubdivisions">function</a> to obtain an array of curve subdivisions. The <code>opt.precision</code> property is still necessary, however; it determines the precision of the point search algorithm.</p>

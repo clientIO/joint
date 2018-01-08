@@ -71,7 +71,7 @@ QUnit.module('links', function(hooks) {
 
         var v0 = this.paper.findViewByModel(l0);
 
-        assert.checkDataPath(v0.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
+        assert.checkDataPath(v0.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data starts at the source right-middle point and ends in the target left-middle point');
 
         var l1 = new joint.dia.Link({
             source: { id: r1.id },
@@ -197,7 +197,7 @@ QUnit.module('links', function(hooks) {
         assert.notOk(highlighted, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
 
         v0.pointerup();
-        assert.checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 300 100 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
+        assert.checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 L 300 100 L 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
     });
 
     QUnit.test('defaultLink', function(assert) {
@@ -296,20 +296,20 @@ QUnit.module('links', function(hooks) {
         assert.notOk(link.get('source').id, 'source of the link became a point');
         assert.ok(link.get('target').id, 'target of the link is still not a point');
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after disconnection');
-        assert.checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 320 70', 'link connection-wrap path data is the same as the .connection path data');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data stayed the same after disconnection');
+        assert.checkDataPath(linkView.$('.connection-wrap').attr('d'), 'M 140 70 L 320 70', 'link connection-wrap path data is the same as the .connection path data');
 
         myrect.translate(-10);
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data stayed the same after the disconnected source moved');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data stayed the same after the disconnected source moved');
 
         link.set('source', { id: myrect.id });
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 130 70 320 70', 'link path data updated after the disconnected source became re-connected again');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 130 70 L 320 70', 'link path data updated after the disconnected source became re-connected again');
 
         myrect.translate(10);
 
-        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 320 70', 'link path data updated after the just connected source moved');
+        assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data updated after the just connected source moved');
 
         // disconnect:
         link.set('target', linkView.getConnectionPoint('target', link.previous('target'), link.get('source')));

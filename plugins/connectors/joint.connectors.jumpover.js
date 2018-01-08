@@ -4,6 +4,7 @@ joint.connectors.jumpover = (function(_, g, util) {
     var JUMP_SIZE = 5;
 
     // available jump types
+    // first one taken as default
     var JUMP_TYPES = ['arc', 'gap', 'cubic'];
 
     // takes care of math. error for case when jump is too close to end of line
@@ -166,42 +167,83 @@ joint.connectors.jumpover = (function(_, g, util) {
      * @return {string}
      */
     function buildPath(lines, jumpSize, jumpType) {
+
+        var path = new g.Path();
+        var segment;
+
         // first move to the start of a first line
-        var start = ['M', lines[0].start.x, lines[0].start.y];
+        segment = g.Path.createSegment('M', lines[0].start);
+        path.appendSegment(segment);
 
         // make a paths from lines
-        var paths = util.toArray(lines).reduce(function(res, line) {
+        joint.util.toArray(lines).forEach(function(line, index) {
+
             if (line.isJump) {
-                var diff;
-                if (jumpType === 'arc') {
-                    diff = line.start.difference(line.end);
+                var angle, diff;
+
+                var control1, control2;
+
+                if (jumpType === 'arc') { // approximates semicircle with 2 curves
+                    angle = -90;
                     // determine rotation of arc based on difference between points
-                    var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
-                    // for a jump line we create an arc instead
-                    res.push('A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y);
-                } else if (jumpType === 'gap') {
-                    res = res.concat(['M', line.end.x, line.end.y]);
-                } else if (jumpType === 'cubic') {
                     diff = line.start.difference(line.end);
-                    var angle = line.start.theta(line.end);
+                    // make sure the arc always points up (or right)
+                    var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+                    if (xAxisRotate) angle += 180;
+
+                    var midpoint = line.midpoint();
+                    var centerLine = new g.Line(midpoint, line.end).rotate(midpoint, angle);
+
+                    var halfLine;
+
+                    // first half
+                    halfLine = new g.Line(line.start, midpoint);
+
+                    control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
+                    control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
+
+                    segment = g.Path.createSegment('C', control1, control2, centerLine.end);
+                    path.appendSegment(segment);
+
+                    // second half
+                    halfLine = new g.Line(midpoint, line.end);
+
+                    control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
+                    control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
+
+                    segment = g.Path.createSegment('C', control1, control2, line.end);
+                    path.appendSegment(segment);
+
+                } else if (jumpType === 'gap') {
+                    segment = g.Path.createSegment('M', line.end);
+                    path.appendSegment(segment);
+
+                } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
+                    angle = line.start.theta(line.end);
+
                     var xOffset = jumpSize * 0.6;
                     var yOffset = jumpSize * 1.35;
-                    // determine rotation of curve based on difference between points
-                    if (diff.x < 0 && diff.y < 0) {
-                        yOffset *= -1;
-                    }
-                    var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
-                    var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
-                    // create a cubic bezier curve
-                    res.push('C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y);
-                }
-            } else {
-                res.push('L', line.end.x, line.end.y);
-            }
-            return res;
-        }, start);
 
-        return paths.join(' ');
+                    // determine rotation of arc based on difference between points
+                    diff = line.start.difference(line.end);
+                    // make sure the arc always points up (or right)
+                    xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+                    if (xAxisRotate) yOffset *= -1;
+
+                    control1 = g.Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+                    control2 = g.Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
+
+                    segment = g.Path.createSegment('C', control1, control2, line.end);
+                    path.appendSegment(segment);
+                }
+
+            } else {
+                segment = g.Path.createSegment('L', line.end);
+                path.appendSegment(segment);
+            }
+        });
+
+        return path.serialize();
     }
 
     /**
@@ -209,17 +251,17 @@ joint.connectors.jumpover = (function(_, g, util) {
      * @param {g.point} sourcePoint start point of this link
      * @param {g.point} targetPoint end point of this link
      * @param {g.point[]} vertices of this link
-     * @param {object} opts options
+     * @param {object} opt options
      * @property {number} size optional size of a jump arc
      * @return {string} created `D` attribute of SVG path
      */
-    return function(sourcePoint, targetPoint, vertices, opts) { // eslint-disable-line max-params
+    return function(sourcePoint, targetPoint, vertices, opt) { // eslint-disable-line max-params
 
         setupUpdating(this);
 
-        var jumpSize = opts.size || JUMP_SIZE;
-        var jumpType = opts.jump && ('' + opts.jump).toLowerCase();
-        var ignoreConnectors = opts.ignoreConnectors || IGNORED_CONNECTORS;
+        var jumpSize = opt.size || JUMP_SIZE;
+        var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
+        var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
 
         // grab the first jump type as a default if specified one is invalid
         if (JUMP_TYPES.indexOf(jumpType) === -1) {

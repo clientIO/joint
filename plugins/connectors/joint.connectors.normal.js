@@ -1,14 +1,9 @@
 joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
 
-    // Construct the `d` attribute of the `<path>` element.
-    var d = ['M', sourcePoint.x, sourcePoint.y];
+    var points = [sourcePoint].concat(vertices).concat([targetPoint]);
 
-    joint.util.toArray(vertices).forEach(function(vertex) {
+    var polyline = new g.Polyline(points);
+    var path = new g.Path(polyline);
 
-        d.push(vertex.x, vertex.y);
-    });
-
-    d.push(targetPoint.x, targetPoint.y);
-
-    return d.join(' ');
+    return path.serialize();
 };
