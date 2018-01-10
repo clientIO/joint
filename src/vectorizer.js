@@ -425,7 +425,7 @@ V = Vectorizer = (function() {
 
     VPrototype.text = function(content, opt) {
 
-        if (typeof content !== 'string') throw new Exception('Vectorizer: text() expects the first argument to be a string.');
+        if (content && typeof content !== 'string') throw new Error('Vectorizer: text() expects the first argument to be a string.');
 
         // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
         // IE would otherwise collapse all spaces into one.
@@ -437,9 +437,9 @@ V = Vectorizer = (function() {
         // Text along path
         var textPath = opt.textPath
         // Vertical shift
-        var y = opt.y;
-        if (y === 0) y = '0';
-        // Horizontal shift
+        var yAlignment = opt.dy;
+        if (yAlignment === 0) yAlignment = '0';
+        // Horizontal shift applied to all the lines but the first.
         var x = opt.x;
         if (x === undefined) x = this.attr('x') || 0;
         // Annotations
@@ -497,10 +497,10 @@ V = Vectorizer = (function() {
                 lineNodeStyle.fillOpacity = 0;
                 lineNodeStyle.strokeOpacity = 0;
             }
-            if (i > 0) {
-                lineNode.setAttribute('x', x);
+            if (i === 0) {
+                dy = yAlignment || maxFontSize || '0.8em';
             } else {
-                dy = y || maxFontSize || '0.8em';
+                lineNode.setAttribute('x', x);
             }
             lineNode.setAttribute('dy', dy);
             lineNode.className.baseVal = lineClassName;

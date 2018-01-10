@@ -17,7 +17,8 @@ export namespace Vectorizer {
 
     interface TextOptions {
         eol?: string;
-        x?: number;
+        x?: number | string;
+        dy?: number | string;
         lineHeight?: number | string;
         textPath?: string | { [key: string]: any };
         annotations?: TextAnnotation[];
@@ -109,6 +110,7 @@ export namespace Vectorizer {
 
 export class Vectorizer {
 
+    id: string;
     node: SVGElement;
 
     constructor(
