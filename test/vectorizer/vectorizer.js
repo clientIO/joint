@@ -77,6 +77,14 @@ QUnit.module('vectorizer', function(hooks) {
         assert.ok(V(vRect).node instanceof SVGElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
     });
 
+    QUnit.test('id', function(assert) {
+        var vRect = V('rect');
+        assert.ok(vRect.id);
+        assert.equal(vRect.id, vRect.node.id);
+        vRect.id = 'newid';
+        assert.equal(vRect.node.id, 'newid');
+    });
+
     QUnit.test('V(\'<invalid markup>\')', function(assert) {
 
         var error;
@@ -384,7 +392,7 @@ QUnit.module('vectorizer', function(hooks) {
         for (var i = 0; i < checkChildren2.length; i++) {
             var currentChild = checkChildren2[i];
             if (currentChild.nodeType === 1) {
-                numElements += 1; 
+                numElements += 1;
             }
         }
         assert.ok(numElements === 2, 'The checkChildren2 collection should have two child elements.');
