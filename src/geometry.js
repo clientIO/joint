@@ -1290,7 +1290,11 @@ var g = (function() {
 
             var product = this.vector().dot((new Line(this.start, p)).vector());
             var cpNormalizedLength = min(1, max(0, product / this.squaredLength()));
-            if (cpNormalizedLength !== cpNormalizedLength) return 0;// `true` if and only if `NaN`
+
+            // cpNormalizedLength returns `NaN` if this line has zero length
+            // we can work with that - if `NaN`, return 0
+            if (cpNormalizedLength !== cpNormalizedLength) return 0; // condition evaluates to `true` if and only if cpNormalizedLength is `NaN`
+            // (`NaN` is the only value that is not equal to itself)
 
             return cpNormalizedLength;
         },
@@ -2004,14 +2008,16 @@ var g = (function() {
             var numSegments = segments.length;
             if (numSegments === 0) return 0; // if segments is an empty array
 
-            if (t.segmentIndex < 0) return 0; // regardless of t.value
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return 0; // regardless of t.value
 
-            if (t.segmentIndex >= numSegments) {
-                t.segmentIndex = numSegments - 1;
-                t.value = 1;
+            var tValue = t.value;
+            if (segmentIndex >= numSegments) {
+                segmentIndex = numSegments - 1;
+                tValue = 1;
             }
-            else if (t.value < 0) t.value = 0;
-            else if (t.value > 1) t.value = 1;
+            else if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
 
             opt = opt || {};
             var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
@@ -2020,16 +2026,16 @@ var g = (function() {
 
             var subdivisions;
             var length = 0;
-            for (var i = 0; i < t.segmentIndex; i++) {
+            for (var i = 0; i < segmentIndex; i++) {
 
                 var segment = segments[i];
                 subdivisions = segmentSubdivisions[i];
                 length += segment.length({ precisison: precision, subdivisions: subdivisions });
             }
 
-            segment = segments[t.segmentIndex];
-            subdivisions = segmentSubdivisions[t.segmentIndex];
-            length += segment.lengthAtT(t.value, { precisison: precision, subdivisions: subdivisions });
+            segment = segments[segmentIndex];
+            subdivisions = segmentSubdivisions[segmentIndex];
+            length += segment.lengthAtT(tValue, { precisison: precision, subdivisions: subdivisions });
 
             return length;
         },
@@ -2110,13 +2116,15 @@ var g = (function() {
             var numSegments = segments.length;
             if (numSegments === 0) return null; // if segments is an empty array
 
-            if (t.segmentIndex < 0) return segments[0].pointAtT(0);
-            if (t.segmentIndex >= numSegments) return segments[numSegments - 1].pointAtT(1);
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return segments[0].pointAtT(0);
+            if (segmentIndex >= numSegments) return segments[numSegments - 1].pointAtT(1);
 
-            if (t.value < 0) t.value = 0;
-            else if (t.value > 1) t.value = 1;
+            var tValue = t.value;
+            if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
 
-            return segments[t.segmentIndex].pointAtT(t.value);
+            return segments[segmentIndex].pointAtT(tValue);
         },
 
         // Helper method for adding segments.
@@ -2359,9 +2367,10 @@ var g = (function() {
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
                 if (segment.isDifferentiable()) {
-                    var tangent = segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+                    if (length <= (l + d)) {
+                        return segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+                    }
 
-                    if (length <= (l + d)) return tangent;
                     lastValidSegment = segment;
                 }
 
@@ -2385,13 +2394,15 @@ var g = (function() {
             var numSegments = segments.length;
             if (numSegments === 0) return null; // if segments is an empty array
 
-            if (t.segmentIndex < 0) return segments[0].tangentAtT(0);
-            if (t.segmentIndex >= numSegments) return segments[numSegments - 1].tangentAtT(1);
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return segments[0].tangentAtT(0);
+            if (segmentIndex >= numSegments) return segments[numSegments - 1].tangentAtT(1);
 
-            if (t.value < 0) t.value = 0;
-            else if (t.value > 1) t.value = 1;
+            var tValue = t.value;
+            if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
 
-            return segments[t.segmentIndex].tangentAtT(t.value);
+            return segments[segmentIndex].tangentAtT(tValue);
         },
 
         translate: function(tx, ty) {
@@ -3608,7 +3619,7 @@ var g = (function() {
             var numPoints = points.length;
             if (numPoints === 0) return false;
 
-            var n = numPoints - 1
+            var n = numPoints - 1;
             for (var i = 0; i < n; i++) {
 
                 var a = points[i];
@@ -3741,9 +3752,10 @@ var g = (function() {
                 var d = a.distance(b);
 
                 if (line.isDifferentiable()) { // has a tangent line (line length is not 0)
-                    var tangent = line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                    if (length <= (l + d)) {
+                        return line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                    }
 
-                    if (length <= (l + d)) return tangent;
                     lastValidLine = line;
                 }
 

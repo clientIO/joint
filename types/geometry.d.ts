@@ -80,9 +80,9 @@ export namespace g {
 
         lengthAtT(t: number, opt?: PrecisionOpt): number;
 
-        pointAt(ratio?: number): Point;
+        pointAt(ratio: number): Point;
 
-        pointAtLength(length?: number): Point;
+        pointAtLength(length: number): Point;
 
         pointAtT(t: number): Point;
 
@@ -90,7 +90,7 @@ export namespace g {
 
         tangentAt(ratio: number): Line | null;
 
-        tangentAtLength(length?: number): Line | null;
+        tangentAtLength(length: number): Line | null;
 
         tangentAtT(t: number): Line | null;
 
