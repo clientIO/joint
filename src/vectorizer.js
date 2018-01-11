@@ -453,7 +453,7 @@ V = Vectorizer = (function() {
         var dy;
         switch (alignment) {
             case 'middle':
-                dy = (0.3 * flMaxFont) - (rLineHeights / 2);
+                dy = (0.2 * flMaxFont) - (rLineHeights / 2);
                 break;
             case 'bottom':
                 dy = -(0.3 * llMaxFont) - rLineHeights;
