@@ -169,6 +169,86 @@ QUnit.module('curve', function() {
             });
         });
 
+        QUnit.module('closestPointLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var point = new g.Point(100, 100);
+                assert.equal(typeof curve.closestPointLength(point), 'number');
+                assert.equal(typeof curve.closestPointLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof curve.closestPointLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof curve.closestPointLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof curve.closestPointLength(point, { precision: 3 }), 'number');
+                assert.equal(typeof curve.closestPointLength(point, { precision: 4 }), 'number');
+                assert.equal(typeof curve.closestPointLength(point, { precision: 5 }), 'number');
+            });
+
+            QUnit.test('returns length closest to a given point up to precision', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var point;
+
+                point = new g.Point(100, 100);
+                assert.equal(curve.closestPointLength(point), 119.83144621268787);
+                assert.equal(curve.closestPointLength(point, { precision: 0 }), 0);
+                assert.equal(curve.closestPointLength(point, { precision: 1 }), 118.71384231844745);
+                assert.equal(curve.closestPointLength(point, { precision: 2 }), 119.56582529496731);
+                assert.equal(curve.closestPointLength(point, { precision: 3 }), 119.83144621268787);
+                assert.equal(curve.closestPointLength(point, { precision: 4 }), 119.8480263853086);
+                assert.equal(curve.closestPointLength(point, { precision: 5 }), 119.84885532824434);
+
+                point = new g.Point(125, 0);
+                assert.equal(curve.closestPointLength(point), 174.99499668773748);
+                assert.equal(curve.closestPointLength(point, { precision: 0 }), 200);
+                assert.equal(curve.closestPointLength(point, { precision: 1 }), 178.91071717402883);
+                assert.equal(curve.closestPointLength(point, { precision: 2 }), 167.4224378522156);
+                assert.equal(curve.closestPointLength(point, { precision: 3 }), 174.99499668773748);
+                assert.equal(curve.closestPointLength(point, { precision: 4 }), 175.0319261701376);
+                assert.equal(curve.closestPointLength(point, { precision: 5 }), 174.60364946776332);
+            });
+        });
+
+        QUnit.module('closestPointNormalizedLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var point = new g.Point(100, 100);
+                assert.equal(typeof curve.closestPointNormalizedLength(point), 'number');
+                assert.equal(typeof curve.closestPointNormalizedLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof curve.closestPointNormalizedLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof curve.closestPointNormalizedLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof curve.closestPointNormalizedLength(point, { precision: 3 }), 'number');
+                assert.equal(typeof curve.closestPointNormalizedLength(point, { precision: 4 }), 'number');
+                assert.equal(typeof curve.closestPointNormalizedLength(point, { precision: 5 }), 'number');
+            });
+
+            QUnit.test('returns normalized length closest to a given point up to precision', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var point;
+
+                point = new g.Point(100, 100);
+                assert.equal(curve.closestPointNormalizedLength(point), 0.5);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 0 }), 0);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 1 }), 0.5);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 2 }), 0.5);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 3 }), 0.5);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 4 }), 0.4999999999999999);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 5 }), 0.5000000000000001);
+
+                point = new g.Point(125, 0);
+                assert.equal(curve.closestPointNormalizedLength(point), 0.7301714291970585);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 0 }), 1);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 1 }), 0.7535377243291667);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 2 }), 0.7001266350112445);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 3 }), 0.7301714291970585);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 4 }), 0.7302244828271682);
+                assert.equal(curve.closestPointNormalizedLength(point, { precision: 5 }), 0.7284326954544352);
+            });
+        });
+
         QUnit.module('closestPointT()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -218,6 +298,46 @@ QUnit.module('curve', function() {
                 assert.ok(Math.abs(curve.closestPointT(curve.pointAtT(t), { precision: 3 }) - t) < Math.pow(10, -3));
                 assert.ok(Math.abs(curve.closestPointT(curve.pointAtT(t), { precision: 4 }) - t) < Math.pow(10, -4));
                 assert.ok(Math.abs(curve.closestPointT(curve.pointAtT(t), { precision: 5 }) - t) < Math.pow(10, -5));
+            });
+        });
+
+        QUnit.module('closestPointTangent()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var point = new g.Point(100, 100);
+                assert.ok(curve.closestPointTangent(point) instanceof g.Line);
+                assert.ok(curve.closestPointTangent(point, { precision: 0 }) instanceof g.Line);
+                assert.ok(curve.closestPointTangent(point, { precision: 1 }) instanceof g.Line);
+                assert.ok(curve.closestPointTangent(point, { precision: 2 }) instanceof g.Line);
+                assert.ok(curve.closestPointTangent(point, { precision: 3 }) instanceof g.Line);
+                assert.ok(curve.closestPointTangent(point, { precision: 4 }) instanceof g.Line);
+                assert.ok(curve.closestPointTangent(point, { precision: 5 }) instanceof g.Line);
+            });
+
+            QUnit.test('returns tangent at point closest to a given point up to precision', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var point;
+
+                point = new g.Point(100, 100);
+                assert.equal(curve.closestPointTangent(point).toString(), '100@100 175@50');
+                assert.equal(curve.closestPointTangent(point, { precision: 0 }).toString(), '0@100 50@200');
+                assert.equal(curve.closestPointTangent(point, { precision: 1 }).toString(), '100@100 175@50');
+                assert.equal(curve.closestPointTangent(point, { precision: 2 }).toString(), '100@100 175@50');
+                assert.equal(curve.closestPointTangent(point, { precision: 3 }).toString(), '100@100 175@50');
+                assert.equal(curve.closestPointTangent(point, { precision: 4 }).toString(), '100@100 175@50');
+                assert.equal(curve.closestPointTangent(point, { precision: 5 }).toString(), '100@100 175@50');
+
+                point = new g.Point(125, 0);
+                assert.equal(curve.closestPointTangent(point).toString(), '148.1719970703125@73.468017578125 218.3868408203125@52.178955078125');
+                assert.equal(curve.closestPointTangent(point, { precision: 0 }).toString(), '200@100 250@200');
+                assert.equal(curve.closestPointTangent(point, { precision: 1 }).toString(), '154.6875@71.875 223.4375@59.375');
+                assert.equal(curve.closestPointTangent(point, { precision: 2 }).toString(), '141.5283203125@75.830078125 213.0126953125@46.923828125');
+                assert.equal(curve.closestPointTangent(point, { precision: 3 }).toString(), '148.1719970703125@73.468017578125 218.3868408203125@52.178955078125');
+                assert.equal(curve.closestPointTangent(point, { precision: 4 }).toString(), '148.1719970703125@73.468017578125 218.3868408203125@52.178955078125');
+                assert.equal(curve.closestPointTangent(point, { precision: 5 }).toString(), '147.76033237576485@73.59425574541092 218.06024387478828@51.794786751270294');
             });
         });
 
@@ -470,6 +590,37 @@ QUnit.module('curve', function() {
                     new g.Curve(new g.Point(179.1015625, 75.390625), new g.Point(182.91015625, 77.5390625), new g.Point(186.572265625, 80.56640625), new g.Point(190.0634765625, 84.619140625)),
                     new g.Curve(new g.Point(190.0634765625, 84.619140625), new g.Point(193.5546875, 88.671875), new g.Point(196.875, 93.75), new g.Point(200, 100))
                 ]);
+            });
+        });
+
+        QUnit.module('isDifferentiable()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve;
+
+                curve = new g.Curve('0 0', '0 200', '200 200', '200 0');
+                assert.equal(typeof curve.isDifferentiable(), 'boolean');
+
+                curve = new g.Curve('100 100', '100 100', '100 100', '100 0');
+                assert.equal(typeof curve.isDifferentiable(), 'boolean');
+
+                curve = new g.Curve('100 100', '100 100', '100 100', '100 100');
+                assert.equal(typeof curve.isDifferentiable(), 'boolean');
+            });
+
+            QUnit.test('checks whether the curve is differentiable (can have tangents)', function(assert) {
+
+                var curve;
+
+                curve = new g.Curve('0 0', '0 200', '200 200', '200 0');
+                assert.equal(curve.isDifferentiable(), true);
+
+                curve = new g.Curve('100 100', '100 100', '100 100', '100 0');
+                assert.equal(curve.isDifferentiable(), true);
+
+                curve = new g.Curve('100 100', '100 100', '100 100', '100 100');
+                assert.equal(curve.isDifferentiable(), false);
             });
         });
 

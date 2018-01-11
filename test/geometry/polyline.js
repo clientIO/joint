@@ -124,6 +124,328 @@ QUnit.module('polyline', function() {
             });
         });
 
+        QUnit.module('closestPoint()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline();
+                assert.equal(polyline.closestPoint(point), null);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.ok(polyline.closestPoint(point) instanceof g.Point);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.ok(polyline.closestPoint(point) instanceof g.Point);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.ok(polyline.closestPoint(point) instanceof g.Point);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.ok(polyline.closestPoint(point) instanceof g.Point);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.ok(polyline.closestPoint(point) instanceof g.Point);
+            });
+
+            QUnit.test('returns point closest to a given point', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPoint(point).toString(), '100@100');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPoint(point).toString(), '100@100');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(polyline.closestPoint(point).toString(), '150@100');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPoint(point).toString(), '150@150');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPoint(point).toString(), '154.45544554455446@105.44554455445544');
+            });
+        });
+
+        QUnit.module('closestPointLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline();
+                assert.equal(typeof polyline.closestPointLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointLength(point), 'number');
+            });
+
+            QUnit.test('returns length closest to a given point', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline();
+                assert.equal(polyline.closestPointLength(point), 0);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPointLength(point), 0);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPointLength(point), 0);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(polyline.closestPointLength(point), 50);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPointLength(point), 70.71067811865476);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPointLength(point), 54.7270454615494);
+            });
+        });
+
+        QUnit.module('closestPointNormalizedLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline();
+                assert.equal(typeof polyline.closestPointNormalizedLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointNormalizedLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointNormalizedLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointNormalizedLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointNormalizedLength(point), 'number');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(typeof polyline.closestPointNormalizedLength(point), 'number');
+            });
+
+            QUnit.test('returns normalized length closest to a given point', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline();
+                assert.equal(polyline.closestPointNormalizedLength(point), 0);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPointNormalizedLength(point), 0);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPointNormalizedLength(point), 0);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(polyline.closestPointNormalizedLength(point), 0.5);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPointNormalizedLength(point), 0.25);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPointNormalizedLength(point), 0.2722772277227723);
+            });
+        });
+
+        QUnit.module('closestPointTangent()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline();
+                assert.equal(polyline.closestPointTangent(point), null);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPointTangent(point), null);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.closestPointTangent(point), null);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.ok(polyline.closestPointTangent(point) instanceof g.Line);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.ok(polyline.closestPointTangent(point) instanceof g.Line);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.ok(polyline.closestPointTangent(point) instanceof g.Line);
+            });
+
+            QUnit.test('returns tangent at point closest to a given point', function(assert) {
+
+                var polyline;
+                var point = new g.Point(150, 150);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(polyline.closestPointTangent(point).toString(), '150@100 250@100');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPointTangent(point).toString(), '150@150 250@250');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 110),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.closestPointTangent(point).toString(), '154.45544554455446@105.44554455445544 254.45544554455446@115.44554455445544');
+            });
+        });
+
         QUnit.module('convexHull()', function(assert) {
 
             QUnit.test('sanity', function(assert) {
@@ -322,6 +644,75 @@ QUnit.module('polyline', function() {
                 polyline1 = new g.Polyline([]);
                 polyline2 = new g.Polyline([]);
                 assert.equal(polyline1.equals(polyline2), true);
+            });
+        });
+
+        QUnit.module('isDifferentiable()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline;
+
+                polyline = new g.Polyline();
+                assert.equal(typeof polyline.isDifferentiable(), 'boolean');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(typeof polyline.isDifferentiable(), 'boolean');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(typeof polyline.isDifferentiable(), 'boolean');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(typeof polyline.isDifferentiable(), 'boolean');
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(typeof polyline.isDifferentiable(), 'boolean');
+            });
+
+            QUnit.test('checks whether the polyline is differentiable (can have tangents)', function(assert) {
+
+                var polyline;
+
+                polyline = new g.Polyline();
+                assert.equal(polyline.isDifferentiable(), false);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.isDifferentiable(), false);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 100)
+                ]);
+                assert.equal(polyline.isDifferentiable(), false);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 100)
+                ]);
+                assert.equal(polyline.isDifferentiable(), true);
+
+                polyline = new g.Polyline([
+                    new g.Point(100, 100),
+                    new g.Point(200, 200),
+                    new g.Point(300, 100)
+                ]);
+                assert.equal(polyline.isDifferentiable(), true);
             });
         });
 

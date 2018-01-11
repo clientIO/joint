@@ -476,7 +476,7 @@ var g = (function() {
             var localOpt = { precision: precision, subdivisions: subdivisions };
 
             var cpLength = this.closestPointLength(p, localOpt);
-            if (!cpLength) return null;
+            if (!cpLength) return 0;
 
             var length = this.length(localOpt);
             if (length === 0) return 0;

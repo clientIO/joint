@@ -91,6 +91,66 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('closestPoint(p)', function() {
+
+            QUnit.test('returns the closest point', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                assert.equal(line.closestPoint(new g.Point(15,0)).toString(), '15@0');
+                assert.equal(line.closestPoint(new g.Point(15,20)).toString(), '15@0');
+                assert.equal(line.closestPoint(new g.Point(15,-20)).toString(), '15@0');
+                assert.equal(line.closestPoint(new g.Point(20,10)).toString(), '20@0');
+                assert.equal(line.closestPoint(new g.Point(0,10)).toString(), '10@0');
+                assert.equal(line.closestPoint(new g.Point(30,10)).toString(), '20@0');
+                assert.equal(line.closestPoint(new g.Point(-10,10)).toString(), '10@0');
+            });
+        });
+
+        QUnit.module('closestPointLength(p)', function() {
+
+            QUnit.test('returns the length of the closest point', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                assert.equal(line.closestPointLength(new g.Point(15,0)), 5);
+                assert.equal(line.closestPointLength(new g.Point(15,20)), 5);
+                assert.equal(line.closestPointLength(new g.Point(15,-20)), 5);
+                assert.equal(line.closestPointLength(new g.Point(20,10)), 10);
+                assert.equal(line.closestPointLength(new g.Point(0,10)), 0);
+                assert.equal(line.closestPointLength(new g.Point(30,10)), 10);
+                assert.equal(line.closestPointLength(new g.Point(-10,10)), 0);
+            });
+        });
+
+        QUnit.module('closestPointNormalizedLength(p)', function() {
+
+            QUnit.test('returns the normalized length of the closest point', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                assert.equal(line.closestPointNormalizedLength(new g.Point(15,0)), 0.5);
+                assert.equal(line.closestPointNormalizedLength(new g.Point(15,20)), 0.5);
+                assert.equal(line.closestPointNormalizedLength(new g.Point(15,-20)), 0.5);
+                assert.equal(line.closestPointNormalizedLength(new g.Point(20,10)), 1);
+                assert.equal(line.closestPointNormalizedLength(new g.Point(0,10)), 0);
+                assert.equal(line.closestPointNormalizedLength(new g.Point(30,10)), 1);
+                assert.equal(line.closestPointNormalizedLength(new g.Point(-10,10)), 0);
+            });
+        });
+
+        QUnit.module('closestPointTangent(p)', function() {
+
+            QUnit.test('returns the tangent to line at the closest point', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                assert.equal(line.closestPointTangent(new g.Point(15,0)).toString(), '15@0 25@0');
+                assert.equal(line.closestPointTangent(new g.Point(15,20)).toString(), '15@0 25@0');
+                assert.equal(line.closestPointTangent(new g.Point(15,-20)).toString(), '15@0 25@0');
+                assert.equal(line.closestPointTangent(new g.Point(20,10)).toString(), '20@0 30@0');
+                assert.equal(line.closestPointTangent(new g.Point(0,10)).toString(), '10@0 20@0');
+                assert.equal(line.closestPointTangent(new g.Point(30,10)).toString(), '20@0 30@0');
+                assert.equal(line.closestPointTangent(new g.Point(-10,10)).toString(), '10@0 20@0');
+            });
+        });
+
         QUnit.module('equals()', function() {
 
             QUnit.test('checks whether two lines are exactly the same', function(assert) {
@@ -217,6 +277,39 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('isDifferentiable()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var line;
+
+                line = new g.Line('0 0', '0 200');
+                assert.equal(typeof line.isDifferentiable(), 'boolean');
+
+                line = new g.Line('100 100', '100 100');
+                assert.equal(typeof line.isDifferentiable(), 'boolean');
+            });
+
+            QUnit.test('checks whether the line is differentiable (can have tangents)', function(assert) {
+
+                var line;
+
+                line = new g.Line('0 0', '0 200');
+                assert.equal(line.isDifferentiable(), true);
+
+                line = new g.Line('100 100', '100 100');
+                assert.equal(line.isDifferentiable(), false);
+            });
+        });
+
+        QUnit.module('length()', function() {
+
+        });
+
+        QUnit.module('midpoint()', function() {
+
+        });
+
         QUnit.module('pointAt()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -265,6 +358,10 @@ QUnit.module('line', function() {
                 assert.equal(line.pointAtLength(-40, { precision: 0 }).toString(), '60@0');
                 assert.equal(line.pointAtLength(-10000).toString(), '0@0');
             });
+        });
+
+        QUnit.module('pointOffset(point)', function() {
+
         });
 
         QUnit.module('rotate()', function() {
@@ -436,6 +533,10 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('squaredLength()', function() {
+
+        });
+
         QUnit.module('tangentAt()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -529,52 +630,6 @@ QUnit.module('line', function() {
                 line = new g.Line('20 30', '10 10');
                 assert.equal(line.vector().toString(), '-10@-20');
             });
-
-        });
-
-        QUnit.module('closestPointNormalizedLength(p)', function() {
-
-            QUnit.test('returns the normalized length of the closest point', function(assert) {
-
-                var line = new g.Line('10 0', '20 0');
-                assert.equal(line.closestPointNormalizedLength(new g.Point(15,0)), 0.5);
-                assert.equal(line.closestPointNormalizedLength(new g.Point(15,20)), 0.5);
-                assert.equal(line.closestPointNormalizedLength(new g.Point(15,-20)), 0.5);
-                assert.equal(line.closestPointNormalizedLength(new g.Point(20,10)), 1);
-                assert.equal(line.closestPointNormalizedLength(new g.Point(0,10)), 0);
-                assert.equal(line.closestPointNormalizedLength(new g.Point(30,10)), 1);
-                assert.equal(line.closestPointNormalizedLength(new g.Point(-10,10)), 0);
-            });
-        });
-
-        QUnit.module('closestPoint(p)', function() {
-
-            QUnit.test('returns the the closest point', function(assert) {
-
-                var line = new g.Line('10 0', '20 0');
-                assert.equal(line.closestPoint(new g.Point(15,0)).toString(), '15@0');
-                assert.equal(line.closestPoint(new g.Point(15,20)).toString(), '15@0');
-                assert.equal(line.closestPoint(new g.Point(15,-20)).toString(), '15@0');
-                assert.equal(line.closestPoint(new g.Point(20,10)).toString(), '20@0');
-                assert.equal(line.closestPoint(new g.Point(0,10)).toString(), '10@0');
-                assert.equal(line.closestPoint(new g.Point(30,10)).toString(), '20@0');
-                assert.equal(line.closestPoint(new g.Point(-10,10)).toString(), '10@0');
-            });
-        });
-
-        QUnit.module('length()', function() {
-
-        });
-
-        QUnit.module('midpoint()', function() {
-
-        });
-
-        QUnit.module('pointOffset(point)', function() {
-
-        });
-
-        QUnit.module('squaredLength()', function() {
 
         });
 
