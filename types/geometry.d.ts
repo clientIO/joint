@@ -308,9 +308,9 @@ export namespace g {
 
         closestPoint(p: Point, opt?: SegmentSubdivisionsOpt): Point | null;
 
-        closestPointLength(p: Point, opt?: SegmentSubdivisionsOpt): number | null;
+        closestPointLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
 
-        closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number | null;
+        closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
 
         closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
 
@@ -322,6 +322,8 @@ export namespace g {
 
         insertSegment(index: number, segment: Segment): void;
         insertSegment(index: number, segments: Segment[]): void;
+
+        isDifferentiable(): boolean;
 
         isValid(): boolean;
 
@@ -465,15 +467,17 @@ export namespace g {
 
         closestPoint(p: PlainPoint | string): Point | null;
 
-        closestPointLength(p: PlainPoint | string): number | null;
+        closestPointLength(p: PlainPoint | string): number;
 
-        closestPointNormalizedLength(p: PlainPoint | string): number | null;
+        closestPointNormalizedLength(p: PlainPoint | string): number;
 
         closestPointTangent(p: PlainPoint | string): Line | null;
 
         convexHull(): Polyline;
 
         equals(p: Polyline): boolean;
+
+        isDifferentiable(): boolean;
 
         length(): number;
 

@@ -461,22 +461,24 @@ var g = (function() {
         closestPointLength: function(p, opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
 
-            return this.lengthAtT(this.closestPointT(p, opt), opt);
+            return this.lengthAtT(this.closestPointT(p, localOpt), localOpt);
         },
 
         closestPointNormalizedLength: function(p, opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
 
-            var cpLength = this.closestPointLength(p, opt);
+            var cpLength = this.closestPointLength(p, localOpt);
             if (!cpLength) return null;
 
-            var length = this.length(opt);
+            var length = this.length(localOpt);
             if (length === 0) return 0;
 
             return cpLength / length;
@@ -486,11 +488,9 @@ var g = (function() {
         closestPointT: function(p, opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
-
-            var precision = opt.precision;
-            var subdivisions = opt.subdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // does not use localOpt
 
             // identify the subdivision that contains the point:
             var investigatedSubdivision;
@@ -699,12 +699,11 @@ var g = (function() {
         getSubdivisions: function(opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
             // not using opt.subdivisions
+            // not using localOpt
 
             var subdivisions = [new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
-
-            var precision = opt.precision;
             if (precision === 0) return subdivisions;
 
             var previousLength = this.endpointDistance();
@@ -766,10 +765,9 @@ var g = (function() {
         length: function(opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
-
-            var subdivisions = opt.subdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSubdivisions() call
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // not using localOpt
 
             var length = 0;
             var n = subdivisions.length;
@@ -788,10 +786,9 @@ var g = (function() {
             if (t <= 0) return 0;
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-
-            var precision = opt.precision;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
             // not using opt.subdivisions
+            // not using localOpt
 
             var subCurve = this.divide(t)[0];
             var subCurveLength = subCurve.length({ precision: precision });
@@ -895,13 +892,14 @@ var g = (function() {
             if (ratio >= 1) return 1;
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
 
-            var curveLength = this.length(opt);
+            var curveLength = this.length(localOpt);
             var length = curveLength * ratio;
 
-            return this.tAtLength(length, opt);
+            return this.tAtLength(length, localOpt);
         },
 
         // Returns `t` at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
@@ -922,11 +920,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
-
-            var precision = opt.precision;
-            var subdivisions = opt.subdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
 
             // identify the subdivision that contains the point at requested `length`:
             var investigatedSubdivision;
@@ -964,7 +960,7 @@ var g = (function() {
             // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
             // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return 1
 
-            var curveLength = this.length(opt);
+            var curveLength = this.length(localOpt);
 
             var precisionRatio = pow(10, -precision);
 
@@ -1027,10 +1023,9 @@ var g = (function() {
         toPoints: function(opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.subdivisions = opt.subdivisions || this.getSubdivisions(opt);
-
-            var subdivisions = opt.subdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSubdivisions() call
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // not using localOpt
 
             var points = [subdivisions[0].start.clone()];
             var n = subdivisions.length;
@@ -1737,26 +1732,28 @@ var g = (function() {
         closestPointLength: function(p, opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var t = this.closestPointT(p, opt);
-            if (!t) return null;
+            var t = this.closestPointT(p, localOpt);
+            if (!t) return 0;
 
-            return this.lengthAtT(t, opt);
+            return this.lengthAtT(t, localOpt);
         },
 
         closestPointNormalizedLength: function(p, opt) {
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var cpLength = this.closestPointLength(p, opt);
-            if (!cpLength) return null;
+            var cpLength = this.closestPointLength(p, localOpt);
+            if (cpLength === 0) return 0; // shortcut
 
-            var length = this.length(opt);
-            if (length === 0) return 0;
+            var length = this.length(localOpt);
+            if (length === 0) return 0; // prevents division by zero
 
             return cpLength / length;
         },
@@ -1769,11 +1766,9 @@ var g = (function() {
             if (numSegments === 0) return null; // if segments is an empty array
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
-
-            var precision = opt.precision;
-            var segmentSubdivisions = opt.segmentSubdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var closestPointT;
             var minSquaredDistance = Infinity;
@@ -1787,7 +1782,10 @@ var g = (function() {
                     var segmentClosestPoint = segment.pointAtT(segmentClosestPointT);
                     var squaredDistance = (new Line(segmentClosestPoint, p)).squaredLength();
 
-                    if (squaredDistance < minSquaredDistance) closestPointT = { segmentIndex: i, value: segmentClosestPointT };
+                    if (squaredDistance < minSquaredDistance) {
+                        closestPointT = { segmentIndex: i, value: segmentClosestPointT };
+                        minSquaredDistance = squaredDistance;
+                    }
                 }
             }
 
@@ -1799,10 +1797,38 @@ var g = (function() {
 
         closestPointTangent: function(p, opt) {
 
-            var t = this.closestPointT(p, opt);
-            if (!t) return null;
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
 
-            return this.tangentAtT(t);
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var closestPointTangent;
+            var minSquaredDistance = Infinity;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+
+                if (segment.isDifferentiable()) {
+                    var segmentClosestPointT = segment.closestPointT(p, { precision: precision, subdivisions: subdivisions });
+                    var segmentClosestPoint = segment.pointAtT(segmentClosestPointT);
+                    var squaredDistance = (new Line(segmentClosestPoint, p)).squaredLength();
+
+                    if (squaredDistance < minSquaredDistance) {
+                        closestPointTangent = segment.tangentAtT(segmentClosestPointT);
+                        minSquaredDistance = squaredDistance;
+                    }
+                }
+            }
+
+            if (closestPointTangent) return closestPointTangent;
+
+            // if no valid segment, return null
+            return null;
         },
 
         // Checks whether two paths are exactly the same.
@@ -1853,14 +1879,15 @@ var g = (function() {
             // works even if path has no segments
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            // does not use opt.segmentSubdivisions
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.segmentSubdivisions
+            // not using localOpt
 
             var segmentSubdivisions = [];
             for (var i = 0; i < numSegments; i++) {
 
                 var segment = segments[i];
-                var subdivisions = segment.getSubdivisions(opt);
+                var subdivisions = segment.getSubdivisions({ precision: precision });
                 segmentSubdivisions.push(subdivisions);
             }
 
@@ -1921,6 +1948,22 @@ var g = (function() {
             }
         },
 
+        isDifferentiable: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                // as soon as a differentiable segment is found in segments, return true
+                if (segment.isDifferentiable()) return true;
+            }
+
+            // if no differentiable segment is found in segments, return false
+            return false;
+        },
+
         // Checks whether current path segments are valid.
         // Note that d is allowed to be empty - should disable rendering of the path.
         isValid: function() {
@@ -1939,10 +1982,9 @@ var g = (function() {
             if (numSegments === 0) return 0; // if segments is an empty array
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
-
-            var segmentSubdivisions = opt.segmentSubdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSegmentSubdivisions() call
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var length = 0;
             for (var i = 0; i < numSegments; i++) {
@@ -1972,21 +2014,21 @@ var g = (function() {
             else if (t.value > 1) t.value = 1;
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
-            var precision = opt.precision;
-            var segmentSubdivisions = opt.segmentSubdivisions;
-
+            var subdivisions;
             var length = 0;
             for (var i = 0; i < t.segmentIndex; i++) {
 
                 var segment = segments[i];
-                var subdivisions = segmentSubdivisions[i];
+                subdivisions = segmentSubdivisions[i];
                 length += segment.length({ precisison: precision, subdivisions: subdivisions });
             }
 
             segment = segments[t.segmentIndex];
+            subdivisions = segmentSubdivisions[t.segmentIndex];
             length += segment.lengthAtT(t.value, { precisison: precision, subdivisions: subdivisions });
 
             return length;
@@ -2003,13 +2045,14 @@ var g = (function() {
             if (ratio >= 1) return this.end.clone();
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var pathLength = this.length(opt);
+            var pathLength = this.length(localOpt);
             var length = pathLength * ratio;
 
-            return this.pointAtLength(length, opt);
+            return this.pointAtLength(length, localOpt);
         },
 
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -2029,11 +2072,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
-
-            var precision = opt.precision;
-            var segmentSubdivisions = opt.segmentSubdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var lastVisibleSegment;
             var l = 0; // length so far
@@ -2220,13 +2261,14 @@ var g = (function() {
             if (ratio > 1) ratio = 1;
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var pathLength = this.length(opt);
+            var pathLength = this.length(localOpt);
             var length = pathLength * ratio;
 
-            return this.segmentIndexAtLength(length, opt);
+            return this.segmentIndexAtLength(length, localOpt);
         },
 
         // Accepts negative length.
@@ -2243,11 +2285,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
-
-            var precision = opt.precision;
-            var segmentSubdivisions = opt.segmentSubdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var lastVisibleSegmentIndex = null;
             var l = 0; // length so far
@@ -2281,13 +2321,14 @@ var g = (function() {
             if (ratio > 1) ratio = 1;
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var pathLength = this.length(opt);
+            var pathLength = this.length(localOpt);
             var length = pathLength * ratio;
 
-            return this.tangentAtLength(length, opt);
+            return this.tangentAtLength(length, localOpt);
         },
 
         // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -2305,11 +2346,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            if (opt.precision !== 0) opt.precision = opt.precision || this.PRECISION; // assign PRECISION if precision undefined
-            opt.segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions(opt);
-
-            var precision = opt.precision;
-            var segmentSubdivisions = opt.segmentSubdivisions;
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
             var l = 0; // length so far
@@ -3274,7 +3313,6 @@ var g = (function() {
         closestPoint: function(p) {
 
             var cpLength = this.closestPointLength(p);
-            if (!cpLength) return null;
 
             return this.pointAtLength(cpLength);
         },
@@ -3283,7 +3321,7 @@ var g = (function() {
 
             var points = this.points;
             var numPoints = points.length;
-            if (numPoints === 0) return null; // if points array is empty
+            if (numPoints === 0) return 0; // if points array is empty
             if (numPoints === 1) return 0; // if there is only one point
 
             var cpLength;
@@ -3313,10 +3351,10 @@ var g = (function() {
         closestPointNormalizedLength: function(p) {
 
             var cpLength = this.closestPointLength(p);
-            if (!cpLength) return null;
+            if (cpLength === 0) return 0; // shortcut
 
             var length = this.length();
-            if (length === 0) return 0;
+            if (length === 0) return 0; // prevents division by zero
 
             return cpLength / length;
         },
@@ -3324,7 +3362,6 @@ var g = (function() {
         closestPointTangent: function(p) {
 
             var cpLength = this.closestPointLength(p);
-            if (!cpLength) return null;
 
             return this.tangentAtLength(cpLength);
         },
@@ -3565,6 +3602,27 @@ var g = (function() {
             return true;
         },
 
+        isDifferentiable: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return false;
+
+            var n = numPoints - 1
+            for (var i = 0; i < n; i++) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+
+                // as soon as a differentiable line is found between two points, return true
+                if (line.isDifferentiable()) return true;
+            }
+
+            // if no differentiable line is found between pairs of points, return false
+            return false;
+        },
+
         length: function() {
 
             var points = this.points;
@@ -3609,9 +3667,6 @@ var g = (function() {
                 length = -length; // absolute value
             }
 
-            var polylineLength = this.length();
-            if (length >= polylineLength) return (fromStart ? points[numPoints - 1].clone() : points[0].clone());
-
             var l = 0;
             var n = numPoints - 1;
             for (var i = (fromStart ? 0 : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
@@ -3627,6 +3682,10 @@ var g = (function() {
 
                 l += d;
             }
+
+            // if length requested is higher than the length of the polyline, return last endpoint
+            var lastPoint = (fromStart ? points[numPoints - 1] : points[0]);
+            return lastPoint.clone();
         },
 
         scale: function(sx, sy, origin) {
@@ -3907,7 +3966,7 @@ var g = (function() {
     // Path segment interface:
     var segmentPrototype = {
 
-        // Redirects call to closestPointNormalizedLength() function if closestPointT() not defined for segment.
+        // Redirect calls to closestPointNormalizedLength() function if closestPointT() is not defined for segment.
         closestPointT: function(p) {
 
             if (this.closestPointNormalizedLength) return this.closestPointNormalizedLength(p);
@@ -3923,7 +3982,7 @@ var g = (function() {
 
         nextSegment: null, // needed for subpath start segment updating
 
-        // Return a fraction of result of length() function if lengthAtT() not defined for segment.
+        // Return a fraction of result of length() function if lengthAtT() is not defined for segment.
         lengthAtT: function(t) {
 
             if (t <= 0) return 0;
@@ -3935,7 +3994,7 @@ var g = (function() {
             return length * t;
         },
 
-        // Redirects call to pointAt() function if pointAtT() not defined for segment.
+        // Redirect calls to pointAt() function if pointAtT() is not defined for segment.
         pointAtT: function(t) {
 
             if (this.pointAt) return this.pointAt(t);
@@ -3947,7 +4006,7 @@ var g = (function() {
 
         subpathStartSegment: null, // needed to get closepath segment end property
 
-        // Redirects call to tangentAt() function if tangentAtT() not defined for segment.
+        // Redirect calls to tangentAt() function if tangentAtT() is not defined for segment.
         tangentAtT: function(t) {
 
             if (this.tangentAt) return this.tangentAt(t);
