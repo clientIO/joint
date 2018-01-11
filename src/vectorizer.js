@@ -420,7 +420,50 @@ V = Vectorizer = (function() {
             }
             lineNode.appendChild(tspanNode);
         }
-        return maxFontSize;
+
+        var fontMetrics = {};
+        if (maxFontSize) {
+            fontMetrics.maxFontSize = maxFontSize;
+            fontMetrics.lineHeight = (maxFontSize * 1.2);
+        }
+        return fontMetrics;
+    }
+
+    var emRegex = /em$/;
+
+    function convertEmToPx(em, fontSize) {
+        var numerical = parseFloat(em);
+        if (emRegex.test(em)) return numerical * fontSize;
+        return numerical;
+    }
+
+    function calculateDY(alignment, linesMetrics, fontSize, lineHeight) {
+        if (!Array.isArray(linesMetrics)) return 0;
+        var n = linesMetrics.length;
+        if (!n) return 0;
+        var lineMetrics = linesMetrics[0];
+        var flMaxFont = convertEmToPx(lineMetrics.maxFontSize, fontSize) || fontSize;
+        var rLineHeights = 0;
+        var lineHeightPx = convertEmToPx(lineHeight, fontSize);
+        for (var i = 1; i < n; i++) {
+            lineMetrics = linesMetrics[i];
+            rLineHeights += convertEmToPx(lineMetrics.lineHeight, fontSize) || lineHeightPx;
+        }
+        var llMaxFont = convertEmToPx(lineMetrics.maxFontSize, fontSize) || fontSize;
+        var dy;
+        switch (alignment) {
+            case 'middle':
+                dy = (0.3 * flMaxFont) - (rLineHeights / 2);
+                break;
+            case 'bottom':
+                dy = -(0.3 * llMaxFont) - rLineHeights;
+                break;
+            default:
+            case 'top':
+                dy = (0.8 * flMaxFont)
+                break;
+        }
+        return dy;
     }
 
     VPrototype.text = function(content, opt) {
@@ -437,8 +480,7 @@ V = Vectorizer = (function() {
         // Text along path
         var textPath = opt.textPath
         // Vertical shift
-        var yAlignment = opt.dy;
-        if (yAlignment === 0) yAlignment = '0';
+        var yAlignment = opt.textAlign;
         // Horizontal shift applied to all the lines but the first.
         var x = opt.x;
         if (x === undefined) x = this.attr('x') || 0;
@@ -459,12 +501,11 @@ V = Vectorizer = (function() {
         } else {
             containerNode = doc.createDocumentFragment();
         }
-
         var offset = 0;
         var lines = content.split('\n');
+        var linesMetrics = [];
         for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
             var dy = lineHeight;
-            var maxFontSize = 0;
             var lineClassName = 'v-line';
             var lineNode = doc.createElementNS(V.namespace.xmlns, 'tspan');
             var line = lines[i];
@@ -475,12 +516,14 @@ V = Vectorizer = (function() {
                         offset: -offset,
                         includeAnnotationIndices: iai
                     });
-                    maxFontSize = annotateTextLine(lineNode, lineAnnotations, {
+                    var lineMetrics = annotateTextLine(lineNode, lineAnnotations, {
                         includeAnnotationIndices: iai,
                         eol: (i !== lastI && eol)
                     });
                     // Get the line height based on the biggest font size in the annotations for this line.
-                    if (maxFontSize && defaultLineHeight === 'auto' && i !== 0) dy = (maxFontSize * 1.2) + 'px';
+                    var iLineHeight = lineMetrics.lineHeight;
+                    if (iLineHeight && defaultLineHeight === 'auto' && i !== 0) dy = iLineHeight;
+                    linesMetrics.push(lineMetrics);
                 } else {
                     if (eol && i !== lastI) line += eol;
                     lineNode.textContent = line;
@@ -496,18 +539,55 @@ V = Vectorizer = (function() {
                 var lineNodeStyle = lineNode.style;
                 lineNodeStyle.fillOpacity = 0;
                 lineNodeStyle.strokeOpacity = 0;
+                if (annotations) linesMetrics.push({});
             }
-            if (i === 0) {
-                dy = yAlignment || maxFontSize || '0.8em';
-            } else {
+
+            if (i > 0) {
                 lineNode.setAttribute('x', x);
+                lineNode.setAttribute('dy', dy);
             }
-            lineNode.setAttribute('dy', dy);
             lineNode.className.baseVal = lineClassName;
             containerNode.appendChild(lineNode);
             offset += line.length + 1;      // + 1 = newline character.
         }
-
+        // Y Alignment calculation
+        var fontSize;
+        if (yAlignment === 'middle' || yAlignment === 'bottom' || yAlignment === 'top') {
+            if (annotations) {
+                fontSize = parseFloat(this.attr('font-size'));
+                if (!fontSize) throw new Error('Vectorizer: text() font-size required when annotations and alignment "' + yAlignment + '" in use.');
+                dy = calculateDY(yAlignment, linesMetrics, fontSize, lineHeight);
+            } else if (yAlignment === 'top') {
+                // A shortcut for top alignment. It does not depend on font-size nor line-height
+                dy = '0.8em';
+            } else {
+                var rh; // remaining height
+                if (lastI > 0) {
+                    rh = parseFloat(lineHeight) || 1;
+                    if (!emRegex.test(lineHeight)) {
+                        fontSize = parseFloat(this.attr('font-size'));
+                        if (!fontSize) throw new Error('Vectorizer: text() font-size required when line-height not in "em" and alignment "' + yAlignment + '" in use.');
+                        rh /= fontSize;
+                    }
+                    rh *= lastI;
+                } else {
+                    // Single-line text
+                    rh = 0;
+                }
+                switch (yAlignment) {
+                    case 'middle':
+                        dy = (0.3 - (rh / 2)) + 'em'
+                        break;
+                    case 'bottom':
+                        dy = (-rh - 0.3) + 'em'
+                        break;
+                }
+            }
+        } else {
+            dy = (yAlignment === 0) ? '0em' : (yAlignment || '0.8em');
+        }
+        containerNode.firstChild.setAttribute('dy', dy);
+        // Appending lines to the element.
         this.empty();
         this.attr({
             // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
@@ -518,7 +598,6 @@ V = Vectorizer = (function() {
             'display': (content) ? null : 'none'
         });
         this.append(containerNode);
-
         return this;
     };
 
