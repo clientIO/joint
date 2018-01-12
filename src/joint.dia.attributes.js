@@ -248,7 +248,7 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textAlign', 'eol');
+                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'verticalAlign', 'eol');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -330,7 +330,7 @@
             qualify: isTextInUse
         },
 
-        textAlign: {
+        verticalAlign: {
             qualify: isTextInUse
         },
 
