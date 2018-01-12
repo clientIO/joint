@@ -161,7 +161,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseenter .joint-cell': 'cellMouseenter',
         'mouseleave .joint-cell': 'cellMouseleave',
         'mousedown .joint-cell [event]': 'cellEvent',
-        'touchstart .joint-cell [event]': 'cellEvent'
+        'touchstart .joint-cell [event]': 'cellEvent',
+        'dragstart .joint-cell image': 'onImageDragStart'
     },
 
     _highlights: {},
@@ -628,11 +629,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         view.paper = this;
         view.render();
 
+        return view;
+    },
+
+    onImageDragStart: function() {
         // This is the only way to prevent image dragging in Firefox that works.
         // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
-        $(view.el).find('image').on('dragstart', function() { return false; });
-
-        return view;
+        return false;
     },
 
     beforeRenderViews: function(cells) {
