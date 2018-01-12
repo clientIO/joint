@@ -35,17 +35,23 @@ export namespace g {
         segmentSubdivisions?: Curve[][];
     }
 
+    export interface PathT {
+
+        segmentIndex: number;
+        value: number;
+    }
+
     export interface Segment {
 
+        type: SegmentType;
+
         isSegment: boolean;
+        isSubpathStart: boolean;
+        isVisible: boolean;
+
         nextSegment: Segment | null;
         previousSegment: Segment | null;
         subpathStartSegment: Segment | null;
-
-        isInvisible?: boolean;
-        isSubpathStart?: boolean;
-
-        type: SegmentType;
 
         start: Point | null | never; // getter, `never` for Moveto
         end: Point | null; // getter or directly assigned
@@ -54,21 +60,39 @@ export namespace g {
 
         clone(): Segment;
 
+        closestPoint(p: Point, opt?: SubdivisionsOpt): Point;
+
+        closestPointLength(p: Point, opt?: SubdivisionsOpt): number;
+
+        closestPointNormalizedLength(p: Point, opt?: SubdivisionsOpt): number;
+
+        closestPointT(p: Point): number;
+
+        closestPointTangent(p: Point): Line | null;
+
         equals(segment: Segment): boolean;
 
         getSubdivisions(): Curve[];
 
+        isDifferentiable(): boolean;
+
         length(): number;
 
-        pointAt(t?: number): Point;
+        lengthAtT(t: number, opt?: PrecisionOpt): number;
 
-        pointAtLength(length?: number): Point;
+        pointAt(ratio: number): Point;
+
+        pointAtLength(length: number): Point;
+
+        pointAtT(t: number): Point;
 
         scale(sx: number, sy: number, origin?: PlainPoint): this;
 
-        tangentAt(t?: number): Line | null;
+        tangentAt(ratio: number): Line | null;
 
-        tangentAtLength(length?: number): Line | null;
+        tangentAtLength(length: number): Line | null;
+
+        tangentAtT(t: number): Line | null;
 
         translate(tx?: number, ty?: number): this;
         translate(tx: PlainPoint): this;
@@ -113,7 +137,13 @@ export namespace g {
 
         closestPoint(p: PlainPoint, opt?: SubdivisionsOpt): Point;
 
+        closestPointLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
+        closestPointNormalizedLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
         closestPointT(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
+        closestPointTangent(p: PlainPoint, opt?: SubdivisionsOpt): Line | null;
 
         divide(t: number): [Curve, Curve];
 
@@ -124,6 +154,8 @@ export namespace g {
         getSkeletonPoints(t: number): [Point, Point, Point, Point, Point];
 
         getSubdivisions(opt?: PrecisionOpt): Curve[];
+
+        isDifferentiable(): boolean;
 
         length(opt?: SubdivisionsOpt): number;
 
@@ -147,14 +179,14 @@ export namespace g {
 
         tAtLength(length: number, opt?: SubdivisionsOpt): number;
 
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
         toPoints(opt?: SubdivisionsOpt): Point[];
 
         toPolyline(opt?: SubdivisionsOpt): Polyline;
 
         toString(): string;
-
-        translate(tx?: number, ty?: number): this;
-        translate(tx: PlainPoint): this;
 
         static throughPoints(points: PlainPoint[]): Curve[];
     }
@@ -206,10 +238,20 @@ export namespace g {
 
         clone(): Line;
 
+        closestPoint(p: PlainPoint | string): Point;
+
+        closestPointLength(p: PlainPoint | string): number;
+
+        closestPointNormalizedLength(p: PlainPoint | string): number;
+
+        closestPointTangent(p: PlainPoint | string): Line | null;
+
         equals(line: Line): boolean;
 
         intersect(line: Line): Point | null;
         intersect(rect: Rect): Point[] | null;
+
+        isDifferentiable(): boolean;
 
         length(): number;
 
@@ -227,6 +269,8 @@ export namespace g {
 
         scale(sx: number, sy: number, origin?: PlainPoint): this;
 
+        squaredLength(): number;
+
         tangentAt(t: number): Line | null;
 
         tangentAtLength(length: number): Line | null;
@@ -235,12 +279,6 @@ export namespace g {
         translate(tx: PlainPoint): this;
 
         vector(): Point;
-
-        closestPoint(p: PlainPoint | string): Point;
-
-        closestPointNormalizedLength(p: PlainPoint | string): number;
-
-        squaredLength(): number;
 
         toString(): string;
     }
@@ -268,6 +306,14 @@ export namespace g {
 
         clone(): Path;
 
+        closestPoint(p: Point, opt?: SegmentSubdivisionsOpt): Point | null;
+
+        closestPointLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
+
+        closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
+
+        closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
+
         equals(p: Path): boolean;
 
         getSegment(index: number): Segment | null;
@@ -276,6 +322,8 @@ export namespace g {
 
         insertSegment(index: number, segment: Segment): void;
         insertSegment(index: number, segments: Segment[]): void;
+
+        isDifferentiable(): boolean;
 
         isValid(): boolean;
 
@@ -310,6 +358,14 @@ export namespace g {
         serialize(): string;
 
         toString(): string;
+
+        private closestPointT(p: Point, opt?: SegmentSubdivisionsOpt): PathT | null;
+
+        private lengthAtT(t: PathT, opt?: SegmentSubdivisionsOpt): number;
+
+        private pointAtT(t: PathT): Point | null;
+
+        private tangentAtT(t: PathT): Line | null;
 
         private prepareSegment(segment: Segment, previousSegment?: Segment | null, nextSegment?: Segment | null): Segment;
 
@@ -409,9 +465,19 @@ export namespace g {
 
         clone(): Polyline;
 
+        closestPoint(p: PlainPoint | string): Point | null;
+
+        closestPointLength(p: PlainPoint | string): number;
+
+        closestPointNormalizedLength(p: PlainPoint | string): number;
+
+        closestPointTangent(p: PlainPoint | string): Line | null;
+
         convexHull(): Polyline;
 
         equals(p: Polyline): boolean;
+
+        isDifferentiable(): boolean;
 
         length(): number;
 
@@ -427,10 +493,6 @@ export namespace g {
 
         translate(tx?: number, ty?: number): this;
         translate(tx: PlainPoint): this;
-
-        closestPoint(p: PlainPoint | string): Point;
-
-        closestPointLength(p: PlainPoint | string): Point;
 
         serialize(): string;
 

@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>path.closestPoint(point [, opt])</code></pre>
+<p>Return the point on the path that lies closest to <code>point</code>.</p>
+
+<p>Invisible segments (e.g. Moveto segments) have no length and are therefore skipped by the algorithm. If the path contains no visible segments, the <code>end</code> point of the last segment is returned. If the path has no segments at all, <code>null</code> is returned.</p>
+
+<p>The function uses the same algorithm as the <code>path.closestPointLength()</code> <a href="geometry.html#g.path.prototype.closestPointLength">function</a>. It finds a visible segment whose identified closest point lies at the lowest distance from <code>point</code>.</p>
+
+<p>The <code>opt</code> argument is optional. Two properties may be specified, <code>opt.precision</code> and <code>opt.segmentSubdivisions</code>, which determine maximum error allowed in segment <code>closestPoint</code> calculations for curved segments (default precision is 3; this corresponds to maximum observed error of 0.1%). The <code>opt.segmentSubdivisions</code> property is an array of individual segments' <a href="geometry.html#g.curve.prototype.getSubdivisions">subdivision arrays</a>. The <code>path.getSegmentSubdivisions()</code> <a href="geometry.html#g.path.prototype.getSegmentSubdivisions">function</a> may be used to obtain the <code>segmentSubdivisions</code> array. The <code>opt.precision</code> property is still necessary, however; it determines the precision of the point search algorithm in curved segments.</p>

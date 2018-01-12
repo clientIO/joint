@@ -858,6 +858,341 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('closestPoint()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100); // closest to Moveto
+                assert.ok(path.closestPoint(point) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 0 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 1 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 2 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 3 }) instanceof g.Point);
+
+                point = new g.Point(150, 100); // equidistant from two segments
+                assert.ok(path.closestPoint(point) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 0 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 1 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 2 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 3 }) instanceof g.Point);
+
+                point = new g.Point(130, -200); // aribitrary point closest to last segment
+                assert.ok(path.closestPoint(point) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 0 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 1 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 2 }) instanceof g.Point);
+                assert.ok(path.closestPoint(point, { precision: 3 }) instanceof g.Point);
+            });
+
+            QUnit.test('returns point closest to a given point up to precision', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(path.closestPoint(point).toString(), '100@100');
+                assert.equal(path.closestPoint(point, { precision: 0 }).toString(), '100@100');
+                assert.equal(path.closestPoint(point, { precision: 1 }).toString(), '100@100');
+                assert.equal(path.closestPoint(point, { precision: 2 }).toString(), '100@100');
+                assert.equal(path.closestPoint(point, { precision: 3 }).toString(), '100@100');
+
+                point = new g.Point(150, 100);
+                assert.equal(path.closestPoint(point).toString(), '110@120');
+                assert.equal(path.closestPoint(point, { precision: 0 }).toString(), '110@120');
+                assert.equal(path.closestPoint(point, { precision: 1 }).toString(), '110@120');
+                assert.equal(path.closestPoint(point, { precision: 2 }).toString(), '110@120');
+                assert.equal(path.closestPoint(point, { precision: 3 }).toString(), '110@120');
+
+                point = new g.Point(130, -200);
+                assert.equal(path.closestPoint(point).toString(), '147.65701293945312@-124.7802734375');
+                assert.equal(path.closestPoint(point, { precision: 0 }).toString(), '100@100');
+                assert.equal(path.closestPoint(point, { precision: 1 }).toString(), '150@-125');
+                assert.equal(path.closestPoint(point, { precision: 2 }).toString(), '145.318603515625@-124.12109375');
+                assert.equal(path.closestPoint(point, { precision: 3 }).toString(), '147.65701293945312@-124.7802734375');
+            });
+        });
+
+        QUnit.module('closestPointLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(typeof path.closestPointLength(point), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 3 }), 'number');
+
+                point = new g.Point(150, 100);
+                assert.equal(typeof path.closestPointLength(point), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 3 }), 'number');
+
+                point = new g.Point(130, -200);
+                assert.equal(typeof path.closestPointLength(point), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof path.closestPointLength(point, { precision: 3 }), 'number');
+            });
+
+            QUnit.test('returns length closest to a given point up to precision', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(path.closestPointLength(point), 0);
+                assert.equal(path.closestPointLength(point, { precision: 0 }), 0);
+                assert.equal(path.closestPointLength(point, { precision: 1 }), 0);
+                assert.equal(path.closestPointLength(point, { precision: 2 }), 0);
+                assert.equal(path.closestPointLength(point, { precision: 3 }), 0);
+
+                point = new g.Point(150, 100);
+                assert.equal(path.closestPointLength(point), 22.360679774997898);
+                assert.equal(path.closestPointLength(point, { precision: 0 }), 22.360679774997898);
+                assert.equal(path.closestPointLength(point, { precision: 1 }), 22.360679774997898);
+                assert.equal(path.closestPointLength(point, { precision: 2 }), 22.360679774997898);
+                assert.equal(path.closestPointLength(point, { precision: 3 }), 22.360679774997898);
+
+                point = new g.Point(130, -200);
+                assert.equal(path.closestPointLength(point), 465.192182312319);
+                assert.equal(path.closestPointLength(point, { precision: 0 }), 0);
+                assert.equal(path.closestPointLength(point, { precision: 1 }), 462.84042498930154);
+                assert.equal(path.closestPointLength(point, { precision: 2 }), 467.61976852516966);
+                assert.equal(path.closestPointLength(point, { precision: 3 }), 465.192182312319);
+            });
+        });
+
+        QUnit.module('closestPointNormalizedLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(typeof path.closestPointNormalizedLength(point), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 3 }), 'number');
+
+                point = new g.Point(150, 100);
+                assert.equal(typeof path.closestPointNormalizedLength(point), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 3 }), 'number');
+
+                point = new g.Point(130, -200);
+                assert.equal(typeof path.closestPointNormalizedLength(point), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 0 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 1 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 2 }), 'number');
+                assert.equal(typeof path.closestPointNormalizedLength(point, { precision: 3 }), 'number');
+            });
+
+            QUnit.test('returns normalized length closest to a given point up to precision', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(path.closestPointNormalizedLength(point), 0);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 0 }), 0);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 1 }), 0);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 2 }), 0);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 3 }), 0);
+
+                point = new g.Point(150, 100);
+                assert.equal(path.closestPointNormalizedLength(point), 0.03184946047217872);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 0 }), 0.06909830056250527);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 1 }), 0.032201701139867325);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 2 }), 0.031877217183882096);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 3 }), 0.03184946047217872);
+
+                point = new g.Point(130, -200);
+                assert.equal(path.closestPointNormalizedLength(point), 0.6625970306631321);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 0 }), 0);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 1 }), 0.6665382801832137);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 2 }), 0.6666352307151587);
+                assert.equal(path.closestPointNormalizedLength(point, { precision: 3 }), 0.6625970306631321);
+            });
+        });
+
+        QUnit.module('closestPointT()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(typeof path.closestPointT(point), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 0 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 1 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 2 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 3 }), 'object');
+
+                point = new g.Point(150, 100);
+                assert.equal(typeof path.closestPointT(point), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 0 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 1 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 2 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 3 }), 'object');
+
+                point = new g.Point(130, -200);
+                assert.equal(typeof path.closestPointT(point), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 0 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 1 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 2 }), 'object');
+                assert.equal(typeof path.closestPointT(point, { precision: 3 }), 'object');
+            });
+
+            QUnit.test('returns t closest to a given point up to precision', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.deepEqual(path.closestPointT(point), { segmentIndex: 1, value: 0 });
+                assert.deepEqual(path.closestPointT(point, { precision: 0 }), { segmentIndex: 1, value: 0 });
+                assert.deepEqual(path.closestPointT(point, { precision: 1 }), { segmentIndex: 1, value: 0 });
+                assert.deepEqual(path.closestPointT(point, { precision: 2 }), { segmentIndex: 1, value: 0 });
+                assert.deepEqual(path.closestPointT(point, { precision: 3 }), { segmentIndex: 1, value: 0 });
+
+                point = new g.Point(150, 100);
+                assert.deepEqual(path.closestPointT(point), { segmentIndex: 1, value: 0.2 });
+                assert.deepEqual(path.closestPointT(point, { precision: 0 }), { segmentIndex: 1, value: 0.2 });
+                assert.deepEqual(path.closestPointT(point, { precision: 1 }), { segmentIndex: 1, value: 0.2 });
+                assert.deepEqual(path.closestPointT(point, { precision: 2 }), { segmentIndex: 1, value: 0.2 });
+                assert.deepEqual(path.closestPointT(point, { precision: 3 }), { segmentIndex: 1, value: 0.2 });
+
+                point = new g.Point(130, -200);
+                assert.deepEqual(path.closestPointT(point), { segmentIndex: 3, value: 0.515625 });
+                assert.deepEqual(path.closestPointT(point, { precision: 0 }), { segmentIndex: 1, value: 0 });
+                assert.deepEqual(path.closestPointT(point, { precision: 1 }), { segmentIndex: 3, value: 0.5 });
+                assert.deepEqual(path.closestPointT(point, { precision: 2 }), { segmentIndex: 3, value: 0.53125 });
+                assert.deepEqual(path.closestPointT(point, { precision: 3 }), { segmentIndex: 3, value: 0.515625 });
+            });
+        });
+
+        QUnit.module('closestPointTangent()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.ok(path.closestPointTangent(point) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 0 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 1 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 2 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 3 }) instanceof g.Line);
+
+                point = new g.Point(150, 100);
+                assert.ok(path.closestPointTangent(point) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 0 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 1 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 2 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 3 }) instanceof g.Line);
+
+                point = new g.Point(130, -200);
+                assert.ok(path.closestPointTangent(point) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 0 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 1 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 2 }) instanceof g.Line);
+                assert.ok(path.closestPointTangent(point, { precision: 3 }) instanceof g.Line);
+            });
+
+            QUnit.test('returns tangent at point closest to a given point up to precision', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 150, 200),
+                    g.Path.createSegment('L', 200, 100),
+                    g.Path.createSegment('C', 200, -200, 100, -200, 100, 100)
+                ]);
+                var point;
+
+                point = new g.Point(50, 100);
+                assert.equal(path.closestPointTangent(point).toString(), '100@100 150@200');
+                assert.equal(path.closestPointTangent(point, { precision: 0 }).toString(), '100@100 150@200');
+                assert.equal(path.closestPointTangent(point, { precision: 1 }).toString(), '100@100 150@200');
+                assert.equal(path.closestPointTangent(point, { precision: 2 }).toString(), '100@100 150@200');
+                assert.equal(path.closestPointTangent(point, { precision: 3 }).toString(), '100@100 150@200');
+
+                point = new g.Point(150, 100);
+                assert.equal(path.closestPointTangent(point).toString(), '110@120 160@220');
+                assert.equal(path.closestPointTangent(point, { precision: 0 }).toString(), '110@120 160@220');
+                assert.equal(path.closestPointTangent(point, { precision: 1 }).toString(), '110@120 160@220');
+                assert.equal(path.closestPointTangent(point, { precision: 2 }).toString(), '110@120 160@220');
+                assert.equal(path.closestPointTangent(point, { precision: 3 }).toString(), '110@120 160@220');
+
+                point = new g.Point(130, -200);
+                assert.equal(path.closestPointTangent(point).toString(), '147.65701293945312@-124.7802734375 97.70584106445312@-115.4052734375');
+                assert.equal(path.closestPointTangent(point, { precision: 0 }).toString(), '100@100 150@200');
+                assert.equal(path.closestPointTangent(point, { precision: 1 }).toString(), '150@-125 100@-125');
+                assert.equal(path.closestPointTangent(point, { precision: 2 }).toString(), '145.318603515625@-124.12109375 95.513916015625@-105.37109375');
+                assert.equal(path.closestPointTangent(point, { precision: 3 }).toString(), '147.65701293945312@-124.7802734375 97.70584106445312@-115.4052734375');
+            });
+        });
+
         QUnit.module('equals()', function() {
 
             QUnit.test('checks whether two paths are exactly the same', function(assert) {
@@ -1237,6 +1572,133 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('isDifferentiable()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100)
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('M', 200, 200),
+                    g.Path.createSegment('M', 300, 100)
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 100, 100),
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 100)
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('C', 100, 200, 200, 200, 200, 100),
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 100, 100),
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('C', 100, 100, 100, 100, 100, 100),
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('Z'),
+                ]);
+                assert.equal(typeof path.isDifferentiable(), 'boolean');
+            });
+
+            QUnit.test('checks whether the path is differentiable (can have tangents)', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.isDifferentiable(), false);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100)
+                ]);
+                assert.equal(path.isDifferentiable(), false);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('M', 200, 200),
+                    g.Path.createSegment('M', 300, 100)
+                ]);
+                assert.equal(path.isDifferentiable(), false);
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 100, 100),
+                ]);
+                assert.equal(path.isDifferentiable(), false);
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 300, 100)
+                ]);
+                assert.equal(path.isDifferentiable(), true);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                ]);
+                assert.equal(path.isDifferentiable(), true);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('C', 100, 200, 200, 200, 200, 100),
+                ]);
+                assert.equal(path.isDifferentiable(), true);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 100, 100),
+                ]);
+                assert.equal(path.isDifferentiable(), false);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('C', 100, 100, 100, 100, 100, 100),
+                ]);
+                assert.equal(path.isDifferentiable(), false);
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('Z'),
+                ]);
+                assert.equal(path.isDifferentiable(), false);
+            });
+        });
+
         QUnit.module('isValid()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -1383,6 +1845,10 @@ QUnit.module('path', function(hooks) {
 
                 svg.remove();
             });
+        });
+
+        QUnit.module('lengthAtT()', function() {
+
         });
 
         QUnit.module('pointAt()', function() {
@@ -1752,6 +2218,10 @@ QUnit.module('path', function(hooks) {
 
                 svg.remove();
             });
+        });
+
+        QUnit.module('pointAtT()', function() {
+
         });
 
         QUnit.module('removeSegment()', function() {

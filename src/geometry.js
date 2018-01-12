@@ -458,13 +458,39 @@ var g = (function() {
             return this.pointAtT(this.closestPointT(p, opt));
         },
 
+        closestPointLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
+
+            return this.lengthAtT(this.closestPointT(p, localOpt), localOpt);
+        },
+
+        closestPointNormalizedLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
+
+            var cpLength = this.closestPointLength(p, localOpt);
+            if (!cpLength) return 0;
+
+            var length = this.length(localOpt);
+            if (length === 0) return 0;
+
+            return cpLength / length;
+        },
+
         // Returns `t` of the point on the curve closest to point `p`
         closestPointT: function(p, opt) {
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // does not use localOpt
 
             // identify the subdivision that contains the point:
             var investigatedSubdivision;
@@ -543,6 +569,11 @@ var g = (function() {
                     distFromEnd = endDist2;
                 }
             }
+        },
+
+        closestPointTangent: function(p, opt) {
+
+            return this.tangentAtT(this.closestPointT(p, opt));
         },
 
         // Divides the curve into two at point defined by `t` between 0 and 1.
@@ -667,21 +698,21 @@ var g = (function() {
         // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
         getSubdivisions: function(opt) {
 
-            var iteration = 0;
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.subdivisions
+            // not using localOpt
 
             var subdivisions = [new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
-            var previousLength = this.endpointDistance();
-
-            opt = opt || {};
-            var precision = opt.precision;
             if (precision === 0) return subdivisions;
-            precision = precision || this.PRECISION; // assign PRECISION if precision undefined
-            // not using opt.subdivisions
+
+            var previousLength = this.endpointDistance();
 
             var precisionRatio = pow(10, -precision);
 
             // recursively divide curve at `t = 0.5`
             // until the difference between observed length at subsequent iterations is lower than precision
+            var iteration = 0;
             while (true) {
                 iteration += 1;
 
@@ -720,13 +751,23 @@ var g = (function() {
             }
         },
 
+        isDifferentiable: function() {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+        },
+
         // Returns flattened length of the curve with precision better than `opt.precision`; or using `opt.subdivisions` provided.
         length: function(opt) {
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSubdivisions() call
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // not using localOpt
 
             var length = 0;
             var n = subdivisions.length;
@@ -745,9 +786,9 @@ var g = (function() {
             if (t <= 0) return 0;
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
-            // not using subdivisions - it is a different curve
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.subdivisions
+            // not using localOpt
 
             var subCurve = this.divide(t)[0];
             var subCurveLength = subCurve.length({ precision: precision });
@@ -803,8 +844,10 @@ var g = (function() {
         // Returns a tangent line at requested `ratio` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
         tangentAt: function(ratio, opt) {
 
+            if (!this.isDifferentiable()) return null;
+
             if (ratio < 0) ratio = 0;
-            if (ratio > 1) ratio = 1;
+            else if (ratio > 1) ratio = 1;
 
             var t = this.tAt(ratio, opt);
 
@@ -814,6 +857,8 @@ var g = (function() {
         // Returns a tangent line at requested `length` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
         tangentAtLength: function(length, opt) {
 
+            if (!this.isDifferentiable()) return null;
+
             var t = this.tAtLength(length, opt);
 
             return this.tangentAtT(t);
@@ -822,15 +867,15 @@ var g = (function() {
         // Returns a tangent line at requested `t`.
         tangentAtT: function(t) {
 
+            if (!this.isDifferentiable()) return null;
+
             if (t < 0) t = 0;
-            if (t > 1) t = 1;
+            else if (t > 1) t = 1;
 
             var skeletonPoints = this.getSkeletonPoints(t);
 
             var p1 = skeletonPoints.startControlPoint2;
             var p2 = skeletonPoints.dividerControlPoint1;
-
-            if (p1.equals(p2)) return null; // if start and end are the same, we cannot know what the slope is (curve is a point)
 
             var tangentStart = skeletonPoints.divider;
 
@@ -847,14 +892,14 @@ var g = (function() {
             if (ratio >= 1) return 1;
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
 
-            var curveLength = this.length({ subdivisions: subdivisions });
+            var curveLength = this.length(localOpt);
             var length = curveLength * ratio;
 
-            return this.tAtLength(length, { precision: precision, subdivisions: subdivisions });
+            return this.tAtLength(length, localOpt);
         },
 
         // Returns `t` at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
@@ -875,9 +920,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION; // assign PRECISION if precision undefined
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
 
             // identify the subdivision that contains the point at requested `length`:
             var investigatedSubdivision;
@@ -915,7 +960,7 @@ var g = (function() {
             // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
             // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return 1
 
-            var curveLength = this.length({ subdivisions: subdivisions });
+            var curveLength = this.length(localOpt);
 
             var precisionRatio = pow(10, -precision);
 
@@ -978,8 +1023,9 @@ var g = (function() {
         toPoints: function(opt) {
 
             opt = opt || {};
-            var precision = opt.precision; // this.getSubdivisions() can take care of undefined/null precision
-            var subdivisions = opt.subdivisions || this.getSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSubdivisions() call
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // not using localOpt
 
             var points = [subdivisions[0].start.clone()];
             var n = subdivisions.length;
@@ -1228,6 +1274,36 @@ var g = (function() {
             return new Line(this.start, this.end);
         },
 
+        // @return {point} the closest point on the line to point `p`
+        closestPoint: function(p) {
+
+            return this.pointAt(this.closestPointNormalizedLength(p));
+        },
+
+        closestPointLength: function(p) {
+
+            return this.closestPointNormalizedLength(p) * this.length();
+        },
+
+        // @return {number} the normalized length of the closest point on the line to point `p`
+        closestPointNormalizedLength: function(p) {
+
+            var product = this.vector().dot((new Line(this.start, p)).vector());
+            var cpNormalizedLength = min(1, max(0, product / this.squaredLength()));
+
+            // cpNormalizedLength returns `NaN` if this line has zero length
+            // we can work with that - if `NaN`, return 0
+            if (cpNormalizedLength !== cpNormalizedLength) return 0; // condition evaluates to `true` if and only if cpNormalizedLength is `NaN`
+            // (`NaN` is the only value that is not equal to itself)
+
+            return cpNormalizedLength;
+        },
+
+        closestPointTangent: function(p) {
+
+            return this.tangentAt(this.closestPointNormalizedLength(p));
+        },
+
         equals: function(l) {
 
             return !!l &&
@@ -1298,6 +1374,11 @@ var g = (function() {
 
             // Parameter is neither a Line nor a Rectangle.
             return null;
+        },
+
+        isDifferentiable: function() {
+
+            return !this.start.equals(this.end);
         },
 
         // @return {double} length of the line
@@ -1377,12 +1458,23 @@ var g = (function() {
             return this;
         },
 
+        // @return {integer} length without sqrt
+        // @note for applications where the exact length is not necessary (e.g. compare only)
+        squaredLength: function() {
+
+            var x0 = this.start.x;
+            var y0 = this.start.y;
+            var x1 = this.end.x;
+            var y1 = this.end.y;
+            return (x0 -= x1) * x0 + (y0 -= y1) * y0;
+        },
+
         tangentAt: function(t) {
+
+            if (!this.isDifferentiable()) return null;
 
             var start = this.start;
             var end = this.end;
-
-            if (start.equals(end)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
 
             var tangentStart = this.pointAt(t); // constrains `t` between 0 and 1
 
@@ -1394,10 +1486,10 @@ var g = (function() {
 
         tangentAtLength: function(length) {
 
+            if (!this.isDifferentiable()) return null;
+
             var start = this.start;
             var end = this.end;
-
-            if (start.equals(end)) return null; // if start and end are the same, we cannot know what the slope is (line is a point)
 
             var tangentStart = this.pointAtLength(length);
 
@@ -1418,31 +1510,6 @@ var g = (function() {
         vector: function() {
 
             return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-        },
-
-        // @return {point} the closest point on the line to point `p`
-        closestPoint: function(p) {
-
-            return this.pointAt(this.closestPointNormalizedLength(p));
-        },
-
-        // @return {number} the normalized length of the closest point on the line to point `p`
-        closestPointNormalizedLength: function(p) {
-
-            var product = this.vector().dot((new Line(this.start, p)).vector());
-
-            return min(1, max(0, product / this.squaredLength()));
-        },
-
-        // @return {integer} length without sqrt
-        // @note for applications where the exact length is not necessary (e.g. compare only)
-        squaredLength: function() {
-
-            var x0 = this.start.x;
-            var y0 = this.start.y;
-            var x1 = this.end.x;
-            var y1 = this.end.y;
-            return (x0 -= x1) * x0 + (y0 -= y1) * y0;
         },
 
         toString: function() {
@@ -1582,40 +1649,6 @@ var g = (function() {
 
     Path.prototype = {
 
-        // Getter for the first visible endpoint of the path.
-        get start() {
-
-            var segments = this.segments;
-            var numSegments = segments.length;
-            if (numSegments === 0) return null;
-
-            for (var i = 0; i < numSegments; i++) {
-
-                var segment = segments[i];
-                if (!segment.isInvisible) return segment.start;
-            }
-
-            // if no visible segment, return last segment end point
-            return this.getSegment(-1).end;
-        },
-
-        // Getter for the last visible endpoint of the path.
-        get end() {
-
-            var segments = this.segments;
-            var numSegments = segments.length;
-            if (numSegments === 0) return null;
-
-            for (var i = numSegments - 1; i >= 0; i--) {
-
-                var segment = segments[i];
-                if (!segment.isInvisible) return segment.end;
-            }
-
-            // if no visible segment, return last segment end point
-            return this.getSegment(-1).end;
-        },
-
         // Accepts one segment or an array of segments as argument.
         // Throws an error if argument is not a segment or an array of segments.
         appendSegment: function(arg) {
@@ -1626,7 +1659,7 @@ var g = (function() {
 
             var currentSegment;
 
-            var previousSegment = ((numSegments !== 0) ? this.getSegment(-1) : null); // if we are appending to an empty path, previousSegment is null
+            var previousSegment = ((numSegments !== 0) ? segments[numSegments - 1] : null); // if we are appending to an empty path, previousSegment is null
             var nextSegment = null;
 
             if (!Array.isArray(arg)) { // arg is a segment
@@ -1662,7 +1695,7 @@ var g = (function() {
             for (var i = 0; i < numSegments; i++) {
 
                 var segment = segments[i];
-                if (!segment.isInvisible) {
+                if (segment.isVisible) {
                     var segmentBBox = segment.bbox();
                     bbox = bbox ? bbox.union(segmentBBox) : segmentBBox;
                 }
@@ -1671,7 +1704,7 @@ var g = (function() {
             if (bbox) return bbox;
 
             // if the path has only invisible elements, return end point of last segment
-            var lastSegment = this.getSegment(-1);
+            var lastSegment = segments[numSegments - 1];
             return new Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
         },
 
@@ -1690,6 +1723,116 @@ var g = (function() {
             }
 
             return path;
+        },
+
+        closestPoint: function(p, opt) {
+
+            var t = this.closestPointT(p, opt);
+            if (!t) return null;
+
+            return this.pointAtT(t);
+        },
+
+        closestPointLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var t = this.closestPointT(p, localOpt);
+            if (!t) return 0;
+
+            return this.lengthAtT(t, localOpt);
+        },
+
+        closestPointNormalizedLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var cpLength = this.closestPointLength(p, localOpt);
+            if (cpLength === 0) return 0; // shortcut
+
+            var length = this.length(localOpt);
+            if (length === 0) return 0; // prevents division by zero
+
+            return cpLength / length;
+        },
+
+        // Private function.
+        closestPointT: function(p, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var closestPointT;
+            var minSquaredDistance = Infinity;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+
+                if (segment.isVisible) {
+                    var segmentClosestPointT = segment.closestPointT(p, { precision: precision, subdivisions: subdivisions });
+                    var segmentClosestPoint = segment.pointAtT(segmentClosestPointT);
+                    var squaredDistance = (new Line(segmentClosestPoint, p)).squaredLength();
+
+                    if (squaredDistance < minSquaredDistance) {
+                        closestPointT = { segmentIndex: i, value: segmentClosestPointT };
+                        minSquaredDistance = squaredDistance;
+                    }
+                }
+            }
+
+            if (closestPointT) return closestPointT;
+
+            // if no visible segment, return end of last segment
+            return { segmentIndex: numSegments - 1, value: 1 };
+        },
+
+        closestPointTangent: function(p, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var closestPointTangent;
+            var minSquaredDistance = Infinity;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+
+                if (segment.isDifferentiable()) {
+                    var segmentClosestPointT = segment.closestPointT(p, { precision: precision, subdivisions: subdivisions });
+                    var segmentClosestPoint = segment.pointAtT(segmentClosestPointT);
+                    var squaredDistance = (new Line(segmentClosestPoint, p)).squaredLength();
+
+                    if (squaredDistance < minSquaredDistance) {
+                        closestPointTangent = segment.tangentAtT(segmentClosestPointT);
+                        minSquaredDistance = squaredDistance;
+                    }
+                }
+            }
+
+            if (closestPointTangent) return closestPointTangent;
+
+            // if no valid segment, return null
+            return null;
         },
 
         // Checks whether two paths are exactly the same.
@@ -1739,11 +1882,16 @@ var g = (function() {
             var numSegments = segments.length;
             // works even if path has no segments
 
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.segmentSubdivisions
+            // not using localOpt
+
             var segmentSubdivisions = [];
             for (var i = 0; i < numSegments; i++) {
 
                 var segment = segments[i];
-                var subdivisions = segment.getSubdivisions(opt);
+                var subdivisions = segment.getSubdivisions({ precision: precision });
                 segmentSubdivisions.push(subdivisions);
             }
 
@@ -1775,12 +1923,12 @@ var g = (function() {
 
             if (numSegments !== 0) {
                 if (index >= 1) {
-                    previousSegment = this.getSegment(index - 1);
+                    previousSegment = segments[index - 1];
                     nextSegment = previousSegment.nextSegment; // if we are inserting at end, nextSegment is null
 
                 } else { // if index === 0
                     // previousSegment is null
-                    nextSegment = this.getSegment(0);
+                    nextSegment = segments[0];
                 }
             }
 
@@ -1804,6 +1952,22 @@ var g = (function() {
             }
         },
 
+        isDifferentiable: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                // as soon as a differentiable segment is found in segments, return true
+                if (segment.isDifferentiable()) return true;
+            }
+
+            // if no differentiable segment is found in segments, return false
+            return false;
+        },
+
         // Checks whether current path segments are valid.
         // Note that d is allowed to be empty - should disable rendering of the path.
         isValid: function() {
@@ -1822,9 +1986,9 @@ var g = (function() {
             if (numSegments === 0) return 0; // if segments is an empty array
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSegmentSubdivisions() call
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var length = 0;
             for (var i = 0; i < numSegments; i++) {
@@ -1833,6 +1997,45 @@ var g = (function() {
                 var subdivisions = segmentSubdivisions[i];
                 length += segment.length({ subdivisions: subdivisions });
             }
+
+            return length;
+        },
+
+        // Private function.
+        lengthAtT: function(t, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return 0; // if segments is an empty array
+
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return 0; // regardless of t.value
+
+            var tValue = t.value;
+            if (segmentIndex >= numSegments) {
+                segmentIndex = numSegments - 1;
+                tValue = 1;
+            }
+            else if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var subdivisions;
+            var length = 0;
+            for (var i = 0; i < segmentIndex; i++) {
+
+                var segment = segments[i];
+                subdivisions = segmentSubdivisions[i];
+                length += segment.length({ precisison: precision, subdivisions: subdivisions });
+            }
+
+            segment = segments[segmentIndex];
+            subdivisions = segmentSubdivisions[segmentIndex];
+            length += segment.lengthAtT(tValue, { precisison: precision, subdivisions: subdivisions });
 
             return length;
         },
@@ -1848,14 +2051,14 @@ var g = (function() {
             if (ratio >= 1) return this.end.clone();
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var pathLength = this.length(localOpt);
             var length = pathLength * ratio;
 
-            return this.pointAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+            return this.pointAtLength(length, localOpt);
         },
 
         // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -1875,9 +2078,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var lastVisibleSegment;
             var l = 0; // length so far
@@ -1885,9 +2088,9 @@ var g = (function() {
 
                 var segment = segments[i];
                 var subdivisions = segmentSubdivisions[i];
-                var d = segment.length({ subdivisions: subdivisions });
+                var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
-                if (!segment.isInvisible) {
+                if (segment.isVisible) {
                     if (length <= (l + d)) {
                         return segment.pointAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
                     }
@@ -1902,8 +2105,26 @@ var g = (function() {
             if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
 
             // if no visible segment, return last segment end point (no matter if fromStart or no)
-            var lastSegment = this.getSegment(-1);
-            return lastSegment.end;
+            var lastSegment = segments[numSegments - 1];
+            return lastSegment.end.clone();
+        },
+
+        // Private function.
+        pointAtT: function(t) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return segments[0].pointAtT(0);
+            if (segmentIndex >= numSegments) return segments[numSegments - 1].pointAtT(1);
+
+            var tValue = t.value;
+            if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
+
+            return segments[segmentIndex].pointAtT(tValue);
         },
 
         // Helper method for adding segments.
@@ -1972,7 +2193,7 @@ var g = (function() {
 
             var currentSegment;
 
-            var replacedSegment = this.getSegment(index);
+            var replacedSegment = segments[index];
             var previousSegment = replacedSegment.previousSegment;
             var nextSegment = replacedSegment.nextSegment;
 
@@ -2048,14 +2269,14 @@ var g = (function() {
             if (ratio > 1) ratio = 1;
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var pathLength = this.length(localOpt);
             var length = pathLength * ratio;
 
-            return this.segmentIndexAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+            return this.segmentIndexAtLength(length, localOpt);
         },
 
         // Accepts negative length.
@@ -2072,9 +2293,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var lastVisibleSegmentIndex = null;
             var l = 0; // length so far
@@ -2082,9 +2303,9 @@ var g = (function() {
 
                 var segment = segments[i];
                 var subdivisions = segmentSubdivisions[i];
-                var d = segment.length({ subdivisions: subdivisions });
+                var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
-                if (!segment.isInvisible) {
+                if (segment.isVisible) {
                     if (length <= (l + d)) return i;
                     lastVisibleSegmentIndex = i;
                 }
@@ -2108,14 +2329,14 @@ var g = (function() {
             if (ratio > 1) ratio = 1;
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
 
-            var pathLength = this.length({ segmentSubdivisions: segmentSubdivisions });
+            var pathLength = this.length(localOpt);
             var length = pathLength * ratio;
 
-            return this.tangentAtLength(length, { precision: precision, segmentSubdivisions: segmentSubdivisions });
+            return this.tangentAtLength(length, localOpt);
         },
 
         // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -2133,9 +2354,9 @@ var g = (function() {
             }
 
             opt = opt || {};
-            var precision = opt.precision;
-            if (precision !== 0) precision = precision || this.PRECISION;
-            var segmentSubdivisions = opt.segmentSubdivisions || this.getSegmentSubdivisions({ precision: precision });
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
             var l = 0; // length so far
@@ -2143,15 +2364,14 @@ var g = (function() {
 
                 var segment = segments[i];
                 var subdivisions = segmentSubdivisions[i];
-                var d = segment.length({ subdivisions: subdivisions });
+                var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
-                if (!segment.isInvisible) {
-                    var tangent = segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
-
-                    if (tangent) { // has a tangent (segment length is not 0)
-                        if (length <= (l + d)) return tangent;
-                        lastValidSegment = segment;
+                if (segment.isDifferentiable()) {
+                    if (length <= (l + d)) {
+                        return segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
                     }
+
+                    lastValidSegment = segment;
                 }
 
                 l += d;
@@ -2159,12 +2379,30 @@ var g = (function() {
 
             // if length requested is higher than the length of the path, return tangent of endpoint of last valid segment
             if (lastValidSegment) {
-                var ratio = (fromStart ? 1 : 0);
-                return lastValidSegment.tangentAt(ratio);
+                var t = (fromStart ? 1 : 0);
+                return lastValidSegment.tangentAtT(t);
             }
 
             // if no valid segment, return null
             return null;
+        },
+
+        // Private function.
+        tangentAtT: function(t) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return segments[0].tangentAtT(0);
+            if (segmentIndex >= numSegments) return segments[numSegments - 1].tangentAtT(1);
+
+            var tValue = t.value;
+            if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
+
+            return segments[segmentIndex].tangentAtT(tValue);
         },
 
         translate: function(tx, ty) {
@@ -2220,6 +2458,54 @@ var g = (function() {
             return pathData.trim();
         }
     };
+
+    Object.defineProperty(Path.prototype, 'start', {
+        // Getter for the first visible endpoint of the path.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                if (segment.isVisible) return segment.start;
+            }
+
+            // if no visible segment, return last segment end point
+            return segments[numSegments - 1].end;
+        }
+    });
+
+    Object.defineProperty(Path.prototype, 'end', {
+        // Getter for the last visible endpoint of the path.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null;
+
+            for (var i = numSegments - 1; i >= 0; i--) {
+
+                var segment = segments[i];
+                if (segment.isVisible) return segment.end;
+            }
+
+            // if no visible segment, return last segment end point
+            return segments[numSegments - 1].end;
+        }
+    });
 
     /*
         Point is the most basic object consisting of x/y coordinate.
@@ -2993,26 +3279,6 @@ var g = (function() {
 
     Polyline.prototype = {
 
-        // Getter for the first point of the polyline.
-        get start() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) return null; // if points array is empty
-
-            return this.points[0];
-        },
-
-        // Getter for the last point of the polyline
-        get end() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) return null; // if points array is empty
-
-            return this.points[numPoints - 1];
-        },
-
         bbox: function() {
 
             var x1 = Infinity;
@@ -3057,21 +3323,21 @@ var g = (function() {
 
         closestPoint: function(p) {
 
-            var length = this.closestPointLength(p);
-            if (!length) return null;
+            var cpLength = this.closestPointLength(p);
 
-            return this.pointAtLength(length);
+            return this.pointAtLength(cpLength);
         },
 
         closestPointLength: function(p) {
 
             var points = this.points;
             var numPoints = points.length;
-            if (numPoints === 0) return null; // if points array is empty
+            if (numPoints === 0) return 0; // if points array is empty
+            if (numPoints === 1) return 0; // if there is only one point
 
+            var cpLength;
             var minSqrDistance = Infinity;
             var length = 0;
-            var pointLength;
             var n = numPoints - 1;
             for (var i = 0; i < n; i++) {
 
@@ -3084,13 +3350,31 @@ var g = (function() {
                 var sqrDistance = cp.squaredDistance(p);
                 if (sqrDistance < minSqrDistance) {
                     minSqrDistance = sqrDistance;
-                    pointLength = length + (cpNormalizedLength * lineLength);
+                    cpLength = length + (cpNormalizedLength * lineLength);
                 }
 
                 length += lineLength;
             }
 
-            return pointLength;
+            return cpLength;
+        },
+
+        closestPointNormalizedLength: function(p) {
+
+            var cpLength = this.closestPointLength(p);
+            if (cpLength === 0) return 0; // shortcut
+
+            var length = this.length();
+            if (length === 0) return 0; // prevents division by zero
+
+            return cpLength / length;
+        },
+
+        closestPointTangent: function(p) {
+
+            var cpLength = this.closestPointLength(p);
+
+            return this.tangentAtLength(cpLength);
         },
 
         // Returns a convex-hull polyline from this polyline.
@@ -3329,6 +3613,27 @@ var g = (function() {
             return true;
         },
 
+        isDifferentiable: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return false;
+
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+
+                // as soon as a differentiable line is found between two points, return true
+                if (line.isDifferentiable()) return true;
+            }
+
+            // if no differentiable line is found between pairs of points, return false
+            return false;
+        },
+
         length: function() {
 
             var points = this.points;
@@ -3373,9 +3678,6 @@ var g = (function() {
                 length = -length; // absolute value
             }
 
-            var polylineLength = this.length();
-            if (length >= polylineLength) return (fromStart ? points[numPoints - 1].clone() : points[0].clone());
-
             var l = 0;
             var n = numPoints - 1;
             for (var i = (fromStart ? 0 : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
@@ -3391,6 +3693,10 @@ var g = (function() {
 
                 l += d;
             }
+
+            // if length requested is higher than the length of the polyline, return last endpoint
+            var lastPoint = (fromStart ? points[numPoints - 1] : points[0]);
+            return lastPoint.clone();
         },
 
         scale: function(sx, sy, origin) {
@@ -3445,10 +3751,11 @@ var g = (function() {
                 var line = new Line(a, b);
                 var d = a.distance(b);
 
-                var tangent = line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                if (line.isDifferentiable()) { // has a tangent line (line length is not 0)
+                    if (length <= (l + d)) {
+                        return line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                    }
 
-                if (tangent) { // has a tangent (line length is not 0)
-                    if (length <= (l + d)) return tangent;
                     lastValidLine = line;
                 }
 
@@ -3500,6 +3807,40 @@ var g = (function() {
             return this.points + '';
         }
     };
+
+    Object.defineProperty(Polyline.prototype, 'start', {
+        // Getter for the first point of the polyline.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            return this.points[0];
+        },
+    });
+
+    Object.defineProperty(Polyline.prototype, 'end', {
+        // Getter for the last point of the polyline.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            return this.points[numPoints - 1];
+        },
+    });
 
     g.scale = {
 
@@ -3575,32 +3916,32 @@ var g = (function() {
     // - The `obj` argument acts as parent.
     // - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
     // - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
-    // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
-    // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
-    // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
-    // - First, realize that both of those quasiclasses would still have their own separate constructor function.
-    // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
-    // - This method provides a way to do exactly that.
-    // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
-    // - Therefore, to continue with the example above:
-    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
-    //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
-    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overriden methods from `g.GeometryObject.prototype`.
-    //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
-    // - Multiple inheritance is also possible, if multiple arguments are provided.
-    // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
-    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
-    //   - The ancestors are applied in order of appearance.
-    //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
-    //   - Any number of ancestors may be provided.
-    // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
-    // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
-    //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
-    //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
-    // - Therefore, both of the following are valid:
-    //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
-    //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
     function extend(obj) {
+        // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
+        // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
+        // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
+        // - First, realize that both of those quasiclasses would still have their own separate constructor function.
+        // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
+        // - This method provides a way to do exactly that.
+        // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
+        // - Therefore, to continue with the example above:
+        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
+        //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
+        //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overriden methods from `g.GeometryObject.prototype`.
+        //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
+        // - Multiple inheritance is also possible, if multiple arguments are provided.
+        // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
+        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
+        //   - The ancestors are applied in order of appearance.
+        //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
+        //   - Any number of ancestors may be provided.
+        // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
+        // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
+        //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
+        //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
+        // - Therefore, both of the following are valid:
+        //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
+        //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
 
         var i;
         var n;
@@ -3634,56 +3975,157 @@ var g = (function() {
         return child;
     }
 
-    // Path segment definitions:
+    // Path segment interface:
     var segmentPrototype = {
+
+        // Redirect calls to closestPointNormalizedLength() function if closestPointT() is not defined for segment.
+        closestPointT: function(p) {
+
+            if (this.closestPointNormalizedLength) return this.closestPointNormalizedLength(p);
+
+            throw new Error('Neither closestPointT() nor closestPointNormalizedLength() function is implemented.');
+        },
 
         isSegment: true,
 
+        isSubpathStart: false, // true for Moveto segments
+
+        isVisible: true, // false for Moveto segments
+
         nextSegment: null, // needed for subpath start segment updating
+
+        // Return a fraction of result of length() function if lengthAtT() is not defined for segment.
+        lengthAtT: function(t) {
+
+            if (t <= 0) return 0;
+
+            var length = this.length();
+
+            if (t >= 1) return length;
+
+            return length * t;
+        },
+
+        // Redirect calls to pointAt() function if pointAtT() is not defined for segment.
+        pointAtT: function(t) {
+
+            if (this.pointAt) return this.pointAt(t);
+
+            throw new Error('Neither pointAtT() nor pointAt() function is implemented.');
+        },
 
         previousSegment: null, // needed to get segment start property
 
-        subpathStartSegment: null // needed to get closepath segment end property
+        subpathStartSegment: null, // needed to get closepath segment end property
 
-        // VIRTUAL PROPERTIES:
+        // Redirect calls to tangentAt() function if tangentAtT() is not defined for segment.
+        tangentAtT: function(t) {
 
-        // start
+            if (this.tangentAt) return this.tangentAt(t);
 
-        // end
+            throw new Error('Neither tangentAtT() nor tangentAt() function is implemented.');
+        },
 
-        // bbox()
-
-        // clone()
-
-        // equals()
-
-        // getSubdivisions()
-
-        // isInvisible
-
-        // isSubpathStart
-
-        // length()
-
-        // pointAt()
-
-        // pointAtLength()
-
-        // scale()
-
-        // tangentAt()
-
-        // tangentAtLength()
-
-        // translate()
+        // VIRTUAL PROPERTIES (must be overriden by actual Segment implementations):
 
         // type
 
-        // serialize()
+        // start // getter, always throws error for Moveto
 
-        // toString()
+        // end // usually directly assigned, getter for Closepath
+
+        bbox: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        clone: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPoint: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPointLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPointNormalizedLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPointTangent: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        equals: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        getSubdivisions: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        isDifferentiable: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        length: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        pointAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        pointAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        scale: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        tangentAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        tangentAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        translate: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        serialize: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        toString: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        }
     };
 
+    // Path segment implementations:
     var Lineto = function() {
 
         var args = [];
@@ -3741,13 +4183,6 @@ var g = (function() {
 
     var linetoPrototype = {
 
-        // get a reference to the end point of previous segment
-        get start() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-            else return this.previousSegment.end;
-        },
-
         clone: function() {
 
             return new Lineto(this.end);
@@ -3756,6 +4191,13 @@ var g = (function() {
         getSubdivisions: function() {
 
             return [];
+        },
+
+        isDifferentiable: function() {
+
+            if (!this.previousSegment) return false;
+
+            return !this.start.equals(this.end);
         },
 
         scale: function(sx, sy, origin) {
@@ -3784,7 +4226,22 @@ var g = (function() {
         }
     };
 
-    Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype);
+    Object.defineProperty(linetoPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    Lineto.prototype = extend(segmentPrototype, Line.prototype, linetoPrototype);
 
     var Curveto = function() {
 
@@ -3850,16 +4307,21 @@ var g = (function() {
 
     var curvetoPrototype = {
 
-        // get a reference to the end point of previous segment
-        get start() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-            else return this.previousSegment.end;
-        },
-
         clone: function() {
 
             return new Curveto(this.controlPoint1, this.controlPoint2, this.end);
+        },
+
+        isDifferentiable: function() {
+
+            if (!this.previousSegment) return false;
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
         },
 
         scale: function(sx, sy, origin) {
@@ -3894,7 +4356,22 @@ var g = (function() {
         }
     };
 
-    Curveto.prototype = extend(Curve.prototype, segmentPrototype, curvetoPrototype);
+    Object.defineProperty(curvetoPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    Curveto.prototype = extend(segmentPrototype, Curve.prototype, curvetoPrototype);
 
     var Moveto = function() {
 
@@ -3955,11 +4432,6 @@ var g = (function() {
 
     var movetoPrototype = {
 
-        get start() {
-
-            throw new Error('Illegal access. Moveto segments should not need a start property.')
-        },
-
         bbox: function() {
 
             return null;
@@ -3968,6 +4440,31 @@ var g = (function() {
         clone: function() {
 
             return new Moveto(this.end);
+        },
+
+        closestPoint: function() {
+
+            return this.end.clone();
+        },
+
+        closestPointNormalizedLength: function() {
+
+            return 0;
+        },
+
+        closestPointLength: function() {
+
+            return 0;
+        },
+
+        closestPointT: function() {
+
+            return 1;
+        },
+
+        closestPointTangent: function() {
+
+            return null;
         },
 
         equals: function(m) {
@@ -3980,11 +4477,21 @@ var g = (function() {
             return [];
         },
 
-        isInvisible: true,
+        isDifferentiable: function() {
+
+            return false;
+        },
 
         isSubpathStart: true,
 
+        isVisible: false,
+
         length: function() {
+
+            return 0;
+        },
+
+        lengthAtT: function() {
 
             return 0;
         },
@@ -3995,6 +4502,11 @@ var g = (function() {
         },
 
         pointAtLength: function() {
+
+            return this.end.clone();
+        },
+
+        pointAtT: function() {
 
             return this.end.clone();
         },
@@ -4011,6 +4523,11 @@ var g = (function() {
         },
 
         tangentAtLength: function() {
+
+            return null;
+        },
+
+        tangentAtT: function() {
 
             return null;
         },
@@ -4035,6 +4552,18 @@ var g = (function() {
         }
     };
 
+    Object.defineProperty(movetoPrototype, 'start', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            throw new Error('Illegal access. Moveto segments should not need a start property.');
+        }
+    })
+
     Moveto.prototype = extend(segmentPrototype, movetoPrototype); // does not inherit from any other geometry object
 
     var Closepath = function() {
@@ -4058,20 +4587,6 @@ var g = (function() {
 
     var closepathPrototype = {
 
-        // get a reference to the end point of previous segment
-        get start() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-            else return this.previousSegment.end;
-        },
-
-        // get a reference to the end point of subpath start segment
-        get end() {
-
-            if (!this.subpathStartSegment) throw new Error('Missing subpath start segment. (This segment needs a subpath start segment (e.g. Moveto); OR segment has not yet been added to a path.)');
-            else return this.subpathStartSegment.end;
-        },
-
         clone: function() {
 
             return new Closepath();
@@ -4080,6 +4595,13 @@ var g = (function() {
         getSubdivisions: function() {
 
             return [];
+        },
+
+        isDifferentiable: function() {
+
+            if (!this.previousSegment || !this.subpathStartSegment) return false;
+
+            return !this.start.equals(this.end);
         },
 
         scale: function() {
@@ -4105,7 +4627,37 @@ var g = (function() {
         }
     };
 
-    Closepath.prototype = extend(Line.prototype, segmentPrototype, closepathPrototype);
+    Object.defineProperty(closepathPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    Object.defineProperty(closepathPrototype, 'end', {
+        // get a reference to the end point of subpath start segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.subpathStartSegment) throw new Error('Missing subpath start segment. (This segment needs a subpath start segment (e.g. Moveto); OR segment has not yet been added to a path.)');
+
+            return this.subpathStartSegment.end;
+        }
+    })
+
+    Closepath.prototype = extend(segmentPrototype, Line.prototype, closepathPrototype);
 
     Path.segmentTypes = {
         L: Lineto,
