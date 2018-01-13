@@ -287,6 +287,35 @@ QUnit.module('vectorizer', function(hooks) {
 
             svg.remove();
         });
+
+        QUnit.test('textVerticalAnchor', function(assert) {
+
+            var texts = ['one', 'one\ntwo', 'one\ntwo\nthree'];
+            var n = texts.length;
+            var fontSize = 30;
+
+            assert.expect(3 * n);
+
+            var svg = getSvg();
+            var t = V('text', { 'font-size': fontSize }).appendTo(svg);
+            for (var i = 0; i < n; i++) {
+                var text = texts[i];
+                var bbox;
+                // 'bottom'
+                t.text(text, { textVerticalAnchor: 'bottom' });
+                bbox = t.getBBox();
+                assert.ok(Math.abs(bbox.corner().y) < (fontSize * 0.2), 'bottom anchor: ' + text);
+                // 'top'
+                t.text(text, { textVerticalAnchor: 'top' });
+                bbox = t.getBBox();
+                assert.ok(Math.abs(bbox.origin().y) < (fontSize * 0.2), 'top anchor: ' + text);
+                // 'middle'
+                t.text(text, { textVerticalAnchor: 'middle' });
+                bbox = t.getBBox();
+                assert.ok(Math.abs(bbox.center().y) < (fontSize * 0.2), 'middle anchor: ' + text);
+            };
+            svg.remove();
+        });
     });
 
     QUnit.test('annotateString', function(assert) {
