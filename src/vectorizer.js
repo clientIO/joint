@@ -115,6 +115,7 @@ V = Vectorizer = (function() {
     var VPrototype = V.prototype;
 
     Object.defineProperty(VPrototype, 'id', {
+        enumerable: true,
         get: function() {
             return this.node.id;
         },
@@ -488,8 +489,8 @@ V = Vectorizer = (function() {
         // Text along path
         var textPath = opt.textPath
         // Vertical shift
-        var verticalAlign = opt.verticalAlign;
-        var namedAlignment = (verticalAlign === 'middle' || verticalAlign === 'bottom' || verticalAlign === 'top');
+        var verticalAnchor = opt.textVerticalAnchor;
+        var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
         // Horizontal shift applied to all the lines but the first.
         var x = opt.x;
         if (x === undefined) x = this.attr('x') || 0;
@@ -515,7 +516,7 @@ V = Vectorizer = (function() {
         var fontSize = parseFloat(this.attr('font-size'));
         if (!fontSize) {
             fontSize = 16;
-            if (namedAlignment || annotations) this.attr('font-size', fontSize);
+            if (namedVerticalAnchor || annotations) this.attr('font-size', fontSize);
         }
 
         var doc = document;
@@ -580,10 +581,10 @@ V = Vectorizer = (function() {
         }
         // Y Alignment calculation
         var fontSize;
-        if (namedAlignment) {
+        if (namedVerticalAnchor) {
             if (annotations) {
-                dy = calculateDY(verticalAlign, linesMetrics, fontSize, lineHeight);
-            } else if (verticalAlign === 'top') {
+                dy = calculateDY(verticalAnchor, linesMetrics, fontSize, lineHeight);
+            } else if (verticalAnchor === 'top') {
                 // A shortcut for top alignment. It does not depend on font-size nor line-height
                 dy = '0.8em';
             } else {
@@ -596,7 +597,7 @@ V = Vectorizer = (function() {
                     // Single-line text
                     rh = 0;
                 }
-                switch (verticalAlign) {
+                switch (verticalAnchor) {
                     case 'middle':
                         dy = (0.3 - (rh / 2)) + 'em'
                         break;
@@ -606,7 +607,7 @@ V = Vectorizer = (function() {
                 }
             }
         } else {
-            dy = (verticalAlign === 0) ? '0em' : (verticalAlign || '0.8em');
+            dy = (verticalAnchor === 0) ? '0em' : (verticalAnchor || '0.8em');
         }
         containerNode.firstChild.setAttribute('dy', dy);
         // Appending lines to the element.

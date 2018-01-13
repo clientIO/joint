@@ -15,12 +15,12 @@ export namespace Vectorizer {
         offset?: number;
     }
 
-    type TextAlign = 'top' | 'bottom' | 'middle';
+    type TextVerticalAnchor = 'top' | 'bottom' | 'middle';
 
     interface TextOptions {
         eol?: string;
         x?: number | string;
-        textAlign?: TextAlign | number | string;
+        textVerticalAnchor?: TextVerticalAnchor | number | string;
         lineHeight?: number | string;
         textPath?: string | { [key: string]: any };
         annotations?: TextAnnotation[];

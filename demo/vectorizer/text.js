@@ -47,7 +47,7 @@
         t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: '20%', y: y });
         t.appendTo(svg);
-        t.text(text, Object.assign({ verticalAlign: 'top' }, opt));
+        t.text(text, Object.assign({ textVerticalAnchor: 'top' }, opt));
 
         bbox = t.getBBox();
         bbox.y += (y - bbox.y);
@@ -58,7 +58,7 @@
         t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: '50%', y: y});
         t.appendTo(svg);
-        t.text(text, Object.assign({ verticalAlign: 'middle' }, opt));
+        t.text(text, Object.assign({ textVerticalAnchor: 'middle' }, opt));
 
         bbox = t.getBBox();
         bbox.y += (y - bbox.height / 2 - bbox.y);
@@ -69,7 +69,7 @@
         t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: '80%', y: y });
         t.appendTo(svg);
-        t.text(text, Object.assign({ verticalAlign: 'bottom' }, opt));
+        t.text(text, Object.assign({ textVerticalAnchor: 'bottom' }, opt));
 
         bbox = t.getBBox();
         bbox.y += (y - bbox.height - bbox.y);

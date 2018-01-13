@@ -10,7 +10,7 @@
 <pre><code>t.text('my text');
 t.text('my multiline\ntext');</code></pre>
 
-<h3>Formatting</h3>
+<h3>Alignment</h3>
 
 <p>
         <code>opt.lineHeight</code> can be optionally used to set the line height of the text.
@@ -18,16 +18,31 @@ t.text('my multiline\ntext');</code></pre>
 </p>
 
 <p>
-        Use <code>opt.dy</code> to control the y-axis alignment relatively to the initial text position.
+        Use <code>opt.textVerticalAnchor</code> to control the y-axis alignment relatively to the initial text position.
+        The anchor position can be set by a keyword or a value in <code>px</code> or <code>em</code>.
         <ul>
+                <li><code>'top'</code> - at the top of the text</li>
+                <li><code>'bottom'</code> - at the bottom of the text</li>
+                <li><code>'middle'</code> - in the middle of the text</li>
                 <li><code>'0.3em'</code> - in the middle of the first line</li>
-                <li><code>'0.8em'</code> - at the bottom (default) of the first line</li>
-                <li><code>'0em'</code> - at the top of the first line</li>
+                <li><code>'0.8em'</code> - at the top edge of the first line <i>(default)</i></li>
+                <li><code>'-0.3em'</code> - at the bottom edge of the first line</li>
+                <li><code>0</code> or <code>'0em'</code> - at the baseline of the first line</li>
+                <li><code>20</code> or <code>'20px'</code> - 20 pixels up from the baseline of the first line</li>
         </ul>
-</p>
-<pre><code>t.text('my text\nwith custom line height', { lineHeight: '2em' });
-t.text('vertically aligned text', { dy: 5 })</code></pre>
 
+</p>
+<pre><code>t.text('my text\nwith custom line height', {
+  lineHeight: '2em'
+});
+t.attr('font-size', 20).text('vertically aligned text', {
+  textVerticalAnchor: 'middle'
+});</code></pre>
+
+<p>
+        <b>Note:</b> The method uses a heuristic algorithm to align the text. To improve the results define the text <code>font-size</code> attribute in <code>px</code> and <code>lineHeight</code> option either in <code>px</code> or <code>em</code>.
+        If a keyword or annotations are used and no <code>font-size</code> attribute is set on the text element, the font size defaults to 16.
+</p>
 
 <h3>Annotations</h3>
 
