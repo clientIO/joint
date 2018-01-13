@@ -571,10 +571,9 @@ V = Vectorizer = (function() {
                 if (annotations) lineMetrics = {};
             }
             if (lineMetrics) linesMetrics.push(lineMetrics);
-            if (i > 0) {
-                lineNode.setAttribute('x', x);
-                lineNode.setAttribute('dy', dy);
-            }
+            if (i > 0) lineNode.setAttribute('dy', dy);
+            // Firefox requires 'x' to be set on the first line when inside a text path
+            if (i > 0 || textPath) lineNode.setAttribute('x', x);
             lineNode.className.baseVal = lineClassName;
             containerNode.appendChild(lineNode);
             offset += line.length + 1;      // + 1 = newline character.
