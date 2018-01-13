@@ -374,7 +374,7 @@ V = Vectorizer = (function() {
             // Otherwise if it is an object and contains the `d` property, then this is our path.
             // Wrap the text in the SVG <textPath> element that points
             // to a path defined by `opt.attrs` inside the `<defs>` element.
-            var linkedPath = V('path').attr('d', d).appendTo(vel.ensureDefs());
+            var linkedPath = V('path').attr('d', d).appendTo(vel.defs());
             textPathElement.attr('xlink:href', '#' + linkedPath.id);
         }
         if (V.isObject(attrs)) {
@@ -766,10 +766,10 @@ V = Vectorizer = (function() {
     };
 
     VPrototype.defs = function() {
-
-        var defs = this.svg().node.getElementsByTagName('defs');
-
-        return (defs && defs.length) ? V(defs[0]) : undefined;
+        var context = this.svg() || this;
+        var defsNode = context.node.getElementsByTagName('defs')[0];
+        if (defsNode) return V(defsNode);
+        return V('defs').appendTo(context);
     };
 
     VPrototype.clone = function() {
