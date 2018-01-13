@@ -579,7 +579,6 @@ V = Vectorizer = (function() {
             offset += line.length + 1;      // + 1 = newline character.
         }
         // Y Alignment calculation
-        var fontSize;
         if (namedVerticalAnchor) {
             if (annotations) {
                 dy = calculateDY(verticalAnchor, linesMetrics, fontSize, lineHeight);
