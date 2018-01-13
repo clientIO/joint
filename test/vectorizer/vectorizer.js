@@ -313,7 +313,7 @@ QUnit.module('vectorizer', function(hooks) {
                 t.text(text, { textVerticalAnchor: 'middle' });
                 bbox = t.getBBox();
                 assert.ok(Math.abs(bbox.center().y) < (fontSize * 0.2), 'middle anchor: ' + text);
-            };
+            }
             svg.remove();
         });
     });
