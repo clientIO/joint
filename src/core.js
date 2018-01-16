@@ -570,7 +570,7 @@ var joint = {
                 // downloads directly in Chrome and Safari
 
                 // presents a save/open dialog in Firefox
-                // bug: `from` field always shows `from:blob:` in Firefox
+                // Firefox bug: `from` field in save dialog always shows `from:blob:`
                 // https://bugzilla.mozilla.org/show_bug.cgi?id=1053327
 
                 var url = window.URL.createObjectURL(blob);
