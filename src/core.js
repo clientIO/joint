@@ -562,49 +562,52 @@ var joint = {
         // Does not work in IE9.
         downloadBlob: function(blob, fileName) {
 
-            var url = window.URL.createObjectURL(blob);
-
             if (window.navigator.msSaveBlob) { // requires IE 10+
-                window.navigator.msSaveBlob(url, fileName);
+                // pulls up a save dialog
+                window.navigator.msSaveBlob(blob, fileName);
 
             } else { // other browsers
-                var $anchor = $('<a>', { download: fileName, href: url });
-                $anchor.appendTo(document.body);
-                $anchor[0].click();
-                $anchor.remove();
-            }
+                // downloads directly in Chrome and Safari
 
-            window.URL.revokeObjectURL(url); // make the url available for garbage collection
+                // presents a save/open dialog in Firefox
+                // bug: `from` field always shows `from:blob:` in Firefox
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1053327
+
+                var url = window.URL.createObjectURL(blob);
+                var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+
+                link.click();
+
+                link.parentNode.removeChild(link);
+                window.URL.revokeObjectURL(url); // mark the url for garbage collection
+            }
         },
 
         // Download `dataUri` as file with `fileName`.
         // Does not work in IE9.
         downloadDataUri: function(dataUri, fileName) {
 
-            if (window.navigator.msSaveBlob) { // requires IE 10+
-                window.navigator.msSaveBlob(joint.util.dataUriToBlob(dataUri), fileName);
-
-            } else { // other browsers
-                var $anchor = $('<a>', { download: fileName, href: dataUri });
-                $anchor.appendTo(document.body);
-                $anchor[0].click();
-                $anchor.remove();
-            }
+            var blob = joint.util.dataUriToBlob(dataUri);
+            joint.util.downloadBlob(blob, fileName);
         },
 
         // Convert an uri-encoded data component (possibly also base64-encoded) to a blob.
-        dataUriToBlob: function(dataURI) {
+        dataUriToBlob: function(dataUri) {
 
             // first, make sure there are no newlines in the data uri
             dataUri = dataUri.replace(/\s/g, '');
             dataUri = decodeURIComponent(dataUri);
 
-            var firstCommaIndex = dataURI.indexOf(','); // split dataUri as `dataTypeString`,`data`
+            var firstCommaIndex = dataUri.indexOf(','); // split dataUri as `dataTypeString`,`data`
 
-            var dataTypeString = dataURI.slice(0, firstCommaIndex); // e.g. 'data:image/jpeg;base64'
+            var dataTypeString = dataUri.slice(0, firstCommaIndex); // e.g. 'data:image/jpeg;base64'
             var mimeString = dataTypeString.split(':')[1].split(';')[0]; // e.g. 'image/jpeg'
 
-            var data = dataURI.slice(firstCommaIndex + 1);
+            var data = dataUri.slice(firstCommaIndex + 1);
             var decodedString;
             if (dataTypeString.indexOf('base64') >= 0) { // data may be encoded in base64
                 decodedString = atob(data); // decode data

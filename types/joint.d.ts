@@ -1453,7 +1453,13 @@ export namespace util {
 
     export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
-    export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
+    export function downloadBlob(blob: Blob, fileName: string): void;
+
+    export function downloadDataUri(dataUri: string, fileName: string): void;
+
+    export function dataUriToBlob(dataUri: string): Blob;
+
+    export function imageToDataUri(url: string, callback: (err: Error | null, dataUri: string) => void): void;
 
     export function getElementBBox(el: Element): dia.BBox;
 
