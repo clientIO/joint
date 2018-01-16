@@ -574,7 +574,7 @@ var joint = {
                 // https://bugzilla.mozilla.org/show_bug.cgi?id=1053327
 
                 var url = window.URL.createObjectURL(blob);
-                var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+                var link = document.createElement('a');
 
                 link.href = url;
                 link.download = fileName;
@@ -582,7 +582,7 @@ var joint = {
 
                 link.click();
 
-                link.parentNode.removeChild(link);
+                document.body.removeChild(link);
                 window.URL.revokeObjectURL(url); // mark the url for garbage collection
             }
         },
