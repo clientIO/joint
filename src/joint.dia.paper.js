@@ -165,6 +165,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         'dragstart .joint-cell image': 'onImageDragStart'
     },
 
+    documentEvents: {
+        mouseup: 'pointerup',
+        touchend: 'pointerup',
+        touchcanel: 'pointerup'
+    },
+
     _highlights: {},
 
     init: function() {
@@ -211,15 +217,6 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.highlighting,
             this.constructor.prototype.options.highlighting
         );
-    },
-
-    bindDocumentEvents: function() {
-        var eventNS = this.getEventNamespace();
-        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS + ' touchcancel' + eventNS, this.pointerup);
-    },
-
-    unbindDocumentEvents: function() {
-        this.$document.off(this.getEventNamespace());
     },
 
     render: function() {
@@ -323,7 +320,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
-        this.unbindDocumentEvents();
     },
 
     setDimensions: function(width, height) {
@@ -1259,7 +1255,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
-        this.bindDocumentEvents();
+        this.delegateDocumentEvents();
 
         evt = joint.util.normalizeEvent(evt);
 
@@ -1309,7 +1305,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerup: function(evt) {
 
-        this.unbindDocumentEvents();
+        this.undelegateDocumentEvents();
 
         evt = joint.util.normalizeEvent(evt);
 
