@@ -134,6 +134,28 @@
         };
     }
 
+    function contextMarker(context) {
+        var marker = {};
+        // Stroke
+        // The context 'fill' is disregared here. The usual case is to use the marker with a connection
+        // (for which 'fill' attribute is set to 'none').
+        var stroke = context.stroke;
+        if (typeof stroke === 'string') {
+            marker['stroke'] = stroke;
+            marker['fill'] = stroke;
+        }
+        // Opacity
+        // Again the context 'fill-opacity' is ignored.
+        var strokeOpacity = context.strokeOpacity;
+        if (strokeOpacity === undefined) strokeOpacity = context['stroke-opacity'];
+        if (strokeOpacity === undefined) strokeOpacity = context.opacity
+        if (strokeOpacity !== undefined) {
+            marker['stroke-opacity'] = strokeOpacity;
+            marker['fill-opacity'] = strokeOpacity;
+        }
+        return marker;
+    }
+
     var attributesNS = joint.dia.attributes = {
 
         xlinkHref: {
@@ -219,22 +241,24 @@
 
         sourceMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), marker);
                 return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         targetMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
-                marker = util.assign({ transform: 'rotate(180)' }, marker);
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), { 'transform': 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         vertexMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), marker);
                 return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
