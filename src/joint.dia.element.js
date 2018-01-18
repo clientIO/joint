@@ -471,7 +471,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Selectors
         var selectors = this.selectors = doc.selectors;
         var rootSelector = this.selector;
-        if (selectors[rootSelector]) throw new Error('dia.ElementView: invalid selector.');
+        if (selectors[rootSelector]) throw new Error('dia.ElementView: ambiguous root selector.');
         selectors[rootSelector] = this.el;
         // Cache transformation groups
         this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
