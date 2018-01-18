@@ -27,38 +27,36 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
-
         <div id="event-handling" class="tutorial">
 
             <h2>Event handling</h2>
 
+            <div class="paper" id="paper-basic"></div>
+
             <p>As mentioned, JointJS library is based on the Backbone MVC library. So let's try some Backbone stuff now. For
                 instance, let's see all the events
-                triggered by any model in the graph:
-            <pre><code>graph.on('all', function(eventName, cell) {
+                triggered by any model in the graph:</p>
+            <pre><code>graph.on('all', function(eventName, cell /* rest */) {
     console.log(arguments);
 });</code></pre>
-            To see the triggered events, open the browser console and make some changes to the paper above: Move the
+            <p>To see the triggered events, open the browser console and make some changes to the paper above: Move the
             rectangles around,
             create a new vertex by dragging the link, remove a vertex, disconnect the link by dragging the highlighted
-            arrowhead, remove the link, ...
+                arrowhead, remove the link, ...</p>
 
-            <p>You can also react on a specific event on a particular model:
+            <p>You can also react on a specific event on a particular model:</p>
             <pre><code>rect.on('change:position', function(element) {
     console.log(element.id, ':', element.get('position'));
 });</code></pre>
+            <p>Please see the <a href="/docs/jointjs/v1.0/joint.html" target="_top">API reference</a> for a list of events that you can react on for models (<code>joint.dia.Element</code>,
+                <code>joint.dia.Link</code> and <code>joint.dia.Graph</code>) and views (<code>joint.dia.ElementView</code>, <code>joint.dia.LinkView</code> and <code>joint.dia.Paper</code>).</p>
 
-            Please see the <a href="/docs/jointjs/v1.0/joint.html" target="_top">API reference</a> for a list of events that you can react on for models (<code>joint.dia.Element</code>,
-            <code>joint.dia.Link</code> and <code>joint.dia.Graph</code>) and views (<code>joint.dia.Paper</code>).
+            <p>Here is the <a href="js/hello-world.js">link</a> to source code of example above.</p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="js/hello-world.js"></script>
 
     </body>
 </html>

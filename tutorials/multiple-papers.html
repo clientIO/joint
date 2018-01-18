@@ -27,41 +27,64 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
-
         <div id="multiple-papers" class="tutorial">
 
-            <h2>More papers for the same graph</h2>
+            <h2>Multiple papers</h2>
+
+            <h3>More papers for the same graph</h3>
             <p>Now when you learned that a <code>joint.dia.Paper</code> is a view for the <code>joint.dia.Graph</code>
                 model, you can imagine that the same model can have
                 multiple views. That's right. Let's use the same application as the Hello World! above and let's add another
                 paper, scaled and non-interactive, that serves as a small
                 overview of the graph.
             </p>
+
             <pre><code>var paperSmall = new joint.dia.Paper({
-    el: $('#myholder-small'),
+    el: document.getElementById('myholder-small'),
     width: 600,
     height: 100,
-    model: graph,
-    gridSize: 1
+    model: graph
 });
 paperSmall.scale(.5);
 paperSmall.$el.css('pointer-events', 'none');</code></pre>
 
             <div class="paper" id="paper-multiple-papers"></div>
             <div class="paper" id="paper-multiple-papers-small"></div>
-            <p>
-                Try to interact with the first, bigger, paper. You should see all the changes reflected in the other,
-                smaller, paper.
-            </p>
+            <p>Try to interact with the first, bigger, paper. You should see all the changes reflected in the other, smaller, paper. </p>
+
+            <h3>More views for the same element</h3>
+
+            <p>Similary, we can use a different view for the same element/link model. i.e. <code>joint.dia.ElementView</code> is a view for the <code>joint.dia.Element</code>. Here's an example how to write a simple element view that always renders a rectangle ignoring all the presentation attributes stored on the model.</p>
+
+            <pre><code>var paper = new joint.dia.Paper({
+    el: document.getElementById('myholder'),
+    width: 600,
+    height: 100,
+    model: graph,
+    elementView: joint.dia.ElementView.extend({
+        renderMarkup: function() {
+            this.velBody = V('rect', {
+                fill: 'lightgray',
+                stroke: 'gray'
+            }).appendTo(this.vel.empty());
+        },
+        resize: function() {
+            this.velBody.attr(this.model.size());
+        },
+        update: function() {
+            /* Noop: we simply ignore all attrs attributes. */
+        }
+    });
+});</code></pre>
+            <div class="paper" id="paper-multiple-papers-and-views"></div>
+            <div class="paper" id="paper-multiple-papers-and-views-small"></div>
+
+            <p>Please see the <a href="js/multiple-papers-and-views.js">source code</a> or <a href="custom-views.html">Creating Custom Views</a> section for more informaiton.</p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
         <script src="js/multiple-papers.js"></script>
+        <script src="js/multiple-papers-and-views.js"></script>
     </body>
 </html>

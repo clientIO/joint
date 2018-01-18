@@ -27,12 +27,6 @@
     </head>
     <body class="language-javascript tutorial-page">
 
-        <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
-                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
-            };
-        </script>
-
         <div id="element-styling" class="tutorial">
 
             <h2>Element styling</h2>
@@ -45,7 +39,7 @@
                 <code>joint.shapes.basic.Rect</code>
                 element consists of this SVG structure (TIP: inspect your diagram with the Developer Tools of your favourite
                 browser):
-            <pre><code>&lt;g class="element basic Rect"&gt;
+            <pre><code>&lt;g class="joint-element joint-type-basic-rect"&gt;
     &lt;g class="rotatable"&gt;
         &lt;g class="scalable"&gt;
             &lt;rect /&gt;
@@ -67,20 +61,28 @@
             whatever you define in your external stylesheet cannot be overruled by setting element specific attributes with
             the method below.
             <p>A better approach is using the <a href="/docs/jointjs/v1.0/joint.html#dia.Element.prototype.attr" target="_top">attr</a> method of <code>joint.dia.Element</code>.
-            <pre><code>rect.attr({
-    rect: { fill: '#2C3E50', rx: 5, ry: 5, 'stroke-width': 2, stroke: 'black' },
-    text: {
-        text: 'my label', fill: '#3498DB',
-        'font-size': 18, 'font-weight': 'bold', 'font-variant': 'small-caps', 'text-transform': 'capitalize'
-    }
+                <pre><code>rect.attr({
+  rect: {
+    fill: '#2C3E50',
+    rx: 5,
+    ry: 5,
+    strokeWidth: 2,
+    stroke: 'black'
+  },
+  text: {
+    text: 'my label',
+    fill: '#3498DB',
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontVariant: 'small-caps',
+    textTransform: 'capitalize'
+  }
 });</code></pre>
 
             <div class="paper" id="paper-element-styling"></div>
             <p class="note">
                 I left the styling of the other rectangles in this example out of this text. If you want to look at it
-                anyway,
-                inspect this page, find the <code>tutorial.js</code> script and search the function
-                <code>elementStyling()</code>.
+                anyway, here is the <a href="js/element-styling.js" target="_blank">link</a> to complete source code.
             </p>
             <p>
                 As you can see, the <code>element.attr()</code> method takes one object as its argument. The <em>keys</em>
@@ -92,8 +94,8 @@
                 A more complicated selector might look like: <code>'.section2 .port1 text'</code>.
             </p>
             <p>
-                The <em>values</em> of the object passed represent a flat object (with one exception and that is the <code>style</code>
-                attribute) with SVG/CSS attributes that
+                The <em>values</em> of the object passed represent a flat object (this does not apply to some of the special attribtues e.g <code>style</code>
+                attribute or <code>sourceMarker</code>) with SVG/CSS attributes that
                 will be used to style that element.
             </p>
 
