@@ -433,16 +433,14 @@
         },
 
         refR: {
-            set: function() {
-                var attrName = 'r';
-                var horizontalR = setWrapper(attrName, 'width');
-                var verticalR = setWrapper(attrName, 'height');
+            set: (function(attrName) {
+                var widthFn = setWrapper(attrName, 'width');
+                var heightFn = setWrapper(attrName, 'height');
                 return function(value, refBBox) {
-                    var horizontalAttrs = horizontalR(value, refBBox);
-                    var verticalAttrs = verticalR(value, refBBox);
-                    return (horizontalAttrs[attrName] < verticalAttrs[attrName]) ? horizontalAttrs : verticalAttrs;
+                    var fn = (refBBox.height > refBBox.width) ? widthFn : heightFn;
+                    return fn(value, refBBox);
                 }
-            }()
+            })('r')
         },
 
         refCx: {
