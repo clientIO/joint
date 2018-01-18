@@ -753,10 +753,15 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     findBySelector: function(selector, root) {
 
-        var $root = $(root || this.el);
+        root || (root = this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        return (selector === '.') ? $root : $root.find(selector);
+        if (!selector || selector === '.') return root;
+        var selectors = this.selectors;
+        if (selectors && selectors[selector]) return selectors[selector];
+        // Maintaining backwards compatibility
+        // e.g. `circle:first` would fail with querySelector() call
+        return $(root).find(selector).toArray();
     },
 
     notify: function(eventName) {
@@ -1077,10 +1082,10 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
-            var $selected = selectorCache[selector] = this.findBySelector(selector, root);
-
-            for (var i = 0, n = $selected.length; i < n; i++) {
-                var node = $selected[i];
+            var selected = selectorCache[selector] = this.findBySelector(selector, root);
+            if (selected instanceof Element) selected = [selected];
+            for (var i = 0, n = selected.length; i < n; i++) {
+                var node = selected[i];
                 var nodeId = V.ensureId(node);
                 var nodeAttrs = attrs[selector];
                 var prevNodeAttrs = nodesAttrs[nodeId];
@@ -1147,7 +1152,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 var refNode;
                 if (refSelector) {
-                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
+                    refNode = selectorCache[refSelector] || this.findBySelector(refSelector, rootNode);
                     if (!refNode) {
                         throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
                     }
@@ -1227,6 +1232,42 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
+    parseDOMJSON: function (json) {
+        var selectors = {};
+        var svgNS = V.namespace.xmlns;
+        var fragment = document.createDocumentFragment();
+        var queue = [json, fragment, svgNS];
+        while (queue.length > 0) {
+            var ns = queue.pop();
+            var parentNode = queue.pop();
+            var siblingsDef = queue.pop();
+            for (var i = 0, n = siblingsDef.length; i < n; i++) {
+                var nodeDef = siblingsDef[i];
+                if (!nodeDef.hasOwnProperty('tagName')) throw new Error('dia.CellView: missing tagName');
+                var tagName = nodeDef.tagName;
+                if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
+                var attributes = nodeDef.attributes;
+                var node = document.createElementNS(ns, tagName);
+                var nodeWrapper = (ns === svgNS) ? V : $;
+                nodeWrapper(node).attr(attributes);
+                if (nodeDef.hasOwnProperty('className')) node.className.baseVal = nodeDef.className;
+                if (nodeDef.hasOwnProperty('selector')) {
+                    var nodeSelector = nodeDef.selector;
+                    if (selectors[nodeSelector]) throw new Error('dia.CellView: selector must be unique');
+                    selectors[nodeSelector] = node;
+                }
+                parentNode.appendChild(node);
+                var childrenDef = nodeDef.children;
+                if (Array.isArray(childrenDef)) {
+                    queue.push(childrenDef, node, ns);
+                }
+            }
+        }
+        return {
+            fragment: fragment,
+            selectors: selectors
+        }
+    },
     // Interaction. The controller part.
     // ---------------------------------
 

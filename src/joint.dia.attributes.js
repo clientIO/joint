@@ -432,6 +432,19 @@
             set: setWrapper('ry', 'height')
         },
 
+        refR: {
+            set: function() {
+                var attrName = 'r';
+                var horizontalR = setWrapper(attrName, 'width');
+                var verticalR = setWrapper(attrName, 'height');
+                return function(value, refBBox) {
+                    var horizontalAttrs = horizontalR(value, refBBox);
+                    var verticalAttrs = verticalR(value, refBBox);
+                    return (horizontalAttrs[attrName] < verticalAttrs[attrName]) ? horizontalAttrs : verticalAttrs;
+                }
+            }()
+        },
+
         refCx: {
             set: setWrapper('cx', 'width')
         },
