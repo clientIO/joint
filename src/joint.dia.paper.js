@@ -145,14 +145,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     events: {
-
         'mousedown': 'pointerdown',
         'dblclick': 'mousedblclick',
         'click': 'mouseclick',
         'touchstart': 'pointerdown',
         'touchend': 'mouseclick',
-        'touchmove': 'pointermove',
-        'mousemove': 'pointermove',
         'mouseover .joint-cell': 'cellMouseover',
         'mouseout .joint-cell': 'cellMouseout',
         'contextmenu': 'contextmenu',
@@ -166,9 +163,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     documentEvents: {
-        mouseup: 'pointerup',
-        touchend: 'pointerup',
-        touchcanel: 'pointerup'
+        'mouseup': 'pointerup',
+        'touchend': 'pointerup',
+        'touchcanel': 'pointerup',
+        'mousemove': 'pointermove',
+        'touchmove': 'pointermove'
     },
 
     _highlights: {},
@@ -1255,8 +1254,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
-        this.delegateDocumentEvents();
-
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1282,24 +1279,25 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
+
+        this.delegateDocumentEvents(null, evt.data);
     },
 
     pointermove: function(evt) {
 
+        evt.preventDefault();
+
+        // Mouse moved counter.
+        var mousemoved = ++this._mousemoved;
+        if (mousemoved <= this.options.moveThreshold) return;
+
+        evt = joint.util.normalizeEvent(evt);
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
         var view = this.sourceView;
         if (view) {
-
-            evt.preventDefault();
-
-            // Mouse moved counter.
-            var mousemoved = ++this._mousemoved;
-            if (mousemoved > this.options.moveThreshold) {
-
-                evt = joint.util.normalizeEvent(evt);
-
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.pointermove(evt, localPoint.x, localPoint.y);
-            }
+            view.pointermove(evt, localPoint.x, localPoint.y);
+        } else {
+            this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
         }
     },
 
@@ -1310,10 +1308,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         evt = joint.util.normalizeEvent(evt);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var view = this.sourceView;
+        if (view) {
 
-        if (this.sourceView) {
-
-            this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
+            view.pointerup(evt, localPoint.x, localPoint.y);
 
             //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
             this.sourceView = null;

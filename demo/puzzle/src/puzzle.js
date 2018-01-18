@@ -87,26 +87,23 @@ var Jigsaw = {
             gridSize: this.GRID,
             model: graph
         }).on({
-            'cell:pointerdown': function(pieceView) {
+            'cell:pointerdown': function(pieceView, evt) {
                 pieceView.model.toFront();
                 pieceView.highlight('polygon');
-                this.pointerMoveCount = 0;
+                evt.data = { pointerMoveCount: 0 };
             },
-            'cell:pointermove': function() {
-                this.pointerMoveCount++;
+            'cell:pointermove': function(cellView, evt) {
+                evt.data.pointerMoveCount++;
             },
-            'cell:pointerup': function(pieceView) {
+            'cell:pointerup': function(pieceView, evt) {
                 pieceView.unhighlight('polygon');
-                if (this.pointerMoveCount < this.maxPointerMoves) {
+                if (evt.data.pointerMoveCount < this.GRID) {
                     // Workaround for an unresolved chrome issue
                     // https://bugs.chromium.org/p/chromium/issues/detail?id=716694
                     pieceView.model.rotate(90);
                 }
             }
-        }, {
-            pointerMoveCount: 0,
-            maxPointerMoves: this.GRID
-        });
+        }, this);
 
         this.vImage = V('image', {
             id: this.IMAGE_ID,
