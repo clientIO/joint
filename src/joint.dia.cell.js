@@ -756,7 +756,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         root || (root = this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        if (!selector || selector === '.') return root;
+        if (!selector || selector === '.') return [root];
         var selectors = this.selectors;
         if (selectors && selectors[selector]) return selectors[selector];
         // Maintaining backwards compatibility
@@ -1083,7 +1083,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
             var selected = selectorCache[selector] = this.findBySelector(selector, root);
-            if (selected instanceof Element) selected = [selected];
             for (var i = 0, n = selected.length; i < n; i++) {
                 var node = selected[i];
                 var nodeId = V.ensureId(node);
@@ -1152,7 +1151,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 var refNode;
                 if (refSelector) {
-                    refNode = selectorCache[refSelector] || this.findBySelector(refSelector, rootNode);
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
                     if (!refNode) {
                         throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
                     }

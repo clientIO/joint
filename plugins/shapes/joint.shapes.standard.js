@@ -21,7 +21,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'rect',
             selector: 'body',
@@ -51,7 +50,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'circle',
             selector: 'body'
@@ -82,7 +80,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'ellipse',
             selector: 'body'
@@ -110,7 +107,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'path',
             selector: 'body'
@@ -138,7 +134,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'polygon',
             selector: 'body'
@@ -166,7 +161,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'polyline',
             selector: 'body'
@@ -194,7 +188,6 @@
             }
         }
     }, {
-        selector: 'root',
         markup: [{
             tagName: 'image',
             selector: 'body'
