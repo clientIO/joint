@@ -165,7 +165,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     documentEvents: {
         'mouseup': 'pointerup',
         'touchend': 'pointerup',
-        'touchcanel': 'pointerup',
+        'touchcancel': 'pointerup',
         'mousemove': 'pointermove',
         'touchmove': 'pointermove'
     },
