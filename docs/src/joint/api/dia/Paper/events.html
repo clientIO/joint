@@ -1,8 +1,8 @@
 <p>The following list contains events that you can react on in the paper:</p>
 <ul>
     <li><code>cell:pointerdown</code> - triggered when a pointer is pressed on a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
-    <li><code>cell:pointermove</code> - triggered when a pointer is moved on a paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
-    <li><code>cell:pointerup</code> - triggered when a pointer is released on a paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code> and, <code>evt</code> as arguments.</li>
+    <li><code>cell:pointermove</code> - triggered when a pointer is moved on the paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>cell:pointerup</code> - triggered when a pointer is released on the paper and <code>cell:pointerdown</code> was previously handled. Takes <code>cellView</code> and, <code>evt</code> as arguments.</li>
     <li><code>cell:pointerdblclick</code> - triggered when the user double-clicks a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>cell:pointerclick</code> - triggered when the user clicks a cell. Takes <code>cellView</code>, <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>cell:mouseover</code> - triggered when the user enters the cellView or its child element. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
@@ -16,6 +16,8 @@
     <li><code>element:mouseleave</code> - triggered when the user leaves the element view area. Takes <code>cellView</code> and <code>evt</code> as arguments.</li>
 
     <li><code>blank:pointerdown</code> - triggered when a pointer is pressed on a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>blank:pointermove</code> - triggered when a pointer is moved on the paper and <code>blank:pointerdown</code> was previously handled. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
+    <li><code>blank:pointerup</code> - triggered when a pointer is released on the paper and <code>blank:pointerdown</code> was previously handled. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>blank:pointerdblclick</code> - triggered when the user double-clicks a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>blank:pointerclick</code> - triggered when the user clicks a blank area on the paper. Takes <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</li>
     <li><code>cell:mousewheel</code> - triggered when the user turns their mousewheel while the cursor is over a cell in the paper. Takes <code>cellView</code>, <code>evt</code>, <code>x</code>, <code>y</code>, <code>delta</code> as arguments.</li>
@@ -34,5 +36,28 @@
 </ul>
 
 <pre><code>paper.on('blank:pointerdown', function(evt, x, y) {
-    alert('pointerdown on a blank area in the paper.')
+  alert('pointerdown on a blank area in the paper.')
 })</code></pre>
+
+<p>Consecutive <code>cell:pointerdown</code> - <code>cell:pointermove</code> - <code>cell:pointerup</code> and <code>blank:pointerdown</code> - <code>blank:pointermove</code> - <code>blank:pointerup</code> events can share <code>evt.data</code> object.</p>
+
+<pre><code>// Create a new link by dragging
+paper.on({
+  'blank:pointerdown': function(evt, x, y) {
+    var link = new joint.dia.Link();
+    link.set('source', { x: x, y: y });
+    link.set('target', { x: x, y: y });
+    link.addTo(this.model);
+    evt.data = { link: link, x: x, y: y };
+  },
+  'blank:pointermove': function(evt, x, y) {
+    evt.data.link.set('target', { x: x, y: y });
+  },
+  'blank:pointerup': function(evt) {
+    var target = evt.data.link.get('target');
+    if (evt.data.x === target.x && evt.data.y === target.y) {
+        // remove zero-length links
+        evt.data.link.remove();
+    }
+  }
+});</code></pre>

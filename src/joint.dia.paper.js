@@ -145,14 +145,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     events: {
-
         'mousedown': 'pointerdown',
         'dblclick': 'mousedblclick',
         'click': 'mouseclick',
         'touchstart': 'pointerdown',
         'touchend': 'mouseclick',
-        'touchmove': 'pointermove',
-        'mousemove': 'pointermove',
         'mouseover .joint-cell': 'cellMouseover',
         'mouseout .joint-cell': 'cellMouseout',
         'contextmenu': 'contextmenu',
@@ -163,6 +160,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mousedown .joint-cell [event]': 'cellEvent',
         'touchstart .joint-cell [event]': 'cellEvent',
         'dragstart .joint-cell image': 'onImageDragStart'
+    },
+
+    documentEvents: {
+        'mouseup': 'pointerup',
+        'touchend': 'pointerup',
+        'touchcancel': 'pointerup',
+        'mousemove': 'pointermove',
+        'touchmove': 'pointermove'
     },
 
     _highlights: {},
@@ -211,15 +216,6 @@ joint.dia.Paper = joint.mvc.View.extend({
             options.highlighting,
             this.constructor.prototype.options.highlighting
         );
-    },
-
-    bindDocumentEvents: function() {
-        var eventNS = this.getEventNamespace();
-        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS + ' touchcancel' + eventNS, this.pointerup);
-    },
-
-    unbindDocumentEvents: function() {
-        this.$document.off(this.getEventNamespace());
     },
 
     render: function() {
@@ -323,7 +319,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
-        this.unbindDocumentEvents();
     },
 
     setDimensions: function(width, height) {
@@ -1259,8 +1254,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
-        this.bindDocumentEvents();
-
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1286,38 +1279,39 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
+
+        this.delegateDocumentEvents(null, evt.data);
     },
 
     pointermove: function(evt) {
 
+        evt.preventDefault();
+
+        // Mouse moved counter.
+        var mousemoved = ++this._mousemoved;
+        if (mousemoved <= this.options.moveThreshold) return;
+
+        evt = joint.util.normalizeEvent(evt);
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
         var view = this.sourceView;
         if (view) {
-
-            evt.preventDefault();
-
-            // Mouse moved counter.
-            var mousemoved = ++this._mousemoved;
-            if (mousemoved > this.options.moveThreshold) {
-
-                evt = joint.util.normalizeEvent(evt);
-
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.pointermove(evt, localPoint.x, localPoint.y);
-            }
+            view.pointermove(evt, localPoint.x, localPoint.y);
+        } else {
+            this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
         }
     },
 
     pointerup: function(evt) {
 
-        this.unbindDocumentEvents();
+        this.undelegateDocumentEvents();
 
         evt = joint.util.normalizeEvent(evt);
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var view = this.sourceView;
+        if (view) {
 
-        if (this.sourceView) {
-
-            this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
+            view.pointerup(evt, localPoint.x, localPoint.y);
 
             //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
             this.sourceView = null;

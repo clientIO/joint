@@ -134,6 +134,7 @@ joint.mvc.View = Backbone.View.extend({
     remove: function() {
 
         this.onRemove();
+        this.undelegateDocumentEvents();
 
         joint.mvc.views[this.cid] = null;
 
@@ -150,6 +151,31 @@ joint.mvc.View = Backbone.View.extend({
     getEventNamespace: function() {
         // Returns a per-session unique namespace
         return '.joint-event-ns-' + this.cid;
+    },
+
+    delegateElementEvents: function(element, events, data) {
+        if (!events) return this;
+        data || (data = {});
+        var eventNS = this.getEventNamespace();
+        for (var eventName in events) {
+            var method = events[eventName];
+            if (typeof method !== 'function') method = this[method];
+            if (!method) continue;
+            $(element).on(eventName + eventNS, data, method.bind(this));
+        }
+    },
+
+    undelegateElementEvents: function(element) {
+        $(element).off(this.getEventNamespace());
+    },
+
+    delegateDocumentEvents: function(events, data) {
+        events || (events = joint.util.result(this, 'documentEvents'));
+        this.delegateElementEvents(document, events, data);
+    },
+
+    undelegateDocumentEvents: function() {
+        this.undelegateElementEvents(document);
     }
 
 }, {
