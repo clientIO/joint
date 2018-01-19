@@ -1247,8 +1247,10 @@ joint.dia.CellView = joint.mvc.View.extend({
                 if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
                 var attributes = nodeDef.attributes;
                 var node = document.createElementNS(ns, tagName);
-                var nodeWrapper = (ns === svgNS) ? V : $;
-                nodeWrapper(node).attr(attributes);
+                if (attributes) {
+                    var nodeWrapper = (ns === svgNS) ? V : $;
+                    nodeWrapper(node).attr(attributes);
+                }
                 if (nodeDef.hasOwnProperty('className')) node.className.baseVal = nodeDef.className;
                 if (nodeDef.hasOwnProperty('selector')) {
                     var nodeSelector = nodeDef.selector;

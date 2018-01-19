@@ -278,4 +278,52 @@
         }]
     });
 
+    Element.define('standard.HTML', {
+        attrs: {
+            border: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: '#333333',
+                fill: '#ffffff',
+                strokeWidth: 2
+            },
+            htmlContainer: {
+                refWidth: '100%',
+                refHeight: '100%',
+            },
+            body: {
+                style: {
+                    width: '100%',
+                    height: '100%',
+                    position: 'static',
+                    backgroundColor: 'transparent',
+                    textAlign: 'center',
+                    margin: 0,
+                    padding: '0px 5px 0px 5px',
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                },
+                // html: 'Content'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'border'
+        }, {
+            tagName: 'foreignObject',
+            selector: 'htmlContainer',
+            attributes: {
+                'overflow': 'hidden'
+            },
+            children: [{
+                tagName: 'div',
+                namespaceURI: 'http://www.w3.org/1999/xhtml',
+                selector: 'body',
+            }]
+        }]
+    });
+
 })(joint.dia.Element);
