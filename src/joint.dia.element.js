@@ -499,11 +499,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
         this.resize();
         if (this.rotatableNode) {
+            // Translate transformation is applied on `this.el` while the rotation transformation
+            // on `this.rotatableNode`
             this.rotate();
             this.translate();
-        } else {
-            this.updateTransformation();
+            return this;
         }
+        this.updateTransformation();
         return this;
     },
 

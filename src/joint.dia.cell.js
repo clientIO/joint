@@ -758,7 +758,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
         var selectors = this.selectors;
-        if (selectors && selectors[selector]) return selectors[selector];
+        if (selectors && selectors[selector]) return [selectors[selector]];
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
         return $(root).find(selector).toArray();

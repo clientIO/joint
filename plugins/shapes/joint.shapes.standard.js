@@ -249,16 +249,17 @@
             },
             image: {
                 // xlinkHref: '[URL]'
-                refWidth: '40%',
-                refHeight: '80%',
+                refWidth: '30%',
+                refHeight: -20,
                 x: 10,
-                y: 10
+                y: 10,
+                preserveAspectRatio: 'xMaxYMin'
             },
             label: {
                 textVerticalAnchor: 'top',
                 textAnchor: 'left',
-                refX: '40%',
-                refX2: 15,
+                refX: '30%',
+                refX2: 20, // 10 + 10
                 refY: 10,
                 fontSize: 14,
                 fill: '#333333'
