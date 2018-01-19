@@ -172,7 +172,7 @@
 
     Element.define('standard.Image', {
         attrs: {
-            body: {
+            image: {
                 refWidth: '100%',
                 refHeight: '100%',
                 // xlinkHref: '[URL]'
@@ -190,7 +190,87 @@
     }, {
         markup: [{
             tagName: 'image',
+            selector: 'image'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.BorderedImage', {
+        attrs: {
+            border: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: '#333333',
+                strokeWidth: 2
+            },
+            image: {
+                // xlinkHref: '[URL]'
+                refWidth: -1,
+                refHeight: -1,
+                x: 0.5,
+                y: 0.5
+            },
+            label: {
+                textVerticalAnchor: 'top',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '100%',
+                refY2: 10,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'image',
+            selector: 'image'
+        }, {
+            tagName: 'rect',
+            selector: 'border',
+            attributes: {
+                'fill': 'none'
+            }
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.EmbeddedImage', {
+        attrs: {
+            body: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: '#333333',
+                fill: '#ffffff',
+                strokeWidth: 2
+            },
+            image: {
+                // xlinkHref: '[URL]'
+                refWidth: '40%',
+                refHeight: '80%',
+                x: 10,
+                y: 10
+            },
+            label: {
+                textVerticalAnchor: 'top',
+                textAnchor: 'left',
+                refX: '40%',
+                refX2: 15,
+                refY: 10,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
             selector: 'body'
+        }, {
+            tagName: 'image',
+            selector: 'image'
         }, {
             tagName: 'text',
             selector: 'label'
