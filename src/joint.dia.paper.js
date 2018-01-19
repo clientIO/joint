@@ -56,8 +56,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,
+
         // Prevent the default action for blank:pointer<action>.
         preventDefaultBlankAction: true,
+
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -70,6 +72,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Or a bounding box:
         // restrictTranslate: { x: 10, y: 10, width: 790, height: 590 }
         restrictTranslate: false,
+
         // Marks all available magnets with 'available-magnet' class name and all available cells with
         // 'available-cell' class name. Marks them when dragging a link is started and unmark
         // when the dragging is stopped.
@@ -145,29 +148,29 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     events: {
-        'mousedown': 'pointerdown',
-        'dblclick': 'mousedblclick',
-        'click': 'mouseclick',
-        'touchstart': 'pointerdown',
-        'touchend': 'mouseclick',
-        'mouseover .joint-cell': 'cellMouseover',
-        'mouseout .joint-cell': 'cellMouseout',
+        'dblclick': 'pointerdblclick',
+        'click': 'pointerclick',
+        'touchend': 'pointerclick', // overriden when events are delegated to documentEvents
         'contextmenu': 'contextmenu',
+        'mousedown': 'pointerdown',
+        'touchstart': 'pointerdown',
+        'mouseover': 'mouseover',
+        'mouseout': 'mouseout',
+        'mouseenter': 'mouseenter',
+        'mouseleave': 'mouseleave',
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
-        'mouseenter .joint-cell': 'cellMouseenter',
-        'mouseleave .joint-cell': 'cellMouseleave',
-        'mousedown .joint-cell [event]': 'cellEvent',
-        'touchstart .joint-cell [event]': 'cellEvent',
-        'dragstart .joint-cell image': 'onImageDragStart'
+        'mousedown .joint-cell [event]': 'event', // interaction with cell with `event` attribute set
+        'touchstart .joint-cell [event]': 'event',
+        'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
     },
 
     documentEvents: {
+        'mousemove': 'pointermove',
+        'touchmove': 'pointermove',
         'mouseup': 'pointerup',
         'touchend': 'pointerup',
-        'touchcancel': 'pointerup',
-        'mousemove': 'pointermove',
-        'touchmove': 'pointermove'
+        'touchcancel': 'pointerup'
     },
 
     _highlights: {},
@@ -259,6 +262,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
+
     // For verifying whether the CTM is up-to-date. The viewport transform attribute
     // could have been manipulated directly.
     _viewportTransformString: null,
@@ -630,6 +634,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     onImageDragStart: function() {
         // This is the only way to prevent image dragging in Firefox that works.
         // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
+
         return false;
     },
 
@@ -959,20 +964,24 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     localToPagePoint: function(x, y) {
+
         return this.localToPaperPoint(x, y).offset(this.pageOffset());
     },
 
     localToPageRect: function(x, y, width, height) {
+
         return this.localToPaperRect(x, y, width, height).moveAndExpand(this.pageOffset());
     },
 
     pageToLocalPoint: function(x, y) {
+
         var pagePoint = g.Point(x, y);
         var paperPoint = pagePoint.difference(this.pageOffset());
         return this.paperToLocalPoint(paperPoint);
     },
 
     pageToLocalRect: function(x, y, width, height) {
+
         var pageOffset = this.pageOffset();
         var paperRect = g.Rect(x, y, width, height);
         paperRect.x -= pageOffset.x;
@@ -981,11 +990,13 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     clientOffset: function() {
+
         var clientRect = this.svg.getBoundingClientRect();
         return g.Point(clientRect.left, clientRect.top);
     },
 
     pageOffset: function() {
+
         return this.clientOffset().offset(window.scrollX, window.scrollY);
     },
 
@@ -1061,8 +1072,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             : this.options.defaultLink.clone();
     },
 
-    // Cell highlighting
-    // -----------------
+    // Cell highlighting.
+    // ------------------
+
     resolveHighlighter: function(opt) {
 
         opt = opt || {};
@@ -1163,9 +1175,10 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Interaction.
     // ------------
 
-    mousedblclick: function(evt) {
+    pointerdblclick: function(evt) {
 
         evt.preventDefault();
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1174,18 +1187,16 @@ joint.dia.Paper = joint.mvc.View.extend({
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
-
             view.pointerdblclick(evt, localPoint.x, localPoint.y);
 
         } else {
-
             this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
         }
     },
 
-    mouseclick: function(evt) {
+    pointerclick: function(evt) {
 
-        // Trigger event when mouse not moved.
+        // Trigger event only if mouse has not moved.
         if (this._mousemoved <= this.options.clickThreshold) {
 
             evt = joint.util.normalizeEvent(evt);
@@ -1196,18 +1207,200 @@ joint.dia.Paper = joint.mvc.View.extend({
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
             if (view) {
-
                 view.pointerclick(evt, localPoint.x, localPoint.y);
 
             } else {
-
                 this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
             }
         }
     },
 
-    // Guard guards the event received. If the event is not interesting, guard returns `true`.
-    // Otherwise, it return `false`.
+    contextmenu: function(evt) {
+
+        if (this.options.preventContextMenu) evt.preventDefault();
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+            view.contextmenu(evt, localPoint.x, localPoint.y);
+
+        } else {
+            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointerdown: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        this._mousemoved = 0;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+            evt.preventDefault();
+
+            this.sourceView = view;
+            view.pointerdown(evt, localPoint.x, localPoint.y);
+
+        } else {
+            if (this.options.preventDefaultBlankAction) evt.preventDefault();
+
+            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+        }
+
+        this.delegateDocumentEvents(null, evt.data);
+    },
+
+    pointermove: function(evt) {
+
+        evt.preventDefault();
+
+        // mouse moved counter
+        var mousemoved = ++this._mousemoved;
+        if (mousemoved <= this.options.moveThreshold) return;
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        var view = this.sourceView;
+        if (view) {
+            view.pointermove(evt, localPoint.x, localPoint.y);
+
+        } else {
+            this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointerup: function(evt) {
+
+        this.undelegateDocumentEvents();
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        var view = this.sourceView;
+        if (view) {
+            view.pointerup(evt, localPoint.x, localPoint.y);
+
+            this.sourceView = null; // "delete sourceView" occasionally throws an error in chrome (illegal access exception)
+
+        } else {
+            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    mouseover: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) {
+            view.mouseover(evt);
+
+        } else {
+            if (this.el === evt.target) return; // prevent border of paper from triggering this
+            this.trigger('blank:mouseover', evt);
+        }
+    },
+
+    mouseout: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) {
+            view.mouseout(evt);
+
+        } else {
+            if (this.el === evt.target) return; // prevent border of paper from triggering this
+            this.trigger('blank:mouseout', evt);
+        }
+    },
+
+    mouseenter: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) {
+            view.mouseenter(evt);
+
+        } else {
+            this.trigger('paper:mouseenter', evt); // `paper` (more descriptive), not `blank`
+        }
+    },
+
+    mouseleave: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) {
+            view.mouseleave(evt);
+
+        } else {
+            this.trigger('paper:mouseleave', evt); // `paper` (more descriptive), not `blank`
+        }
+    },
+
+    mousewheel: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var originalEvent = evt.originalEvent;
+        var localPoint = this.snapToGrid({ x: originalEvent.clientX, y: originalEvent.clientY });
+        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
+
+        if (view) {
+            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
+
+        } else {
+            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+        }
+    },
+
+    event: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var currentTarget = evt.currentTarget;
+        var eventName = currentTarget.getAttribute('event');
+        if (eventName) {
+            var view = this.findView(currentTarget);
+            if (this.guard(evt, view)) return;
+
+            if (view) {
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+                view.event(evt, eventName, localPoint.x, localPoint.y);
+            }
+        }
+    },
+
+    // Guard the specified event. If the event is not interesting, guard returns `true`.
+    // Otherwise, it returns `false`.
     guard: function(evt, view) {
 
         if (this.options.guard && this.options.guard(evt, view)) {
@@ -1227,172 +1420,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
         return true;    // Event guarded. Paper should not react on it in any way.
-    },
-
-    contextmenu: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        if (this.options.preventContextMenu) {
-            evt.preventDefault();
-        }
-
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-        if (view) {
-
-            view.contextmenu(evt, localPoint.x, localPoint.y);
-
-        } else {
-
-            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointerdown: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
-        this._mousemoved = 0;
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-        if (view) {
-
-            evt.preventDefault();
-
-            this.sourceView = view;
-
-            view.pointerdown(evt, localPoint.x, localPoint.y);
-
-        } else {
-
-            if (this.options.preventDefaultBlankAction) {
-                evt.preventDefault();
-            }
-
-            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
-        }
-
-        this.delegateDocumentEvents(null, evt.data);
-    },
-
-    pointermove: function(evt) {
-
-        evt.preventDefault();
-
-        // Mouse moved counter.
-        var mousemoved = ++this._mousemoved;
-        if (mousemoved <= this.options.moveThreshold) return;
-
-        evt = joint.util.normalizeEvent(evt);
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-        var view = this.sourceView;
-        if (view) {
-            view.pointermove(evt, localPoint.x, localPoint.y);
-        } else {
-            this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointerup: function(evt) {
-
-        this.undelegateDocumentEvents();
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-        var view = this.sourceView;
-        if (view) {
-
-            view.pointerup(evt, localPoint.x, localPoint.y);
-
-            //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
-            this.sourceView = null;
-
-        } else {
-
-            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    mousewheel: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
-        var originalEvent = evt.originalEvent;
-        var localPoint = this.snapToGrid({ x: originalEvent.clientX, y: originalEvent.clientY });
-        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
-
-        if (view) {
-
-            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
-
-        } else {
-
-            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
-        }
-    },
-
-    cellMouseover: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view) {
-            if (this.guard(evt, view)) return;
-            view.mouseover(evt);
-        }
-    },
-
-    cellMouseout: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view) {
-            if (this.guard(evt, view)) return;
-            view.mouseout(evt);
-        }
-    },
-
-    cellMouseenter: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view && !this.guard(evt, view)) {
-            view.mouseenter(evt);
-        }
-    },
-
-    cellMouseleave: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view && !this.guard(evt, view)) {
-            view.mouseleave(evt);
-        }
-    },
-
-    cellEvent: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var currentTarget = evt.currentTarget;
-        var eventName = currentTarget.getAttribute('event');
-        if (eventName) {
-            var view = this.findView(currentTarget);
-            if (view && !this.guard(evt, view)) {
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.event(evt, eventName, localPoint.x, localPoint.y);
-            }
-        }
     },
 
     setGridSize: function(gridSize) {
@@ -1666,9 +1693,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         joint.util.invoke(this._views, 'setInteractivity', value);
     },
 
-    // Paper Defs
+    // Paper definitions.
+    // ------------------
 
     isDefined: function(defId) {
+
         return !!this.svg.getElementById(defId);
     },
 
@@ -1787,7 +1816,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         return markerId;
     }
-
 }, {
 
     backgroundPatterns: {
