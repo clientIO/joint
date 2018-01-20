@@ -253,7 +253,7 @@
                 refHeight: -20,
                 x: 10,
                 y: 10,
-                preserveAspectRatio: 'xMaxYMin'
+                preserveAspectRatio: 'xMidYMin'
             },
             label: {
                 textVerticalAnchor: 'top',
@@ -278,7 +278,41 @@
         }]
     });
 
-    Element.define('standard.HTML', {
+    var textBlockHTMLMarkup = {
+        tagName: 'foreignObject',
+        selector: 'htmlContainer',
+        attributes: {
+            'overflow': 'hidden'
+        },
+        children: [{
+            tagName: 'div',
+            namespaceURI: 'http://www.w3.org/1999/xhtml',
+            selector: 'body',
+            style: {
+                width: '100%',
+                height: '100%',
+                position: 'static',
+                backgroundColor: 'transparent',
+                textAlign: 'center',
+                margin: 0,
+                padding: '0px 5px 0px 5px',
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }
+        }]
+    };
+
+    var textBlockSVGMarkup = {
+        tagName: 'text',
+        selector: 'body',
+        attributes: {
+            'text-anchor': 'middle'
+        }
+    };
+
+    Element.define('standard.TextBlock', {
         attrs: {
             border: {
                 refWidth: '100%',
@@ -289,41 +323,43 @@
             },
             htmlContainer: {
                 refWidth: '100%',
-                refHeight: '100%',
+                refHeight: '100%'
             },
             body: {
+                // text: 'Content'
                 style: {
-                    width: '100%',
-                    height: '100%',
-                    position: 'static',
-                    backgroundColor: 'transparent',
-                    textAlign: 'center',
-                    margin: 0,
-                    padding: '0px 5px 0px 5px',
-                    boxSizing: 'border-box',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    fontSize: 10
                 },
-                // html: 'Content'
+                // SVG specific attributes
+                refX: '50%',
+                refY: '50%',
+                textVerticalAnchor: 'middle'
             }
         }
     }, {
         markup: [{
             tagName: 'rect',
             selector: 'border'
-        }, {
-            tagName: 'foreignObject',
-            selector: 'htmlContainer',
-            attributes: {
-                'overflow': 'hidden'
-            },
-            children: [{
-                tagName: 'div',
-                namespaceURI: 'http://www.w3.org/1999/xhtml',
-                selector: 'body',
-            }]
-        }]
+        },
+            (joint.env.test('svgforeignobject')) ? textBlockHTMLMarkup : textBlockSVGMarkup
+        ]
+    }, {
+        attributes: {
+            text: {
+                set: function(text, refBBox, node, attrs) {
+                    if (node instanceof SVGElement) {
+                        joint.dia.attributes.textWrap.set.call(this, {
+                            text: text,
+                            width: '100%',
+                            height: '100%'
+                        } , refBBox, node, attrs.style || {});
+                    } else {
+                        // HTML
+                        node.textContent = text;
+                    }
+                }
+            }
+        }
     });
 
 })(joint.dia.Element);

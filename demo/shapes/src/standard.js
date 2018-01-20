@@ -86,9 +86,9 @@ embeddedImage.attr('label/text', 'Embedded\nImage');
 embeddedImage.attr('image/xlinkHref', 'http://via.placeholder.com/60x80');
 embeddedImage.addTo(graph);
 
-var html = new standard.HTML();
-html.resize(150, 100);
-html.position(25, 610);
-html.attr('root/tabindex', 10);
-html.attr('body/html', 'Hyper Text Markup Language');
-html.addTo(graph);
+var textBlock = new standard.TextBlock();
+textBlock.resize(100, 100);
+textBlock.position(50, 610);
+textBlock.attr('root/tabindex', 10);
+textBlock.attr('body/text', 'Hyper Text Markup Language');
+textBlock.addTo(graph);
