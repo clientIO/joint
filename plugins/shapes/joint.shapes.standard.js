@@ -1,6 +1,8 @@
-(function (Element, util) {
+(function (dia, util, env) {
 
     'use strict';
+
+    var Element = dia.Element;
 
     Element.define('standard.Rectangle', {
         attrs: {
@@ -336,7 +338,7 @@
             tagName: 'rect',
             selector: 'body'
         },
-            (joint.env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup
+            (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup
         ]
     }, {
         attributes: {
@@ -346,9 +348,9 @@
                         node.textContent = text;
                     } else {
                         // No foreign object
-                        var wrapAttrs = util.assign({ textVerticalAnchor: 'middle' }, attrs.style);
                         var wrapValue = { text: text, width: -5, height: '100%' };
-                        joint.dia.attributes.textWrap.set.call(this, wrapValue , refBBox, node, wrapAttrs);
+                        var wrapAttrs = util.assign({ textVerticalAnchor: 'middle' }, attrs.style);
+                        dia.attributes.textWrap.set.call(this, wrapValue, refBBox, node, wrapAttrs);
                     }
                 },
                 position: function(text, refBBox, node) {
@@ -359,4 +361,4 @@
         }
     });
 
-})(joint.dia.Element, joint.util);
+})(joint.dia, joint.util, joint.env);
