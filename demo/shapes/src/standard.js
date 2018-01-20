@@ -90,5 +90,5 @@ var textBlock = new standard.TextBlock();
 textBlock.resize(100, 100);
 textBlock.position(50, 610);
 textBlock.attr('root/tabindex', 10);
-textBlock.attr('body/text', 'Hyper Text Markup Language');
+textBlock.attr('label/text', 'Hyper Text Markup Language');
 textBlock.addTo(graph);

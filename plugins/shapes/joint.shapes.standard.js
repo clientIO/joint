@@ -1,4 +1,4 @@
-(function (Element) {
+(function (Element, util) {
 
     'use strict';
 
@@ -278,16 +278,16 @@
         }]
     });
 
-    var textBlockHTMLMarkup = {
+    var foLabelMarkup = {
         tagName: 'foreignObject',
-        selector: 'htmlContainer',
+        selector: 'foreignObject',
         attributes: {
             'overflow': 'hidden'
         },
         children: [{
             tagName: 'div',
             namespaceURI: 'http://www.w3.org/1999/xhtml',
-            selector: 'body',
+            selector: 'label',
             style: {
                 width: '100%',
                 height: '100%',
@@ -295,7 +295,7 @@
                 backgroundColor: 'transparent',
                 textAlign: 'center',
                 margin: 0,
-                padding: '0px 5px 0px 5px',
+                padding: '0px 5px',
                 boxSizing: 'border-box',
                 display: 'flex',
                 alignItems: 'center',
@@ -304,9 +304,9 @@
         }]
     };
 
-    var textBlockSVGMarkup = {
+    var svgLabelMarkup = {
         tagName: 'text',
-        selector: 'body',
+        selector: 'label',
         attributes: {
             'text-anchor': 'middle'
         }
@@ -314,52 +314,49 @@
 
     Element.define('standard.TextBlock', {
         attrs: {
-            border: {
+            body: {
                 refWidth: '100%',
                 refHeight: '100%',
                 stroke: '#333333',
                 fill: '#ffffff',
                 strokeWidth: 2
             },
-            htmlContainer: {
+            foreignObject: {
                 refWidth: '100%',
                 refHeight: '100%'
             },
-            body: {
-                // text: 'Content'
+            label: {
                 style: {
-                    fontSize: 10
-                },
-                // SVG specific attributes
-                refX: '50%',
-                refY: '50%',
-                textVerticalAnchor: 'middle'
+                    fontSize: 14
+                }
             }
         }
     }, {
         markup: [{
             tagName: 'rect',
-            selector: 'border'
+            selector: 'body'
         },
-            (joint.env.test('svgforeignobject')) ? textBlockHTMLMarkup : textBlockSVGMarkup
+            (joint.env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup
         ]
     }, {
         attributes: {
             text: {
                 set: function(text, refBBox, node, attrs) {
-                    if (node instanceof SVGElement) {
-                        joint.dia.attributes.textWrap.set.call(this, {
-                            text: text,
-                            width: '100%',
-                            height: '100%'
-                        } , refBBox, node, attrs.style || {});
-                    } else {
-                        // HTML
+                    if (node instanceof HTMLElement) {
                         node.textContent = text;
+                    } else {
+                        // No foreign object
+                        var wrapAttrs = util.assign({ textVerticalAnchor: 'middle' }, attrs.style);
+                        var wrapValue = { text: text, width: -5, height: '100%' };
+                        joint.dia.attributes.textWrap.set.call(this, wrapValue , refBBox, node, wrapAttrs);
                     }
+                },
+                position: function(text, refBBox, node) {
+                    // No foreign object
+                    if (node instanceof SVGElement) return refBBox.center();
                 }
             }
         }
     });
 
-})(joint.dia.Element);
+})(joint.dia.Element, joint.util);

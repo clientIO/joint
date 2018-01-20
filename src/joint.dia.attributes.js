@@ -264,6 +264,9 @@
         },
 
         text: {
+            qualify: function(text, node, attrs) {
+                return !attrs.textWrap || !util.isPlainObject(attrs.textWrap);
+            },
             set: function(text, refBBox, node, attrs) {
                 var $node = $(node);
                 var cacheName = 'joint-text';
@@ -306,17 +309,20 @@
                     refBBox.height = height;
                 }
                 // option `text`
-                var wrappedText = joint.util.breakText('' + value.text, refBBox, {
-                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
-                    'font-size': attrs['font-size'] || attrs.fontSize,
-                    'font-family': attrs['font-family'] || attrs.fontFamily
-                }, {
-                    // Provide an existing SVG Document here
-                    // instead of creating a temporary one over again.
-                    svgDocument: this.paper.svg
-                });
-
-                V(node).text(wrappedText);
+                var text = value.text;
+                if (text === undefined) text = attr.text;
+                if (text !== undefined) {
+                    var wrappedText = joint.util.breakText('' + text, refBBox, {
+                        'font-weight': attrs['font-weight'] || attrs.fontWeight,
+                        'font-size': attrs['font-size'] || attrs.fontSize,
+                        'font-family': attrs['font-family'] || attrs.fontFamily
+                    }, {
+                        // Provide an existing SVG Document here
+                        // instead of creating a temporary one over again.
+                        svgDocument: this.paper.svg
+                    });
+                }
+                joint.dia.attributes.text.set.call(this, wrappedText, refBBox, node, attrs);
             }
         },
 
