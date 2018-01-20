@@ -348,9 +348,11 @@
                         node.textContent = text;
                     } else {
                         // No foreign object
+                        var style = attrs.style || {};
                         var wrapValue = { text: text, width: -5, height: '100%' };
-                        var wrapAttrs = util.assign({ textVerticalAnchor: 'middle' }, attrs.style);
+                        var wrapAttrs = util.assign({ textVerticalAnchor: 'middle' }, style);
                         dia.attributes.textWrap.set.call(this, wrapValue, refBBox, node, wrapAttrs);
+                        return { fill: style.color || null };
                     }
                 },
                 position: function(text, refBBox, node) {

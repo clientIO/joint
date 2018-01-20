@@ -315,7 +315,8 @@
                     var wrappedText = joint.util.breakText('' + text, refBBox, {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
                         'font-size': attrs['font-size'] || attrs.fontSize,
-                        'font-family': attrs['font-family'] || attrs.fontFamily
+                        'font-family': attrs['font-family'] || attrs.fontFamily,
+                        'lineHeight': attrs.lineHeight
                     }, {
                         // Provide an existing SVG Document here
                         // instead of creating a temporary one over again.
