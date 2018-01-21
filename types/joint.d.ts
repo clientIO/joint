@@ -2090,6 +2090,13 @@ export namespace attributes {
         [key: string]: any;
     }
 
+    interface SVGAttributeTextWrap {
+        text?: string;
+        width?: string | number;
+        height?: string | number;
+        [key: string]: any
+    }
+
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
         filter?: string | { [key: string]: any };
@@ -2099,7 +2106,7 @@ export namespace attributes {
         targetMarker?: { [key: string]: any };
         vertexMarker?: { [key: string]: any };
         text?: string;
-        textWrap?: { [key: string]: any };
+        textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;
         textPath?: any;
         annotations?: any;
@@ -2117,6 +2124,7 @@ export namespace attributes {
         refHeight?: string | number;
         refRx?: string | number;
         refRy?: string | number;
+        refR?: string | number;
         refCx?: string | number;
         refCy?: string | number;
         resetOffset?: boolean;
