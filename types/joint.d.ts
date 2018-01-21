@@ -876,6 +876,124 @@ export namespace shapes {
         path?: attributes.SVGPathAttributes;
     }
 
+    namespace standard {
+
+        class Rectangle extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGRectAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class Circle extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGCircleAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class Ellipse extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGCircleAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class Path extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGPathAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class Polygon extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGPolygonAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class Polyline extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGPolylineAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class Image extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    image?: attributes.SVGImageAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class BorderedImage extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    border?: attributes.SVGRectAttributes;
+                    image?: attributes.SVGImageAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class EmbeddedImage extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGRectAttributes;
+                    image?: attributes.SVGImageAttributes;
+                    label?: attributes.SVGTextAttributes;
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+
+        class TextBlock extends dia.Element {
+            constructor(
+                attributes?: {
+                    root?: attributes.SVGAttributes;
+                    body?: attributes.SVGRectAttributes;
+                    label?: {
+                        text?: string,
+                        style?: { [key: string]: any }
+                    }
+                },
+                opt?: { [key: string]: any }
+            )
+        }
+    }
+
     namespace basic {
 
         class Generic extends dia.Element {
