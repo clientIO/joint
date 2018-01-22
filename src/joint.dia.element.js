@@ -1,3 +1,4 @@
+
 // joint.dia.Element base model.
 // -----------------------------
 
@@ -384,7 +385,6 @@ joint.dia.Element = joint.dia.Cell.extend({
 // joint.dia.Element base view and controller.
 // -------------------------------------------
 
-
 joint.dia.ElementView = joint.dia.CellView.extend({
 
     /**
@@ -491,22 +491,26 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     resize: function() {
+
         if (this.scalableNode) return this.sgResize.apply(this, arguments);
         if (this.model.attributes.angle) this.rotate();
         this.update();
     },
 
     translate: function() {
+
         if (this.rotatableNode) return this.rgTranslate();
         this.updateTransformation();
     },
 
     rotate: function() {
+
         if (this.rotatableNode) return this.rgRotate();
         this.updateTransformation();
     },
 
     updateTransformation: function() {
+
         var transformation = this.getTranslateString();
         var rotateString = this.getRotateString();
         if (rotateString) transformation += ' ' + rotateString;
@@ -514,6 +518,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     getTranslateString: function() {
+
         var position = this.model.attributes.position;
         return 'translate(' + position.x + ',' + position.y + ')';
     },
@@ -540,10 +545,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // always slower, kept mainly for backwards compatibility
 
     rgRotate: function() {
+
         this.rotatableNode.attr('transform', this.getRotateString());
     },
 
     rgTranslate: function() {
+
         this.vel.attr('transform', this.getTranslateString());
     },
 
@@ -597,8 +604,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.update();
     },
 
-    // Embedding mode methods
-    // ----------------------
+    // Embedding mode methods.
+    // -----------------------
 
     prepareEmbedding: function(opt) {
 
@@ -716,6 +723,24 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
+    pointerdblclick: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+        this.notify('element:pointerdblclick', evt, x, y);
+    },
+
+    pointerclick: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.pointerclick.apply(this, arguments);
+        this.notify('element:pointerclick', evt, x, y);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.contextmenu.apply(this, arguments);
+        this.notify('element:contextmenu', evt, x, y);
+    },
+
     pointerdown: function(evt, x, y) {
 
         var paper = this.paper;
@@ -823,6 +848,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
     },
 
+    mouseover: function(evt) {
+
+        joint.dia.CellView.prototype.mouseover.apply(this, arguments);
+        this.notify('element:mouseover', evt);
+    },
+
+    mouseout: function(evt) {
+
+        joint.dia.CellView.prototype.mouseout.apply(this, arguments);
+        this.notify('element:mouseout', evt);
+    },
+
     mouseenter: function(evt) {
 
         joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
@@ -833,5 +870,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
         this.notify('element:mouseleave', evt);
+    },
+
+    mousewheel: function(evt, x, y, delta) {
+
+        joint.dia.CellView.prototype.mousewheel.apply(this, arguments);
+        this.notify('element:mousewheel', evt, x, y, delta);
     }
 });

@@ -391,8 +391,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateLabelPositions();
     },
 
-    // Rendering
-    //----------
+    // Rendering.
+    // ----------
 
     render: function() {
 
@@ -615,8 +615,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
-    // Updating
-    //---------
+    // Updating.
+    // ---------
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(model, attributes, opt) {
@@ -1360,8 +1360,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return spot;
     },
 
-    // Public API
-    // ----------
+    // Public API.
+    // -----------
 
     getConnectionLength: function() {
 
@@ -1376,147 +1376,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
-    _beforeArrowheadMove: function() {
+    pointerdblclick: function(evt, x, y) {
 
-        this._z = this.model.get('z');
-        this.model.toFront();
-
-        // Let the pointer propagate throught the link view elements so that
-        // the `evt.target` is another element under the pointer, not the link itself.
-        this.el.style.pointerEvents = 'none';
-
-        if (this.paper.options.markAvailable) {
-            this._markAvailableMagnets();
-        }
+        joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+        this.notify('link:pointerdblclick', evt, x, y);
     },
 
-    _afterArrowheadMove: function() {
+    pointerclick: function(evt, x, y) {
 
-        if (this._z !== null) {
-            this.model.set('z', this._z, { ui: true });
-            this._z = null;
-        }
-
-        // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
-        // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
-        // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
-        this.el.style.pointerEvents = 'visiblePainted';
-
-        if (this.paper.options.markAvailable) {
-            this._unmarkAvailableMagnets();
-        }
+        joint.dia.CellView.prototype.pointerclick.apply(this, arguments);
+        this.notify('link:pointerclick', evt, x, y);
     },
 
-    _createValidateConnectionArgs: function(arrowhead) {
-        // It makes sure the arguments for validateConnection have the following form:
-        // (source view, source magnet, target view, target magnet and link view)
-        var args = [];
+    contextmenu: function(evt, x, y) {
 
-        args[4] = arrowhead;
-        args[5] = this;
-
-        var oppositeArrowhead;
-        var i = 0;
-        var j = 0;
-
-        if (arrowhead === 'source') {
-            i = 2;
-            oppositeArrowhead = 'target';
-        } else {
-            j = 2;
-            oppositeArrowhead = 'source';
-        }
-
-        var end = this.model.get(oppositeArrowhead);
-
-        if (end.id) {
-            args[i] = this.paper.findViewByModel(end.id);
-            args[i + 1] = end.selector && args[i].el.querySelector(end.selector);
-        }
-
-        function validateConnectionArgs(cellView, magnet) {
-            args[j] = cellView;
-            args[j + 1] = cellView.el === magnet ? undefined : magnet;
-            return args;
-        }
-
-        return validateConnectionArgs;
-    },
-
-    _markAvailableMagnets: function() {
-
-        function isMagnetAvailable(view, magnet) {
-            var paper = view.paper;
-            var validate = paper.options.validateConnection;
-            return validate.apply(paper, this._validateConnectionArgs(view, magnet));
-        }
-
-        var paper = this.paper;
-        var elements = paper.model.getElements();
-        this._marked = {};
-
-        for (var i = 0, n = elements.length; i < n; i++) {
-            var view = elements[i].findView(paper);
-
-            if (!view) {
-                continue;
-            }
-
-            var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
-            if (view.el.getAttribute('magnet') !== 'false') {
-                // Element wrapping group is also a magnet
-                magnets.push(view.el);
-            }
-
-            var availableMagnets = magnets.filter(isMagnetAvailable.bind(this, view));
-
-            if (availableMagnets.length > 0) {
-                // highlight all available magnets
-                for (var j = 0, m = availableMagnets.length; j < m; j++) {
-                    view.highlight(availableMagnets[j], { magnetAvailability: true });
-                }
-                // highlight the entire view
-                view.highlight(null, { elementAvailability: true });
-
-                this._marked[view.model.id] = availableMagnets;
-            }
-        }
-    },
-
-    _unmarkAvailableMagnets: function() {
-
-        var markedKeys = Object.keys(this._marked);
-        var id;
-        var markedMagnets;
-
-        for (var i = 0, n = markedKeys.length; i < n; i++) {
-            id = markedKeys[i];
-            markedMagnets = this._marked[id];
-
-            var view = this.paper.findViewByModel(id);
-            if (view) {
-                for (var j = 0, m = markedMagnets.length; j < m; j++) {
-                    view.unhighlight(markedMagnets[j], { magnetAvailability: true });
-                }
-                view.unhighlight(null, { elementAvailability: true });
-            }
-        }
-
-        this._marked = null;
-    },
-
-    startArrowheadMove: function(end, opt) {
-
-        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
-        // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
-        // move without need to click on the actual arrowhead dom element.
-        this._action = 'arrowhead-move';
-        this._whenNotAllowed = opt.whenNotAllowed;
-        this._arrowhead = end;
-        this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
-        this._initialEnd = joint.util.assign({}, this.model.get(end)) || { x: 0, y: 0 };
-        this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
-        this._beforeArrowheadMove();
+        joint.dia.CellView.prototype.contextmenu.apply(this, arguments);
+        this.notify('link:contextmenu', evt, x, y);
     },
 
     pointerdown: function(evt, x, y) {
@@ -1876,6 +1751,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
     },
 
+    mouseover: function(evt) {
+
+        joint.dia.CellView.prototype.mouseover.apply(this, arguments);
+        this.notify('link:mouseover', evt);
+    },
+
+    mouseout: function(evt) {
+
+        joint.dia.CellView.prototype.mouseout.apply(this, arguments);
+        this.notify('link:mouseout', evt);
+    },
+
     mouseenter: function(evt) {
 
         joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
@@ -1888,6 +1775,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.notify('link:mouseleave', evt);
     },
 
+    mousewheel: function(evt, x, y, delta) {
+
+        joint.dia.CellView.prototype.mousewheel.apply(this, arguments);
+        this.notify('link:mousewheel', evt, x, y, delta);
+    },
+
     event: function(evt, eventName, x, y) {
 
         // Backwards compatibility
@@ -1895,11 +1788,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (linkTool) {
             // No further action to be executed
             evt.stopPropagation();
+
             // Allow `interactive.useLinkTools=false`
             if (this.can('useLinkTools')) {
                 if (eventName === 'remove') {
                     // Built-in remove event
                     this.model.remove({ ui: true });
+
                 } else {
                     // link:options and other custom events inside the link tools
                     this.notify(eventName, evt, x, y);
@@ -1907,11 +1802,152 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
         } else {
-
             joint.dia.CellView.prototype.event.apply(this, arguments);
         }
-    }
+    },
 
+    _beforeArrowheadMove: function() {
+
+        this._z = this.model.get('z');
+        this.model.toFront();
+
+        // Let the pointer propagate throught the link view elements so that
+        // the `evt.target` is another element under the pointer, not the link itself.
+        this.el.style.pointerEvents = 'none';
+
+        if (this.paper.options.markAvailable) {
+            this._markAvailableMagnets();
+        }
+    },
+
+    _afterArrowheadMove: function() {
+
+        if (this._z !== null) {
+            this.model.set('z', this._z, { ui: true });
+            this._z = null;
+        }
+
+        // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
+        // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
+        // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
+        this.el.style.pointerEvents = 'visiblePainted';
+
+        if (this.paper.options.markAvailable) {
+            this._unmarkAvailableMagnets();
+        }
+    },
+
+    _createValidateConnectionArgs: function(arrowhead) {
+        // It makes sure the arguments for validateConnection have the following form:
+        // (source view, source magnet, target view, target magnet and link view)
+        var args = [];
+
+        args[4] = arrowhead;
+        args[5] = this;
+
+        var oppositeArrowhead;
+        var i = 0;
+        var j = 0;
+
+        if (arrowhead === 'source') {
+            i = 2;
+            oppositeArrowhead = 'target';
+        } else {
+            j = 2;
+            oppositeArrowhead = 'source';
+        }
+
+        var end = this.model.get(oppositeArrowhead);
+
+        if (end.id) {
+            args[i] = this.paper.findViewByModel(end.id);
+            args[i + 1] = end.selector && args[i].el.querySelector(end.selector);
+        }
+
+        function validateConnectionArgs(cellView, magnet) {
+            args[j] = cellView;
+            args[j + 1] = cellView.el === magnet ? undefined : magnet;
+            return args;
+        }
+
+        return validateConnectionArgs;
+    },
+
+    _markAvailableMagnets: function() {
+
+        function isMagnetAvailable(view, magnet) {
+            var paper = view.paper;
+            var validate = paper.options.validateConnection;
+            return validate.apply(paper, this._validateConnectionArgs(view, magnet));
+        }
+
+        var paper = this.paper;
+        var elements = paper.model.getElements();
+        this._marked = {};
+
+        for (var i = 0, n = elements.length; i < n; i++) {
+            var view = elements[i].findView(paper);
+
+            if (!view) {
+                continue;
+            }
+
+            var magnets = Array.prototype.slice.call(view.el.querySelectorAll('[magnet]'));
+            if (view.el.getAttribute('magnet') !== 'false') {
+                // Element wrapping group is also a magnet
+                magnets.push(view.el);
+            }
+
+            var availableMagnets = magnets.filter(isMagnetAvailable.bind(this, view));
+
+            if (availableMagnets.length > 0) {
+                // highlight all available magnets
+                for (var j = 0, m = availableMagnets.length; j < m; j++) {
+                    view.highlight(availableMagnets[j], { magnetAvailability: true });
+                }
+                // highlight the entire view
+                view.highlight(null, { elementAvailability: true });
+
+                this._marked[view.model.id] = availableMagnets;
+            }
+        }
+    },
+
+    _unmarkAvailableMagnets: function() {
+
+        var markedKeys = Object.keys(this._marked);
+        var id;
+        var markedMagnets;
+
+        for (var i = 0, n = markedKeys.length; i < n; i++) {
+            id = markedKeys[i];
+            markedMagnets = this._marked[id];
+
+            var view = this.paper.findViewByModel(id);
+            if (view) {
+                for (var j = 0, m = markedMagnets.length; j < m; j++) {
+                    view.unhighlight(markedMagnets[j], { magnetAvailability: true });
+                }
+                view.unhighlight(null, { elementAvailability: true });
+            }
+        }
+
+        this._marked = null;
+    },
+
+    startArrowheadMove: function(end, opt) {
+
+        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
+        // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
+        // move without need to click on the actual arrowhead dom element.
+        this._action = 'arrowhead-move';
+        this._whenNotAllowed = opt.whenNotAllowed;
+        this._arrowhead = end;
+        this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
+        this._initialEnd = joint.util.assign({}, this.model.get(end)) || { x: 0, y: 0 };
+        this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
+        this._beforeArrowheadMove();
+    }
 }, {
 
     makeSelector: function(end) {

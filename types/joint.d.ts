@@ -451,19 +451,29 @@ export namespace dia {
 
         notify(eventName: string, ...eventArguments: any[]): void;
 
-        protected mouseover(evt: JQuery.Event): void;
-
-        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void
+        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerclick(evt: JQuery.Event, x: number, y: number): void;
 
-        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
+        protected contextmenu(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerdown(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointermove(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerup(evt: JQuery.Event, x: number, y: number): void;
+
+        protected mouseover(evt: JQuery.Event): void;
+
+        protected mouseout(evt: JQuery.Event): void;
+
+        protected mouseenter(evt: JQuery.Event): void;
+
+        protected mouseleave(evt: JQuery.Event): void;
+
+        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void;
+
+        protected event(evt: JQuery.Event, eventName: string, x: number, y: number): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -766,6 +776,30 @@ export namespace dia {
         update(): this;
 
         // protected
+        protected pointerdblclick(evt: JQuery.Event): void;
+
+        protected pointerclick(evt: JQuery.Event): void;
+
+        protected contextmenu(evt: JQuery.Event): void;
+
+        protected pointerdown(evt: JQuery.Event): void;
+
+        protected pointermove(evt: JQuery.Event): void;
+
+        protected pointerup(evt: JQuery.Event): void;
+
+        protected mouseover(evt: JQuery.Event): void;
+
+        protected mouseout(evt: JQuery.Event): void;
+
+        protected mouseenter(evt: JQuery.Event): void;
+
+        protected mouseleave(evt: JQuery.Event): void;
+
+        protected mousewheel(evt: JQuery.Event): void;
+
+        protected event(evt: JQuery.Event): void;
+
         protected guard(evt: JQuery.Event, view: CellView): boolean;
 
         protected sortViews(): void;
@@ -782,23 +816,7 @@ export namespace dia {
 
         protected beforeRenderViews(cells: Cell[]): Cell[];
 
-        protected cellMouseEnter(evt: JQuery.Event): void;
-
-        protected cellMouseleave(evt: JQuery.Event): void;
-
-        protected cellMouseout(evt: JQuery.Event): void;
-
-        protected cellMouseover(evt: JQuery.Event): void;
-
-        protected contextmenu(evt: JQuery.Event): void;
-
         protected init(): void;
-
-        protected mouseclick(evt: JQuery.Event): void;
-
-        protected mousedblclick(evt: JQuery.Event): void;
-
-        protected mousewheel(evt: JQuery.Event): void;
 
         protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
 
@@ -807,12 +825,6 @@ export namespace dia {
         protected onCellUnhighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
         protected onRemove(): void;
-
-        protected pointerdown(evt: JQuery.Event): void;
-
-        protected pointermove(evt: JQuery.Event): void;
-
-        protected pointerup(evt: JQuery.Event): void;
 
         protected removeView(cell: Cell): CellView;
 
