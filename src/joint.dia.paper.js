@@ -149,8 +149,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     events: {
         'dblclick': 'pointerdblclick',
-        'click': 'pointerclick',
-        'touchend': 'pointerclick', // overriden when events are delegated to documentEvents
+        'click': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
+        'touchend': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
         'contextmenu': 'contextmenu',
         'mousedown': 'pointerdown',
         'touchstart': 'pointerdown',
