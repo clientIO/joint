@@ -1,12 +1,8 @@
 (function(joint, V, g, $, util) {
 
-    function isPercentage(val) {
-        return util.isString(val) && val.slice(-1) === '%';
-    }
-
     function setWrapper(attrName, dimension) {
         return function(value, refBBox) {
-            var isValuePercentage = isPercentage(value);
+            var isValuePercentage = util.isPercentage(value);
             value = parseFloat(value);
             if (isValuePercentage) {
                 value /= 100;
@@ -26,7 +22,7 @@
 
     function positionWrapper(axis, dimension, origin) {
         return function(value, refBBox) {
-            var valuePercentage = isPercentage(value);
+            var valuePercentage = util.isPercentage(value);
             value = parseFloat(value);
             if (valuePercentage) {
                 value /= 100;
@@ -58,7 +54,7 @@
             } else if (isFinite(value)) {
                 // TODO: or not to do a breaking change?
                 delta = (value > -1 && value < 1) ? (-nodeBBox[dimension] * value) : -value;
-            } else if (isPercentage(value)) {
+            } else if (util.isPercentage(value)) {
                 delta = nodeBBox[dimension] * parseFloat(value) / 100;
             } else {
                 delta = 0;
@@ -267,7 +263,7 @@
             set: function(value, refBBox, node, attrs) {
                 // option `width`
                 var width = value.width || 0;
-                if (isPercentage(width)) {
+                if (util.isPercentage(width)) {
                     refBBox.width *= parseFloat(width) / 100;
                 } else if (width <= 0) {
                     refBBox.width += width;
@@ -276,7 +272,7 @@
                 }
                 // option `height`
                 var height = value.height || 0;
-                if (isPercentage(height)) {
+                if (util.isPercentage(height)) {
                     refBBox.height *= parseFloat(height) / 100;
                 } else if (height <= 0) {
                     refBBox.height += height;

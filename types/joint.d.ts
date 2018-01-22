@@ -1461,6 +1461,8 @@ export namespace util {
 
     export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
+    export function isPercentage(val: any): boolean;
+
     export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
 
     export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;

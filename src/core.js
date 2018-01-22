@@ -368,6 +368,11 @@ var joint = {
             return spot || bbox.center();
         },
 
+        isPercentage: function(val) {
+
+            return joint.util.isString(val) && val.slice(-1) === '%';
+        },
+
         parseCssNumeric: function(strValue, restrictUnits) {
 
             restrictUnits = restrictUnits || [];
