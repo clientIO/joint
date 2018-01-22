@@ -33,6 +33,22 @@ QUnit.module('util', function(hooks) {
         ], 'Numbers with units interpolated.');
     });
 
+    QUnit.test('util.isPercentage', function(assert) {
+
+        assert.equal(joint.util.isPercentage(undefined), false, 'undefined => false');
+        assert.equal(joint.util.isPercentage(null), false, 'null => false');
+        assert.equal(joint.util.isPercentage(true), false, 'true => false');
+        assert.equal(joint.util.isPercentage(false), false, 'false => false');
+        assert.equal(joint.util.isPercentage(0), false, '0 => false');
+        assert.equal(joint.util.isPercentage(10), false, '10 => false');
+        assert.equal(joint.util.isPercentage(''), false, '\'\' => false');
+        assert.equal(joint.util.isPercentage('10'), false, '\'10\' => false');
+
+        assert.equal(joint.util.isPercentage('%'), true, '\'%\' => true');
+        assert.equal(joint.util.isPercentage('10%'), true, '\'10%\' => true');
+        assert.equal(joint.util.isPercentage('-10%'), true, '\'-10%\' => true');
+    });
+
     QUnit.test('util.format.number', function(assert) {
 
         var res = {
