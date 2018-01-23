@@ -242,14 +242,67 @@ QUnit.module('util', function(hooks) {
 
     QUnit.test('util.normalizeSides()', function(assert) {
 
-        assert.deepEqual(joint.util.normalizeSides(), { top: 0, left: 0, right: 0, bottom: 0 },
+        assert.deepEqual(joint.util.normalizeSides(''), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Empty string becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides('a'), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'String becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides('5'), { top: 5, right: 5, bottom: 5, left: 5 },
+                         'String number becomes number');
+
+        assert.deepEqual(joint.util.normalizeSides('Infinity'), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Infinity becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides('NaN'), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'NaN becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides(Infinity), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Infinity becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides(NaN), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'NaN becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: '' }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific empty string becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: 'a' }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific string becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: '5' }), { top: 0, right: 0, bottom: 0, left: 5 },
+                         'Specific string number becomes number');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: 'Infinity' }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific string Infinity becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: 'NaN' }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific string NaN becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: Infinity }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific Infinity becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: NaN }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific NaN becomes 0');
+
+
+
+        assert.deepEqual(joint.util.normalizeSides(), { top: 0, right: 0, bottom: 0, left: 0 },
                          'Returns sides defaulted to 0 if called without an argument.');
 
-        assert.deepEqual(joint.util.normalizeSides(5), { top: 5, left: 5, right: 5, bottom: 5 },
+        assert.deepEqual(joint.util.normalizeSides(5), { top: 5, right: 5, bottom: 5, left: 5 },
                          'Returns sides equaled to a number if called with this number as an argument.');
 
-        assert.deepEqual(joint.util.normalizeSides({ left: 5 }), { top: 0, left: 5, right: 0, bottom: 0 },
-                         'If called with an object, the existing sides are copied from the given object and the rest is defaulted to 0.');
+        assert.deepEqual(joint.util.normalizeSides({ horizontal: 5 }), { top: 0, right: 5, bottom: 0, left: 5 },
+                         'If called with an object, horizontal sides are applied to right and left and the rest is defaulted to 0.');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: 5 }), { top: 0, right: 0, bottom: 0, left: 5 },
+                         'If called with an object, the existing sides are copied from the object and the rest is defaulted to 0.');
+
+        assert.deepEqual(joint.util.normalizeSides({ horizontal: 10, left: 5 }), { top: 0, right: 10, bottom: 0, left: 5 },
+                         'If called with an object, horizontal sides are overriden by more specific sides from the object and the rest is defaulted to 0.');
+
+        assert.deepEqual(joint.util.normalizeSides({ horizontal: 5, left: 0 }), { top: 0, right: 5, bottom: 0, left: 0 },
+                         'If called with an object, horizontal sides are overriden by more specific sides from the object and the rest is defaulted to 0.');
     });
 
     QUnit.test('util.merge', function(assert) {

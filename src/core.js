@@ -805,25 +805,37 @@ var joint = {
             });
         },
 
-        // Return a new object with all for sides (top, bottom, left and right) in it.
+        // Return a new object with all four sides (top, right, bottom, left) in it.
         // Value of each side is taken from the given argument (either number or object).
         // Default value for a side is 0.
         // Examples:
-        // joint.util.normalizeSides(5) --> { top: 5, left: 5, right: 5, bottom: 5 }
-        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, left: 5, right: 0, bottom: 0 }
+        // joint.util.normalizeSides(5) --> { top: 5, right: 5, bottom: 5, left: 5 }
+        // joint.util.normalizeSides({ horizontal: 5 }) --> { top: 0, right: 5, bottom: 0, left: 5 }
+        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, right: 0, bottom: 0, left: 5 }
+        // joint.util.normalizeSides({ horizontal: 10, left: 5 }) --> { top: 0, right: 10, bottom: 0, left: 5 }
+        // joint.util.normalizeSides({ horizontal: 0, left: 5 }) --> { top: 0, right: 0, bottom: 0, left: 5 }
         normalizeSides: function(box) {
 
-            if (Object(box) !== box) {
-                box = box || 0;
-                return { top: box, bottom: box, left: box, right: box };
+            if (Object(box) !== box) { // `box` is not an object
+                var val = 0; // `val` left as 0 if `box` cannot be understood as finite number
+                if (isFinite(box)) val = +box; // actually also accepts string numbers (e.g. '100')
+
+                return { top: val, right: val, bottom: val, left: val };
             }
 
-            return {
-                top: box.top || 0,
-                bottom: box.bottom || 0,
-                left: box.left || 0,
-                right: box.right || 0
-            };
+            // `box` is an object
+            var top, right, bottom, left;
+            top = right = bottom = left = 0;
+
+            if (isFinite(box.vertical)) top = bottom = +box.vertical;
+            if (isFinite(box.horizontal)) right = left = +box.horizontal;
+
+            if (isFinite(box.top)) top = +box.top; // overwrite vertical
+            if (isFinite(box.right)) right = +box.right; // overwrite horizontal
+            if (isFinite(box.bottom)) bottom = +box.bottom; // overwrite vertical
+            if (isFinite(box.left)) left = +box.left; // overwrite horizontal
+
+            return { top: top, right: right, bottom: bottom, left: left };
         },
 
         timing: {
