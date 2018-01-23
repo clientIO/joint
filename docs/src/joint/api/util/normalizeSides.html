@@ -3,15 +3,15 @@
 
 <p>If <code>box</code> is a number, the value of all four sides will be this number. If <code>box</code> is an object with some/all of the <code>top</code>, <code>right</code>, <code>bottom</code>, <code>left</code> properties defined, the values of these properties will be used.</p>
 
-<p>Composite properties <code>vertical</code> (for right and left side) and <code>horizontal</code> (for top and bottom side) can be used, as well; they will be destructured appropriately. When two properties clash (e.g. <code>vertical: 10</code> and <code>left: 5</code>), the more specific one prevails (here the returned object would contain <code>right: 10</code> and <code>left: 5</code>).</p>
+<p>Composite properties <code>horizontal</code> (for right and left side) and <code>vertical</code> (for top and bottom side) can be used, as well; they will be destructured appropriately. When two properties clash (e.g. <code>horizontal: 10</code> and <code>left: 5</code>), the more specific one prevails (here the returned object would contain <code>right: 10</code> and <code>left: 5</code>).</p>
 
 <p>If any property is missing, its side will be set to <code>0</code> in the resulting object.</p>
 
 <pre><code>joint.util.normalizeSides() // { top: 0, right: 0, bottom: 0, left: 0 }
 joint.util.normalizeSides(5) // { top: 5, right: 5, bottom: 5, left: 5 }
-joint.util.normalizeSides({ vertical: 5 }) // { top: 0, right: 5, bottom: 0, left: 5 }
+joint.util.normalizeSides({ horizontal: 5 }) // { top: 0, right: 5, bottom: 0, left: 5 }
 joint.util.normalizeSides({ left: 5 }) // { top: 0, right: 0, bottom: 0, left: 5 }
-joint.util.normalizeSides({ vertical: 10, left: 5 }) // { top: 0, right: 10, bottom: 0, left: 5 }
-joint.util.normalizeSides({ vertical: 0, left: 5 }) // { top: 0, left: 5, right: 0, bottom: 0 }</code></pre>
+joint.util.normalizeSides({ horizontal: 10, left: 5 }) // { top: 0, right: 10, bottom: 0, left: 5 }
+joint.util.normalizeSides({ horizontal: 0, left: 5 }) // { top: 0, left: 5, right: 0, bottom: 0 }</code></pre>
 
 <p>JointJS and Rappid use this method internally whenever there is an option object that can be specified either by a number or a (possibly incomplete) object with sides (for example, the <code>padding</code> option).</p>
