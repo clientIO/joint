@@ -449,6 +449,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
+    selector: 'root',
+    rotatableSelector: 'rotatable',
+    scalableSelector: 'scalable',
+    scalableNode: null,
+    rotatableNode: null,
+
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
     renderMarkup: function() {
@@ -459,12 +465,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
         throw new Error('dia.Elementiew: invalid markup');
     },
-
-    selector: 'root',
-    rotatableSelector: 'rotatable',
-    scalableSelector: 'scalable',
-    scalableNode: null,
-    rotatableNode: null,
 
     renderJSONMarkup: function(markup) {
         var doc = this.parseDOMJSON(markup);

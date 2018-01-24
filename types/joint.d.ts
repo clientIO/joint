@@ -2146,7 +2146,7 @@ export namespace attributes {
         textPath?: any;
         annotations?: any;
         port?: string;
-        style?: string;
+        style?: string | { [key: string]: any };
         html?: string;
         ref?: string;
         refX?: string | number;
