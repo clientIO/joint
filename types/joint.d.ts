@@ -141,6 +141,7 @@ export namespace dia {
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
+            [key: string]: any;
         }
 
         interface Selectors {
@@ -196,14 +197,14 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: Cell.Attributes): this;
+        prop(object: Cell.Attributes, opt?: { [key: string]: any }): this;
         prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
 
         removeProp(path: string | string[], opt?: { [key: string]: any }): this;
 
         attr(key?: string): any;
-        attr(object: Cell.Selectors): this;
-        attr(key: string, value: any): this;
+        attr(object: Cell.Selectors, opt?: { [key: string]: any }): this;
+        attr(key: string, value: any, opt?: { [key: string]: any }): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
@@ -844,6 +845,145 @@ export namespace dia {
 
 export namespace shapes {
 
+    namespace standard {
+
+        interface RectangleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Rectangle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<RectangleSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface CircleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGCircleAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Circle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface EllipseSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGCircleAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Ellipse extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface PathSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPathAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Path extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PathSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface PolygonSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPolygonAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Polygon extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface PolylineSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPolylineAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Polyline extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface ImageSelectors {
+            root?: attributes.SVGAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Image extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface BorderedImageSelectors {
+            root?: attributes.SVGAttributes;
+            border?: attributes.SVGRectAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class BorderedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<BorderedImageSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface EmbeddedImageSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class EmbeddedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface TextBlockSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            label?: {
+                text?: string;
+                style?: { [key: string]: any };
+                [key: string]: any;
+            }
+        }
+
+        class TextBlock extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+    }
+
     interface SVGTextSelector extends dia.Cell.Selectors {
         text?: attributes.SVGTextAttributes;
     }
@@ -874,124 +1014,6 @@ export namespace shapes {
 
     interface SVGPathSelector extends dia.Cell.Selectors {
         path?: attributes.SVGPathAttributes;
-    }
-
-    namespace standard {
-
-        class Rectangle extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGRectAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class Circle extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGCircleAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class Ellipse extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGCircleAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class Path extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGPathAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class Polygon extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGPolygonAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class Polyline extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGPolylineAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class Image extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    image?: attributes.SVGImageAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class BorderedImage extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    border?: attributes.SVGRectAttributes;
-                    image?: attributes.SVGImageAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class EmbeddedImage extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGRectAttributes;
-                    image?: attributes.SVGImageAttributes;
-                    label?: attributes.SVGTextAttributes;
-                },
-                opt?: { [key: string]: any }
-            )
-        }
-
-        class TextBlock extends dia.Element {
-            constructor(
-                attributes?: {
-                    root?: attributes.SVGAttributes;
-                    body?: attributes.SVGRectAttributes;
-                    label?: {
-                        text?: string,
-                        style?: { [key: string]: any }
-                    }
-                },
-                opt?: { [key: string]: any }
-            )
-        }
     }
 
     namespace basic {
