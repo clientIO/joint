@@ -19,6 +19,18 @@ export namespace dia {
         'left' | 'right' | 'top' | 'bottom' | 'top-right' |
         'top-left' | 'bottom-left' | 'bottom-right';
 
+    type MarkupNodeJSON = {
+        tagName: string;
+        selector?: string;
+        namespaceUri?: string;
+        className?: string;
+        attributes?: attributes.NativeSVGAttributes,
+        style?: { [key: string]: any },
+        children?: MarkupJSON
+    }
+
+    type MarkupJSON = MarkupNodeJSON[];
+
     export namespace Graph {
 
         interface ConnectionOptions extends Cell.EmbeddableOptions {
@@ -246,6 +258,7 @@ export namespace dia {
     export namespace Element {
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+            markup?: string | MarkupJSON;
             position?: Point;
             size?: Size;
             angle?: number;
