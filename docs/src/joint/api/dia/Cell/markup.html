@@ -1,0 +1,55 @@
+<pre class="docs-method-signature"><code>markup</code></pre>
+<p>
+    An XML string or an array of plain objects served as a template to build DOM Elements on the fly,
+    when the associated cellView is rendered.
+</p>
+
+<h4>XML String</h4>
+<p>
+    A valid XML string, which can be parsed with <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/API/DOMParser"><code>DOMParser</code></a>
+    or a tagName.
+</p>
+
+<pre><code>markup: 'rect',
+markup: '&lt;rect class="rectangle"/&gt;'
+markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></pre>
+
+<h4>JSON Markup</h4>
+
+<p>
+    <code>JSONMarkup</code> is defined recursively as an array of <code>JSONElement</code>, where <code>JSONElement</code> is a plain object with following properties.
+    <ul>
+        <li><code>tagName</code> <i>(string)</i> <i>(required)</i> The type of element to be created.</li>
+        <li><code>selector</code> <i>(string)</i> A selector for targeting the element within the <code>attr</code> cell attribute.</li>
+        <li><code>namespaceURI</code> <i>(string)</i> The namespace URI of the element. It defaults to SVG namespace <a target="_blank" href="https://www.w3.org/2000/svg"><code>"http://www.w3.org/2000/svg"</code></a>.</li>
+        <li><code>attributes</code> <i>(object with attributes name-value pairs)</i> Attributes of the element.</li>
+        <li><code>style</code> <i>(object with CSS property-value pairs)</i> The <code>style</code> attribute of the element.</li>
+        <li><code>className</code> <i>(string)</i> The <code>class</code> attribute of the element.</li>
+        <li><code>children</code> <i>(JSONMarkup)</i> The children of the element.</li>
+    </ul>
+</p>
+
+<pre><code>// single DOM element
+markup: [{ tagName: 'rect' }]
+// multiple DOM elements
+markup: [{
+    tagName: 'rect',
+    selector: 'body'
+}, {
+    tagName: 'text',
+    selector: 'label',
+    attributes: {
+        'stroke': 'none'
+    }
+}]
+// nested DOM elements
+markup: [{
+    tagName: 'g',
+    children: [{
+        tagName: 'circle',
+        selector: 'circle1'
+    }, {
+        tagName: 'circle',
+        selector: 'circle2'
+    }]
+}]</code></pre>
