@@ -280,6 +280,56 @@
         }]
     });
 
+    Element.define('standard.HeaderedRectangle', {
+        attrs: {
+            body: {
+                refWidth: '100%',
+                refHeight: '100%',
+                strokeWidth: 2,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            header: {
+                refWidth: '100%',
+                height: 30,
+                strokeWidth: 2,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            headerText: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: 15,
+                fontSize: 16,
+                fill: '#333333'
+            },
+            bodyText: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                refY2: 15,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body'
+        }, {
+            tagName: 'rect',
+            selector: 'header'
+        }, {
+            tagName: 'text',
+            selector: 'headerText'
+        }, {
+            tagName: 'text',
+            selector: 'bodyText'
+        }]
+    });
+
     var foLabelMarkup = {
         tagName: 'foreignObject',
         selector: 'foreignObject',

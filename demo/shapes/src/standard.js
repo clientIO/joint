@@ -2,8 +2,9 @@
 
 var dia = joint.dia;
 var standard = joint.shapes.standard;
-var graph = new joint.dia.Graph();
-var paper = new joint.dia.Paper({
+
+var graph = new dia.Graph();
+var paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
@@ -45,7 +46,7 @@ polygon.resize(100, 100);
 polygon.position(250, 210);
 polygon.attr('root/tabindex', 5);
 polygon.attr('label/text', 'Polygon');
-polygon.attr('body/refPoints', '294,3 585.246118,214.602691 474,556.983037 114,556.983037 2.753882,214.602691');
+polygon.attr('body/refPoints', '0,10 10,0 20,10 10,20');
 polygon.addTo(graph);
 
 var polyline = new standard.Polyline();
@@ -56,8 +57,8 @@ polyline.attr('label/text', 'Polyline');
 polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
 polyline.addTo(graph);
 
-// Will request image the same size as the model.
-joint.dia.attributes.placeholderURL = {
+// Will request image the same size as the reference.
+dia.attributes.placeholderURL = {
     set: function(url, refBBox) {
         refBBox.round();
         return { 'xlink:href': url + refBBox.width + 'x' + refBBox.height }
@@ -89,9 +90,19 @@ embeddedImage.attr('label/text', 'Embedded\nImage');
 embeddedImage.attr('image/xlinkHref', 'http://via.placeholder.com/60x80');
 embeddedImage.addTo(graph);
 
+var headeredRectangle = new standard.HeaderedRectangle();
+headeredRectangle.resize(150, 100);
+headeredRectangle.position(25, 610);
+headeredRectangle.attr('root/tabindex', 11);
+headeredRectangle.attr('header/fill', '#EEEEEE');
+headeredRectangle.attr('headerText/text', 'Header');
+headeredRectangle.attr('bodyText/text', 'Headered\nRectangle');
+headeredRectangle.addTo(graph);
+
+
 var textBlock = new standard.TextBlock();
 textBlock.resize(100, 100);
-textBlock.position(50, 610);
-textBlock.attr('root/tabindex', 10);
+textBlock.position(250, 610);
+textBlock.attr('root/tabindex', 12);
 textBlock.attr('label/text', 'Hyper Text Markup Language');
 textBlock.addTo(graph);

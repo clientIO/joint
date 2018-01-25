@@ -979,6 +979,21 @@ export namespace shapes {
             )
         }
 
+        interface HeaderedRectangleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            header?: attributes.SVGRectAttributes;
+            headerText?: attributes.SVGTextAttributes;
+            bodyText?: attributes.SVGTextAttributes;
+        }
+
+        class HeaderedRectangle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<HeaderedRectangleSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
         interface TextBlockSelectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
@@ -2118,7 +2133,7 @@ export namespace attributes {
 
     interface NativeSVGAttributes extends SVGCoreAttributes, SVGPresentationAttributes, SVGConditionalProcessingAttributes, SVGXLinkAttributes {
         'class'?: string;
-        'style'?: string;
+        'style'?: any;
         'transform'?: string;
         'externalResourcesRequired'?: boolean;
 
@@ -2146,7 +2161,7 @@ export namespace attributes {
         textPath?: any;
         annotations?: any;
         port?: string;
-        style?: string | { [key: string]: any };
+        style?: { [key: string]: any };
         html?: string;
         ref?: string;
         refX?: string | number;
