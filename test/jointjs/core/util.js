@@ -242,6 +242,12 @@ QUnit.module('util', function(hooks) {
 
     QUnit.test('util.normalizeSides()', function(assert) {
 
+        assert.deepEqual(joint.util.normalizeSides(undefined), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Undefined becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides(null), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Null becomes 0');
+
         assert.deepEqual(joint.util.normalizeSides(''), { top: 0, right: 0, bottom: 0, left: 0 },
                          'Empty string becomes 0');
 
@@ -262,6 +268,12 @@ QUnit.module('util', function(hooks) {
 
         assert.deepEqual(joint.util.normalizeSides(NaN), { top: 0, right: 0, bottom: 0, left: 0 },
                          'NaN becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: undefined }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific undefined becomes 0');
+
+        assert.deepEqual(joint.util.normalizeSides({ left: null }), { top: 0, right: 0, bottom: 0, left: 0 },
+                         'Specific null becomes 0');
 
         assert.deepEqual(joint.util.normalizeSides({ left: '' }), { top: 0, right: 0, bottom: 0, left: 0 },
                          'Specific empty string becomes 0');
