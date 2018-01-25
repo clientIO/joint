@@ -1231,49 +1231,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
-    parseDOMJSON: function (json) {
-
-        var selectors = {};
-        var svgNS = V.namespace.xmlns;
-        var fragment = document.createDocumentFragment();
-        var queue = [json, fragment, svgNS];
-        while (queue.length > 0) {
-            var ns = queue.pop();
-            var parentNode = queue.pop();
-            var siblingsDef = queue.pop();
-            for (var i = 0, n = siblingsDef.length; i < n; i++) {
-                var nodeDef = siblingsDef[i];
-                // TagName
-                if (!nodeDef.hasOwnProperty('tagName')) throw new Error('dia.CellView: missing tagName');
-                var tagName = nodeDef.tagName;
-                // Namespace URI
-                if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
-                var node = document.createElementNS(ns, tagName);
-                // Attributes
-                var attributes = nodeDef.attributes;
-                if (attributes) ((ns === svgNS) ? V : $)(node).attr(attributes);
-                // Style
-                var style = nodeDef.style;
-                if (style) $(node).css(style);
-                // ClassName
-                if (nodeDef.hasOwnProperty('className')) node.className.baseVal = nodeDef.className;
-                // Selector
-                if (nodeDef.hasOwnProperty('selector')) {
-                    var nodeSelector = nodeDef.selector;
-                    if (selectors[nodeSelector]) throw new Error('dia.CellView: selector must be unique');
-                    selectors[nodeSelector] = node;
-                }
-                parentNode.appendChild(node);
-                // Children
-                var childrenDef = nodeDef.children;
-                if (Array.isArray(childrenDef)) queue.push(childrenDef, node, ns);
-            }
-        }
-        return {
-            fragment: fragment,
-            selectors: selectors
-        }
-    },
     // Interaction. The controller part.
     // ---------------------------------
 

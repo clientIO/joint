@@ -30,7 +30,8 @@ V = Vectorizer = (function() {
     var ns = {
         xmlns: 'http://www.w3.org/2000/svg',
         xml: 'http://www.w3.org/XML/1998/namespace',
-        xlink: 'http://www.w3.org/1999/xlink'
+        xlink: 'http://www.w3.org/1999/xlink',
+        xhtml: 'http://www.w3.org/1999/xhtml'
     };
 
     var SVGversion = '1.1';

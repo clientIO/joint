@@ -461,13 +461,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var element = this.model;
         var markup = element.get('markup') || element.markup;
         if (!markup) throw new Error('dia.Elementiew: markup required');
-        if (typeof markup === 'string') return this.renderStringMarkup(markup);
         if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
+        if (typeof markup === 'string') return this.renderStringMarkup(markup);
         throw new Error('dia.Elementiew: invalid markup');
     },
 
     renderJSONMarkup: function(markup) {
-        var doc = this.parseDOMJSON(markup);
+        var doc = joint.util.parseDOMJSON(markup);
         // Selectors
         var selectors = this.selectors = doc.selectors;
         var rootSelector = this.selector;
