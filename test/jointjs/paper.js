@@ -630,6 +630,85 @@ QUnit.module('paper', function(hooks) {
         assert.ok(diffX < 5 && diffY < 5, 'element should not have been moved');
     });
 
+    QUnit.test('getContentArea()', function(assert) {
+
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0
+        }, 'empty graph, content area should be correct');
+
+        var rect1 = new joint.shapes.basic.Rect({
+            position: {
+                x: 20,
+                y: 20
+            },
+            size: {
+                width: 40,
+                height: 40
+            }
+        });
+
+        this.graph.addCell(rect1);
+
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {
+            x: 20,
+            y: 20,
+            width: 40,
+            height: 40
+        }, 'one rectangle, content area should be correct');
+
+        var rect2 = new joint.shapes.basic.Rect({
+            position: {
+                x: 5,
+                y: 8
+            },
+            size: {
+                width: 25,
+                height: 25
+            }
+        });
+
+        this.graph.addCell(rect2);
+
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {
+            x: 5,
+            y: 8,
+            width: 55,
+            height: 52
+        }, 'two rectangles, content area should be correct');
+
+        var circle1 = new joint.shapes.basic.Circle({
+            position: {
+                x: 75,
+                y: 5
+            },
+            size: {
+                width: 25,
+                height: 25
+            }
+        });
+
+        this.graph.addCell(circle1);
+
+        assert.checkBboxApproximately(2/* +- */, this.paper.getContentArea(), {
+            x: 5,
+            y: 5,
+            width: 95,
+            height: 55
+        }, 'two rectangles + one circle, content area should be correct');
+
+        V(this.paper.viewport).scale(2, 2);
+
+        assert.checkBboxApproximately(4/* +- */, this.paper.getContentArea(), {
+            x: 5,
+            y: 5,
+            width: 95,
+            height: 55
+        }, 'two rectangles + one circle (scaled by factor of 2), content area should be correct');
+    });
+
     QUnit.test('getContentBBox()', function(assert) {
 
         assert.checkBboxApproximately(2/* +- */, this.paper.getContentBBox(), {
