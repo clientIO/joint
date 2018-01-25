@@ -37,6 +37,7 @@ path.resize(100, 100);
 path.position(50, 210);
 path.attr('root/tabindex', 4);
 path.attr('label/text', 'Path');
+path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
 path.addTo(graph);
 
 var polygon = new standard.Polygon();
@@ -44,6 +45,7 @@ polygon.resize(100, 100);
 polygon.position(250, 210);
 polygon.attr('root/tabindex', 5);
 polygon.attr('label/text', 'Polygon');
+polygon.attr('body/refPoints', '294,3 585.246118,214.602691 474,556.983037 114,556.983037 2.753882,214.602691');
 polygon.addTo(graph);
 
 var polyline = new standard.Polyline();
@@ -51,6 +53,7 @@ polyline.resize(100, 100);
 polyline.position(450, 210);
 polyline.attr('root/tabindex', 6);
 polyline.attr('label/text', 'Polyline');
+polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
 polyline.addTo(graph);
 
 // Will request image the same size as the model.
