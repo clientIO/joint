@@ -732,6 +732,8 @@ export namespace dia {
 
         getRestrictedArea(): g.Rect | undefined;
 
+        getContentArea(): g.Rect;
+
         getContentBBox(): g.Rect;
 
         findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;

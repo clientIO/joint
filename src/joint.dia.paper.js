@@ -498,6 +498,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.translate(newOx, newOy);
     },
 
+    // Return the dimensions of the content area in local units (without transformations).
+    getContentArea: function() {
+
+        return V(this.viewport).getBBox();
+    },
+
+    // Return the dimensions of the content bbox in client units (as it appears on screen).
     getContentBBox: function() {
 
         var crect = this.viewport.getBoundingClientRect();
