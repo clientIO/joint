@@ -4,6 +4,16 @@ var dia = joint.dia;
 var util = joint.util;
 var standard = joint.shapes.standard;
 
+// Custom attribute for retreaving image placeholder with specific size
+dia.attributes.placeholderURL = {
+    qualify: function(url) {
+        return typeof url === 'string';
+    },
+    set: function(url, refBBox) {
+        return { 'xlink:href': util.template(url)(refBBox.round().toJSON()) }
+    }
+};
+
 var graph = new dia.Graph();
 var paper = new dia.Paper({
     el: document.getElementById('paper'),
@@ -63,16 +73,6 @@ polyline.attr('root/title', 'joint.shapes.standard.Polyline');
 polyline.attr('label/text', 'Polyline');
 polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
 polyline.addTo(graph);
-
-// Will request image the same size as the reference.
-dia.attributes.placeholderURL = {
-    qualify: function(url) {
-        return typeof url === 'string';
-    },
-    set: function(url, refBBox) {
-        return { 'xlink:href': util.template(url)(refBBox.round().toJSON()) }
-    }
-};
 
 var image = new standard.Image();
 image.resize(150, 100);
