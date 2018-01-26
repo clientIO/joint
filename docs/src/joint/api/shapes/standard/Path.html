@@ -1,4 +1,4 @@
-<p>An ellipse with a label.</p>
+<p>A path with a label.</p>
 
 <b>Supported <code>attrs</code> properties</b></p>
 
@@ -15,8 +15,8 @@
     </tr>
     <tr>
         <td>body</td>
-        <td><i>SVGEllipseElement</i></td>
-        <td>Elliptical body of the shape</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Generic body of the shape</td>
     </tr>
     <tr>
         <td>label</td>
@@ -25,10 +25,11 @@
     </tr>
 </table>
 
-<pre><code>var ellipse = new joint.shapes.standard.Ellipse();
-ellipse.resize(150, 100);
-ellipse.position(425, 10);
-ellipse.attr('root/title', 'joint.shapes.standard.Ellipse');
-ellipse.attr('label/text', 'Ellipse');
-ellipse.attr('body/fill', 'lightblue');
-ellipse.addTo(graph);</code></pre>
+<pre><code>var path = new joint.shapes.standard.Path();
+path.resize(100, 100);
+path.position(50, 210);
+path.attr('root/title', 'joint.shapes.standard.Path');
+path.attr('label/text', 'Path');
+path.attr('body/refD', 'M 0 5 10 0 C 20 0 20 20 10 20 L 0 15 Z');
+path.addTo(graph);
+</code></pre>

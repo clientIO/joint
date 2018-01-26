@@ -1,0 +1,36 @@
+<p>A rectangle with an HTML label <i>(with a fallback to SVG label for IE)</i>.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td><i>SVGRectElement</i></td>
+        <td>Rectangular body of the shape</td>
+    </tr>
+    <tr>
+        <td>label</td>
+        <td><i>HTMLDivElement</i></td>
+        <td>Text inside the body</td>
+    </tr>
+</table>
+
+<pre><code>var textBlock = new joint.shapes.tandard.TextBlock();
+textBlock.resize(100, 100);
+textBlock.position(250, 610);
+textBlock.attr('root/title', 'joint.shapes.standard.TextBlock');
+textBlock.attr('body/fill', 'lightgray');
+textBlock.attr('label/text', 'Hyper Text Markup Language');
+// Styling of the label via `style` presentation attribute (i.e. CSS).
+textBlock.attr('label/style/color', 'red');
+textBlock.addTo(graph);</code></pre>

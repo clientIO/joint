@@ -1,4 +1,4 @@
-<p>An ellipse with a label.</p>
+<p>A polyline with a label.</p>
 
 <b>Supported <code>attrs</code> properties</b></p>
 
@@ -15,8 +15,8 @@
     </tr>
     <tr>
         <td>body</td>
-        <td><i>SVGEllipseElement</i></td>
-        <td>Elliptical body of the shape</td>
+        <td><i>SVGPolylineElement</i></td>
+        <td>Body of the shape made of lines</td>
     </tr>
     <tr>
         <td>label</td>
@@ -25,10 +25,10 @@
     </tr>
 </table>
 
-<pre><code>var ellipse = new joint.shapes.standard.Ellipse();
-ellipse.resize(150, 100);
-ellipse.position(425, 10);
-ellipse.attr('root/title', 'joint.shapes.standard.Ellipse');
-ellipse.attr('label/text', 'Ellipse');
-ellipse.attr('body/fill', 'lightblue');
-ellipse.addTo(graph);</code></pre>
+<pre><code>var polyline = new joint.shapes.standard.Polyline();
+polyline.resize(100, 100);
+polyline.position(450, 210);
+polyline.attr('root/title', 'joint.shapes.standard.Polyline');
+polyline.attr('label/text', 'Polyline');
+polyline.attr('body/refPoints', '0,0 0,10 10,10 10,0');
+polyline.addTo(graph);</code></pre>
