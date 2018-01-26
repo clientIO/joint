@@ -83,7 +83,7 @@ joint.shapes.basic.Generic.define('uml.Class', {
 
 });
 
-joint.shapes.uml.ClassView = joint.dia.ElementView.extend({}, {
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
 
     initialize: function() {
 
