@@ -117,7 +117,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         },
 
         // Determines the way how a cell finds a suitable parent when it's dragged over the paper.
-        // The cell with the highest z-index (visually on the top) will be choosen.
+        // The cell with the highest z-index (visually on the top) will be chosen.
         findParentBy: 'bbox', // 'bbox'|'center'|'origin'|'corner'|'topRight'|'bottomLeft'
 
         // If enabled only the element on the very front is taken into account for the embedding.
