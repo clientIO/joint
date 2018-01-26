@@ -1,6 +1,6 @@
-import * as joint from "../../build/joint";
+import * as joint from "./build/joint";
 import './custom';
-import {V, g} from "../../build/joint";
+import {V, g} from "./build/joint";
 import * as $ from "jquery";
 
 // Paper:
