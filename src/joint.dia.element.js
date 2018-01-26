@@ -630,10 +630,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var paperOptions = paper.options;
 
-        var candidates;
+        var candidates = [];
         if (joint.util.isFunction(paperOptions.findParentBy)) {
-            candidates = paperOptions.findParentBy.call(paper.model, this).filter(function(el) {
-                return this.model.id !== el.id && !el.isEmbeddedIn(this.model);
+            var parents = joint.util.toArray(paperOptions.findParentBy.call(paper.model, this));
+            candidates = parents.filter(function(el) {
+                return el instanceof joint.dia.Cell && this.model.id !== el.id && !el.isEmbeddedIn(this.model);
             }.bind(this));
         } else {
             candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
