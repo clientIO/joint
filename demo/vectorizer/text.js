@@ -44,6 +44,7 @@
         var title = V('text', { x: 0, y: y - 50 }).text(def.title).appendTo(svg);
 
         V('line', { x1: 0, y1: y, x2: '100%', y2: y, stroke: 'gray', 'stroke-dasharray': 5 }).appendTo(svg);
+
         // top
         t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: 200, y: y });
@@ -56,6 +57,7 @@
         r = V('rect').attr(bbox.toJSON()).attr({ fill: 'none', stroke: 'red' }).appendTo(svg);
         p = bbox.topRight();
         l = V('line').attr({ x1: p.x, y1: p.y, x2: p.x + 20, y2: p.y, 'stroke': 'red' }).appendTo(svg);
+
         // middle
         t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: 500, y: y});
@@ -68,6 +70,7 @@
         r = V('rect').attr(bbox.toJSON()).attr({ fill: 'none', stroke: 'red' }).appendTo(svg);
         p = bbox.rightMiddle();
         l = V('line').attr({ x1: p.x, y1: p.y, x2: p.x + 20, y2: p.y, 'stroke': 'red' }).appendTo(svg);
+
         // bottom
         t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: 800, y: y });
@@ -81,6 +84,7 @@
         p = bbox.corner();
         l = V('line').attr({ x1: p.x, y1: p.y, x2: p.x + 20, y2: p.y, 'stroke': 'red' }).appendTo(svg);
     }
+
     // text path
     l = V('path').attr({ d: 'M 0 80 200 50 400 80 600 50 700 80 1000 50', stroke: 'gray', 'stroke-width': 2, fill: 'none' }).appendTo(svg);
     t = V('text').attr({ 'font-weight': 'bold' });
@@ -89,4 +93,3 @@
     t.clone().attr('x', 800).text('Bottom\nAnchor', { textVerticalAnchor: 'bottom', textPath: { 'xlink:href': '#' + l.id }}).appendTo(svg);
 
 })();
-
