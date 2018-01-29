@@ -15,9 +15,12 @@ export namespace Vectorizer {
         offset?: number;
     }
 
+    type TextVerticalAnchor = 'top' | 'bottom' | 'middle';
+
     interface TextOptions {
         eol?: string;
-        x?: number;
+        x?: number | string;
+        textVerticalAnchor?: TextVerticalAnchor | number | string;
         lineHeight?: number | string;
         textPath?: string | { [key: string]: any };
         annotations?: TextAnnotation[];
@@ -109,6 +112,7 @@ export namespace Vectorizer {
 
 export class Vectorizer {
 
+    id: string;
     node: SVGElement;
 
     constructor(

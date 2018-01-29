@@ -112,11 +112,23 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    var VPrototype = V.prototype;
+
+    Object.defineProperty(VPrototype, 'id', {
+        enumerable: true,
+        get: function() {
+            return this.node.id;
+        },
+        set: function(id) {
+            this.node.id = id;
+        }
+    });
+
     /**
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    V.prototype.getTransformToElement = function(toElem) {
+    VPrototype.getTransformToElement = function(toElem) {
         toElem = V.toNode(toElem);
         return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
     };
@@ -126,7 +138,7 @@ V = Vectorizer = (function() {
      * @param {Object=} opt
      * @returns {Vectorizer|SVGMatrix} Setter / Getter
      */
-    V.prototype.transform = function(matrix, opt) {
+    VPrototype.transform = function(matrix, opt) {
 
         var node = this.node;
         if (V.isUndefined(matrix)) {
@@ -142,7 +154,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.translate = function(tx, ty, opt) {
+    VPrototype.translate = function(tx, ty, opt) {
 
         opt = opt || {};
         ty = ty || 0;
@@ -167,7 +179,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.rotate = function(angle, cx, cy, opt) {
+    VPrototype.rotate = function(angle, cx, cy, opt) {
 
         opt = opt || {};
 
@@ -193,7 +205,7 @@ V = Vectorizer = (function() {
     };
 
     // Note that `scale` as the only transformation does not combine with previous values.
-    V.prototype.scale = function(sx, sy) {
+    VPrototype.scale = function(sx, sy) {
 
         sy = V.isUndefined(sy) ? sx : sy;
 
@@ -217,7 +229,7 @@ V = Vectorizer = (function() {
     // Get SVGRect that contains coordinates and dimension of the real bounding box,
     // i.e. after transformations are applied.
     // If `target` is specified, bounding box will be computed relatively to `target` element.
-    V.prototype.bbox = function(withoutTransformations, target) {
+    VPrototype.bbox = function(withoutTransformations, target) {
 
         var box;
         var node = this.node;
@@ -252,14 +264,14 @@ V = Vectorizer = (function() {
 
         return V.transformRect(box, matrix);
     };
-    
+
     // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
     // i.e. after transformations are applied.
     // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
     // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
-    V.prototype.getBBox = function(opt) {
+    VPrototype.getBBox = function(opt) {
 
         var options = {};
 
@@ -311,7 +323,7 @@ V = Vectorizer = (function() {
 
             var children = this.children();
             var n = children.length;
-            
+
             if (n === 0) {
                 return this.getBBox({ target: options.target, recursive: false });
             }
@@ -350,187 +362,254 @@ V = Vectorizer = (function() {
         }
     };
 
-    V.prototype.text = function(content, opt) {
+    // Text() helpers
 
-        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
-        // IE would otherwise collapse all spaces into one.
-        content = V.sanitizeText(content);
-        opt = opt || {};
-        var eol = opt.eol;
-        var lines = content.split('\n');
-        var tspan;
-
-        // An empty text gets rendered into the DOM in webkit-based browsers.
-        // In order to unify this behaviour across all browsers
-        // we rather hide the text element when it's empty.
-        if (content) {
-            this.removeAttr('display');
-        } else {
-            this.attr('display', 'none');
-        }
-
-        // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
-        this.attr('xml:space', 'preserve');
-
-        // Easy way to erase all `<tspan>` children;
-        this.node.textContent = '';
-
-        var textNode = this.node;
-
-        if (opt.textPath) {
-
-            // Wrap the text in the SVG <textPath> element that points
-            // to a path defined by `opt.textPath` inside the internal `<defs>` element.
-            var defs = this.find('defs');
-            if (defs.length === 0) {
-                defs = V('defs');
-                this.append(defs);
-            }
-
-            // If `opt.textPath` is a plain string, consider it to be directly the
+    function createTextPathNode(attrs, vel) {
+        attrs || (attrs = {});
+        var textPathElement = V('textPath');
+        var d = attrs.d;
+        if (d && attrs['xlink:href'] === undefined) {
+            // If `opt.attrs` is a plain string, consider it to be directly the
             // SVG path data for the text to go along (this is a shortcut).
             // Otherwise if it is an object and contains the `d` property, then this is our path.
-            var d = Object(opt.textPath) === opt.textPath ? opt.textPath.d : opt.textPath;
-            if (d) {
-                var path = V('path', { d: d });
-                defs.append(path);
-            }
-
-            var textPath = V('textPath');
+            // Wrap the text in the SVG <textPath> element that points
+            // to a path defined by `opt.attrs` inside the `<defs>` element.
+            var linkedPath = V('path').attr('d', d).appendTo(vel.defs());
+            textPathElement.attr('xlink:href', '#' + linkedPath.id);
+        }
+        if (V.isObject(attrs)) {
             // Set attributes on the `<textPath>`. The most important one
             // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
             // Note that we also allow the following construct:
             // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
             // In other words, one can completely skip the auto-creation of the path
             // and use any other arbitrary path that is in the document.
-            if (!opt.textPath['xlink:href'] && path) {
-                textPath.attr('xlink:href', '#' + path.node.id);
-            }
+            textPathElement.attr(attrs);
+        }
+        return textPathElement.node;
+    }
 
-            if (Object(opt.textPath) === opt.textPath) {
-                textPath.attr(opt.textPath);
+    function annotateTextLine(lineNode, lineAnnotations, opt) {
+        opt || (opt = {});
+        var includeAnnotationIndices = opt.includeAnnotationIndices;
+        var eol = opt.eol;
+        var lineHeight = opt.lineHeight;
+        var baseSize = opt.baseSize;
+        var maxFontSize = 0;
+        var fontMetrics = {};
+        var lastJ = lineAnnotations.length - 1;
+        for (var j = 0; j <= lastJ; j++) {
+            var annotation = lineAnnotations[j];
+            var fontSize = null;
+            if (V.isObject(annotation)) {
+                var annotationAttrs = annotation.attrs;
+                var vTSpan = V('tspan', annotationAttrs);
+                var tspanNode = vTSpan.node;
+                var t = annotation.t;
+                if (eol && j === lastJ) t += eol;
+                tspanNode.textContent = t;
+                // Per annotation className
+                var annotationClass = annotationAttrs['class'];
+                if (annotationClass) vTSpan.addClass(annotationClass);
+                // If `opt.includeAnnotationIndices` is `true`,
+                // set the list of indices of all the applied annotations
+                // in the `annotations` attribute. This list is a comma
+                // separated list of indices.
+                if (includeAnnotationIndices) vTSpan.attr('annotations', annotation.annotations);
+                // Check for max font size
+                fontSize = parseFloat(annotationAttrs['font-size']);
+                if (fontSize === undefined) fontSize = baseSize;
+                if (fontSize && fontSize > maxFontSize) maxFontSize = fontSize;
+            } else {
+                if (eol && j === lastJ) annotation += eol;
+                tspanNode = document.createTextNode(annotation || ' ');
+                if (baseSize && baseSize > maxFontSize) maxFontSize = baseSize;
             }
-            this.append(textPath);
-            // Now all the `<tspan>`s will be inside the `<textPath>`.
-            textNode = textPath.node;
+            lineNode.appendChild(tspanNode);
         }
 
-        var offset = 0;
-        var x = ((opt.x !== undefined) ? opt.x : this.attr('x')) || 0;
+        if (maxFontSize) fontMetrics.maxFontSize = maxFontSize;
+        if (lineHeight) {
+            fontMetrics.lineHeight = lineHeight;
+        } else if (maxFontSize) {
+            fontMetrics.lineHeight = (maxFontSize * 1.2);
+        }
+        return fontMetrics;
+    }
 
+    var emRegex = /em$/;
+
+    function convertEmToPx(em, fontSize) {
+        var numerical = parseFloat(em);
+        if (emRegex.test(em)) return numerical * fontSize;
+        return numerical;
+    }
+
+    function calculateDY(alignment, linesMetrics, baseSizePx, lineHeight) {
+        if (!Array.isArray(linesMetrics)) return 0;
+        var n = linesMetrics.length;
+        if (!n) return 0;
+        var lineMetrics = linesMetrics[0];
+        var flMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
+        var rLineHeights = 0;
+        var lineHeightPx = convertEmToPx(lineHeight, baseSizePx);
+        for (var i = 1; i < n; i++) {
+            lineMetrics = linesMetrics[i];
+            var iLineHeight = convertEmToPx(lineMetrics.lineHeight, baseSizePx) || lineHeightPx;
+            rLineHeights += iLineHeight;
+        }
+        var llMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
+        var dy;
+        switch (alignment) {
+            case 'middle':
+                dy = (flMaxFont / 2) - (0.15 * llMaxFont) - (rLineHeights / 2);
+                break;
+            case 'bottom':
+                dy = -(0.25 * llMaxFont) - rLineHeights;
+                break;
+            default:
+            case 'top':
+                dy = (0.8 * flMaxFont)
+                break;
+        }
+        return dy;
+    }
+
+    VPrototype.text = function(content, opt) {
+
+        if (content && typeof content !== 'string') throw new Error('Vectorizer: text() expects the first argument to be a string.');
+
+        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+        // IE would otherwise collapse all spaces into one.
+        content = V.sanitizeText(content);
+        opt || (opt = {});
+
+        // End of Line character
+        var eol = opt.eol;
+        // Text along path
+        var textPath = opt.textPath
+        // Vertical shift
+        var verticalAnchor = opt.textVerticalAnchor;
+        var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
+        // Horizontal shift applied to all the lines but the first.
+        var x = opt.x;
+        if (x === undefined) x = this.attr('x') || 0;
+        // Annotations
+        var iai = opt.includeAnnotationIndices;
+        var annotations = opt.annotations;
+        if (annotations && !V.isArray(annotations)) annotations = [annotations];
         // Shift all the <tspan> but first by one line (`1em`)
-        var lineHeight = opt.lineHeight || '1em';
-        if (opt.lineHeight === 'auto') {
-            lineHeight = '1.5em';
+        var defaultLineHeight = opt.lineHeight;
+        var autoLineHeight = (defaultLineHeight === 'auto');
+        var lineHeight = (autoLineHeight) ? '1.5em' : (defaultLineHeight || '1em');
+        // Clearing the element
+        this.empty();
+        this.attr({
+            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+            'xml:space': 'preserve',
+            // An empty text gets rendered into the DOM in webkit-based browsers.
+            // In order to unify this behaviour across all browsers
+            // we rather hide the text element when it's empty.
+            'display': (content) ? null : 'none'
+        });
+        // Set default font-size if none
+        var fontSize = parseFloat(this.attr('font-size'));
+        if (!fontSize) {
+            fontSize = 16;
+            if (namedVerticalAnchor || annotations) this.attr('font-size', fontSize);
         }
 
-        var firstLineHeight = 0;
-        for (var i = 0; i < lines.length; i++) {
-
-            var vLineAttributes = { 'class': 'v-line' };
-            if (i === 0) {
-                vLineAttributes.dy = '0em';
-            } else {
-                vLineAttributes.dy = lineHeight;
-                vLineAttributes.x = x;
-            }
-            var vLine = V('tspan', vLineAttributes);
-
-            var lastI = lines.length - 1;
+        var doc = document;
+        var containerNode;
+        if (textPath) {
+            // Now all the `<tspan>`s will be inside the `<textPath>`.
+            if (typeof textPath === 'string') textPath = { d: textPath };
+            containerNode = createTextPathNode(textPath, this);
+        } else {
+            containerNode = doc.createDocumentFragment();
+        }
+        var offset = 0;
+        var lines = content.split('\n');
+        var linesMetrics = [];
+        for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
+            var dy = lineHeight;
+            var lineClassName = 'v-line';
+            var lineNode = doc.createElementNS(V.namespace.xmlns, 'tspan');
             var line = lines[i];
+            var lineMetrics;
             if (line) {
-
-                // Get the line height based on the biggest font size in the annotations for this line.
-                var maxFontSize = 0;
-                if (opt.annotations) {
-
+                if (annotations) {
                     // Find the *compacted* annotations for this line.
-                    var lineAnnotations = V.annotateString(lines[i], V.isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
-
-                    var lastJ = lineAnnotations.length - 1;
-                    for (var j = 0; j < lineAnnotations.length; j++) {
-
-                        var annotation = lineAnnotations[j];
-                        if (V.isObject(annotation)) {
-
-                            var fontSize = parseFloat(annotation.attrs['font-size']);
-                            if (fontSize && fontSize > maxFontSize) {
-                                maxFontSize = fontSize;
-                            }
-
-                            tspan = V('tspan', annotation.attrs);
-                            if (opt.includeAnnotationIndices) {
-                                // If `opt.includeAnnotationIndices` is `true`,
-                                // set the list of indices of all the applied annotations
-                                // in the `annotations` attribute. This list is a comma
-                                // separated list of indices.
-                                tspan.attr('annotations', annotation.annotations);
-                            }
-                            if (annotation.attrs['class']) {
-                                tspan.addClass(annotation.attrs['class']);
-                            }
-
-                            if (eol && j === lastJ && i !== lastI) {
-                                annotation.t += eol;
-                            }
-                            tspan.node.textContent = annotation.t;
-
-                        } else {
-
-                            if (eol && j === lastJ && i !== lastI) {
-                                annotation += eol;
-                            }
-                            tspan = document.createTextNode(annotation || ' ');
-                        }
-                        vLine.append(tspan);
-                    }
-
-                    if (opt.lineHeight === 'auto' && maxFontSize && i !== 0) {
-
-                        vLine.attr('dy', (maxFontSize * 1.2) + 'px');
-                    }
-
+                    var lineAnnotations = V.annotateString(line, annotations, {
+                        offset: -offset,
+                        includeAnnotationIndices: iai
+                    });
+                    lineMetrics = annotateTextLine(lineNode, lineAnnotations, {
+                        includeAnnotationIndices: iai,
+                        eol: (i !== lastI && eol),
+                        lineHeight: (autoLineHeight) ? null : lineHeight,
+                        baseSize: fontSize
+                    });
+                    // Get the line height based on the biggest font size in the annotations for this line.
+                    var iLineHeight = lineMetrics.lineHeight;
+                    if (iLineHeight && autoLineHeight && i !== 0) dy = iLineHeight;
                 } else {
-
-                    if (eol && i !== lastI) {
-                        line += eol;
-                    }
-
-                    vLine.node.textContent = line;
-                }
-
-                if (i === 0) {
-                    firstLineHeight = maxFontSize;
+                    if (eol && i !== lastI) line += eol;
+                    lineNode.textContent = line;
                 }
             } else {
-
                 // Make sure the textContent is never empty. If it is, add a dummy
                 // character and make it invisible, making the following lines correctly
                 // relatively positioned. `dy=1em` won't work with empty lines otherwise.
-                vLine.addClass('v-empty-line');
+                lineNode.textContent = '-';
+                lineClassName += ' v-empty-line';
                 // 'opacity' needs to be specified with fill, stroke. Opacity without specification
                 // is not applied in Firefox
-                vLine.node.style.fillOpacity = 0;
-                vLine.node.style.strokeOpacity = 0;
-                vLine.node.textContent = '-';
+                var lineNodeStyle = lineNode.style;
+                lineNodeStyle.fillOpacity = 0;
+                lineNodeStyle.strokeOpacity = 0;
+                if (annotations) lineMetrics = {};
             }
-
-            V(textNode).append(vLine);
-
+            if (lineMetrics) linesMetrics.push(lineMetrics);
+            if (i > 0) lineNode.setAttribute('dy', dy);
+            // Firefox requires 'x' to be set on the first line when inside a text path
+            if (i > 0 || textPath) lineNode.setAttribute('x', x);
+            lineNode.className.baseVal = lineClassName;
+            containerNode.appendChild(lineNode);
             offset += line.length + 1;      // + 1 = newline character.
         }
-
-        // `alignment-baseline` does not work in Firefox.
-        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-        // in the top left corner we translate the `<text>` element by `0.8em`.
-        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-        // See also `http://apike.ca/prog_svg_text_style.html`.
-        var y = this.attr('y');
-        if (y === null) {
-            this.attr('y', firstLineHeight || '0.8em');
+        // Y Alignment calculation
+        if (namedVerticalAnchor) {
+            if (annotations) {
+                dy = calculateDY(verticalAnchor, linesMetrics, fontSize, lineHeight);
+            } else if (verticalAnchor === 'top') {
+                // A shortcut for top alignment. It does not depend on font-size nor line-height
+                dy = '0.8em';
+            } else {
+                var rh; // remaining height
+                if (lastI > 0) {
+                    rh = parseFloat(lineHeight) || 1;
+                    rh *= lastI;
+                    if (!emRegex.test(lineHeight)) rh /= fontSize;
+                } else {
+                    // Single-line text
+                    rh = 0;
+                }
+                switch (verticalAnchor) {
+                    case 'middle':
+                        dy = (0.3 - (rh / 2)) + 'em'
+                        break;
+                    case 'bottom':
+                        dy = (-rh - 0.3) + 'em'
+                        break;
+                }
+            }
+        } else {
+            dy = (verticalAnchor === 0) ? '0em' : (verticalAnchor || '0.8em');
         }
-
+        containerNode.firstChild.setAttribute('dy', dy);
+        // Appending lines to the element.
+        this.append(containerNode);
         return this;
     };
 
@@ -539,7 +618,7 @@ V = Vectorizer = (function() {
      * @param {string} name
      * @returns {Vectorizer}
      */
-    V.prototype.removeAttr = function(name) {
+    VPrototype.removeAttr = function(name) {
 
         var qualifiedName = V.qualifyAttr(name);
         var el = this.node;
@@ -554,7 +633,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.attr = function(name, value) {
+    VPrototype.attr = function(name, value) {
 
         if (V.isUndefined(name)) {
 
@@ -589,7 +668,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.normalizePath = function() {
+    VPrototype.normalizePath = function() {
 
         var tagName = this.tagName();
         if (tagName === 'PATH') {
@@ -599,7 +678,7 @@ V = Vectorizer = (function() {
         return this;
     }
 
-    V.prototype.remove = function() {
+    VPrototype.remove = function() {
 
         if (this.node.parentNode) {
             this.node.parentNode.removeChild(this.node);
@@ -608,7 +687,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.empty = function() {
+    VPrototype.empty = function() {
 
         while (this.node.firstChild) {
             this.node.removeChild(this.node.firstChild);
@@ -622,7 +701,7 @@ V = Vectorizer = (function() {
      * @param {object} attrs
      * @returns {Vectorizer}
      */
-    V.prototype.setAttributes = function(attrs) {
+    VPrototype.setAttributes = function(attrs) {
 
         for (var key in attrs) {
             if (attrs.hasOwnProperty(key)) {
@@ -633,7 +712,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.append = function(els) {
+    VPrototype.append = function(els) {
 
         if (!V.isArray(els)) {
             els = [els];
@@ -646,13 +725,13 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.prepend = function(els) {
+    VPrototype.prepend = function(els) {
 
         var child = this.node.firstChild;
         return child ? V(child).before(els) : this.append(els);
     };
 
-    V.prototype.before = function(els) {
+    VPrototype.before = function(els) {
 
         var node = this.node;
         var parent = node.parentNode;
@@ -671,29 +750,29 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.appendTo = function(node) {
+    VPrototype.appendTo = function(node) {
         V.toNode(node).appendChild(this.node);
         return this;
     },
 
-    V.prototype.svg = function() {
+    VPrototype.svg = function() {
 
         return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
     };
 
-    V.prototype.tagName = function() {
+    VPrototype.tagName = function() {
 
         return this.node.tagName.toUpperCase();
     };
 
-    V.prototype.defs = function() {
-
-        var defs = this.svg().node.getElementsByTagName('defs');
-
-        return (defs && defs.length) ? V(defs[0]) : undefined;
+    VPrototype.defs = function() {
+        var context = this.svg() || this;
+        var defsNode = context.node.getElementsByTagName('defs')[0];
+        if (defsNode) return V(defsNode);
+        return V('defs').appendTo(context);
     };
 
-    V.prototype.clone = function() {
+    VPrototype.clone = function() {
 
         var clone = V(this.node.cloneNode(true/* deep */));
         // Note that clone inherits also ID. Therefore, we need to change it here.
@@ -701,13 +780,13 @@ V = Vectorizer = (function() {
         return clone;
     };
 
-    V.prototype.findOne = function(selector) {
+    VPrototype.findOne = function(selector) {
 
         var found = this.node.querySelector(selector);
         return found ? V(found) : undefined;
     };
 
-    V.prototype.find = function(selector) {
+    VPrototype.find = function(selector) {
 
         var vels = [];
         var nodes = this.node.querySelectorAll(selector);
@@ -724,22 +803,22 @@ V = Vectorizer = (function() {
     };
 
     // Returns an array of V elements made from children of this.node.
-    V.prototype.children = function() {
+    VPrototype.children = function() {
 
         var children = this.node.childNodes;
-        
+
         var outputArray = [];
         for (var i = 0; i < children.length; i++) {
             var currentChild = children[i];
             if (currentChild.nodeType === 1) {
-                outputArray.push(V(children[i])); 
+                outputArray.push(V(children[i]));
             }
         }
         return outputArray;
     };
 
     // Find an index of an element inside its container.
-    V.prototype.index = function() {
+    VPrototype.index = function() {
 
         var index = 0;
         var node = this.node.previousSibling;
@@ -753,7 +832,7 @@ V = Vectorizer = (function() {
         return index;
     };
 
-    V.prototype.findParentByClass = function(className, terminator) {
+    VPrototype.findParentByClass = function(className, terminator) {
 
         var ownerSVGElement = this.node.ownerSVGElement;
         var node = this.node.parentNode;
@@ -772,7 +851,7 @@ V = Vectorizer = (function() {
     };
 
     // https://jsperf.com/get-common-parent
-    V.prototype.contains = function(el) {
+    VPrototype.contains = function(el) {
 
         var a = this.node;
         var b = V.toNode(el);
@@ -782,7 +861,7 @@ V = Vectorizer = (function() {
     };
 
     // Convert global point into the coordinate space of this element.
-    V.prototype.toLocalPoint = function(x, y) {
+    VPrototype.toLocalPoint = function(x, y) {
 
         var svg = this.svg().node;
 
@@ -804,7 +883,7 @@ V = Vectorizer = (function() {
         return globalPoint.matrixTransform(globalToLocalMatrix);
     };
 
-    V.prototype.translateCenterToPoint = function(p) {
+    VPrototype.translateCenterToPoint = function(p) {
 
         var bbox = this.getBBox({ target: this.svg() });
         var center = bbox.center();
@@ -818,7 +897,7 @@ V = Vectorizer = (function() {
     // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
     // being auto-oriented (properly rotated) towards the `reference` point.
     // `target` is the element relative to which the transformations are applied. Usually a viewport.
-    V.prototype.translateAndAutoOrient = function(position, reference, target) {
+    VPrototype.translateAndAutoOrient = function(position, reference, target) {
 
         // Clean-up previously set transformations except the scale. If we didn't clean up the
         // previous transformations then they'd add up with the old ones. Scale is an exception as
@@ -871,7 +950,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.animateAlongPath = function(attrs, path) {
+    VPrototype.animateAlongPath = function(attrs, path) {
 
         path = V.toNode(path);
 
@@ -909,12 +988,12 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.hasClass = function(className) {
+    VPrototype.hasClass = function(className) {
 
         return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
     };
 
-    V.prototype.addClass = function(className) {
+    VPrototype.addClass = function(className) {
 
         if (!this.hasClass(className)) {
             var prevClasses = this.node.getAttribute('class') || '';
@@ -924,7 +1003,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.removeClass = function(className) {
+    VPrototype.removeClass = function(className) {
 
         if (this.hasClass(className)) {
             var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
@@ -934,7 +1013,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.toggleClass = function(className, toAdd) {
+    VPrototype.toggleClass = function(className, toAdd) {
 
         var toRemove = V.isUndefined(toAdd) ? this.hasClass(className) : !toAdd;
 
@@ -953,7 +1032,7 @@ V = Vectorizer = (function() {
     // every `interval` pixels.
     // The sampler can be very useful for e.g. finding intersection between two
     // paths (finding the two closest points from two samples).
-    V.prototype.sample = function(interval) {
+    VPrototype.sample = function(interval) {
 
         interval = interval || 1;
         var node = this.node;
@@ -969,7 +1048,7 @@ V = Vectorizer = (function() {
         return samples;
     };
 
-    V.prototype.convertToPath = function() {
+    VPrototype.convertToPath = function() {
 
         var path = V('path');
         path.attr(this.attr());
@@ -980,7 +1059,7 @@ V = Vectorizer = (function() {
         return path;
     };
 
-    V.prototype.convertToPathData = function() {
+    VPrototype.convertToPathData = function() {
 
         var tagName = this.tagName();
 
@@ -1011,7 +1090,7 @@ V = Vectorizer = (function() {
     // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
     // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
     // an intersection is found. Returns `undefined` otherwise.
-    V.prototype.findIntersection = function(ref, target) {
+    VPrototype.findIntersection = function(ref, target) {
 
         var svg = this.svg().node;
         target = target || svg;
@@ -1094,7 +1173,7 @@ V = Vectorizer = (function() {
      * @param {string} value
      * @returns {Vectorizer}
      */
-    V.prototype.setAttribute = function(name, value) {
+    VPrototype.setAttribute = function(name, value) {
 
         var el = this.node;
 

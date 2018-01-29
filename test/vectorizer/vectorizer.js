@@ -77,6 +77,14 @@ QUnit.module('vectorizer', function(hooks) {
         assert.ok(V(vRect).node instanceof SVGElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
     });
 
+    QUnit.test('id', function(assert) {
+        var vRect = V('rect');
+        assert.ok(vRect.id);
+        assert.equal(vRect.id, vRect.node.id);
+        vRect.id = 'newid';
+        assert.equal(vRect.node.id, 'newid');
+    });
+
     QUnit.test('V(\'<invalid markup>\')', function(assert) {
 
         var error;
@@ -279,6 +287,35 @@ QUnit.module('vectorizer', function(hooks) {
 
             svg.remove();
         });
+
+        QUnit.test('textVerticalAnchor', function(assert) {
+
+            var texts = ['one', 'one\ntwo', 'one\ntwo\nthree'];
+            var n = texts.length;
+            var fontSize = 30;
+
+            assert.expect(3 * n);
+
+            var svg = getSvg();
+            var t = V('text', { 'font-size': fontSize }).appendTo(svg);
+            for (var i = 0; i < n; i++) {
+                var text = texts[i];
+                var bbox;
+                // 'bottom'
+                t.text(text, { textVerticalAnchor: 'bottom' });
+                bbox = t.getBBox();
+                assert.ok(Math.abs(bbox.corner().y) < (fontSize * 0.2), 'bottom anchor: ' + text);
+                // 'top'
+                t.text(text, { textVerticalAnchor: 'top' });
+                bbox = t.getBBox();
+                assert.ok(Math.abs(bbox.origin().y) < (fontSize * 0.2), 'top anchor: ' + text);
+                // 'middle'
+                t.text(text, { textVerticalAnchor: 'middle' });
+                bbox = t.getBBox();
+                assert.ok(Math.abs(bbox.center().y) < (fontSize * 0.2), 'middle anchor: ' + text);
+            }
+            svg.remove();
+        });
     });
 
     QUnit.test('annotateString', function(assert) {
@@ -384,7 +421,7 @@ QUnit.module('vectorizer', function(hooks) {
         for (var i = 0; i < checkChildren2.length; i++) {
             var currentChild = checkChildren2[i];
             if (currentChild.nodeType === 1) {
-                numElements += 1; 
+                numElements += 1;
             }
         }
         assert.ok(numElements === 2, 'The checkChildren2 collection should have two child elements.');

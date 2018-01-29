@@ -2007,6 +2007,7 @@ export namespace attributes {
         event?: string;
         magnet?: boolean | string;
         title?: string;
+        textVerticalAnchor?: 'bottom' | 'top' | 'middle' | number | string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;

@@ -130,6 +130,10 @@
         };
     }
 
+    function isTextInUse(lineHeight, node, attrs) {
+        return (attrs.text !== undefined);
+    }
+
     function contextMarker(context) {
         var marker = {};
         // Stroke
@@ -264,7 +268,7 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'eol');
+                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -273,9 +277,7 @@
                     // Chrome bug:
                     // Tspans positions defined as `em` are not updated
                     // when container `font-size` change.
-                    if (fontSize) {
-                        node.setAttribute('font-size', fontSize);
-                    }
+                    if (fontSize) node.setAttribute('font-size', fontSize);
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
@@ -345,21 +347,19 @@
         },
 
         lineHeight: {
-            qualify: function(lineHeight, node, attrs) {
-                return (attrs.text !== undefined);
-            }
+            qualify: isTextInUse
+        },
+
+        textVerticalAnchor: {
+            qualify: isTextInUse
         },
 
         textPath: {
-            qualify: function(textPath, node, attrs) {
-                return (attrs.text !== undefined);
-            }
+            qualify: isTextInUse
         },
 
         annotations: {
-            qualify: function(annotations, node, attrs) {
-                return (attrs.text !== undefined);
-            }
+            qualify: isTextInUse
         },
 
         // `port` attribute contains the `id` of the port that the underlying magnet represents.
