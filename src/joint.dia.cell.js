@@ -586,6 +586,7 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     getTransitions: function() {
+
         return Object.keys(this._transitionIds);
     },
 
@@ -639,11 +640,13 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     startBatch: function(name, opt) {
+
         if (this.graph) { this.graph.startBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     },
 
     stopBatch: function(name, opt) {
+
         if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     }
@@ -1244,6 +1247,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:pointerclick', evt, x, y);
     },
 
+    contextmenu: function(evt, x, y) {
+
+        this.notify('cell:contextmenu', evt, x, y);
+    },
+
     pointerdown: function(evt, x, y) {
 
         if (this.model.graph) {
@@ -1294,11 +1302,6 @@ joint.dia.CellView = joint.mvc.View.extend({
     mousewheel: function(evt, x, y, delta) {
 
         this.notify('cell:mousewheel', evt, x, y, delta);
-    },
-
-    contextmenu: function(evt, x, y) {
-
-        this.notify('cell:contextmenu', evt, x, y);
     },
 
     event: function(evt, eventName, x, y) {

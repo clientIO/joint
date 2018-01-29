@@ -1,12 +1,8 @@
 (function(joint, V, g, $, util) {
 
-    function isPercentage(val) {
-        return util.isString(val) && val.slice(-1) === '%';
-    }
-
     function setWrapper(attrName, dimension) {
         return function(value, refBBox) {
-            var isValuePercentage = isPercentage(value);
+            var isValuePercentage = util.isPercentage(value);
             value = parseFloat(value);
             if (isValuePercentage) {
                 value /= 100;
@@ -26,7 +22,7 @@
 
     function positionWrapper(axis, dimension, origin) {
         return function(value, refBBox) {
-            var valuePercentage = isPercentage(value);
+            var valuePercentage = util.isPercentage(value);
             value = parseFloat(value);
             if (valuePercentage) {
                 value /= 100;
@@ -58,7 +54,7 @@
             } else if (isFinite(value)) {
                 // TODO: or not to do a breaking change?
                 delta = (value > -1 && value < 1) ? (-nodeBBox[dimension] * value) : -value;
-            } else if (isPercentage(value)) {
+            } else if (util.isPercentage(value)) {
                 delta = nodeBBox[dimension] * parseFloat(value) / 100;
             } else {
                 delta = 0;
@@ -136,6 +132,28 @@
 
     function isTextInUse(lineHeight, node, attrs) {
         return (attrs.text !== undefined);
+    }
+
+    function contextMarker(context) {
+        var marker = {};
+        // Stroke
+        // The context 'fill' is disregared here. The usual case is to use the marker with a connection
+        // (for which 'fill' attribute is set to 'none').
+        var stroke = context.stroke;
+        if (typeof stroke === 'string') {
+            marker['stroke'] = stroke;
+            marker['fill'] = stroke;
+        }
+        // Opacity
+        // Again the context 'fill-opacity' is ignored.
+        var strokeOpacity = context.strokeOpacity;
+        if (strokeOpacity === undefined) strokeOpacity = context['stroke-opacity'];
+        if (strokeOpacity === undefined) strokeOpacity = context.opacity
+        if (strokeOpacity !== undefined) {
+            marker['stroke-opacity'] = strokeOpacity;
+            marker['fill-opacity'] = strokeOpacity;
+        }
+        return marker;
     }
 
     var attributesNS = joint.dia.attributes = {
@@ -223,22 +241,24 @@
 
         sourceMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), marker);
                 return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         targetMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
-                marker = util.assign({ transform: 'rotate(180)' }, marker);
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), { 'transform': 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         vertexMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), marker);
                 return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
@@ -269,7 +289,7 @@
             set: function(value, refBBox, node, attrs) {
                 // option `width`
                 var width = value.width || 0;
-                if (isPercentage(width)) {
+                if (util.isPercentage(width)) {
                     refBBox.width *= parseFloat(width) / 100;
                 } else if (width <= 0) {
                     refBBox.width += width;
@@ -278,7 +298,7 @@
                 }
                 // option `height`
                 var height = value.height || 0;
-                if (isPercentage(height)) {
+                if (util.isPercentage(height)) {
                     refBBox.height *= parseFloat(height) / 100;
                 } else if (height <= 0) {
                     refBBox.height += height;
