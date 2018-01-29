@@ -45,7 +45,7 @@
 
         V('line', { x1: 0, y1: y, x2: '100%', y2: y, stroke: 'gray', 'stroke-dasharray': 5 }).appendTo(svg);
         // top
-        t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
+        t = V('text').attr('font-size', fontSize).attr('text-anchor', textAnchor);
         t.attr({ x: 200, y: y });
         t.appendTo(svg);
         opt.textVerticalAnchor = 'top';
