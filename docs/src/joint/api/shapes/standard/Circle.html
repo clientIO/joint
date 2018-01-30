@@ -1,0 +1,34 @@
+<p>A circle with a label.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td><i>SVGCircleElement</i></td>
+        <td>Circular body of the shape</td>
+    </tr>
+    <tr>
+        <td>label</td>
+        <td><i>SVGTextElement</i></td>
+        <td>Text inside the body</td>
+    </tr>
+</table>
+
+<pre><code>var circle = new joint.shapes.standard.Circle();
+circle.resize(100, 100);
+circle.position(250, 10);
+circle.attr('root/title', 'joint.shapes.standard.Circle');
+circle.attr('label/text', 'Circle');
+circle.attr('body/fill', 'lightblue');
+circle.addTo(graph);</code></pre>

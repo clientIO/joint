@@ -449,44 +449,66 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
+    selector: 'root',
+    rotatableSelector: 'rotatable',
+    scalableSelector: 'scalable',
+    scalableNode: null,
+    rotatableNode: null,
+
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
     renderMarkup: function() {
 
-        var markup = this.model.get('markup') || this.model.markup;
+        var element = this.model;
+        var markup = element.get('markup') || element.markup;
+        if (!markup) throw new Error('dia.Elementiew: markup required');
+        if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
+        if (typeof markup === 'string') return this.renderStringMarkup(markup);
+        throw new Error('dia.Elementiew: invalid markup');
+    },
 
-        if (markup) {
+    renderJSONMarkup: function(markup) {
 
-            var svg = joint.util.template(markup)();
-            var nodes = V(svg);
+        var doc = joint.util.parseDOMJSON(markup);
+        // Selectors
+        var selectors = this.selectors = doc.selectors;
+        var rootSelector = this.selector;
+        if (selectors[rootSelector]) throw new Error('dia.ElementView: ambiguous root selector.');
+        selectors[rootSelector] = this.el;
+        // Cache transformation groups
+        this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
+        this.scalableNode = V(selectors[this.scalableSelector]) || null;
+        // Fragment
+        this.vel.append(doc.fragment);
+    },
 
-            this.vel.append(nodes);
+    renderStringMarkup: function(markup) {
 
-        } else {
-
-            throw new Error('properties.markup is missing while the default render() implementation is used.');
-        }
+        var vel = this.vel;
+        vel.append(V(markup));
+        // Cache transformation groups
+        this.rotatableNode = vel.findOne('.rotatable');
+        this.scalableNode = vel.findOne('.scalable');
     },
 
     render: function() {
 
-        this.$el.empty();
-
+        this.vel.empty();
         this.renderMarkup();
-        var rotatable = this.rotatableNode = this.vel.findOne('.rotatable');
-        var scalable = this.scalableNode = this.vel.findOne('.scalable');
-        if (scalable) {
+        if (this.scalableNode) {
             // Double update is necessary for elements with the scalable group only
             // Note the resize() triggers the other `update`.
             this.update();
         }
         this.resize();
-        if (rotatable) {
+        if (this.rotatableNode) {
+            // Translate transformation is applied on `this.el` while the rotation transformation
+            // on `this.rotatableNode`
             this.rotate();
             this.translate();
-        } else {
-            this.updateTransformation();
+            return this;
         }
+        this.updateTransformation();
         return this;
     },
 

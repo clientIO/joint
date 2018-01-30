@@ -1,0 +1,35 @@
+<p>A rectangle with a label.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td><i>SVGRectElement</i></td>
+        <td>Rectangular body of the shape</td>
+    </tr>
+    <tr>
+        <td>label</td>
+        <td><i>SVGTextElement</i></td>
+        <td>Text inside the body</td>
+    </tr>
+</table>
+
+<pre><code>var rectangle = new joint.shapes.standard.Rectangle();
+rectangle.resize(100, 100);
+rectangle.position(50, 10);
+rectangle.attr('root/title', 'joint.shapes.standard.Rectangle');
+rectangle.attr('label/text', 'Rectangle');
+rectangle.attr('body/fill', 'lightblue');
+rectangle.addTo(graph);
+</code></pre>

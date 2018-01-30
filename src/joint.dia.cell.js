@@ -753,10 +753,15 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     findBySelector: function(selector, root) {
 
-        var $root = $(root || this.el);
+        root || (root = this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        return (selector === '.') ? $root : $root.find(selector);
+        if (!selector || selector === '.') return [root];
+        var selectors = this.selectors;
+        if (selectors && selectors[selector]) return [selectors[selector]];
+        // Maintaining backwards compatibility
+        // e.g. `circle:first` would fail with querySelector() call
+        return $(root).find(selector).toArray();
     },
 
     notify: function(eventName) {
@@ -1077,10 +1082,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
-            var $selected = selectorCache[selector] = this.findBySelector(selector, root);
-
-            for (var i = 0, n = $selected.length; i < n; i++) {
-                var node = $selected[i];
+            var selected = selectorCache[selector] = this.findBySelector(selector, root);
+            for (var i = 0, n = selected.length; i < n; i++) {
+                var node = selected[i];
                 var nodeId = V.ensureId(node);
                 var nodeAttrs = attrs[selector];
                 var prevNodeAttrs = nodesAttrs[nodeId];

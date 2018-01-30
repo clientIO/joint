@@ -19,6 +19,18 @@ export namespace dia {
         'left' | 'right' | 'top' | 'bottom' | 'top-right' |
         'top-left' | 'bottom-left' | 'bottom-right';
 
+    type MarkupNodeJSON = {
+        tagName: string;
+        selector?: string;
+        namespaceUri?: string;
+        className?: string;
+        attributes?: attributes.NativeSVGAttributes;
+        style?: { [key: string]: any };
+        children?: MarkupJSON
+    }
+
+    type MarkupJSON = MarkupNodeJSON[];
+
     export namespace Graph {
 
         interface ConnectionOptions extends Cell.EmbeddableOptions {
@@ -141,6 +153,7 @@ export namespace dia {
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
+            [key: string]: any;
         }
 
         interface Selectors {
@@ -196,14 +209,14 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: Cell.Attributes): this;
+        prop(object: Cell.Attributes, opt?: { [key: string]: any }): this;
         prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
 
         removeProp(path: string | string[], opt?: { [key: string]: any }): this;
 
         attr(key?: string): any;
-        attr(object: Cell.Selectors): this;
-        attr(key: string, value: any): this;
+        attr(object: Cell.Selectors, opt?: { [key: string]: any }): this;
+        attr(key: string, value: any, opt?: { [key: string]: any }): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
@@ -245,6 +258,7 @@ export namespace dia {
     export namespace Element {
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+            markup?: string | MarkupJSON;
             position?: Point;
             size?: Size;
             angle?: number;
@@ -843,6 +857,160 @@ export namespace dia {
 }
 
 export namespace shapes {
+
+    namespace standard {
+
+        interface RectangleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Rectangle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<RectangleSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface CircleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGCircleAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Circle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface EllipseSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGCircleAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Ellipse extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface PathSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPathAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Path extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PathSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface PolygonSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPolygonAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Polygon extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface PolylineSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPolylineAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Polyline extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface ImageSelectors {
+            root?: attributes.SVGAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Image extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface BorderedImageSelectors {
+            root?: attributes.SVGAttributes;
+            border?: attributes.SVGRectAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class BorderedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<BorderedImageSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface EmbeddedImageSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class EmbeddedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface HeaderedRectangleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            header?: attributes.SVGRectAttributes;
+            headerText?: attributes.SVGTextAttributes;
+            bodyText?: attributes.SVGTextAttributes;
+        }
+
+        class HeaderedRectangle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<HeaderedRectangleSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface TextBlockSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            label?: {
+                text?: string;
+                style?: { [key: string]: any };
+                [key: string]: any;
+            }
+        }
+
+        class TextBlock extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+    }
 
     interface SVGTextSelector extends dia.Cell.Selectors {
         text?: attributes.SVGTextAttributes;
@@ -1965,11 +2133,18 @@ export namespace attributes {
 
     interface NativeSVGAttributes extends SVGCoreAttributes, SVGPresentationAttributes, SVGConditionalProcessingAttributes, SVGXLinkAttributes {
         'class'?: string;
-        'style'?: string;
+        'style'?: any;
         'transform'?: string;
         'externalResourcesRequired'?: boolean;
 
         [key: string]: any;
+    }
+
+    interface SVGAttributeTextWrap {
+        text?: string;
+        width?: string | number;
+        height?: string | number;
+        [key: string]: any
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
@@ -1981,12 +2156,12 @@ export namespace attributes {
         targetMarker?: { [key: string]: any };
         vertexMarker?: { [key: string]: any };
         text?: string;
-        textWrap?: { [key: string]: any };
+        textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;
         textPath?: any;
         annotations?: any;
         port?: string;
-        style?: string;
+        style?: { [key: string]: any };
         html?: string;
         ref?: string;
         refX?: string | number;
@@ -1999,6 +2174,7 @@ export namespace attributes {
         refHeight?: string | number;
         refRx?: string | number;
         refRy?: string | number;
+        refR?: string | number;
         refCx?: string | number;
         refCy?: string | number;
         resetOffset?: boolean;

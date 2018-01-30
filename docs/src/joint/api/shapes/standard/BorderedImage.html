@@ -1,0 +1,40 @@
+<p>An image with a border and label.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>image</td>
+        <td><i>SVGImageElement</i></td>
+        <td>Image body of the shape</td>
+    </tr>
+    <tr>
+        <td>border</td>
+            <td><i>SVGRectElement</i></td>
+            <td>Border around the image</td>
+        </tr>
+    <tr>
+        <td>label</td>
+        <td><i>SVGTextElement</i></td>
+        <td>Text below the image</td>
+    </tr>
+</table>
+
+<pre><code>var borderedImage = new joint.shapes.standard.BorderedImage();
+borderedImage.resize(150, 100);
+borderedImage.position(225, 410);
+borderedImage.attr('root/title', 'joint.shapes.standard.BoarderedImage');
+borderedImage.attr('label/text', 'Bordered\nImage');
+borderedImage.attr('border/rx', 5);
+borderedImage.attr('image/xlinkHref', 'image.png');
+borderedImage.addTo(graph);</code></pre>

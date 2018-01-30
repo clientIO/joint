@@ -773,5 +773,165 @@ QUnit.module('util', function(hooks) {
                 assert.equal(bBox.height, 80);
             });
         });
-    })
+    });
+
+    QUnit.module('parseDOMJSON', function(hooks) {
+
+        var util = joint.util;
+
+        QUnit.test('sanity', function(assert) {
+            var res = util.parseDOMJSON([{ tagName: 'rect' }], V.namespace.xmls);
+            assert.ok(res.fragment instanceof DocumentFragment);
+            assert.equal(Object(res.selectors), res.selectors);
+        });
+
+        QUnit.module('tagName', function() {
+
+            QUnit.test('required', function(assert) {
+                assert.throws(function() {
+                    util.parseDOMJSON([{ /* tagName missing */ }]);
+                });
+            });
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'rect' }], V.namespace.xmls);
+                var node = res.fragment.firstChild;
+                assert.ok(node instanceof SVGRectElement);
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'div' }], V.namespace.xhtml);
+                var node = res.fragment.firstChild;
+                assert.ok(node instanceof HTMLDivElement);
+            });
+        });
+
+        QUnit.module('attributes', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{
+                    tagName: 'rect',
+                    attributes: { 'fill': 'red', 'xlink:href': '#test' }
+                }]);
+                var node = res.fragment.firstChild;
+                assert.equal(node.attributes.getNamedItem('fill').value, 'red');
+                assert.equal(node.attributes.getNamedItemNS(V.namespace.xlink, 'href').value, '#test');
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{
+                    tagName: 'div',
+                    attributes: { 'title': 'test' }
+                }], V.namespace.xhtml);
+                var node = res.fragment.firstChild;
+                assert.equal(node.attributes.getNamedItem('title').value, 'test');
+            });
+        });
+
+        QUnit.module('style', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{
+                    tagName: 'rect',
+                    style: { 'fill': 'red' }
+                }]);
+                var node = res.fragment.firstChild;
+                assert.ok(/fill:/.test(node.attributes.getNamedItem('style').value));
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{
+                    tagName: 'div',
+                    style: { 'color': 'red' }
+                }], V.namespace.xhtml);
+                var node = res.fragment.firstChild;
+                assert.ok(/color:/.test(node.attributes.getNamedItem('style').value));
+            });
+        });
+
+        QUnit.module('className', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'rect', className: 'test' }]);
+                var node = res.fragment.firstChild;
+                assert.equal(node.className.baseVal, 'test');
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'div', className: 'test' }], V.namespace.xhtml);
+                var node = res.fragment.firstChild;
+                assert.equal(node.className, 'test');
+            });
+        });
+
+        QUnit.module('selector', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([
+                    { tagName: 'rect', selector: 'test1' },
+                    { tagName: 'circle', selector: 'test2' }
+                ]);
+                assert.ok(res.selectors.test1 instanceof SVGRectElement);
+                assert.ok(res.selectors.test2 instanceof SVGCircleElement);
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([
+                    { tagName: 'div', selector: 'test1' },
+                    { tagName: 'img', selector: 'test2' },
+                ], V.namespace.xhtml);
+                assert.ok(res.selectors.test1 instanceof HTMLDivElement);
+                assert.ok(res.selectors.test2 instanceof HTMLImageElement);
+            });
+
+            QUnit.test('uniqueness', function(assert) {
+                assert.throws(function() {
+                    util.parseDOMJSON([
+                        { tagName: 'rect', selector: 'test' },
+                        { tagName: 'circle', selector: 'test' },
+                    ]);
+                });
+            });
+        });
+
+        QUnit.module('namespaceURI', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'rect', namespaceURI: V.namespace.xmlns }]);
+                var node = res.fragment.firstChild;
+                assert.ok(node instanceof SVGRectElement);
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'div', namespaceURI: V.namespace.xhtml }]);
+                var node = res.fragment.firstChild;
+                assert.ok(node instanceof HTMLDivElement);
+            });
+        });
+
+        QUnit.module('children', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{
+                    tagName: 'g',
+                    children: [{ tagName: 'rect' }, { tagName: 'circle' }]
+                }]);
+                var group = res.fragment.firstChild;
+                assert.ok(group instanceof SVGGElement);
+                assert.ok(group.firstChild instanceof SVGRectElement);
+                assert.ok(group.lastChild instanceof SVGCircleElement);
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{
+                    tagName: 'div',
+                    children: [{ tagName: 'p' }, { tagName: 'img' }]
+                }], V.namespace.xhtml);
+                var div = res.fragment.firstChild;
+                assert.ok(div instanceof HTMLDivElement);
+                assert.ok(div.firstChild instanceof HTMLParagraphElement);
+                assert.ok(div.lastChild instanceof HTMLImageElement);
+            });
+        });
+    });
 });

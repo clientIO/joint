@@ -1505,6 +1505,60 @@ var joint = {
                 };
             }
         },
+
+        parseDOMJSON: function (json, namespace) {
+
+            var selectors = {};
+            var svgNamespace = V.namespace.xmlns;
+            var ns = namespace || svgNamespace;
+            var fragment = document.createDocumentFragment();
+            var queue = [json, fragment, ns];
+            while (queue.length > 0) {
+                ns = queue.pop();
+                var parentNode = queue.pop();
+                var siblingsDef = queue.pop();
+                for (var i = 0, n = siblingsDef.length; i < n; i++) {
+                    var nodeDef = siblingsDef[i];
+                    // TagName
+                    if (!nodeDef.hasOwnProperty('tagName')) throw new Error('json-dom-parser: missing tagName');
+                    var tagName = nodeDef.tagName;
+                    // Namespace URI
+                    if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
+                    var node = document.createElementNS(ns, tagName);
+                    var svg = (ns === svgNamespace);
+                    // Attributes
+                    var attributes = nodeDef.attributes;
+                    if (attributes) ((svg) ? V : $)(node).attr(attributes);
+                    // Style
+                    var style = nodeDef.style;
+                    if (style) $(node).css(style);
+                    // ClassName
+                    if (nodeDef.hasOwnProperty('className')) {
+                        var className = nodeDef.className;
+                        if (svg) {
+                            node.className.baseVal = className;
+                        } else {
+                            node.className = className;
+                        }
+                    }
+                    // Selector
+                    if (nodeDef.hasOwnProperty('selector')) {
+                        var nodeSelector = nodeDef.selector;
+                        if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
+                        selectors[nodeSelector] = node;
+                    }
+                    parentNode.appendChild(node);
+                    // Children
+                    var childrenDef = nodeDef.children;
+                    if (Array.isArray(childrenDef)) queue.push(childrenDef, node, ns);
+                }
+            }
+            return {
+                fragment: fragment,
+                selectors: selectors
+            }
+        },
+
         // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
         uniq: _.uniqBy || _.uniq,

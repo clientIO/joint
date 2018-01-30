@@ -1,0 +1,40 @@
+<p>An image embedded into a rectangle with a label.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td><i>SVGRectElement</i></td>
+        <td>Rectangular body of the shape</td>
+    </tr>
+    <tr>
+        <td>image</td>
+        <td><i>SVGImageElement</i></td>
+        <td>Image inside the body</td>
+    </tr>
+    <tr>
+        <td>label</td>
+        <td><i>SVGTextElement</i></td>
+        <td>Text next to the image</td>
+    </tr>
+</table>
+
+<pre><code>
+var embeddedImage = new joint.shapes.standard.EmbeddedImage();
+embeddedImage.resize(150, 100);
+embeddedImage.position(425, 410);
+embeddedImage.attr('root/title', 'joint.shapes.standard.EmbeddedImage');
+embeddedImage.attr('label/text', 'Embedded\nImage');
+embeddedImage.attr('image/xlinkHref', 'image.png');
+embeddedImage.addTo(graph);</code></pre>
