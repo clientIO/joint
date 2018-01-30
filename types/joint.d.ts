@@ -24,8 +24,8 @@ export namespace dia {
         selector?: string;
         namespaceUri?: string;
         className?: string;
-        attributes?: attributes.NativeSVGAttributes,
-        style?: { [key: string]: any },
+        attributes?: attributes.NativeSVGAttributes;
+        style?: { [key: string]: any };
         children?: MarkupJSON
     }
 
