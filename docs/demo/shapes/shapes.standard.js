@@ -4,7 +4,7 @@ var dia = joint.dia;
 var util = joint.util;
 var standard = joint.shapes.standard;
 
-// Custom attribute for retreaving image placeholder with specific size
+// Custom attribute for retrieving image placeholder with specific size
 dia.attributes.placeholderURL = {
     qualify: function(url) {
         return typeof url === 'string';
