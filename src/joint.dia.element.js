@@ -458,6 +458,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
     renderMarkup: function() {
+
         var element = this.model;
         var markup = element.get('markup') || element.markup;
         if (!markup) throw new Error('dia.Elementiew: markup required');
@@ -467,6 +468,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     renderJSONMarkup: function(markup) {
+
         var doc = joint.util.parseDOMJSON(markup);
         // Selectors
         var selectors = this.selectors = doc.selectors;
@@ -481,6 +483,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     renderStringMarkup: function(markup) {
+
         var vel = this.vel;
         vel.append(V(markup));
         // Cache transformation groups
