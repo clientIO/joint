@@ -32,24 +32,18 @@ joint.routers.orthogonal = (function(util) {
         return bbox[(brng === 'W' || brng === 'E') ? 'width' : 'height'];
     }
 
-    // expands a box by specific value
-    function expand(bbox, val) {
-
-        return (new g.Rect(bbox)).moveAndExpand({ x: -val, y: -val, width: 2 * val, height: 2 * val });
-    }
-
     // return source bbox
     function getSourceBBox(linkView, opt) {
 
         var padding = (opt && opt.elementPadding) || 20;
-        return expand(linkView.sourceBBox, padding);
+        return linkView.sourceBBox.clone().inflate(padding);
     }
 
     // return target bbox
     function getTargetBBox(linkView, opt) {
 
         var padding = (opt && opt.elementPadding) || 20;
-        return expand(linkView.targetBBox, padding);
+        return linkView.targetBBox.clone().inflate(padding);
     }
 
     // return source anchor
@@ -194,7 +188,7 @@ joint.routers.orthogonal = (function(util) {
     function insideElement(from, to, fromBBox, toBBox, brng) {
 
         var route = {};
-        var bndry = expand(boundary(fromBBox, toBBox), 1);
+        var bndry = boundary(fromBBox, toBBox).inflate(1);
 
         // start from the point which is closer to the boundary
         var reversed = bndry.center().distance(to) > bndry.center().distance(from);
@@ -266,7 +260,7 @@ joint.routers.orthogonal = (function(util) {
 
                     // Expand one of the elements by 1px to detect situations when the two
                     // elements are positioned next to each other with no gap in between.
-                    if (sourceBBox.intersect(expand(targetBBox, 1))) {
+                    if (sourceBBox.intersect(targetBBox.clone().inflate(1))) {
                         route = insideElement(from, to, sourceBBox, targetBBox);
 
                     } else if (!isOrthogonal) {
@@ -276,7 +270,7 @@ joint.routers.orthogonal = (function(util) {
                 } else { // route source -> vertex
 
                     if (sourceBBox.containsPoint(to)) {
-                        route = insideElement(from, to, sourceBBox, expand(pointBox(to), padding));
+                        route = insideElement(from, to, sourceBBox, pointBox(to).inflate(padding));
 
                     } else if (!isOrthogonal) {
                         route = elementVertex(from, to, sourceBBox);
@@ -289,7 +283,7 @@ joint.routers.orthogonal = (function(util) {
                 var isOrthogonalLoop = isOrthogonal && bearing(to, from) === brng;
 
                 if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
-                    route = insideElement(from, to, expand(pointBox(from), padding), targetBBox, brng);
+                    route = insideElement(from, to, pointBox(from).inflate(padding), targetBBox, brng);
 
                 } else if (!isOrthogonal) {
                     route = vertexElement(from, to, targetBBox, brng);
