@@ -449,7 +449,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
-    selector: 'root',
     rotatableSelector: 'rotatable',
     scalableSelector: 'scalable',
     scalableNode: null,

@@ -1,0 +1,34 @@
+<p>A single line link.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>line</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Visible connection of the link</td>
+    </tr>
+    <tr>
+        <td>wrapper</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Invisible wrapper around the connection to make the line thicker, so the user can interact with the link more easily.</td>
+    </tr>
+</table>
+
+<pre><code>var link = new joint.shapes.standard.Link();
+link.prop('source', { x: 450, y: 600 });
+link.prop('target', { x: 400, y: 750 });
+link.prop('vertices', [{ x: 450, y: 700 }]);
+link.attr('root/title', 'joint.shapes.standard.Link');
+link.attr('line/stroke', '#fe854f');
+link.addTo(graph);</code></pre>

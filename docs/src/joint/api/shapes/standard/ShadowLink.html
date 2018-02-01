@@ -1,0 +1,34 @@
+<p>A thicker line with shadow.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>line</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Visible connection of the link</td>
+    </tr>
+    <tr>
+        <td>shadow</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Shadow of the connection</td>
+    </tr>
+</table>
+
+<pre><code>var shadowLink = new joint.shapes.standard.ShadowLink();
+shadowLink.prop('source', { x: 550, y: 600 });
+shadowLink.prop('target', { x: 500, y: 750 });
+shadowLink.prop('vertices', [{ x: 550, y: 700 }]);
+shadowLink.attr('root/title', 'joint.shapes.standard.ShadowLink');
+shadowLink.attr('line/stroke', '#5654a0');
+shadowLink.addTo(graph);</code></pre>

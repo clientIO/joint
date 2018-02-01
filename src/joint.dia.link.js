@@ -670,7 +670,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         opt = opt || {};
 
         var model = this.model;
-        var route;
+        var route, path;
 
         if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
             // The link is being translated by an ancestor that will
@@ -687,14 +687,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // translate source and target connection and marker points.
             this._translateConnectionPoints(tx, ty);
 
+            // translate the path itself
+            path = this.path.translate(tx, ty);
+
         } else {
             // Necessary path finding
             route = this.route = this.findRoute(model.get('vertices') || [], opt);
             // finds all the connection points taking new vertices into account
             this._findConnectionPoints(route);
+
+            path = this.path = this.findPath(route);
         }
 
-        var path = this.path = this.findPath(route);
         var pathData = this.pathData = path.serialize();
         this.metrics = {};
 
@@ -1087,7 +1091,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var pathLength;
         // Tolerance determines the highest possible difference between the length
         // of the old and new path. The number has been chosen heuristically.
-        var pathLengthTolerance = 1;
+        var pathLengthTolerance = 5;
         // Total number of vertices including source and target points.
         var idx = vertices.length + 1;
         // Current path
@@ -1407,12 +1411,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.tangentAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    getTangentAt: function(length) {
+    getTangentAt: function(ratio) {
 
         var path = this.path;
         if (!path) return null;
 
-        return path.tangentAt(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
+        return path.tangentAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
     getClosestPoint: function(point) {
@@ -1519,8 +1523,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
-                var path = this.path;
                 var dragPoint = { x: x, y: y };
+                var path = this.path;
                 var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
                 var t = path.closestPointT(dragPoint, pathOpt);
                 var tangent = path.tangentAtT(t, pathOpt);

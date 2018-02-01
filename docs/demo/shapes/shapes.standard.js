@@ -139,3 +139,30 @@ textBlock.attr('body/fillOpacity', 0.5);
 textBlock.attr('label/text', 'Hyper Text Markup Language');
 textBlock.attr('label/style/color', '#ffffff');
 textBlock.addTo(graph);
+
+var link = new standard.Link();
+link.prop('source', { x: 450, y: 600 });
+link.prop('target', { x: 400, y: 750 });
+link.prop('vertices', [{ x: 450, y: 700 }]);
+link.attr('root/tabindex', 13);
+link.attr('root/title', 'joint.shapes.standard.Link');
+link.attr('line/stroke', '#fe854f');
+link.addTo(graph);
+
+var doubleLink = new standard.DoubleLink();
+doubleLink.prop('source', { x: 500, y: 600 });
+doubleLink.prop('target', { x: 450, y: 750 });
+doubleLink.prop('vertices', [{ x: 500, y: 700 }]);
+doubleLink.attr('root/tabindex', 14);
+doubleLink.attr('root/title', 'joint.shapes.standard.DoubleLink');
+doubleLink.attr('line/stroke', '#30d0c6');
+doubleLink.addTo(graph);
+
+var shadowLink = new standard.ShadowLink();
+shadowLink.prop('source', { x: 550, y: 600 });
+shadowLink.prop('target', { x: 500, y: 750 });
+shadowLink.prop('vertices', [{ x: 550, y: 700 }]);
+shadowLink.attr('root/tabindex', 15);
+shadowLink.attr('root/title', 'joint.shapes.standard.ShadowLink');
+shadowLink.attr('line/stroke', '#5654a0');
+shadowLink.addTo(graph);
