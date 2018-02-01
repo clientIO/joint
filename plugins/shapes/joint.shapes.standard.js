@@ -2,6 +2,8 @@
 
     'use strict';
 
+    // ELEMENTS
+
     var Element = dia.Element;
 
     Element.define('standard.Rectangle', {
@@ -412,5 +414,135 @@
             }
         }
     });
+
+    // LINKS
+
+    var Link = dia.Link;
+
+    Link.define('standard.Link', {
+        attrs: {
+            line: {
+                connection: true,
+                stroke: '#333333',
+                strokeWidth: 2,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    type: 'path',
+                    d: 'M 10 -5 0 0 10 5 z'
+                }
+            },
+            wrapper: {
+                connection: true,
+                strokeWidth: 10,
+                strokeLinejoin: 'round'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'wrapper',
+            attributes: {
+                'fill': 'none',
+                'cursor': 'pointer',
+                'stroke': 'transparent'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none',
+                'pointer-events': 'none'
+            }
+        }]
+    });
+
+    Link.define('standard.DoubleLink', {
+        attrs: {
+            line: {
+                connection: true,
+                stroke: '#DDDDDD',
+                strokeWidth: 4,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    type: 'path',
+                    stroke: '#000000',
+                    d: 'M 10 -3 10 -10 -2 0 10 10 10 3'
+                }
+            },
+            outline: {
+                connection: true,
+                stroke: '#000000',
+                strokeWidth: 6,
+                strokeLinejoin: 'round'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'outline',
+            attributes: {
+                'fill': 'none'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none'
+            }
+        }]
+    });
+
+    Link.define('standard.ShadowLink', {
+        attrs: {
+            line: {
+                connection: true,
+                stroke: '#FF0000',
+                strokeWidth: 20,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    'type': 'path',
+                    'stroke': 'none',
+                    'd': 'M 0 -10 -10 0 0 10 z'
+                },
+                sourceMarker: {
+                    'type': 'path',
+                    'stroke': 'none',
+                    'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+                }
+            },
+            shadow: {
+                connection: { tx: 3, ty: 6 },
+                stroke: '#000000',
+                strokeOpacity: 0.2,
+                strokeWidth: 20,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    'type': 'path',
+                    'd': 'M 0 -10 -10 0 0 10 z',
+                    'stroke': 'none'
+                },
+                sourceMarker: {
+                    'type': 'path',
+                    'stroke': 'none',
+                    'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+                }
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'shadow',
+            attributes: {
+                'fill': 'none'
+            }
+        }]
+    });
+
 
 })(joint.dia, joint.util, joint.env);

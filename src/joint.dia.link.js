@@ -288,6 +288,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // keeps markers bboxes and positions again for quicker access
         this._markerCache = {};
 
+        // cache of markup nodes
+        this._V = {};
+
         // bind events
         this.startListening();
     },
@@ -396,54 +399,70 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     render: function() {
 
-        this.$el.empty();
+        this.vel.empty();
+        this.renderMarkup();
+        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
+        // returns zero values)
+        this.renderLabels();
+        // start watching the ends of the link for changes
+        var model = this.model;
+        this.watchSource(model, model.get('source'))
+            .watchTarget(model, model.get('target'))
+            .update();
+
+        return this;
+    },
+
+    renderMarkup: function() {
+
+        var link = this.model;
+        var markup = link.get('markup') || link.markup;
+        if (!markup) throw new Error('dia.LinkView: markup required');
+        if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
+        if (typeof markup === 'string') return this.renderStringMarkup(markup);
+        throw new Error('dia.LinkView: invalid markup');
+    },
+
+    renderJSONMarkup: function(markup) {
+
+        var doc = joint.util.parseDOMJSON(markup);
+        // Selectors
+        var selectors = this.selectors = doc.selectors;
+        var rootSelector = this.selector;
+        if (selectors[rootSelector]) throw new Error('dia.LinkView: ambiguous root selector.');
+        selectors[rootSelector] = this.el;
+        // Fragment
+        this.vel.append(doc.fragment);
+    },
+
+    renderStringMarkup: function(markup) {
 
         // A special markup can be given in the `properties.markup` property. This might be handy
         // if e.g. arrowhead markers should be `<image>` elements or any other element than `<path>`s.
         // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors
         // of elements with special meaning though. Therefore, those classes should be preserved in any
         // special markup passed in `properties.markup`.
-        var model = this.model;
-        var markup = model.get('markup') || model.markup;
         var children = V(markup);
-
         // custom markup may contain only one children
         if (!Array.isArray(children)) children = [children];
-
         // Cache all children elements for quicker access.
-        this._V = {}; // vectorized markup;
-        children.forEach(function(child) {
-
+        var cache = this._V = {}; // vectorized markup;
+        for (var i = 0, n = children.length; i < n; i++) {
+            var child = children[i];
             var className = child.attr('class');
-
             if (className) {
                 // Strip the joint class name prefix, if there is one.
                 className = joint.util.removeClassNamePrefix(className);
-                this._V[$.camelCase(className)] = child;
+                cache[$.camelCase(className)] = child;
             }
-
-        }, this);
-
+        }
         // Only the connection path is mandatory
-        if (!this._V.connection) throw new Error('link: no connection path in the markup');
-
+        if (!cache.connection) throw new Error('dia.LinkView: no connection path in the markup');
         // partial rendering
         this.renderTools();
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
-
         this.vel.append(children);
-
-        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
-        // returns zero values)
-        this.renderLabels();
-
-        // start watching the ends of the link for changes
-        this.watchSource(model, model.get('source'))
-            .watchTarget(model, model.get('target'))
-            .update();
-
-        return this;
     },
 
     renderLabels: function() {
@@ -623,13 +642,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         opt = opt || {};
 
-        if (!opt.updateConnectionOnly) {
-            // update SVG attributes defined by 'attrs/'.
-            this.updateDOMSubtreeAttributes(this.el, this.model.attr());
-        }
-
-        // update the link path, label position etc.
+        // update the link path
         this.updateConnection(opt);
+
+        //if (!opt.updateConnectionOnly) {
+        // update SVG attributes defined by 'attrs/'.
+        this.updateDOMSubtreeAttributes(this.el, this.model.attr());
+        //}
+
+        // update the label position etc.
         this.updateLabelPositions();
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
@@ -673,13 +694,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this._findConnectionPoints(route);
         }
 
-        var pathData = this.getPathData(route);
+        var path = this.path = this.findPath(route);
+        var pathData = this.pathData = path.serialize();
+        this.metrics = {};
 
-        // The markup needs to contain a `.connection`
-        this._V.connection.attr('d', pathData);
-        this._V.connectionWrap && this._V.connectionWrap.attr('d', pathData);
-
-        this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
+        var cache = this._V;
+        if (cache.connection) cache.connection.attr('d', pathData);
+        if (cache.connectionWrap) cache.connectionWrap.attr('d', pathData);
+        if (cache.markerSource && cache.markerTarget) {
+            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
+        }
     },
 
     _findConnectionPoints: function(vertices) {
@@ -750,28 +774,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!this._V.labels) return this;
 
+        var path = this.path;
+        if (!path) return this;
+
         // This method assumes all the label nodes are stored in the `this._labelCache` hash table
         // by their indexes in the `this.get('labels')` array. This is done in the `renderLabels()` method.
 
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
-        var samples;
-        var connectionElement = this._V.connection.node;
-        var connectionLength = connectionElement.getTotalLength();
-
-        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-        // In that case we won't update labels at all.
-        if (Number.isNaN(connectionLength)) {
-            return this;
-        }
+        var connectionLength = this.getConnectionLength();
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
             var position = label.position;
             var isPositionObject = joint.util.isObject(position);
-            var labelCoordinates;
 
             var distance = isPositionObject ? position.distance : position;
             var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
@@ -784,46 +802,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 distance = connectionLength / 2;
             }
 
-            labelCoordinates = connectionElement.getPointAtLength(distance);
+            var tangent = this.getTangentAtLength(distance);
+            var labelCoordinates = (tangent) ? tangent.start : path.start;
 
             if (joint.util.isObject(offset)) {
 
                 // Just offset the label by the x,y provided in the offset object.
                 labelCoordinates = g.point(labelCoordinates).offset(offset);
 
-            } else if (Number.isFinite(offset)) {
+            } else if (Number.isFinite(offset) && tangent) {
 
-                if (!samples) {
-                    samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
-                }
-
-                // Offset the label by the amount provided in `offset` to an either
-                // side of the link.
-
-                // 1. Find the closest sample & its left and right neighbours.
-                var minSqDistance = Infinity;
-                var closestSampleIndex, sample, sqDistance;
-                for (var i = 0, m = samples.length; i < m; i++) {
-                    sample = samples[i];
-                    sqDistance = g.line(sample, labelCoordinates).squaredLength();
-                    if (sqDistance < minSqDistance) {
-                        minSqDistance = sqDistance;
-                        closestSampleIndex = i;
-                    }
-                }
-                var prevSample = samples[closestSampleIndex - 1];
-                var nextSample = samples[closestSampleIndex + 1];
-
-                // 2. Offset the label on the perpendicular line between
-                // the current label coordinate ("at `distance`") and
-                // the next sample.
-                var angle = 0;
-                if (nextSample) {
-                    angle = g.point(labelCoordinates).theta(nextSample);
-                } else if (prevSample) {
-                    angle = g.point(prevSample).theta(labelCoordinates);
-                }
-                labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
+                // Offset the label based on the path tangent
+                var angle = tangent.vector().vectorAngle(new g.Point(1,0));
+                labelCoordinates = g.point(labelCoordinates).offset(0, offset).rotate(labelCoordinates, -angle);
             }
 
             this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
@@ -1077,45 +1068,45 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // path is lot more than length of the old path. If this is the case,
         // new vertex was probably put into a wrong index.
         // Try to put it into another index and repeat the heuristics again.
+        var link = this.model;
 
-        var vertices = (this.model.get('vertices') || []).slice();
+        // Find the closest point to vertex, which is laying exactly on the path.
+        var closestPoint = this.getClosestPoint(vertex);
+        if (closestPoint) {
+            closestPoint = closestPoint.toJSON();
+        } else {
+            closestPoint = vertex;
+        }
+        // Current vertices
+        var vertices = (link.get('vertices') || []).slice();
         // Store the original vertices for a later revert if needed.
         var originalVertices = vertices.slice();
-
-        // A `<path>` element used to compute the length of the path during heuristics.
-        var path = this._V.connection.node.cloneNode(false);
-
         // Length of the original path.
-        var originalPathLength = path.getTotalLength();
+        var originalPathLength = this.getConnectionLength();
         // Current path length.
         var pathLength;
         // Tolerance determines the highest possible difference between the length
         // of the old and new path. The number has been chosen heuristically.
-        var pathLengthTolerance = 20;
+        var pathLengthTolerance = 1;
         // Total number of vertices including source and target points.
         var idx = vertices.length + 1;
-
+        // Current path
+        var path;
         // Loop through all possible indexes and check if the difference between
         // path lengths changes significantly. If not, the found index is
         // most probably the right one.
         while (idx--) {
 
-            vertices.splice(idx, 0, vertex);
-            V(path).attr('d', this.getPathData(this.findRoute(vertices)));
-
-            pathLength = path.getTotalLength();
+            vertices.splice(idx, 0, closestPoint);
+            path = this.findPath(this.findRoute(vertices));
+            pathLength = path.length();
 
             // Check if the path lengths changed significantly.
-            if (pathLength - originalPathLength > pathLengthTolerance) {
+            if (pathLength - originalPathLength < pathLengthTolerance) break;
 
-                // Revert vertices to the original array. The path length has changed too much
-                // so that the index was not found yet.
-                vertices = originalVertices.slice();
-
-            } else {
-
-                break;
-            }
+            // Revert vertices to the original array. The path length has changed too much
+            // so that the index was not found yet.
+            vertices = originalVertices.slice();
         }
 
         if (idx === -1) {
@@ -1124,7 +1115,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vertices.splice(idx, 0, vertex);
         }
 
-        this.model.set('vertices', vertices, { ui: true });
+        link.set('vertices', vertices, { ui: true });
 
         return idx;
     },
@@ -1197,12 +1188,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        var args = router.args || {};
         var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
-
         if (!joint.util.isFunction(routerFn)) {
             throw new Error('unknown router: "' + router.name + '"');
         }
+
+        var args = router.args || {};
 
         var newVertices = routerFn.call(this, oldVertices || [], args, this);
 
@@ -1211,14 +1202,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     // Return the `d` attribute value of the `<path>` element representing the link
     // between `source` and `target`.
-    getPathData: function(vertices) {
+    findPath: function(route) {
 
         var namespace = joint.connectors;
         var connector = this.model.get('connector');
         var defaultConnector = this.paper.options.defaultConnector;
 
         if (!connector) {
-
             // backwards compability
             if (this.model.get('smooth')) {
                 connector = { name: 'smooth' };
@@ -1228,22 +1218,29 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var connectorFn = joint.util.isFunction(connector) ? connector : namespace[connector.name];
-        var args = connector.args || {};
-
         if (!joint.util.isFunction(connectorFn)) {
             throw new Error('unknown connector: "' + connector.name + '"');
         }
 
-        var pathData = connectorFn.call(
+        var args = joint.util.clone(connector.args || {});
+        // Request raw g.Path as the result.
+        args.raw = true;
+
+        var path = connectorFn.call(
             this,
             this._markerCache.sourcePoint, // Note that the value is translated by the size
             this._markerCache.targetPoint, // of the marker. (We'r not using this.sourcePoint)
-            vertices || (this.model.get('vertices') || {}),
+            route || (this.model.get('vertices') || []),
             args, // options
             this
         );
 
-        return pathData;
+        if (typeof path === 'string') {
+            // Backwards compatibility for connectors not supporting `raw` option.
+            path = new g.Path(V.normalizePathData(path));
+        }
+
+        return path;
     },
 
     // Find a point that is the start of the connection.
@@ -1363,14 +1360,67 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Public API.
     // -----------
 
+    metrics: {},
+
+    getPath: function() {
+
+        return this.path || null;
+    },
+
+    getConnectionSubdivisions: function() {
+
+        var path = this.path;
+        if (!path) return null;
+
+        var metrics = this.metrics;
+        if (metrics.hasOwnProperty('segmentSubdivisions')) return metrics.segmentSubdivisions;
+        var subdivisions = path.getSegmentSubdivisions();
+        metrics.segmentSubdivisions = subdivisions;
+        return subdivisions;
+    },
+
     getConnectionLength: function() {
 
-        return this._V.connection.node.getTotalLength();
+        var path = this.path;
+        if (!path) return 0;
+
+        var metrics = this.metrics;
+        if (metrics.hasOwnProperty('length')) return metrics.length;
+        var length = path.length({ segmentSubdivisions: this.getConnectionSubdivisions() });
+        metrics.length = length;
+        return length;
     },
 
     getPointAtLength: function(length) {
 
-        return this._V.connection.node.getPointAtLength(length);
+        var path = this.path;
+        if (!path) return null;
+
+        return path.pointAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getTangentAtLength: function(length) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.tangentAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getTangentAt: function(length) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.tangentAt(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getClosestPoint: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
     },
 
     // Interaction. The controller part.
@@ -1441,10 +1491,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 if (this.can('labelMove')) {
                     this._action = 'label-move';
                     this._labelIdx = parseInt(V(labelNode).attr('label-idx'), 10);
-                    // Precalculate samples so that we don't have to do that
-                    // over and over again while dragging the label.
-                    this._samples = this._V.connection.sample(1);
-                    this._linkLength = this._V.connection.node.getTotalLength();
                 }
                 break;
 
@@ -1473,37 +1519,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
+                var path = this.path;
                 var dragPoint = { x: x, y: y };
-                var samples = this._samples;
-                var minSqDistance = Infinity;
-                var closestSample;
-                var closestSampleIndex;
-                var p;
-                var sqDistance;
-                for (var i = 0, n = samples.length; i < n; i++) {
-                    p = samples[i];
-                    sqDistance = g.line(p, dragPoint).squaredLength();
-                    if (sqDistance < minSqDistance) {
-                        minSqDistance = sqDistance;
-                        closestSample = p;
-                        closestSampleIndex = i;
-                    }
-                }
-                var prevSample = samples[closestSampleIndex - 1];
-                var nextSample = samples[closestSampleIndex + 1];
-                var offset = 0;
-                if (prevSample && nextSample) {
-                    offset = g.line(prevSample, nextSample).pointOffset(dragPoint);
-                } else if (prevSample) {
-                    offset = g.line(prevSample, closestSample).pointOffset(dragPoint);
-                } else if (nextSample) {
-                    offset = g.line(closestSample, nextSample).pointOffset(dragPoint);
-                }
+                var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+                var t = path.closestPointT(dragPoint, pathOpt);
+                var tangent = path.tangentAtT(t, pathOpt);
+                var labelOffset = (tangent) ? 2 * tangent.pointOffset(dragPoint) / tangent.length() : 0;
+                var labelDistance = path.lengthAtT(t, pathOpt) / this.getConnectionLength();
 
                 this.model.label(this._labelIdx, {
                     position: {
-                        distance: closestSample.distance / this._linkLength,
-                        offset: offset
+                        distance: labelDistance,
+                        offset: labelOffset
                     }
                 });
                 break;
@@ -1651,7 +1678,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this._action === 'label-move') {
 
-            this._samples = null;
+            // noop
 
         } else if (this._action === 'arrowhead-move') {
 

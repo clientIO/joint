@@ -14,15 +14,15 @@ joint.connectors.jumpover = (function(_, g, util) {
     var IGNORED_CONNECTORS = ['smooth'];
 
     /**
-     * Transform start/end and vertices into series of lines
+     * Transform start/end and route into series of lines
      * @param {g.point} sourcePoint start point
      * @param {g.point} targetPoint end point
-     * @param {g.point[]} vertices optional list of vertices
+     * @param {g.point[]} route optional list of route
      * @return {g.line[]} [description]
      */
-    function createLines(sourcePoint, targetPoint, vertices) {
+    function createLines(sourcePoint, targetPoint, route) {
         // make a flattened array of all points
-        var points = [].concat(sourcePoint, vertices, targetPoint);
+        var points = [].concat(sourcePoint, route, targetPoint);
         return points.reduce(function(resultLines, point, idx) {
             // if there is a next point, make a line with it
             var nextPoint = points[idx + 1];
@@ -243,22 +243,23 @@ joint.connectors.jumpover = (function(_, g, util) {
             }
         });
 
-        return path.serialize();
+        return path;
     }
 
     /**
      * Actual connector function that will be run on every update.
      * @param {g.point} sourcePoint start point of this link
      * @param {g.point} targetPoint end point of this link
-     * @param {g.point[]} vertices of this link
+     * @param {g.point[]} route of this link
      * @param {object} opt options
      * @property {number} size optional size of a jump arc
      * @return {string} created `D` attribute of SVG path
      */
-    return function(sourcePoint, targetPoint, vertices, opt) { // eslint-disable-line max-params
+    return function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
 
         setupUpdating(this);
 
+        var raw = opt.raw;
         var jumpSize = opt.size || JUMP_SIZE;
         var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
         var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
@@ -275,7 +276,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         // there is just one link, draw it directly
         if (allLinks.length === 1) {
             return buildPath(
-                createLines(sourcePoint, targetPoint, vertices),
+                createLines(sourcePoint, targetPoint, route),
                 jumpSize, jumpType
             );
         }
@@ -310,7 +311,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         var thisLines = createLines(
             sourcePoint,
             targetPoint,
-            vertices
+            route
         );
 
         // create lines for all other links
@@ -356,7 +357,7 @@ joint.connectors.jumpover = (function(_, g, util) {
             return resultLines;
         }, []);
 
-
-        return buildPath(jumpingLines, jumpSize, jumpType);
+        var path = buildPath(jumpingLines, jumpSize, jumpType);
+        return (raw) ? path : path.serialize();
     };
 }(_, g, joint.util));

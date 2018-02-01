@@ -1209,7 +1209,7 @@ var g = (function() {
 
             var y = m * x;
             result = new Point(this.x + x, this.y + y);
-            
+
             if (angle) return result.rotate(new Point(this.x, this.y), -angle);
             return result;
         },
@@ -2724,7 +2724,7 @@ var g = (function() {
             var y = -(p.y - this.y);
             var x = p.x - this.x;
             var rad = atan2(y, x); // defined for all 0 corner cases
-            
+
             // Correction for III. and IV. quadrant.
             if (rad < 0) {
                 rad = 2 * PI + rad;
@@ -2740,7 +2740,7 @@ var g = (function() {
         // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
         // returns NaN if any of the points p1, p2 is coincident with this point
         angleBetween: function(p1, p2) {
-            
+
             var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
 
             if (angleBetween < 0) {
@@ -2753,7 +2753,7 @@ var g = (function() {
         // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
         // Returns NaN if p is at 0,0.
         vectorAngle: function(p) {
-            
+
             var zero = new Point(0,0);
             return zero.angleBetween(this, p);
         },
@@ -3411,7 +3411,7 @@ var g = (function() {
 
             // step 2: sort the list of points
             // sorting by angle between line from startPoint to point and the x-axis (theta)
-            
+
             // step 2a: create the point records = [point, originalIndex, angle]
             var sortedPointRecords = [];
             for (i = 0; i < numPoints; i++) {
@@ -3422,7 +3422,7 @@ var g = (function() {
                     // the start point will end up at end of sorted list
                     // the start point will end up at beginning of hull points list
                 }
-                
+
                 var entry = [points[i], i, angle];
                 sortedPointRecords.push(entry);
             }
@@ -3480,7 +3480,7 @@ var g = (function() {
                         // not enough points for comparison, just add current point
                         hullPointRecords.push(currentPointRecord);
                         correctTurnFound = true;
-                    
+
                     } else {
                         lastHullPointRecord = hullPointRecords.pop();
                         lastHullPoint = lastHullPointRecord[0];
@@ -3512,7 +3512,7 @@ var g = (function() {
                                 hullPointRecords.push(secondLastHullPointRecord);
                                 // do not do anything with current point
                                 // correct turn not found
-                            
+
                             } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
                                 // if the cross product is 0 because two points are the same
                                 // discard last hull point (add to insidePoints)
@@ -3522,7 +3522,7 @@ var g = (function() {
                                 hullPointRecords.push(secondLastHullPointRecord);
                                 // do not do anything with current point
                                 // correct turn not found
-                                                        
+
                             } else if (abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
                                 // if the cross product is 0 because the angle is 0 degrees
                                 // remove last hull point from hull BUT do not discard it

@@ -1,16 +1,17 @@
-joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
+joint.connectors.smooth = function(sourcePoint, targetPoint, route, opt) {
 
+    var raw = opt && opt.raw;
     var path;
 
-    if (vertices && vertices.length !== 0) {
+    if (route && route.length !== 0) {
 
-        var points = [sourcePoint].concat(vertices).concat([targetPoint]);
-
+        var points = [sourcePoint].concat(route).concat([targetPoint]);
         var curves = g.Curve.throughPoints(points);
+
         path = new g.Path(curves);
 
     } else {
-        // if we have no vertices, use a default cubic bezier curve
+        // if we have no route, use a default cubic bezier curve
         // cubic bezier requires two control points
         // the control points have `x` midway between source and target
         // this produces an S-like curve
@@ -37,5 +38,5 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
         }
     }
 
-    return path.serialize();
+    return (raw) ? path : path.serialize();
 };

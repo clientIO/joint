@@ -461,10 +461,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var element = this.model;
         var markup = element.get('markup') || element.markup;
-        if (!markup) throw new Error('dia.Elementiew: markup required');
+        if (!markup) throw new Error('dia.ElementView: markup required');
         if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
         if (typeof markup === 'string') return this.renderStringMarkup(markup);
-        throw new Error('dia.Elementiew: invalid markup');
+        throw new Error('dia.ElementView: invalid markup');
     },
 
     renderJSONMarkup: function(markup) {

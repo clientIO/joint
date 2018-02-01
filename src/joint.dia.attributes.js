@@ -130,8 +130,28 @@
         };
     }
 
+    function atPathWrapper(method) {
+        var zeroVector = new g.Point(1, 0);
+        return function(value) {
+            var p, angle;
+            var tangent = this[method](value);
+            if (tangent) {
+                angle = tangent.vector().vectorAngle(zeroVector);
+                p = tangent.start;
+            } else {
+                p = path.start;
+                angle = 0;
+            }
+            return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
+        }
+    }
+
     function isTextInUse(lineHeight, node, attrs) {
         return (attrs.text !== undefined);
+    }
+
+    function isLinkView() {
+        return this instanceof joint.dia.LinkView;
     }
 
     function contextMarker(context) {
@@ -495,6 +515,30 @@
 
         refPointsKeepOffset: {
             set: pointsWrapper({ resetOffset: false })
+        },
+
+        // Path Attributes
+        connection: {
+            qualify: isLinkView,
+            set: function(opt) {
+                var path = this.getPath();
+                var tx = opt.tx;
+                if (!isFinite(tx)) tx = 0;
+                var ty = opt.ty;
+                if (!isFinite(ty)) ty = 0;
+                if (tx || ty) path.translate(tx, ty);
+                return { d: path.serialize() };
+            }
+        },
+
+        atPathLength: {
+            qualify: isLinkView,
+            set: atPathWrapper('getTangentAtLength')
+        },
+
+        atPathRatio: {
+            qualify: isLinkView,
+            set: atPathWrapper('getTangentAt')
         }
     };
 
