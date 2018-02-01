@@ -69,9 +69,12 @@ joint.dia.Link = joint.dia.Cell.extend({
         return true;
     },
 
-    disconnect: function() {
+    disconnect: function(opt) {
 
-        return this.set({ source: g.point(0, 0), target: g.point(0, 0) });
+        return this.set({
+            source: { x: 0, y: 0 },
+            target: { x: 0, y: 0 }
+        }, opt);
     },
 
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
@@ -650,6 +653,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateDOMSubtreeAttributes(this.el, this.model.attr());
         //}
 
+        this.updateConnectionPath();
+
         // update the label position etc.
         this.updateLabelPositions();
         this.updateToolsPosition();
@@ -663,6 +668,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updatePostponed = false;
 
         return this;
+    },
+
+    updateConnectionPath: function() {
+
+        var cache = this._V;
+        if (!cache.connection) return;
+
+        var pathData = this.path.serialize();
+        cache.connection.attr('d', pathData);
+
+        if (cache.connectionWrap) {
+            cache.connectionWrap.attr('d', pathData);
+        }
+
+        if (cache.markerSource && cache.markerTarget) {
+            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
+        }
     },
 
     updateConnection: function(opt) {
@@ -679,35 +701,27 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var tx = opt.tx || 0;
             var ty = opt.ty || 0;
 
-            route = this.route = joint.util.toArray(this.route).map(function(point) {
-                // translate point by point by delta translation
-                return g.point(point).offset(tx, ty);
-            });
+            route = (new g.Polyline(this.route)).translate(tx, ty).points;
 
             // translate source and target connection and marker points.
             this._translateConnectionPoints(tx, ty);
 
             // translate the path itself
-            path = this.path.translate(tx, ty);
+            path = this.path;
+            path.translate(tx, ty);
 
         } else {
             // Necessary path finding
-            route = this.route = this.findRoute(model.get('vertices') || [], opt);
+            route = this.findRoute(model.get('vertices') || [], opt);
             // finds all the connection points taking new vertices into account
             this._findConnectionPoints(route);
 
-            path = this.path = this.findPath(route);
+            path = this.findPath(route);
         }
 
-        var pathData = this.pathData = path.serialize();
+        this.route = route;
+        this.path = path;
         this.metrics = {};
-
-        var cache = this._V;
-        if (cache.connection) cache.connection.attr('d', pathData);
-        if (cache.connectionWrap) cache.connectionWrap.attr('d', pathData);
-        if (cache.markerSource && cache.markerTarget) {
-            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
-        }
     },
 
     _findConnectionPoints: function(vertices) {
@@ -812,13 +826,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (joint.util.isObject(offset)) {
 
                 // Just offset the label by the x,y provided in the offset object.
-                labelCoordinates = g.point(labelCoordinates).offset(offset);
+                labelCoordinates = labelCoordinates.clone().offset(offset);
 
             } else if (Number.isFinite(offset) && tangent) {
 
                 // Offset the label based on the path tangent
                 var angle = tangent.vector().vectorAngle(new g.Point(1,0));
-                labelCoordinates = g.point(labelCoordinates).offset(0, offset).rotate(labelCoordinates, -angle);
+                labelCoordinates = labelCoordinates.clone().offset(0, offset).rotate(labelCoordinates, -angle);
             }
 
             this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
@@ -1128,6 +1142,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
     // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
     // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
+    // `opt.connection` is an optional selector to the connection path.
     // `callback` is optional and is a function to be called once the token reaches the target.
     sendToken: function(token, opt, callback) {
 
@@ -1140,14 +1155,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             };
         }
 
-        var duration, isReversed;
+        var duration, isReversed, connection;
         if (joint.util.isObject(opt)) {
             duration = opt.duration;
             isReversed = (opt.direction === 'reverse');
+            connection = opt.connection;
         } else {
             // Backwards compatibility
             duration = opt;
             isReversed = false;
+            connection = null;
         }
 
         duration = duration || 1000;
@@ -1166,6 +1183,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var vToken = V(token);
         var vPath = this._V.connection;
+        if (connection) {
+            var selected = this.findBySelector(connection);
+            if (selected.length > 0) vPath = V(selected[0]);
+        }
+
+        if (!vPath) throw new Error('dia.LinkView: token animation requires a valid connection path.');
 
         vToken
             .appendTo(this.paper.viewport)
