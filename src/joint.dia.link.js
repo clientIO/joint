@@ -272,6 +272,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _z: null,
 
+    // cache of default markup nodes
+    _V: {},
+
+    // connection path metrics
+    metrics: {},
+
     initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -290,9 +296,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // keeps markers bboxes and positions again for quicker access
         this._markerCache = {};
-
-        // cache of markup nodes
-        this._V = {};
 
         // bind events
         this.startListening();
@@ -646,17 +649,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(model, attributes, opt) {
 
-        opt = opt || {};
+        opt || (opt = {});
 
         // update the link path
         this.updateConnection(opt);
 
-        //if (!opt.updateConnectionOnly) {
         // update SVG attributes defined by 'attrs/'.
         this.updateDOMSubtreeAttributes(this.el, this.model.attr());
-        //}
 
-        this.updateConnectionPath();
+        this.updateDefaultConnectionPath();
 
         // update the label position etc.
         this.updateLabelPositions();
@@ -673,7 +674,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
-    updateConnectionPath: function() {
+    updateDefaultConnectionPath: function() {
 
         var cache = this._V;
 
@@ -1355,8 +1356,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Public API.
     // -----------
 
-    metrics: {},
-
     getPath: function() {
 
         var path = this.path;
@@ -1550,8 +1549,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
                 var t = path.closestPointT(dragPoint, pathOpt);
                 var tangent = path.tangentAtT(t, pathOpt);
-                var labelOffset = (tangent) ? 2 * tangent.pointOffset(dragPoint) / tangent.length() : 0;
+                var labelOffset = (tangent) ? tangent.pointOffset(dragPoint) : 0;
                 var labelDistance = path.lengthAtT(t, pathOpt) / this.getConnectionLength();
+                console.log(labelOffset, labelDistance);
 
                 this.model.label(this._labelIdx, {
                     position: {

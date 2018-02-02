@@ -1431,7 +1431,12 @@ var g = (function() {
         pointOffset: function(p) {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
-            return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+            p = new g.Point(p);
+            var start = this.start;
+            var end = this.end;
+            var determinant = ((end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x));
+
+            return determinant / this.length();
         },
 
         rotate: function(origin, angle) {
