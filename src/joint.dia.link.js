@@ -472,6 +472,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var cache = this._V;
         var vLabels = cache.labels;
+        var labelCache = this._labelCache = {};
+
         if (vLabels) vLabels.empty();
 
         var model = this.model;
@@ -491,7 +493,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // node to create a duplicate.
         var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup;
         var defaultLabel = V(defaultLabelMarkup);
-        var labelCache = this._labelCache = {};
 
         for (var i = 0; i < labelsCount; i++) {
 
