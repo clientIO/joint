@@ -301,6 +301,17 @@
                     // Tspans positions defined as `em` are not updated
                     // when container `font-size` change.
                     if (fontSize) node.setAttribute('font-size', fontSize);
+                    // Text Along Path Selector
+                    var textPath = textAttrs.textPath;
+                    if (util.isObject(textPath)) {
+                        var pathSelector = textPath.selector;
+                        if (typeof pathSelector === 'string') {
+                            var pathNode = this.findBySelector(pathSelector)[0];
+                            if (pathNode instanceof SVGPathElement) {
+                                textAttrs.textPath = util.assign({ 'xlink:href': '#' + pathNode.id }, textPath);
+                            }
+                        }
+                    }
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
