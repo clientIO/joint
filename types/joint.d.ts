@@ -575,6 +575,8 @@ export namespace dia {
 
         getClosestPoint(point: g.PlainPoint): g.Point;
 
+        getClosestPointLength(point: g.PlainPoint): number;
+
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
         setInteractivity(value: boolean | LinkView.InteractivityOptions): void;

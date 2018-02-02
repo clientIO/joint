@@ -1078,64 +1078,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
-    // This method ads a new vertex to the `vertices` array of `.connection`. This method
+    // This method adds a new vertex at calculated index to the `vertices` array. This method
     // uses a heuristic to find the index at which the new `vertex` should be placed at assuming
     // the new vertex is somewhere on the path.
-    addVertex: function(vertex) {
+    addVertex: function(vertex, opt) {
 
-        // As it is very hard to find a correct index of the newly created vertex,
-        // a little heuristics is taking place here.
-        // The heuristics checks if length of the newly created
-        // path is lot more than length of the old path. If this is the case,
-        // new vertex was probably put into a wrong index.
-        // Try to put it into another index and repeat the heuristics again.
         var link = this.model;
-
-        // Find the closest point to vertex, which is laying exactly on the path.
-        var closestPoint = this.getClosestPoint(vertex);
-        if (closestPoint) {
-            closestPoint = closestPoint.toJSON();
-        } else {
-            closestPoint = vertex;
-        }
-        // Current vertices
         var vertices = (link.get('vertices') || []).slice();
-        // Store the original vertices for a later revert if needed.
-        var originalVertices = vertices.slice();
-        // Length of the original path.
-        var originalPathLength = this.getConnectionLength();
-        // Current path length.
-        var pathLength;
-        // Tolerance determines the highest possible difference between the length
-        // of the old and new path. The number has been chosen heuristically.
-        var pathLengthTolerance = 5;
-        // Total number of vertices including source and target points.
-        var idx = vertices.length + 1;
-        // Current path
-        var path;
-        // Loop through all possible indexes and check if the difference between
-        // path lengths changes significantly. If not, the found index is
-        // most probably the right one.
-        while (idx--) {
+        var vertexLength = this.getClosestPointLength(vertex);
+        var idx = 0;
 
-            vertices.splice(idx, 0, closestPoint);
-            path = this.findPath(this.findRoute(vertices));
-            pathLength = path.length();
-
-            // Check if the path lengths changed significantly.
-            if (pathLength - originalPathLength < pathLengthTolerance) break;
-
-            // Revert vertices to the original array. The path length has changed too much
-            // so that the index was not found yet.
-            vertices = originalVertices.slice();
+        for (var n = vertices.length; idx < n; idx++) {
+            var currentVertex = vertices[idx];
+            var currentVertexLength = this.getClosestPointLength(currentVertex);
+            if (vertexLength < currentVertexLength) break;
         }
 
-        if (idx === -1) {
-            // If no suitable index was found for such a vertex, make the vertex the first one.
-            idx = 0;
-            vertices.splice(idx, 0, vertex);
-        }
-
+        vertices.splice(idx, 0, vertex);
         link.set('vertices', vertices, { ui: true });
 
         return idx;
@@ -1480,6 +1439,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!path) return null;
 
         return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
+    },
+
+    getClosestPointLength: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
     },
 
     // Interaction. The controller part.
