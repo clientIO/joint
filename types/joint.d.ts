@@ -553,7 +553,7 @@ export namespace dia {
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
-        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; }, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
         addVertex(vertex: Point): number;
 
