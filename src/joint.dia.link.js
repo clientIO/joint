@@ -1095,7 +1095,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         vertices.splice(idx, 0, vertex);
-        link.set('vertices', vertices, { ui: true });
+        link.set('vertices', vertices, opt);
 
         return idx;
     },
@@ -1526,7 +1526,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     // Store the index at which the new vertex has just been placed.
                     // We'll be update the very same vertex position in `pointermove()`.
-                    this._vertexIdx = this.addVertex({ x: x, y: y });
+                    this._vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
                     this._action = 'vertex-move';
                 }
         }
