@@ -676,13 +676,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     updateConnectionPath: function() {
 
         var cache = this._V;
-        if (!cache.connection) return;
 
-        var pathData = this.path.serialize();
-        cache.connection.attr('d', pathData);
+        if (cache.connection) {
+            cache.connection.attr('d', this.getPathData());
+        }
 
         if (cache.connectionWrap) {
-            cache.connectionWrap.attr('d', pathData);
+            cache.connectionWrap.attr('d', this.getPathData());
         }
 
         if (cache.markerSource && cache.markerTarget) {
@@ -1400,7 +1400,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     getPath: function() {
 
-        return this.path || null;
+        var path = this.path;
+        if (!path) return null;
+
+        return path.clone();
+    },
+
+    getPathData: function() {
+
+        var path = this.path;
+        if (!path) return null;
+
+        var metrics = this.metrics;
+        if (metrics.hasOwnProperty('data')) return metrics.data;
+        var data = path.serialize();
+        metrics.data = data;
+        return data;
     },
 
     getConnectionSubdivisions: function() {

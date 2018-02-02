@@ -521,13 +521,12 @@
         connection: {
             qualify: isLinkView,
             set: function(opt) {
-                var path = this.getPath();
                 var tx = opt.tx;
                 if (!isFinite(tx)) tx = 0;
                 var ty = opt.ty;
                 if (!isFinite(ty)) ty = 0;
-                if (tx || ty) path.translate(tx, ty);
-                return { d: path.serialize() };
+                var pathData = (tx || ty) ? this.getPath().translate(tx, ty).serialize() : this.getPathData();
+                return { d: pathData };
             }
         },
 
