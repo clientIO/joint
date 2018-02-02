@@ -531,13 +531,13 @@
     }, {
         markup: [{
             tagName: 'path',
-            selector: 'line',
+            selector: 'shadow',
             attributes: {
                 'fill': 'none'
             }
         }, {
             tagName: 'path',
-            selector: 'shadow',
+            selector: 'line',
             attributes: {
                 'fill': 'none'
             }

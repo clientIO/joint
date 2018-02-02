@@ -10,7 +10,7 @@ var paper = new joint.dia.Paper({
 paper.on('myclick:circle', function (linkView, evt) {
     evt.stopPropagation();
     var link = linkView.model;
-    var t = (link.attr('c1/atPathRatio') > .1) ? .1 :.9;
+    var t = (link.attr('c1/atPathRatio') > .2) ? .2 :.9;
     var transitionOpt = { delay: 100, duration: 2000, timingFunction: joint.util.timing.inout };
     link.transition('attrs/c1/atPathRatio', t, transitionOpt);
     link.transition('attrs/c2/atPathRatio', t, transitionOpt);
@@ -25,7 +25,6 @@ var link1 = new joint.dia.Link({
         selector: 'sign'
     }, {
         tagName: 'circle',
-        className: 'circulin',
         selector: 'c1',
     }, {
         tagName: 'path',
@@ -35,7 +34,7 @@ var link1 = new joint.dia.Link({
         selector: 'c2'
     }, {
         tagName: 'text',
-        selector: 'sign_text'
+        selector: 'signText'
     }, {
         tagName: 'path',
         selector: 'p3'
@@ -44,9 +43,6 @@ var link1 = new joint.dia.Link({
     target: { x: 500, y: 100 },
     vertices: [{ x: 300, y: 50 }],
     attrs: {
-        root: {
-            title: 'test\ntest2'
-        },
         p1: {
             connection: true,
             fill: 'none',
@@ -57,13 +53,13 @@ var link1 = new joint.dia.Link({
         p2: {
             connection: true,
             fill: 'none',
-            stroke: 'lightgray',
+            stroke: '#fe854f',
             strokeWidth: 4,
             pointerEvents: 'none',
             strokeLinejoin: 'round',
             targetMarker: {
                 'type': 'path',
-                'fill': 'lightgray',
+                'fill': '#fe854f',
                 'stroke': 'black',
                 'stroke-width': 1,
                 'd': 'M 10 -3 10 -10 -2 0 10 10 10 3'
@@ -82,30 +78,30 @@ var link1 = new joint.dia.Link({
             }
         },
         sign: {
-            x: -10,
-            y: -20,
-            width: 20,
-            height: 40,
+            x: -20,
+            y: -10,
+            width: 40,
+            height: 20,
             stroke: 'black',
-            fill: 'lightgray',
+            fill: '#fe854f',
             atPathLength: 30,
             strokeWidth: 1,
             event: 'myclick:rect'
         },
-        sign_text: {
+        signText: {
             atPathLength: 30,
-            //textAnchor: 'middle',
-            y: '-1.8em',
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
             text: 'Link',
-            writingMode: 'tb'
         },
         c1: {
             r: 10,
             stroke: 'black',
-            fill: 'lightgray',
+            fill: '#fe854f',
             atPathRatio: .5,
             strokeWidth: 1,
-            event: 'myclick:circle'
+            event: 'myclick:circle',
+            cursor: 'pointer'
         },
         c2: {
             r: 5,
@@ -120,16 +116,61 @@ var link1 = new joint.dia.Link({
 
 link1.addTo(graph);
 
-var link2 = new joint.shapes.standard.ShadowLink({
+var link2 = new joint.dia.Link({
+    markup: [{
+        tagName: 'path',
+        selector: 'stroke',
+        attributes: {
+            'stroke': 'black',
+            'fill': 'none'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'fill'
+    }, {
+        tagName: 'g',
+        selector: 'group'
+    }],
+    source: { x: 200, y: 200 },
+    target: { x: 500, y: 150 },
+    attrs: {
+        fill: {
+            connection: true,
+            strokeWidth: 8,
+            strokeLinecap: 'round',
+            fill: 'none',
+            stroke: {
+                type: 'linearGradient',
+                stops: [
+                    { offset: '0%', color: '#ccc' },
+                    { offset: '50%', color: '#30d0c6' },
+                    { offset: '100%', color: '#ccc' }
+                ]
+            },
+        },
+        stroke: {
+            connection: true,
+            strokeWidth: 10,
+            strokeLinecap: 'round'
+        }
+    }
+});
+
+link2.addTo(graph);
+
+var link3 = new joint.shapes.standard.ShadowLink({
     source:{ x: 100, y: 200 },
     target: { x: 500, y: 200 },
-    vertices: [{ x: 400, y: 300 }],
+    vertices: [{ x: 300, y: 300 }],
     connector: { name: 'smooth' },
-    markup: [].concat(joint.shapes.standard.ShadowLink.prototype.markup, {
+    markup: joint.shapes.standard.ShadowLink.prototype.markup.slice().reverse().concat({
         tagName: 'text',
         selector: 'label'
     }),
     attrs: {
+        line: {
+            stroke: '#5654a0'
+        },
         label: {
             textPath: { selector: 'line', startOffset: '50%' },
             textAnchor: 'middle',
@@ -143,5 +184,4 @@ var link2 = new joint.shapes.standard.ShadowLink({
     }
 });
 
-link2.addTo(graph);
-
+link3.addTo(graph);
