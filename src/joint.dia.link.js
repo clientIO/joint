@@ -470,26 +470,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderLabels: function() {
 
-        var vLabels = this._V.labels;
-        if (!vLabels) {
-            return this;
-        }
-
-        vLabels.empty();
+        var cache = this._V;
+        var vLabels = cache.labels;
+        if (vLabels) vLabels.empty();
 
         var model = this.model;
         var labels = model.get('labels') || [];
-        var labelCache = this._labelCache = {};
         var labelsCount = labels.length;
         if (labelsCount === 0) {
             return this;
         }
 
-        var labelTemplate = joint.util.template(model.get('labelMarkup') || model.labelMarkup);
+        if (!vLabels) {
+            // There is no label container in the markup but some labels are defined.
+            vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
+        }
+
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
-        var labelNodeInstance = V(labelTemplate());
+        var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup;
+        var defaultLabel = V(defaultLabelMarkup);
+        var labelCache = this._labelCache = {};
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -498,7 +500,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // Cache label nodes so that the `updateLabels()` can just update the label node positions.
             var vLabelNode = labelCache[i] = (labelMarkup)
                 ? V('g').append(V(labelMarkup))
-                : labelNodeInstance.clone();
+                : defaultLabel.clone();
 
             vLabelNode
                 .addClass('label')
