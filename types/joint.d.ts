@@ -1010,6 +1010,45 @@ export namespace shapes {
                 opt?: { [key: string]: any }
             )
         }
+
+        interface LinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            wrapper?: attributes.SVGPathAttributes;
+        }
+
+        class Link extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<LinkSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface DoubleLinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            outline?: attributes.SVGPathAttributes;
+        }
+
+        class DoubleLink extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<DoubleLinkSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface ShadowLinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            shadow?: attributes.SVGPathAttributes;
+        }
+
+        class ShadowLink extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<ShadowLinkSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
     }
 
     interface SVGTextSelector extends dia.Cell.Selectors {
