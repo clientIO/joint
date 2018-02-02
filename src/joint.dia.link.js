@@ -272,9 +272,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _z: null,
 
-    // cache of default markup nodes
-    _V: {},
-
     // connection path metrics
     metrics: {},
 
@@ -296,6 +293,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         // keeps markers bboxes and positions again for quicker access
         this._markerCache = {};
+
+        // cache of default markup nodes
+        this._V = {},
+
+        // connection path metrics
+        this.metrics = {},
 
         // bind events
         this.startListening();
@@ -462,8 +465,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 cache[$.camelCase(className)] = child;
             }
         }
-        // Only the connection path is mandatory
-        if (!cache.connection) throw new Error('dia.LinkView: no connection path in the markup');
         // partial rendering
         this.renderTools();
         this.renderVertexMarkers();
