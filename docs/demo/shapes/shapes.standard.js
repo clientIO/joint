@@ -19,7 +19,7 @@ var paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
-    gridSize: 10,
+    gridSize: 1,
     model: graph
 });
 

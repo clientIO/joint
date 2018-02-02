@@ -1155,16 +1155,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             };
         }
 
-        var duration, isReversed, connection;
+        var duration, isReversed, selector;
         if (joint.util.isObject(opt)) {
             duration = opt.duration;
             isReversed = (opt.direction === 'reverse');
-            connection = opt.connection;
+            selector = opt.connection;
         } else {
             // Backwards compatibility
             duration = opt;
             isReversed = false;
-            connection = null;
+            selector = null;
         }
 
         duration = duration || 1000;
@@ -1182,17 +1182,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var vToken = V(token);
-        var vPath = this._V.connection;
-        if (connection) {
-            var selected = this.findBySelector(connection);
-            if (selected.length > 0) vPath = V(selected[0]);
+        var connection;
+        if (typeof selector === 'string') {
+            // Use custom connection path.
+            connection = this.findBySelector(selector)[0];
+        } else {
+            // Select connection path automatically.
+            var cache = this._V;
+            connection = (cache.connection) ? cache.connection.node : this.el.querySelector('path');
         }
 
-        if (!vPath) throw new Error('dia.LinkView: token animation requires a valid connection path.');
+        if (!(connection instanceof SVGPathElement)) {
+            throw new Error('dia.LinkView: token animation requires a valid connection path.');
+        }
 
         vToken
             .appendTo(this.paper.viewport)
-            .animateAlongPath(animationAttributes, vPath);
+            .animateAlongPath(animationAttributes, connection);
 
         setTimeout(onAnimationEnd(vToken, callback), duration);
     },
