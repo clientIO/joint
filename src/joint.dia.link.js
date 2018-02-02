@@ -1450,6 +1450,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.pointAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
+    getPointAtRatio: function(ratio) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.pointAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
     getTangentAtLength: function(length) {
 
         var path = this.path;
@@ -1458,7 +1466,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.tangentAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    getTangentAt: function(ratio) {
+    getTangentAtRatio: function(ratio) {
 
         var path = this.path;
         if (!path) return null;

@@ -557,9 +557,23 @@ export namespace dia {
 
         addVertex(vertex: Point): number;
 
+        getPath(): g.Path;
+
+        getPathData(): string;
+
+        getConnectionSubdivisions(): g.Curve[][];
+
         getConnectionLength(): number;
 
         getPointAtLength(length: number): g.Point;
+
+        getPointAtRatio(ratio: number): g.Point;
+
+        getTangentAtLenght(length: number): g.Line;
+
+        getTangentAtRatio(ratio: number): g.Line;
+
+        getClosestPoint(point: g.PlainPoint): g.Point;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 

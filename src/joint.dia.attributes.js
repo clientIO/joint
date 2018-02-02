@@ -537,7 +537,7 @@
 
         atPathRatio: {
             qualify: isLinkView,
-            set: atPathWrapper('getTangentAt')
+            set: atPathWrapper('getTangentAtRatio')
         }
     };
 
