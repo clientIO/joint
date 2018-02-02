@@ -272,9 +272,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _z: null,
 
-    // connection path metrics
-    metrics: {},
-
     initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
