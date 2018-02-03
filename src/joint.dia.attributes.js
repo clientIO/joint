@@ -130,7 +130,7 @@
         };
     }
 
-    function atPathWrapper(method) {
+    function atConnectionWrapper(method) {
         var zeroVector = new g.Point(1, 0);
         return function(value) {
             var p, angle;
@@ -528,27 +528,23 @@
             set: pointsWrapper({ resetOffset: false })
         },
 
-        // Path Attributes
+        // LinkView Attributes
+
         connection: {
             qualify: isLinkView,
-            set: function(opt) {
-                var tx = opt.tx;
-                if (!isFinite(tx)) tx = 0;
-                var ty = opt.ty;
-                if (!isFinite(ty)) ty = 0;
-                var pathData = (tx || ty) ? this.getPath().translate(tx, ty).serialize() : this.getPathData();
-                return { d: pathData };
+            set: function() {
+                return { d: this.getSerializedConnection() };
             }
         },
 
-        atPathLength: {
+        atConnectionLength: {
             qualify: isLinkView,
-            set: atPathWrapper('getTangentAtLength')
+            set: atConnectionWrapper('getTangentAtLength')
         },
 
-        atPathRatio: {
+        atConnectionRatio: {
             qualify: isLinkView,
-            set: atPathWrapper('getTangentAtRatio')
+            set: atConnectionWrapper('getTangentAtRatio')
         }
     };
 

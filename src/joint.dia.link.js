@@ -677,11 +677,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var cache = this._V;
 
         if (cache.connection) {
-            cache.connection.attr('d', this.getPathData());
+            cache.connection.attr('d', this.getSerializedConnection());
         }
 
         if (cache.connectionWrap) {
-            cache.connectionWrap.attr('d', this.getPathData());
+            cache.connectionWrap.attr('d', this.getSerializedConnection());
         }
 
         if (cache.markerSource && cache.markerTarget) {
@@ -1354,7 +1354,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Public API.
     // -----------
 
-    getPath: function() {
+    getConnection: function() {
 
         var path = this.path;
         if (!path) return null;
@@ -1362,7 +1362,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.clone();
     },
 
-    getPathData: function() {
+    getSerializedConnection: function() {
 
         var path = this.path;
         if (!path) return null;

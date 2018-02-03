@@ -511,7 +511,9 @@
                 }
             },
             shadow: {
-                connection: { tx: 3, ty: 6 },
+                connection: true,
+                refX: 3,
+                refY: 6,
                 stroke: '#000000',
                 strokeOpacity: 0.2,
                 strokeWidth: 20,

@@ -30,7 +30,7 @@ joint.dia.Element.define('basic.Arrow', {
         }
     }
 }, {
-    markup: '<g class="scalable"></g><path/><text/>',
+    markup: '<path/><text/>',
 });
 
 var arrow1 = new joint.shapes.basic.Arrow({

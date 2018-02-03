@@ -10,10 +10,10 @@ var paper = new joint.dia.Paper({
 paper.on('myclick:circle', function (linkView, evt) {
     evt.stopPropagation();
     var link = linkView.model;
-    var t = (link.attr('c1/atPathRatio') > .2) ? .2 :.9;
+    var t = (link.attr('c1/atConnectionRatio') > .2) ? .2 :.9;
     var transitionOpt = { delay: 100, duration: 2000, timingFunction: joint.util.timing.inout };
-    link.transition('attrs/c1/atPathRatio', t, transitionOpt);
-    link.transition('attrs/c2/atPathRatio', t, transitionOpt);
+    link.transition('attrs/c1/atConnectionRatio', t, transitionOpt);
+    link.transition('attrs/c2/atConnectionRatio', t, transitionOpt);
 });
 
 var link1 = new joint.dia.Link({
@@ -66,7 +66,7 @@ var link1 = new joint.dia.Link({
             }
         },
         p3: {
-            atPathRatio: .4,
+            atConnectionRatio: .4,
             d: 'M 0 3 30 33',
             fill: 'none',
             stroke: 'black',
@@ -84,12 +84,12 @@ var link1 = new joint.dia.Link({
             height: 20,
             stroke: 'black',
             fill: '#fe854f',
-            atPathLength: 30,
+            atConnectionLength: 30,
             strokeWidth: 1,
             event: 'myclick:rect'
         },
         signText: {
-            atPathLength: 30,
+            atConnectionLength: 30,
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             text: 'Link',
@@ -98,7 +98,7 @@ var link1 = new joint.dia.Link({
             r: 10,
             stroke: 'black',
             fill: '#fe854f',
-            atPathRatio: .5,
+            atConnectionRatio: .5,
             strokeWidth: 1,
             event: 'myclick:circle',
             cursor: 'pointer'
@@ -107,7 +107,7 @@ var link1 = new joint.dia.Link({
             r: 5,
             stroke: 'black',
             fill: 'white',
-            atPathRatio: .5,
+            atConnectionRatio: .5,
             strokeWidth: 1,
             pointerEvents: 'none'
         }
@@ -133,6 +133,7 @@ var link2 = new joint.dia.Link({
     }],
     source: { x: 200, y: 200 },
     target: { x: 500, y: 150 },
+    connector: { name: 'rounded' },
     attrs: {
         fill: {
             connection: true,

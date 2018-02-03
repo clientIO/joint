@@ -557,9 +557,9 @@ export namespace dia {
 
         addVertex(vertex: Point): number;
 
-        getPath(): g.Path;
+        getConnection(): g.Path;
 
-        getPathData(): string;
+        getSerializedConnection(): string;
 
         getConnectionSubdivisions(): g.Curve[][];
 
