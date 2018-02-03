@@ -2239,6 +2239,9 @@ export namespace attributes {
         magnet?: boolean | string;
         title?: string;
         textVerticalAnchor?: 'bottom' | 'top' | 'middle' | number | string;
+        connection?: boolean;
+        atConnectionLenght?: number;
+        atConnectionRatio?: number;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;
