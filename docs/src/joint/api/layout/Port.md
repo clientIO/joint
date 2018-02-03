@@ -1,7 +1,7 @@
 
 Port layouts are functions that accept an array of port's `args` and return an array of port positions. Positions are relative to the element model bounding box. For example if we have an element at position `{ x:10, y:20 }` with a relative port position `{ x:1, y:2 }`, the absolute port position will be `{ x:11, y:22 }`.
 
-Port layout can be defined only at the `group` level. Optionally you can pass some additional arguments into the layout function via `args`. The `args` is the only way how to adjust port layout from the port definition perspective.
+Port layout can be defined only at the `group` level. Optionally you can pass some additional arguments into the layout function via `args`. The `args` is the only way to adjust port layout from the port definition perspective.
 
 ```javascript
 var rect = new joint.shapes.basic.Rect({
@@ -244,7 +244,7 @@ Suitable for circular shapes. The `ellipseSpreads` evenly spreads ports along an
                     </td>
                 </tr>
                 <tr>
-                    <td><b>startAngle</b></td>
+                    <td><b>compensateRotation</b></td>
                     <td>boolean</td>
                     <td>set `compensateRotation:true` when you need to have ports in the same angle as an ellipse tangent at the port position.</td>
                 </tr>
