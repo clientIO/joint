@@ -1,5 +1,14 @@
 <pre class="docs-method-signature"><code>linkView.sendToken(token, [options], [callback])</code></pre>
-<p>Send a token along the link. <code>token</code> is an SVG element (or Vectorizer element) that will be animated along the link path for <code>options.duration</code> milliseconds (default is 1000ms). <code>callback</code> will be called once the token reaches the end of the link path. <code>options.direction</code> specifies whether the animation should play fowards (<code>'normal'</code> - from the link source to target, which is the default) or backwards (<code>'reverse'</code>).</p>
+<p>
+  Send a token along the link. <code>token</code> is an SVG element (or Vectorizer element) that will be animated along the link path for <code>options.duration</code> milliseconds (default is 1000ms).
+  <code>callback</code> will be called once the token reaches the end of the link path.
+</p>
+<p>
+  The <code>options.direction</code> specifies whether the animation should play fowards (<code>'normal'</code> - from the link source to target, which is the default) or backwards (<code>'reverse'</code>).
+</p>
+<p>
+  Use <code>options.connection</code> to specify the SVGPathElement the token will be sent along. It expects a string selector e.g. <code>'.connection'</code>.
+</p>
 <pre><code>// Send an SVG circle token along the link.
 var vCircle = V('circle', { r: 7, fill: 'green' });
 link.findView(paper).sendToken(vCircle, { duration: 500, direction: 'reverse' }, function() {

@@ -1,9 +1,9 @@
-joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
+joint.connectors.rounded = function(sourcePoint, targetPoint, route, opt) {
 
-    opt = opt || {};
+    opt || (opt = {});
 
     var offset = opt.radius || 10;
-
+    var raw = opt.raw;
     var path = new g.Path();
     var segment;
 
@@ -19,12 +19,13 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
     var startMove, endMove;
     var roundedStart, roundedEnd;
     var control1, control2;
-    joint.util.toArray(vertices).forEach(function(vertex, index) {
 
-        curr = new g.Point(vertex);
+    for (var index = 0, n = route.length; index < n; index++) {
 
-        prev = vertices[index - 1] || sourcePoint;
-        next = vertices[index + 1] || targetPoint;
+        curr = new g.Point(route[index]);
+
+        prev = route[index - 1] || sourcePoint;
+        next = route[index + 1] || targetPoint;
 
         prevDistance = nextDistance || (curr.distance(prev) / 2);
         nextDistance = curr.distance(next) / 2;
@@ -43,10 +44,10 @@ joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opt) {
 
         segment = g.Path.createSegment('C', control1, control2, roundedEnd);
         path.appendSegment(segment);
-    });
+    }
 
     segment = g.Path.createSegment('L', targetPoint);
     path.appendSegment(segment);
 
-    return path.serialize();
+    return (raw) ? path : path.serialize();
 };

@@ -532,6 +532,7 @@ V = Vectorizer = (function() {
         var offset = 0;
         var lines = content.split('\n');
         var linesMetrics = [];
+        var annotatedY;
         for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
             var dy = lineHeight;
             var lineClassName = 'v-line';
@@ -554,6 +555,7 @@ V = Vectorizer = (function() {
                     // Get the line height based on the biggest font size in the annotations for this line.
                     var iLineHeight = lineMetrics.lineHeight;
                     if (iLineHeight && autoLineHeight && i !== 0) dy = iLineHeight;
+                    if (i === 0) annotatedY = lineMetrics.maxFontSize * 0.8;
                 } else {
                     if (eol && i !== lastI) line += eol;
                     lineNode.textContent = line;
@@ -606,7 +608,16 @@ V = Vectorizer = (function() {
                 }
             }
         } else {
-            dy = (verticalAnchor === 0) ? '0em' : (verticalAnchor || '0.8em');
+            if (verticalAnchor === 0) {
+                dy = '0em';
+            } else if (verticalAnchor) {
+                dy = verticalAnchor;
+            } else {
+                // No vertical anchor is defined
+                dy = 0;
+                // Backwards compatibility - we change the `y` attribute instead of `dy`.
+                if (this.attr('y') === null) this.attr('y', annotatedY || '0.8em');
+            }
         }
         containerNode.firstChild.setAttribute('dy', dy);
         // Appending lines to the element.

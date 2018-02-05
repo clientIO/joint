@@ -261,7 +261,7 @@ export namespace g {
 
         pointAtLength(length: number): Point;
 
-        pointOffset(p: PlainPoint): number;
+        pointOffset(p: PlainPoint | string): number;
 
         rotate(origin: PlainPoint, angle: number): this;
 

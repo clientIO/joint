@@ -130,8 +130,28 @@
         };
     }
 
+    function atConnectionWrapper(method) {
+        var zeroVector = new g.Point(1, 0);
+        return function(value) {
+            var p, angle;
+            var tangent = this[method](value);
+            if (tangent) {
+                angle = tangent.vector().vectorAngle(zeroVector);
+                p = tangent.start;
+            } else {
+                p = path.start;
+                angle = 0;
+            }
+            return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
+        }
+    }
+
     function isTextInUse(lineHeight, node, attrs) {
         return (attrs.text !== undefined);
+    }
+
+    function isLinkView() {
+        return this instanceof joint.dia.LinkView;
     }
 
     function contextMarker(context) {
@@ -281,6 +301,17 @@
                     // Tspans positions defined as `em` are not updated
                     // when container `font-size` change.
                     if (fontSize) node.setAttribute('font-size', fontSize);
+                    // Text Along Path Selector
+                    var textPath = textAttrs.textPath;
+                    if (util.isObject(textPath)) {
+                        var pathSelector = textPath.selector;
+                        if (typeof pathSelector === 'string') {
+                            var pathNode = this.findBySelector(pathSelector)[0];
+                            if (pathNode instanceof SVGPathElement) {
+                                textAttrs.textPath = util.assign({ 'xlink:href': '#' + pathNode.id }, textPath);
+                            }
+                        }
+                    }
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
@@ -495,6 +526,25 @@
 
         refPointsKeepOffset: {
             set: pointsWrapper({ resetOffset: false })
+        },
+
+        // LinkView Attributes
+
+        connection: {
+            qualify: isLinkView,
+            set: function() {
+                return { d: this.getSerializedConnection() };
+            }
+        },
+
+        atConnectionLength: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtLength')
+        },
+
+        atConnectionRatio: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtRatio')
         }
     };
 

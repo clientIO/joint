@@ -1,8 +1,12 @@
 {
     "scripts": {
         "cp-libs": "cpx \"../../dist/joint.{d.ts,js,css}\" build",
+        "cp-dev-libs": "cpx \"../../build/joint.{d.ts,js,css}\" build",
         "build": "npm run cp-libs & webpack",
-        "start": "npm run build && live-server ./ --open=index.html --cors"
+        "build-dev": "npm run cp-dev-libs & webpack",
+        "live-server": "live-server ./ --open=index.html --cors",
+        "start": "npm run build && npm run live-server",
+        "dev": "npm run build-dev && npm run live-server"
     },
     "dependencies": {
         "backbone": "1.3.3",

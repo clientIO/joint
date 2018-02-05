@@ -362,6 +362,17 @@ QUnit.module('line', function() {
 
         QUnit.module('pointOffset(point)', function() {
 
+            QUnit.test('is perpendicular distance', function(assert) {
+                [
+                    new g.Line('0 0', '1 0'),
+                    new g.Line('0 0', '10 0'),
+                    new g.Line('0 0', '100 0')
+                ].forEach(function(line) {
+                    assert.equal(line.pointOffset('50@0'), 0);
+                    assert.equal(line.pointOffset('50@10'), 10);
+                    assert.equal(line.pointOffset('50@-10'), -10);
+                })
+            });
         });
 
         QUnit.module('rotate()', function() {

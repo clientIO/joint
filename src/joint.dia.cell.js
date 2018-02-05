@@ -683,6 +683,8 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     svgElement: true,
 
+    selector: 'root',
+
     className: function() {
 
         var classNames = ['cell'];

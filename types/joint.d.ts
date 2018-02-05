@@ -553,13 +553,29 @@ export namespace dia {
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
-        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; }, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
         addVertex(vertex: Point): number;
+
+        getConnection(): g.Path;
+
+        getSerializedConnection(): string;
+
+        getConnectionSubdivisions(): g.Curve[][];
 
         getConnectionLength(): number;
 
         getPointAtLength(length: number): g.Point;
+
+        getPointAtRatio(ratio: number): g.Point;
+
+        getTangentAtLenght(length: number): g.Line;
+
+        getTangentAtRatio(ratio: number): g.Line;
+
+        getClosestPoint(point: g.PlainPoint): g.Point;
+
+        getClosestPointLength(point: g.PlainPoint): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
@@ -1007,6 +1023,45 @@ export namespace shapes {
         class TextBlock extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface LinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            wrapper?: attributes.SVGPathAttributes;
+        }
+
+        class Link extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<LinkSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface DoubleLinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            outline?: attributes.SVGPathAttributes;
+        }
+
+        class DoubleLink extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<DoubleLinkSelectors>,
+                opt?: { [key: string]: any }
+            )
+        }
+
+        interface ShadowLinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            shadow?: attributes.SVGPathAttributes;
+        }
+
+        class ShadowLink extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<ShadowLinkSelectors>,
                 opt?: { [key: string]: any }
             )
         }
@@ -2184,6 +2239,9 @@ export namespace attributes {
         magnet?: boolean | string;
         title?: string;
         textVerticalAnchor?: 'bottom' | 'top' | 'middle' | number | string;
+        connection?: boolean;
+        atConnectionLenght?: number;
+        atConnectionRatio?: number;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;

@@ -1,0 +1,34 @@
+<p>A double line link.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>line</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Inner connection</td>
+    </tr>
+    <tr>
+        <td>outline</td>
+        <td><i>SVGPathElement</i></td>
+        <td>Outer connection</td>
+    </tr>
+</table>
+
+<pre><code>var doubleLink = new joint.shapes.standard.DoubleLink();
+doubleLink.prop('source', { x: 500, y: 600 });
+doubleLink.prop('target', { x: 450, y: 750 });
+doubleLink.prop('vertices', [{ x: 500, y: 700 }]);
+doubleLink.attr('root/title', 'joint.shapes.standard.DoubleLink');
+doubleLink.attr('line/stroke', '#30d0c6');
+doubleLink.addTo(graph);</code></pre>
