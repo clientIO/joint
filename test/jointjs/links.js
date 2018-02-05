@@ -99,16 +99,6 @@ QUnit.module('links', function(hooks) {
 
         assert.ok(v2, 'link with custom markup (2 children) is rendered.');
 
-        var l3 = new joint.dia.Link({
-            source: { id: r1.id },
-            target: { id: r2.id },
-            markup: '<path class="no-connection"/>'
-        });
-
-        assert.throws(function() {
-            this.graph.addCell(l3);
-        }, 'Markup with no connection throws an exception.');
-
         // It should be possible to create empty links and set source/target later.
         var lEmpty = new joint.dia.Link;
         assert.ok(true, 'creating a link with no source/target does not throw an exception');
