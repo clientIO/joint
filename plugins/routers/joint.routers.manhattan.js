@@ -464,53 +464,51 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                 costs[key] = 0;
             }
 
+            var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
+            var isPathBeginning = (previousRouteDirectionAngle === undefined);
+
             // directions
             var direction, directionChange;
             var directions = opt.directions;
             var numDirections = directions.length;
-            var loopsRemaining = opt.maximumLoops;
+
             var endPointsKeys = util.invoke(endPoints, 'toString');
 
             // main route finding loop
+            var loopsRemaining = opt.maximumLoops;
             while (!openSet.isEmpty() && loopsRemaining > 0) {
 
                 // remove current from the open list
                 var currentKey = openSet.pop();
                 var currentPoint = new g.Point(currentKey);
                 var currentCost = costs[currentKey];
+                var currentParent = parents[currentKey];
 
-                var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
+                var isRouteBeginning = (currentParent === undefined); // undefined for route starts
+                var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
 
-                var previousDirectionAngle = (currentDirectionAngle !== undefined) ? currentDirectionAngle : previousRouteDirectionAngle;
-                var currentDirectionAngle = parents[currentKey]
-                    ? getDirectionAngle(parents[currentKey], currentPoint, numDirections)
-                    : (previousRouteDirectionAngle !== undefined) ? previousRouteDirectionAngle : getDirectionAngle(start, currentPoint, numDirections);
-                // previousDirecionAngle = undefined in first iteration
+                var previousDirectionAngle;
+                if (!isRouteBeginning) previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections); // a vertex on the route
+                else if (!isPathBeginning) previousDirectionAngle = previousDirectionAngle = previousRouteDirectionAngle; // beginning of route on the path
+                else if (!isStart) previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections); // beginning of path, start rect point
+                else previousDirectionAngle = null; // beginning of path, source anchor or `from` point
 
                 // Check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
-
-                    // check the angle
-                    directionChange = getDirectionChange(currentDirectionAngle, getDirectionAngle(currentPoint, end, numDirections));
-
-                    // if end is a point or targetAnchor, we can enter from any direction
-                    // if end is a rectPoint, we can only enter at an acceptable angle
-                    if (currentPoint.equals(end) || directionChange <= maxAllowedDirectionChange) {
-                        opt.previousDirectionAngle = currentDirectionAngle;
-                        return reconstructRoute(parents, currentPoint, start, end);
-                    }
+                    opt.previousDirectionAngle = previousDirectionAngle;
+                    return reconstructRoute(parents, currentPoint, start, end);
                 }
 
                 // Go over all possible directions and find neighbors.
                 for (i = 0; i < numDirections; i++) {
-
                     direction = directions[i];
-                    directionChange = getDirectionChange(currentDirectionAngle, direction.angle);
+
+                    var directionAngle = direction.angle;
+                    directionChange = getDirectionChange(previousDirectionAngle, directionAngle);
 
                     // if the direction changed rapidly, don't use this point
-                    // Note that this check is relevant only for points with previousDirectionAngle
-                    // i.e. any direction is allowed for starting points.
-                    if (previousDirectionAngle !== undefined && directionChange > maxAllowedDirectionChange) continue;
+                    // any direction is allowed for starting points
+                    if (!isStart && directionChange > maxAllowedDirectionChange) continue;
 
                     var neighborPoint = currentPoint.clone().offset(direction.offsetX, direction.offsetY);
                     var neighborKey = neighborPoint.toString();
@@ -518,13 +516,28 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                     // Closed points from the openSet were already evaluated.
                     if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) continue;
 
+                    // We can only enter end points at an acceptable angle.
+                    if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
+                        var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
+
+                        if (!isNeighborEnd) {
+                            var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections);
+                            var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
+
+                            if (endDirectionChange > maxAllowedDirectionChange) continue;
+                        }
+                    }
+
                     // The current direction is ok.
-                    // No penalties for start point (any direction is allowed).
-                    var penalty = (previousDirectionAngle !== undefined) ? opt.penalties[directionChange] : 0;
-                    var costFromStart = currentCost + direction.cost + penalty;
+
+                    var neighborCost = direction.cost;
+                    var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
+                    var costFromStart = currentCost + neighborCost + neighborPenalty;
+
                     if (!openSet.isOpen(neighborKey) || costFromStart < costs[neighborKey]) {
-                        // neighbor point has not been processed yet or the cost of the path
-                        // from start is lower than previously calculated.
+                        // neighbor point has not been processed yet
+                        // or the cost of the path from start is lower than previously calculated
+
                         parents[neighborKey] = currentPoint;
                         costs[neighborKey] = costFromStart;
                         openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
