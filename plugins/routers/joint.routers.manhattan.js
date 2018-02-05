@@ -4,38 +4,71 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
     var config = {
 
-        // size of the step to find a route
+        // size of the step to find a route (the grid of the manhattan pathfinder)
         step: 10,
 
-        // use of the perpendicular linkView option to connect center of element with first vertex
+        // should the router use perpendicular linkView option?
+        // does not connect anchor of element but rather a point close-by that is orthogonal
+        // this looks much better
         perpendicular: true,
 
-        // should be source or target not to be consider as an obstacle
+        // should the source and/or target not be considered as obstacles?
         excludeEnds: [], // 'source', 'target'
 
-        // should be any element with a certain type not to be consider as an obstacle
+        // should certain types of elements not be considered as obstacles?
         excludeTypes: ['basic.Text'],
 
-        // if number of route finding loops exceed the maximum, stops searching and returns
-        // fallback route
+        // the number of route finding loops that cause the router to abort
+        // returns fallback route instead
         maximumLoops: 2000,
 
         // possible starting directions from an element
-        startDirections: ['left', 'right', 'top', 'bottom'],
+        startDirections: ['top', 'right', 'bottom', 'left'],
 
         // possible ending directions to an element
-        endDirections: ['left', 'right', 'top', 'bottom'],
+        endDirections: ['top', 'right', 'bottom', 'left'],
 
-        // specify directions above
+        // specify the directions used above and what they mean
         directionMap: {
+            top: { x: 0, y: -1 },
             right: { x: 1, y: 0 },
             bottom: { x: 0, y: 1 },
-            left: { x: -1, y: 0 },
-            top: { x: 0, y: -1 }
+            left: { x: -1, y: 0 }
         },
 
-        // maximum change of the direction
+        // maximum change of direction
         maxAllowedDirectionChange: 90,
+
+        // cost of an orthogonal step
+        cost: function() {
+
+            return this.step;
+        },
+
+        // an array of directions to find next points on the route
+        // different from start/end directions
+        directions: function() {
+
+            var step = this.step;
+            var cost = this.cost();
+
+            return [
+                { offsetX: step  , offsetY: 0     , cost: cost },
+                { offsetX: 0     , offsetY: step  , cost: cost },
+                { offsetX: -step , offsetY: 0     , cost: cost },
+                { offsetX: 0     , offsetY: -step , cost: cost }
+            ];
+        },
+
+        // a penalty received for direction change
+        penalties: function() {
+
+            return {
+                0: 0,
+                45: this.step / 2,
+                90: this.step / 2
+            };
+        },
 
         // padding applied on the element bounding boxes
         paddingBox: function() {
@@ -50,52 +83,81 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             };
         },
 
-        // an array of directions to find next points on the route
-        directions: function() {
+        // a router to use when the manhattan router fails
+        // (one of the partial routes returns null)
+        fallbackRouter: function(vertices, opt, linkView) {
 
-            var step = this.step;
+            if (!util.isFunction(joint.routers.orthogonal)) {
+                throw new Error('Manhattan requires the orthogonal router as default fallback.');
+            }
 
-            return [
-                { offsetX: step  , offsetY: 0     , cost: step },
-                { offsetX: 0     , offsetY: step  , cost: step },
-                { offsetX: -step , offsetY: 0     , cost: step },
-                { offsetX: 0     , offsetY: -step , cost: step }
-            ];
+            return joint.routers.orthogonal(vertices, util.assign({}, config, opt), linkView);
         },
 
-        // a penalty received for direction change
-        penalties: function() {
+        /* Deprecated */
+        // a simple route used in situations when main routing method fails
+        // (exceed max number of loop iterations, inaccessible)
+        fallbackRoute: function(from, to, opt) {
 
-            return {
-                0: 0,
-                45: this.step / 2,
-                90: this.step / 2
-            };
-        },
+            return null; // null result will trigger the fallbackRouter
 
-        // * Deprecated *
-        // a simple route used in situations, when main routing method fails
-        // (exceed loops, inaccessible).
-        /* i.e.
-          function(from, to, opts) {
-            // Find an orthogonal route ignoring obstacles.
-            var point = ((opts.previousDirAngle || 0) % 180 === 0)
-                    ? g.point(from.x, to.y)
-                    : g.point(to.x, from.y);
-            return [point, to];
-          },
-        */
-        fallbackRoute: function() {
-            return null;
+            // left for reference:
+            /*// Find an orthogonal route ignoring obstacles.
+
+            var point = ((opt.previousDirAngle || 0) % 180 === 0)
+                    ? new g.Point(from.x, to.y)
+                    : new g.Point(to.x, from.y);
+
+            return [point];*/
         },
 
         // if a function is provided, it's used to route the link while dragging an end
-        // i.e. function(from, to, opts) { return []; }
+        // i.e. function(from, to, opt) { return []; }
         draggingRoute: null
     };
 
+    // HELPERS //
+
+    // return source bbox
+    function getSourceBBox(linkView, opt) {
+
+        // expand by padding box
+        if (opt && opt.paddingBox) return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox);
+
+        return linkView.sourceBBox.clone();
+    }
+
+    // return target bbox
+    function getTargetBBox(linkView, opt) {
+
+        // expand by padding box
+        if (opt && opt.paddingBox) return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox);
+
+        return linkView.targetBBox.clone();
+    }
+
+    // return source anchor
+    function getSourceAnchor(linkView, opt) {
+
+        if (linkView.sourceAnchor) return linkView.sourceAnchor;
+
+        // fallback: center of bbox
+        var sourceBBox = getSourceBBox(linkView, opt);
+        return sourceBBox.center();
+    }
+
+    // return target anchor
+    function getTargetAnchor(linkView, opt) {
+
+        if (linkView.targetAnchor) return linkView.targetAnchor;
+
+        // fallback: center of bbox
+        var targetBBox = getTargetBBox(linkView, opt);
+        return targetBBox.center(); // default
+    }
+
     // Map of obstacles
-    // Helper structure to identify whether a point lies in an obstacle.
+    // Helper structure to identify whether a point lies inside an obstacle.
     function ObstacleMap(opt) {
 
         this.map = {};
@@ -108,9 +170,9 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var opt = this.options;
 
-
         // source or target element could be excluded from set of obstacles
         var excludedEnds = util.toArray(opt.excludeEnds).reduce(function(res, item) {
+
             var end = link.get(item);
             if (end) {
                 var cell = graph.getCell(end.id);
@@ -118,6 +180,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                     res.push(cell);
                 }
             }
+
             return res;
         }, []);
 
@@ -134,11 +197,11 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
         }
 
-        // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
-        // in any obstacle?) (a simplified grid search)
-        // The paper is divided to smaller cells, where each of them holds an information which
-        // elements belong to it. When we query whether a point is in an obstacle we don't need
-        // to go through all obstacles, we check only those in a particular cell.
+        // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
+        // in any obstacle?) (a simplified grid search).
+        // The paper is divided into smaller cells, where each holds information about which
+        // elements belong to it. When we query whether a point lies inside an obstacle we
+        // don't need to go through all obstacles, we check only those in a particular cell.
         var mapGridSize = this.mapGridSize;
 
         graph.getElements().reduce(function(map, element) {
@@ -149,19 +212,20 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
             var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
             if (!isExcluded) {
-                var bBox = element.getBBox().moveAndExpand(opt.paddingBox);
+                var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
 
-                var origin = bBox.origin().snapToGrid(mapGridSize);
-                var corner = bBox.corner().snapToGrid(mapGridSize);
+                var origin = bbox.origin().snapToGrid(mapGridSize);
+                var corner = bbox.corner().snapToGrid(mapGridSize);
 
                 for (var x = origin.x; x <= corner.x; x += mapGridSize) {
                     for (var y = origin.y; y <= corner.y; y += mapGridSize) {
                         var gridKey = x + '@' + y;
                         map[gridKey] = map[gridKey] || [];
-                        map[gridKey].push(bBox);
+                        map[gridKey].push(bbox);
                     }
                 }
             }
+
             return map;
         }, this.map);
 
@@ -206,48 +270,54 @@ joint.routers.manhattan = (function(g, _, joint, util) {
     };
 
     SortedSet.prototype.remove = function(item) {
+
         this.hash[item] = this.CLOSE;
     };
 
     SortedSet.prototype.isOpen = function(item) {
+
         return this.hash[item] === this.OPEN;
     };
 
     SortedSet.prototype.isClose = function(item) {
+
         return this.hash[item] === this.CLOSE;
     };
 
     SortedSet.prototype.isEmpty = function() {
+
         return this.items.length === 0;
     };
 
     SortedSet.prototype.pop = function() {
+
         var item =  this.items.shift();
         this.remove(item);
         return item;
     };
 
     function normalizePoint(point) {
-        return g.point(
+
+        return new g.Point(
             point.x === 0 ? 0 : Math.abs(point.x) / point.x,
             point.y === 0 ? 0 : Math.abs(point.y) / point.y
         );
     }
 
-    // reconstructs a route by concating points with their parents
-    function reconstructRoute(parents, point, startCenter, endCenter) {
+    // reconstructs a route by concatenating points with their parents
+    function reconstructRoute(parents, tailPoint, from, to) {
 
         var route = [];
-        var prevDiff = normalizePoint(endCenter.difference(point));
-        var current = point;
-        var parent;
 
+        var prevDiff = normalizePoint(to.difference(tailPoint)); // always (0,0)
+        var current = tailPoint;
+
+        var parent;
         while ((parent = parents[current])) {
 
             var diff = normalizePoint(current.difference(parent));
 
             if (!diff.equals(prevDiff)) {
-
                 route.unshift(current);
                 prevDiff = diff;
             }
@@ -255,58 +325,79 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             current = parent;
         }
 
-        var startDiff = normalizePoint(g.point(current).difference(startCenter));
-        if (!startDiff.equals(prevDiff)) {
+        var fromDiff = normalizePoint(current.difference(from));
+        if (!fromDiff.equals(prevDiff)) {
             route.unshift(current);
         }
 
         return route;
     }
 
-    // find points around the rectangle taking given directions in the account
-    function getRectPoints(bbox, directionList, opt) {
+    // find points around the rectangle taking given directions into account
+    function getRectPoints(anchor, bbox, directionList, opt) {
 
         var step = opt.step;
+
+        var snappedAnchor = anchor.clone().snapToGrid(step);
         var center = bbox.center();
+        var anchorCenterVector = snappedAnchor.difference(center);
+
         var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
-        var dirLis = util.toArray(directionList);
-        return keys.reduce(function(res, key) {
+        var dirList = util.toArray(directionList);
+        var rectPoints = keys.reduce(function(res, key) {
 
-            if (dirLis.includes(key)) {
-
+            if (dirList.includes(key)) {
                 var direction = opt.directionMap[key];
 
-                var x = direction.x * bbox.width / 2;
-                var y = direction.y * bbox.height / 2;
+                // create a line that is guaranteed to intersect the bbox if bbox is in the direction
+                // even if anchor lies outside of bbox
+                var endpoint = new g.Point(
+                    snappedAnchor.x + direction.x * (anchorCenterVector.x + bbox.width),
+                    snappedAnchor.y + direction.y * (anchorCenterVector.y + bbox.height)
+                );
+                var intersectionLine = new g.Line(anchor, endpoint);
 
-                var point = center.clone().offset(x, y);
+                // get the second intersection, in case there are two
+                // (that happens if anchor lies next to bbox)
+                var intersections = intersectionLine.intersect(bbox);
+                var point = intersections ? intersections[intersections.length - 1].snapToGrid(step) : null;
+                // (snapToGrid has to occur here to prevent double offset)
 
-                if (bbox.containsPoint(point)) {
+                // if an intersection was found in this direction
+                if (point) {
+                    // if the snapped rectPoint lies inside the bbox, offset it by one more step
+                    if (bbox.containsPoint(point)) {
+                        point.offset(direction.x * step, direction.y * step);
+                    }
 
-                    point.offset(direction.x * step, direction.y * step);
+                    // then add the point to the result array
+                    res.push(point);
                 }
-
-                res.push(point.snapToGrid(step));
             }
-            return res;
 
+            return res;
         }, []);
+
+        // if anchor lies outside of bbox, add it to the array of points
+        if (!bbox.containsPoint(snappedAnchor)) rectPoints.push(snappedAnchor.snapToGrid(step));
+
+        return rectPoints;
     }
 
     // returns a direction index from start point to end point
-    function getDirectionAngle(start, end, dirLen) {
+    function getDirectionAngle(start, end, numDirections) {
 
-        var q = 360 / dirLen;
-        return Math.floor(g.normalizeAngle(start.theta(end) + q / 2) / q) * q;
+        var quadrant = 360 / numDirections;
+        return quadrant * Math.floor(g.normalizeAngle(start.theta(end) + (quadrant / 2)) / quadrant);
     }
 
     function getDirectionChange(angle1, angle2) {
 
-        var dirChange = Math.abs(angle1 - angle2);
-        return dirChange > 180 ? 360 - dirChange : dirChange;
+        var directionChange = Math.abs(angle1 - angle2);
+        return (directionChange > 180) ? (360 - directionChange) : directionChange;
     }
 
-    // heurestic method to determine the distance between two points
+    // heuristic method to determine the distance between two points
     function estimateCost(from, endPoints) {
 
         var min = Infinity;
@@ -319,38 +410,44 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         return min;
     }
 
-    // finds the route between to points/rectangles implementing A* alghoritm
-    function findRoute(start, end, map, opt) {
+    // finds the route between two points/rectangles implementing A* algorithm
+    function findRoute(from, to, map, opt) {
 
         var step = opt.step;
+        var maxAllowedDirectionChange = opt.maxAllowedDirectionChange;
+
         var startPoints, endPoints;
-        var startCenter, endCenter;
+        var start, end;
 
         // set of points we start pathfinding from
-        if (start instanceof g.rect) {
-            startPoints = getRectPoints(start, opt.startDirections, opt);
-            startCenter = start.center().snapToGrid(step);
+        if (from instanceof g.Rect) { // `from` is sourceBBox
+            var sourceAnchor = getSourceAnchor(this, opt).clone().snapToGrid(step);
+            startPoints = getRectPoints(sourceAnchor, from, opt.startDirections, opt);
+            start = sourceAnchor;
+
         } else {
-            startCenter = start.clone().snapToGrid(step);
-            startPoints = [startCenter];
+            start = from.clone().snapToGrid(step);
+            startPoints = [start];
         }
 
         // set of points we want the pathfinding to finish at
-        if (end instanceof g.rect) {
-            endPoints = getRectPoints(end, opt.endDirections, opt);
-            endCenter = end.center().snapToGrid(step);
+        if (to instanceof g.Rect) { // `to` is targetBBox
+            var targetAnchor = getTargetAnchor(this, opt).clone().snapToGrid(step);
+            endPoints = getRectPoints(targetAnchor, to, opt.endDirections, opt);
+            end = targetAnchor;
+
         } else {
-            endCenter = end.clone().snapToGrid(step);
-            endPoints = [endCenter];
+            end = to.clone().snapToGrid(step);
+            endPoints = [end];
         }
 
-        // take into account only accessible end points
+        // take into account only accessible rect points (those not under obstacles)
         startPoints = startPoints.filter(map.isPointAccessible, map);
         endPoints = endPoints.filter(map.isPointAccessible, map);
 
-        // Check if there is a accessible end point.
-        // We would have to use a fallback route otherwise.
-        if (startPoints.length > 0 && endPoints.length >  0) {
+        // Check that there is an accessible route point on both sides.
+        // Otherwise, use fallbackRoute().
+        if (startPoints.length > 0 && endPoints.length > 0) {
 
             // The set of tentative points to be evaluated, initially containing the start points.
             var openSet = new SortedSet();
@@ -368,72 +465,79 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             }
 
             // directions
-            var dir, dirChange;
-            var dirs = opt.directions;
-            var dirLen = dirs.length;
-            var loopsRemain = opt.maximumLoops;
+            var direction, directionChange;
+            var directions = opt.directions;
+            var numDirections = directions.length;
+            var loopsRemaining = opt.maximumLoops;
             var endPointsKeys = util.invoke(endPoints, 'toString');
 
             // main route finding loop
-            while (!openSet.isEmpty() && loopsRemain > 0) {
+            while (!openSet.isEmpty() && loopsRemaining > 0) {
 
                 // remove current from the open list
                 var currentKey = openSet.pop();
-                var currentPoint = g.point(currentKey);
-                var currentDist = costs[currentKey];
-                var previousDirAngle = currentDirAngle;
-                var currentDirAngle = parents[currentKey]
-                    ? getDirectionAngle(parents[currentKey], currentPoint, dirLen)
-                    : opt.previousDirAngle != null ? opt.previousDirAngle : getDirectionAngle(startCenter, currentPoint, dirLen);
+                var currentPoint = new g.Point(currentKey);
+                var currentCost = costs[currentKey];
+
+                var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
+
+                var previousDirectionAngle = (currentDirectionAngle !== undefined) ? currentDirectionAngle : previousRouteDirectionAngle;
+                var currentDirectionAngle = parents[currentKey]
+                    ? getDirectionAngle(parents[currentKey], currentPoint, numDirections)
+                    : (previousRouteDirectionAngle !== undefined) ? previousRouteDirectionAngle : getDirectionAngle(start, currentPoint, numDirections);
+                // previousDirecionAngle = undefined in first iteration
 
                 // Check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
-                    // We don't want to allow route to enter the end point in opposite direction.
-                    dirChange = getDirectionChange(currentDirAngle, getDirectionAngle(currentPoint, endCenter, dirLen));
-                    if (currentPoint.equals(endCenter) || dirChange < 180) {
-                        opt.previousDirAngle = currentDirAngle;
-                        return reconstructRoute(parents, currentPoint, startCenter, endCenter);
+
+                    // check the angle
+                    directionChange = getDirectionChange(currentDirectionAngle, getDirectionAngle(currentPoint, end, numDirections));
+
+                    // if end is a point or targetAnchor, we can enter from any direction
+                    // if end is a rectPoint, we can only enter at an acceptable angle
+                    if (currentPoint.equals(end) || directionChange <= maxAllowedDirectionChange) {
+                        opt.previousDirectionAngle = currentDirectionAngle;
+                        return reconstructRoute(parents, currentPoint, start, end);
                     }
                 }
 
                 // Go over all possible directions and find neighbors.
-                for (i = 0; i < dirLen; i++) {
+                for (i = 0; i < numDirections; i++) {
 
-                    dir = dirs[i];
-                    dirChange = getDirectionChange(currentDirAngle, dir.angle);
-                    // if the direction changed rapidly don't use this point
-                    // Note that check is relevant only for points with previousDirAngle i.e.
-                    // any direction is allowed for starting points
-                    if (previousDirAngle && dirChange > opt.maxAllowedDirectionChange) {
-                        continue;
-                    }
+                    direction = directions[i];
+                    directionChange = getDirectionChange(currentDirectionAngle, direction.angle);
 
-                    var neighborPoint = currentPoint.clone().offset(dir.offsetX, dir.offsetY);
+                    // if the direction changed rapidly, don't use this point
+                    // Note that this check is relevant only for points with previousDirectionAngle
+                    // i.e. any direction is allowed for starting points.
+                    if (previousDirectionAngle !== undefined && directionChange > maxAllowedDirectionChange) continue;
+
+                    var neighborPoint = currentPoint.clone().offset(direction.offsetX, direction.offsetY);
                     var neighborKey = neighborPoint.toString();
+
                     // Closed points from the openSet were already evaluated.
-                    if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) {
-                        continue;
-                    }
+                    if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) continue;
 
-                    // The current direction is ok to proccess.
-                    var costFromStart = currentDist + dir.cost + opt.penalties[dirChange];
-
+                    // The current direction is ok.
+                    // No penalties for start point (any direction is allowed).
+                    var penalty = (previousDirectionAngle !== undefined) ? opt.penalties[directionChange] : 0;
+                    var costFromStart = currentCost + direction.cost + penalty;
                     if (!openSet.isOpen(neighborKey) || costFromStart < costs[neighborKey]) {
                         // neighbor point has not been processed yet or the cost of the path
-                        // from start is lesser than previously calcluated.
+                        // from start is lower than previously calculated.
                         parents[neighborKey] = currentPoint;
                         costs[neighborKey] = costFromStart;
                         openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
                     }
                 }
 
-                loopsRemain--;
+                loopsRemaining--;
             }
         }
 
-        // no route found ('to' point wasn't either accessible or finding route took
-        // way to much calculations)
-        return opt.fallbackRoute(startCenter, endCenter, opt);
+        // no route found (`to` point either wasn't accessible or finding route took
+        // way too much calculation)
+        return opt.fallbackRoute.call(this, start, end, opt);
     }
 
     // resolve some of the options
@@ -445,33 +549,35 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         util.toArray(opt.directions).forEach(function(direction) {
 
-            var point1 = g.point(0, 0);
-            var point2 = g.point(direction.offsetX, direction.offsetY);
+            var point1 = new g.Point(0, 0);
+            var point2 = new g.Point(direction.offsetX, direction.offsetY);
 
             direction.angle = g.normalizeAngle(point1.theta(point2));
         });
     }
 
-    // initiation of the route finding
-    function router(vertices, opt) {
+    // initialization of the route finding
+    function router(vertices, opt, linkView) {
 
         resolveOptions(opt);
 
         // enable/disable linkView perpendicular option
-        this.options.perpendicular = !!opt.perpendicular;
+        linkView.options.perpendicular = !!opt.perpendicular;
 
-        // expand boxes by specific padding
-        var sourceBBox = g.rect(this.sourceBBox).moveAndExpand(opt.paddingBox);
-        var targetBBox = g.rect(this.targetBBox).moveAndExpand(opt.paddingBox);
+        var sourceBBox = getSourceBBox(linkView, opt);
+        var targetBBox = getTargetBBox(linkView, opt);
+
+        var sourceAnchor = getSourceAnchor(linkView, opt);
+        //var targetAnchor = getTargetAnchor(linkView, opt);
 
         // pathfinding
-        var map = (new ObstacleMap(opt)).build(this.paper.model, this.model);
-        var oldVertices = util.toArray(vertices).map(g.point);
+        var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
+        var oldVertices = util.toArray(vertices).map(g.Point);
         var newVertices = [];
-        var tailPoint = sourceBBox.center().snapToGrid(opt.step);
+        var tailPoint = sourceAnchor.snapToGrid(opt.step);
 
-        // find a route by concating all partial routes (routes need to go through the vertices)
-        // startElement -> vertex[1] -> ... -> vertex[n] -> endElement
+        // find a route by concatenating all partial routes (routes need to pass through vertices)
+        // source -> vertex[1] -> ... -> vertex[n] -> target
         for (var i = 0, len = oldVertices.length; i <= len; i++) {
 
             var partialRoute = null;
@@ -480,39 +586,38 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             var to = oldVertices[i];
 
             if (!to) {
+                // this is the last iteration
+                // we ran through all vertices in oldVertices
+                // 'to' is not a vertex.
 
                 to = targetBBox;
 
-                // 'to' is not a vertex. If the target is a point (i.e. it's not an element), we
-                // might use dragging route instead of main routing method if that is enabled.
-                var endingAtPoint = !this.model.get('source').id || !this.model.get('target').id;
+                // If the target is a point (i.e. it's not an element), we
+                // should use dragging route instead of main routing method if it has been provided.
+                var isEndingAtPoint = !linkView.model.get('source').id || !linkView.model.get('target').id;
 
-                if (endingAtPoint && util.isFunction(opt.draggingRoute)) {
-                    // Make sure we passing points only (not rects).
-                    var dragFrom = from instanceof g.rect ? from.center() : from;
-                    partialRoute = opt.draggingRoute(dragFrom, to.origin(), opt);
+                if (isEndingAtPoint && util.isFunction(opt.draggingRoute)) {
+                    // Make sure we are passing points only (not rects).
+                    var dragFrom = (from === sourceBBox) ? sourceAnchor : from;
+                    var dragTo = to.origin();
+
+                    partialRoute = opt.draggingRoute.call(linkView, dragFrom, dragTo, opt);
                 }
             }
 
             // if partial route has not been calculated yet use the main routing method to find one
-            partialRoute = partialRoute || findRoute(from, to, map, opt);
+            partialRoute = partialRoute || findRoute.call(linkView, from, to, map, opt);
 
-            if (partialRoute === null) {
-                // The partial route could not be found.
-                // use orthogonal (do not avoid elements) route instead.
-                if (!util.isFunction(joint.routers.orthogonal)) {
-                    throw new Error('Manhattan requires the orthogonal router.');
-                }
-                return joint.routers.orthogonal(vertices, opt, this);
+            if (partialRoute === null) { // the partial route cannot be found
+                return opt.fallbackRouter(vertices, opt, linkView);
             }
 
             var leadPoint = partialRoute[0];
 
-            if (leadPoint && leadPoint.equals(tailPoint)) {
-                // remove the first point if the previous partial route had the same point as last
-                partialRoute.shift();
-            }
+            // remove the first point if the previous partial route had the same point as last
+            if (leadPoint && leadPoint.equals(tailPoint)) partialRoute.shift();
 
+            // save tailPoint for next iteration
             tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
 
             Array.prototype.push.apply(newVertices, partialRoute);
@@ -524,7 +629,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
     // public function
     return function(vertices, opt, linkView) {
 
-        return router.call(linkView, vertices, util.assign({}, config, opt));
+        return router(vertices, util.assign({}, config, opt), linkView);
     };
 
 })(g, _, joint, joint.util);
