@@ -489,17 +489,17 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
                 var previousDirectionAngle;
                 if (!isRouteBeginning) previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections); // a vertex on the route
-                else if (!isPathBeginning) previousDirectionAngle = previousDirectionAngle = previousRouteDirectionAngle; // beginning of route on the path
+                else if (!isPathBeginning) previousDirectionAngle = previousRouteDirectionAngle; // beginning of route on the path
                 else if (!isStart) previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections); // beginning of path, start rect point
                 else previousDirectionAngle = null; // beginning of path, source anchor or `from` point
 
-                // Check if we reached any endpoint
+                // check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
                     opt.previousDirectionAngle = previousDirectionAngle;
                     return reconstructRoute(parents, currentPoint, start, end);
                 }
 
-                // Go over all possible directions and find neighbors.
+                // go over all possible directions and find neighbors
                 for (i = 0; i < numDirections; i++) {
                     direction = directions[i];
 
@@ -508,7 +508,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
                     // if the direction changed rapidly, don't use this point
                     // any direction is allowed for starting points
-                    if (!isStart && directionChange > maxAllowedDirectionChange) continue;
+                    if (!(isPathBeginning && isStart) && directionChange > maxAllowedDirectionChange) continue;
 
                     var neighborPoint = currentPoint.clone().offset(direction.offsetX, direction.offsetY);
                     var neighborKey = neighborPoint.toString();
@@ -534,7 +534,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                     var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
                     var costFromStart = currentCost + neighborCost + neighborPenalty;
 
-                    if (!openSet.isOpen(neighborKey) || costFromStart < costs[neighborKey]) {
+                    if (!openSet.isOpen(neighborKey) || (costFromStart < costs[neighborKey])) {
                         // neighbor point has not been processed yet
                         // or the cost of the path from start is lower than previously calculated
 

@@ -31,28 +31,15 @@ joint.routers.metro = (function(util) {
             ];
         },
 
-        // a router to use when the metro router fails
-        // (one of the partial routes returns null)
-        fallbackRouter: function(vertices, opt, linkView) {
-
-            if (!util.isFunction(joint.routers.orthogonal)) {
-                throw new Error('Metro requires the orthogonal router as default fallback.');
-            }
-
-            return joint.routers.orthogonal(vertices, util.assign({}, config, opt), linkView);
-        },
-
-        /* Deprecated */
         // a simple route used in situations when main routing method fails
         // (exceed max number of loop iterations, inaccessible)
         fallbackRoute: function(from, to, opt) {
 
-            return null; // null result will trigger the fallbackRouter
-
-            // left for reference:
-            /*// Find a route which breaks by 45 degrees ignoring all obstacles.
+            // Find a route which breaks by 45 degrees ignoring all obstacles.
 
             var theta = from.theta(to);
+
+            var route = [];
 
             var a = { x: to.x, y: from.y };
             var b = { x: from.x, y: to.y };
@@ -71,10 +58,24 @@ joint.routers.metro = (function(util) {
             var p2 = g.Point.fromPolar(l1.squaredLength(), g.toRad(alpha + 135), p1);
             var l2 = new g.Line(to, p2);
 
-            var point = l1.intersection(l2);
-            return point ? [point.round()] : [];*/
+            var intersectionPoint = l1.intersection(l2);
+            var point = intersectionPoint ? intersectionPoint : to;
+
+            var directionFrom = intersectionPoint ? point : from;
+            opt.previousDirectionAngle = getDirectionAngle(directionFrom, to, opt.directions.length);
+
+            if (point) route.push(point.round());
+            route.push(to);
+
+            return route;
         }
     };
+
+    function getDirectionAngle(start, end, numDirections) {
+
+        var quadrant = 360 / numDirections;
+        return quadrant * Math.floor(g.normalizeAngle(start.theta(end) + (quadrant / 2)) / quadrant);
+    }
 
     // public function
     return function(vertices, opt, linkView) {
