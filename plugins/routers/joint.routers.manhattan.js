@@ -339,8 +339,8 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         var step = opt.step;
 
         var snappedAnchor = anchor.clone().snapToGrid(step);
-        var center = bbox.center();
-        var anchorCenterVector = snappedAnchor.difference(center);
+        var snappedCenter = bbox.center().snapToGrid(step);
+        var anchorCenterVector = snappedAnchor.difference(snappedCenter);
 
         var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
         var dirList = util.toArray(directionList);
@@ -352,20 +352,30 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                 // create a line that is guaranteed to intersect the bbox if bbox is in the direction
                 // even if anchor lies outside of bbox
                 var endpoint = new g.Point(
-                    snappedAnchor.x + direction.x * (anchorCenterVector.x + bbox.width),
-                    snappedAnchor.y + direction.y * (anchorCenterVector.y + bbox.height)
+                    snappedAnchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
+                    snappedAnchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
                 );
                 var intersectionLine = new g.Line(anchor, endpoint);
 
-                // get the second intersection, in case there are two
+                // get the farther intersection, in case there are two
                 // (that happens if anchor lies next to bbox)
-                var intersections = intersectionLine.intersect(bbox);
-                var point = intersections ? intersections[intersections.length - 1].snapToGrid(step) : null;
-                // (snapToGrid has to occur here to prevent double offset)
+                var intersections = intersectionLine.intersect(bbox) || [];
+                var numIntersections = intersections.length;
+                var farthestIntersectionDistance;
+                var farthestIntersection = null;
+                for (var i = 0; i < numIntersections; i++) {
+                    var currentIntersection = intersections[i];
+                    var distance = snappedAnchor.squaredDistance(currentIntersection);
+                    if (farthestIntersectionDistance === undefined || (distance > farthestIntersectionDistance)) {
+                        farthestIntersectionDistance = distance;
+                        farthestIntersection = currentIntersection.snapToGrid(step);
+                    }
+                }
+                var point = farthestIntersection;
 
-                // if an intersection was found in this direction
+                // if an intersection was found in this direction, it is our rectPoint
                 if (point) {
-                    // if the snapped rectPoint lies inside the bbox, offset it by one more step
+                    // if the rectPoint lies inside the bbox, offset it by one more step
                     if (bbox.containsPoint(point)) {
                         point.offset(direction.x * step, direction.y * step);
                     }
@@ -587,7 +597,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
         var oldVertices = util.toArray(vertices).map(g.Point);
         var newVertices = [];
-        var tailPoint = sourceAnchor.snapToGrid(opt.step);
+        var tailPoint = sourceAnchor.clone().snapToGrid(opt.step);
 
         // find a route by concatenating all partial routes (routes need to pass through vertices)
         // source -> vertex[1] -> ... -> vertex[n] -> target
