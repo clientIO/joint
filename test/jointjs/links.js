@@ -1239,4 +1239,69 @@ QUnit.module('links', function(hooks) {
             assert.ok(equals);
         });
     });
+
+    QUnit.module('vertex', function() {
+
+        QUnit.test('getter', function(assert) {
+            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
+            assert.deepEqual(link.vertex(0), { x: 0, y: 0 });
+            assert.deepEqual(link.vertex(1), { x: 1, y: 1 });
+            assert.deepEqual(link.vertex(2), undefined);
+        });
+
+        QUnit.test('setter', function(assert) {
+            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
+            var ret = link.vertex(2, { x: 3, y: 3 });
+            link.vertex(0, { x: 10, y: 10 });
+            link.vertex(1, { x: 20 });
+            assert.equal(ret, link);
+            assert.deepEqual(link.get('vertices'), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
+        });
+    });
+
+    QUnit.module('vertices', function () {
+
+        QUnit.test('getter', function (assert) {
+            var link = new joint.dia.Link();
+            assert.deepEqual(link.vertices(), []);
+            link.set('vertices', [{ x: 0, y: 0}]);
+            assert.notEqual(link.vertices(), link.get('vertices'), 'Copy');
+            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }]);
+        });
+
+        QUnit.test('setter', function (assert) {
+            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
+            var ret = link.vertices([{ x: 3, y: 3 }]);
+            assert.equal(ret, link);
+            assert.deepEqual(link.get('vertices'), [{ x: 3, y: 3 }]);
+        });
+    });
+
+    QUnit.module('addVertex', function () {
+
+        QUnit.test('sanity', function(assert) {
+            var link = new joint.dia.Link();
+            var ret = link.addVertex(0);
+            link.addVertex(-1, { x: 2, y: 2 });
+            link.addVertex(1, { x: 1, y: 1 });
+            link.addVertex(100, { x: 3, y: 3 });
+            assert.equal(ret, link);
+            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
+        });
+    });
+
+    QUnit.module('removeVertex', function () {
+
+        QUnit.test('sanity', function(assert) {
+            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }] });
+            var ret = link.removeVertex(100);
+            assert.equal(ret, link);
+            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
+            link.removeVertex(-1);
+            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
+            link.removeVertex(1);
+            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 2, y: 2 }]);
+        });
+    });
+
 });
