@@ -1354,6 +1354,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify(eventName, evt, x, y);
     },
 
+    magnet: function() {
+
+        // noop
+    },
+
     setInteractivity: function(value) {
 
         this.options.interactive = value;

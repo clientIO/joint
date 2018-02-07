@@ -536,9 +536,10 @@ QUnit.module('paper', function(hooks) {
 
         this.paper.options.linkPinning = true;
         source.attr('.', { magnet: true });
-        sourceView.pointerdown({ target: sourceView.el, type: 'mousedown' }, 150, 150);
-        sourceView.pointermove({ target: this.paper.el, type: 'mousemove' }, 150, 400);
-        sourceView.pointerup({ target: this.paper.el, type: 'mouseup' }, 150, 400);
+        sourceView.magnet({ target: sourceView.el, type: 'mousedown' }, 150, 150);
+        var p = this.paper.localToClientPoint(150, 400);
+        this.paper.$el.trigger($.Event({ type: 'mousemove', clientX: p.x, clientY: p.x }));
+        this.paper.$el.trigger($.Event({ type: 'mousemove', clientX: p.x, clientY: p.y }));
 
         newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
         if (newLink) {

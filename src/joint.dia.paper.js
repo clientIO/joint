@@ -162,6 +162,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'DOMMouseScroll': 'mousewheel',
         'mousedown .joint-cell [event]': 'event', // interaction with cell with `event` attribute set
         'touchstart .joint-cell [event]': 'event',
+        'mousedown .joint-cell [magnet]': 'magnet', // interaction with cell with `event` attribute set
+        'touchstart .joint-cell [magnet]': 'magnet',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
     },
 
@@ -1406,6 +1408,26 @@ joint.dia.Paper = joint.mvc.View.extend({
                 var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
                 view.event(evt, eventName, localPoint.x, localPoint.y);
+            }
+        }
+    },
+
+    magnet: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var currentTarget = evt.currentTarget;
+        var magnetValue = currentTarget.getAttribute('magnet');
+        if (magnetValue) {
+            var view = this.findView(currentTarget);
+            if (view) {
+                if (this.guard(evt, view)) return;
+                if (!view.can('addLinkFromMagnet')) return;
+                if (!this.options.validateMagnet(view, currentTarget)) return;
+                // stop subsequent pointerdown event
+                evt.stopPropagation();
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.magnet(evt, localPoint.x, localPoint.y);
             }
         }
     },

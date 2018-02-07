@@ -33,17 +33,21 @@ QUnit.module('embedding', function(hooks) {
         var v2 = r2.findView(this.paper);
 
         this.paper.options.embeddingMode = false;
-        v2.pointerdown({ target: v1.el }, 500, 500);
-        v2.pointermove({ target: v1.el }, 100, 100);
-        v2.pointerup({ target: v1.el }, 100, 100);
+
+        var evt = { target: v1.el };
+        v2.pointerdown(evt, 500, 500);
+        v2.pointermove(evt, 100, 100);
+        v2.pointerup(evt, 100, 100);
 
         assert.notEqual(r2.get('parent'), r1.id, 'embeddingMode disabled: element not embedded');
 
         this.paper.options.embeddingMode = true;
         r2.set('position', { x: 500, y: 500 });
-        v2.pointerdown({ target: v1.el }, 500, 500);
-        v2.pointermove({ target: v1.el }, 100, 100);
-        v2.pointerup({ target: v1.el }, 100, 100);
+
+        evt = { target: v1.el };
+        v2.pointerdown(evt, 500, 500);
+        v2.pointermove(evt, 100, 100);
+        v2.pointerup(evt, 100, 100);
 
         assert.equal(r2.get('parent'), r1.id, 'embeddingMode enabled: element embedded');
 
@@ -53,9 +57,10 @@ QUnit.module('embedding', function(hooks) {
 
         r1.unembed(r2);
         r2.set('position', { x: 500, y: 500 });
-        v2.pointerdown({ target: v2.el }, 500, 500);
-        v2.pointermove({ target: v2.el }, 100, 100);
-        v2.pointerup({ target: v2.el }, 100, 100);
+        evt = { target: v1.el };
+        v2.pointerdown(evt, 500, 500);
+        v2.pointermove(evt, 100, 100);
+        v2.pointerup(evt, 100, 100);
 
         assert.notEqual(r2.get('parent'), r1.id, 'validating function denying all element pairs provided: element not embedded.');
     });
@@ -87,9 +92,10 @@ QUnit.module('embedding', function(hooks) {
             opt.ui && zCounter++;
         });
 
-        v2.pointerdown({ target: v2.el }, 500, 500);
-        v2.pointermove({ target: v2.el }, 100, 100);
-        v2.pointerup({ target: v2.el }, 100, 100);
+        var evt = { target: v2.el };
+        v2.pointerdown(evt, 500, 500);
+        v2.pointermove(evt, 100, 100);
+        v2.pointerup(evt, 100, 100);
 
         assert.deepEqual([embedsCounter, parentCounter, zCounter], [2, 2, 3], 'UI flags present (2 embedded, 2 reparented, 3 changed z-indexes).');
     });

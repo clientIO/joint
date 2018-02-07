@@ -773,109 +773,61 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     pointerdown: function(evt, x, y) {
 
-        var paper = this.paper;
+        joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+        this.notify('element:pointerdown', evt, x, y);
 
-        if (
-            evt.target.getAttribute('magnet') &&
-            this.can('addLinkFromMagnet') &&
-            paper.options.validateMagnet.call(paper, this, evt.target)
-        ) {
-
-            this.model.startBatch('add-link');
-
-            var link = paper.getDefaultLink(this, evt.target);
-
-            link.set({
-                source: {
-                    id: this.model.id,
-                    selector: this.getSelector(evt.target),
-                    port: evt.target.getAttribute('port')
-                },
-                target: { x: x, y: y }
-            });
-
-            paper.model.addCell(link);
-
-            var linkView = this._linkView = paper.findViewByModel(link);
-
-            linkView.pointerdown(evt, x, y);
-            linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
-
-        } else {
-
-            this._dx = x;
-            this._dy = y;
-
-            this.restrictedArea = paper.getRestrictedArea(this);
-
-            joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
-            this.notify('element:pointerdown', evt, x, y);
-        }
+        var data = evt.data || (evt.data = {});
+        data.dx = x;
+        data.dy = y;
+        data.restrictedArea = this.paper.getRestrictedArea(this);
     },
 
     pointermove: function(evt, x, y) {
 
-        if (this._linkView) {
+        var paper = this.paper;
+        var grid = paper.options.gridSize;
+        var data = evt.data
+        var embedding = data.embedding;
 
-            // let the linkview deal with this event
-            this._linkView.pointermove(evt, x, y);
+        if (this.can('elementMove')) {
 
-        } else {
+            var element = this.model;
+            var position = element.position();
 
-            var grid = this.paper.options.gridSize;
+            // Make sure the new element's position always snaps to the current grid after
+            // translate as the previous one could be calculated with a different grid size.
+            var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.dx, grid);
+            var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.dy, grid);
 
-            if (this.can('elementMove')) {
+            element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
 
-                var position = this.model.get('position');
-
-                // Make sure the new element's position always snaps to the current grid after
-                // translate as the previous one could be calculated with a different grid size.
-                var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid);
-                var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid);
-
-                this.model.translate(tx, ty, { restrictedArea: this.restrictedArea, ui: true });
-
-                if (this.paper.options.embeddingMode) {
-
-                    if (!this._inProcessOfEmbedding) {
-                        // Prepare the element for embedding only if the pointer moves.
-                        // We don't want to do unnecessary action with the element
-                        // if an user only clicks/dblclicks on it.
-                        this.prepareEmbedding();
-                        this._inProcessOfEmbedding = true;
-                    }
-
-                    this.processEmbedding();
+            if (paper.options.embeddingMode) {
+                if (!embedding) {
+                    // Prepare the element for embedding only if the pointer moves.
+                    // We don't want to do unnecessary action with the element
+                    // if an user only clicks/dblclicks on it.
+                    this.prepareEmbedding();
+                    embedding = true;
                 }
+                this.processEmbedding();
             }
-
-            this._dx = g.snapToGrid(x, grid);
-            this._dy = g.snapToGrid(y, grid);
-
-            joint.dia.CellView.prototype.pointermove.apply(this, arguments);
-            this.notify('element:pointermove', evt, x, y);
         }
+
+        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+        this.notify('element:pointermove', evt, x, y);
+
+        data = evt.data || (evt.data = {});
+        data.dx = g.snapToGrid(x, grid);
+        data.dy = g.snapToGrid(y, grid);
+        data.embedding = embedding;
     },
 
     pointerup: function(evt, x, y) {
 
-        if (this._linkView) {
+        if (evt.data && evt.data.embedding) this.finalizeEmbedding();
 
-            // Let the linkview deal with this event.
-            this._linkView.pointerup(evt, x, y);
-            this._linkView = null;
-            this.model.stopBatch('add-link');
-
-        } else {
-
-            if (this._inProcessOfEmbedding) {
-                this.finalizeEmbedding();
-                this._inProcessOfEmbedding = false;
-            }
-
-            this.notify('element:pointerup', evt, x, y);
-            joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-        }
+        this.notify('element:pointerup', evt, x, y);
+        joint.dia.CellView.prototype.pointerup.apply(this, arguments);
     },
 
     mouseover: function(evt) {
@@ -906,5 +858,52 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.mousewheel.apply(this, arguments);
         this.notify('element:mousewheel', evt, x, y, delta);
+    },
+
+    magnet: function (evt, x, y) {
+
+        this.model.startBatch('add-link');
+
+        var paper = this.paper;
+        var link = paper.getDefaultLink(this, evt.target);
+        link.set({
+            source: {
+                id: this.model.id,
+                selector: this.getSelector(evt.target),
+                // TODO: climb up the tree or also down??
+                port: evt.target.getAttribute('port')
+            },
+            target: { x: x, y: y }
+        });
+
+
+        link.addTo(paper.model, { async: false });
+
+        var linkView = link.findView(paper);
+
+        //linkView.pointerdown(evt, x, y);
+        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        linkView.notify('link:pointerdown', evt, x, y);
+
+        linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
+
+        // TODO: move this to linkView?
+        // add touch events
+        this.delegateDocumentEvents({
+            'mousemove': function (evt) {
+                var localPoint = this.paper.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                evt.data.linkView.pointermove(evt, localPoint.x, localPoint.y);
+            },
+            'mouseup': function (evt) {
+                var linkView = evt.data.linkView;
+                var localPoint = this.paper.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                linkView.pointerup(evt, localPoint.x, localPoint.y);
+                this.model.stopBatch('add-link');
+                this.undelegateDocumentEvents();
+            }
+        }, {
+            linkView: linkView
+        });
     }
+
 });

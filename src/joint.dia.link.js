@@ -1779,12 +1779,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
         this.notify('link:pointerdown', evt, x, y);
 
-        this._dx = x;
-        this._dy = y;
-
-        // if are simulating pointerdown on a link during a magnet click, skip link interactions
-        if (evt.target.getAttribute('magnet') != null) return;
-
         var className = joint.util.removeClassNamePrefix(evt.target.getAttribute('class'));
         var parentClassName = joint.util.removeClassNamePrefix(evt.target.parentNode.getAttribute('class'));
         var labelNode;
@@ -1986,9 +1980,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 }
                 break;
         }
-
-        this._dx = x;
-        this._dy = y;
 
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
         this.notify('link:pointermove', evt, x, y);
