@@ -1,4 +1,4 @@
-(function (dia, util, env) {
+(function (dia, util, env, V) {
 
     'use strict';
 
@@ -248,7 +248,7 @@
                 refWidth: '100%',
                 refHeight: '100%',
                 stroke: '#333333',
-                fill: '#ffffff',
+                fill: '#FFFFFF',
                 strokeWidth: 2
             },
             image: {
@@ -330,6 +330,77 @@
             tagName: 'text',
             selector: 'bodyText'
         }]
+    });
+
+    var CYLINDER_TILT = 10;
+
+    joint.dia.Element.define('standard.Cylinder', {
+        attrs: {
+            body: {
+                lateralArea: CYLINDER_TILT,
+                fill: '#FFFFFF',
+                stroke: '#333333',
+                strokeWidth: 2
+            },
+            top: {
+                refCx: '50%',
+                cy: CYLINDER_TILT,
+                refRx: '50%',
+                ry: CYLINDER_TILT,
+                fill: '#FFFFFF',
+                stroke: '#333333',
+                strokeWidth: 2
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                refY2: CYLINDER_TILT,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'body'
+        }, {
+            tagName: 'ellipse',
+            selector: 'top'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    }, {
+        attributes: {
+            lateralArea: {
+                set: function(tilt, refBBox) {
+                    var x = refBBox.x;
+                    var y = refBBox.y;
+                    var w = refBBox.width;
+                    var h = refBBox.height;
+                    var ry = (util.isPercentage(tilt)) ? h * parseFloat(tilt) / 100 : tilt;
+                    var rx = w / 2;
+                    var yt = x + ry;
+                    var yb = y + h - ry;
+                    var kappa = V.KAPPA;
+                    var cx = rx * kappa;
+                    var cy = ry * kappa;
+                    var data = [
+                        'M', x, yt,
+                        'L', x, yb,
+                        'C', x, yb + cy, cx, y + h, w / 2, y + h,
+                        'C', w - cx, y + h, w, yb + cy, w, yb,
+                        'L', w, yt,
+                        'C', w, yt + cy, w / 2 + cx, yt + ry, w / 2, yt + ry,
+                        'C', cx, yt + ry, x, yt + cy, x, yt,
+                        'Z'
+                    ];
+                    return { d: data.join(' ') };
+                }
+            }
+        }
     });
 
     var foLabelMarkup = {
@@ -547,4 +618,4 @@
     });
 
 
-})(joint.dia, joint.util, joint.env);
+})(joint.dia, joint.util, joint.env, V);
