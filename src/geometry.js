@@ -2529,8 +2529,8 @@ var g = (function() {
 
         if (typeof x === 'string') {
             var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
-            x = parseInt(xy[0], 10);
-            y = parseInt(xy[1], 10);
+            x = parseFloat(xy[0]);
+            y = parseFloat(xy[1]);
 
         } else if (Object(x) === x) {
             y = x.y;
