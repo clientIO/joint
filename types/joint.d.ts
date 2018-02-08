@@ -33,6 +33,10 @@ export namespace dia {
 
     export namespace Graph {
 
+        interface Options {
+            [key: string]: any;
+        }
+
         interface ConnectionOptions extends Cell.EmbeddableOptions {
             inbound?: boolean;
             outbound?: boolean;
@@ -168,7 +172,11 @@ export namespace dia {
             new (options?: { id: string }): T
         }
 
-        interface EmbeddableOptions {
+        interface Options {
+            [key: string]: any;
+        }
+
+        interface EmbeddableOptions extends Options {
             deep?: boolean;
         }
 
@@ -176,7 +184,7 @@ export namespace dia {
             disconnectLinks?: boolean;
         }
 
-        interface TransitionOptions {
+        interface TransitionOptions extends Options {
             delay?: number;
             duration?: number;
             timingFunction?: util.timing.TimingFunction;
@@ -186,7 +194,7 @@ export namespace dia {
 
     class Cell extends Backbone.Model {
 
-        constructor(attributes?: Cell.Attributes, opt?: { [key: string]: any });
+        constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
 
         id: string | number;
 
@@ -209,19 +217,19 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: Cell.Attributes, opt?: { [key: string]: any }): this;
-        prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
+        prop(object: Cell.Attributes, opt?: Cell.Options): this;
+        prop(key: string | string[], value: any, opt?: Cell.Options): this;
 
-        removeProp(path: string | string[], opt?: { [key: string]: any }): this;
+        removeProp(path: string | string[], opt?: Cell.Options): this;
 
         attr(key?: string): any;
-        attr(object: Cell.Selectors, opt?: { [key: string]: any }): this;
-        attr(key: string, value: any, opt?: { [key: string]: any }): this;
+        attr(object: Cell.Selectors, opt?: Cell.Options): this;
+        attr(key: string, value: any, opt?: Cell.Options): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
 
-        removeAttr(path: string | string[], opt?: { [key: string]: any }): this;
+        removeAttr(path: string | string[], opt?: Cell.Options): this;
 
         transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
@@ -229,11 +237,11 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        embed(cell: Cell, opt?: { [key: string]: any }): this;
+        embed(cell: Cell, opt?: Graph.Options): this;
 
-        unembed(cell: Cell, opt?: { [key: string]: any }): this;
+        unembed(cell: Cell, opt?: Graph.Options): this;
 
-        addTo(graph: Graph, opt?: { [key: string]: any }): this;
+        addTo(graph: Graph, opt?: Graph.Options): this;
 
         findView(paper: Paper): CellView;
 
@@ -241,9 +249,9 @@ export namespace dia {
 
         isElement(): boolean;
 
-        startBatch(name: string, opt?: { [key: string]: any }): this;
+        startBatch(name: string, opt?: Graph.Options): this;
 
-        stopBatch(name: string, opt?: { [key: string]: any }): this;
+        stopBatch(name: string, opt?: Graph.Options): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
@@ -312,7 +320,7 @@ export namespace dia {
 
     class Element extends Cell {
 
-        constructor(attributes?: Element.Attributes, opt?: { [key: string]: any });
+        constructor(attributes?: Element.Attributes, opt?: Graph.Options);
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -332,11 +340,11 @@ export namespace dia {
 
         getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
 
-        addPort(port: Element.Port, opt?: { [key: string]: any }): this;
+        addPort(port: Element.Port, opt?: Cell.Options): this;
 
-        addPorts(ports: Element.Port[], opt?: { [key: string]: any }): this;
+        addPorts(ports: Element.Port[], opt?: Cell.Options): this;
 
-        removePort(port: string | Element.Port, opt?: { [key: string]: any }): this;
+        removePort(port: string | Element.Port, opt?: Cell.Options): this;
 
         hasPorts(): boolean;
 
@@ -350,7 +358,7 @@ export namespace dia {
 
         getPortIndex(port: string | Element.Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): Element;
+        portProp(portId: string, path: any, value?: any, opt?: Cell.Options): Element;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
     }
@@ -394,6 +402,10 @@ export namespace dia {
             attrs?: Cell.Selectors;
             size?: Size;
         }
+
+        interface Vertex extends Point {
+            [key: string]: any;
+        }
     }
 
     class Link extends Cell {
@@ -404,14 +416,21 @@ export namespace dia {
         vertexMarkup: string;
         arrowHeadMarkup: string;
 
-        constructor(attributes?: Link.Attributes, opt?: { [key: string]: any });
+        constructor(attributes?: Link.Attributes, opt?: Graph.Options);
 
         disconnect(): this;
 
-        label(index?: number): any;
-        label(index: number, value: Link.Label, opt?: { [key: string]: any }): this;
+        label(index?: number): Link.Label;
+        label(index: number, value: Link.Label, opt?: Cell.Options): this;
 
-        reparent(opt?: { [key: string]: any }): Element;
+        vertex(index?: number): Link.Vertex;
+        vertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
+        vertices(): Link.Vertex[];
+        vertices(vertices: Link.Vertex[]): this;
+        addVertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
+        removeVertex(index?: number, opt?: Cell.Options): this;
+
+        reparent(opt?: Cell.Options): Element;
 
         getSourceElement(): null | Element;
 
@@ -423,11 +442,11 @@ export namespace dia {
 
         isRelationshipEmbeddedIn(cell: Cell): boolean;
 
-        applyToPoints(fn: (p: Point) => Point, opt?: { [key: string]: any }): this;
+        applyToPoints(fn: (p: Point) => Point, opt?: Cell.Options): this;
 
-        scale(sx: number, sy: number, origin?: Point, opt?: { [key: string]: any }): this;
+        scale(sx: number, sy: number, origin?: Point, opt?: Cell.Options): this;
 
-        translate(tx: number, ty: number, opt?: { [key: string]: any }): this;
+        translate(tx: number, ty: number, opt?: Cell.Options): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
     }
@@ -885,7 +904,7 @@ export namespace shapes {
         class Rectangle extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<RectangleSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -898,7 +917,7 @@ export namespace shapes {
         class Circle extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<CircleSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -911,7 +930,7 @@ export namespace shapes {
         class Ellipse extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -924,7 +943,7 @@ export namespace shapes {
         class Path extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PathSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -937,7 +956,7 @@ export namespace shapes {
         class Polygon extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -950,7 +969,7 @@ export namespace shapes {
         class Polyline extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -963,7 +982,7 @@ export namespace shapes {
         class Image extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<ImageSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -977,7 +996,7 @@ export namespace shapes {
         class BorderedImage extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<BorderedImageSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -991,7 +1010,7 @@ export namespace shapes {
         class EmbeddedImage extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -1006,7 +1025,7 @@ export namespace shapes {
         class HeaderedRectangle extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<HeaderedRectangleSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -1023,7 +1042,7 @@ export namespace shapes {
         class TextBlock extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -1036,7 +1055,7 @@ export namespace shapes {
         class Link extends dia.Link {
             constructor(
                 attributes?: dia.Link.GenericAttributes<LinkSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -1049,7 +1068,7 @@ export namespace shapes {
         class DoubleLink extends dia.Link {
             constructor(
                 attributes?: dia.Link.GenericAttributes<DoubleLinkSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
 
@@ -1062,7 +1081,7 @@ export namespace shapes {
         class ShadowLink extends dia.Link {
             constructor(
                 attributes?: dia.Link.GenericAttributes<ShadowLinkSelectors>,
-                opt?: { [key: string]: any }
+                opt?: dia.Graph.Options
             )
         }
     }

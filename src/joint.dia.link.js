@@ -80,15 +80,54 @@ joint.dia.Link = joint.dia.Cell.extend({
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
     label: function(idx, value, opt) {
 
-        idx = idx || 0;
-
+        idx || (idx = 0);
         // Is it a getter?
-        if (arguments.length <= 1) {
-            return this.prop(['labels', idx]);
-        }
-
+        if (arguments.length <= 1) return this.prop(['labels', idx]);
         return this.prop(['labels', idx], value, opt);
     },
+
+    // Vertices API
+
+    vertex: function (idx, value, opt) {
+
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        // Is it a getter?
+        if (arguments.length <= 1) return this.prop(['vertices', idx]);
+        return this.prop(['vertices', idx], value, opt);
+    },
+
+    vertices: function (vertices, opt) {
+        // Getter
+        if (arguments.length === 0) {
+            vertices = this.get('vertices');
+            if (!Array.isArray(vertices)) return [];
+            return vertices.slice();
+        }
+        // Setter
+        if (!Array.isArray(vertices)) vertices = [];
+        return this.set('vertices', vertices, opt);
+    },
+
+    addVertex: function (idx, value, opt) {
+
+        var vertices = this.vertices();
+        var n = vertices.length;
+        value || (value = { x: 0, y: 0 });
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+        if (idx < 0) idx = n + idx + 1;
+        vertices.splice(idx, 0, value);
+        return this.vertices(vertices, opt);
+    },
+
+    removeVertex: function (idx, opt) {
+
+        var vertices = this.vertices();
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+        vertices.splice(idx, 1);
+        return this.vertices(vertices, opt);
+    },
+
+    // Transformations
 
     translate: function(tx, ty, opt) {
 
@@ -128,8 +167,8 @@ joint.dia.Link = joint.dia.Cell.extend({
             attrs.target = fn(target);
         }
 
-        var vertices = this.get('vertices');
-        if (vertices && vertices.length > 0) {
+        var vertices = this.vertices();
+        if (vertices.length > 0) {
             attrs.vertices = vertices.map(fn);
         }
 
@@ -195,15 +234,17 @@ joint.dia.Link = joint.dia.Cell.extend({
     getSourceElement: function() {
 
         var source = this.get('source');
+        var graph = this.graph;
 
-        return (source && source.id && this.graph && this.graph.getCell(source.id)) || null;
+        return (source && source.id && graph && graph.getCell(source.id)) || null;
     },
 
     getTargetElement: function() {
 
         var target = this.get('target');
+        var graph = this.graph;
 
-        return (target && target.id && this.graph && this.graph.getCell(target.id)) || null;
+        return (target && target.id && graph && graph.getCell(target.id)) || null;
     },
 
     // Returns the common ancestor for the source element,
@@ -611,7 +652,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
-        joint.util.toArray(this.model.get('vertices')).forEach(function(vertex, idx) {
+        this.model.vertices().forEach(function(vertex, idx) {
 
             $markerVertices.append(V(markupTemplate(joint.util.assign({ idx: idx }, vertex))).node);
         });
@@ -714,7 +755,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else {
             // Necessary path finding
-            route = this.findRoute(model.get('vertices') || [], opt);
+            route = this.findRoute(model.vertices(), opt);
             // finds all the connection points taking new vertices into account
             this._findConnectionPoints(route);
 
@@ -1064,26 +1105,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    removeVertex: function(idx) {
-
-        var vertices = joint.util.assign([], this.model.get('vertices'));
-
-        if (vertices && vertices.length) {
-
-            vertices.splice(idx, 1);
-            this.model.set('vertices', vertices, { ui: true });
-        }
-
-        return this;
-    },
-
     // This method adds a new vertex at calculated index to the `vertices` array. This method
     // uses a heuristic to find the index at which the new `vertex` should be placed at assuming
     // the new vertex is somewhere on the path.
     addVertex: function(vertex, opt) {
 
         var link = this.model;
-        var vertices = (link.get('vertices') || []).slice();
+        var vertices = link.vertices();
         var vertexLength = this.getClosestPointLength(vertex);
         var idx = 0;
 
@@ -1093,9 +1121,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (vertexLength < currentVertexLength) break;
         }
 
-        vertices.splice(idx, 0, vertex);
-        link.set('vertices', vertices, opt);
-
+        link.addVertex(idx, vertex, opt);
         return idx;
     },
 
@@ -1224,7 +1250,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this,
             this._markerCache.sourcePoint, // Note that the value is translated by the size
             this._markerCache.targetPoint, // of the marker. (We'r not using this.sourcePoint)
-            route || (this.model.get('vertices') || []),
+            route || this.model.vertices(),
             args, // options
             this
         );
@@ -1493,14 +1519,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             case 'marker-vertex':
                 if (this.can('vertexMove')) {
                     this._action = 'vertex-move';
-                    this._vertexIdx = evt.target.getAttribute('idx');
+                    this._vertexIdx = parseInt(evt.target.getAttribute('idx'), 10);
                 }
                 break;
 
             case 'marker-vertex-remove':
             case 'marker-vertex-remove-area':
                 if (this.can('vertexRemove')) {
-                    this.removeVertex(evt.target.getAttribute('idx'));
+                    this.model.removeVertex(evt.target.getAttribute('idx'));
                 }
                 break;
 
@@ -1535,9 +1561,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'vertex-move':
 
-                var vertices = joint.util.assign([], this.model.get('vertices'));
-                vertices[this._vertexIdx] = { x: x, y: y };
-                this.model.set('vertices', vertices, { ui: true });
+                this.model.vertex(this._vertexIdx, { x: x, y: y }, { ui: true });
                 break;
 
             case 'label-move':
@@ -1549,7 +1573,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 var tangent = path.tangentAtT(t, pathOpt);
                 var labelOffset = (tangent) ? tangent.pointOffset(dragPoint) : 0;
                 var labelDistance = path.lengthAtT(t, pathOpt) / this.getConnectionLength();
-                console.log(labelOffset, labelDistance);
 
                 this.model.label(this._labelIdx, {
                     position: {
