@@ -7,6 +7,16 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         // size of the step to find a route (the grid of the manhattan pathfinder)
         step: 10,
 
+        // the number of route finding loops that cause the router to abort
+        // returns fallback route instead
+        maximumLoops: 2000,
+
+        // the number of decimal places to round floating point coordinates
+        precision: 10,
+
+        // maximum change of direction
+        maxAllowedDirectionChange: 90,
+
         // should the router use perpendicular linkView option?
         // does not connect anchor of element but rather a point close-by that is orthogonal
         // this looks much better
@@ -17,10 +27,6 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         // should certain types of elements not be considered as obstacles?
         excludeTypes: ['basic.Text'],
-
-        // the number of route finding loops that cause the router to abort
-        // returns fallback route instead
-        maximumLoops: 2000,
 
         // possible starting directions from an element
         startDirections: ['top', 'right', 'bottom', 'left'],
@@ -35,9 +41,6 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             bottom: { x: 0, y: 1 },
             left: { x: -1, y: 0 }
         },
-
-        // maximum change of direction
-        maxAllowedDirectionChange: 90,
 
         // cost of an orthogonal step
         cost: function() {
@@ -116,45 +119,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         draggingRoute: null
     };
 
-    // HELPERS //
-
-    // return source bbox
-    function getSourceBBox(linkView, opt) {
-
-        // expand by padding box
-        if (opt && opt.paddingBox) return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox);
-
-        return linkView.sourceBBox.clone();
-    }
-
-    // return target bbox
-    function getTargetBBox(linkView, opt) {
-
-        // expand by padding box
-        if (opt && opt.paddingBox) return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox);
-
-        return linkView.targetBBox.clone();
-    }
-
-    // return source anchor
-    function getSourceAnchor(linkView, opt) {
-
-        if (linkView.sourceAnchor) return linkView.sourceAnchor;
-
-        // fallback: center of bbox
-        var sourceBBox = getSourceBBox(linkView, opt);
-        return sourceBBox.center();
-    }
-
-    // return target anchor
-    function getTargetAnchor(linkView, opt) {
-
-        if (linkView.targetAnchor) return linkView.targetAnchor;
-
-        // fallback: center of bbox
-        var targetBBox = getTargetBBox(linkView, opt);
-        return targetBBox.center(); // default
-    }
+    // HELPER CLASSES //
 
     // Map of obstacles
     // Helper structure to identify whether a point lies inside an obstacle.
@@ -296,6 +261,154 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         return item;
     };
 
+    // HELPERS //
+
+    // return source bbox
+    function getSourceBBox(linkView, opt) {
+
+        // expand by padding box
+        if (opt && opt.paddingBox) return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox);
+
+        return linkView.sourceBBox.clone();
+    }
+
+    // return target bbox
+    function getTargetBBox(linkView, opt) {
+
+        // expand by padding box
+        if (opt && opt.paddingBox) return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox);
+
+        return linkView.targetBBox.clone();
+    }
+
+    // return source anchor
+    function getSourceAnchor(linkView, opt) {
+
+        if (linkView.sourceAnchor) return linkView.sourceAnchor;
+
+        // fallback: center of bbox
+        var sourceBBox = getSourceBBox(linkView, opt);
+        return sourceBBox.center();
+    }
+
+    // return target anchor
+    function getTargetAnchor(linkView, opt) {
+
+        if (linkView.targetAnchor) return linkView.targetAnchor;
+
+        // fallback: center of bbox
+        var targetBBox = getTargetBBox(linkView, opt);
+        return targetBBox.center(); // default
+    }
+
+    // returns a direction index from start point to end point
+    // corrects for grid deformation between start and end
+    function getDirectionAngle(start, end, numDirections, grid, opt) {
+
+        var quadrant = 360 / numDirections;
+        var angleTheta = start.theta(fixAngleEnd(start, end, grid, opt));
+        var normalizedAngle = g.normalizeAngle(angleTheta + (quadrant / 2));
+        return quadrant * Math.floor(normalizedAngle / quadrant);
+    }
+
+    // helper function for getDirectionAngle()
+    // corrects for grid deformation
+    // (if a point is one grid steps away from another in both dimensions,
+    // it is considered to be 45 degrees away, even if the real angle is different)
+    // this causes visible angle discrepancies if `opt.step` is much larger than `paper.gridSize`
+    function fixAngleEnd(start, end, grid, opt) {
+
+        var step = opt.step;
+
+        var diffX = end.x - start.x;
+        var diffY = end.y - start.y;
+
+        var gridStepsX = diffX / grid.x;
+        var gridStepsY = diffY / grid.y
+
+        var distanceX = gridStepsX * step;
+        var distanceY = gridStepsY * step;
+
+        return new g.Point(start.x + distanceX, start.y + distanceY);
+    }
+
+    // return the change in direction between two direction angles
+    function getDirectionChange(angle1, angle2) {
+
+        var directionChange = Math.abs(angle1 - angle2);
+        return (directionChange > 180) ? (360 - directionChange) : directionChange;
+    }
+
+    // fix direction offsets according to current grid
+    function getGridOffsets(directions, grid, opt) {
+
+        var step = opt.step;
+
+        util.toArray(opt.directions).forEach(function(direction) {
+
+            direction.gridOffsetX = (direction.offsetX / step) * grid.x;
+            direction.gridOffsetY = (direction.offsetY / step) * grid.y;
+        });
+    }
+
+    // get grid size in x and y dimensions, adapted to source and target positions
+    function getGrid(step, source, target) {
+
+        return {
+            source: source.clone(),
+            x: getGridDimension(target.x - source.x, step),
+            y: getGridDimension(target.y - source.y, step)
+        }
+    }
+
+    // helper function for getGrid()
+    function getGridDimension(diff, step) {
+
+        // return step if diff = 0
+        if (!diff) return step;
+
+        var absDiff = Math.abs(diff);
+        var numSteps = Math.round(absDiff / step);
+
+        // return absDiff if less than one step apart
+        if (!numSteps) return absDiff;
+
+        // otherwise, return corrected step
+        var roundedDiff = numSteps * step;
+        var remainder = absDiff - roundedDiff;
+        var stepCorrection = remainder / numSteps;
+
+        return step + stepCorrection;
+    }
+
+    // return a clone of point snapped to grid
+    function snapToGrid(point, grid) {
+
+        var source = grid.source;
+
+        var snappedX = g.snapToGrid(point.x - source.x, grid.x) + source.x;
+        var snappedY = g.snapToGrid(point.y - source.y, grid.y) + source.y;
+
+        return new g.Point(snappedX, snappedY);
+    }
+
+    // round the point to opt.precision
+    function round(point, opt) {
+
+        if (!point) return point;
+
+        return point.round(opt.precision);
+    }
+
+    // return a string representing the point
+    // string is rounded to nearest int in both dimensions
+    function getKey(point) {
+
+        return point.clone().round().toString();
+    }
+
+    // return a normalized vector from given point
+    // used to determine the direction of a difference of two points
     function normalizePoint(point) {
 
         return new g.Point(
@@ -304,50 +417,75 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         );
     }
 
+    // PATHFINDING //
+
     // reconstructs a route by concatenating points with their parents
-    function reconstructRoute(parents, tailPoint, from, to) {
+    function reconstructRoute(parents, points, tailPoint, from, to, opt) {
 
         var route = [];
 
-        var prevDiff = normalizePoint(to.difference(tailPoint)); // always (0,0)
-        var current = tailPoint;
+        var prevDiff = normalizePoint(to.difference(tailPoint));
 
-        var parent;
-        while ((parent = parents[current])) {
+        var currentKey = getKey(tailPoint);
+        var parent = parents[currentKey];
 
-            var diff = normalizePoint(current.difference(parent));
+        var point;
+        while (parent) {
 
+            point = round(points[currentKey], opt);
+
+            var diff = normalizePoint(point.difference(round(parent.clone(), opt)));
             if (!diff.equals(prevDiff)) {
-                route.unshift(current);
+                route.unshift(point);
                 prevDiff = diff;
             }
 
-            current = parent;
+            currentKey = getKey(parent);
+            parent = parents[currentKey];
         }
 
-        var fromDiff = normalizePoint(current.difference(from));
+        var leadPoint = round(points[currentKey], opt);
+
+        var fromDiff = normalizePoint(leadPoint.difference(from));
         if (!fromDiff.equals(prevDiff)) {
-            route.unshift(current);
+            route.unshift(leadPoint);
         }
 
         return route;
     }
 
-    // find points around the rectangle taking given directions into account
-    function getRectPoints(anchor, bbox, directionList, opt) {
+    // heuristic method to determine the distance between two points
+    function estimateCost(from, endPoints) {
 
-        var step = opt.step;
+        var min = Infinity;
 
-        var snappedAnchor = anchor.clone().snapToGrid(step);
-        var snappedCenter = bbox.center().snapToGrid(step);
+        for (var i = 0, len = endPoints.length; i < len; i++) {
+            var cost = from.manhattanDistance(endPoints[i]);
+            if (cost < min) min = cost;
+        }
+
+        return min;
+    }
+
+    // find points around the bbox taking given directions into account
+    // lines are drawn from anchor in given directions, intersections recorded
+    // if anchor is outside bbox, only those directions that intersect get a rect point
+    // the anchor itself is returned as rect point (representing some directions)
+    // (since those directions are unobstructed by the bbox)
+    function getRectPoints(anchor, bbox, directionList, grid, opt) {
+
+        var directionMap = opt.directionMap;
+
+        var snappedAnchor = round(snapToGrid(anchor, grid), opt);
+        var snappedCenter = round(snapToGrid(bbox.center(), grid), opt);
         var anchorCenterVector = snappedAnchor.difference(snappedCenter);
 
-        var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
+        var keys = util.isObject(directionMap) ? Object.keys(directionMap) : [];
         var dirList = util.toArray(directionList);
         var rectPoints = keys.reduce(function(res, key) {
 
             if (dirList.includes(key)) {
-                var direction = opt.directionMap[key];
+                var direction = directionMap[key];
 
                 // create a line that is guaranteed to intersect the bbox if bbox is in the direction
                 // even if anchor lies outside of bbox
@@ -368,16 +506,16 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                     var distance = snappedAnchor.squaredDistance(currentIntersection);
                     if (farthestIntersectionDistance === undefined || (distance > farthestIntersectionDistance)) {
                         farthestIntersectionDistance = distance;
-                        farthestIntersection = currentIntersection.snapToGrid(step);
+                        farthestIntersection = snapToGrid(currentIntersection, grid);
                     }
                 }
-                var point = farthestIntersection;
+                var point = round(farthestIntersection, opt);
 
                 // if an intersection was found in this direction, it is our rectPoint
                 if (point) {
                     // if the rectPoint lies inside the bbox, offset it by one more step
                     if (bbox.containsPoint(point)) {
-                        point.offset(direction.x * step, direction.y * step);
+                        round(point.offset(direction.x * grid.x, direction.y * grid.y), opt);
                     }
 
                     // then add the point to the result array
@@ -389,65 +527,55 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         }, []);
 
         // if anchor lies outside of bbox, add it to the array of points
-        if (!bbox.containsPoint(snappedAnchor)) rectPoints.push(snappedAnchor.snapToGrid(step));
+        if (!bbox.containsPoint(snappedAnchor)) rectPoints.push(snappedAnchor);
 
         return rectPoints;
     }
 
-    // returns a direction index from start point to end point
-    function getDirectionAngle(start, end, numDirections) {
-
-        var quadrant = 360 / numDirections;
-        return quadrant * Math.floor(g.normalizeAngle(start.theta(end) + (quadrant / 2)) / quadrant);
-    }
-
-    function getDirectionChange(angle1, angle2) {
-
-        var directionChange = Math.abs(angle1 - angle2);
-        return (directionChange > 180) ? (360 - directionChange) : directionChange;
-    }
-
-    // heuristic method to determine the distance between two points
-    function estimateCost(from, endPoints) {
-
-        var min = Infinity;
-
-        for (var i = 0, len = endPoints.length; i < len; i++) {
-            var cost = from.manhattanDistance(endPoints[i]);
-            if (cost < min) min = cost;
-        }
-
-        return min;
-    }
-
-    // finds the route between two points/rectangles implementing A* algorithm
+    // finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
+    // rectangles get rect points assigned by getRectPoints()
     function findRoute(from, to, map, opt) {
 
-        var step = opt.step;
-        var maxAllowedDirectionChange = opt.maxAllowedDirectionChange;
+        // Get grid for this route.
 
-        var startPoints, endPoints;
+        var sourceAnchor, targetAnchor;
+
+        if (from instanceof g.Rect) { // `from` is sourceBBox
+            sourceAnchor = getSourceAnchor(this, opt).clone();
+        } else {
+            sourceAnchor = from.clone();
+        }
+
+        if (to instanceof g.Rect) { // `to` is targetBBox
+            targetAnchor = getTargetAnchor(this, opt).clone();
+        } else {
+            targetAnchor = to.clone();
+        }
+
+        var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
+
+        // Get pathfinding points.
+
         var start, end;
+        var startPoints, endPoints;
 
         // set of points we start pathfinding from
         if (from instanceof g.Rect) { // `from` is sourceBBox
-            var sourceAnchor = getSourceAnchor(this, opt).clone().snapToGrid(step);
-            startPoints = getRectPoints(sourceAnchor, from, opt.startDirections, opt);
-            start = sourceAnchor;
+            start = round(snapToGrid(sourceAnchor, grid), opt);
+            startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
 
         } else {
-            start = from.clone().snapToGrid(step);
+            start = round(snapToGrid(sourceAnchor, grid), opt);
             startPoints = [start];
         }
 
         // set of points we want the pathfinding to finish at
         if (to instanceof g.Rect) { // `to` is targetBBox
-            var targetAnchor = getTargetAnchor(this, opt).clone().snapToGrid(step);
-            endPoints = getRectPoints(targetAnchor, to, opt.endDirections, opt);
-            end = targetAnchor;
+            end = round(snapToGrid(targetAnchor, grid), opt);
+            endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
 
         } else {
-            end = to.clone().snapToGrid(step);
+            end = round(snapToGrid(targetAnchor, grid), opt);
             endPoints = [end];
         }
 
@@ -460,7 +588,10 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         if (startPoints.length > 0 && endPoints.length > 0) {
 
             // The set of tentative points to be evaluated, initially containing the start points.
+            // Rounded to nearest integer for simplicity.
             var openSet = new SortedSet();
+            // Keeps reference to actual points for given elements of the open set.
+            var points = {};
             // Keeps reference to a point that is immediate predecessor of given element.
             var parents = {};
             // Cost from start to a point along best known path.
@@ -469,8 +600,9 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             for (var i = 0, n = startPoints.length; i < n; i++) {
                 var point = startPoints[i];
 
-                var key = point.toString();
+                var key = getKey(point);
                 openSet.add(key, estimateCost(point, endPoints));
+                points[key] = point;
                 costs[key] = 0;
             }
 
@@ -480,9 +612,16 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             // directions
             var direction, directionChange;
             var directions = opt.directions;
+            getGridOffsets(directions, grid, opt);
+
             var numDirections = directions.length;
 
-            var endPointsKeys = util.invoke(endPoints, 'toString');
+            var endPointsKeys = util.toArray(endPoints).reduce(function(res, endPoint) {
+
+                var key = getKey(endPoint);
+                res.push(key);
+                return res;
+            }, []);
 
             // main route finding loop
             var loopsRemaining = opt.maximumLoops;
@@ -490,23 +629,23 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
                 // remove current from the open list
                 var currentKey = openSet.pop();
-                var currentPoint = new g.Point(currentKey);
-                var currentCost = costs[currentKey];
+                var currentPoint = points[currentKey];
                 var currentParent = parents[currentKey];
+                var currentCost = costs[currentKey];
 
                 var isRouteBeginning = (currentParent === undefined); // undefined for route starts
                 var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
 
                 var previousDirectionAngle;
-                if (!isRouteBeginning) previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections); // a vertex on the route
+                if (!isRouteBeginning) previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections, grid, opt); // a vertex on the route
                 else if (!isPathBeginning) previousDirectionAngle = previousRouteDirectionAngle; // beginning of route on the path
-                else if (!isStart) previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections); // beginning of path, start rect point
+                else if (!isStart) previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections, grid, opt); // beginning of path, start rect point
                 else previousDirectionAngle = null; // beginning of path, source anchor or `from` point
 
                 // check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
                     opt.previousDirectionAngle = previousDirectionAngle;
-                    return reconstructRoute(parents, currentPoint, start, end);
+                    return reconstructRoute(parents, points, currentPoint, start, end, opt);
                 }
 
                 // go over all possible directions and find neighbors
@@ -518,23 +657,25 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
                     // if the direction changed rapidly, don't use this point
                     // any direction is allowed for starting points
-                    if (!(isPathBeginning && isStart) && directionChange > maxAllowedDirectionChange) continue;
+                    if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) continue;
 
-                    var neighborPoint = currentPoint.clone().offset(direction.offsetX, direction.offsetY);
-                    var neighborKey = neighborPoint.toString();
+                    var neighborPoint = currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY);
+                    var neighborKey = getKey(neighborPoint);
 
                     // Closed points from the openSet were already evaluated.
                     if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) continue;
 
                     // We can only enter end points at an acceptable angle.
                     if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
+                        round(neighborPoint, opt); // remove rounding errors
+
                         var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
 
                         if (!isNeighborEnd) {
-                            var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections);
+                            var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections, grid, opt);
                             var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
 
-                            if (endDirectionChange > maxAllowedDirectionChange) continue;
+                            if (endDirectionChange > opt.maxAllowedDirectionChange) continue;
                         }
                     }
 
@@ -548,6 +689,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                         // neighbor point has not been processed yet
                         // or the cost of the path from start is lower than previously calculated
 
+                        points[neighborKey] = neighborPoint;
                         parents[neighborKey] = currentPoint;
                         costs[neighborKey] = costFromStart;
                         openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
@@ -597,7 +739,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
         var oldVertices = util.toArray(vertices).map(g.Point);
         var newVertices = [];
-        var tailPoint = sourceAnchor.clone().snapToGrid(opt.step);
+        var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
 
         // find a route by concatenating all partial routes (routes need to pass through vertices)
         // source -> vertex[1] -> ... -> vertex[n] -> target

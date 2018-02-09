@@ -44,19 +44,19 @@ QUnit.module('routers', function(hooks) {
 
         this.graph.addCell(l0);
 
-        assert.equal(this.graph.getLinks().length, 1, 'An orthogonal link was succesfully added to the graph');
+        assert.equal(this.graph.getLinks().length, 1, 'An orthogonal link was successfully added to the graph');
 
         var l1 = l0.clone().set('router', { name: 'manhattan' });
 
         this.graph.addCell(l1);
 
-        assert.equal(this.graph.getLinks().length, 2, 'A manhattan link was succesfully added to the graph');
+        assert.equal(this.graph.getLinks().length, 2, 'A manhattan link was successfully added to the graph');
 
         var l2 = l0.clone().set('router', { name: 'metro' });
 
         this.graph.addCell(l2);
 
-        assert.equal(this.graph.getLinks().length, 3, 'A metro link was succesfully added to the graph');
+        assert.equal(this.graph.getLinks().length, 3, 'A metro link was successfully added to the graph');
 
     });
 
@@ -163,13 +163,13 @@ QUnit.module('routers', function(hooks) {
 
         var d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 80 L 300 80 L 300 120 L 600 120 L 600 80 L 620 80', 'Route avoids an obstacle.');
+        assert.checkDataPath(d, 'M 140 70 L 300 70 L 300 10 L 600 10 L 600 70 L 620 70', 'Route avoids an obstacle.');
 
         r1.translate(0, 50);
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 120 L 600 120 L 600 80 L 620 80',
+        assert.checkDataPath(d, 'M 140 120 L 600 120 L 600 70 L 620 70',
             'Source has been moved. Route recalculated starting from target.');
 
         r3.translate(0, -50);
@@ -245,7 +245,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 80 80 L 80 20 L 20 20 L 20 0 L 600 0 L 600 20 L 620 20',
+        assert.checkDataPath(d, 'M 80 80 L 80 21 L 21 21 L 21 20 L 620 20',
             'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
 
         assert.throws(function() {
@@ -301,7 +301,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 80 L 800 80 L 800 100 L 760 100 L 760 80 L 740 80',
+        assert.checkDataPath(d, 'M 140 70 L 800 70 L 800 80 L 760 80 L 760 70 L 740 70',
             'Set excludeEnds parameter to "target" makes routing ignore target element.');
 
         l0.set({
@@ -319,7 +319,7 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 20 80 L 0 80 L 0 120 L 760 120 L 760 80 L 740 80',
+        assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 10 L 760 10 L 760 70 L 740 70',
             'Set startDirections & endDirections parameters makes routing starts and ends from/to the given direction.');
 
     });
@@ -349,7 +349,7 @@ QUnit.module('routers', function(hooks) {
 
         var d = v0.$('.connection').attr('d');
 
-        assert.checkDataPath(d, 'M 140 80 L 160 80 L 400 320 L 440 320 L 680 560 L 680 630',
+        assert.checkDataPath(d, 'M 140 70 L 160 70 L 400 310 L 440 310 L 680 550 L 680 630',
             'Route avoids an obstacle.');
 
         l0.set('router', {

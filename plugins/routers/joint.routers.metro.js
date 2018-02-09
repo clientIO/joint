@@ -62,7 +62,13 @@ joint.routers.metro = (function(util) {
             var point = intersectionPoint ? intersectionPoint : to;
 
             var directionFrom = intersectionPoint ? point : from;
-            opt.previousDirectionAngle = getDirectionAngle(directionFrom, to, opt.directions.length);
+
+            var quadrant = 360 / opt.directions.length;
+            var angleTheta = directionFrom.theta(to);
+            var normalizedAngle = g.normalizeAngle(angleTheta + (quadrant / 2));
+            var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
+
+            opt.previousDirectionAngle = directionAngle;
 
             if (point) route.push(point.round());
             route.push(to);
@@ -70,12 +76,6 @@ joint.routers.metro = (function(util) {
             return route;
         }
     };
-
-    function getDirectionAngle(start, end, numDirections) {
-
-        var quadrant = 360 / numDirections;
-        return quadrant * Math.floor(g.normalizeAngle(start.theta(end) + (quadrant / 2)) / quadrant);
-    }
 
     // public function
     return function(vertices, opt, linkView) {
