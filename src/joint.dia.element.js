@@ -862,6 +862,11 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     magnet: function (evt, x, y) {
 
+        if (!this.can('addLinkFromMagnet')) return;
+
+        // stop subsequent pointerdown event
+        evt.stopPropagation();
+
         this.model.startBatch('add-link');
 
         var paper = this.paper;
@@ -876,33 +881,28 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             target: { x: x, y: y }
         });
 
-
         link.addTo(paper.model, { async: false });
 
         var linkView = link.findView(paper);
 
-        //linkView.pointerdown(evt, x, y);
-        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
-        linkView.notify('link:pointerdown', evt, x, y);
+        // joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        // linkView.notify('link:pointerdown', evt, x, y);
 
         linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
 
         // TODO: move this to linkView?
-        // add touch events
-        this.delegateDocumentEvents({
+        // add touch events 
+        linkView.delegateDocumentEvents({
             'mousemove': function (evt) {
-                var localPoint = this.paper.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                evt.data.linkView.pointermove(evt, localPoint.x, localPoint.y);
+                this.dragArrowhead.apply(this, this.paper.eventArgs(evt));
             },
             'mouseup': function (evt) {
-                var linkView = evt.data.linkView;
-                var localPoint = this.paper.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                linkView.pointerup(evt, localPoint.x, localPoint.y);
-                this.model.stopBatch('add-link');
+                this.dragArrowheadEnd.apply(this, this.paper.eventArgs(evt));
                 this.undelegateDocumentEvents();
+                evt.data.element.stopBatch('add-link');
             }
         }, {
-            linkView: linkView
+            element: this.model
         });
     }
 

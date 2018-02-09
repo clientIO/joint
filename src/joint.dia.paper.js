@@ -162,8 +162,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         'DOMMouseScroll': 'mousewheel',
         'mousedown .joint-cell [event]': 'event', // interaction with cell with `event` attribute set
         'touchstart .joint-cell [event]': 'event',
-        'mousedown .joint-cell [magnet]': 'magnet', // interaction with cell with `event` attribute set
+        'mousedown .joint-cell [magnet]': 'magnet', // interaction with cell with `magnet` attribute set
         'touchstart .joint-cell [magnet]': 'magnet',
+        'mousedown .joint-link .label': 'label', // interaction with link label
+        'touchstart .joint-link .label': 'label',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
     },
 
@@ -1396,8 +1398,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     event: function(evt) {
 
-        evt = joint.util.normalizeEvent(evt);
-
         var currentTarget = evt.currentTarget;
         var eventName = currentTarget.getAttribute('event');
         if (eventName) {
@@ -1422,14 +1422,29 @@ joint.dia.Paper = joint.mvc.View.extend({
             var view = this.findView(currentTarget);
             if (view) {
                 if (this.guard(evt, view)) return;
-                if (!view.can('addLinkFromMagnet')) return;
                 if (!this.options.validateMagnet(view, currentTarget)) return;
-                // stop subsequent pointerdown event
-                evt.stopPropagation();
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.magnet(evt, localPoint.x, localPoint.y);
+                view.magnet.apply(view, this.eventArgs(evt));
             }
         }
+    },
+
+    label: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var currentTarget = evt.currentTarget;
+        var view = this.findView(currentTarget);
+        if (view) {
+            if (this.guard(evt, view)) return;
+            view.label.apply(view, this.eventArgs(evt));
+        }
+    },
+
+    eventArgs: function(evt) {
+
+        var normalizedEvent = joint.util.normalizeEvent(evt);
+        var localPoint = this.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+        return [normalizedEvent, localPoint.x, localPoint.y];
     },
 
     // Guard the specified event. If the event is not interesting, guard returns `true`.
