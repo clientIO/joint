@@ -371,7 +371,18 @@
         }, {
             tagName: 'text',
             selector: 'label'
-        }]
+        }],
+
+        tilt: function(tilt, opt) {
+            if (tilt === undefined) return this.attr('body/lateralArea');
+            var bodyAttrs = { lateralArea: tilt };
+            var labelAttrs = { refY2: tilt };
+            var topAttrs = (util.isPercentage(tilt))
+                ? { refCy: tilt, refRy: tilt, cy: null, ry: null }
+                : { refCy: null, refRy: null, cy: tilt, ry: tilt };
+            return this.attr({ body: bodyAttrs, label: labelAttrs, top: topAttrs }, opt);
+        }
+
     }, {
         attributes: {
             lateralArea: {
