@@ -374,7 +374,9 @@
         }],
 
         tilt: function(tilt, opt) {
+            // getter
             if (tilt === undefined) return this.attr('body/lateralArea');
+            // setter
             var bodyAttrs = { lateralArea: tilt };
             var labelAttrs = { refY2: tilt };
             var topAttrs = (util.isPercentage(tilt))
@@ -401,11 +403,11 @@
                     var data = [
                         'M', x, yt,
                         'L', x, yb,
-                        'C', x, yb + cy, cx, y + h, w / 2, y + h,
-                        'C', w - cx, y + h, w, yb + cy, w, yb,
-                        'L', w, yt,
-                        'C', w, yt + cy, w / 2 + cx, yt + ry, w / 2, yt + ry,
-                        'C', cx, yt + ry, x, yt + cy, x, yt,
+                        'C', x, yb + cy, x + w / 2 - cx, y + h, x + w / 2, y + h,
+                        'C', x + w / 2 + cx, y + h, x + w, yb + cy, x + w, yb,
+                        'L', x + w, yt,
+                        'C', x + w, yt + cy, x + w / 2 + cx, yt + ry, x + w / 2, yt + ry,
+                        'C', x + w / 2  - cx, yt + ry, x, yt + cy, x, yt,
                         'Z'
                     ];
                     return { d: data.join(' ') };

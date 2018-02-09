@@ -36,6 +36,13 @@
     </tr>
 </table>
 
+<h5 id="shapes.standard.Cylinder.prototype.tilt">shapes.standard.Cylinder.prototype.tilt</h5>
+<pre class="docs-method-signature"><code>cylindeer.tilt()</code></pre>
+<p>Return the current cylinder tilt.</p>
+
+<pre class="docs-method-signature"><code>cylindeer.tilt(tilt, [opt])</code></pre>
+<p>Set the cylinder tilt.</p>
+
 <pre><code>var cylinder = new standard.Cylinder();
 cylinder.resize(100, 200);
 cylinder.position(525, 75);
@@ -43,4 +50,5 @@ cylinder.attr('root/title', 'joint.shapes.standard.Cylinder');
 cylinder.attr('body/fill', 'lightgray');
 cylinder.attr('top/fill', 'gray');
 cylinder.attr('label/text', 'Cylinder');
+cylinder.tilt('10%');
 cylinder.addTo(graph);</code></pre>

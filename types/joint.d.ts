@@ -1029,6 +1029,26 @@ export namespace shapes {
             )
         }
 
+        interface CylinderBodyAttributes extends attributes.SVGPathAttributes {
+            lateralArea?: string | number;
+        }
+
+        interface CylinderSelectors {
+            root?: attributes.SVGAttributes;
+            body?: CylinderBodyAttributes;
+            top?: attributes.SVGEllipseAttributes;
+        }
+
+        class Cylinder extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CylinderSelectors>,
+                opt?: dia.Graph.Options
+            )
+
+            tilt(): string | number;
+            tilt(tilt: string | number, opt?: dia.Cell.Options): this;
+        }
+
         interface TextBlockSelectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
