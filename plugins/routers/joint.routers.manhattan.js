@@ -427,20 +427,21 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         var prevDiff = normalizePoint(to.difference(tailPoint));
 
         var currentKey = getKey(tailPoint);
+        var parent = parents[currentKey];
 
         var point;
-        var parent;
-        while ((parent = round(parents[currentKey], opt))) {
+        while (parent) {
 
             point = round(points[currentKey], opt);
 
-            var diff = normalizePoint(point.difference(parent));
+            var diff = normalizePoint(point.difference(round(parent.clone(), opt)));
             if (!diff.equals(prevDiff)) {
                 route.unshift(point);
                 prevDiff = diff;
             }
 
             currentKey = getKey(parent);
+            parent = parents[currentKey];
         }
 
         var leadPoint = round(points[currentKey], opt);
