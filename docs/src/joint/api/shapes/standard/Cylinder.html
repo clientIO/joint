@@ -18,16 +18,19 @@
         <td><i>SVGPathElement</i></td>
         <td>Lateral area of the cylinder
             <p><i>
-                The shape has a custom attribute <code>lateralArea</code> set to <code>10</code>.
-                The attribute sets the SVGPathElement`s <code>d</code> in the shape of a tilted lateral area.
-                The attribute expects the tilt value. This is either a number or percentage (relatively to the height).
+                The shape has a custom attribute <code>lateralArea</code> set to <code>10</code> by default.
+                The attribute sets the SVGPathElement's <code>d</code> in the shape of the lateral area of a tilted cylinder.
+                The attribute expects a <code>tilt</code> value; either a percentage or a number.
+                The value determines the vertical radius of the exposed area of cylinder base;
+                either relative to shape height, or directly.
+                (Refer to the <code>cylinder.tilt</code> function for more detailed specification.)
             </i></p>
         </td>
     </tr>
     <tr>
         <td>top</td>
         <td><i>SVGEllipseElement</i></td>
-        <td>Top of the cylinder</td>
+        <td>Top of the cylinder (cylinder base)</td>
     </tr>
     <tr>
         <td>label</td>
@@ -38,10 +41,20 @@
 
 <h5 id="shapes.standard.Cylinder.prototype.tilt">shapes.standard.Cylinder.prototype.tilt</h5>
 <pre class="docs-method-signature"><code>cylinder.tilt()</code></pre>
-<p>Return the current cylinder tilt.</p>
+<p>Return the current cylinder tilt (the value of the <code>body/lateralArea</code> attribute; <code>10</code> by default).</p>
 
 <pre class="docs-method-signature"><code>cylinder.tilt(tilt, [opt])</code></pre>
 <p>Set the cylinder tilt.</p>
+
+<p>If the value provided is a percentage, it determines the vertical radius of the visible area of cylinder base, relative to the height of the <code>refBBox</code> of the shape. If the value is between <code>'0%'</code> and <code>'50%'</code>, the top base of the cylinder is exposed. If the value is between <code>'50%'</code> and <code>'100%'</code>, the bottom base of the cylinder is exposed. Values lower than <code>'0%'</code> and higher than <code>'100%'</code> are wrapped around to the 0-100 range.</p>
+
+<p>If the value provided is a number, it directly determines the vertical radius of the visible area of cylinder base. If the value is between <code>0</code> and half of <code>refBBox</code> height, the top base of the cylinder is exposed. If the value is between half of <code>refBBox</code> height and its full height, the bottom base of the cylinder is exposed. Values outside the range are wrapped around to the accepted range.</p>
+
+<p>Cycling through values <code>'0%'</code> to <code>'100%'</code> (or corresponding non-relative values) produces an appearance of a cylinder rotating by 180 degrees around the y-axis. All special cases are covered; at <code>'0%'</code> and <code>'100%'</code>, a side view of the cylinder is presented - a rectangle. At <code>'50%'</code>, a top-down view of the cylinder is presented - an ellipse.</p>
+
+<p>The function automatically sets the value of several attributes: <code>body/lateralArea</code>; <code>top/ry</code>, <code>top/cy</code>, <code>top/refRy</code> and <code>top/refCy</code>; and <code>label/refY</code> and <code>label/refY2</code>. If custom values are required for these arguments, make sure to assign them only after cylinder tilt is set.</p>
+
+<p>Example usage:</p>
 
 <pre><code>var cylinder = new standard.Cylinder();
 cylinder.resize(100, 200);
@@ -51,4 +64,8 @@ cylinder.attr('body/fill', 'lightgray');
 cylinder.attr('top/fill', 'gray');
 cylinder.attr('label/text', 'Cylinder');
 cylinder.tilt('10%');
+// custom label position:
+cylinder.attr('label/refY', '100%');
+cylinder.attr('label/refY2', 10);
+cylinder.attr('label/textVerticalAnchor', 'top');
 cylinder.addTo(graph);</code></pre>
