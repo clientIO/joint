@@ -374,14 +374,54 @@
         }],
 
         tilt: function(tilt, opt) {
-            // getter
+            // GETTER
             if (tilt === undefined) return this.attr('body/lateralArea');
-            // setter
+
+            // SETTER
+            var h = this.get('size').height;
+            var isPercentage = util.isPercentage(tilt);
+            var rawTilt = isPercentage ? (parseFloat(tilt) % 100) : (tilt % h);
+            tilt = isPercentage
+                ? (((((rawTilt < 0) ? 100 : 0) + rawTilt) % 100) + '%')
+                : ((((rawTilt < 0) ? h : 0) + rawTilt) % h);
+
+            // convert from percentages if necessary
+            var t = isPercentage ? (parseFloat(tilt) / 100) : tilt;
+            var rawDiffT = isPercentage ? (t - 0.5) : (t - (h / 2));
+            var diffT = Math.abs(rawDiffT);
+            var reversedT = isPercentage ? (0.5 - diffT) : ((h / 2) - diffT);
+
+            var isReversed = (rawDiffT > 0);
+            var isMostlyTop = diffT < (isPercentage ? 0.25 : (h / 4));
+
+            // convert to percentages if necessary
+            var diffTilt = isPercentage ? (diffT * 100) + '%' : diffT;
+            var reversedTilt = isPercentage
+                ? ((reversedT * 100) + '%')
+                : reversedT;
+
+            // has own tilt logic
             var bodyAttrs = { lateralArea: tilt };
-            var labelAttrs = { refY2: tilt };
-            var topAttrs = (util.isPercentage(tilt))
-                ? { refCy: tilt, refRy: tilt, cy: null, ry: null }
-                : { refCy: null, refRy: null, cy: tilt, ry: tilt };
+
+            // label moves to top area if lateral area becomes too small (25% - 75%)
+            var labelAttrs = isMostlyTop
+                ? (isReversed
+                    ? { refY: '50%', refY2: diffTilt}
+                    : { refY: tilt, refY2: 0 })
+                : (isReversed
+                    ? { refY: diffTilt, refY2: 0 }
+                    : { refY: '50%', refY2: tilt });
+
+            // the bottom of the cylinder becomes exposed if tilt goes past 50%
+            var topAttrs = isPercentage
+                ? (isReversed
+                    ? { refCy: tilt, refRy: reversedTilt, cy: null, ry: null }
+                    : { refCy: tilt, refRy: tilt, cy: null, ry: null })
+                : (isReversed
+                    ? { refCy: null, refRy: null, cy: tilt, ry: reversedTilt }
+                    : { refCy: null, refRy: null, cy: tilt, ry: tilt });
+
+            // return updated this
             return this.attr({ body: bodyAttrs, label: labelAttrs, top: topAttrs }, opt);
         }
 
@@ -393,21 +433,60 @@
                     var y = refBBox.y;
                     var w = refBBox.width;
                     var h = refBBox.height;
-                    var ry = (util.isPercentage(tilt)) ? h * parseFloat(tilt) / 100 : tilt;
+
+                    // tilt calculations
+                    var isPercentage = util.isPercentage(tilt);
+                    var rawTilt = isPercentage ? (parseFloat(tilt) % 100) : (tilt % h);
+                    tilt = isPercentage
+                        ? (((((rawTilt < 0) ? 100 : 0) + rawTilt) % 100) + '%')
+                        : ((((rawTilt < 0) ? h : 0) + rawTilt) % h);
+
+                    var t = isPercentage ? (parseFloat(tilt) / 100) : tilt;
+                    var rawDiffT = isPercentage ? (t - 0.5) : (t - (h / 2));
+                    var diffT = Math.abs(rawDiffT);
+                    var reversedT = isPercentage ? (0.5 - diffT) : ((h / 2) - diffT);
+
+                    var isReversed = (rawDiffT > 0);
+
+                    // curve control point variables
                     var rx = w / 2;
-                    var yt = x + ry;
-                    var yb = y + h - ry;
+                    var ry = isPercentage
+                        ? (isReversed
+                            ? h * reversedT
+                            : h * t)
+                        : (isReversed
+                            ? reversedT
+                            : t);
+
                     var kappa = V.KAPPA;
-                    var cx = rx * kappa;
-                    var cy = ry * kappa;
+                    var cx = kappa * rx;
+                    var cy = kappa * (isPercentage
+                        ? (isReversed
+                            ? (h * -reversedT)
+                            : (h * t))
+                        : (isReversed
+                            ? -reversedT
+                            : t));
+
+                    // shape variables
+                    var xLeft = x;
+                    var xCenter = x + (w / 2);
+                    var xRight = x + w;
+
+                    var ySideTop = isReversed ? (y + h - ry) : (y + ry);
+                    var yCurveTop = isReversed ? (ySideTop - ry) : (ySideTop + ry);
+                    var ySideBottom = isReversed ? (y + ry) : (y + h - ry);
+                    var yCurveBottom = isReversed ? (y) : (y + h);
+
+                    // return calculated shape
                     var data = [
-                        'M', x, yt,
-                        'L', x, yb,
-                        'C', x, yb + cy, x + w / 2 - cx, y + h, x + w / 2, y + h,
-                        'C', x + w / 2 + cx, y + h, x + w, yb + cy, x + w, yb,
-                        'L', x + w, yt,
-                        'C', x + w, yt + cy, x + w / 2 + cx, yt + ry, x + w / 2, yt + ry,
-                        'C', x + w / 2  - cx, yt + ry, x, yt + cy, x, yt,
+                        'M', xLeft, ySideTop,
+                        'L', xLeft, ySideBottom,
+                        'C', x, (ySideBottom + cy), (xCenter - cx), yCurveBottom, xCenter, yCurveBottom,
+                        'C', (xCenter + cx), yCurveBottom, xRight, (ySideBottom + cy), xRight, ySideBottom,
+                        'L', xRight, ySideTop,
+                        'C', xRight, (ySideTop + cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
+                        'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop + cy), xLeft, ySideTop,
                         'Z'
                     ];
                     return { d: data.join(' ') };
