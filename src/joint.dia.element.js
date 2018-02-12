@@ -819,12 +819,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         data = evt.data || (evt.data = {});
         data.dx = g.snapToGrid(x, grid);
         data.dy = g.snapToGrid(y, grid);
-        data.embedding = embedding;
+        if (embedding) data.onpointerup = this.finalizeEmbedding;
     },
 
     pointerup: function(evt, x, y) {
 
-        if (evt.data && evt.data.embedding) this.finalizeEmbedding();
+        var data = evt.data;
+        if (data && typeof data.onpointerup === 'function') data.onpointerup.call(this);
 
         this.notify('element:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
@@ -885,25 +886,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var linkView = link.findView(paper);
 
-        // joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
-        // linkView.notify('link:pointerdown', evt, x, y);
-
+        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        linkView.notify('link:pointerdown', evt, x, y);
         linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
 
-        // TODO: move this to linkView?
-        // add touch events 
-        linkView.delegateDocumentEvents({
-            'mousemove': function (evt) {
-                this.dragArrowhead.apply(this, this.paper.eventArgs(evt));
-            },
-            'mouseup': function (evt) {
-                this.dragArrowheadEnd.apply(this, this.paper.eventArgs(evt));
-                this.undelegateDocumentEvents();
-                evt.data.element.stopBatch('add-link');
-            }
-        }, {
-            element: this.model
+        this.paper.delegateDocumentEvents(null, {
+            sourceView: linkView,
+            onpointerup: this.magnetpointerup.bind(this)
         });
+    },
+
+    magnetpointerup: function() {
+        this.model.stopBatch('add-link');
     }
 
 });
