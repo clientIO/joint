@@ -378,7 +378,7 @@
             if (t === undefined) return this.attr('body/lateralArea');
 
             // setter
-            var isPercentage = joint.util.isPercentage(t);
+            var isPercentage = util.isPercentage(t);
 
             var bodyAttrs = { lateralArea: t };
             var topAttrs = isPercentage
@@ -392,7 +392,7 @@
         attributes: {
             lateralArea: {
                 set: function(t, refBBox) {
-                    var isPercentage = joint.util.isPercentage(t);
+                    var isPercentage = util.isPercentage(t);
                     if (isPercentage) t = parseFloat(t) / 100;
 
                     var x = refBBox.x;
