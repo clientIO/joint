@@ -1045,8 +1045,8 @@ export namespace shapes {
                 opt?: dia.Graph.Options
             )
 
-            tilt(): string | number;
-            tilt(tilt: string | number, opt?: dia.Cell.Options): this;
+            topRy(): string | number;
+            topRy(t: string | number, opt?: dia.Cell.Options): this;
         }
 
         interface TextBlockSelectors {
