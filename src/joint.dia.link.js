@@ -23,21 +23,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>'
     ].join(''),
 
-    toolMarkup: [
-        '<g class="link-tool">',
-        '<g class="tool-remove" event="remove">',
-        '<circle r="11" />',
-        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" />',
-        '<title>Remove link.</title>',
-        '</g>',
-        '<g class="tool-options" event="link:options">',
-        '<circle r="11" transform="translate(25)"/>',
-        '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
-        '<title>Link options.</title>',
-        '</g>',
-        '</g>'
-    ].join(''),
-
     // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
     // dragging vertices (changin their position). The latter is used for removing vertices.
@@ -54,6 +39,21 @@ joint.dia.Link = joint.dia.Cell.extend({
     arrowheadMarkup: [
         '<g class="marker-arrowhead-group marker-arrowhead-group-<%= end %>">',
         '<path class="marker-arrowhead" end="<%= end %>" d="M 26 0 L 0 13 L 26 26 z" />',
+        '</g>'
+    ].join(''),
+
+    toolMarkup: [
+        '<g class="link-tool">',
+        '<g class="tool-remove" event="remove">',
+        '<circle r="11" />',
+        '<path transform="scale(.8) translate(-16, -16)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z" />',
+        '<title>Remove link.</title>',
+        '</g>',
+        '<g class="tool-options" event="link:options">',
+        '<circle r="11" transform="translate(25)"/>',
+        '<path fill="white" transform="scale(.55) translate(29, -16)" d="M31.229,17.736c0.064-0.571,0.104-1.148,0.104-1.736s-0.04-1.166-0.104-1.737l-4.377-1.557c-0.218-0.716-0.504-1.401-0.851-2.05l1.993-4.192c-0.725-0.91-1.549-1.734-2.458-2.459l-4.193,1.994c-0.647-0.347-1.334-0.632-2.049-0.849l-1.558-4.378C17.165,0.708,16.588,0.667,16,0.667s-1.166,0.041-1.737,0.105L12.707,5.15c-0.716,0.217-1.401,0.502-2.05,0.849L6.464,4.005C5.554,4.73,4.73,5.554,4.005,6.464l1.994,4.192c-0.347,0.648-0.632,1.334-0.849,2.05l-4.378,1.557C0.708,14.834,0.667,15.412,0.667,16s0.041,1.165,0.105,1.736l4.378,1.558c0.217,0.715,0.502,1.401,0.849,2.049l-1.994,4.193c0.725,0.909,1.549,1.733,2.459,2.458l4.192-1.993c0.648,0.347,1.334,0.633,2.05,0.851l1.557,4.377c0.571,0.064,1.148,0.104,1.737,0.104c0.588,0,1.165-0.04,1.736-0.104l1.558-4.377c0.715-0.218,1.399-0.504,2.049-0.851l4.193,1.993c0.909-0.725,1.733-1.549,2.458-2.458l-1.993-4.193c0.347-0.647,0.633-1.334,0.851-2.049L31.229,17.736zM16,20.871c-2.69,0-4.872-2.182-4.872-4.871c0-2.69,2.182-4.872,4.872-4.872c2.689,0,4.871,2.182,4.871,4.872C20.871,18.689,18.689,20.871,16,20.871z"/>',
+        '<title>Link options.</title>',
+        '</g>',
         '</g>'
     ].join(''),
 
@@ -77,13 +77,69 @@ joint.dia.Link = joint.dia.Cell.extend({
         }, opt);
     },
 
+    source: function(element, opt) {
+
+        // getter
+        if (element === undefined) return this.get('source');
+        // setter
+        return this.set('source', element, opt);
+    },
+
+    target: function(element, opt) {
+
+        // getter
+        if (element === undefined) return this.get('target');
+        // setter
+        return this.set('target', element, opt);
+    },
+
+    parent: function() {
+
+        // only getter
+        return this.get('parent');
+    },
+
+    // Labels API
+
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
     label: function(idx, value, opt) {
 
-        idx || (idx = 0);
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
         // Is it a getter?
         if (arguments.length <= 1) return this.prop(['labels', idx]);
         return this.prop(['labels', idx], value, opt);
+    },
+
+    labels: function (labels, opt) {
+
+        // Getter
+        if (arguments.length === 0) {
+            labels = this.get('labels');
+            if (!Array.isArray(labels)) return [];
+            return labels.slice();
+        }
+        // Setter
+        if (!Array.isArray(labels)) labels = [];
+        return this.set('labels', labels, opt);
+    },
+
+    addLabel: function (idx, value, opt) {
+
+        var labels = this.labels();
+        var n = labels.length;
+        value || (value = { x: 0, y: 0 });
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+        if (idx < 0) idx = n + idx + 1;
+        labels.splice(idx, 0, value);
+        return this.label(labels, opt);
+    },
+
+    removeLabel: function (idx, opt) {
+
+        var labels = this.labels();
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+        labels.splice(idx, 1);
+        return this.labels(labels, opt);
     },
 
     // Vertices API
@@ -97,6 +153,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     vertices: function (vertices, opt) {
+
         // Getter
         if (arguments.length === 0) {
             vertices = this.get('vertices');
@@ -157,12 +214,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var attrs = {};
 
-        var source = this.get('source');
+        var source = this.source();
         if (!source.id) {
             attrs.source = fn(source);
         }
 
-        var target = this.get('target');
+        var target = this.target();
         if (!target.id) {
             attrs.target = fn(target);
         }
@@ -181,9 +238,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var source = this.graph.getCell(this.get('source').id);
-            var target = this.graph.getCell(this.get('target').id);
-            var prevParent = this.graph.getCell(this.get('parent'));
+            var source = this.graph.getCell(this.source().id);
+            var target = this.graph.getCell(this.target().id);
+            var prevParent = this.graph.getCell(this.parent());
 
             if (source && target) {
                 newParent = this.graph.getCommonAncestor(source, target);
@@ -207,8 +264,8 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        var sourceId = this.get('source').id;
-        var targetId = this.get('target').id;
+        var sourceId = this.source().id;
+        var targetId = this.target().id;
 
         if (!sourceId || !targetId) {
             // Link "pinned" to the paper does not have a loop.
@@ -231,17 +288,19 @@ joint.dia.Link = joint.dia.Cell.extend({
         return loop;
     },
 
+    // unlike source(), this method returns null if source is a point
     getSourceElement: function() {
 
-        var source = this.get('source');
+        var source = this.source();
         var graph = this.graph;
 
         return (source && source.id && graph && graph.getCell(source.id)) || null;
     },
 
+    // unlike target(), this method returns null if target is a point
     getTargetElement: function() {
 
-        var target = this.get('target');
+        var target = this.target();
         var graph = this.graph;
 
         return (target && target.id && graph && graph.getCell(target.id)) || null;
@@ -364,7 +423,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // or when an embedded link is translated by its ancestor.
         // 1. Always do update.
         // 2. Do update only if the opposite end ('target') is also a point.
-        if (!opt.translateBy || !this.model.get('target').id) {
+        if (!opt.translateBy || !this.model.target().id) {
             opt.updateConnectionOnly = true;
             this.update(this.model, null, opt);
         }
@@ -453,8 +512,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderLabels();
         // start watching the ends of the link for changes
         var model = this.model;
-        this.watchSource(model, model.get('source'))
-            .watchTarget(model, model.get('target'))
+        this.watchSource(model, model.source())
+            .watchTarget(model, model.target())
             .update();
 
         return this;
@@ -776,13 +835,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var firstVertex = verticesArr[0];
 
         sourcePoint = this.getConnectionPoint(
-            'source', this.model.get('source'), firstVertex || this.model.get('target')
+            'source', this.model.source(), firstVertex || this.model.target()
         ).round();
 
         var lastVertex = verticesArr[verticesArr.length - 1];
 
         targetPoint = this.getConnectionPoint(
-            'target', this.model.get('target'), lastVertex || sourcePoint
+            'target', this.model.target(), lastVertex || sourcePoint
         ).round();
 
         // Move the source point by the width of the marker taking into account
@@ -1105,9 +1164,29 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
+    // This method adds a new label at calculated index to the `labels` array. This method
+    // uses a heuristic to find the index at which the new `label` should be placed, assuming
+    // that the new label is somewhere on the path.
+    addLabel: function(label, opt) {
+
+        var link = this.model;
+        var labels = link.labels();
+        var labelLength = this.getClosestPointLength(label);
+        var idx = 0;
+
+        for (var n = labels.length; idx < n; idx++) {
+            var currentLabel = labels[idx];
+            var currentLabelLength = this.getClosestPointLength(currentLabel);
+            if (labelLength < currentLabelLength) break;
+        }
+
+        link.addLabel(idx, label, opt);
+        return idx;
+    },
+
     // This method adds a new vertex at calculated index to the `vertices` array. This method
-    // uses a heuristic to find the index at which the new `vertex` should be placed at assuming
-    // the new vertex is somewhere on the path.
+    // uses a heuristic to find the index at which the new `vertex` should be placed, assuming
+    // that the new vertex is somewhere on the path.
     addVertex: function(vertex, opt) {
 
         var link = this.model;
