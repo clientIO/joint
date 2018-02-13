@@ -355,8 +355,8 @@
                 textVerticalAnchor: 'middle',
                 textAnchor: 'middle',
                 refX: '50%',
-                refY: '50%',
-                refY2: CYLINDER_TILT,
+                refY: '100%',
+                refY2: 15,
                 fontSize: 14,
                 fill: '#333333'
             }
@@ -371,30 +371,62 @@
         }, {
             tagName: 'text',
             selector: 'label'
-        }]
+        }],
+
+        topRy: function(t, opt) {
+            // getter
+            if (t === undefined) return this.attr('body/lateralArea');
+
+            // setter
+            var isPercentage = util.isPercentage(t);
+
+            var bodyAttrs = { lateralArea: t };
+            var topAttrs = isPercentage
+                ? { refCy: t, refRy: t, cy: null, ry: null }
+                : { refCy: null, refRy: null, cy: t, ry: t };
+
+            return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
+        }
+
     }, {
         attributes: {
             lateralArea: {
-                set: function(tilt, refBBox) {
+                set: function(t, refBBox) {
+                    var isPercentage = util.isPercentage(t);
+                    if (isPercentage) t = parseFloat(t) / 100;
+
                     var x = refBBox.x;
                     var y = refBBox.y;
                     var w = refBBox.width;
                     var h = refBBox.height;
-                    var ry = (util.isPercentage(tilt)) ? h * parseFloat(tilt) / 100 : tilt;
+
+                    // curve control point variables
                     var rx = w / 2;
-                    var yt = x + ry;
-                    var yb = y + h - ry;
+                    var ry = isPercentage ? (h * t) : t;
+
                     var kappa = V.KAPPA;
-                    var cx = rx * kappa;
-                    var cy = ry * kappa;
+                    var cx = kappa * rx;
+                    var cy = kappa * (isPercentage ? (h * t) : t);
+
+                    // shape variables
+                    var xLeft = x;
+                    var xCenter = x + (w / 2);
+                    var xRight = x + w;
+
+                    var ySideTop = y + ry;
+                    var yCurveTop = ySideTop + ry;
+                    var ySideBottom = y + h - ry;
+                    var yCurveBottom = y + h;
+
+                    // return calculated shape
                     var data = [
-                        'M', x, yt,
-                        'L', x, yb,
-                        'C', x, yb + cy, cx, y + h, w / 2, y + h,
-                        'C', w - cx, y + h, w, yb + cy, w, yb,
-                        'L', w, yt,
-                        'C', w, yt + cy, w / 2 + cx, yt + ry, w / 2, yt + ry,
-                        'C', cx, yt + ry, x, yt + cy, x, yt,
+                        'M', xLeft, ySideTop,
+                        'L', xLeft, ySideBottom,
+                        'C', x, (ySideBottom + cy), (xCenter - cx), yCurveBottom, xCenter, yCurveBottom,
+                        'C', (xCenter + cx), yCurveBottom, xRight, (ySideBottom + cy), xRight, ySideBottom,
+                        'L', xRight, ySideTop,
+                        'C', xRight, (ySideTop + cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
+                        'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop + cy), xLeft, ySideTop,
                         'Z'
                     ];
                     return { d: data.join(' ') };
