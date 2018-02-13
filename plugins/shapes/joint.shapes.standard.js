@@ -373,110 +373,50 @@
             selector: 'label'
         }],
 
-        tilt: function(tilt, opt) {
-            // GETTER
-            if (tilt === undefined) return this.attr('body/lateralArea');
+        topRy: function(t, opt) {
+            // getter
+            if (t === undefined) return this.attr('body/lateralArea');
 
-            // SETTER
-            var h = this.get('size').height;
-            var isPercentage = util.isPercentage(tilt);
-            var rawTilt = isPercentage ? (parseFloat(tilt) % 100) : (tilt % h);
-            tilt = isPercentage
-                ? (((((rawTilt < 0) ? 100 : 0) + rawTilt) % 100) + '%')
-                : ((((rawTilt < 0) ? h : 0) + rawTilt) % h);
+            // setter
+            var isPercentage = joint.util.isPercentage(t);
 
-            // convert from percentages if necessary
-            var t = isPercentage ? (parseFloat(tilt) / 100) : tilt;
-            var rawDiffT = isPercentage ? (t - 0.5) : (t - (h / 2));
-            var diffT = Math.abs(rawDiffT);
-            var reversedT = isPercentage ? (0.5 - diffT) : ((h / 2) - diffT);
-
-            var isReversed = (rawDiffT > 0);
-            var isMostlyTop = diffT < (isPercentage ? 0.25 : (h / 4));
-
-            // convert to percentages if necessary
-            var diffTilt = isPercentage ? (diffT * 100) + '%' : diffT;
-            var reversedTilt = isPercentage
-                ? ((reversedT * 100) + '%')
-                : reversedT;
-
-            // has own tilt logic
-            var bodyAttrs = { lateralArea: tilt };
-
-            // label moves to top area if lateral area becomes too small (25% - 75%)
-            var labelAttrs = isMostlyTop
-                ? (isReversed
-                    ? { refY: '50%', refY2: diffTilt}
-                    : { refY: tilt, refY2: 0 })
-                : (isReversed
-                    ? { refY: diffTilt, refY2: 0 }
-                    : { refY: '50%', refY2: tilt });
-
-            // the bottom of the cylinder becomes exposed if tilt goes past 50%
+            var bodyAttrs = { lateralArea: t };
             var topAttrs = isPercentage
-                ? (isReversed
-                    ? { refCy: tilt, refRy: reversedTilt, cy: null, ry: null }
-                    : { refCy: tilt, refRy: tilt, cy: null, ry: null })
-                : (isReversed
-                    ? { refCy: null, refRy: null, cy: tilt, ry: reversedTilt }
-                    : { refCy: null, refRy: null, cy: tilt, ry: tilt });
+                ? { refCy: t, refRy: t, cy: null, ry: null }
+                : { refCy: null, refRy: null, cy: t, ry: t };
 
-            // return updated this
-            return this.attr({ body: bodyAttrs, label: labelAttrs, top: topAttrs }, opt);
+            return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
         }
 
     }, {
         attributes: {
             lateralArea: {
-                set: function(tilt, refBBox) {
+                set: function(t, refBBox) {
+                    var isPercentage = joint.util.isPercentage(t);
+                    if (isPercentage) t = parseFloat(t) / 100;
+
                     var x = refBBox.x;
                     var y = refBBox.y;
                     var w = refBBox.width;
                     var h = refBBox.height;
 
-                    // tilt calculations
-                    var isPercentage = util.isPercentage(tilt);
-                    var rawTilt = isPercentage ? (parseFloat(tilt) % 100) : (tilt % h);
-                    tilt = isPercentage
-                        ? (((((rawTilt < 0) ? 100 : 0) + rawTilt) % 100) + '%')
-                        : ((((rawTilt < 0) ? h : 0) + rawTilt) % h);
-
-                    var t = isPercentage ? (parseFloat(tilt) / 100) : tilt;
-                    var rawDiffT = isPercentage ? (t - 0.5) : (t - (h / 2));
-                    var diffT = Math.abs(rawDiffT);
-                    var reversedT = isPercentage ? (0.5 - diffT) : ((h / 2) - diffT);
-
-                    var isReversed = (rawDiffT > 0);
-
                     // curve control point variables
                     var rx = w / 2;
-                    var ry = isPercentage
-                        ? (isReversed
-                            ? h * reversedT
-                            : h * t)
-                        : (isReversed
-                            ? reversedT
-                            : t);
+                    var ry = isPercentage ? (h * t) : t;
 
                     var kappa = V.KAPPA;
                     var cx = kappa * rx;
-                    var cy = kappa * (isPercentage
-                        ? (isReversed
-                            ? (h * -reversedT)
-                            : (h * t))
-                        : (isReversed
-                            ? -reversedT
-                            : t));
+                    var cy = kappa * (isPercentage ? (h * t) : t);
 
                     // shape variables
                     var xLeft = x;
                     var xCenter = x + (w / 2);
                     var xRight = x + w;
 
-                    var ySideTop = isReversed ? (y + h - ry) : (y + ry);
-                    var yCurveTop = isReversed ? (ySideTop - ry) : (ySideTop + ry);
-                    var ySideBottom = isReversed ? (y + ry) : (y + h - ry);
-                    var yCurveBottom = isReversed ? (y) : (y + h);
+                    var ySideTop = y + ry;
+                    var yCurveTop = ySideTop + ry;
+                    var ySideBottom = y + h - ry;
+                    var yCurveBottom = y + h;
 
                     // return calculated shape
                     var data = [
