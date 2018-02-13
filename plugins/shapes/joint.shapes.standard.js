@@ -355,8 +355,8 @@
                 textVerticalAnchor: 'middle',
                 textAnchor: 'middle',
                 refX: '50%',
-                refY: '50%',
-                refY2: CYLINDER_TILT,
+                refY: '100%',
+                refY2: 15,
                 fontSize: 14,
                 fill: '#333333'
             }
