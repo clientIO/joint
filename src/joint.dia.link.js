@@ -367,7 +367,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         longLinkLength: 160,
         linkToolsOffset: 40,
         doubleLinkToolsOffset: 60,
-        sampleInterval: 50
+        sampleInterval: 50,
+
+        // Default attributes to maintain backwards compatibility
+        labelAttrs: {
+            text: {
+                textAnchor: 'middle',
+                fontSize: 14,
+                fill: '#000000',
+                pointerEvents: 'none',
+                yAlignment: 'middle'
+            },
+            rect: {
+                ref: 'text',
+                fill: '#ffffff',
+                rx: 3,
+                ry: 3,
+                refWidth: 1,
+                refHeight: 1,
+                refX: 0,
+                refY: 0
+            }
+        }
     },
 
     _z: null,
@@ -633,26 +654,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             var labelAttrs = label.attrs;
             if (!label.markup) {
-                // Default attributes to maintain backwards compatibility
-                labelAttrs = joint.util.merge({
-                    text: {
-                        textAnchor: 'middle',
-                        fontSize: 14,
-                        fill: '#000000',
-                        pointerEvents: 'none',
-                        yAlignment: 'middle'
-                    },
-                    rect: {
-                        ref: 'text',
-                        fill: '#ffffff',
-                        rx: 3,
-                        ry: 3,
-                        refWidth: 1,
-                        refHeight: 1,
-                        refX: 0,
-                        refY: 0
-                    }
-                }, labelAttrs);
+                labelAttrs = joint.util.merge(this.options.labelAttrs, labelAttrs);
             }
 
             this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {

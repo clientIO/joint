@@ -1,3 +1,5 @@
+// Demo with orange elements
+
 var graph = new joint.dia.Graph;
 
 var paper = new joint.dia.Paper({
@@ -14,11 +16,20 @@ var paper = new joint.dia.Paper({
                 this.addVertex({ x: x, y: y });
             }
         },
-        options: _.extend({}, joint.dia.LinkView.prototype.options, {
+        options: _.defaultsDeep({ // to extend default label attrs
+            doubleLinkTools: true,
+            linkToolsOffset: 40,
+            doubleLinkToolsOffset: 60,
+
+            labelAttrs: { text: { fill: '#ff0000' }}
+        }, joint.dia.LinkView.prototype.options)
+        /*options: _.defaults({ // to remove default label attrs
             doubleLinkTools: true,
             linkToolsOffset: 40,
             doubleLinkToolsOffset: 60
-        })
+
+            labelAttrs: {}
+        }, joint.dia.LinkView.prototype.options)*/
     }),
     interactive: function(cellView) {
         if (cellView.model.get('vertexOnDblClick')) {

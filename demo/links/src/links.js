@@ -1,10 +1,22 @@
+// Demo with fancy link labels
+
 var graph = new joint.dia.Graph();
+
 var paper = new joint.dia.Paper({
+
     el: $('#paper'),
     width: 800,
     height: 600,
     model: graph,
-    gridSize: 1
+    gridSize: 1,
+    linkView: joint.dia.LinkView.extend({
+        options: _.defaultsDeep({ // to extend default label attrs
+            labelAttrs: { text: { fill: '#ff0000' }}
+        }, joint.dia.LinkView.prototype.options)
+        /*options: _.defaults({ // to remove default label attrs
+            labelAttrs: {}
+        }, joint.dia.LinkView.prototype.options)*/
+    })
 });
 
 var link = new joint.dia.Link({
@@ -61,7 +73,8 @@ link3.attr({
 var link4 = new joint.dia.Link({
     source: { x: 400, y: 20 },
     target: { x: 740, y: 20 },
-    vertices: [{ x: 400, y: 60 }, { x: 550, y: 60 }, { x: 550, y: 20 }],
+    router: { name: 'orthogonal' },
+    vertices: [{ x: 500, y: 60 }, { x: 550, y: 40 }],
     attrs: {}
 });
 
