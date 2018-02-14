@@ -16,20 +16,22 @@ var paper = new joint.dia.Paper({
                 this.addVertex({ x: x, y: y });
             }
         },
-        options: _.defaultsDeep({ // to extend default label attrs
-            doubleLinkTools: true,
-            linkToolsOffset: 40,
-            doubleLinkToolsOffset: 60,
+        options: joint.util.merge({}, joint.dia.LinkView.prototype.options, {
+            // to extend default label attrs
+            labelAttrs: { text: { fill: '#ff0000' }},
 
-            labelAttrs: { text: { fill: '#ff0000' }}
-        }, joint.dia.LinkView.prototype.options)
-        /*options: _.defaults({ // to remove default label attrs
             doubleLinkTools: true,
             linkToolsOffset: 40,
             doubleLinkToolsOffset: 60
+        })
+        /*options: joint.util.extend({}, joint.dia.LinkView.prototype.options, {
+            // to remove default label attrs
+            labelAttrs: {},
 
-            labelAttrs: {}
-        }, joint.dia.LinkView.prototype.options)*/
+            doubleLinkTools: true,
+            linkToolsOffset: 40,
+            doubleLinkToolsOffset: 60
+        })*/
     }),
     interactive: function(cellView) {
         if (cellView.model.get('vertexOnDblClick')) {

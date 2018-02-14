@@ -10,12 +10,14 @@ var paper = new joint.dia.Paper({
     model: graph,
     gridSize: 1,
     linkView: joint.dia.LinkView.extend({
-        options: _.defaultsDeep({ // to extend default label attrs
+        options: joint.util.merge({}, joint.dia.LinkView.prototype.options, {
+            // to extend default label attrs
             labelAttrs: { text: { fill: '#ff0000' }}
-        }, joint.dia.LinkView.prototype.options)
-        /*options: _.defaults({ // to remove default label attrs
+        })
+        /*options: joint.util.extend({}, joint.dia.LinkView.prototype.options, {
+            // to remove default label attrs
             labelAttrs: {}
-        }, joint.dia.LinkView.prototype.options)*/
+        })*/
     })
 });
 
