@@ -322,6 +322,8 @@ export namespace dia {
 
         constructor(attributes?: Element.Attributes, opt?: Graph.Options);
 
+        isElement(): boolean;
+
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
         position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
@@ -418,10 +420,24 @@ export namespace dia {
 
         constructor(attributes?: Link.Attributes, opt?: Graph.Options);
 
+        isLink(): boolean;
+
         disconnect(): this;
+
+        source(): Element | g.PlainPoint | null | undefined;
+        source(element: Element | g.PlainPoint | null, opt?: Cell.Options): this;
+
+        target(): Element | g.PlainPoint | null | undefined;
+        target(element: Element | g.PlainPoint | null, opt?: Cell.Options): this;
+
+        parent(): Element | g.PlainPoint | null | undefined;
 
         label(index?: number): Link.Label;
         label(index: number, value: Link.Label, opt?: Cell.Options): this;
+        labels(): Link.Label[];
+        labels(labels: Link.Label[]): this;
+        addLabel(index: number, value: Link.Label, opt?: Cell.Options): this;
+        removeLabel(index?: number, opt?: Cell.Options): this;
 
         vertex(index?: number): Link.Vertex;
         vertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
@@ -569,12 +585,19 @@ export namespace dia {
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
             sampleInterval?: number
+
+            labelAttrs: {
+                text?: { [key: string]: any },
+                rect?: { [key: string]: any }
+            }
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addVertex(vertex: Point): number;
+        addVertex(vertex: Point, opt?: Cell.Options): number;
+
+        addLabel(label: Link.Label, opt?: Cell.Options): number;
 
         getConnection(): g.Path;
 

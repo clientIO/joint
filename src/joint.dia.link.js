@@ -1173,12 +1173,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var link = this.model;
         var labels = link.labels();
-        var labelLength = this.getClosestPointLength(label);
+        var labelLength = this.getClosestPointLength(label.position);
         var idx = 0;
 
         for (var n = labels.length; idx < n; idx++) {
             var currentLabel = labels[idx];
-            var currentLabelLength = this.getClosestPointLength(currentLabel);
+            var currentLabelLength = this.getClosestPointLength(currentLabel.position);
             if (labelLength < currentLabelLength) break;
         }
 
