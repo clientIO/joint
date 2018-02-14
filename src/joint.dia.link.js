@@ -80,17 +80,17 @@ joint.dia.Link = joint.dia.Cell.extend({
     source: function(source, opt) {
 
         // getter
-        if (element === undefined) return this.get('source');
+        if (source === undefined) return this.get('source');
         // setter
-        return this.set('source', element, opt);
+        return this.set('source', source, opt);
     },
 
     target: function(target, opt) {
 
         // getter
-        if (element === undefined) return this.get('target');
+        if (target === undefined) return this.get('target');
         // setter
-        return this.set('target', element, opt);
+        return this.set('target', target, opt);
     },
 
     parent: function() {
