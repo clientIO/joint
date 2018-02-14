@@ -424,13 +424,13 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): Element | g.PlainPoint | null | undefined;
-        source(element: Element | g.PlainPoint | null, opt?: Cell.Options): this;
+        source(): Point | { id: string, selector?: string, port?: string } | null | undefined;
+        source(source: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        target(): Element | g.PlainPoint | null | undefined;
-        target(element: Element | g.PlainPoint | null, opt?: Cell.Options): this;
+        target(): Point | { id: string, selector?: string, port?: string } | null | undefined;
+        target(target: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        parent(): Element | g.PlainPoint | null | undefined;
+        parent(): Point | { id: string, selector?: string, port?: string } | null | undefined;
 
         label(index?: number): Link.Label;
         label(index: number, value: Link.Label, opt?: Cell.Options): this;

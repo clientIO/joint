@@ -7,15 +7,31 @@ var paper = new joint.dia.Paper({
     el: $('#paper'),
     width: 800,
     height: 1400,
+    model: graph,
     gridSize: 1,
     perpendicularLinks: false,
-    model: graph,
+    interactive: function(cellView) {
+        if (cellView.model.get('customLinkInteractions')) { return { vertexAdd: false, labelMove: false }; }
+        return true; // all interactions enabled
+    },
     linkView: joint.dia.LinkView.extend({
+        // custom interactions:
+        // only applicable when customLinkInteractions = true
+        // (the vertexAdd interaction's pointerdown event prevents these events from ever being called)
         pointerdblclick: function(evt, x, y) {
             if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                this.addVertex({ x: x, y: y });
+                this.addVertex(new g.Point(x, y));
             }
         },
+        contextmenu: function(evt, x, y) {
+            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+                this.addLabel({
+                    position: this.getClosestPointNormalizedLength(new g.Point(x, y)),
+                    attrs: { text: { text: '*' }}
+                });
+            }
+        },
+        // custom options:
         options: joint.util.merge({}, joint.dia.LinkView.prototype.options, {
             // to extend default label attrs
             labelAttrs: { text: { fill: '#ff0000' }},
@@ -32,15 +48,7 @@ var paper = new joint.dia.Paper({
             linkToolsOffset: 40,
             doubleLinkToolsOffset: 60
         })*/
-    }),
-    interactive: function(cellView) {
-        if (cellView.model.get('vertexOnDblClick')) {
-            return {
-                vertexAdd: false
-            };
-        }
-        return true;
-    }
+    })
 });
 
 paper.on('link:pointerdown', function(evt, linkView, x, y) {
@@ -94,7 +102,7 @@ graph.addCell(r2);
 r2.translate(300);
 
 var link1 = new joint.dia.Link({
-    vertexOnDblClick: true,
+    customLinkInteractions: true,
     source: { id: r1.id },
     target: { id: r2.id }
 });
@@ -199,7 +207,7 @@ graph.addCell(link4);
 // Custom vertex/connection markups. (ADVANCED)
 // --------------------------------------------
 
-title(250, 430, 'Customized vertex markers,\nvertex tools and marker elements');
+title(250, 430, 'Customized vertex markers, vertex tools and marker elements');
 
 var r9 = r7.clone();
 graph.addCell(r9);

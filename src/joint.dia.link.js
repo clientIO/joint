@@ -77,7 +77,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         }, opt);
     },
 
-    source: function(element, opt) {
+    source: function(source, opt) {
 
         // getter
         if (element === undefined) return this.get('source');
@@ -85,7 +85,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('source', element, opt);
     },
 
-    target: function(element, opt) {
+    target: function(target, opt) {
 
         // getter
         if (element === undefined) return this.get('target');
@@ -131,7 +131,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
         labels.splice(idx, 0, value);
-        return this.label(labels, opt);
+        return this.labels(labels, opt);
     },
 
     removeLabel: function (idx, opt) {
@@ -1166,21 +1166,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    // This method adds a new label at calculated index to the `labels` array. This method
-    // uses a heuristic to find the index at which the new `label` should be placed, assuming
-    // that the new label is somewhere on the path.
+    // This method adds a new label to the `labels` array.
+    // Sorted by order of addition.
     addLabel: function(label, opt) {
 
         var link = this.model;
         var labels = link.labels();
-        var labelLength = this.getClosestPointLength(label.position);
-        var idx = 0;
-
-        for (var n = labels.length; idx < n; idx++) {
-            var currentLabel = labels[idx];
-            var currentLabelLength = this.getClosestPointLength(currentLabel.position);
-            if (labelLength < currentLabelLength) break;
-        }
+        var idx = labels.length;
 
         link.addLabel(idx, label, opt);
         return idx;
@@ -1189,6 +1181,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // This method adds a new vertex at calculated index to the `vertices` array. This method
     // uses a heuristic to find the index at which the new `vertex` should be placed, assuming
     // that the new vertex is somewhere on the path.
+    // Sorted by distance along path.
     addVertex: function(vertex, opt) {
 
         var link = this.model;
@@ -1542,7 +1535,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var path = this.path;
         if (!path) return null;
 
-        return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
+        return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
     getClosestPointLength: function(point) {
@@ -1550,7 +1543,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var path = this.path;
         if (!path) return null;
 
-        return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
+        return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getClosestPointNormalizedLength: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
     // Interaction. The controller part.
