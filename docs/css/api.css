@@ -359,6 +359,10 @@ a.docs-item-anchor:hover {
     padding: 0;
 }
 
+.docs-content pre.docs-method-signature ~ pre.docs-method-signature {
+    padding-top: 25px;
+}
+
 .docs-content li + li {
     margin-top: 5px;
 }
