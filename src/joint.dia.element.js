@@ -628,15 +628,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Embedding mode methods.
     // -----------------------
 
-    prepareEmbedding: function(opt) {
+    prepareEmbedding: function(data) {
 
-        opt = opt || {};
+        data || (data = {});
 
-        var model = opt.model || this.model;
-        var paper = opt.paper || this.paper;
+        var model = data.model || this.model;
+        var paper = data.paper || this.paper;
         var graph = paper.model;
 
-        model.startBatch('to-front', opt);
+        model.startBatch('to-front');
 
         // Bring the model to the front with all his embeds.
         model.toFront({ deep: true, ui: true });
@@ -658,13 +658,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         parentId && graph.getCell(parentId).unembed(model, { ui: true });
     },
 
-    processEmbedding: function(opt) {
+    processEmbedding: function(data) {
 
-        opt = opt || {};
+        data || (data = {});
 
-        var model = opt.model || this.model;
-        var paper = opt.paper || this.paper;
-
+        var model = data.model || this.model;
+        var paper = data.paper || this.paper;
         var paperOptions = paper.options;
 
         var candidates = [];
@@ -683,7 +682,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         var newCandidateView = null;
-        var prevCandidateView = this._candidateEmbedView;
+        var prevCandidateView = data.candidateEmbedView;
 
         // iterate over all candidates starting from the last one (has the highest z-index).
         for (var i = candidates.length - 1; i >= 0; i--) {
@@ -710,33 +709,35 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (newCandidateView && newCandidateView != prevCandidateView) {
             // A new candidate view found. Highlight the new one.
-            this.clearEmbedding();
-            this._candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
+            this.clearEmbedding(data);
+            data.candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
         }
 
         if (!newCandidateView && prevCandidateView) {
             // No candidate view found. Unhighlight the previous candidate.
-            this.clearEmbedding();
+            this.clearEmbedding(data);
         }
     },
 
-    clearEmbedding: function() {
+    clearEmbedding: function(data) {
 
-        var candidateView = this._candidateEmbedView;
+        data || (data = {});
+
+        var candidateView = data.candidateEmbedView;
         if (candidateView) {
             // No candidate view found. Unhighlight the previous candidate.
             candidateView.unhighlight(null, { embedding: true });
-            this._candidateEmbedView = null;
+            data.candidateEmbedView = null;
         }
     },
 
-    finalizeEmbedding: function(opt) {
+    finalizeEmbedding: function(data) {
 
-        opt = opt || {};
+        data || (data = {});
 
-        var candidateView = this._candidateEmbedView;
-        var model = opt.model || this.model;
-        var paper = opt.paper || this.paper;
+        var candidateView = data.candidateEmbedView;
+        var model = data.model || this.model;
+        var paper = data.paper || this.paper;
 
         if (candidateView) {
 
@@ -744,7 +745,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             candidateView.model.embed(model, { ui: true });
             candidateView.unhighlight(null, { embedding: true });
 
-            delete this._candidateEmbedView;
+            data.candidateEmbedView = null;
         }
 
         joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
@@ -776,56 +777,40 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
         this.notify('element:pointerdown', evt, x, y);
 
-        var data = evt.data || (evt.data = {});
-        data.dx = x;
-        data.dy = y;
-        data.restrictedArea = this.paper.getRestrictedArea(this);
+        this.dragStart(evt, x, y);
     },
 
     pointermove: function(evt, x, y) {
 
-        var paper = this.paper;
-        var grid = paper.options.gridSize;
-        var data = evt.data
-        var embedding = data.embedding;
-
-        if (this.can('elementMove')) {
-
-            var element = this.model;
-            var position = element.position();
-
-            // Make sure the new element's position always snaps to the current grid after
-            // translate as the previous one could be calculated with a different grid size.
-            var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.dx, grid);
-            var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.dy, grid);
-
-            element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
-
-            if (paper.options.embeddingMode) {
-                if (!embedding) {
-                    // Prepare the element for embedding only if the pointer moves.
-                    // We don't want to do unnecessary action with the element
-                    // if an user only clicks/dblclicks on it.
-                    this.prepareEmbedding();
-                    embedding = true;
-                }
-                this.processEmbedding();
-            }
+        var data = this.eventData(evt);
+        switch (data.action) {
+            case 'move':
+                this.drag(evt, x, y);
+                break;
+            case 'magnet':
+                this.dragMagnet(evt, x, y);
+                break;
         }
 
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
         this.notify('element:pointermove', evt, x, y);
 
-        data = evt.data || (evt.data = {});
-        data.dx = g.snapToGrid(x, grid);
-        data.dy = g.snapToGrid(y, grid);
-        if (embedding) data.onpointerup = this.finalizeEmbedding;
+        // Make sure the element view data is passed along.
+        // It could have been wiped out in handlers above
+        this.eventData(evt, data);
     },
 
     pointerup: function(evt, x, y) {
 
-        var data = evt.data;
-        if (data && typeof data.onpointerup === 'function') data.onpointerup.call(this);
+        var data = this.eventData(evt);
+        switch (data.action) {
+            case 'move':
+                this.dragEnd(evt, x, y);
+                break;
+            case 'magnet':
+                this.dragMagnetEnd(evt, x, y);
+                break;
+        }
 
         this.notify('element:pointerup', evt, x, y);
         joint.dia.CellView.prototype.pointerup.apply(this, arguments);
@@ -863,6 +848,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     magnet: function (evt, x, y) {
 
+        this.dragMagnetStart(evt, x, y);
+    },
+
+    // Drag Start Handlers
+
+    dragStart: function(evt, x, y) {
+
+        if (!this.can('elementMove')) return;
+
+        this.eventData(evt, {
+            action: 'move',
+            dx: x,
+            dy: y,
+            restrictedArea: this.paper.getRestrictedArea(this)
+        });
+    },
+
+    dragMagnetStart: function(evt, x, y) {
+
         if (!this.can('addLinkFromMagnet')) return;
 
         // stop subsequent pointerdown event
@@ -871,7 +875,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.model.startBatch('add-link');
 
         var paper = this.paper;
+        var graph = paper.model;
         var link = paper.getDefaultLink(this, evt.target);
+
         link.set({
             source: {
                 id: this.model.id,
@@ -882,21 +888,79 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             target: { x: x, y: y }
         });
 
-        link.addTo(paper.model, { async: false });
+        link.addTo(graph, { async: false });
 
         var linkView = link.findView(paper);
-
         joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
         linkView.notify('link:pointerdown', evt, x, y);
-        linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
+        var data = linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
+        linkView.eventData(evt, data);
 
-        this.paper.delegateDocumentEvents(null, {
-            sourceView: linkView,
-            onpointerup: this.magnetpointerup.bind(this)
+        this.eventData(evt, {
+            action: 'magnet',
+            linkView: linkView
+        });
+
+        this.paper.delegateDragEvents(this, evt);
+    },
+
+    // Drag Handlers
+
+    drag: function(evt, x, y) {
+
+        var paper = this.paper;
+        var grid = paper.options.gridSize;
+        var element = this.model;
+        var position = element.position();
+        var data = this.eventData(evt);
+
+        // Make sure the new element's position always snaps to the current grid after
+        // translate as the previous one could be calculated with a different grid size.
+        var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.dx, grid);
+        var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.dy, grid);
+
+        element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
+
+        var embedding = !!data.embedding;
+        if (paper.options.embeddingMode) {
+            if (!embedding) {
+                // Prepare the element for embedding only if the pointer moves.
+                // We don't want to do unnecessary action with the element
+                // if an user only clicks/dblclicks on it.
+                this.prepareEmbedding(data);
+                embedding = true;
+            }
+            this.processEmbedding(data);
+        }
+
+        this.eventData(evt, {
+            dx: g.snapToGrid(x, grid),
+            dy: g.snapToGrid(y, grid),
+            embedding: embedding
         });
     },
 
-    magnetpointerup: function() {
+    dragMagnet: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var linkView = data.linkView;
+        if (linkView) linkView.pointermove(evt, x, y);
+    },
+
+    // Drag End Handlers
+
+    dragEnd: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        if (data.embedding) this.finalizeEmbedding(data);
+    },
+
+    dragMagnetEnd: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var linkView = data.linkView;
+        if (linkView) linkView.pointerup(evt, x, y);
+
         this.model.stopBatch('add-link');
     }
 

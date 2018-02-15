@@ -110,7 +110,11 @@ joint.mvc.View = Backbone.View.extend({
 
         var className = this.themeClassNamePrefix + theme;
 
-        this.$el.addClass(className);
+        if (this.svgElement) {
+            this.vel.addClass(className);
+        } else {
+            this.$el.addClass(className);
+        }
 
         return this;
     },
@@ -121,7 +125,11 @@ joint.mvc.View = Backbone.View.extend({
 
         var className = this.themeClassNamePrefix + theme;
 
-        this.$el.removeClass(className);
+        if (this.svgElement) {
+            this.vel.removeClass(className);
+        } else {
+            this.$el.removeClass(className);
+        }
 
         return this;
     },
@@ -176,6 +184,19 @@ joint.mvc.View = Backbone.View.extend({
 
     undelegateDocumentEvents: function() {
         this.undelegateElementEvents(document);
+    },
+
+    eventData: function(evt, data) {
+        var currentData = evt.data;
+        var key = '__' + this.cid + '__';
+        if (data === undefined) {
+            if (!currentData) return {};
+            return currentData[key] || {};
+        }
+        currentData || (currentData = evt.data = {});
+        currentData[key] || (currentData[key] = {});
+        joint.util.assign(currentData[key], data);
+        return this;
     }
 
 }, {

@@ -1270,8 +1270,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
 
-        this.eventData(evt, { mousemoved: 0, sourceView: view });
-        this.delegateDocumentEvents(null, evt.data);
+        this.delegateDragEvents(view, evt);
     },
 
     pointermove: function(evt) {
@@ -1288,22 +1287,14 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
-        var view = this.eventData(evt).sourceView;
+        var view = data.sourceView;
         if (view) {
             view.pointermove(evt, localPoint.x, localPoint.y);
         } else {
             this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
         }
 
-        this.eventData(evt, { sourceView: view });
-    },
-
-    eventData: function(evt, data) {
-        var currentData = evt.data;
-        if (data === undefined) return currentData || {};
-        currentData || (currentData = evt.data = {});
-        joint.util.assign(currentData, data);
-        return this;
+        this.eventData(evt, data);
     },
 
     pointerup: function(evt) {
@@ -1405,15 +1396,15 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     event: function(evt) {
 
-        var currentTarget = evt.currentTarget;
-        var eventName = currentTarget.getAttribute('event');
+        evt = joint.util.normalizeEvent(evt);
+
+        var eventNode = evt.currentTarget;
+        var eventName = eventNode.getAttribute('event');
         if (eventName) {
-            var view = this.findView(currentTarget);
-            if (this.guard(evt, view)) return;
-
+            var view = this.findView(eventNode);
             if (view) {
+                if (this.guard(evt, view)) return;
                 var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
                 view.event(evt, eventName, localPoint.x, localPoint.y);
             }
         }
@@ -1430,7 +1421,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             if (view) {
                 if (this.guard(evt, view)) return;
                 if (!this.options.validateMagnet(view, magnetNode)) return;
-                view.magnet.apply(view, this.eventArgs(evt));
+                var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+                view.magnet(evt, localPoint.x, localPoint.y);
             }
         }
     },
@@ -1443,15 +1435,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         var view = this.findView(labelNode);
         if (view) {
             if (this.guard(evt, view)) return;
-            view.label.apply(view, this.eventArgs(evt));
+            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+            view.label(evt, localPoint.x, localPoint.y);
         }
     },
 
-    eventArgs: function(evt) {
-
-        var normalizedEvent = joint.util.normalizeEvent(evt);
-        var localPoint = this.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-        return [normalizedEvent, localPoint.x, localPoint.y];
+    delegateDragEvents: function(view, evt) {
+        this.eventData(evt, { sourceView: view || null, mousemoved: 0 });
+        this.delegateDocumentEvents(null, evt.data);
     },
 
     // Guard the specified event. If the event is not interesting, guard returns `true`.
