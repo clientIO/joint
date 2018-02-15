@@ -426,6 +426,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         sampleInterval: 50,
     },
 
+    _labelCache: null,
+    _markerCache: null,
+    _V: null,
+    metrics: null,
+
     initialize: function(options) {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -2390,18 +2395,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         data.marked = null;
     },
 
+    _getDragArrowheadData: function(end, opt) {
+
+        opt || (opt = {});
+
+        return {
+            action: 'arrowhead-move',
+            whenNotAllowed: opt.whenNotAllowed || 'revert',
+            arrowhead: end,
+            initialMagnet: this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null),
+            initialEnd: joint.util.assign({}, this.model.get(end)),
+            validateConnectionArgs: this._createValidateConnectionArgs(end)
+        }
+    },
+
     startArrowheadMove: function(end, opt) {
 
-        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
-        var data = {};
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
-        data.action = 'arrowhead-move';
-        data.whenNotAllowed = opt.whenNotAllowed;
-        data.arrowhead = end;
-        data.initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
-        data.initialEnd = joint.util.assign({}, this.model.get(end));
-        data.validateConnectionArgs = this._createValidateConnectionArgs(end);
+        var data = this._getDragArrowheadData(end, opt);
         this._beforeArrowheadMove(data);
         return data;
     }
