@@ -1,0 +1,21 @@
+<pre class="docs-method-signature"><code>linkView.addLabel(label)</code></pre>
+<p>Add a new <a href="joint.html#dia.Link.prototype.label">label</a> to the link.</p>
+
+<p>Normally, labels are set through the <code>link.addLabel</code> <a href="joint.html#dia.Link.prototype.addLabel">function</a>. However, access to linkView functions is sometimes needed while adding new labels to the <code>labels</code> array.</p>
+
+<p>This function is useful within custom <code>linkView</code> event listener definitions. For example, if one wanted to add a new label on the default click event, instead of a vertex:</p>
+
+<pre><code>var paper = new joint.dia.Paper({
+    // ...
+    linkView: joint.dia.LinkView.extend({
+        // overwrite default event listener with custom functionality
+        pointerdown: function(evt, x, y) {
+            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+                this.addLabel({
+                    position: this.getClosestPointNormalizedLength(new g.Point(x, y)),
+                    attrs: { text: { text: '*' }}
+                });
+            }
+        }
+    })
+});</code></pre>

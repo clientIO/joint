@@ -1171,8 +1171,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     addLabel: function(label, opt) {
 
         var link = this.model;
-        var labels = link.labels();
-        var idx = labels.length;
+        var idx = -1; // add at end of `labels`
 
         link.addLabel(idx, label, opt);
         return idx;
