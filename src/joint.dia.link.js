@@ -93,12 +93,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('target', target, opt);
     },
 
-    parent: function() {
-
-        // only getter
-        return this.get('parent');
-    },
-
     // Labels API
 
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
@@ -238,9 +232,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var source = this.graph.getCell(this.source().id);
-            var target = this.graph.getCell(this.target().id);
-            var prevParent = this.graph.getCell(this.parent());
+            var source = this.getSourceElement();
+            var target = this.getTargetElement();
+            var prevParent = this.getParentCell();
 
             if (source && target) {
                 newParent = this.graph.getCommonAncestor(source, target);
@@ -279,8 +273,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         // A loop "target equals source" is valid in both shallow and deep mode.
         if (!loop && opt.deep && this.graph) {
 
-            var sourceElement = this.graph.getCell(sourceId);
-            var targetElement = this.graph.getCell(targetId);
+            var sourceElement = this.getSourceElement();
+            var targetElement = this.getTargetElement();
 
             loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
         }
