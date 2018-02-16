@@ -20,21 +20,26 @@ var paper = new joint.dia.Paper({
         // (the vertexAdd interaction's pointerdown event prevents these events from ever being called)
         pointerdblclick: function(evt, x, y) {
             if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                this.addVertex(new g.Point(x, y));
+                this.addVertex(x, y);
             }
         },
         contextmenu: function(evt, x, y) {
             if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                this.addLabel({
-                    position: this.getClosestPointNormalizedLength(new g.Point(x, y)),
-                    attrs: { text: { text: '*' }}
-                });
+                //this.model.addLabel(-1, { position: { distance: 0.5, offset: -20 }})
+
+
+                this.addLabel(x, y, { absolute: true, reverse: true });
             }
         },
         // custom options:
         options: joint.util.merge({}, joint.dia.LinkView.prototype.options, {
             // to extend default label attrs
-            labelAttrs: { text: { fill: '#ff0000' }},
+            labelAttrs: {
+                text: {
+                    fill: '#ff0000',
+                    text: '*'
+                }
+            },
 
             doubleLinkTools: true,
             linkToolsOffset: 40,

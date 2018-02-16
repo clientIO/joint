@@ -1304,6 +1304,15 @@ var g = (function() {
             return this.tangentAt(this.closestPointNormalizedLength(p));
         },
 
+        // @return {number} scale the line so that it has the requested length
+        extend: function(length) {
+
+            var currentLength = this.length();
+            var scaleFactor = length / currentLength;
+
+            return this.scale(scaleFactor, scaleFactor, this.start);
+        },
+
         equals: function(l) {
 
             return !!l &&
@@ -2683,14 +2692,18 @@ var g = (function() {
         },
 
         // Rotate point by angle around origin.
+        // Angle is flipped because this is a left-handed coord system (y-axis points downward).
         rotate: function(origin, angle) {
 
-            angle = (angle + 360) % 360;
-            this.toPolar(origin);
-            this.y += toRad(angle);
-            var point = Point.fromPolar(this.x, this.y, origin);
-            this.x = point.x;
-            this.y = point.y;
+            origin = origin || new g.Point(0, 0);
+
+            angle = toRad((-angle + 360) % 360);
+
+            var x = (cos(angle) * (this.x - origin.x)) - (sin(angle) * (this.y - origin.y)) + origin.x;
+            var y = (sin(angle) * (this.x - origin.x)) + (cos(angle) * (this.y - origin.y)) + origin.y;
+
+            this.x = x;
+            this.y = y;
             return this;
         },
 

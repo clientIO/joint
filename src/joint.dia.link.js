@@ -98,21 +98,26 @@ joint.dia.Link = joint.dia.Cell.extend({
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
     label: function(idx, value, opt) {
 
+        var labels = this.labels();
+
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        // Is it a getter?
+        if (idx < 0) idx = labels.length + idx;
+
+        // getter
         if (arguments.length <= 1) return this.prop(['labels', idx]);
+        // setter
         return this.prop(['labels', idx], value, opt);
     },
 
     labels: function (labels, opt) {
 
-        // Getter
+        // getter
         if (arguments.length === 0) {
             labels = this.get('labels');
             if (!Array.isArray(labels)) return [];
             return labels.slice();
         }
-        // Setter
+        // setter
         if (!Array.isArray(labels)) labels = [];
         return this.set('labels', labels, opt);
     },
@@ -140,21 +145,26 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     vertex: function (idx, value, opt) {
 
+        var vertices = this.vertices();
+
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        // Is it a getter?
+        if (idx < 0) idx = vertices.length + idx;
+
+        // getter
         if (arguments.length <= 1) return this.prop(['vertices', idx]);
+        // setter
         return this.prop(['vertices', idx], value, opt);
     },
 
     vertices: function (vertices, opt) {
 
-        // Getter
+        // getter
         if (arguments.length === 0) {
             vertices = this.get('vertices');
             if (!Array.isArray(vertices)) return [];
             return vertices.slice();
         }
-        // Setter
+        // setter
         if (!Array.isArray(vertices)) vertices = [];
         return this.set('vertices', vertices, opt);
     },
@@ -899,40 +909,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = this.model.get('labels') || [];
         if (!labels.length) return this;
 
-        var connectionLength = this.getConnectionLength();
-
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
             var position = label.position;
-            var isPositionObject = joint.util.isObject(position);
 
-            var distance = isPositionObject ? position.distance : position;
-            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
-
-            if (Number.isFinite(distance)) {
-                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                distance = (distance < 0) ? connectionLength + distance : distance;
-                distance = (distance > 1) ? distance : connectionLength * distance;
-            } else {
-                distance = connectionLength / 2;
-            }
-
-            var tangent = this.getTangentAtLength(distance);
-            var labelCoordinates = (tangent) ? tangent.start : path.start;
-
-            if (joint.util.isObject(offset)) {
-
-                // Just offset the label by the x,y provided in the offset object.
-                labelCoordinates = labelCoordinates.clone().offset(offset);
-
-            } else if (Number.isFinite(offset) && tangent) {
-
-                // Offset the label based on the path tangent
-                var angle = tangent.vector().vectorAngle(new g.Point(1,0));
-                labelCoordinates = labelCoordinates.clone().offset(0, offset).rotate(labelCoordinates, -angle);
-            }
-
+            var labelCoordinates = this.getLabelCoordinates(position);
             this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
         }
 
@@ -1162,9 +1144,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     // This method adds a new label to the `labels` array.
     // Sorted by order of addition.
-    addLabel: function(label, opt) {
+    addLabel: function(x, y, opt) {
 
         var link = this.model;
+
+        // add default label at given position
+        // assigns relative coordinates by default
+        // opt.absolute forces absolute coordinates
+        // opt.reverse forces reverse absolute coordinates (if absolute = true)
+        var label = { position: this.getLabelPosition(x, y, opt) };
+
         var idx = -1; // add at end of `labels`
 
         link.addLabel(idx, label, opt);
@@ -1175,13 +1164,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // uses a heuristic to find the index at which the new `vertex` should be placed, assuming
     // that the new vertex is somewhere on the path.
     // Sorted by distance along path.
-    addVertex: function(vertex, opt) {
+    addVertex: function(x, y, opt) {
 
         var link = this.model;
         var vertices = link.vertices();
-        var vertexLength = this.getClosestPointLength(vertex);
-        var idx = 0;
 
+        var vertex = { x: x, y: y };
+        var vertexLength = this.getClosestPointLength(vertex);
+
+        var idx = 0;
         for (var n = vertices.length; idx < n; idx++) {
             var currentVertex = vertices[idx];
             var currentVertexLength = this.getClosestPointLength(currentVertex);
@@ -1547,6 +1538,78 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
+    // accepts options absolute: boolean, reverse: boolean
+    getLabelPosition: function(x, y, opt) {
+
+        opt = opt || {}
+        var isRelative = !opt.absolute; // relative by default
+        var isAbsoluteReverse = (opt.absolute && opt.reverse); // non-reverse by default
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var labelCoordinates = { x: x, y: y };
+        var t = path.closestPointT(labelCoordinates, pathOpt);
+
+        var labelDistance = path.lengthAtT(t, pathOpt);
+        if (isRelative) labelDistance /= this.getConnectionLength();
+        if (isAbsoluteReverse) labelDistance = -1 * (this.getConnectionLength() - labelDistance);
+
+        var tangent = path.tangentAtT(t, pathOpt);
+        var labelOffset = tangent
+            ? tangent.pointOffset(labelCoordinates)
+            : labelCoordinates;
+
+        return { distance: labelDistance, offset: labelOffset }
+    },
+
+    getLabelCoordinates: function(labelPosition) {
+
+        var labelDistance = 0;
+        if (typeof labelPosition === 'number') labelDistance = labelPosition;
+        else if (labelPosition.distance) labelDistance = labelPosition.distance;
+
+        var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
+
+        var labelOffset = 0;
+        var labelOffsetCoordinates = { x: 0, y: 0 };
+        if (labelPosition.offset) {
+            var positionOffset = labelPosition.offset;
+            if (typeof positionOffset === 'number') labelOffset = positionOffset;
+            if (positionOffset.x) labelOffsetCoordinates.x = positionOffset.x;
+            if (positionOffset.y) labelOffsetCoordinates.y = positionOffset.y;
+        }
+
+        var isOffsetAbsolute = ((labelOffsetCoordinates.x !== 0) || (labelOffsetCoordinates.y !== 0) || labelOffset === 0);
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var distance = isDistanceRelative ? (labelDistance * this.getConnectionLength()) : labelDistance;
+
+        var point;
+
+        if (isOffsetAbsolute) {
+            point = path.pointAtLength(distance, pathOpt);
+            point.offset(labelOffsetCoordinates);
+
+        } else {
+            var tangent = path.tangentAtLength(distance, pathOpt);
+
+            if (tangent) {
+                tangent.rotate(tangent.start, -90);
+                tangent.extend(labelOffset);
+                point = tangent.end;
+
+            } else {
+                // fallback - the connection has zero length
+                point = path.start;
+            }
+        }
+
+        return { x: point.x, y: point.y };
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -1624,7 +1687,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     // Store the index at which the new vertex has just been placed.
                     // We'll be update the very same vertex position in `pointermove()`.
-                    this._vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
+                    this._vertexIdx = this.addVertex(x, y, { ui: true });
                     this._action = 'vertex-move';
                 }
         }
@@ -1641,20 +1704,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
-                var dragPoint = { x: x, y: y };
-                var path = this.path;
-                var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
-                var t = path.closestPointT(dragPoint, pathOpt);
-                var tangent = path.tangentAtT(t, pathOpt);
-                var labelOffset = (tangent) ? tangent.pointOffset(dragPoint) : 0;
-                var labelDistance = path.lengthAtT(t, pathOpt) / this.getConnectionLength();
-
-                this.model.label(this._labelIdx, {
-                    position: {
-                        distance: labelDistance,
-                        offset: labelOffset
-                    }
-                });
+                this.model.label(this._labelIdx, { position: this.getLabelPosition(x, y) });
                 break;
 
             case 'arrowhead-move':
