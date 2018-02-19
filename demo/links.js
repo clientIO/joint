@@ -17,7 +17,7 @@ var paper = new joint.dia.Paper({
     linkView: joint.dia.LinkView.extend({
         // custom interactions:
         // only applicable when customLinkInteractions = true
-        // (the vertexAdd interaction's pointerdown event prevents these events from ever being called)
+        // (the vertexAdd interaction's pointerdown event prevents these events ever being called otherwise)
         pointerdblclick: function(evt, x, y) {
             if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
                 this.addVertex(x, y);
@@ -29,27 +29,11 @@ var paper = new joint.dia.Paper({
             }
         },
         // custom options:
-        options: joint.util.merge({}, joint.dia.LinkView.prototype.options, {
-            // to extend default label attrs
-            labelAttrs: {
-                text: {
-                    fill: '#ff0000',
-                    text: '*'
-                }
-            },
-
+        options: joint.util.defaults({
             doubleLinkTools: true,
             linkToolsOffset: 40,
             doubleLinkToolsOffset: 60
-        })
-        /*options: joint.util.extend({}, joint.dia.LinkView.prototype.options, {
-            // to remove default label attrs
-            labelAttrs: {},
-
-            doubleLinkTools: true,
-            linkToolsOffset: 40,
-            doubleLinkToolsOffset: 60
-        })*/
+        }, joint.dia.LinkView.prototype.options)
     })
 });
 
@@ -69,6 +53,32 @@ $('#perpendicularLinks').on('change', function() {
 
     paper.options.perpendicularLinks = $(this).is(':checked') ? true : false;
 
+});
+
+// custom link definition
+var MyLink = joint.dia.Link.extend({
+    // custom default markup
+    labelMarkup: '<g class="label"><circle /><text /></g>',
+    // custom default attrs
+    labelAttrs: {
+        text: {
+            textAnchor: 'middle',
+            fontSize: 14,
+            fill: '#ff0000',
+            text: '*',
+            pointerEvents: 'none',
+            yAlignment: 'middle'
+        },
+        circle: {
+            ref: 'text',
+            refR: 1,
+            refCx: 0,
+            refCy: 0,
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeWidth: 1
+        }
+    }
 });
 
 var r1 = new joint.shapes.basic.Rect({
@@ -103,7 +113,7 @@ var r2 = r1.clone();
 graph.addCell(r2);
 r2.translate(300);
 
-var link1 = new joint.dia.Link({
+var link1 = new MyLink({
     customLinkInteractions: true,
     source: { id: r1.id },
     target: { id: r2.id }
@@ -124,8 +134,7 @@ var r4 = r3.clone();
 graph.addCell(r4);
 r4.translate(300);
 
-var link2 = new joint.dia.Link({
-
+var link2 = new MyLink({
     source: { id: r3.id },
     target: { id: r4.id },
     attrs: {
@@ -158,8 +167,7 @@ r6.translate(300);
 // only the text can be a target of a link for this specific element.
 r6.attr({ '.': { magnet: false } });
 
-var link3 = new joint.dia.Link({
-
+var link3 = new MyLink({
     source: { id: r5.id },
     target: { id: r6.id, selector: 'text' },
     attrs: {
@@ -188,8 +196,7 @@ var r8 = r7.clone();
 graph.addCell(r8);
 r8.translate(300);
 
-var link4 = new joint.dia.Link({
-
+var link4 = new MyLink({
     source: { id: r7.id },
     target: { id: r8.id },
     vertices: [{ x: 370, y: 390 }, { x: 670, y: 390 }],
@@ -219,8 +226,7 @@ var r10 = r9.clone();
 graph.addCell(r10);
 r10.translate(300);
 
-var link5 = new joint.dia.Link({
-
+var link5 = new MyLink({
     source: { id: r9.id },
     target: { id: r10.id },
     vertices: [{ x: 370, y: 520 }, { x: 520, y: 570 }, { x: 670, y: 520 }],
@@ -269,13 +275,12 @@ var r12 = r11.clone();
 graph.addCell(r12);
 r12.translate(-300);
 
-var link6 = new joint.dia.Link({
-
+var link6 = new MyLink({
     source: { id: r12.id },
     target: { id: r11.id },
     labels: [
         {
-            position: 10,
+            position: 29, // absolute positioning
             attrs: {
                 text: {
                     text: '1..n'
@@ -283,7 +288,8 @@ var link6 = new joint.dia.Link({
             }
         },
         {
-            position: { distance: .5, offset: { x: 20, y: 20 }},
+            markup: '<g class="label"><rect /><text /></g>', // individual markup
+            position: { distance: .5, offset: { x: 20, y: 20 }}, // absolute offset
             attrs: {
                 text: {
                     text: 'Foo',
@@ -291,6 +297,7 @@ var link6 = new joint.dia.Link({
                     fontFamily: 'sans-serif'
                 },
                 rect: {
+                    ref: 'text',
                     stroke: 'red',
                     strokeWidth: 2,
                     fill: '#F39C12',
@@ -305,9 +312,13 @@ var link6 = new joint.dia.Link({
         },
         {
             position: 0.5,
-            markup: '<circle/><path/>',
+            markup: '<g class="label"><circle /><path /></g>', // individual markup
             attrs: {
                 circle: {
+                    ref: null, // overwriting default label attrs
+                    refR: null,
+                    refCx: null,
+                    refCy: null,
                     r: 10,
                     fill: 'lightgray',
                     stroke: 'black',
@@ -322,7 +333,7 @@ var link6 = new joint.dia.Link({
             }
         },
         {
-            position: -10,
+            position: 0.91, // relative positioning
             attrs: {
                 text: {
                     text: '*'
@@ -352,8 +363,7 @@ var r14 = r13.clone();
 graph.addCell(r14);
 r14.translate(300);
 
-var link7 = new joint.dia.Link({
-
+var link7 = new MyLink({
     source: { id: r13.id },
     target: { id: r14.id },
     attrs: {
@@ -409,14 +419,14 @@ var r16 = r15.clone();
 graph.addCell(r16);
 r16.translate(200, 0);
 
-var link8 = new joint.dia.Link({
+var link8 = new MyLink({
     source: { id: r15.id },
     target: { id: r16.id },
     vertices: [{ x: 700, y: 900 }],
     router: { name: 'metro' }
 });
 
-var link9 = new joint.dia.Link({
+var link9 = new MyLink({
     source: { id: r15.id },
     target: { id: r16.id },
     router: { name: 'manhattan' },
@@ -439,7 +449,7 @@ var r18 = r17.clone();
 graph.addCell(r18);
 r18.translate(200, 0);
 
-var link10 = new joint.dia.Link({
+var link10 = new MyLink({
     source: { id: r17.id },
     target: { id: r18.id },
     vertices: [{ x: 400, y: 1000 }, { x: 600, y: 1000 }],
@@ -473,7 +483,7 @@ var r20 = r19.clone();
 graph.addCell(r20);
 r20.translate(200, 0);
 
-var link12 = new joint.dia.Link({
+var link12 = new MyLink({
     source: { id: r19.id },
     target: { id: r20.id },
     router: { name: 'oneSide', args: { side: 'bottom' } }

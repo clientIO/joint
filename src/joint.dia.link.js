@@ -16,13 +16,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         '<g class="link-tools"/>'
     ].join(''),
 
-    labelMarkup: [
-        '<g class="label">',
-        '<rect />',
-        '<text />',
-        '</g>'
-    ].join(''),
-
     toolMarkup: [
         '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
@@ -57,8 +50,42 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>'
     ].join(''),
 
-    defaults: {
+    // may be overwritten by user to change default label markup
+    labelMarkup: undefined,
 
+    // may be overwritten by user to change default label attrs
+    labelAttrs: {},
+
+    // private
+    _builtins: {
+        // overwritten by default label markup or individual label markup
+        labelMarkup: '<g class="label"><rect /><text /></g>',
+
+        // backwards compatibility
+        // merged with default label attrs and individual label attrs
+        // only used if builtin label markup is used
+        labelAttrs: {
+            text: {
+                textAnchor: 'middle',
+                fontSize: 14,
+                fill: '#000000',
+                pointerEvents: 'none',
+                yAlignment: 'middle'
+            },
+            rect: {
+                ref: 'text',
+                fill: '#ffffff',
+                rx: 3,
+                ry: 3,
+                refWidth: 1,
+                refHeight: 1,
+                refX: 0,
+                refY: 0
+            }
+        }
+    },
+
+    defaults: {
         type: 'link',
         source: {},
         target: {}
@@ -372,27 +399,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         linkToolsOffset: 40,
         doubleLinkToolsOffset: 60,
         sampleInterval: 50,
-
-        // Default attributes to maintain backwards compatibility
-        labelAttrs: {
-            text: {
-                textAnchor: 'middle',
-                fontSize: 14,
-                fill: '#000000',
-                pointerEvents: 'none',
-                yAlignment: 'middle'
-            },
-            rect: {
-                ref: 'text',
-                fill: '#ffffff',
-                rx: 3,
-                ry: 3,
-                refWidth: 1,
-                refHeight: 1,
-                refX: 0,
-                refY: 0
-            }
-        }
     },
 
     _z: null,
@@ -617,8 +623,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
+        var builtinLabelMarkup = model._builtins.labelMarkup;
         var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup;
-        var defaultLabel = V(defaultLabelMarkup);
+        var defaultLabel = V(defaultLabelMarkup || builtinLabelMarkup);
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -646,7 +653,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             return this;
         }
 
-        var labels = this.model.get('labels') || [];
+        var model = this.model;
+
+        var labels = model.get('labels') || [];
         var canLabelMove = this.can('labelMove');
 
         for (var i = 0, n = labels.length; i < n; i++) {
@@ -657,8 +666,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var labelAttrs = label.attrs;
-            if (!label.markup) {
-                labelAttrs = joint.util.merge({}, this.options.labelAttrs, labelAttrs);
+
+            // assign builtin attrs only if builtin markup is used
+            var labelMarkup = label.markup; // individual label markup
+            var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup; // default label markup
+            if (labelMarkup || defaultLabelMarkup) {
+                labelAttrs = joint.util.merge({}, model.labelAttrs, labelAttrs);
+
+            } else {
+                labelAttrs = joint.util.merge({}, model._builtins.labelAttrs, model.labelAttrs, labelAttrs);
             }
 
             this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
