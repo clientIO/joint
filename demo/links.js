@@ -25,7 +25,7 @@ var paper = new joint.dia.Paper({
         },
         contextmenu: function(evt, x, y) {
             if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                this.addLabel(x, y, { absolute: true, reverse: true });
+                this.addLabel(x, y, { absolute: true, reverse: true, absoluteOffset: true });
             }
         },
         // custom options:

@@ -1152,6 +1152,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // assigns relative coordinates by default
         // opt.absolute forces absolute coordinates
         // opt.reverse forces reverse absolute coordinates (if absolute = true)
+        // opt.absoluteOffset forces absolute coordinates for offset
         var label = { position: this.getLabelPosition(x, y, opt) };
 
         var idx = -1; // add at end of `labels`
@@ -1538,27 +1539,36 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    // accepts options absolute: boolean, reverse: boolean
+    // accepts options absolute: boolean, reverse: boolean, absoluteOffset: boolean
     getLabelPosition: function(x, y, opt) {
 
         opt = opt || {}
         var isRelative = !opt.absolute; // relative by default
         var isAbsoluteReverse = (opt.absolute && opt.reverse); // non-reverse by default
+        var isOffsetAbsolute = opt.absoluteOffset; // offset is non-absolute by default
 
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
 
-        var labelCoordinates = { x: x, y: y };
+        var labelCoordinates = new g.Point(x, y);
         var t = path.closestPointT(labelCoordinates, pathOpt);
 
         var labelDistance = path.lengthAtT(t, pathOpt);
         if (isRelative) labelDistance /= this.getConnectionLength();
         if (isAbsoluteReverse) labelDistance = -1 * (this.getConnectionLength() - labelDistance);
 
-        var tangent = path.tangentAtT(t, pathOpt);
-        var labelOffset = tangent
-            ? tangent.pointOffset(labelCoordinates)
-            : labelCoordinates;
+        var tangent;
+        if (!isOffsetAbsolute) tangent = path.tangentAtT(t);
+        // if absoluteOfset is not true but there is no tangent, absolute offset is still needed
+
+        var labelOffset;
+        if (tangent) {
+            labelOffset = tangent.pointOffset(labelCoordinates);
+
+        } else {
+            var closestPoint = path.pointAtT(t);
+            labelOffset = labelCoordinates.difference(closestPoint);
+        }
 
         return { distance: labelDistance, offset: labelOffset }
     },
