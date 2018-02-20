@@ -13,17 +13,11 @@ var paper = new joint.dia.Paper({
 
 // custom link definition
 var MyLink = joint.dia.Link.extend({
-    labelAttrs: {
-        text: {
-            text: '*'
-        },
-        rect: {
-            refX: '-10%',
-            refY: '-10%',
-            refHeight: '120%',
-            refWidth: '120%',
-            stroke: '#000000',
-            strokeWidth: 1
+    labelProps: {
+        attrs: {
+            text: {
+                text: '*'
+            }
         }
     }
 });
@@ -144,7 +138,7 @@ var link8 = new MyLink({
         { position: 25, attrs: { text: { text: '1..n' } }},
         { position: 0.45, attrs: { text: { text: 'multiple', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#31d0c6', 'stroke-width': 20, rx: 5, ry: 5 } }},
         { position: 0.55, attrs: { text: { text: 'labels', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#31d0c6', 'stroke-width': 20, rx: 5, ry: 5 } }},
-        { position: -25, attrs: { text: { text: '*' } }}
+        { position: -25 }
     ]
 });
 
