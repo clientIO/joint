@@ -11,28 +11,24 @@ var paper = new joint.dia.Paper({
     gridSize: 1,
     perpendicularLinks: false,
     interactive: function(cellView) {
-        if (cellView.model.get('customLinkInteractions')) { return { vertexAdd: false, labelMove: false }; }
+        if (cellView.model.get('customLinkInteractions')) return { vertexAdd: false };
         return true; // all interactions enabled
     },
     linkView: joint.dia.LinkView.extend({
         // custom interactions:
-        // only applicable when customLinkInteractions = true
-        // (the vertexAdd interaction's pointerdown event prevents these events ever being called otherwise)
         pointerdblclick: function(evt, x, y) {
-            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+            if (this.model.get('customLinkInteractions')) {
                 this.addVertex(x, y);
             }
         },
         contextmenu: function(evt, x, y) {
-            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+            if (this.model.get('customLinkInteractions')) {
                 this.addLabel(x, y, { absolute: true, reverse: true, absoluteOffset: true });
             }
         },
         // custom options:
         options: joint.util.defaults({
             doubleLinkTools: true,
-            linkToolsOffset: 40,
-            doubleLinkToolsOffset: 60
         }, joint.dia.LinkView.prototype.options)
     })
 });
@@ -50,9 +46,7 @@ paper.on('link:connect', function(linkView, evt, connectedToView, magnetElement,
 });
 
 $('#perpendicularLinks').on('change', function() {
-
     paper.options.perpendicularLinks = $(this).is(':checked') ? true : false;
-
 });
 
 // custom link definition
@@ -100,6 +94,7 @@ graph.addCell(r1);
 
 
 function title(x, y, text) {
+
     var el = new joint.shapes.basic.Text({
         position: { x: x, y: y },
         size: { width: text.length * 4, height: text.split('\n').length * 15 },
@@ -262,6 +257,22 @@ var link6 = new MyLink({
     source: { id: r11.id },
     target: { id: r12.id },
     vertices: [{ x: 370, y: 600 }, { x: 520, y: 640 }, { x: 670, y: 600 }],
+    vertexMarkup: [
+        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
+        '<image class="marker-vertex" idx="<%= idx %>" xlink:href="http://jointjs.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
+        '<rect class="marker-vertex-remove-area" idx="<%= idx %>" fill="red" width="19.5" height="19" transform="translate(11, -26)" rx="3" ry="3" />',
+        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
+        '<title>Remove vertex.</title>',
+        '</path>',
+        '</g>'
+    ].join(''),
+    markup: [
+        '<path class="connection"/>',
+        '<image class="marker-source" xlink:href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
+        '<image class="marker-target" xlink:href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
+        '<path class="connection-wrap"/>',
+        '<g class="marker-vertices"/>'
+    ].join(''),
     attrs: {
         '.connection': {
             'stroke-width': 4,
@@ -274,24 +285,7 @@ var link6 = new MyLink({
         '.marker-target': {
             d: 'M 10 0 L 0 5 L 10 10 z'
         }
-    },
-    markup: [
-        '<path class="connection"/>',
-        '<image class="marker-source" xlink:href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
-        '<image class="marker-target" xlink:href="http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png" width="25" height="25"/>',
-        '<path class="connection-wrap"/>',
-        '<g class="marker-vertices"/>'
-    ].join(''),
-
-    vertexMarkup: [
-        '<g class="marker-vertex-group" transform="translate(<%= x %>, <%= y %>)">',
-        '<image class="marker-vertex" idx="<%= idx %>" xlink:href="http://jointjs.com/images/logo.png" width="25" height="25" transform="translate(-12.5, -12.5)"/>',
-        '<rect class="marker-vertex-remove-area" idx="<%= idx %>" fill="red" width="19.5" height="19" transform="translate(11, -26)" rx="3" ry="3" />',
-        '<path class="marker-vertex-remove" idx="<%= idx %>" transform="scale(.8) translate(9.5, -37)" d="M24.778,21.419 19.276,15.917 24.777,10.415 21.949,7.585 16.447,13.087 10.945,7.585 8.117,10.415 13.618,15.917 8.116,21.419 10.946,24.248 16.447,18.746 21.948,24.248z">',
-        '<title>Remove vertex.</title>',
-        '</path>',
-        '</g>'
-    ].join('')
+    }
 });
 
 graph.addCell(link6);
@@ -319,6 +313,14 @@ r14.translate(300);
 var link7 = new MyLink({
     source: { id: r13.id },
     target: { id: r14.id },
+    attrs: {
+        '.marker-source': {
+            d: 'M 10 0 L 0 5 L 10 10 z'
+        },
+        '.marker-target': {
+            d: 'M 10 0 L 0 5 L 10 10 z'
+        }
+    },
     labels: [
         {
             position: 29, // absolute positioning
@@ -353,8 +355,8 @@ var link7 = new MyLink({
             }
         },
         {
-            position: 0.5, // relative positioning
             markup: '<g class="label"><circle /><path /></g>', // individual markup
+            position: 0.5, // relative positioning
             attrs: {
                 circle: {
                     ref: null, // overwriting default label attrs
@@ -377,15 +379,7 @@ var link7 = new MyLink({
         {
             position: { distance: 0.89 }, // individual distance, default offset
         }
-    ],
-    attrs: {
-        '.marker-source': {
-            d: 'M 10 0 L 0 5 L 10 10 z'
-        },
-        '.marker-target': {
-            d: 'M 10 0 L 0 5 L 10 10 z'
-        }
-    }
+    ]
 });
 graph.addCell(link7);
 
@@ -432,7 +426,6 @@ var link8 = new MyLink({
 graph.addCell(link8);
 
 paper.on('link:options', function(linkView, evt, x, y) {
-
     alert('Opening options for link ' + linkView.model.id);
 });
 

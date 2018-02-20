@@ -31,6 +31,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>'
     ].join(''),
 
+    doubleToolMarkup: undefined,
+
     // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
     // dragging vertices (changin their position). The latter is used for removing vertices.
@@ -395,11 +397,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     options: {
 
-        shortLinkLength: 100,
+        shortLinkLength: 105,
         doubleLinkTools: false,
-        longLinkLength: 160,
+        longLinkLength: 155,
         linkToolsOffset: 40,
-        doubleLinkToolsOffset: 60,
+        doubleLinkToolsOffset: 65,
         sampleInterval: 50,
     },
 

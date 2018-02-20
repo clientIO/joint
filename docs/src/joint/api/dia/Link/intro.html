@@ -1,15 +1,114 @@
 <p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
 
-<p>For links there are two crucial attributes: <code>source</code> and <code>target</code>. It defines the starting point and the end point of the link. It can be defined as follows:</p>
+<p>Links have two crucial attributes: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined as follows:</p>
 
 <pre><code>new joint.dia.Link({
-        source: { id: 'source-id' },
-        target: { id: 'target-id', port: 'port_id'}
-    });
+    source: { id: sourceId },
+    target: { id: targetId, port: portId }
+});
 
-    new joint.dia.Link({
-        source: { id: 'source-id' },
-        target: { x: 100, y: 100}
-    });
-</code></pre>
+new joint.dia.Link({
+    source: { id: sourceId },
+    target: { x: 100, y: 100}
+});</code></pre>
 
+<p>These are not the only attributes that may be specified for a newly-created <code>joint.dia.Link</code>, however. An individual link instance may provide a value for these attributes:</p>
+
+<ul>
+    <li><code>markup</code> - provide custom link markup.</li>
+    <li><code>attrs</code> - provide custom link attributes. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
+    <li><code>vertices</code> - provide an array of vertices.</li>
+    <li><code>vertexMarkup</code> - provide custom vertex markup (on hover).</li>
+    <li><code>labels</code> - provide an array of labels. Each can have its own markup, position, and attributes specified.</li>
+    <li><code>toolMarkup</code> - provide custom tool markup (on hover).</li>
+    <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
+    <li><code>arrowheadMarkup</code> - provide custom arrowhead markup (on hover).</li>
+</ul>
+
+<h4>Custom Link</h4>
+
+<p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override Link properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link attributes are applicable in this context:</p>
+
+<ul>
+    <li><code>markup</code> - provide default link markup for all instances of this Link type.</li>
+    <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
+    <li><code>labelMarkup</code> - provide default markup for all labels created on an instance of this Link type.</li>
+    <li><code>labelProps</code> - provide default properties (position and attrs) for all labels created on an instance of this Link type.</li>
+    <li><code>toolMarkup</code> - provide custom tool markup for all instances of this Link type (on hover).</li>
+    <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools for all instances of this Link type (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
+    <li><code>arrowheadMarkup</code> - provide custom arrowhead markup for all instances of this Link type (on hover).</li>
+</ul>
+
+<p>The values of these defaults can be important, since the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
+
+<p>Example:</p>
+
+<pre><code>var CustomLink = joint.dia.Link.extend({
+    labelMarkup: '&lt;g class="label"&gt;&lt;circle /&gt;&lt;text /&gt;&lt;/g&gt;',
+
+    labelProps: {
+        position: {
+            offset: -20
+        },
+        attrs: {
+            text: {
+                textAnchor: 'middle',
+                fontSize: 14,
+                fill: '#ff0000',
+                text: '%',
+                pointerEvents: 'none',
+                yAlignment: 'middle'
+            },
+            circle: {
+                ref: 'text',
+                refR: 1,
+                refCx: 0,
+                refCy: 0,
+                fill: '#ffffff',
+                stroke: '#000000',
+                strokeWidth: 1
+            }
+        }
+    }
+});
+
+new CustomLink({
+    source: { id: sourceId },
+    target: { id: targetId, port: portId }
+});</code></pre>
+
+<h4>Builtin Default Attributes for Default Markup</h4>
+
+<p>Deprecated.</p>
+
+<p>To ensure backwards compatibility, when using default markup (i.e. not providing own <code>markup</code> as a type default or as a value for an individual instance), builtin default attributes are applied. They are presented here for completeness:</p>
+
+<pre><code>// overwritten by default label markup or individual label markup
+labelMarkup: '&lt;g class="label"&gt;&lt;rect /&gt;&lt;text /&gt;&lt;/g&gt;',
+
+// backwards compatibility
+// merged with default label props and individual label props
+// only used if builtin label markup is used
+labelProps: {
+    attrs: {
+        text: {
+            textAnchor: 'middle',
+            fontSize: 14,
+            fill: '#000000',
+            pointerEvents: 'none',
+            yAlignment: 'middle'
+        },
+        rect: {
+            ref: 'text',
+            fill: '#ffffff',
+            rx: 3,
+            ry: 3,
+            refWidth: 1,
+            refHeight: 1,
+            refX: 0,
+            refY: 0
+        }
+    }
+}</code></pre>
+
+<p>It is now discouraged to use the default <code>joint.dia.Link</code> markup; use one of the <code>joint.shapes.standard</code> links instead.</p>
