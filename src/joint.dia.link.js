@@ -127,7 +127,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     // Labels API
 
     // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-    label: function(idx, value, opt) {
+    label: function(idx, label, opt) {
 
         var labels = this.labels();
 
@@ -137,7 +137,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         // getter
         if (arguments.length <= 1) return this.prop(['labels', idx]);
         // setter
-        return this.prop(['labels', idx], value, opt);
+        return this.prop(['labels', idx], label, opt);
     },
 
     labels: function (labels, opt) {
@@ -153,14 +153,16 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('labels', labels, opt);
     },
 
-    addLabel: function (idx, value, opt) {
+    addLabel: function (idx, label, opt) {
+
+        label = label || { position: 0 };
 
         var labels = this.labels();
         var n = labels.length;
-        value || (value = { x: 0, y: 0 });
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
-        labels.splice(idx, 0, value);
+
+        labels.splice(idx, 0, label);
         return this.labels(labels, opt);
     },
 
@@ -168,13 +170,14 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var labels = this.labels();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
         labels.splice(idx, 1);
         return this.labels(labels, opt);
     },
 
     // Vertices API
 
-    vertex: function (idx, value, opt) {
+    vertex: function (idx, vertex, opt) {
 
         var vertices = this.vertices();
 
@@ -184,7 +187,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         // getter
         if (arguments.length <= 1) return this.prop(['vertices', idx]);
         // setter
-        return this.prop(['vertices', idx], value, opt);
+        return this.prop(['vertices', idx], vertex, opt);
     },
 
     vertices: function (vertices, opt) {
@@ -200,14 +203,16 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('vertices', vertices, opt);
     },
 
-    addVertex: function (idx, value, opt) {
+    addVertex: function (idx, vertex, opt) {
+
+        vertex = vertex || { x: 0, y: 0};
 
         var vertices = this.vertices();
         var n = vertices.length;
-        value || (value = { x: 0, y: 0 });
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
-        vertices.splice(idx, 0, value);
+
+        vertices.splice(idx, 0, vertex);
         return this.vertices(vertices, opt);
     },
 
@@ -215,6 +220,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var vertices = this.vertices();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
         vertices.splice(idx, 1);
         return this.vertices(vertices, opt);
     },
@@ -1169,34 +1175,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    // This method adds a new label to the `labels` array.
-    // Sorted by order of addition.
+    // Add default label at given position at end of `labels` array.
+    // Assigns relative coordinates by default.
+    // `opt.absolute` forces absolute coordinates.
+    // `opt.reverse` forces reverse absolute coordinates (if absolute = true).
+    // `opt.absoluteOffset` forces absolute coordinates for offset.
     addLabel: function(x, y, opt) {
 
-        var model = this.model;
-
-        // add default label at given position
-        // assigns relative coordinates by default
-        // opt.absolute forces absolute coordinates
-        // opt.reverse forces reverse absolute coordinates (if absolute = true)
-        // opt.absoluteOffset forces absolute coordinates for offset
+        var idx = -1;
         var label = { position: this.getLabelPosition(x, y, opt) };
-        var idx = -1; // add at end of `labels`
-        model.addLabel(idx, label, opt);
+        this.model.addLabel(idx, label, opt);
         return idx;
     },
 
-    // This method adds a new vertex at calculated index to the `vertices` array. This method
-    // uses a heuristic to find the index at which the new `vertex` should be placed, assuming
-    // that the new vertex is somewhere on the path.
-    // Sorted by distance along path.
+    // Add a new vertex at calculated index to the `vertices` array.
     addVertex: function(x, y, opt) {
 
-        var model = this.model;
-
-        var vertex = { x: x, y: y };
         var idx = this.getVertexIndex(x, y);
-        model.addVertex(idx, vertex, opt);
+        var vertex = { x: x, y: y };
+        this.model.addVertex(idx, vertex, opt);
         return idx;
     },
 
@@ -1547,7 +1544,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    getClosestPointNormalizedLength: function(point) {
+    getClosestPointRatio: function(point) {
 
         var path = this.path;
         if (!path) return null;
@@ -1555,38 +1552,45 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    // accepts options absolute: boolean, reverse: boolean, absoluteOffset: boolean
+    // accepts options `absolute: boolean`, `reverse: boolean`, `absoluteOffset: boolean`
+    // to move beyond connection endpoints, absoluteOffset has to be set
     getLabelPosition: function(x, y, opt) {
 
-        opt = opt || {}
-        var isRelative = !opt.absolute; // relative by default
-        var isAbsoluteReverse = (opt.absolute && opt.reverse); // non-reverse by default
-        var isOffsetAbsolute = opt.absoluteOffset; // offset is non-absolute by default
+        localOpt = opt || {}
+        var isRelative = !localOpt.absolute; // relative by default
+        var isAbsoluteReverse = (localOpt.absolute && localOpt.reverse); // non-reverse by default
+        var isOffsetAbsolute = localOpt.absoluteOffset; // offset is non-absolute by default
 
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
 
-        var labelCoordinates = new g.Point(x, y);
-        var t = path.closestPointT(labelCoordinates, pathOpt);
+        var labelPoint = new g.Point(x, y);
+        var t = path.closestPointT(labelPoint, pathOpt);
+
+        // GET DISTANCE:
 
         var labelDistance = path.lengthAtT(t, pathOpt);
         if (isRelative) labelDistance /= this.getConnectionLength();
-        if (isAbsoluteReverse) labelDistance = -1 * (this.getConnectionLength() - labelDistance);
+        if (isAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point
+
+        // GET OFFSET:
+        // use absolute offset if:
+        // - opt.absoluteOffset is true,
+        // - opt.absoluteOffset is not true but there is no tangent
 
         var tangent;
         if (!isOffsetAbsolute) tangent = path.tangentAtT(t);
-        // if absoluteOfset is not true but there is no tangent, absolute offset is still needed
 
         var labelOffset;
         if (tangent) {
-            labelOffset = tangent.pointOffset(labelCoordinates);
+            labelOffset = tangent.pointOffset(labelPoint);
 
         } else {
             var closestPoint = path.pointAtT(t);
-            labelOffset = labelCoordinates.difference(closestPoint);
+            labelOffset = labelPoint.difference(closestPoint);
         }
 
-        return { distance: labelDistance, offset: labelOffset }
+        return { distance: labelDistance, offset: labelOffset, opt: opt }
     },
 
     getLabelCoordinates: function(labelPosition) {
@@ -1636,7 +1640,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return { x: point.x, y: point.y };
     },
 
-    getVertexIndex: function(x, y, opt) {
+    getVertexIndex: function(x, y) {
 
         var model = this.model;
         var vertices = model.vertices();
@@ -1747,7 +1751,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
-                this.model.label(this._labelIdx, { position: this.getLabelPosition(x, y) });
+                if (this._labelIdx === this._labelIdx) { // check against NaN
+                    // this.can('labelMove') is true
+                    var model = this.model;
+                    var labelPosition = model.label(this._labelIdx).position;
+                    var labelPositionOpt = labelPosition ? labelPosition.opt : undefined;
+                    model.label(this._labelIdx, { position: this.getLabelPosition(x, y, labelPositionOpt) });
+                }
                 break;
 
             case 'arrowhead-move':

@@ -4,12 +4,16 @@
 <pre class="docs-method-signature"><code>link.label(index, properties [, opt])</code></pre>
 <p>Update <code>properties</code> of the label at <code>index</code>. By default, the new properties are merged into the old ones; pass the <code>{ rewrite: true }</code> option along to disregard old properties.</p>
 
-<p>One link can have multiple labels, each having different properties:</p>
+<p>One link can have multiple labels, and each label can have different properties:</p>
 
 <pre><code>{
-    markup: &lt;string&gt;,
-    position: &lt;number&gt; | { distance: &lt;number&gt;, offset?: &lt;number&gt; | { x: &lt;number&gt;, y: &lt;number&gt; }}
-    attrs: { &lt;selector&gt;: &lt;SVG attributes | JointJS attributes&gt; }
+    markup: string,
+    position: number | {
+        distance: number,
+        offset?: number | { x: number, y: number },
+        opt?: { absolute?: boolean, reverse?: boolean, absoluteOffset?: boolean }
+    },
+    attrs: { selector: SVG attributes | JointJS attributes }
 }</code></pre>
 
 <p>The <code>markup</code> property specifies the HTML markup of the label. The default markup is very simple:</p>
@@ -18,7 +22,7 @@
 
 <p>Where <code data-lang="svg">&lt;rect&gt;</code> is a box below the label, providing a unified background for label text.</p>
 
-<p>The <code>position</code> property specifies the position of the label, relative to the link <code>.connection</code> SVG path. It may be defined as a number or as an object with <code>distance</code> and <code>offset</code> properties:</p>
+<p>The <code>position</code> property specifies the position of the label, relative to the link <code>.connection</code> SVG path. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>opt</code> properties:</p>
 
 <table>
     <tr>
@@ -46,7 +50,7 @@
     <tr>
         <td><i>object</i></td>
         <td>
-            <p>If <code>position</code> is specified as an object, it may have two properties:</p>
+            <p>If <code>position</code> is specified as an object, it may have three properties:</p>
             <table>
                 <tr>
                     <th>distance</th>
@@ -92,6 +96,32 @@
                                             </td>
                                         </tr>
                                     </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <th>opt</th>
+                    <td>
+                        <p>Optional. An object with boolean options for the <code>linkView.getLabelPosition()</code> <a href="joint.html#dia.linkView.prototype.getLabelPosition">function</a>.</p>
+                        <table>
+                            <tr>
+                                <th>absolute</th>
+                                <td>
+                                    If user moves the label, record <code>distance</code> as an absolute number. (Relative distances used by default).
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>reverse</th>
+                                <td>
+                                    If <code>absolute</code> is set and user moves the label, record <code>distance</code> as a negative absolute number. (Positive distances used by default.)
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>absoluteOffset</th>
+                                <td>
+                                    If user moves the label, record <code>offset</code> as an object with absolute <code>x</code> and <code>y</code> coordinates. (Relative offsets used by default).
                                 </td>
                             </tr>
                         </table>
