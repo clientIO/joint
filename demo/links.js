@@ -51,6 +51,8 @@ $('#perpendicularLinks').on('change', function() {
 
 // custom link definition
 var MyLink = joint.dia.Link.extend({
+    customLinkInteractions: true,
+
     // custom default markup
     labelMarkup: '<g class="label"><circle /><text /></g>',
 

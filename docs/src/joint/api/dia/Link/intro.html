@@ -1,13 +1,13 @@
-<p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
+<p>The basic model for diagram links. It inherits from <a href="joint.html#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
 
-<p>Links have two crucial attributes: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined as follows:</p>
+<p>Links have two crucial attributes: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined as an element id or as a Point:</p>
 
-<pre><code>new joint.dia.Link({
+<pre><code>var link1 = new joint.dia.Link({
     source: { id: sourceId },
     target: { id: targetId, port: portId }
 });
 
-new joint.dia.Link({
+var link2 = new joint.dia.Link({
     source: { id: sourceId },
     target: { x: 100, y: 100}
 });</code></pre>
@@ -15,7 +15,7 @@ new joint.dia.Link({
 <p>These are not the only attributes that may be specified for a newly-created <code>joint.dia.Link</code>, however. An individual link instance may provide a value for these attributes:</p>
 
 <ul>
-    <li><code>markup</code> - provide custom link markup.</li>
+    <li><code>markup</code> - provide custom link markup. May be specified as an SVG string or JSON array.</li>
     <li><code>attrs</code> - provide custom link attributes. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
     <li><code>vertices</code> - provide an array of vertices.</li>
     <li><code>vertexMarkup</code> - provide custom vertex markup (on hover).</li>
@@ -25,12 +25,45 @@ new joint.dia.Link({
     <li><code>arrowheadMarkup</code> - provide custom arrowhead markup (on hover).</li>
 </ul>
 
+<p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="joint.html#dia.LinkView.intro">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
+
+<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+    contextmenu: function(evt, x, y) {
+        if (this.model.get('customLinkInteractions')) {
+            // only links with `customLinkInteractions: true`
+            this.addLabel(x, y);
+        }
+    }
+});
+
+var paper = new joint.dia.Paper({
+    //...
+    linkView: CustomLinkView,
+    interactive: function(cellView) {
+        if (cellView.model.get('customLinkInteractions')) {
+            // only links with `customLinkInteractions: true`
+            return { vertexAdd: false };
+        }
+        return true; // otherwise
+    }
+});
+
+var link1 = new joint.dia.Link({
+    //...
+    customLinkInteractions: true
+});
+
+var link2 = new joint.dia.Link({
+    //...
+    customLinkInteractions: false // or omit completely
+});</code></pre>
+
 <h4>Custom Link</h4>
 
 <p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override Link properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link attributes are applicable in this context:</p>
 
 <ul>
-    <li><code>markup</code> - provide default link markup for all instances of this Link type.</li>
+    <li><code>markup</code> - provide default link markup for all instances of this Link type. May be specified as an SVG string or JSON array.</li>
     <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
     <li><code>labelMarkup</code> - provide default markup for all labels created on an instance of this Link type.</li>
     <li><code>labelProps</code> - provide default properties (position and attrs) for all labels created on an instance of this Link type.</li>
@@ -39,7 +72,7 @@ new joint.dia.Link({
     <li><code>arrowheadMarkup</code> - provide custom arrowhead markup for all instances of this Link type (on hover).</li>
 </ul>
 
-<p>The values of these defaults can be important, since the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
+<p>The values of these defaults may be important; the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
 
 <p>Example:</p>
 
@@ -72,16 +105,17 @@ new joint.dia.Link({
     }
 });
 
-new CustomLink({
-    source: { id: sourceId },
-    target: { id: targetId, port: portId }
+var link = new CustomLink({
+    //...
 });</code></pre>
+
+<p>Please note that passing custom attribute defaults is not supported. Custom attributes are only recognized if they are defined directly on a link model declaration. In the above example, this means that <code>customLinkInteractions: true</code> will be recognized if specified as a property on <code>link</code> but not if specified as a property of <code>CustomLink</code>.</p>
 
 <h4>Builtin Default Attributes for Default Markup</h4>
 
 <p>Deprecated.</p>
 
-<p>To ensure backwards compatibility, when using default markup (i.e. not providing own <code>markup</code> as a type default or as a value for an individual instance), builtin default attributes are applied. They are presented here for completeness:</p>
+<p>To ensure backwards compatibility, when using default markup (i.e. not providing own <code>markup</code> as a type default or as an instance value), builtin default attributes are applied. They are presented here for completeness; if you need to specify your own attributes for default <code>joint.dia.Link</code> markup, remember to overwrite these values or to remove them by passing <code>null</code>:</p>
 
 <pre><code>// overwritten by default label markup or individual label markup
 labelMarkup: '&lt;g class="label"&gt;&lt;rect /&gt;&lt;text /&gt;&lt;/g&gt;',
@@ -111,4 +145,4 @@ labelProps: {
     }
 }</code></pre>
 
-<p>It is now discouraged to use the default <code>joint.dia.Link</code> markup; use one of the <code>joint.shapes.standard</code> links instead.</p>
+<p>The use of default <code>joint.dia.Link</code> markup is deprecated. Instead, use one of the <code>joint.shapes.standard</code> Link types, or create a custom Link subtype with new default <code>markup</code>.</p>
