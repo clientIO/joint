@@ -1304,15 +1304,6 @@ var g = (function() {
             return this.tangentAt(this.closestPointNormalizedLength(p));
         },
 
-        // @return {number} scale the line so that it has the requested length
-        extend: function(length) {
-
-            var currentLength = this.length();
-            var scaleFactor = length / currentLength;
-
-            return this.scale(scaleFactor, scaleFactor, this.start);
-        },
-
         equals: function(l) {
 
             return !!l &&
@@ -1470,6 +1461,15 @@ var g = (function() {
             this.start.scale(sx, sy, origin);
             this.end.scale(sx, sy, origin);
             return this;
+        },
+
+        // @return {number} scale the line so that it has the requested length
+        setLength: function(length) {
+
+            var currentLength = this.length();
+            var scaleFactor = length / currentLength;
+
+            return this.scale(scaleFactor, scaleFactor, this.start);
         },
 
         // @return {integer} length without sqrt

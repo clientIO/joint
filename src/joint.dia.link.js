@@ -1628,7 +1628,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             if (tangent) {
                 tangent.rotate(tangent.start, -90);
-                tangent.extend(labelOffset);
+                tangent.setLength(labelOffset);
                 point = tangent.end;
 
             } else {
