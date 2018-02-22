@@ -1,44 +1,58 @@
 <pre class="docs-method-signature"><code>define(type [, defaultAttributes, prototypeProperties, staticProperties])</code></pre>
-<p>Helper to define new Cell class or extend the existing one. The <code>type</code> must be a unique identifier of the class, which determines the location of the class definiton in the <code>joint.shapes</code> namespace (the type is the path to the class definition delimited by dots (<code>.</code>).
- When creating an instance of the cell, any unspecified attributes will be set to the value from the <code>defaultAttributes</code>.
-</p>
-    <pre><code>// Define a new Ellipse class in `joint.shapes.examples` namespace.
+<p>Helper to define a new Cell class or extend an existing one.</p>
+
+<p>The <code>type</code> must be a unique identifier of the class, which determines the location of the class definition in the <code>joint.shapes</code> namespace (<code>type</code> is the path to the class definition delimited by dots: <code>.</code>). When creating an instance of the cell, attributes will be set to the value from the <code>defaultAttributes</code>, unless overridden by subclass or instance attributes.</p>
+
+<pre><code>// Define a new Ellipse class in `joint.shapes.examples` namespace
+// Inherits from generic Element class
 var Ellipse = joint.dia.Element.define('examples.Ellipse', {
-  markup: '&lt;ellipse/&gt;',
-  attrs: {
-    ellipse: {
-      fill: 'white',
-      stroke: 'black',
-      refRx: .5,
-      refRy: .5,
-      refCx: .5,
-      refCy: .5
+    // default attributes
+    markup: '&lt;ellipse/&gt;',
+    attrs: {
+        ellipse: {
+            fill: 'white',
+            stroke: 'black',
+            strokeWidth: 4,
+            refRx: .5,
+            refRy: .5,
+            refCx: .5,
+            refCy: .5
+        }
     }
-  }
 });
-// `Ellipse === joint.shapes.examples.Ellipse` now
+
 // Instantiate an element
-var el1 = (new Ellipse).position(100,100).size(120,50).addTo(graph);
-</code></pre>
+var ellipse = (new Ellipse()).position(100, 100).size(120, 50).addTo(graph);
 
-    <pre><code>// Define a new ColoredEllipse class that inherits from Ellipse.
-var BlueEllipse = Ellipse.define('examples.ColoredEllipse', {
-  attrs: {
-    ellipse: {
-      fill: 'black'
+// Define a new ColoredEllipse class
+// Inherits from Ellipse
+var ColoredEllipse = Ellipse.define('examples.ColoredEllipse', {
+    // overridden Ellipse default attributes
+    // other Ellipse attributes preserved
+    attrs: {
+        ellipse: {
+            fill: 'lightgray'
+        }
     }
-  }
 }, {
-  // Prototype methods
-  changeColor: function() {
-    return this.attr('ellipse/stroke', this.constructor.getRandomColor());
-  }  
+    // prototype properties
+    // accessible on `this.(...)` - as well as, more precisely, `this.prototype.(...)`
+    // useful for custom methods that need access to this instance
+    // shared by all instances of the class
+    randomizeStrokeColor: function() {
+        var randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+        return this.attr('ellipse/stroke', randomColor);
+    }
 }, {
-  // Static methods
-  getRandomColor: function() {
-    return '#' + Math.floor(Math.random() * 16777215).toString(16);
-  }
+    // static properties
+    // accessible on `this.constructor.(...)`
+    // useful for custom methods and constants that do not need an instance to operate
+    // however, a new set of static properties is generated every time the constructor is called
+    // (try to only use static properties if absolutely necessary)
+    createRandom: function() {
+        return (new ColoredEllipse()).randomizeStrokeColor();
+    }
 });
 
-var el2 = (new ColoredEllipse).changeColor().position(300,100).size(120,50).addTo(graph);
-</code></pre>
+// Instantiate an element
+var coloredEllipse = ColoredEllipse.createRandom().position(300, 100).size(120, 50).addTo(graph);</code></pre>

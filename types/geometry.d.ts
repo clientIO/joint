@@ -269,6 +269,8 @@ export namespace g {
 
         scale(sx: number, sy: number, origin?: PlainPoint): this;
 
+        setLength(length: number): this;
+
         squaredLength(): number;
 
         tangentAt(t: number): Line | null;

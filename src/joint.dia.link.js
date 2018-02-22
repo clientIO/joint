@@ -52,21 +52,22 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>'
     ].join(''),
 
+    // may be overwritten by user to change default label (its markup, attrs, position)
+    defaultLabel: undefined,
+
+    // deprecated
     // may be overwritten by user to change default label markup
+    // lower priority than defaultLabel.markup
     labelMarkup: undefined,
 
-    // may be overwritten by user to change default label position and attrs
-    labelProps: {},
-
+    // deprecated
     // private
     _builtins: {
-        // overwritten by default label markup or individual label markup
-        labelMarkup: '<g class="label"><rect /><text /></g>',
-
         // backwards compatibility
         // merged with default label props and individual label props
         // only used if builtin label markup is used
-        labelProps: {
+        defaultLabel: {
+            markup: '<g class="label"><rect /><text /></g>',
             attrs: {
                 text: {
                     textAnchor: 'middle',
@@ -628,12 +629,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
         }
 
+        var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
+        var defaultLabelMarkup = defaultLabel.markup || model.get('labelMarkup') || model.labelMarkup;
+
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+        var builtinDefaultLabelMarkup = builtinDefaultLabel.markup;
+
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
-        var builtinLabelMarkup = model._builtins.labelMarkup;
-        var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup;
-        var defaultLabel = V(defaultLabelMarkup || builtinLabelMarkup);
+        var defaultNode = V(defaultLabelMarkup || builtinDefaultLabelMarkup);
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -642,7 +647,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             // Cache label nodes so that the `updateLabels()` can just update the label node positions.
             var vLabelNode = labelCache[i] = (labelMarkup)
                 ? V('g').append(V(labelMarkup))
-                : defaultLabel.clone();
+                : defaultNode.clone();
 
             vLabelNode
                 .addClass('label')
@@ -669,21 +674,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var label = labels[i];
+            var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
 
             var labelAttrs = label.attrs;
+            var defaultLabelAttrs = defaultLabel.attrs;
 
-            var defaultLabelProps = model.get('labelProps') || model.labelProps;
-            var defaultLabelAttrs = defaultLabelProps.attrs;
-
-            var labelMarkup = label.markup; // individual label markup
-            var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup; // default label markup
+            var labelMarkup = label.markup;
+            var defaultLabelMarkup = defaultLabel.markup || model.get('labelMarkup') || model.labelMarkup;
             if (labelMarkup || defaultLabelMarkup) { // if user specified own markup
                 labelAttrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
 
             } else { // merge in builtin attrs only if builtin markup is used
-                var builtinLabelProps = model._builtins.labelProps;
-                var builtinLabelAttrs = builtinLabelProps.attrs;
-                labelAttrs = joint.util.merge({}, builtinLabelAttrs, defaultLabelAttrs, labelAttrs);
+                var builtinDefaultLabel = model._builtins.defaultLabel;
+                var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
+
+                labelAttrs = joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
             }
 
             this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
@@ -938,15 +943,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
+            var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
 
             // only objects can be merged
-            // using a wrapper object is the simplest way to handle all positioning cases
+            // using a wrapper object is the simplest way to handle all `position` formats
             var labelPosition = { position: label.position};
+            var defaultLabelPosition = { position: defaultLabel.position };
 
-            var defaultLabelProps = model.get('labelProps') || model.labelProps;
-            var defaultLabelPosition = { position: defaultLabelProps.position };
-
-            var position = joint.util.merge({}, defaultLabelPosition, labelPosition).position;
+            var position = (joint.util.merge({}, defaultLabelPosition, labelPosition)).position;
             var labelCoordinates = this.getLabelCoordinates(position);
             this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
         }
@@ -1177,23 +1181,38 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     // Add default label at given position at end of `labels` array.
     // Assigns relative coordinates by default.
-    // `opt.absolute` forces absolute coordinates.
-    // `opt.reverse` forces reverse absolute coordinates (if absolute = true).
+    // `opt.absoluteDistance` forces absolute coordinates.
+    // `opt.reverseDistance` forces reverse absolute coordinates (if absoluteDistance = true).
     // `opt.absoluteOffset` forces absolute coordinates for offset.
     addLabel: function(x, y, opt) {
 
+        var model = this.model;
+
+        var labelPositionArgs = opt || {};
+
+        var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
+        var defaultLabelPosition = defaultLabel ? defaultLabel.position : null;
+        var defaultLabelPositionArgs = defaultLabelPosition ? defaultLabelPosition.args : {};
+
+        // builtinDefaultLabel does not have position object
+
+        var positionArgs = joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
+        var label = { position: this.getLabelPosition(x, y, positionArgs) };
+
         var idx = -1;
-        var label = { position: this.getLabelPosition(x, y, opt) };
-        this.model.addLabel(idx, label, opt);
+        model.addLabel(idx, label, opt);
         return idx;
     },
 
     // Add a new vertex at calculated index to the `vertices` array.
     addVertex: function(x, y, opt) {
 
-        var idx = this.getVertexIndex(x, y);
+        var model = this.model;
+
         var vertex = { x: x, y: y };
-        this.model.addVertex(idx, vertex, opt);
+
+        var idx = this.getVertexIndex(x, y);
+        model.addVertex(idx, vertex, opt);
         return idx;
     },
 
@@ -1552,14 +1571,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    // accepts options `absolute: boolean`, `reverse: boolean`, `absoluteOffset: boolean`
+    // accepts options `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`
     // to move beyond connection endpoints, absoluteOffset has to be set
     getLabelPosition: function(x, y, opt) {
 
-        localOpt = opt || {}
-        var isRelative = !localOpt.absolute; // relative by default
-        var isAbsoluteReverse = (localOpt.absolute && localOpt.reverse); // non-reverse by default
-        var isOffsetAbsolute = localOpt.absoluteOffset; // offset is non-absolute by default
+        var args = opt || {}
+        var isDistanceRelative = !args.absoluteDistance; // relative by default
+        var isDistanceAbsoluteReverse = (args.absoluteDistance && args.reverseDistance); // non-reverse by default
+        var isOffsetAbsolute = args.absoluteOffset; // offset is non-absolute by default
 
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
@@ -1570,8 +1589,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // GET DISTANCE:
 
         var labelDistance = path.lengthAtT(t, pathOpt);
-        if (isRelative) labelDistance /= this.getConnectionLength();
-        if (isAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point
+        if (isDistanceRelative) labelDistance /= this.getConnectionLength();
+        if (isDistanceAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point (-0 => 1)
 
         // GET OFFSET:
         // use absolute offset if:
@@ -1590,7 +1609,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             labelOffset = labelPoint.difference(closestPoint);
         }
 
-        return { distance: labelDistance, offset: labelOffset, opt: opt }
+        return { distance: labelDistance, offset: labelOffset, args: args }
     },
 
     getLabelCoordinates: function(labelPosition) {
@@ -1755,8 +1774,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     // this.can('labelMove') is true
                     var model = this.model;
                     var labelPosition = model.label(this._labelIdx).position;
-                    var labelPositionOpt = labelPosition ? labelPosition.opt : undefined;
-                    model.label(this._labelIdx, { position: this.getLabelPosition(x, y, labelPositionOpt) });
+                    var labelPositionArgs = labelPosition ? labelPosition.args : undefined;
+                    model.label(this._labelIdx, { position: this.getLabelPosition(x, y, labelPositionArgs) });
                 }
                 break;
 

@@ -208,6 +208,11 @@ export namespace dia {
 
         toBack(opt?: Cell.EmbeddableOptions): this;
 
+        parent(): string;
+        parent(parentId: string): this;
+
+        getParentCell(): Cell | null;
+
         getAncestors(): Cell[];
 
         getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
@@ -324,6 +329,8 @@ export namespace dia {
 
         isElement(): boolean;
 
+        isLink(): boolean;
+
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
         position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
@@ -395,12 +402,18 @@ export namespace dia {
         }
 
         interface LabelPosition {
-            distance: number;
-            offset: number | { x: number; y: number; }
+            distance?: number; // optional for default labels
+            offset?: number | { x: number; y: number; }
+            args?: {
+                absoluteDistance?: boolean,
+                reverseDistance?: boolean,
+                absoluteOffset?: boolean
+            }
         }
 
         interface Label {
-            position: LabelPosition | number;
+            markup?: string; // default labels
+            position?: LabelPosition | number; // optional for default labels
             attrs?: Cell.Selectors;
             size?: Size;
         }
@@ -413,12 +426,16 @@ export namespace dia {
     class Link extends Cell {
 
         markup: string;
-        labelMarkup: string;
         toolMarkup: string;
+        doubleToolMarkup?: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
+        labelMarkup?: string; // default label markup
+        labelProps?: Link.Label; // default label props
 
         constructor(attributes?: Link.Attributes, opt?: Graph.Options);
+
+        isElement(): boolean;
 
         isLink(): boolean;
 
@@ -430,20 +447,24 @@ export namespace dia {
         target(): Point | { id: string, selector?: string, port?: string } | null | undefined;
         target(target: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        parent(): Point | { id: string, selector?: string, port?: string } | null | undefined;
-
         label(index?: number): Link.Label;
         label(index: number, value: Link.Label, opt?: Cell.Options): this;
+
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
+
         addLabel(index: number, value: Link.Label, opt?: Cell.Options): this;
+
         removeLabel(index?: number, opt?: Cell.Options): this;
 
         vertex(index?: number): Link.Vertex;
         vertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
+
         vertices(): Link.Vertex[];
         vertices(vertices: Link.Vertex[]): this;
+
         addVertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
+
         removeVertex(index?: number, opt?: Cell.Options): this;
 
         reparent(opt?: Cell.Options): Element;
@@ -574,6 +595,16 @@ export namespace dia {
                 end: 'source' | 'target'
             ): Point;
         }
+
+        interface LabelOptions extends Cell.Options {
+            absoluteDistance?: boolean;
+            reverseDistance?: boolean;
+            absoluteOffset?: boolean;
+        }
+
+        interface VertexOptions extends Cell.Options {
+
+        }
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -585,19 +616,14 @@ export namespace dia {
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
             sampleInterval?: number
-
-            labelAttrs: {
-                text?: { [key: string]: any },
-                rect?: { [key: string]: any }
-            }
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addVertex(vertex: Point, opt?: Cell.Options): number;
+        addLabel(label: Link.Label, opt?: LabelOptions): number;
 
-        addLabel(label: Link.Label, opt?: Cell.Options): number;
+        addVertex(vertex: Point, opt?: VertexOptions): number;
 
         getConnection(): g.Path;
 
@@ -611,13 +637,15 @@ export namespace dia {
 
         getPointAtRatio(ratio: number): g.Point;
 
-        getTangentAtLenght(length: number): g.Line;
+        getTangentAtLength(length: number): g.Line;
 
         getTangentAtRatio(ratio: number): g.Line;
 
         getClosestPoint(point: g.PlainPoint): g.Point;
 
         getClosestPointLength(point: g.PlainPoint): number;
+
+        getClosestPointRatio(point: g.PlainPoint): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 

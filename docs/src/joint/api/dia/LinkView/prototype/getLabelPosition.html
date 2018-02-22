@@ -11,52 +11,58 @@
 <p>By default, <code>position.distance</code> is set relative to <a href="joint.html#dia.LinkView.prototype.getConnectionLength">connection length</a> (as a number in the <code>[0,1]</code> range that records the <a href="joint.html#dia.LinkView.prototype.getClosestPointRatio">length ratio</a>), and <code>position.offset</code> is set relative to the connection (as a number recording the <a href="geometry.html#g.line.prototype.pointOffset">perpendicular distance</a>). The user may change this behavior by providing an <code>opt</code> object with some of the following accepted boolean flags:</p>
 
 <ul>
-    <li><code>absolute: true</code> - record <code>distance</code> absolutely (as <a href="joint.html#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number).</li>
-    <li><code>reverse: true</code> - if <code>absolute: true</code>, record <code>distance</code> absolutely from end of link (as a negative number).</li>
+    <li><code>absoluteDistance: true</code> - record <code>distance</code> absolutely (as <a href="joint.html#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number).</li>
+    <li><code>reverseDistance: true</code> - if <code>absoluteDistance: true</code>, record <code>distance</code> absolutely from end of link (as a negative number).</li>
     <li><code>absoluteOffset: true</code> - record <code>offset</code> absolutely (as <code>x</code> and <code>y</code> distance from closest point).</li>
 </ul>
 
 <p>Please note that if <code>absoluteOffset</code> is not set (i.e. the default option), label can only be placed/moved in the area that is reachable by lines perpendicular to the link (that is, the label cannot be moved beyond link endpoints).</p>
 
-<p>The <code>opt</code> object passed to the label is recorded inside the returned <code>position</code> object. The label is able to remember the options with which it was saved during future labelMove interactions.</p>
+<p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
 
 <p>An object in the following format is returned:</p>
 
 <pre><code>{
     distance: number,
     offset: number | { x: number, y: number },
-    opt?: { absolute?: boolean, reverse?: boolean, absoluteOffset?: boolean }
+    args?: {
+        absoluteDistance?: boolean,
+        reverseDistance?: boolean,
+        absoluteOffset?: boolean
+    }
 }</code></pre>
 
 <p>See <code>link.label()</code> <a href="joint.html#dia.Link.prototype.label">documentation</a> for more information about the <code>position</code> object.</p>
 
 <p>This function can be used to add a custom label to the <code>link.labels</code> <a href="joint.html#dia.Link.prototype.labels">array</a>, in situations when the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">function</a> is not sufficient. For example:</p>
 
-<pre><code>var paper = new joint.dia.Paper({
-    // ...
-    linkView: joint.dia.LinkView.extend({
-        // overwrite default event listener with custom functionality
-        pointerdown: function(evt, x, y) {
-            var idx = -1; // add at end of `labels`
-            var label = {
-                markup: '&lt;g class="label"&gt;&lt;circle /&gt;&lt;path /&gt;&lt;/g&gt;',
-                position: this.getLabelPosition(x, y, { absoluteOffset: true }),
-                attrs: {
-                    circle: {
-                        r: 15,
-                        fill: 'lightgray',
-                        stroke: 'black',
-                        strokeWidth: 2
-                    },
-                    path: {
-                        d: 'M 0 -15 0 -35 20 -35',
-                        stroke: 'black',
-                        strokeWidth: 2,
-                        fill: 'none'
-                    }
+<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+    contextmenu: function(evt, x, y) {
+        var idx = -1; // add at end of `labels`
+        var label = {
+            markup: '&lt;g class="label"&gt;&lt;circle /&gt;&lt;path /&gt;&lt;/g&gt;',
+            position: this.getLabelPosition(x, y, { absoluteOffset: true }),
+            attrs: {
+                circle: {
+                    r: 15,
+                    fill: 'lightgray',
+                    stroke: 'black',
+                    strokeWidth: 2
+                },
+                path: {
+                    d: 'M 0 -15 0 -35 20 -35',
+                    stroke: 'black',
+                    strokeWidth: 2,
+                    fill: 'none'
                 }
             }
-            this.model.addLabel(idx, label);
         }
-    })
+        this.model.addLabel(idx, label);
+    }
+});
+
+var paper = new joint.dia.Paper({
+    //...
+    linkView: CustomLinkView,
+    interactive: { vertexAdd: false }
 });</code></pre>

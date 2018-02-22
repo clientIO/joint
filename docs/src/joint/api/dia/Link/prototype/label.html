@@ -8,21 +8,25 @@
 
 <pre><code>{
     markup: string,
+    attrs: {
+        selector: SVG attributes | JointJS attributes
+    },
     position: number | {
         distance: number,
         offset?: number | { x: number, y: number },
-        opt?: { absolute?: boolean, reverse?: boolean, absoluteOffset?: boolean }
-    },
-    attrs: { selector: SVG attributes | JointJS attributes }
+        args?: {
+            absoluteDistance?: boolean,
+            reverseDistance?: boolean,
+            absoluteOffset?: boolean
+        }
+    }
 }</code></pre>
 
-<p>The <code>markup</code> property specifies the HTML markup of the label. The default markup is very simple:</p>
+<p>The <code>markup</code> property specifies the HTML markup of the label. If it is not provided, a default is chosen according to <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a>. The (deprecated) builtin default markup contains a <code>&lt;rect&gt;</code> element followed by <code>&lt;text&gt;</code> element.</p>
 
-<pre><code data-lang="svg">&lt;g class=&quot;label&quot;&gt;&lt;rect /&gt;&lt;text /&gt;&lt;/g&gt;</code></pre>
+<p>The <code>attrs</code> property is an object with CSS selectors (referring to SVG elements specified in <code>markup</code>) as keys and SVG attributes as values. If the (deprecated) builtin default markup is used, several <code>attrs</code> are applied for reasons of backwards compatibility. See <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a> for more information.</p>
 
-<p>Where <code data-lang="svg">&lt;rect&gt;</code> is a box below the label, providing a unified background for label text.</p>
-
-<p>The <code>position</code> property specifies the position of the label, relative to the link <code>.connection</code> SVG path. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>opt</code> properties:</p>
+<p>Finally, the <code>position</code> property specifies the position of the label, relative to the link <code>.connection</code> SVG path. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>opt</code> properties:</p>
 
 <table>
     <tr>
@@ -102,20 +106,20 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>opt</th>
+                    <th>args</th>
                     <td>
                         <p>Optional. An object with boolean options for the <code>linkView.getLabelPosition()</code> <a href="joint.html#dia.linkView.prototype.getLabelPosition">function</a>.</p>
                         <table>
                             <tr>
-                                <th>absolute</th>
+                                <th>absoluteDistance</th>
                                 <td>
                                     If user moves the label, record <code>distance</code> as an absolute number. (Relative distances used by default).
                                 </td>
                             </tr>
                             <tr>
-                                <th>reverse</th>
+                                <th>reverseDistance</th>
                                 <td>
-                                    If <code>absolute</code> is set and user moves the label, record <code>distance</code> as a negative absolute number. (Positive distances used by default.)
+                                    If <code>absoluteDistane</code> is set and user moves the label, record <code>distance</code> as a negative absolute number. (Positive distances used by default.)
                                 </td>
                             </tr>
                             <tr>
@@ -131,8 +135,6 @@
         </td>
     </tr>
 </table>
-
-<p>Finally, the <code>attrs</code> property is an object with CSS selectors as keys and SVG attributes as values.</p>
 
 <p>Example label:
 

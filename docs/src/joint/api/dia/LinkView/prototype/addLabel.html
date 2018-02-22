@@ -4,21 +4,27 @@
 <p>This method uses the <code>linkView.getLabelPosition()</code> <a href="joint.html#dia.LinkView.prototype.getLabelPosition">function</a> to determine the new label's <code>position</code>. By default, <code>position.distance</code> is recorded relative to connection length (as a number in the <code>[0,1]</code> range), and <code>position.offset</code> is set relative to the connection (as a number). This behavior may be changed by providing an <code>opt</code> object with some of the accepted boolean flags:</p>
 
 <ul>
-    <li><code>absolute: true</code> records <code>distance</code> absolutely (as distance from beginning of link)</li>
-    <li><code>reverse: true</code> switches <code>distance</code> to be calculated from end of link, if <code>absolute</code></li>
+    <li><code>absoluteDistance: true</code> records <code>distance</code> absolutely (as distance from beginning of link)</li>
+    <li><code>reverseDistance: true</code> switches <code>distance</code> to be calculated from end of link, if <code>absoluteDistance</code></li>
     <li><code>absoluteOffset: true</code> records <code>offset</code> absolutely (as <code>x</code> and <code>y</code> from connection)</li>
 </ul>
 
-<p>The <code>opt</code> object passed to the label is recorded inside <code>label.position</code>. The label is able to remember the options with which it was saved during future labelMove interactions.</p>
+<p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
 
-<p>This function is useful within custom <code>linkView</code> event listener definitions. The following example adds a new label on a pointerdown event, instead of a vertex (which is the default behavior):</p>
+<p>This function is useful within custom <code>linkView</code> event listener definitions:</p>
 
-<pre><code>var paper = new joint.dia.Paper({
+<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+    contextmenu: function(evt, x, y) {
+        this.addLabel(x, y, {
+            absoluteDistance: true,
+            reverseDistance: true,
+            absoluteOffset: true
+        });
+    }
+});
+
+var paper = new joint.dia.Paper({
     // ...
-    linkView: joint.dia.LinkView.extend({
-        // overwrite default event listener with custom functionality
-        pointerdown: function(evt, x, y) {
-            this.addLabel(x, y);
-        }
-    })
+    linkView: CustomLinkView,
+    interactive: { vertexAdd: false } // disable default vertexAdd interaction
 });</code></pre>

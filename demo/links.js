@@ -23,7 +23,7 @@ var paper = new joint.dia.Paper({
         },
         contextmenu: function(evt, x, y) {
             if (this.model.get('customLinkInteractions')) {
-                this.addLabel(x, y, { absolute: true, reverse: true, absoluteOffset: true });
+                this.addLabel(x, y, { absoluteDistance: true, reverseDistance: true });
             }
         },
         // custom options:
@@ -50,22 +50,15 @@ $('#perpendicularLinks').on('change', function() {
 });
 
 // custom link definition
-var MyLink = joint.dia.Link.extend({
-    // custom default markup
-    labelMarkup: '<g class="label"><circle /><text /></g>',
-
-    // custom default props
-    labelProps: {
-        position: {
-            distance: 0.5,
-            offset: { y: -20 }
-        },
+var CustomLink = joint.dia.Link.define('examples.CustomLink', {
+    defaultLabel: {
+        markup: '<g class="label"><circle /><text /></g>',
         attrs: {
             text: {
+                text: '%',
                 textAnchor: 'middle',
                 fontSize: 14,
                 fill: '#ff0000',
-                text: '%',
                 pointerEvents: 'none',
                 yAlignment: 'middle'
             },
@@ -78,6 +71,11 @@ var MyLink = joint.dia.Link.extend({
                 stroke: '#000000',
                 strokeWidth: 1
             }
+        },
+        position: {
+            distance: 0.5,
+            offset: { y: -20 },
+            args: { absoluteOffset: true }
         }
     }
 });
@@ -115,7 +113,7 @@ var r2 = r1.clone();
 graph.addCell(r2);
 r2.translate(300);
 
-var link1 = new MyLink({
+var link1 = new CustomLink({
     source: { id: r1.id },
     target: { id: r2.id }
 });
@@ -135,7 +133,7 @@ var r4 = r3.clone();
 graph.addCell(r4);
 r4.translate(300);
 
-var link2 = new MyLink({
+var link2 = new CustomLink({
     customLinkInteractions: true,
     source: { id: r3.id },
     target: { id: r4.id },
@@ -164,7 +162,7 @@ var r6 = r5.clone();
 graph.addCell(r6);
 r6.translate(300);
 
-var link3 = new MyLink({
+var link3 = new CustomLink({
     source: { id: r5.id },
     target: { id: r6.id },
     attrs: {
@@ -196,7 +194,7 @@ r8.translate(300);
 // only the text can be a target of a link for this specific element.
 r8.attr({ '.': { magnet: false } });
 
-var link4 = new MyLink({
+var link4 = new CustomLink({
     source: { id: r7.id },
     target: { id: r8.id, selector: 'text' },
     attrs: {
@@ -224,7 +222,7 @@ var r10 = r9.clone();
 graph.addCell(r10);
 r10.translate(300);
 
-var link5 = new MyLink({
+var link5 = new CustomLink({
     source: { id: r9.id },
     target: { id: r10.id },
     vertices: [{ x: 370, y: 470 }, { x: 670, y: 470 }],
@@ -253,7 +251,7 @@ var r12 = r11.clone();
 graph.addCell(r12);
 r12.translate(300);
 
-var link6 = new MyLink({
+var link6 = new CustomLink({
     source: { id: r11.id },
     target: { id: r12.id },
     vertices: [{ x: 370, y: 600 }, { x: 520, y: 640 }, { x: 670, y: 600 }],
@@ -310,7 +308,7 @@ var r14 = r13.clone();
 graph.addCell(r14);
 r14.translate(300);
 
-var link7 = new MyLink({
+var link7 = new CustomLink({
     source: { id: r13.id },
     target: { id: r14.id },
     attrs: {
@@ -323,16 +321,15 @@ var link7 = new MyLink({
     },
     labels: [
         {
-            position: 29, // absolute positioning
             attrs: {
                 text: {
                     text: '1..n'
                 }
-            }
+            },
+            position: 29 // absolute positioning
         },
         {
             markup: '<g class="label"><rect /><text /></g>', // individual markup
-            position: { offset: { x: 10, y: 25 }}, // absolute offset, default distance
             attrs: {
                 text: {
                     text: 'JointJS',
@@ -340,6 +337,7 @@ var link7 = new MyLink({
                     fontFamily: 'sans-serif',
                     textAnchor: 'left'
                 },
+                circle: null, // erase default circle attr because not used
                 rect: {
                     ref: 'text',
                     stroke: 'red',
@@ -352,14 +350,17 @@ var link7 = new MyLink({
                     refX: '-20%',
                     refY: '-20%'
                 }
+            },
+            position: {  // absolute offset, default distance
+                offset: { x: 10, y: 25 }
             }
         },
         {
             markup: '<g class="label"><circle /><path /></g>', // individual markup
-            position: 0.5, // relative positioning
             attrs: {
+                text: null, // erase default text attr because not used
                 circle: {
-                    ref: null, // overwriting default label attrs
+                    ref: null, // erase unused circle default attrs
                     refR: null,
                     refCx: null,
                     refCy: null,
@@ -374,10 +375,14 @@ var link7 = new MyLink({
                     strokeWidth: 2,
                     fill: 'none'
                 }
-            }
+            },
+            position: 0.5, // relative positioning
         },
         {
-            position: { distance: 0.89 }, // individual distance, default offset
+            position: {  // individual distance, default offset
+                distance: 0.89,
+                args: { absoluteOffset: null }
+            }
         }
     ]
 });
@@ -396,7 +401,7 @@ var r16 = r15.clone();
 graph.addCell(r16);
 r16.translate(300);
 
-var link8 = new MyLink({
+var link8 = new CustomLink({
     source: { id: r15.id },
     target: { id: r16.id },
     attrs: {
@@ -442,14 +447,14 @@ var r18 = r17.clone();
 graph.addCell(r18);
 r18.translate(200, 80);
 
-var link9 = new MyLink({
+var link9 = new CustomLink({
     source: { id: r17.id },
     target: { id: r18.id },
     vertices: [{ x: 700, y: 990 }],
     router: { name: 'metro' }
 });
 
-var link10 = new MyLink({
+var link10 = new CustomLink({
     source: { id: r17.id },
     target: { id: r18.id },
     vertices: [{ x: 450, y: 1015 }],
@@ -472,7 +477,7 @@ var r20 = r19.clone();
 graph.addCell(r20);
 r20.translate(200, 0);
 
-var link11 = new MyLink({
+var link11 = new CustomLink({
     source: { id: r19.id },
     target: { id: r20.id },
     vertices: [{ x: 400, y: 1080 }, { x: 600, y: 1080 }],
@@ -509,7 +514,7 @@ var r22 = r21.clone();
 graph.addCell(r22);
 r22.translate(200, 0);
 
-var link13 = new MyLink({
+var link13 = new CustomLink({
     source: { id: r21.id },
     target: { id: r22.id },
     router: { name: 'oneSide', args: { side: 'bottom' } }
