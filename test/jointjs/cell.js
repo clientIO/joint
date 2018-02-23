@@ -2,6 +2,28 @@
 
 QUnit.module('cell', function(hooks) {
 
+    hooks.beforeEach(function() {
+
+        var $fixture = $('#qunit-fixture');
+        var $paper = $('<div/>');
+        $fixture.append($paper);
+
+        this.graph = new joint.dia.Graph;
+        this.paper = new joint.dia.Paper({
+
+            el: $paper,
+            gridSize: 10,
+            model: this.graph
+        });
+    });
+
+    hooks.afterEach(function() {
+
+        this.paper.remove();
+        this.graph = null;
+        this.paper = null;
+    });
+
     QUnit.module('isElement()', function(hooks) {
 
         QUnit.test('should be a function', function(assert) {
@@ -29,6 +51,82 @@ QUnit.module('cell', function(hooks) {
             var cell = new joint.dia.Cell;
 
             assert.notOk(cell.isLink());
+        });
+    });
+
+    QUnit.module('parent', function(hooks) {
+
+        QUnit.test('parent', function(assert) {
+
+            var cell = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            var cell2 = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+
+            this.graph.addCell(cell);
+            this.graph.addCell(cell2);
+
+            assert.equal(typeof cell.parent, 'function', 'should be a function');
+
+            var parent;
+
+            cell.embed(cell2);
+
+            parent = cell.parent();
+            assert.equal(parent, undefined, 'parent cell has no parent');
+
+            parent = cell2.parent();
+            assert.equal(parent, cell.id, 'embedded cell has parent');
+
+            cell.unembed(cell2);
+
+            parent = cell.parent();
+            assert.equal(parent, undefined, 'former parent cell still has no parent');
+
+            parent = cell2.parent();
+            assert.equal(parent, undefined, 'former embedded cell no longer has a parent');
+        });
+    });
+
+    QUnit.module('getParentCell', function(hooks) {
+
+        QUnit.test('getParentCell', function(assert) {
+
+            var cell = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+            var cell2 = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 20 },
+                size: { width: 60, height: 60 }
+            });
+
+            this.graph.addCell(cell);
+            this.graph.addCell(cell2);
+
+            assert.equal(typeof cell.getParentCell, 'function', 'should be a function');
+
+            var parent;
+
+            cell.embed(cell2);
+
+            parent = cell.getParentCell();
+            assert.equal(parent, null, 'parent cell has no parent');
+
+            parent = cell2.getParentCell();
+            assert.ok(parent && parent.id === cell.id, 'embedded cell has parent');
+
+            cell.unembed(cell2);
+
+            parent = cell.getParentCell();
+            assert.equal(parent, null, 'former parent cell still has no parent');
+
+            parent = cell2.getParentCell();
+            assert.equal(parent, null, 'former embedded cell no longer has a parent');
         });
     });
 
