@@ -106,6 +106,59 @@ QUnit.module('point', function() {
 
         QUnit.module('rotate(origin, angle)', function() {
 
+            QUnit.test('should return a rotated version of self', function(assert) {
+
+                var point = new g.Point(5, 5);
+                var angle;
+
+                var nullPoint = null;
+                var zeroPoint = new g.Point('0 0');
+                var arbitraryPoint = new g.Point('14 6');
+
+                angle = 0;
+                assert.equal(point.clone().rotate(nullPoint, angle).round(3).toString(), '5@5');
+                assert.equal(point.clone().rotate(zeroPoint, angle).round(3).toString(), '5@5');
+                assert.equal(point.clone().rotate(point, angle).round(3).toString(), '5@5');
+                assert.equal(point.clone().rotate(arbitraryPoint, angle).round(3).toString(), '5@5');
+
+                angle = 154;
+                assert.equal(point.clone().rotate(nullPoint, angle).round(3).toString(), '-2.302@-6.686');
+                assert.equal(point.clone().rotate(zeroPoint, angle).round(3).toString(), '-2.302@-6.686');
+                assert.equal(point.clone().rotate(point, angle).round(3).toString(), '5@5');
+                assert.equal(point.clone().rotate(arbitraryPoint, angle).round(3).toString(), '21.651@10.844');
+            });
+
+            QUnit.test('assert rotation 0 = -360 = 360 = 1080', function(assert) {
+
+                var point = new g.Point(5, 5);
+                var angle1;
+                var angle2;
+
+                var nullPoint = null;
+                var zeroPoint = new g.Point('0 0');
+                var arbitraryPoint = new g.Point('14 6');
+
+                angle1 = 0;
+                angle2 = -360;
+                assert.equal(point.clone().rotate(nullPoint, angle1).toString(), point.clone().rotate(nullPoint, angle2).toString());
+                assert.equal(point.clone().rotate(zeroPoint, angle1).toString(), point.clone().rotate(zeroPoint, angle2).toString());
+                assert.equal(point.clone().rotate(point, angle1).toString(), point.clone().rotate(point, angle2).toString());
+                assert.equal(point.clone().rotate(arbitraryPoint, angle1).toString(), point.clone().rotate(arbitraryPoint, angle2).toString());
+
+                angle1 = 0;
+                angle2 = 360;
+                assert.equal(point.clone().rotate(nullPoint, angle1).toString(), point.clone().rotate(nullPoint, angle2).toString());
+                assert.equal(point.clone().rotate(zeroPoint, angle1).toString(), point.clone().rotate(zeroPoint, angle2).toString());
+                assert.equal(point.clone().rotate(point, angle1).toString(), point.clone().rotate(point, angle2).toString());
+                assert.equal(point.clone().rotate(arbitraryPoint, angle1).toString(), point.clone().rotate(arbitraryPoint, angle2).toString());
+
+                angle1 = 0;
+                angle2 = 1080;
+                assert.equal(point.clone().rotate(nullPoint, angle1).toString(), point.clone().rotate(nullPoint, angle2).toString());
+                assert.equal(point.clone().rotate(zeroPoint, angle1).toString(), point.clone().rotate(zeroPoint, angle2).toString());
+                assert.equal(point.clone().rotate(point, angle1).toString(), point.clone().rotate(point, angle2).toString());
+                assert.equal(point.clone().rotate(arbitraryPoint, angle1).toString(), point.clone().rotate(arbitraryPoint, angle2).toString());
+            });
         });
 
         QUnit.module('round(precision)', function() {
