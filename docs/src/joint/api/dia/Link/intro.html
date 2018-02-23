@@ -9,7 +9,7 @@
 
 var link2 = new joint.dia.Link({
     source: { id: sourceId },
-    target: { x: 100, y: 100}
+    target: { x: 100, y: 100 }
 });</code></pre>
 
 <p>These are not the only attributes that may be specified for a newly-created <code>joint.dia.Link</code>, however. An individual link instance may provide a value for these attributes:</p>
@@ -24,7 +24,6 @@ var link2 = new joint.dia.Link({
     <li><code>arrowheadMarkup</code> - provide custom arrowhead markup (on hover).</li>
     <li><code>labels</code> - provide an array of <a href="joint.html#dia.Link.prototype.label">labels</a>. Each can have its own markup, position, and attrs specified.</li>
 </ul>
-
 
 <p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="joint.html#dia.LinkView.intro">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
 

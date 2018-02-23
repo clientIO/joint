@@ -270,7 +270,7 @@ QUnit.module('links', function(hooks) {
 
         source = link.source();
 
-        assert.deepEqual(source, { x: 40, y: 40}, 'source is a point');
+        assert.deepEqual(source, { x: 40, y: 40 }, 'source is a point');
 
         var element = new joint.shapes.basic.Rect({
             position: { x: 20, y: 20 },
@@ -1397,7 +1397,7 @@ QUnit.module('links', function(hooks) {
             QUnit.test('getter', function (assert) {
                 var link = new joint.dia.Link();
                 assert.deepEqual(link.vertices(), []);
-                link.set('vertices', [{ x: 0, y: 0}]);
+                link.set('vertices', [{ x: 0, y: 0 }]);
                 assert.notEqual(link.vertices(), link.get('vertices'), 'Copy');
                 assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }]);
             });

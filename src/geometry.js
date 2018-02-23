@@ -2698,10 +2698,12 @@ var g = (function() {
 
             origin = origin || new g.Point(0, 0);
 
-            angle = toRad((-angle + 360) % 360);
+            angle = toRad(normalizeAngle(-angle));
+            var cosAngle = cos(angle);
+            var sinAngle = sin(angle);
 
-            var x = (cos(angle) * (this.x - origin.x)) - (sin(angle) * (this.y - origin.y)) + origin.x;
-            var y = (sin(angle) * (this.x - origin.x)) + (cos(angle) * (this.y - origin.y)) + origin.y;
+            var x = (cosAngle * (this.x - origin.x)) - (sinAngle * (this.y - origin.y)) + origin.x;
+            var y = (sinAngle * (this.x - origin.x)) + (cosAngle * (this.y - origin.y)) + origin.y;
 
             this.x = x;
             this.y = y;

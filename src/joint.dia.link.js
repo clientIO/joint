@@ -206,7 +206,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     addVertex: function (idx, vertex, opt) {
 
-        vertex = vertex || { x: 0, y: 0};
+        vertex = vertex || { x: 0, y: 0 };
 
         var vertices = this.vertices();
         var n = vertices.length;
@@ -377,6 +377,15 @@ joint.dia.Link = joint.dia.Cell.extend({
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
+    },
+
+    // Get resolved default label.
+    _getDefaultLabel: function() {
+
+        var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
+        defaultLabel.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
+
+        return defaultLabel;
     }
 },
     {
@@ -629,16 +638,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
         }
 
-        var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
-        var defaultLabelMarkup = defaultLabel.markup || model.get('labelMarkup') || model.labelMarkup;
-
+        var defaultLabel = model._getDefaultLabel();
         var builtinDefaultLabel = model._builtins.defaultLabel;
-        var builtinDefaultLabelMarkup = builtinDefaultLabel.markup;
 
         // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
         // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
         // node to create a duplicate.
-        var defaultNode = V(defaultLabelMarkup || builtinDefaultLabelMarkup);
+        var defaultNode = V(defaultLabel.markup || builtinDefaultLabel.markup);
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -674,24 +680,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var label = labels[i];
-            var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
+            var defaultLabel = model._getDefaultLabel();
 
             var labelAttrs = label.attrs;
             var defaultLabelAttrs = defaultLabel.attrs;
 
-            var labelMarkup = label.markup;
-            var defaultLabelMarkup = defaultLabel.markup || model.get('labelMarkup') || model.labelMarkup;
-            if (labelMarkup || defaultLabelMarkup) { // if user specified own markup
-                labelAttrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
+            var attrs;
+            if (label.markup || defaultLabel.markup) { // if user specified own markup
+                attrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
 
             } else { // merge in builtin attrs only if builtin markup is used
                 var builtinDefaultLabel = model._builtins.defaultLabel;
                 var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
 
-                labelAttrs = joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
+                attrs = joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
+            this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
                 rootBBox: new g.Rect(label.size)
             });
         }
@@ -943,16 +948,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
+            var defaultLabel = model._getDefaultLabel();
 
             // only objects can be merged
             // using a wrapper object is the simplest way to handle all `position` formats
-            var labelPosition = { position: label.position};
+            var labelPosition = { position: label.position };
             var defaultLabelPosition = { position: defaultLabel.position };
 
             var position = (joint.util.merge({}, defaultLabelPosition, labelPosition)).position;
-            var labelCoordinates = this.getLabelCoordinates(position);
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+            var labelPoint = this.getLabelCoordinates(position);
+            this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
         return this;
@@ -1186,33 +1191,45 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // `opt.absoluteOffset` forces absolute coordinates for offset.
     addLabel: function(x, y, opt) {
 
+        // accept input in form `{ x, y }, opt` or `x, y, opt`
+        var isPointProvided = (typeof x !== 'number');
+        var localX = isPointProvided ? x.x : x;
+        var localY = isPointProvided ? x.y : y;
+        var localOpt = isPointProvided ? y : opt;
+
         var model = this.model;
 
-        var labelPositionArgs = opt || {};
+        var labelPositionArgs = localOpt || {};
 
-        var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
+        var defaultLabel = model._getDefaultLabel();
         var defaultLabelPosition = defaultLabel.position || {};
         var defaultLabelPositionArgs = defaultLabelPosition.args || {};
 
         // builtinDefaultLabel does not have position object
 
         var positionArgs = joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
-        var label = { position: this.getLabelPosition(x, y, positionArgs) };
+        var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
 
         var idx = -1;
-        model.addLabel(idx, label, opt);
+        model.addLabel(idx, label, localOpt);
         return idx;
     },
 
     // Add a new vertex at calculated index to the `vertices` array.
     addVertex: function(x, y, opt) {
 
+        // accept input in form `{ x, y }, opt` or `x, y, opt`
+        var isPointProvided = (typeof x !== 'number');
+        var localX = isPointProvided ? x.x : x;
+        var localY = isPointProvided ? x.y : y;
+        var localOpt = isPointProvided ? y : opt;
+
         var model = this.model;
 
-        var vertex = { x: x, y: y };
+        var vertex = { x: localX, y: localY };
 
-        var idx = this.getVertexIndex(x, y);
-        model.addVertex(idx, vertex, opt);
+        var idx = this.getVertexIndex(localX, localY);
+        model.addVertex(idx, vertex, localOpt);
         return idx;
     },
 
@@ -1657,7 +1674,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        return { x: point.x, y: point.y };
+        return point;
     },
 
     getVertexIndex: function(x, y) {

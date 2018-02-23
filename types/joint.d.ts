@@ -617,8 +617,10 @@ export namespace dia {
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
+        addLabel(coordinates: g.PlainPoint, opt?: LabelOptions): number;
         addLabel(x: number, y: number, opt?: LabelOptions): number;
 
+        addVertex(coordinates: g.PlainPoint, opt?: VertexOptions): number;
         addVertex(x: number, y: number, opt?: VertexOptions): number;
 
         getConnection(): g.Path;
@@ -645,7 +647,7 @@ export namespace dia {
 
         getLabelPosition(x: number, y: number, opt?: LabelOptions): Link.LabelPosition;
 
-        getLabelCoordinates(labelPosition: Link.LabelPosition): g.PlainPoint;
+        getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
         getVertexIndex(x: number, y: number): number;
 
