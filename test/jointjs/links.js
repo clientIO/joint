@@ -255,6 +255,70 @@ QUnit.module('links', function(hooks) {
 
     });
 
+    QUnit.test('source', function(assert) {
+
+        var link = new joint.dia.Link({
+            source: { x: 40, y: 40 },
+            target: { x: 100, y: 100 }
+        });
+
+        this.graph.addCell(link);
+
+        assert.equal(typeof link.source, 'function', 'should be a function');
+
+        var source;
+
+        source = link.source();
+
+        assert.deepEqual(source, { x: 40, y: 40}, 'source is a point');
+
+        var element = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 20 },
+            size: { width: 60, height: 60 }
+        });
+
+        this.graph.addCell(element);
+
+        link.source({ id: element.id });
+
+        source = link.source();
+
+        assert.deepEqual(source, { id: element.id }, 'source is an element');
+        assert.equal(source.id, link.getSourceElement().id, 'source element ID is correct');
+    });
+
+    QUnit.test('target', function(assert) {
+
+        var link = new joint.dia.Link({
+            source: { x: 40, y: 40 },
+            target: { x: 100, y: 100 }
+        });
+
+        this.graph.addCell(link);
+
+        assert.equal(typeof link.target, 'function', 'should be a function');
+
+        var target;
+
+        target = link.target();
+
+        assert.deepEqual(target, { x: 100, y: 100 }, 'target is an element');
+
+        var element = new joint.shapes.basic.Rect({
+            position: { x: 20, y: 20 },
+            size: { width: 60, height: 60 }
+        });
+
+        this.graph.addCell(element);
+
+        link.target({ id: element.id });
+
+        target = link.target();
+
+        assert.deepEqual(target, { id: element.id }, 'target is an element');
+        assert.equal(target.id, link.getTargetElement().id, 'target element ID is correct');
+    });
+
     QUnit.test('disconnect(), connect()', function(assert) {
 
         var myrect = new joint.shapes.basic.Rect({
@@ -1240,68 +1304,137 @@ QUnit.module('links', function(hooks) {
         });
     });
 
-    QUnit.module('vertex', function() {
+    QUnit.module('label API', function() {
 
-        QUnit.test('getter', function(assert) {
-            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
-            assert.deepEqual(link.vertex(0), { x: 0, y: 0 });
-            assert.deepEqual(link.vertex(1), { x: 1, y: 1 });
-            assert.deepEqual(link.vertex(2), undefined);
+        QUnit.module('label', function() {
+
+            QUnit.test('getter', function(assert) {
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
+                assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 } });
+                assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 } });
+                assert.deepEqual(link.label(2), undefined);
+            });
+
+            QUnit.test('setter', function(assert) {
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
+                var ret = link.label(2, { position: { distance: 30, offset: 30 } });
+                link.label(0, { position: { distance: 100, offset: 100 } });
+                link.label(1, { position: { distance: 200 } });
+                assert.equal(ret, link);
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 100, offset: 100 } }, { position: { distance: 200, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+            });
         });
 
-        QUnit.test('setter', function(assert) {
-            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
-            var ret = link.vertex(2, { x: 3, y: 3 });
-            link.vertex(0, { x: 10, y: 10 });
-            link.vertex(1, { x: 20 });
-            assert.equal(ret, link);
-            assert.deepEqual(link.get('vertices'), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
+        QUnit.module('labels', function () {
+
+            QUnit.test('getter', function (assert) {
+                var link = new joint.dia.Link();
+                assert.deepEqual(link.labels(), []);
+                link.set('labels', [{ position: { distance: 10, offset: 10 } }]);
+                assert.notEqual(link.labels(), link.get('labels'), 'Copy');
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }]);
+            });
+
+            QUnit.test('setter', function (assert) {
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
+                var ret = link.labels([{ position: { distance: 30, offset: 30 } }]);
+                assert.equal(ret, link);
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 } }]);
+            });
+        });
+
+        QUnit.module('addLabel', function () {
+
+            QUnit.test('sanity', function(assert) {
+                var link = new joint.dia.Link();
+                var ret = link.addLabel(0);
+                link.addLabel(-1, { position: { distance: 20, offset: 20 } });
+                link.addLabel(1, { position: { distance: 10, offset: 10 } });
+                link.addLabel(100, { position: { distance: 30, offset: 30 } });
+                assert.equal(ret, link);
+                assert.deepEqual(link.labels(), [{ position: 0 }, { position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+            });
+        });
+
+        QUnit.module('removeLabel', function () {
+
+            QUnit.test('sanity', function(assert) {
+                var link = new joint.dia.Link({ vertices: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }, { position: { distance: 40, offset: 40 } }] });
+                var ret = link.removeVertex(100);
+                assert.equal(ret, link);
+                assert.deepEqual(link.vertices(), [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }, { position: { distance: 40, offset: 40 } }]);
+                link.removeVertex(-1);
+                assert.deepEqual(link.vertices(), [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+                link.removeVertex(1);
+                assert.deepEqual(link.vertices(), [{ position: { distance: 10, offset: 10 } }, { position: { distance: 30, offset: 30 } }]);
+            });
         });
     });
 
-    QUnit.module('vertices', function () {
+    QUnit.module('vertex API', function() {
 
-        QUnit.test('getter', function (assert) {
-            var link = new joint.dia.Link();
-            assert.deepEqual(link.vertices(), []);
-            link.set('vertices', [{ x: 0, y: 0}]);
-            assert.notEqual(link.vertices(), link.get('vertices'), 'Copy');
-            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }]);
+        QUnit.module('vertex', function() {
+
+            QUnit.test('getter', function(assert) {
+                var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
+                assert.deepEqual(link.vertex(0), { x: 0, y: 0 });
+                assert.deepEqual(link.vertex(1), { x: 1, y: 1 });
+                assert.deepEqual(link.vertex(2), undefined);
+            });
+
+            QUnit.test('setter', function(assert) {
+                var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
+                var ret = link.vertex(2, { x: 3, y: 3 });
+                link.vertex(0, { x: 10, y: 10 });
+                link.vertex(1, { x: 20 });
+                assert.equal(ret, link);
+                assert.deepEqual(link.get('vertices'), [{ x: 10, y: 10 }, { x: 20, y: 1 }, { x: 3, y: 3 }]);
+            });
         });
 
-        QUnit.test('setter', function (assert) {
-            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
-            var ret = link.vertices([{ x: 3, y: 3 }]);
-            assert.equal(ret, link);
-            assert.deepEqual(link.get('vertices'), [{ x: 3, y: 3 }]);
+        QUnit.module('vertices', function () {
+
+            QUnit.test('getter', function (assert) {
+                var link = new joint.dia.Link();
+                assert.deepEqual(link.vertices(), []);
+                link.set('vertices', [{ x: 0, y: 0}]);
+                assert.notEqual(link.vertices(), link.get('vertices'), 'Copy');
+                assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }]);
+            });
+
+            QUnit.test('setter', function (assert) {
+                var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
+                var ret = link.vertices([{ x: 3, y: 3 }]);
+                assert.equal(ret, link);
+                assert.deepEqual(link.get('vertices'), [{ x: 3, y: 3 }]);
+            });
+        });
+
+        QUnit.module('addVertex', function () {
+
+            QUnit.test('sanity', function(assert) {
+                var link = new joint.dia.Link();
+                var ret = link.addVertex(0);
+                link.addVertex(-1, { x: 2, y: 2 });
+                link.addVertex(1, { x: 1, y: 1 });
+                link.addVertex(100, { x: 3, y: 3 });
+                assert.equal(ret, link);
+                assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
+            });
+        });
+
+        QUnit.module('removeVertex', function () {
+
+            QUnit.test('sanity', function(assert) {
+                var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }] });
+                var ret = link.removeVertex(100);
+                assert.equal(ret, link);
+                assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
+                link.removeVertex(-1);
+                assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
+                link.removeVertex(1);
+                assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 2, y: 2 }]);
+            });
         });
     });
-
-    QUnit.module('addVertex', function () {
-
-        QUnit.test('sanity', function(assert) {
-            var link = new joint.dia.Link();
-            var ret = link.addVertex(0);
-            link.addVertex(-1, { x: 2, y: 2 });
-            link.addVertex(1, { x: 1, y: 1 });
-            link.addVertex(100, { x: 3, y: 3 });
-            assert.equal(ret, link);
-            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
-        });
-    });
-
-    QUnit.module('removeVertex', function () {
-
-        QUnit.test('sanity', function(assert) {
-            var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }] });
-            var ret = link.removeVertex(100);
-            assert.equal(ret, link);
-            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }]);
-            link.removeVertex(-1);
-            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }]);
-            link.removeVertex(1);
-            assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }, { x: 2, y: 2 }]);
-        });
-    });
-
 });
