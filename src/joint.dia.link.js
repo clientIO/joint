@@ -1589,7 +1589,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // GET DISTANCE:
 
         var labelDistance = path.lengthAtT(t, pathOpt);
-        if (isDistanceRelative) labelDistance /= this.getConnectionLength();
+        if (isDistanceRelative) labelDistance = (labelDistance / this.getConnectionLength()) || 0; // fix to prevent NaN for 0 length
         if (isDistanceAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point (-0 => 1)
 
         // GET OFFSET:
@@ -1606,7 +1606,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         } else {
             var closestPoint = path.pointAtT(t);
-            labelOffset = labelPoint.difference(closestPoint);
+            var labelOffsetDiff = labelPoint.difference(closestPoint);
+            labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
         }
 
         return { distance: labelDistance, offset: labelOffset, args: args }
