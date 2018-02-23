@@ -403,12 +403,8 @@ export namespace dia {
 
         interface LabelPosition {
             distance?: number; // optional for default labels
-            offset?: number | { x: number; y: number; }
-            args?: {
-                absoluteDistance?: boolean,
-                reverseDistance?: boolean,
-                absoluteOffset?: boolean
-            }
+            offset?: number | { x: number; y: number; };
+            args?: LinkView.LabelOptions;
         }
 
         interface Label {
@@ -448,22 +444,22 @@ export namespace dia {
         target(target: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
         label(index?: number): Link.Label;
-        label(index: number, value: Link.Label, opt?: Cell.Options): this;
+        label(index: number, label: Link.Label, opt?: Cell.Options): this;
 
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
 
-        addLabel(index: number, value: Link.Label, opt?: Cell.Options): this;
+        addLabel(index: number, label: Link.Label, opt?: Cell.Options): this;
 
         removeLabel(index?: number, opt?: Cell.Options): this;
 
         vertex(index?: number): Link.Vertex;
-        vertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
+        vertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
 
         vertices(): Link.Vertex[];
         vertices(vertices: Link.Vertex[]): this;
 
-        addVertex(index: number, value: Link.Vertex, opt?: Cell.Options): this;
+        addVertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
 
         removeVertex(index?: number, opt?: Cell.Options): this;
 
@@ -621,9 +617,9 @@ export namespace dia {
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addLabel(label: Link.Label, opt?: LabelOptions): number;
+        addLabel(x: number, y: number, opt?: LabelOptions): number;
 
-        addVertex(vertex: Point, opt?: VertexOptions): number;
+        addVertex(x: number, y: number, opt?: VertexOptions): number;
 
         getConnection(): g.Path;
 
@@ -646,6 +642,12 @@ export namespace dia {
         getClosestPointLength(point: g.PlainPoint): number;
 
         getClosestPointRatio(point: g.PlainPoint): number;
+
+        getLabelPosition(x: number, y: number, opt?: LabelOptions): Link.LabelPosition;
+
+        getLabelCoordinates(labelPosition: Link.LabelPosition): g.PlainPoint;
+
+        getVertexIndex(x: number, y: number): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 

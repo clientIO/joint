@@ -629,7 +629,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
         }
 
-        var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
+        var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
         var defaultLabelMarkup = defaultLabel.markup || model.get('labelMarkup') || model.labelMarkup;
 
         var builtinDefaultLabel = model._builtins.defaultLabel;
@@ -674,7 +674,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var label = labels[i];
-            var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
+            var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
 
             var labelAttrs = label.attrs;
             var defaultLabelAttrs = defaultLabel.attrs;
@@ -943,7 +943,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
+            var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
 
             // only objects can be merged
             // using a wrapper object is the simplest way to handle all `position` formats
@@ -1190,9 +1190,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var labelPositionArgs = opt || {};
 
-        var defaultLabel = model.get('defaultLabel') || model.defaultLabel;
-        var defaultLabelPosition = defaultLabel ? defaultLabel.position : null;
-        var defaultLabelPositionArgs = defaultLabelPosition ? defaultLabelPosition.args : {};
+        var defaultLabel = model.get('defaultLabel') || model.defaultLabel || {};
+        var defaultLabelPosition = defaultLabel.position || {};
+        var defaultLabelPositionArgs = defaultLabelPosition.args || {};
 
         // builtinDefaultLabel does not have position object
 
