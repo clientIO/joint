@@ -1467,8 +1467,9 @@ var g = (function() {
         setLength: function(length) {
 
             var currentLength = this.length();
-            var scaleFactor = length / currentLength;
+            if (!currentLength) return this;
 
+            var scaleFactor = length / currentLength;
             return this.scale(scaleFactor, scaleFactor, this.start);
         },
 
