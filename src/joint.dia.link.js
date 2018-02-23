@@ -67,7 +67,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         // merged with default label props and individual label props
         // only used if builtin label markup is used
         defaultLabel: {
-            markup: '<g class="label"><rect /><text /></g>',
+            markup: '<rect /><text />',
             attrs: {
                 text: {
                     textAnchor: 'middle',
@@ -620,6 +620,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.vel.append(children);
     },
 
+    // Label markup may come wrapped in <g class="label" />, or not.
+    // If it doesn't, add the <g> container here.
+    _normalizeLabelMarkup: function(labelMarkup) {
+
+        var node = V(labelMarkup);
+        if (Array.isArray(node) || node.tagName() !== 'G') {
+            // default markup is not wrapped in <g class="label" />
+            // add a <g class="label" /> container
+            node = V('g').append(node);
+        }
+
+        node.addClass('label');
+
+        return node;
+    },
+
     renderLabels: function() {
 
         var cache = this._V;
@@ -634,31 +650,30 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (labelsCount === 0) return this;
 
         if (!vLabels) {
-            // There is no label container in the markup but some labels are defined.
+            // there is no label container in the markup but some labels are defined
+            // add a <g class="labels" /> container
             vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
         }
 
         var defaultLabel = model._getDefaultLabel();
         var builtinDefaultLabel = model._builtins.defaultLabel;
 
-        // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
-        // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
-        // node to create a duplicate.
-        var defaultNode = V(defaultLabel.markup || builtinDefaultLabel.markup);
+        // prepare an instance of a vectorized SVGDOM node for default label element
+        // all labels can then just `clone()` this node to create a duplicate
+        var defaultNode = this._normalizeLabelMarkup(defaultLabel.markup || builtinDefaultLabel.markup);
 
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
             var labelMarkup = label.markup;
-            // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            var vLabelNode = labelCache[i] = (labelMarkup)
-                ? V('g').append(V(labelMarkup))
+
+            var node = labelMarkup
+                ? this._normalizeLabelMarkup(labelMarkup)
                 : defaultNode.clone();
 
-            vLabelNode
-                .addClass('label')
-                .attr('label-idx', i)
-                .appendTo(vLabels);
+            node.attr('label-idx', i); // assign label-idx
+            node.appendTo(vLabels);
+            labelCache[i] = node; // cache node so `updateLabels()` can just update label node positions
         }
 
         this.updateLabels();
@@ -931,6 +946,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.targetPoint.offset(tx, ty);
     },
 
+    // If labelPosition is a number, ensure that default label position object props will be erased on merge.
+    _normalizeLabelPosition: function(labelPosition) {
+
+        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
+        return labelPosition;
+    },
+
     updateLabelPositions: function() {
 
         if (!this._V.labels) return this;
@@ -952,10 +974,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             // only objects can be merged
             // using a wrapper object is the simplest way to handle all `position` formats
-            var labelPosition = { position: label.position };
+            var labelPosition = { position: this._normalizeLabelPosition(label.position) };
             var defaultLabelPosition = { position: defaultLabel.position };
 
-            var position = (joint.util.merge({}, defaultLabelPosition, labelPosition)).position;
+            // merge default label position into label position
+            var position = label.position = (joint.util.merge({}, defaultLabelPosition, labelPosition)).position;
             var labelPoint = this.getLabelCoordinates(position);
             this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
@@ -1627,7 +1650,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
         }
 
-        return { distance: labelDistance, offset: labelOffset, args: args }
+        return { distance: labelDistance, offset: labelOffset, args: opt }
     },
 
     getLabelCoordinates: function(labelPosition) {
@@ -1788,13 +1811,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
-                if (this._labelIdx === this._labelIdx) { // check against NaN
-                    // this.can('labelMove') is true
-                    var model = this.model;
-                    var labelPosition = model.label(this._labelIdx).position;
-                    var labelPositionArgs = labelPosition ? labelPosition.args : undefined;
-                    model.label(this._labelIdx, { position: this.getLabelPosition(x, y, labelPositionArgs) });
-                }
+                var model = this.model;
+                var labelPosition = model.label(this._labelIdx).position || {};
+                var labelPositionArgs = labelPosition.args || undefined;
+                model.label(this._labelIdx, { position: this.getLabelPosition(x, y, labelPositionArgs) });
                 break;
 
             case 'arrowhead-move':

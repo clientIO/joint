@@ -52,10 +52,10 @@ $('#perpendicularLinks').on('change', function() {
 // custom link definition
 var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     defaultLabel: {
-        markup: '<g class="label"><circle /><text /></g>',
+        markup: '<circle /><text />',
         attrs: {
             text: {
-                text: '%',
+                text: '%', // default label text
                 textAnchor: 'middle',
                 fontSize: 14,
                 fill: '#ff0000',
@@ -73,9 +73,9 @@ var CustomLink = joint.dia.Link.define('examples.CustomLink', {
             }
         },
         position: {
-            distance: 0.5,
-            offset: { y: -20 },
-            args: { absoluteOffset: true }
+            distance: 0.5, // place label at midpoint by default
+            offset: { y: -20 }, // offset labels by 20px upwards by default
+            args: { absoluteOffset: true } // keep offset absolute when moving by default
         }
     }
 });
@@ -321,15 +321,16 @@ var link7 = new CustomLink({
     },
     labels: [
         {
-            attrs: {
-                text: {
-                    text: '1..n'
-                }
-            },
-            position: 29 // absolute positioning
+            attrs: { text: { text: '1..n' } },
+            position: {
+                distance: 29, // individual absolute positioning
+                offset: null, // remove default offset
+                args: { absoluteOffset: null } // disable absolute offset when moving
+            }
         },
         {
-            markup: '<g class="label"><rect /><text /></g>', // individual markup
+
+            markup: '<rect /><text />', // individual markup
             attrs: {
                 text: {
                     text: 'JointJS',
@@ -337,7 +338,7 @@ var link7 = new CustomLink({
                     fontFamily: 'sans-serif',
                     textAnchor: 'left'
                 },
-                circle: null, // erase default circle attr because not used
+                circle: null, // erase default `circle` attr (it is not used)
                 rect: {
                     ref: 'text',
                     stroke: 'red',
@@ -351,16 +352,19 @@ var link7 = new CustomLink({
                     refY: '-20%'
                 }
             },
-            position: {  // absolute offset, default distance
-                offset: { x: 10, y: 25 }
+            position: {
+                // keep default distance
+                offset: { x: 10, y: 25 } // individual absolute offset
+                // keep default args
             }
         },
         {
-            markup: '<g class="label"><circle /><path /></g>', // individual markup
+            markup: '<circle /><path />', // individual markup
             attrs: {
-                text: null, // erase default text attr because not used
+                text: null, // erase default `text` attr (it is not used)
                 circle: {
-                    ref: null, // erase unused circle default attrs
+                    // erase unused `circle` default attrs
+                    ref: null,
                     refR: null,
                     refCx: null,
                     refCy: null,
@@ -369,19 +373,20 @@ var link7 = new CustomLink({
                     stroke: 'black',
                     strokeWidth: 2
                 },
-                path: {
+                path: { // add attrs for individually added `path`
                     d: 'M 0 -15 0 -35 20 -35',
                     stroke: 'black',
                     strokeWidth: 2,
                     fill: 'none'
                 }
             },
-            position: 0.5, // relative positioning
+            position: 0.5, // erase default position object, use relative distance
         },
         {
-            position: {  // individual distance, default offset
-                distance: 0.89,
-                args: { absoluteOffset: null }
+            position: {
+                distance: 0.89 // individual relative distance
+                // keep default offset
+                // keep default args
             }
         }
     ]

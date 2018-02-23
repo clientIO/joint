@@ -80,7 +80,7 @@ var link2 = new joint.dia.Link({
 
 <pre><code>var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     defaultLabel: {
-        markup: '&lt;g class="label"&gt;&lt;circle /&gt;&lt;text /&gt;&lt;/g&gt;',
+        markup: '&lt;circle /&gt;&lt;text /&gt;',
         attrs: {
             text: {
                 textAnchor: 'middle',
@@ -124,7 +124,7 @@ var link = new CustomLink({
 // merged with default label properties and individual label properties
 // only used if builtin label markup has not been overridden
 defaultLabel: {
-    markup: '&lt;g class="label"&gt;&lt;rect /&gt;&lt;text /&gt;&lt;/g&gt;',
+    markup: '&lt;rect /&gt;&lt;text /&gt;',
     attrs: {
         text: {
             textAnchor: 'middle',
