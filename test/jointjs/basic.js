@@ -679,6 +679,28 @@ QUnit.module('basic', function(hooks) {
         assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
     });
 
+    QUnit.test('toBack(), toFront() ignorable', function(assert) {
+
+        var r1 = new joint.shapes.basic.Rect;
+        var r2 = new joint.shapes.basic.Rect;
+
+        this.graph.addCell(r1);
+        this.graph.addCell(r2);
+
+        var r1Z = r1.get('z');
+        var r2Z = r2.get('z');
+
+        assert.ok(r1Z < r2Z, 'r1 z is lower than r2 z');
+
+        r2.toFront();
+
+        assert.equal(r2.get('z'), r2Z, 'r2 doesn\'t change z during a toFront() if it is already in place');
+
+        r1.toBack();
+
+        assert.equal(r1.get('z'), r1Z, 'r1 doesn\'t change z during a toBack() if it is already in place');
+    });
+
     QUnit.test('toBack(), toFront() with active batch', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
@@ -753,6 +775,35 @@ QUnit.module('basic', function(hooks) {
         assert.equal(a1View.$el.prevAll('[data-type="basic.Rect"]').length, 0, 'a1 element moved back before a2, a3, a4, b1, b2 elements in the DOM after toBack()');
         assert.ok(a4View.$el.prev('[data-type="basic.Rect"]')[0] == a3View.el || a4View.$el.prev('[data-type="basic.Rect"]')[0] == a2View.el, 'and a4 element moved after a3 or a2 element');
         assert.ok(a2View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el || a3View.$el.prev('[data-type="basic.Rect"]')[0] == a1View.el, 'and a2 or a3 element moved just after a1 element');
+
+    });
+
+    QUnit.test('toBack(), toFront() ignore with { deep: true } option', function(assert) {
+
+        var a1 = new joint.shapes.basic.Rect;
+        var a2 = new joint.shapes.basic.Rect;
+        var a3 = new joint.shapes.basic.Rect;
+        var a4 = new joint.shapes.basic.Rect;
+
+        a1.embed(a2).embed(a3.embed(a4));
+
+        var b1 = new joint.shapes.basic.Rect;
+        var b2 = new joint.shapes.basic.Rect;
+
+        this.graph.addCells([b1, b2, a1, a2, a3, a4]);
+
+        var a1Z = a1.get('z');
+        var b1Z = b1.get('z');
+
+        assert.ok(b1Z < a1Z, "b root z is lower than a root z");
+
+        a1.toFront({ deep: true });
+
+        assert.equal(a1.get('z'), a1Z, 'a1 doesn\'t change z during a toFront() if it is already in place');
+
+        b1.toBack({ deep: true });
+
+        assert.equal(b1.get('z'), b1Z, 'b1 doesn\'t change z during a toFront() if it is already in place');
 
     });
 

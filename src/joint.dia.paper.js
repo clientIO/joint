@@ -305,15 +305,18 @@ joint.dia.Paper = joint.mvc.View.extend({
         return V.createSVGMatrix(this.viewport.getScreenCTM());
     },
 
+    _sortDelayingBatches: ['add', 'to-front', 'to-back'],
+
     _onSort: function() {
-        if (!this.model.hasActiveBatch('add')) {
+        if (!this.model.hasActiveBatch(this._sortDelayingBatches)) {
             this.sortViews();
         }
     },
 
     _onBatchStop: function(data) {
         var name = data && data.batchName;
-        if (name === 'add' && !this.model.hasActiveBatch('add')) {
+        if (this._sortDelayingBatches.includes(name) &&
+            !this.model.hasActiveBatch(this._sortDelayingBatches)) {
             this.sortViews();
         }
     },
