@@ -1650,7 +1650,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
         }
 
-        return { distance: labelDistance, offset: labelOffset, args: opt }
+        return { distance: labelDistance, offset: labelOffset, args: args }
     },
 
     getLabelCoordinates: function(labelPosition) {

@@ -454,27 +454,27 @@ QUnit.module('linkView', function(hooks) {
             var labelCoordinates;
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0.5, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 100 });
+            assert.equal(labelCoordinates.toString(), '150@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 200, y: 100 });
+            assert.equal(labelCoordinates.toString(), '200@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0.75, offset: -50 });
-            assert.deepEqual(labelCoordinates, { x: 175, y: 50 });
+            assert.equal(labelCoordinates.toString(), '175@50');
 
             // unreachable region
             /*labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 250, y: 100 });*/
+            assert.equal(labelCoordinates.toString(), '250@100');*/
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             // offset coerced to absolute
             /*labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: { x: 50, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 50 });*/
+            assert.equal(labelCoordinates.toString(), '150@50');*/
         });
 
         QUnit.test('absolute', function(assert) {
@@ -482,27 +482,27 @@ QUnit.module('linkView', function(hooks) {
             var labelCoordinates;
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 50, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 100 });
+            assert.equal(labelCoordinates.toString(), '150@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 100, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 200, y: 100 });
+            assert.equal(labelCoordinates.toString(), '200@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 75, offset: -50 });
-            assert.deepEqual(labelCoordinates, { x: 175, y: 50 });
+            assert.equal(labelCoordinates.toString(), '175@50');
 
             // unreachable region
             /*labelCoordinates = linkView.getLabelCoordinates({ distance: 100, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 250, y: 100 });*/
+            assert.equal(labelCoordinates.toString(), '250@100');*/
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             // offset coerced to absolute
             /*labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: { x: 50, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 50 });*/
+            assert.equal(labelCoordinates.toString(), '150@50');*/
         });
 
         QUnit.test('reverse absolute', function(assert) {
@@ -510,27 +510,27 @@ QUnit.module('linkView', function(hooks) {
             var labelCoordinates;
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: -100, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: -50, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 100 });
+            assert.equal(labelCoordinates.toString(), '150@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 200, y: 100 });
+            assert.equal(labelCoordinates.toString(), '200@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: -25, offset: -50 });
-            assert.deepEqual(labelCoordinates, { x: 175, y: 50 });
+            assert.equal(labelCoordinates.toString(), '175@50');
 
             // unreachable region
             /*labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 250, y: 100 });*/
+            assert.equal(labelCoordinates.toString(), '250@100');*/
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 1, offset: 0 });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             // offset coerced to absolute
             /*labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: { x: 50, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 50 });*/
+            assert.equal(labelCoordinates.toString(), '150@50');*/
         });
 
         QUnit.test('absolute offset', function(assert) {
@@ -538,25 +538,25 @@ QUnit.module('linkView', function(hooks) {
             var labelCoordinates;
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0.5, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 100 });
+            assert.equal(labelCoordinates.toString(), '150@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 200, y: 100 });
+            assert.equal(labelCoordinates.toString(), '200@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 0.75, offset: { x: 0, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 175, y: 50 });
+            assert.equal(labelCoordinates.toString(), '175@50');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: { x: 50, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 250, y: 100 });
+            assert.equal(labelCoordinates.toString(), '250@100');
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 0, offset: { x: 50, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 50 });
+            assert.equal(labelCoordinates.toString(), '150@50');
         });
 
         QUnit.test('all', function(assert) {
@@ -564,25 +564,25 @@ QUnit.module('linkView', function(hooks) {
             var labelCoordinates;
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: -100, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: -50, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 100 });
+            assert.equal(labelCoordinates.toString(), '150@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 200, y: 100 });
+            assert.equal(labelCoordinates.toString(), '200@100');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: -25, offset: { x: 0, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 175, y: 50 });
+            assert.equal(labelCoordinates.toString(), '175@50');
 
             labelCoordinates = linkView.getLabelCoordinates({ distance: 1, offset: { x: 50, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 250, y: 100 });
+            assert.equal(labelCoordinates.toString(), '250@100');
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 1, offset: { x: 0, y: 0 } });
-            assert.deepEqual(labelCoordinates, { x: 100, y: 100 });
+            assert.equal(labelCoordinates.toString(), '100@100');
 
             labelCoordinates = linkView2.getLabelCoordinates({ distance: 1, offset: { x: 50, y: -50 } });
-            assert.deepEqual(labelCoordinates, { x: 150, y: 50 });
+            assert.equal(labelCoordinates.toString(), '150@50');
         });
     });
 
