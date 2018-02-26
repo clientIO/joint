@@ -383,9 +383,14 @@ joint.dia.Link = joint.dia.Cell.extend({
     _getDefaultLabel: function() {
 
         var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
-        defaultLabel.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
 
-        return defaultLabel;
+        var label = {};
+        label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
+        label.position = defaultLabel.position;
+        label.attrs = defaultLabel.attrs;
+        label.size = defaultLabel.size;
+
+        return label;
     }
 },
     {
@@ -624,6 +629,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // If it doesn't, add the <g> container here.
     _normalizeLabelMarkup: function(labelMarkup) {
 
+        if (!labelMarkup) throw new Error('No label markup provided');
+
         var node = V(labelMarkup);
         if (Array.isArray(node) || node.tagName() !== 'G') {
             // default markup is not wrapped in <g class="label" />
@@ -689,25 +696,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = model.get('labels') || [];
         var canLabelMove = this.can('labelMove');
 
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+        var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
+
+        var defaultLabel = model._getDefaultLabel();
+        var defaultLabelAttrs = defaultLabel.attrs;
+
         for (var i = 0, n = labels.length; i < n; i++) {
 
             var vLabel = this._labelCache[i];
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var label = labels[i];
-            var defaultLabel = model._getDefaultLabel();
-
             var labelAttrs = label.attrs;
-            var defaultLabelAttrs = defaultLabel.attrs;
 
             var attrs;
             if (label.markup || defaultLabel.markup) { // if user specified own markup
                 attrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
 
             } else { // merge in builtin attrs only if builtin markup is used
-                var builtinDefaultLabel = model._builtins.defaultLabel;
-                var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
-
                 attrs = joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
             }
 
@@ -967,15 +974,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = model.get('labels') || [];
         if (!labels.length) return this;
 
+        var defaultLabel = model._getDefaultLabel();
+        var defaultLabelPosition = { position: defaultLabel.position };
+
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var defaultLabel = model._getDefaultLabel();
 
             // only objects can be merged
             // using a wrapper object is the simplest way to handle all `position` formats
             var labelPosition = { position: this._normalizeLabelPosition(label.position) };
-            var defaultLabelPosition = { position: defaultLabel.position };
 
             // merge default label position into label position
             var position = label.position = (joint.util.merge({}, defaultLabelPosition, labelPosition)).position;
@@ -985,7 +993,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         return this;
     },
-
 
     updateToolsPosition: function() {
 
@@ -1030,7 +1037,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         return this;
     },
-
 
     updateArrowheadMarkers: function() {
 
