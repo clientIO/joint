@@ -2018,7 +2018,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (this.paper.options.snapLinks) {
 
-            this.trySnapArrowhead(x, y, data);
+            this._snapArrowhead(x, y, data);
 
         } else {
             // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
@@ -2027,11 +2027,98 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 ? evt.target
                 : document.elementFromPoint(evt.clientX, evt.clientY);
 
-            this.tryConnectArrowhead(target, x, y, data);
+            this._connectArrowhead(target, x, y, data);
         }
     },
 
-    trySnapArrowhead: function(x, y, data) {
+    drag: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        this.model.translate(x - data.dx, y - data.dy, { ui: true });
+        this.eventData(evt, {
+            dx: x,
+            dy: y
+        });
+    },
+
+    // Drag End Handlers
+
+    dragLabelEnd: function() {
+        // noop
+    },
+
+    dragVertexEnd: function() {
+        // noop
+    },
+
+    dragArrowheadEnd: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var paper = this.paper;
+
+        if (paper.options.snapLinks) {
+            this._snapArrowheadEnd(data);
+        } else {
+            this._connectArrowheadEnd(data);
+        }
+
+        if (!paper.linkAllowed(this)) {
+            // If the changed link is not allowed, revert to its previous state.
+            this.disallow(data);
+        } else {
+            this._finishEmbedding(data);
+            this._notifyConnectEvent(data, evt);
+        }
+
+        this._afterArrowheadMove(data);
+    },
+
+    dragEnd: function() {
+        // noop
+    },
+
+    disallow: function(data) {
+
+        switch (data.whenNotAllowed) {
+
+            case 'remove':
+                this.model.remove({ ui: true });
+                break;
+
+            case 'revert':
+            default:
+                this.model.set(data.arrowhead, data.initialEnd, { ui: true });
+                break;
+        }
+    },
+
+    _finishEmbedding: function(data) {
+
+        // Reparent the link if embedding is enabled
+        if (this.paper.options.embeddingMode && this.model.reparent()) {
+            // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
+            data.z = null;
+        }
+    },
+
+    _notifyConnectEvent: function(data, evt) {
+
+        var arrowhead = data.arrowhead;
+        var initialEnd = data.initialEnd;
+        var currentEnd = this.model.prop(arrowhead);
+        var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
+        if (endChanged) {
+
+            if (initialEnd.id) {
+                this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), data.initialMagnet, arrowhead);
+            }
+            if (currentEnd.id) {
+                this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), data.magnetUnderPointer, arrowhead);
+            }
+        }
+    },
+
+    _snapArrowhead: function(x, y, data) {
 
         // checking view in close area of the pointer
 
@@ -2109,7 +2196,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.model.set(data.arrowhead, data.closestEnd || { x: x, y: y }, { ui: true });
     },
 
-    tryConnectArrowhead: function(target, x, y, data) {
+    _snapArrowheadEnd: function(data) {
+
+        // Finish off link snapping.
+        // Everything except view unhighlighting was already done on pointermove.
+        var closestView = data.closestView;
+        var closestEnd = data.closestEnd;
+        if (closestView && closestEnd) {
+
+            var selector = closestEnd.selector;
+            closestView.unhighlight(selector, { connecting: true, snapping: true });
+            data.magnetUnderPointer = closestView.findMagnet(selector);
+        }
+
+        data.closestView = data.closestEnd = null;
+    },
+
+    _connectArrowhead: function(target, x, y, data) {
 
         // checking views right under the pointer
 
@@ -2154,116 +2257,24 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.model.set(data.arrowhead, { x: x, y: y }, { ui: true });
     },
 
-    drag: function(evt, x, y) {
+    _connectArrowheadEnd: function(data) {
 
-        var data = this.eventData(evt);
-        this.model.translate(x - data.dx, y - data.dy, { ui: true });
-        this.eventData(evt, {
-            dx: x,
-            dy: y
-        });
-    },
+        var viewUnderPointer = data.viewUnderPointer;
+        var magnetUnderPointer = data.magnetUnderPointer;
+        if (!magnetUnderPointer || !viewUnderPointer) return;
 
-    // Drag End Handlers
+        viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
+        // Find a unique `selector` of the element under pointer that is a magnet. If the
+        // `data.magnetUnderPointer` is the root element of the `data.viewUnderPointer` itself,
+        // the returned `selector` will be `undefined`. That means we can directly pass it to the
+        // `source`/`target` attribute of the link model below.
+        var selector = viewUnderPointer.getSelector(magnetUnderPointer);
+        var port = magnetUnderPointer.getAttribute('port');
+        var arrowheadValue = { id: viewUnderPointer.model.id };
+        if (port != null) arrowheadValue.port = port;
+        if (selector != null) arrowheadValue.selector = selector;
 
-    dragLabelEnd: function() {
-        // noop
-    },
-
-    dragVertexEnd: function() {
-        // noop
-    },
-
-    dragArrowheadEnd: function(evt, x, y) {
-
-        var data = this.eventData(evt);
-        var model = this.model;
-        var paper = this.paper;
-        var paperOptions = paper.options;
-        var arrowhead = data.arrowhead;
-        var initialEnd = data.initialEnd;
-        var magnetUnderPointer;
-
-        if (paperOptions.snapLinks) {
-
-            // Finish off link snapping.
-            // Everything except view unhighlighting was already done on pointermove.
-            if (data.closestView) {
-                data.closestView.unhighlight(data.closestEnd.selector, {
-                    connecting: true,
-                    snapping: true
-                });
-
-                magnetUnderPointer = data.closestView.findMagnet(data.closestEnd.selector);
-            }
-
-            data.closestView = data.closestEnd = null;
-
-        } else {
-
-            var viewUnderPointer = data.viewUnderPointer;
-            magnetUnderPointer = data.magnetUnderPointer;
-
-            data.viewUnderPointer = null;
-            data.magnetUnderPointer = null;
-
-            if (magnetUnderPointer) {
-
-                viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
-                // Find a unique `selector` of the element under pointer that is a magnet. If the
-                // `data.magnetUnderPointer` is the root element of the `data.viewUnderPointer` itself,
-                // the returned `selector` will be `undefined`. That means we can directly pass it to the
-                // `source`/`target` attribute of the link model below.
-                var selector = viewUnderPointer.getSelector(magnetUnderPointer);
-                var port = magnetUnderPointer.getAttribute('port');
-                var arrowheadValue = { id: viewUnderPointer.model.id };
-                if (port != null) arrowheadValue.port = port;
-                if (selector != null) arrowheadValue.selector = selector;
-                model.set(arrowhead, arrowheadValue, { ui: true });
-            }
-        }
-
-        // If the changed link is not allowed, revert to its previous state.
-        if (!paper.linkAllowed(this)) {
-
-            switch (data.whenNotAllowed) {
-
-                case 'remove':
-                    model.remove({ ui: true });
-                    break;
-
-                case 'revert':
-                default:
-                    model.set(arrowhead, initialEnd, { ui: true });
-                    break;
-            }
-
-        } else {
-
-            // Reparent the link if embedding is enabled
-            if (paperOptions.embeddingMode && model.reparent()) {
-                // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
-                data.z = null;
-            }
-
-            var currentEnd = model.prop(arrowhead);
-            var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
-            if (endChanged) {
-
-                if (initialEnd.id) {
-                    this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), data.initialMagnet, arrowhead);
-                }
-                if (currentEnd.id) {
-                    this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
-                }
-            }
-        }
-
-        this._afterArrowheadMove(data);
-    },
-
-    dragEnd: function() {
-        // noop
+        this.model.set(data.arrowhead, arrowheadValue, { ui: true });
     },
 
     _beforeArrowheadMove: function(data) {
@@ -2401,8 +2412,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         return {
             action: 'arrowhead-move',
-            whenNotAllowed: opt.whenNotAllowed || 'revert',
             arrowhead: end,
+            whenNotAllowed: opt.whenNotAllowed || 'revert',
             initialMagnet: this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null),
             initialEnd: joint.util.assign({}, this.model.get(end)),
             validateConnectionArgs: this._createValidateConnectionArgs(end)

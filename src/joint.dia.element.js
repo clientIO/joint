@@ -882,7 +882,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             source: {
                 id: this.model.id,
                 selector: this.getSelector(evt.target),
-                // TODO: climb up the tree or also down??
                 port: evt.target.getAttribute('port')
             },
             target: { x: x, y: y }

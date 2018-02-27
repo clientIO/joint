@@ -1401,8 +1401,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (eventName) {
             var view = this.findView(eventNode);
             if (view) {
+
                 evt = joint.util.normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
+
                 var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
                 view.event(evt, eventName, localPoint.x, localPoint.y);
             }
@@ -1416,9 +1418,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         if (magnetValue) {
             var view = this.findView(magnetNode);
             if (view) {
+
                 evt = joint.util.normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
                 if (!this.options.validateMagnet(view, magnetNode)) return;
+
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
                 view.magnet(evt, localPoint.x, localPoint.y);
             }
@@ -1430,8 +1434,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         var labelNode = evt.currentTarget;
         var view = this.findView(labelNode);
         if (view) {
+
             evt = joint.util.normalizeEvent(evt);
             if (this.guard(evt, view)) return;
+
             var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
             view.label(evt, localPoint.x, localPoint.y);
         }
