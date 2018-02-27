@@ -1,25 +1,18 @@
-<p>Add a new vertex (an object with <code>x</code> and <code>y</code> properties) to the link. Normally, vertices are set through the <code>vertices</code> property of link models. However,
-      sometimes it is useful to add a new vertex to the link and let the link determine to what index such a vertex should be added
-      in the <code>vertices</code> array. For that, it must be the link view that does that. The link view tries to add
-      the vertex to different indices in the <code>vertices</code> array, renders the connection SVG path and checks if
-      the path length changed <q>significantly</q>. If it did, it tries another index. If not, the found index is most likely
-      to be the one we want our new vertext to be added to. For instance, let's say you want to add a new vertex on double click instead of
-      the default click event. You can create your paper in the following way:</p>
-      <pre><code>var paper = new joint.dia.Paper({
-    // ...
-    linkView: joint.dia.LinkView.extend({
-        pointerdblclick: function(evt, x, y) {
-            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                this.addVertex({ x: x, y: y });
-            }
-        }
-    }),
-    interactive: function(cellView) {
-        if (cellView.model instanceof joint.dia.Link) {
-            // Disable the default vertex add functionality on pointerdown.
-            return { vertexAdd: false };
-        }
-        return true;
+<pre class="docs-method-signature"><code>linkView.addVertex(x, y)</code></pre>
+<p>Add a new <a href="joint.html#dia.Link.prototype.vertex">default vertex</a> to the link at the coordinates provided, and let the linkView automatically determine the index of the new vertex in the vertices array. If you need to add the vertex at a custom index, use the <code>link.addVertex()</code> <a href="joint.html#dia.Link.prototype.addVertex">function</a> instead.</p>
+
+<p>This method uses the <code>linkView.getVertexIndex()</code> <a href="joint.html#dia.LinkView.prototype.getVertexIndex">function</a> to determine the index of the new vertex in the <code>vertices</code> array. The linkView checks the distance of vertices in the <code>link.vertices</code> array from the beginning of path and compares it to the distance of the added vertex. The new vertex is inserted before the first farther vertex in the <code>vertices</code> array.
+
+<p>This function is useful within custom <code>linkView</code> event listener definitions. The following example adds a new vertex on a double click event, instead of a pointerdown event (which is the default behavior):</p>
+
+<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+    pointerdblclick: function(evt, x, y) {
+        this.addVertex(x, y);
     }
+});
+
+var paper = new joint.dia.Paper({
     // ...
+    linkView: CustomLinkView,
+    interactive: { vertexAdd: false } // disable default vertexAdd interaction
 });</code></pre>

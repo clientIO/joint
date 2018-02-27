@@ -1,0 +1,68 @@
+<pre class="docs-method-signature"><code>linkView.getLabelPosition(x, y [, opt])</code></pre>
+<p>Return a label <code>position</code> object based on the <code>x</code> and <code>y</code> coordinates provided.</p>
+
+<p>The function translates the provided coordinates into an object with two fields:</p>
+
+<ul>
+    <li><code>distance</code> - the distance (following the line) of the point on the line that is closest to point <code>x,y</code>.</li>
+    <li><code>offset</code> - the distance between the closest point and the point <code>x,y</code>.</li>
+</ul>
+
+<p>By default, <code>position.distance</code> is set relative to <a href="joint.html#dia.LinkView.prototype.getConnectionLength">connection length</a> (as a number in the <code>[0,1]</code> range that records the <a href="joint.html#dia.LinkView.prototype.getClosestPointRatio">length ratio</a>), and <code>position.offset</code> is set relative to the connection (as a number recording the <a href="geometry.html#g.line.prototype.pointOffset">perpendicular distance</a>). The user may change this behavior by providing an <code>opt</code> object with some of the following accepted boolean flags:</p>
+
+<ul>
+    <li><code>absoluteDistance: true</code> - record <code>distance</code> absolutely (as <a href="joint.html#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number).</li>
+    <li><code>reverseDistance: true</code> - if <code>absoluteDistance: true</code>, record <code>distance</code> absolutely from end of link (as a negative number).</li>
+    <li><code>absoluteOffset: true</code> - record <code>offset</code> absolutely (as <code>x</code> and <code>y</code> distance from closest point).</li>
+</ul>
+
+<p>Please note that if <code>absoluteOffset</code> is not set (i.e. the default option), label can only be placed/moved in the area that is reachable by lines perpendicular to the link (that is, the label cannot be moved beyond link endpoints).</p>
+
+<p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
+
+<p>An object in the following format is returned:</p>
+
+<pre><code>{
+    distance: number,
+    offset: number | { x: number, y: number },
+    args?: {
+        absoluteDistance?: boolean,
+        reverseDistance?: boolean,
+        absoluteOffset?: boolean
+    }
+}</code></pre>
+
+<p>See <code>link.label()</code> <a href="joint.html#dia.Link.prototype.label">documentation</a> for more information about the <code>position</code> object.</p>
+
+<p>This function can be used to add a custom label to the <code>link.labels</code> <a href="joint.html#dia.Link.prototype.labels">array</a>, in situations when the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">function</a> is not sufficient. For example:</p>
+
+<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+    contextmenu: function(evt, x, y) {
+        var idx = -1; // add at end of `labels`
+        var label = {
+            markup: '&lt;g class="label"&gt;&lt;circle /&gt;&lt;path /&gt;&lt;/g&gt;',
+            position: this.getLabelPosition(x, y, { absoluteOffset: true }),
+            attrs: {
+                circle: {
+                    r: 15,
+                    fill: 'lightgray',
+                    stroke: 'black',
+                    strokeWidth: 2
+                },
+                path: {
+                    d: 'M 0 -15 0 -35 20 -35',
+                    stroke: 'black',
+                    strokeWidth: 2,
+                    fill: 'none'
+                }
+            }
+        }
+        this.model.addLabel(idx, label);
+    }
+});
+
+var paper = new joint.dia.Paper({
+    //...
+    linkView: CustomLinkView,
+    interactive: { vertexAdd: false }
+});</code></pre>

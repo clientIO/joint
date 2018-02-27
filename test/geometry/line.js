@@ -544,6 +544,35 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('setLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var line;
+
+                line = new g.Line('5 5', '5 5');
+                assert.ok(line.clone().setLength(0) instanceof g.Line);
+                assert.ok(line.clone().setLength(10) instanceof g.Line);
+
+                line = new g.Line('5 5', '5 20');
+                assert.ok(line.clone().setLength(0) instanceof g.Line);
+                assert.ok(line.clone().setLength(10) instanceof g.Line);
+            });
+
+            QUnit.test('should return a scaled version of self with requested length', function(assert) {
+
+                var line;
+
+                line = new g.Line('5 5', '5 5');
+                assert.ok(line.clone().setLength(0) instanceof g.Line);
+                assert.ok(line.clone().setLength(10) instanceof g.Line);
+
+                line = new g.Line('5 5', '5 20');
+                assert.equal(line.clone().setLength(0).toString(), '5@5 5@5');
+                assert.equal(line.clone().setLength(10).toString(), '5@5 5@15');
+            });
+        });
+
         QUnit.module('squaredLength()', function() {
 
         });

@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>linkView.getVertexIndex(x, y)</code></pre>
+<p>Return the <code>vertices</code> array index at which to insert a new vertex with the provided <code>x</code> and <code>y</code> coordinates.</p>
+
+<p>The linkView finds the point on the connection that lies closest to the point <code>x,y</code>. Then, the linkView iterates over the vertices in the <code>link.vertices</code> <a href="joint.html#dia.Link.prototype.vertices">array</a> until one is found that lies farther than the identified closest point. The index of the farther point is returned.</p>
+
+<p>The returned index can be used as the first argument of the <code>link.addVertex</code> <a href="joint.html#dia.Link.prototype.addVertex">function</a>.</p>

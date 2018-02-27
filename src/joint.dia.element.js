@@ -38,10 +38,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         if (opt.parentRelative) {
 
             // Getting the parent's position requires the collection.
-            // Cell.get('parent') helds cell id only.
+            // Cell.parent() holds cell id only.
             if (!this.graph) throw new Error('Element must be part of a graph.');
 
-            var parent = this.graph.getCell(this.get('parent'));
+            var parent = this.getParentCell();
             var parentPosition = parent && !parent.isLink()
                 ? parent.get('position')
                 : { x: 0, y: 0 };
@@ -654,7 +654,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
-        var parentId = model.get('parent');
+        var parentId = model.parent();
         parentId && graph.getCell(parentId).unembed(model, { ui: true });
     },
 

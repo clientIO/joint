@@ -1,0 +1,30 @@
+<pre class="docs-method-signature"><code>linkView.addLabel(x, y [, opt])</code></pre>
+<p>Add a new <a href="joint.html#dia.Link.prototype.label">default label</a> to the link at the coordinates provided. If you need to add a label with custom markup or properties, use the <code>link.addLabel()</code> <a href="joint.html#dia.Link.prototype.addLabel">function</a> instead.</p>
+
+<p>This method uses the <code>linkView.getLabelPosition()</code> <a href="joint.html#dia.LinkView.prototype.getLabelPosition">function</a> to determine the new label's <code>position</code>. By default, <code>position.distance</code> is recorded relative to connection length (as a number in the <code>[0,1]</code> range), and <code>position.offset</code> is set relative to the connection (as a number). This behavior may be changed by providing an <code>opt</code> object with some of the accepted boolean flags:</p>
+
+<ul>
+    <li><code>absoluteDistance: true</code> records <code>distance</code> absolutely (as distance from beginning of link)</li>
+    <li><code>reverseDistance: true</code> switches <code>distance</code> to be calculated from end of link, if <code>absoluteDistance</code></li>
+    <li><code>absoluteOffset: true</code> records <code>offset</code> absolutely (as <code>x</code> and <code>y</code> from connection)</li>
+</ul>
+
+<p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
+
+<p>This function is useful within custom <code>linkView</code> event listener definitions:</p>
+
+<pre><code>var CustomLinkView = joint.dia.LinkView.extend({
+    contextmenu: function(evt, x, y) {
+        this.addLabel(x, y, {
+            absoluteDistance: true,
+            reverseDistance: true,
+            absoluteOffset: true
+        });
+    }
+});
+
+var paper = new joint.dia.Paper({
+    // ...
+    linkView: CustomLinkView,
+    interactive: { vertexAdd: false } // disable default vertexAdd interaction
+});</code></pre>

@@ -16,13 +16,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         '<g class="link-tools"/>'
     ].join(''),
 
-    labelMarkup: [
-        '<g class="label">',
-        '<rect />',
-        '<text />',
-        '</g>'
-    ].join(''),
-
     toolMarkup: [
         '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
@@ -37,6 +30,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>',
         '</g>'
     ].join(''),
+
+    doubleToolMarkup: undefined,
 
     // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
@@ -57,8 +52,45 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>'
     ].join(''),
 
-    defaults: {
+    // may be overwritten by user to change default label (its markup, attrs, position)
+    defaultLabel: undefined,
 
+    // deprecated
+    // may be overwritten by user to change default label markup
+    // lower priority than defaultLabel.markup
+    labelMarkup: undefined,
+
+    // deprecated
+    // private
+    _builtins: {
+        // backwards compatibility
+        // merged with default label props and individual label props
+        // only used if builtin label markup is used
+        defaultLabel: {
+            markup: '<rect /><text />',
+            attrs: {
+                text: {
+                    textAnchor: 'middle',
+                    fontSize: 14,
+                    fill: '#000000',
+                    pointerEvents: 'none',
+                    yAlignment: 'middle'
+                },
+                rect: {
+                    ref: 'text',
+                    fill: '#ffffff',
+                    rx: 3,
+                    ry: 3,
+                    refWidth: 1,
+                    refHeight: 1,
+                    refX: 0,
+                    refY: 0
+                }
+            }
+        }
+    },
+
+    defaults: {
         type: 'link',
         source: {},
         target: {}
@@ -77,45 +109,111 @@ joint.dia.Link = joint.dia.Cell.extend({
         }, opt);
     },
 
-    // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-    label: function(idx, value, opt) {
+    source: function(source, opt) {
 
-        idx || (idx = 0);
-        // Is it a getter?
+        // getter
+        if (source === undefined) return joint.util.assign({}, this.get('source'));
+        // setter
+        return this.set('source', source, opt);
+    },
+
+    target: function(target, opt) {
+
+        // getter
+        if (target === undefined) return joint.util.assign({}, this.get('target'));
+        // setter
+        return this.set('target', target, opt);
+    },
+
+    // Labels API
+
+    // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
+    label: function(idx, label, opt) {
+
+        var labels = this.labels();
+
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (idx < 0) idx = labels.length + idx;
+
+        // getter
         if (arguments.length <= 1) return this.prop(['labels', idx]);
-        return this.prop(['labels', idx], value, opt);
+        // setter
+        return this.prop(['labels', idx], label, opt);
+    },
+
+    labels: function (labels, opt) {
+
+        // getter
+        if (arguments.length === 0) {
+            labels = this.get('labels');
+            if (!Array.isArray(labels)) return [];
+            return labels.slice();
+        }
+        // setter
+        if (!Array.isArray(labels)) labels = [];
+        return this.set('labels', labels, opt);
+    },
+
+    addLabel: function (idx, label, opt) {
+
+        label = label || { position: 0 };
+
+        var labels = this.labels();
+        var n = labels.length;
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+        if (idx < 0) idx = n + idx + 1;
+
+        labels.splice(idx, 0, label);
+        return this.labels(labels, opt);
+    },
+
+    removeLabel: function (idx, opt) {
+
+        var labels = this.labels();
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
+        labels.splice(idx, 1);
+        return this.labels(labels, opt);
     },
 
     // Vertices API
 
-    vertex: function (idx, value, opt) {
+    vertex: function (idx, vertex, opt) {
+
+        var vertices = this.vertices();
 
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
-        // Is it a getter?
+        if (idx < 0) idx = vertices.length + idx;
+
+        // getter
         if (arguments.length <= 1) return this.prop(['vertices', idx]);
-        return this.prop(['vertices', idx], value, opt);
+        // setter
+        return this.prop(['vertices', idx], vertex, opt);
     },
 
     vertices: function (vertices, opt) {
-        // Getter
+
+        // getter
         if (arguments.length === 0) {
             vertices = this.get('vertices');
             if (!Array.isArray(vertices)) return [];
             return vertices.slice();
         }
-        // Setter
+        // setter
         if (!Array.isArray(vertices)) vertices = [];
         return this.set('vertices', vertices, opt);
     },
 
-    addVertex: function (idx, value, opt) {
+    addVertex: function (idx, vertex, opt) {
+
+        vertex = vertex || { x: 0, y: 0 };
 
         var vertices = this.vertices();
         var n = vertices.length;
-        value || (value = { x: 0, y: 0 });
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
-        vertices.splice(idx, 0, value);
+
+        vertices.splice(idx, 0, vertex);
         return this.vertices(vertices, opt);
     },
 
@@ -123,6 +221,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var vertices = this.vertices();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
         vertices.splice(idx, 1);
         return this.vertices(vertices, opt);
     },
@@ -157,12 +256,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var attrs = {};
 
-        var source = this.get('source');
+        var source = this.source();
         if (!source.id) {
             attrs.source = fn(source);
         }
 
-        var target = this.get('target');
+        var target = this.target();
         if (!target.id) {
             attrs.target = fn(target);
         }
@@ -181,9 +280,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var source = this.graph.getCell(this.get('source').id);
-            var target = this.graph.getCell(this.get('target').id);
-            var prevParent = this.graph.getCell(this.get('parent'));
+            var source = this.getSourceElement();
+            var target = this.getTargetElement();
+            var prevParent = this.getParentCell();
 
             if (source && target) {
                 newParent = this.graph.getCommonAncestor(source, target);
@@ -207,8 +306,8 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        var sourceId = this.get('source').id;
-        var targetId = this.get('target').id;
+        var sourceId = this.source().id;
+        var targetId = this.target().id;
 
         if (!sourceId || !targetId) {
             // Link "pinned" to the paper does not have a loop.
@@ -222,8 +321,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         // A loop "target equals source" is valid in both shallow and deep mode.
         if (!loop && opt.deep && this.graph) {
 
-            var sourceElement = this.graph.getCell(sourceId);
-            var targetElement = this.graph.getCell(targetId);
+            var sourceElement = this.getSourceElement();
+            var targetElement = this.getTargetElement();
 
             loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
         }
@@ -231,17 +330,19 @@ joint.dia.Link = joint.dia.Cell.extend({
         return loop;
     },
 
+    // unlike source(), this method returns null if source is a point
     getSourceElement: function() {
 
-        var source = this.get('source');
+        var source = this.source();
         var graph = this.graph;
 
         return (source && source.id && graph && graph.getCell(source.id)) || null;
     },
 
+    // unlike target(), this method returns null if target is a point
     getTargetElement: function() {
 
-        var target = this.get('target');
+        var target = this.target();
         var graph = this.graph;
 
         return (target && target.id && graph && graph.getCell(target.id)) || null;
@@ -276,6 +377,20 @@ joint.dia.Link = joint.dia.Cell.extend({
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
+    },
+
+    // Get resolved default label.
+    _getDefaultLabel: function() {
+
+        var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
+
+        var label = {};
+        label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
+        label.position = defaultLabel.position;
+        label.attrs = defaultLabel.attrs;
+        label.size = defaultLabel.size;
+
+        return label;
     }
 },
     {
@@ -303,12 +418,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     options: {
 
-        shortLinkLength: 100,
+        shortLinkLength: 105,
         doubleLinkTools: false,
-        longLinkLength: 160,
+        longLinkLength: 155,
         linkToolsOffset: 40,
-        doubleLinkToolsOffset: 60,
-        sampleInterval: 50
+        doubleLinkToolsOffset: 65,
+        sampleInterval: 50,
     },
 
     _z: null,
@@ -364,7 +479,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // or when an embedded link is translated by its ancestor.
         // 1. Always do update.
         // 2. Do update only if the opposite end ('target') is also a point.
-        if (!opt.translateBy || !this.model.get('target').id) {
+        if (!opt.translateBy || !this.model.target().id) {
             opt.updateConnectionOnly = true;
             this.update(this.model, null, opt);
         }
@@ -453,8 +568,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderLabels();
         // start watching the ends of the link for changes
         var model = this.model;
-        this.watchSource(model, model.get('source'))
-            .watchTarget(model, model.get('target'))
+        this.watchSource(model, model.source())
+            .watchTarget(model, model.target())
             .update();
 
         return this;
@@ -510,6 +625,24 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.vel.append(children);
     },
 
+    // Label markup may come wrapped in <g class="label" />, or not.
+    // If it doesn't, add the <g> container here.
+    _normalizeLabelMarkup: function(labelMarkup) {
+
+        if (!labelMarkup) throw new Error('No label markup provided');
+
+        var node = V(labelMarkup);
+        if (Array.isArray(node) || node.tagName() !== 'G') {
+            // default markup is not wrapped in <g class="label" />
+            // add a <g class="label" /> container
+            node = V('g').append(node);
+        }
+
+        node.addClass('label');
+
+        return node;
+    },
+
     renderLabels: function() {
 
         var cache = this._V;
@@ -521,34 +654,33 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var model = this.model;
         var labels = model.get('labels') || [];
         var labelsCount = labels.length;
-        if (labelsCount === 0) {
-            return this;
-        }
+        if (labelsCount === 0) return this;
 
         if (!vLabels) {
-            // There is no label container in the markup but some labels are defined.
+            // there is no label container in the markup but some labels are defined
+            // add a <g class="labels" /> container
             vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
         }
 
-        // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
-        // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
-        // node to create a duplicate.
-        var defaultLabelMarkup = model.get('labelMarkup') || model.labelMarkup;
-        var defaultLabel = V(defaultLabelMarkup);
+        var defaultLabel = model._getDefaultLabel();
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+
+        // prepare an instance of a vectorized SVGDOM node for default label element
+        // all labels can then just `clone()` this node to create a duplicate
+        var defaultNode = this._normalizeLabelMarkup(defaultLabel.markup || builtinDefaultLabel.markup);
 
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
             var labelMarkup = label.markup;
-            // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            var vLabelNode = labelCache[i] = (labelMarkup)
-                ? V('g').append(V(labelMarkup))
-                : defaultLabel.clone();
 
-            vLabelNode
-                .addClass('label')
-                .attr('label-idx', i)
-                .appendTo(vLabels);
+            var node = labelMarkup
+                ? this._normalizeLabelMarkup(labelMarkup)
+                : defaultNode.clone();
+
+            node.attr('label-idx', i); // assign label-idx
+            node.appendTo(vLabels);
+            labelCache[i] = node; // cache node so `updateLabels()` can just update label node positions
         }
 
         this.updateLabels();
@@ -558,46 +690,38 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     updateLabels: function() {
 
-        if (!this._V.labels) {
-            return this;
-        }
+        if (!this._V.labels) return this;
 
-        var labels = this.model.get('labels') || [];
+        var model = this.model;
+        var labels = model.get('labels') || [];
         var canLabelMove = this.can('labelMove');
+
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+        var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
+
+        var defaultLabel = model._getDefaultLabel();
+        var defaultLabelMarkup = defaultLabel.markup;
+        var defaultLabelAttrs = defaultLabel.attrs;
 
         for (var i = 0, n = labels.length; i < n; i++) {
 
             var vLabel = this._labelCache[i];
-            var label = labels[i];
-
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
+            var label = labels[i];
+            var labelMarkup = label.markup;
             var labelAttrs = label.attrs;
-            if (!label.markup) {
-                // Default attributes to maintain backwards compatibility
-                labelAttrs = joint.util.merge({
-                    text: {
-                        textAnchor: 'middle',
-                        fontSize: 14,
-                        fill: '#000000',
-                        pointerEvents: 'none',
-                        yAlignment: 'middle'
-                    },
-                    rect: {
-                        ref: 'text',
-                        fill: '#ffffff',
-                        rx: 3,
-                        ry: 3,
-                        refWidth: 1,
-                        refHeight: 1,
-                        refX: 0,
-                        refY: 0
-                    }
-                }, labelAttrs);
+
+            var attrs;
+            if (labelMarkup || defaultLabelMarkup) { // if user specified own markup
+                attrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
+
+            } else { // merge in builtin attrs only if builtin markup is used
+                attrs = joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
             }
 
-            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
-                rootBBox: g.Rect(label.size)
+            this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
+                rootBBox: new g.Rect(label.size)
             });
         }
 
@@ -776,13 +900,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var firstVertex = verticesArr[0];
 
         sourcePoint = this.getConnectionPoint(
-            'source', this.model.get('source'), firstVertex || this.model.get('target')
+            'source', this.model.source(), firstVertex || this.model.target()
         ).round();
 
         var lastVertex = verticesArr[verticesArr.length - 1];
 
         targetPoint = this.getConnectionPoint(
-            'target', this.model.get('target'), lastVertex || sourcePoint
+            'target', this.model.target(), lastVertex || sourcePoint
         ).round();
 
         // Move the source point by the width of the marker taking into account
@@ -831,6 +955,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.targetPoint.offset(tx, ty);
     },
 
+     // if label position is a number, normalize it to a position object
+     // this makes sure that default offset and args are ignored for this label
+    _normalizeLabelPosition: function(labelPosition) {
+
+        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
+        return labelPosition;
+    },
+
+    // merge default label position into label position
+    _mergeLabelPosition: function(defaultLabelPosition, labelPosition) {
+
+        if (!labelPosition) return defaultLabelPosition;
+        if (typeof defaultLabelPosition === 'number') return labelPosition;
+
+        return position = joint.util.merge({}, defaultLabelPosition, labelPosition);
+    },
+
     updateLabelPositions: function() {
 
         if (!this._V.labels) return this;
@@ -839,51 +980,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!path) return this;
 
         // This method assumes all the label nodes are stored in the `this._labelCache` hash table
-        // by their indexes in the `this.get('labels')` array. This is done in the `renderLabels()` method.
+        // by their indices in the `this.get('labels')` array. This is done in the `renderLabels()` method.
 
-        var labels = this.model.get('labels') || [];
+        var model = this.model;
+        var labels = model.get('labels') || [];
         if (!labels.length) return this;
 
-        var connectionLength = this.getConnectionLength();
+        var defaultLabel = model._getDefaultLabel();
+        var defaultLabelPosition = defaultLabel.position;
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var position = label.position;
-            var isPositionObject = joint.util.isObject(position);
+            var labelPosition = label.position = this._normalizeLabelPosition(label.position);
 
-            var distance = isPositionObject ? position.distance : position;
-            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
+            var position = this._mergeLabelPosition(defaultLabelPosition, labelPosition);
+            var labelPoint = this.getLabelCoordinates(position);
 
-            if (Number.isFinite(distance)) {
-                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                distance = (distance < 0) ? connectionLength + distance : distance;
-                distance = (distance > 1) ? distance : connectionLength * distance;
-            } else {
-                distance = connectionLength / 2;
-            }
-
-            var tangent = this.getTangentAtLength(distance);
-            var labelCoordinates = (tangent) ? tangent.start : path.start;
-
-            if (joint.util.isObject(offset)) {
-
-                // Just offset the label by the x,y provided in the offset object.
-                labelCoordinates = labelCoordinates.clone().offset(offset);
-
-            } else if (Number.isFinite(offset) && tangent) {
-
-                // Offset the label based on the path tangent
-                var angle = tangent.vector().vectorAngle(new g.Point(1,0));
-                labelCoordinates = labelCoordinates.clone().offset(0, offset).rotate(labelCoordinates, -angle);
-            }
-
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+            this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
         return this;
     },
-
 
     updateToolsPosition: function() {
 
@@ -928,7 +1046,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         return this;
     },
-
 
     updateArrowheadMarkers: function() {
 
@@ -1105,23 +1222,65 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    // This method adds a new vertex at calculated index to the `vertices` array. This method
-    // uses a heuristic to find the index at which the new `vertex` should be placed at assuming
-    // the new vertex is somewhere on the path.
-    addVertex: function(vertex, opt) {
+    _getDefaultLabelPositionArgs: function() {
 
-        var link = this.model;
-        var vertices = link.vertices();
-        var vertexLength = this.getClosestPointLength(vertex);
-        var idx = 0;
+        var defaultLabel = this.model._getDefaultLabel();
+        var defaultLabelPosition = defaultLabel.position || {};
+        return defaultLabelPosition.args;
+    },
 
-        for (var n = vertices.length; idx < n; idx++) {
-            var currentVertex = vertices[idx];
-            var currentVertexLength = this.getClosestPointLength(currentVertex);
-            if (vertexLength < currentVertexLength) break;
-        }
+    _getLabelPositionArgs: function() {
 
-        link.addVertex(idx, vertex, opt);
+        var labelPosition = this.model.label(this._labelIdx).position || {};
+        return labelPosition.args;
+    },
+
+    // merge default label position args into label position args
+    // keep `undefined` because `{}` means something else
+    _mergeLabelPositionArgs: function(defaultLabelPositionArgs, labelPositionArgs) {
+
+        if (labelPositionArgs === null) return null;
+        if (labelPositionArgs === undefined) return defaultLabelPositionArgs;
+        if (!defaultLabelPositionArgs) return labelPositionArgs;
+
+        return joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
+    },
+
+    // Add default label at given position at end of `labels` array.
+    // Assigns relative coordinates by default.
+    // `opt.absoluteDistance` forces absolute coordinates.
+    // `opt.reverseDistance` forces reverse absolute coordinates (if absoluteDistance = true).
+    // `opt.absoluteOffset` forces absolute coordinates for offset.
+    addLabel: function(x, y, opt) {
+
+        // accept input in form `{ x, y }, opt` or `x, y, opt`
+        var isPointProvided = (typeof x !== 'number');
+        var localX = isPointProvided ? x.x : x;
+        var localY = isPointProvided ? x.y : y;
+        var localOpt = isPointProvided ? y : opt;
+
+        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+        var labelPositionArgs = localOpt;
+        var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
+
+        var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
+        var idx = -1;
+        this.model.addLabel(idx, label, localOpt);
+        return idx;
+    },
+
+    // Add a new vertex at calculated index to the `vertices` array.
+    addVertex: function(x, y, opt) {
+
+        // accept input in form `{ x, y }, opt` or `x, y, opt`
+        var isPointProvided = (typeof x !== 'number');
+        var localX = isPointProvided ? x.x : x;
+        var localY = isPointProvided ? x.y : y;
+        var localOpt = isPointProvided ? y : opt;
+
+        var vertex = { x: localX, y: localY };
+        var idx = this.getVertexIndex(localX, localY);
+        this.model.addVertex(idx, vertex, localOpt);
         return idx;
     },
 
@@ -1461,7 +1620,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var path = this.path;
         if (!path) return null;
 
-        return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
+        return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
     getClosestPointLength: function(point) {
@@ -1469,7 +1628,129 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var path = this.path;
         if (!path) return null;
 
-        return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() })
+        return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getClosestPointRatio: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    // accepts options `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`
+    // to move beyond connection endpoints, absoluteOffset has to be set
+    getLabelPosition: function(x, y, opt) {
+
+        var position = {};
+
+        var localOpt = opt || {};
+        if (opt) position.args = opt;
+
+        var isDistanceRelative = !localOpt.absoluteDistance; // relative by default
+        var isDistanceAbsoluteReverse = (localOpt.absoluteDistance && localOpt.reverseDistance); // non-reverse by default
+        var isOffsetAbsolute = localOpt.absoluteOffset; // offset is non-absolute by default
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var labelPoint = new g.Point(x, y);
+        var t = path.closestPointT(labelPoint, pathOpt);
+
+        // GET DISTANCE:
+
+        var labelDistance = path.lengthAtT(t, pathOpt);
+        if (isDistanceRelative) labelDistance = (labelDistance / this.getConnectionLength()) || 0; // fix to prevent NaN for 0 length
+        if (isDistanceAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point (-0 => 1)
+
+        position.distance = labelDistance;
+
+        // GET OFFSET:
+        // use absolute offset if:
+        // - opt.absoluteOffset is true,
+        // - opt.absoluteOffset is not true but there is no tangent
+
+        var tangent;
+        if (!isOffsetAbsolute) tangent = path.tangentAtT(t);
+
+        var labelOffset;
+        if (tangent) {
+            labelOffset = tangent.pointOffset(labelPoint);
+
+        } else {
+            var closestPoint = path.pointAtT(t);
+            var labelOffsetDiff = labelPoint.difference(closestPoint);
+            labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
+        }
+
+        position.offset = labelOffset;
+
+        return position;
+    },
+
+    getLabelCoordinates: function(labelPosition) {
+
+        var labelDistance = 0;
+        if (typeof labelPosition === 'number') labelDistance = labelPosition;
+        else if (labelPosition.distance) labelDistance = labelPosition.distance;
+
+        var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
+
+        var labelOffset = 0;
+        var labelOffsetCoordinates = { x: 0, y: 0 };
+        if (labelPosition.offset) {
+            var positionOffset = labelPosition.offset;
+            if (typeof positionOffset === 'number') labelOffset = positionOffset;
+            if (positionOffset.x) labelOffsetCoordinates.x = positionOffset.x;
+            if (positionOffset.y) labelOffsetCoordinates.y = positionOffset.y;
+        }
+
+        var isOffsetAbsolute = ((labelOffsetCoordinates.x !== 0) || (labelOffsetCoordinates.y !== 0) || labelOffset === 0);
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var distance = isDistanceRelative ? (labelDistance * this.getConnectionLength()) : labelDistance;
+
+        var point;
+
+        if (isOffsetAbsolute) {
+            point = path.pointAtLength(distance, pathOpt);
+            point.offset(labelOffsetCoordinates);
+
+        } else {
+            var tangent = path.tangentAtLength(distance, pathOpt);
+
+            if (tangent) {
+                tangent.rotate(tangent.start, -90);
+                tangent.setLength(labelOffset);
+                point = tangent.end;
+
+            } else {
+                // fallback - the connection has zero length
+                point = path.start;
+            }
+        }
+
+        return point;
+    },
+
+    getVertexIndex: function(x, y) {
+
+        var model = this.model;
+        var vertices = model.vertices();
+
+        var vertexLength = this.getClosestPointLength(new g.Point(x, y));
+
+        var idx = 0;
+        for (var n = vertices.length; idx < n; idx++) {
+            var currentVertex = vertices[idx];
+            var currentVertexLength = this.getClosestPointLength(currentVertex);
+            if (vertexLength < currentVertexLength) break;
+        }
+
+        return idx;
     },
 
     // Interaction. The controller part.
@@ -1549,7 +1830,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                     // Store the index at which the new vertex has just been placed.
                     // We'll be update the very same vertex position in `pointermove()`.
-                    this._vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
+                    this._vertexIdx = this.addVertex(x, y, { ui: true });
                     this._action = 'vertex-move';
                 }
         }
@@ -1566,20 +1847,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
-                var dragPoint = { x: x, y: y };
-                var path = this.path;
-                var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
-                var t = path.closestPointT(dragPoint, pathOpt);
-                var tangent = path.tangentAtT(t, pathOpt);
-                var labelOffset = (tangent) ? tangent.pointOffset(dragPoint) : 0;
-                var labelDistance = path.lengthAtT(t, pathOpt) / this.getConnectionLength();
+                var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+                var labelPositionArgs = this._getLabelPositionArgs();
+                var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
 
-                this.model.label(this._labelIdx, {
-                    position: {
-                        distance: labelDistance,
-                        offset: labelOffset
-                    }
-                });
+                var label = { position: this.getLabelPosition(x, y, positionArgs) };
+                this.model.label(this._labelIdx, label);
                 break;
 
             case 'arrowhead-move':

@@ -154,12 +154,8 @@ joint.dia.Cell = Backbone.Model.extend({
         }
 
         // First, unembed this cell from its parent cell if there is one.
-        var parentCellId = this.get('parent');
-        if (parentCellId) {
-
-            var parentCell = graph && graph.getCell(parentCellId);
-            parentCell.unembed(this);
-        }
+        var parentCell = this.getParentCell();
+        if (parentCell) parentCell.unembed(this);
 
         joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
 
@@ -217,6 +213,14 @@ joint.dia.Cell = Backbone.Model.extend({
         return this;
     },
 
+    parent: function(parent, opt) {
+
+        // getter
+        if (parent === undefined) return this.get('parent');
+        // setter
+        return this.set('parent', parent, opt);
+    },
+
     embed: function(cell, opt) {
 
         if (this === cell || this.isEmbeddedIn(cell)) {
@@ -232,7 +236,7 @@ joint.dia.Cell = Backbone.Model.extend({
             // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
-            cell.set('parent', this.id, opt);
+            cell.parent(this.id, opt);
             this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
@@ -253,26 +257,30 @@ joint.dia.Cell = Backbone.Model.extend({
         return this;
     },
 
+    getParentCell: function() {
+
+        // unlike link.source/target, cell.parent stores id directly as a string
+        var parentId = this.parent();
+        var graph = this.graph;
+
+        return (parentId && graph && graph.getCell(parentId)) || null;
+    },
+
     // Return an array of ancestor cells.
     // The array is ordered from the parent of the cell
     // to the most distant ancestor.
     getAncestors: function() {
 
         var ancestors = [];
-        var parentId = this.get('parent');
 
         if (!this.graph) {
             return ancestors;
         }
 
-        while (parentId !== undefined) {
-            var parent = this.graph.getCell(parentId);
-            if (parent !== undefined) {
-                ancestors.push(parent);
-                parentId = parent.get('parent');
-            } else {
-                break;
-            }
+        var parentCell = this.getParentCell();
+        while (parentCell) {
+            ancestors.push(parentCell);
+            parentCell = parentCell.getParentCell();
         }
 
         return ancestors;
@@ -327,7 +335,7 @@ joint.dia.Cell = Backbone.Model.extend({
     isEmbeddedIn: function(cell, opt) {
 
         var cellId = joint.util.isString(cell) ? cell : cell.id;
-        var parentId = this.get('parent');
+        var parentId = this.parent();
 
         opt = joint.util.defaults({ deep: true }, opt);
 
@@ -338,7 +346,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 if (parentId === cellId) {
                     return true;
                 }
-                parentId = this.graph.getCell(parentId).get('parent');
+                parentId = this.graph.getCell(parentId).parent();
             }
 
             return false;
@@ -354,7 +362,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // Whether or not the cell is embedded in any other cell.
     isEmbedded: function() {
 
-        return !!this.get('parent');
+        return !!this.parent();
     },
 
     // Isolated cloning. Isolated cloning has two versions: shallow and deep (pass `{ deep: true }` in `opt`).
