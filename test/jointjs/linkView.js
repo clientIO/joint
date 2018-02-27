@@ -43,31 +43,31 @@ QUnit.module('linkView', function(hooks) {
         QUnit.test('default args', function(assert) {
 
             linkView.addLabel(100, 100);
-            assert.deepEqual(link.label(0), { position: { distance: 0, offset: 0, args: {} } });
+            assert.deepEqual(link.label(0), { position: { distance: 0, offset: 0 } });
             link.removeLabel(0);
 
             linkView.addLabel(150, 100);
-            assert.deepEqual(link.label(0), { position: { distance: 0.5, offset: 0, args: {} } });
+            assert.deepEqual(link.label(0), { position: { distance: 0.5, offset: 0 } });
             link.removeLabel(0);
 
             linkView.addLabel(200, 100);
-            assert.deepEqual(link.label(0), { position: { distance: 1, offset: 0, args: {} } });
+            assert.deepEqual(link.label(0), { position: { distance: 1, offset: 0 } });
             link.removeLabel(0);
 
             linkView.addLabel(175, 50);
-            assert.deepEqual(link.label(0), { position: { distance: 0.75, offset: -50, args: {} } });
+            assert.deepEqual(link.label(0), { position: { distance: 0.75, offset: -50 } });
             link.removeLabel(0);
 
             linkView.addLabel(250, 100);
-            assert.deepEqual(link.label(0), { position: { distance: 1, offset: 0, args: {} } });
+            assert.deepEqual(link.label(0), { position: { distance: 1, offset: 0 } });
             link.removeLabel(0);
 
             linkView2.addLabel(100, 100);
-            assert.deepEqual(link2.label(0), { position: { distance: 0, offset: { x: 0, y: 0 }, args: {} } });
+            assert.deepEqual(link2.label(0), { position: { distance: 0, offset: { x: 0, y: 0 } } });
             link2.removeLabel(0);
 
             linkView2.addLabel(150, 50);
-            assert.deepEqual(link2.label(0), { position: { distance: 0, offset: { x: 50, y: -50 }, args: {} } });
+            assert.deepEqual(link2.label(0), { position: { distance: 0, offset: { x: 50, y: -50 } } });
             link2.removeLabel(0);
         });
 
@@ -254,30 +254,30 @@ QUnit.module('linkView', function(hooks) {
             var labelPosition;
 
             labelPosition = linkView.getLabelPosition(100, 100);
-            assert.deepEqual(labelPosition, { distance: 0, offset: 0, args: {} });
+            assert.deepEqual(labelPosition, { distance: 0, offset: 0 });
 
             labelPosition = linkView.getLabelPosition(150, 100);
-            assert.deepEqual(labelPosition, { distance: 0.5, offset: 0, args: {} });
+            assert.deepEqual(labelPosition, { distance: 0.5, offset: 0 });
             link.removeLabel(0);
 
             labelPosition = linkView.getLabelPosition(200, 100);
-            assert.deepEqual(labelPosition, { distance: 1, offset: 0, args: {} });
+            assert.deepEqual(labelPosition, { distance: 1, offset: 0 });
             link.removeLabel(0);
 
             labelPosition = linkView.getLabelPosition(175, 50);
-            assert.deepEqual(labelPosition, { distance: 0.75, offset: -50, args: {} });
+            assert.deepEqual(labelPosition, { distance: 0.75, offset: -50 });
             link.removeLabel(0);
 
             labelPosition = linkView.getLabelPosition(250, 100);
-            assert.deepEqual(labelPosition, { distance: 1, offset: 0, args: {} });
+            assert.deepEqual(labelPosition, { distance: 1, offset: 0 });
             link.removeLabel(0);
 
             labelPosition = linkView2.getLabelPosition(100, 100);
-            assert.deepEqual(labelPosition, { distance: 0, offset: { x: 0, y: 0 }, args: {} });
+            assert.deepEqual(labelPosition, { distance: 0, offset: { x: 0, y: 0 } });
             link2.removeLabel(0);
 
             labelPosition = linkView2.getLabelPosition(150, 50);
-            assert.deepEqual(labelPosition, { distance: 0, offset: { x: 50, y: -50 }, args: {} });
+            assert.deepEqual(labelPosition, { distance: 0, offset: { x: 50, y: -50 } });
             link2.removeLabel(0);
         });
 

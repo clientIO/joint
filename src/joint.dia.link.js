@@ -700,6 +700,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
 
         var defaultLabel = model._getDefaultLabel();
+        var defaultLabelMarkup = defaultLabel.markup;
         var defaultLabelAttrs = defaultLabel.attrs;
 
         for (var i = 0, n = labels.length; i < n; i++) {
@@ -708,10 +709,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
             var label = labels[i];
+            var labelMarkup = label.markup;
             var labelAttrs = label.attrs;
 
             var attrs;
-            if (label.markup || defaultLabel.markup) { // if user specified own markup
+            if (labelMarkup || defaultLabelMarkup) { // if user specified own markup
                 attrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
 
             } else { // merge in builtin attrs only if builtin markup is used
@@ -953,11 +955,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.targetPoint.offset(tx, ty);
     },
 
-    // If labelPosition is a number, ensure that default label position object props will be erased on merge.
+     // if label position is a number, normalize it to a position object
+     // this makes sure that default offset and args are ignored for this label
     _normalizeLabelPosition: function(labelPosition) {
 
         if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
         return labelPosition;
+    },
+
+    // merge default label position into label position
+    _mergeLabelPosition: function(defaultLabelPosition, labelPosition) {
+
+        if (!labelPosition) return defaultLabelPosition;
+        if (typeof defaultLabelPosition === 'number') return labelPosition;
+
+        return position = joint.util.merge({}, defaultLabelPosition, labelPosition);
     },
 
     updateLabelPositions: function() {
@@ -975,19 +987,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!labels.length) return this;
 
         var defaultLabel = model._getDefaultLabel();
-        var defaultLabelPosition = { position: defaultLabel.position };
+        var defaultLabelPosition = defaultLabel.position;
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
+            var labelPosition = label.position = this._normalizeLabelPosition(label.position);
 
-            // only objects can be merged
-            // using a wrapper object is the simplest way to handle all `position` formats
-            var labelPosition = { position: this._normalizeLabelPosition(label.position) };
-
-            // merge default label position into label position
-            var position = label.position = (joint.util.merge({}, defaultLabelPosition, labelPosition)).position;
+            var position = this._mergeLabelPosition(defaultLabelPosition, labelPosition);
             var labelPoint = this.getLabelCoordinates(position);
+
             this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
@@ -1213,6 +1222,29 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
+    _getDefaultLabelPositionArgs: function() {
+
+        var defaultLabel = this.model._getDefaultLabel();
+        var defaultLabelPosition = defaultLabel.position || {};
+        return defaultLabelPositionArgs = defaultLabelPosition.args;
+    },
+
+    _getLabelPositionArgs: function() {
+
+        var labelPosition = this.model.label(this._labelIdx).position || {};
+        return labelPositionArgs = labelPosition.args;
+    },
+
+    // merge default label position args into label position args
+    // keep `undefined` because `{}` means something else
+    _mergeLabelPositionArgs: function(defaultLabelPositionArgs, labelPositionArgs) {
+
+        if (labelPositionArgs === null) return null;
+        if (labelPositionArgs === undefined) return defaultLabelPositionArgs;
+
+        return joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
+    },
+
     // Add default label at given position at end of `labels` array.
     // Assigns relative coordinates by default.
     // `opt.absoluteDistance` forces absolute coordinates.
@@ -1226,21 +1258,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var localY = isPointProvided ? x.y : y;
         var localOpt = isPointProvided ? y : opt;
 
-        var model = this.model;
+        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+        var labelPositionArgs = localOpt;
+        var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
 
-        var labelPositionArgs = localOpt || {};
-
-        var defaultLabel = model._getDefaultLabel();
-        var defaultLabelPosition = defaultLabel.position || {};
-        var defaultLabelPositionArgs = defaultLabelPosition.args || {};
-
-        // builtinDefaultLabel does not have position object
-
-        var positionArgs = joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
         var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
-
         var idx = -1;
-        model.addLabel(idx, label, localOpt);
+        this.model.addLabel(idx, label, localOpt);
         return idx;
     },
 
@@ -1253,12 +1277,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var localY = isPointProvided ? x.y : y;
         var localOpt = isPointProvided ? y : opt;
 
-        var model = this.model;
-
         var vertex = { x: localX, y: localY };
-
         var idx = this.getVertexIndex(localX, localY);
-        model.addVertex(idx, vertex, localOpt);
+        this.model.addVertex(idx, vertex, localOpt);
         return idx;
     },
 
@@ -1621,10 +1642,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // to move beyond connection endpoints, absoluteOffset has to be set
     getLabelPosition: function(x, y, opt) {
 
-        var args = opt || {}
-        var isDistanceRelative = !args.absoluteDistance; // relative by default
-        var isDistanceAbsoluteReverse = (args.absoluteDistance && args.reverseDistance); // non-reverse by default
-        var isOffsetAbsolute = args.absoluteOffset; // offset is non-absolute by default
+        var position = {};
+
+        var localOpt = opt || {};
+        if (opt) position.args = opt;
+
+        var isDistanceRelative = !localOpt.absoluteDistance; // relative by default
+        var isDistanceAbsoluteReverse = (localOpt.absoluteDistance && localOpt.reverseDistance); // non-reverse by default
+        var isOffsetAbsolute = localOpt.absoluteOffset; // offset is non-absolute by default
 
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
@@ -1637,6 +1662,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labelDistance = path.lengthAtT(t, pathOpt);
         if (isDistanceRelative) labelDistance = (labelDistance / this.getConnectionLength()) || 0; // fix to prevent NaN for 0 length
         if (isDistanceAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point (-0 => 1)
+
+        position.distance = labelDistance;
 
         // GET OFFSET:
         // use absolute offset if:
@@ -1656,7 +1683,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
         }
 
-        return { distance: labelDistance, offset: labelOffset, args: args }
+        position.offset = labelOffset;
+
+        return position;
     },
 
     getLabelCoordinates: function(labelPosition) {
@@ -1817,10 +1846,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
             case 'label-move':
 
-                var model = this.model;
-                var labelPosition = model.label(this._labelIdx).position || {};
-                var labelPositionArgs = labelPosition.args || undefined;
-                model.label(this._labelIdx, { position: this.getLabelPosition(x, y, labelPositionArgs) });
+                var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+                var labelPositionArgs = this._getLabelPositionArgs();
+                var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
+
+                var label = { position: this.getLabelPosition(x, y, positionArgs) };
+                this.model.label(this._labelIdx, label);
                 break;
 
             case 'arrowhead-move':
