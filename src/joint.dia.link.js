@@ -966,7 +966,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // merge default label position into label position
     _mergeLabelPosition: function(defaultLabelPosition, labelPosition) {
 
-        if (!labelPosition) return defaultLabelPosition;
+        if (labelPosition == null) return defaultLabelPosition;
         if (typeof defaultLabelPosition === 'number') return labelPosition;
 
         return position = joint.util.merge({}, defaultLabelPosition, labelPosition);
@@ -1241,6 +1241,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (labelPositionArgs === null) return null;
         if (labelPositionArgs === undefined) return defaultLabelPositionArgs;
+        if (!defaultLabelPositionArgs) return labelPositionArgs;
 
         return joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
     },
