@@ -966,7 +966,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // merge default label position into label position
     _mergeLabelPosition: function(defaultLabelPosition, labelPosition) {
 
-        if (labelPosition == null) return defaultLabelPosition;
+        if (!labelPosition) return defaultLabelPosition;
         if (typeof defaultLabelPosition === 'number') return labelPosition;
 
         return position = joint.util.merge({}, defaultLabelPosition, labelPosition);
@@ -1226,13 +1226,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var defaultLabel = this.model._getDefaultLabel();
         var defaultLabelPosition = defaultLabel.position || {};
-        return defaultLabelPositionArgs = defaultLabelPosition.args;
+        return defaultLabelPosition.args;
     },
 
     _getLabelPositionArgs: function() {
 
         var labelPosition = this.model.label(this._labelIdx).position || {};
-        return labelPositionArgs = labelPosition.args;
+        return labelPosition.args;
     },
 
     // merge default label position args into label position args
