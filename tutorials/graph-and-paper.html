@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+        <div id="hello-world" class="tutorial">
+
+            <h2>Graph &amp; Paper</h2>
+
+            <p><a href="/tutorial/hello-world.html">In the first part of the tutorial, we saw a working example of a
+                simple JointJS application.</a>
+                <a href="/tutorial/installation.html">Now that we have included JointJS on our webpage</a>, we can
+                start creating our diagram.</p>
+
+            <p>In this section, we will learn how to finish setting up by creating a graph and a paper in our JointJS code
+                and linking them to our HTML.</p>
+
+            <p>All useful JointJS applications need to have a graph and a paper.
+                The graph contains a reference to all components of your diagram, and the paper is responsible for
+                rendering the graph.</p>
+
+            <pre class="line-numbers" data-line="8,19,21-27,52"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- content --&gt;
+    &lt;div id="myholder"&gt;&lt;/div&gt;
+
+    &lt;!-- dependencies --&gt;
+    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/lodash/index.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/backbone/backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
+
+    &lt;!-- code --&gt;
+    &lt;script type="text/javascript"&gt;
+
+        var graph = new joint.dia.Graph;
+
+        var paper = new joint.dia.Paper({
+            el: document.getElementById('myholder'),
+            model: graph,
+            width: 600,
+            height: 100,
+            gridSize: 1
+        });
+
+        var rect = new joint.shapes.standard.Rectangle();
+        rect.position(100, 30);
+        rect.resize(100, 30);
+        rect.attr({
+            body: {
+                fill: 'blue'
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: 'white'
+                }
+            }
+        });
+
+        var rect2 = rect.clone();
+        rect2.translate(300, 0);
+        rect2.attr('label/text', 'World!');
+
+        var link = new joint.shapes.standard.Link();
+        link.source({ id: rect.id });
+        link.target({ id: rect2.id });
+
+        graph.addCells([rect, rect2, link]);
+
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <p>The <a href="/docs/jointjs#dia.Graph" target="_blank">Graph model</a> is usually defined on the
+                first line of the JointJS JavaScript code.
+                In our code, we saved a reference to it as <code>var graph</code>.
+                In order to have our cells (elements and links) rendered, it is important to remember the last line of
+                the demo code: <code>graph.addCells(cells)</code>; unless we add our elements, the diagram does not know
+                they exist.</p>
+
+            <p>Normally, the <a href="/docs/jointjs#dia.Paper" target="_blank">Paper view</a> is specified directly
+                after the graph definition (<code>var paper</code>).
+                It has two crucial attributes:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Paper.prototype.options.el" target="_blank"><code>el</code></a> - an HTML
+                    element into which the paper will be rendered.</li>
+                <li><a href="/docs/jointjs#dia.Paper.prototype.options.graph" target="_blank"><code>graph</code></a> - a
+                    Graph model we want to render into the paper.</li>
+            </ul>
+
+            <p>These attributes link the rendered paper to our HTML on one side, and to our element and link models on
+                the other.</p>
+
+            <p>The paper also specifies its presentation attributes.
+                We can see three of them in our example:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Paper.prototype.options.width" target="_blank"><code>width</code></a> and
+                    <a href="/docs/jointjs#dia.Paper.prototype.options.height" target="_blank"><code>height</code></a> -
+                    the dimensions of the rendered paper (in pixels).</li>
+                <li><a href="/docs/jointjs#dia.Paper.prototype.options.gridSize" target="_blank"><code>gridSize</code></a>
+                    - the size of the grid to which elements are aligned. Affects the granularity of element
+                    movement.</li>
+            </ul>
+
+            <p><a href="/docs/jointjs#dia.Paper.prototype.options" target="_blank">The full list of available Paper
+                attributes</a> is long and allows customizing almost everything about the paper rendering.
+                You will encounter these in the advanced portions of the tutorial series.</p>
+
+            <p>Now that we understand the role of Paper in our diagram, let's make some changes to the appearance of
+                the original Hello, World! application:</p>
+
+            <div class="paper" id="paper-basic"></div>
+
+            <p>We can specify a background color with the
+                <a href="/docs/jointjs#dia.Paper.prototype.options.background" target="_blank"><code>background</code></a>
+                attribute, and show the grid with
+                <a href="/docs/jointjs#dia.Paper.prototype.options.drawGrid" target="_blank"><code>drawGrid</code></a>.
+                For the grid to be visible, we also need to increase <code>gridSize</code>:</p>
+
+            <div class="paper" id="paper-modified"></div>
+
+            <p>With the <a href="/docs/jointjs#dia.Paper.prototype.scale" target="_blank"><code>scale()</code></a>
+                function, we can zoom in to the contents of the paper.
+                (To make sure everything on the scaled paper fits into the visible paper area, the position of the
+                elements has to be changed slightly.)</p>
+
+            <div class="paper" id="paper-scaled"></div>
+
+            <p>The modified program is presented below.
+                The changes we made to the code are highlighted:</p>
+
+            <pre class="line-numbers" data-line="26-30,32,35,50"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- content --&gt;
+    &lt;div id="myholder"&gt;&lt;/div&gt;
+
+    &lt;!-- dependencies --&gt;
+    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/lodash/index.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/backbone/backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
+
+    &lt;!-- code --&gt;
+    &lt;script type="text/javascript"&gt;
+
+        var graph = new joint.dia.Graph;
+
+        var paper = new joint.dia.Paper({
+            el: document.getElementById('myholder'),
+            model: graph,
+            width: 600,
+            height: 100,
+            gridSize: 10,
+            drawGrid: true,
+            background: {
+                color: 'rgba(0, 255, 0, 0.3)'
+            }
+        });
+        paper.scale(2, 2);
+
+        var rect = new joint.shapes.standard.Rectangle();
+        rect.position(10, 10);
+        rect.resize(100, 30);
+        rect.attr({
+            body: {
+                fill: 'blue'
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: 'white'
+                }
+            }
+        });
+
+        var rect2 = rect.clone();
+        rect2.translate(180, 0);
+        rect2.attr('label/text', 'World!');
+
+        var link = new joint.shapes.standard.Link();
+        link.source({ id: rect.id });
+        link.target({ id: rect2.id });
+
+        graph.addCells([rect, rect2, link]);
+
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <p>We now understand the importance of the Graph and Paper objects, and know how to change the appearance of
+                our paper.</p>
+
+            <p><a href="element-styling.html">The next step is to learn how to style our elements.</a></p>
+
+        </div><!--end tutorial-->
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.js"></script>
+
+        <script src="js/graph-and-paper.js"></script>
+    </body>
+</html>
