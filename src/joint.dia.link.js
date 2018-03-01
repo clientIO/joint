@@ -429,6 +429,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _labelCache: null,
     _markerCache: null,
     _V: null,
+    _dragData: null, // deprecated
+
     metrics: null,
 
     initialize: function(options) {
@@ -1810,6 +1812,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     pointermove: function(evt, x, y) {
 
+        // Backwards compatibility
+        var dragData = this._dragData;
+        if (dragData) this.eventData(evt, dragData);
+
         var data = this.eventData(evt);
         switch (data.action) {
 
@@ -1830,11 +1836,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 break;
         }
 
+        // Backwards compatibility
+        if (dragData) joint.util.assign(dragData, this.eventData(evt));
+
         joint.dia.CellView.prototype.pointermove.apply(this, arguments);
         this.notify('link:pointermove', evt, x, y);
     },
 
     pointerup: function(evt, x, y) {
+
+        // Backwards compatibility
+        var dragData = this._dragData;
+        if (dragData) {
+            this.eventData(evt, dragData);
+            this._dragData = null;
+        }
 
         var data = this.eventData(evt);
         switch (data.action) {
@@ -1980,7 +1996,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var arrowheadNode = evt.target;
         var arrowheadType = arrowheadNode.getAttribute('end');
-        var data = this.startArrowheadMove(arrowheadType);
+        var data = this.startArrowheadMove(arrowheadType, { ignoreBackwardsCompatibility: true });
 
         this.eventData(evt, data);
     },
@@ -2409,26 +2425,27 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         data.marked = null;
     },
 
-    _getDragArrowheadData: function(end, opt) {
+    startArrowheadMove: function(end, opt) {
 
         opt || (opt = {});
 
-        return {
+        // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
+        // move without need to click on the actual arrowhead dom element.
+        var data = {
             action: 'arrowhead-move',
             arrowhead: end,
             whenNotAllowed: opt.whenNotAllowed || 'revert',
             initialMagnet: this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null),
             initialEnd: joint.util.assign({}, this.model.get(end)),
             validateConnectionArgs: this._createValidateConnectionArgs(end)
-        }
-    },
+        };
 
-    startArrowheadMove: function(end, opt) {
-
-        // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
-        // move without need to click on the actual arrowhead dom element.
-        var data = this._getDragArrowheadData(end, opt);
         this._beforeArrowheadMove(data);
+
+        if (opt.ignoreBackwardsCompatibility !== true) {
+            this._dragData = data;
+        }
+
         return data;
     }
 }, {
