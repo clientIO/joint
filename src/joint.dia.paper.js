@@ -1270,7 +1270,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
 
-        this.delegateDragEvents(view, evt);
+        this.delegateDragEvents(view, evt.data);
     },
 
     pointermove: function(evt) {
@@ -1443,9 +1443,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    delegateDragEvents: function(view, evt) {
-        this.eventData(evt, { sourceView: view || null, mousemoved: 0 });
-        this.delegateDocumentEvents(null, evt.data);
+    delegateDragEvents: function(view, data) {
+
+        data || (data = {});
+        this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
+        this.delegateDocumentEvents(null, data);
     },
 
     // Guard the specified event. If the event is not interesting, guard returns `true`.

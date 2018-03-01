@@ -898,7 +898,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             linkView: linkView
         });
 
-        this.paper.delegateDragEvents(this, evt);
+        this.paper.delegateDragEvents(this, evt.data);
 
         return false;
     },

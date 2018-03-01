@@ -1964,7 +1964,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             labelIdx: labelIdx
         });
 
-        this.paper.delegateDragEvents(this, evt);
+        this.paper.delegateDragEvents(this, evt.data);
 
         return true;
     },
