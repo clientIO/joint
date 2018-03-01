@@ -230,7 +230,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.defs = V('defs').node;
 
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pickup defs properly).
+        // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
         V(this.svg).append([this.defs, this.viewport]);
 
         this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
