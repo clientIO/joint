@@ -102,6 +102,7 @@ QUnit.module('embedding', function(hooks) {
 
     QUnit.test('findParentBy option', function(assert) {
 
+        var data;
         var r1 = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 100, height: 100 } });
         var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
 
@@ -111,9 +112,10 @@ QUnit.module('embedding', function(hooks) {
 
         this.paper.options.findParentBy = 'bbox';
 
-        v2.prepareEmbedding();
-        v2.processEmbedding();
-        v2.finalizeEmbedding();
+        data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data);
+        v2.finalizeEmbedding(data);
 
         assert.equal(r2.get('parent'), r1.id, 'parent found by bbox');
 
@@ -121,9 +123,10 @@ QUnit.module('embedding', function(hooks) {
 
         this.paper.options.findParentBy = 'corner';
 
-        v2.prepareEmbedding();
-        v2.processEmbedding();
-        v2.finalizeEmbedding();
+        data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data);
+        v2.finalizeEmbedding(data);
 
         assert.equal(r2.get('parent'), r1.id, 'parent found by corner');
 
@@ -131,9 +134,10 @@ QUnit.module('embedding', function(hooks) {
 
         this.paper.options.findParentBy = 'origin';
 
-        v2.prepareEmbedding();
-        v2.processEmbedding();
-        v2.finalizeEmbedding();
+        data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data);
+        v2.finalizeEmbedding(data);
 
         assert.notEqual(r2.get('parent'), r1.id, 'parent not found by origin');
     });
@@ -159,14 +163,16 @@ QUnit.module('embedding', function(hooks) {
             assert.ok(opt.embedding, 'And embedding flag is present.');
         });
 
-        v2.prepareEmbedding();
-        v2.processEmbedding();
-        v2.finalizeEmbedding();
+        var data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data);
+        v2.finalizeEmbedding(data);
 
     });
 
     QUnit.test('frontParentOnly option', function(assert) {
 
+        var data;
         var r1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 200, height: 200 } });
         var r2 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
         var r3 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 100, height: 100 } });
@@ -181,17 +187,19 @@ QUnit.module('embedding', function(hooks) {
 
         this.paper.options.frontParentOnly = true;
 
-        v3.prepareEmbedding();
-        v3.processEmbedding();
-        v3.finalizeEmbedding();
+        data = {};
+        v3.prepareEmbedding(data);
+        v3.processEmbedding(data);
+        v3.finalizeEmbedding(data);
 
         assert.ok(!r3.get('parent'), 'disabled: parent on the bottom not found');
 
         this.paper.options.frontParentOnly = false;
 
-        v3.prepareEmbedding();
-        v3.processEmbedding();
-        v3.finalizeEmbedding();
+        data = {};
+        v3.prepareEmbedding(data);
+        v3.processEmbedding(data);
+        v3.finalizeEmbedding(data);
 
         assert.equal(r3.get('parent'), r1.id, 'enabled: parent on the bottom found');
     });

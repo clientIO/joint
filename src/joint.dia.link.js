@@ -1915,10 +1915,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     label: function(evt, x, y) {
-        // Backwards compatibility:
-        // If labels can't be dragged no default action is triggered.
-        evt.stopPropagation();
-        this.dragLabelStart(evt, x, y);
+
+        var furtherPropagation = this.dragLabelStart(evt, x, y);
+        if (!furtherPropagation) evt.stopPropagation();
     },
 
     // Drag Start Handlers
@@ -1938,7 +1937,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     dragLabelStart: function(evt, x, y) {
 
-        if (!this.can('labelMove')) return;
+        // Backwards compatibility:
+        // If labels can't be dragged no default action is triggered.
+        if (!this.can('labelMove')) return true;
 
         var labelNode = evt.currentTarget;
         var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
@@ -1948,6 +1949,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         });
 
         this.paper.delegateDragEvents(this, evt);
+
+        return true;
     },
 
     dragVertexStart: function(evt, x, y) {
@@ -2108,7 +2111,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var currentEnd = this.model.prop(arrowhead);
         var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
         if (endChanged) {
-
+            var paper = this.paper;
             if (initialEnd.id) {
                 this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), data.initialMagnet, arrowhead);
             }

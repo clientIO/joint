@@ -848,7 +848,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     magnet: function (evt, x, y) {
 
-        this.dragMagnetStart(evt, x, y);
+        var furtherPropagation = this.dragMagnetStart(evt, x, y);
+        if (!furtherPropagation) evt.stopPropagation();
     },
 
     // Drag Start Handlers
@@ -867,10 +868,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     dragMagnetStart: function(evt, x, y) {
 
-        if (!this.can('addLinkFromMagnet')) return;
-
-        // stop subsequent pointerdown event
-        evt.stopPropagation();
+        if (!this.can('addLinkFromMagnet')) return true;
 
         this.model.startBatch('add-link');
 
@@ -901,6 +899,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         });
 
         this.paper.delegateDragEvents(this, evt);
+
+        return false;
     },
 
     // Drag Handlers

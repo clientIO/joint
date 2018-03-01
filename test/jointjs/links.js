@@ -118,6 +118,7 @@ QUnit.module('links', function(hooks) {
 
         assert.expect(6);
 
+        var event;
         var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
         var r2 = r1.clone().translate(300);
         var r3 = r2.clone().translate(300);
@@ -146,20 +147,22 @@ QUnit.module('links', function(hooks) {
         };
 
         // adding vertices
-
-        v0.pointerdown({ target: v0.el.querySelector('.connection') }, 200, 70);
-        v0.pointerup();
+        event = { target: v0.el.querySelector('.connection') };
+        v0.pointerdown(event, 200, 70);
+        v0.pointerup(event);
         assert.deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }], 'vertex added after click the connection.');
 
         var firstVertexRemoveArea = v0.el.querySelector('.marker-vertex-remove-area');
 
-        v0.pointerdown({ target: v0.el.querySelector('.connection-wrap') }, 300, 70);
-        v0.pointermove({}, 300, 100);
-        v0.pointerup();
+        event = { target: v0.el.querySelector('.connection') };
+        v0.pointerdown(event, 300, 70);
+        v0.pointermove(event, 300, 100);
+        v0.pointerup(event);
         assert.deepEqual(l0.get('vertices'), [{ x: 200, y: 70 }, { x: 300, y: 100 }], 'vertex added and translated after click the connection wrapper and mousemove.');
 
-        v0.pointerdown({ target: firstVertexRemoveArea });
-        v0.pointerup();
+        event = { target: firstVertexRemoveArea };
+        v0.pointerdown(event);
+        v0.pointerup(event);
 
         // arrowheadmove
 
@@ -179,14 +182,18 @@ QUnit.module('links', function(hooks) {
             }
         });
 
-        v0.pointerdown({ target: v0.el.querySelector('.marker-arrowhead[end="target"]') });
-        v0.pointermove({ target: vr3.el, type: 'mousemove' }, 630, 40);
+        event = { target: v0.el.querySelector('.marker-arrowhead[end="target"]') };
+        v0.pointerdown(event);
+        event.target = vr3.el;
+        event.type = 'mousemove';
+        v0.pointermove(event, 630, 40);
         assert.ok(highlighted, 'moving pointer over the rectangle makes the rectangle highlighted');
 
-        v0.pointermove({ target: this.paper.el, type: 'mousemove' }, 400, 400);
+        event.target = this.paper.el;
+        v0.pointermove(event, 400, 400);
         assert.notOk(highlighted, 'after moving the pointer to coordinates 400, 400 the rectangle is not highlighted anymore');
 
-        v0.pointerup();
+        v0.pointerup(event);
         assert.checkDataPath(v0.el.querySelector('.connection').getAttribute('d'), 'M 140 78 L 300 100 L 400 400', 'link path data starts at the source right-middle point, going through the vertex and ends at the coordinates 400, 400');
     });
 
@@ -705,11 +712,12 @@ QUnit.module('links', function(hooks) {
             var v0 = this.paper.findViewByModel(l0);
 
             v0.options.interactive = { labelMove: true };
-            v0.pointerdown({ target: v0.$('.label')[0], type: 'mousedown' });
-            v0.pointermove({ target: v0.$('.label')[0], type: 'mousemove' }, 150, 25);
+            var event = { currentTarget: v0.$('.label')[0], type: 'mousedown' };
+            v0.dragLabelStart(event);
+            v0.pointermove(event, 150, 25);
             assert.equal(l0.get('labels')[0].position.offset, -50, 'offset was set during the label drag');
             assert.equal(l0.get('labels')[0].position.distance, .25, 'distance was set during the label drag');
-            v0.pointerup();
+            v0.pointerup(event);
         });
 
         QUnit.test('change:labels', function(assert) {
@@ -794,6 +802,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('snap links', function(assert) {
 
+        var event;
         var link = new joint.dia.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 }
@@ -812,9 +821,11 @@ QUnit.module('links', function(hooks) {
 
         this.paper.options.snapLinks = { radius: 5 };
 
-        v.pointerdown({ target: t }, 0, 0);
-        v.pointermove({ target: this.paper.el }, 90, 90);
-        v.pointerup({ target: this.paper.el }, 90, 90);
+        event = { target: t };
+        v.pointerdown(event, 0, 0);
+        event.target = this.paper.el;
+        v.pointermove(event, 90, 90);
+        v.pointerup(event, 90, 90);
 
         assert.deepEqual(link.get('target'), {
             x: 90, y: 90
@@ -824,9 +835,11 @@ QUnit.module('links', function(hooks) {
 
         this.paper.options.snapLinks = { radius: 50 };
 
-        v.pointerdown({ target: t }, 0, 0);
-        v.pointermove({ target: this.paper.el }, 90, 90);
-        v.pointerup({ target: this.paper.el }, 90, 90);
+        event = { target: t };
+        v.pointerdown(event, 0, 0);
+        event.target = this.paper.el;
+        v.pointermove(event, 90, 90);
+        v.pointerup(event, 90, 90);
 
         assert.ok(link.get('target').id === myrect.id, 'link target was snapped to the element');
 
@@ -840,9 +853,11 @@ QUnit.module('links', function(hooks) {
 
         this.paper.options.validateConnection = function() { return true; };
 
-        v.pointerdown({ target: t }, 0, 0);
-        v.pointermove({ target: this.paper.el }, 90, 90);
-        v.pointerup({ target: this.paper.el }, 90, 90);
+        event = { target: t };
+        v.pointerdown(event, 0, 0);
+        event.target = this.paper.el;
+        v.pointermove(event, 90, 90);
+        v.pointerup(event, 90, 90);
 
         assert.ok(link.get('target').port === 'port', 'link target was snapped to the port');
 
@@ -850,9 +865,11 @@ QUnit.module('links', function(hooks) {
 
         this.paper.options.validateConnection = function() { return false; };
 
-        v.pointerdown({ target: t }, 0, 0);
-        v.pointermove({ target: this.paper.el }, 90, 90);
-        v.pointerup({ target: this.paper.el }, 90, 90);
+        event = { target: t };
+        v.pointerdown(event, 0, 0);
+        event.target = this.paper.el;
+        v.pointermove(event, 90, 90);
+        v.pointerup(event, 90, 90);
 
         assert.deepEqual(link.get('target'), {
             x: 90, y: 90
@@ -861,6 +878,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('mark available', function(assert) {
 
+        var event;
         var link = new joint.dia.Link({
             source: { x: 0, y: 0 },
             target: { x: 0, y: 0 }
@@ -886,7 +904,8 @@ QUnit.module('links', function(hooks) {
 
         this.paper.options.markAvailable = true;
 
-        v.pointerdown({ target: t }, 0, 0);
+        event = { target: t };
+        v.pointerdown(event, 0, 0);
 
         var availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
         var availableCells = this.paper.el.querySelectorAll('.available-cell');
@@ -896,7 +915,8 @@ QUnit.module('links', function(hooks) {
         assert.equal(availableCells.length, 2,
               '2 cells got marked when dragging an arrowhead started.');
 
-        v.pointerup({ target: this.paper.el }, 90, 90);
+        event.target = this.paper.el;
+        v.pointerup(event, 90, 90);
 
         availableMagnets = this.paper.el.querySelectorAll('.available-magnet');
         availableCells = this.paper.el.querySelectorAll('.available-cell');
