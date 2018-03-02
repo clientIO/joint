@@ -213,9 +213,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             opt = opt || {};
 
-            var z = this.graph.getCells().reduce(function (minZ, cell) {
-                return Math.min(minZ, cell.get('z'));
-            }, Infinity);
+            var z = this.graph.minZIndex();
 
             var cells;
 
