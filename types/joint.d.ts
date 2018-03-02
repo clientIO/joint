@@ -619,11 +619,11 @@ export namespace dia {
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addLabel(coordinates: g.PlainPoint, opt?: LabelOptions): number;
-        addLabel(x: number, y: number, opt?: LabelOptions): number;
+        addLabel(coordinates: g.PlainPoint, opt?: LinkView.LabelOptions): number;
+        addLabel(x: number, y: number, opt?: LinkView.LabelOptions): number;
 
-        addVertex(coordinates: g.PlainPoint, opt?: VertexOptions): number;
-        addVertex(x: number, y: number, opt?: VertexOptions): number;
+        addVertex(coordinates: g.PlainPoint, opt?: LinkView.VertexOptions): number;
+        addVertex(x: number, y: number, opt?: LinkView.VertexOptions): number;
 
         getConnection(): g.Path;
 
@@ -647,7 +647,7 @@ export namespace dia {
 
         getClosestPointRatio(point: g.PlainPoint): number;
 
-        getLabelPosition(x: number, y: number, opt?: LabelOptions): Link.LabelPosition;
+        getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
 
         getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
@@ -2006,6 +2006,10 @@ export namespace mvc {
         theme?: string;
     }
 
+    interface viewEventData {
+        [key: string]: any;
+    }
+
     class View<T extends Backbone.Model> extends Backbone.View<T> {
 
         constructor(opt?: ViewOptions<T>);
@@ -2018,9 +2022,18 @@ export namespace mvc {
 
         requireSetThemeOverride: boolean;
 
+        documentEvents?: Backbone.EventsHash;
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
+
+        delegateDocumentEvents(events?: Backbone.EventsHash, data?: viewEventData): void;
+
+        undelegateDocumentEvents(): void;
+
+        eventData(evt: JQuery.Event): viewEventData;
+        eventData(evt: JQuery.Event, data: viewEventData): this;
 
         protected init(): void;
 

@@ -796,7 +796,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.notify('element:pointermove', evt, x, y);
 
         // Make sure the element view data is passed along.
-        // It could have been wiped out in handlers above
+        // It could have been wiped out in the handlers above.
         this.eventData(evt, data);
     },
 

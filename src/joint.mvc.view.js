@@ -171,6 +171,7 @@ joint.mvc.View = Backbone.View.extend({
             if (!method) continue;
             $(element).on(eventName + eventNS, data, method.bind(this));
         }
+        return this;
     },
 
     undelegateElementEvents: function(element) {
@@ -179,14 +180,15 @@ joint.mvc.View = Backbone.View.extend({
 
     delegateDocumentEvents: function(events, data) {
         events || (events = joint.util.result(this, 'documentEvents'));
-        this.delegateElementEvents(document, events, data);
+        return this.delegateElementEvents(document, events, data);
     },
 
     undelegateDocumentEvents: function() {
-        this.undelegateElementEvents(document);
+        return this.undelegateElementEvents(document);
     },
 
     eventData: function(evt, data) {
+        if (!evt) throw new Error('eventData(): event object required.');
         var currentData = evt.data;
         var key = '__' + this.cid + '__';
         if (data === undefined) {
