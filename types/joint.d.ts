@@ -542,6 +542,8 @@ export namespace dia {
         protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void;
 
         protected event(evt: JQuery.Event, eventName: string, x: number, y: number): void;
+
+        protected magnet(evt: JQuery.Event, x: number, y: number): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -567,7 +569,25 @@ export namespace dia {
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
+        getPort(node: Element): string | null;
+
         protected renderMarkup(): void;
+
+        protected renderJSONMarkup(markup: MarkupJSON): void;
+
+        protected renderStringMarkup(markup: string): void;
+
+        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnetStart(evt: JQuery.Event, x: number, y: number): boolean;
+
+        protected drag(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnet(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnetEnd(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.LinkView
@@ -652,6 +672,7 @@ export namespace dia {
         getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
         getVertexIndex(x: number, y: number): number;
+        getVertexIndex(point: g.PlainPoint): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
@@ -666,6 +687,38 @@ export namespace dia {
         protected onSourceChange(element: Element, sourceEnd: any, opt: { [key: string]: any }): void;
 
         protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
+
+        protected label(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnectionStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabelStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertexStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowheadStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnection(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabel(evt: JQuery.Event, x: number, y: number): boolean;
+
+        protected dragVertex(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowhead(evt: JQuery.Event, x: number, y: number): void;
+
+        protected drag(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnectionEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabelEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertexEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowheadEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.Paper

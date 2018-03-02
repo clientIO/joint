@@ -2083,7 +2083,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!paper.linkAllowed(this)) {
             // If the changed link is not allowed, revert to its previous state.
-            this.disallow(data);
+            this._disallow(data);
         } else {
             this._finishEmbedding(data);
             this._notifyConnectEvent(data, evt);
@@ -2096,7 +2096,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // noop
     },
 
-    disallow: function(data) {
+    _disallow: function(data) {
 
         switch (data.whenNotAllowed) {
 
@@ -2288,7 +2288,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // the returned `selector` will be `undefined`. That means we can directly pass it to the
         // `source`/`target` attribute of the link model below.
         var selector = viewUnderPointer.getSelector(magnetUnderPointer);
-        var port = magnetUnderPointer.getAttribute('port');
+        var port = viewUnderPointer.getPort(magnetUnderPointer);
+
         var arrowheadValue = { id: viewUnderPointer.model.id };
         if (port != null) arrowheadValue.port = port;
         if (selector != null) arrowheadValue.selector = selector;

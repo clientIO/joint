@@ -751,6 +751,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
+    getPort: function(node) {
+        if (!node) return null;
+        var port = node.getAttribute('port');
+        if (!port) {
+            if (node === this.el) return null;
+            var currentNode = node.parentNode;
+            while (currentNode && currentNode !== this.el) {
+                port = currentNode.getAttribute('port')
+                if (port) break;
+                currentNode = currentNode.parentNode;
+            }
+        }
+        return port;
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -879,8 +894,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         link.set({
             source: {
                 id: this.model.id,
+                port: this.getPort(evt.target),
                 selector: this.getSelector(evt.target),
-                port: evt.target.getAttribute('port')
             },
             target: { x: x, y: y }
         });
