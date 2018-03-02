@@ -792,8 +792,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 break;
         }
 
-        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
-        this.notify('element:pointermove', evt, x, y);
+        if (!data.stopPropagation) {
+            joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+            this.notify('element:pointermove', evt, x, y);
+        }
 
         // Make sure the element view data is passed along.
         // It could have been wiped out in the handlers above.
@@ -809,11 +811,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 break;
             case 'magnet':
                 this.dragMagnetEnd(evt, x, y);
-                break;
+                return;
         }
 
-        this.notify('element:pointerup', evt, x, y);
-        joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+        if (!data.stopPropagation) {
+            this.notify('element:pointerup', evt, x, y);
+            joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+        }
     },
 
     mouseover: function(evt) {
@@ -848,8 +852,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     magnet: function (evt, x, y) {
 
-        var furtherPropagation = this.dragMagnetStart(evt, x, y);
-        if (!furtherPropagation) evt.stopPropagation();
+        this.dragMagnetStart(evt, x, y);
+
+        var stopPropagation = this.eventData(evt).stopPropagation;
+        if (stopPropagation) evt.stopPropagation();
     },
 
     // Drag Start Handlers
@@ -895,7 +901,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.eventData(evt, {
             action: 'magnet',
-            linkView: linkView
+            linkView: linkView,
+            stopPropagation: true
         });
 
         this.paper.delegateDragEvents(this, evt.data);
