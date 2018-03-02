@@ -115,9 +115,11 @@ export namespace dia {
 
         getCellsBBox(cells: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
-        hasActiveBatch(name?: string): boolean;
+        hasActiveBatch(name?: string | string[]): boolean;
 
         maxZIndex(): number;
+
+        minZIndex(): number;
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
