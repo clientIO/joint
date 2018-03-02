@@ -579,7 +579,7 @@ export namespace dia {
 
         protected dragStart(evt: JQuery.Event, x: number, y: number): void;
 
-        protected dragMagnetStart(evt: JQuery.Event, x: number, y: number): boolean;
+        protected dragMagnetStart(evt: JQuery.Event, x: number, y: number): void;
 
         protected drag(evt: JQuery.Event, x: number, y: number): void;
 
@@ -702,7 +702,7 @@ export namespace dia {
 
         protected dragConnection(evt: JQuery.Event, x: number, y: number): void;
 
-        protected dragLabel(evt: JQuery.Event, x: number, y: number): boolean;
+        protected dragLabel(evt: JQuery.Event, x: number, y: number): void;
 
         protected dragVertex(evt: JQuery.Event, x: number, y: number): void;
 

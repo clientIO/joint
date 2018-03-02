@@ -868,7 +868,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     dragMagnetStart: function(evt, x, y) {
 
-        if (!this.can('addLinkFromMagnet')) return true;
+        if (!this.can('addLinkFromMagnet')) return;
 
         this.model.startBatch('add-link');
 
@@ -899,8 +899,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         });
 
         this.paper.delegateDragEvents(this, evt.data);
-
-        return false;
     },
 
     // Drag Handlers
