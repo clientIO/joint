@@ -617,9 +617,9 @@ var joint = {
             if (dataTypeString.indexOf('base64') >= 0) { // data may be encoded in base64
                 decodedString = atob(data); // decode data
             } else {
-                decodedString = data;
+                // convert the decoded string to UTF-8
+                decodedString = unescape(encodeURIComponent(data));
             }
-
             // write the bytes of the string to a typed array
             var ia = new window.Uint8Array(decodedString.length);
             for (var i = 0; i < decodedString.length; i++) {
