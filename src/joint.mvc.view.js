@@ -176,6 +176,7 @@ joint.mvc.View = Backbone.View.extend({
 
     undelegateElementEvents: function(element) {
         $(element).off(this.getEventNamespace());
+        return this;
     },
 
     delegateDocumentEvents: function(events, data) {

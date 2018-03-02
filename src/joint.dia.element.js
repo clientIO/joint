@@ -751,21 +751,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
-    getPort: function(node) {
-        if (!node) return null;
-        var port = node.getAttribute('port');
-        if (!port) {
-            if (node === this.el) return null;
-            var currentNode = node.parentNode;
-            while (currentNode && currentNode !== this.el) {
-                port = currentNode.getAttribute('port')
-                if (port) break;
-                currentNode = currentNode.parentNode;
-            }
-        }
-        return port;
-    },
-
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -875,8 +860,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         this.eventData(evt, {
             action: 'move',
-            dx: x,
-            dy: y,
+            x: x,
+            y: y,
             restrictedArea: this.paper.getRestrictedArea(this)
         });
     },
@@ -894,7 +879,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         link.set({
             source: {
                 id: this.model.id,
-                port: this.getPort(evt.target),
+                port: this.findAttribute('port', evt.target),
                 selector: this.getSelector(evt.target),
             },
             target: { x: x, y: y }
@@ -930,8 +915,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Make sure the new element's position always snaps to the current grid after
         // translate as the previous one could be calculated with a different grid size.
-        var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.dx, grid);
-        var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.dy, grid);
+        var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.x, grid);
+        var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.y, grid);
 
         element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
 
@@ -948,8 +933,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         this.eventData(evt, {
-            dx: g.snapToGrid(x, grid),
-            dy: g.snapToGrid(y, grid),
+            x: g.snapToGrid(x, grid),
+            y: g.snapToGrid(y, grid),
             embedding: embedding
         });
     },

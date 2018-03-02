@@ -929,6 +929,23 @@ joint.dia.CellView = joint.mvc.View.extend({
         return selector;
     },
 
+    findAttribute: function(attributeName, node) {
+
+        if (!node) return null;
+
+        var attributeValue = node.getAttribute(attributeName);
+        if (attributeValue === null) {
+            if (node === this.el) return null;
+            var currentNode = node.parentNode;
+            while (currentNode && currentNode !== this.el && currentNode.nodeType === 1) {
+                attributeValue = currentNode.getAttribute(attributeName)
+                if (attributeValue !== null) break;
+                currentNode = currentNode.parentNode;
+            }
+        }
+        return attributeValue;
+    },
+
     getAttributeDefinition: function(attrName) {
 
         return this.model.constructor.getAttributeDefinition(attrName);

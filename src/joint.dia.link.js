@@ -1959,9 +1959,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var labelNode = evt.currentTarget;
         var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
+
+        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+        var labelPositionArgs = this._getLabelPositionArgs();
+        var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
+
         this.eventData(evt, {
             action: 'label-move',
-            labelIdx: labelIdx
+            labelIdx: labelIdx,
+            positionArgs: positionArgs
         });
 
         this.paper.delegateDragEvents(this, evt.data);
@@ -2017,11 +2023,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     dragLabel: function(evt, x, y) {
 
         var data = this.eventData(evt);
-        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
-        var labelPositionArgs = this._getLabelPositionArgs();
-        var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
-
-        var label = { position: this.getLabelPosition(x, y, positionArgs) };
+        var label = { position: this.getLabelPosition(x, y, data.positionArgs) };
         this.model.label(data.labelIdx, label);
     },
 
@@ -2196,7 +2198,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                         data.closestEnd = {
                             id: view.model.id,
                             selector: view.getSelector(magnet),
-                            port: magnet.getAttribute('port')
+                            port: view.findAttribute('port', magnet)
                         };
                     }
                 }
@@ -2288,7 +2290,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // the returned `selector` will be `undefined`. That means we can directly pass it to the
         // `source`/`target` attribute of the link model below.
         var selector = viewUnderPointer.getSelector(magnetUnderPointer);
-        var port = viewUnderPointer.getPort(magnetUnderPointer);
+        var port = viewUnderPointer.findAttribute('port', magnetUnderPointer);
 
         var arrowheadValue = { id: viewUnderPointer.model.id };
         if (port != null) arrowheadValue.port = port;

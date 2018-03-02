@@ -513,6 +513,8 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
+        findAttribute(attributeName: string, node: Element): string | null;
+
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         getStrokeBBox(el?: SVGElement): g.Rect;
@@ -568,8 +570,6 @@ export namespace dia {
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
-
-        getPort(node: Element): string | null;
 
         protected renderMarkup(): void;
 
@@ -2081,9 +2081,9 @@ export namespace mvc {
 
         getEventNamespace(): string;
 
-        delegateDocumentEvents(events?: Backbone.EventsHash, data?: viewEventData): void;
+        delegateDocumentEvents(events?: Backbone.EventsHash, data?: viewEventData): this;
 
-        undelegateDocumentEvents(): void;
+        undelegateDocumentEvents(): this;
 
         eventData(evt: JQuery.Event): viewEventData;
         eventData(evt: JQuery.Event, data: viewEventData): this;
