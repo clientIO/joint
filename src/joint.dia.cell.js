@@ -174,18 +174,34 @@ joint.dia.Cell = Backbone.Model.extend({
 
             opt = opt || {};
 
-            var z = (this.graph.getLastCell().get('z') || 0) + 1;
+            var z = this.graph.maxZIndex();
 
-            this.startBatch('to-front').set('z', z, opt);
+            var cells;
 
             if (opt.deep) {
-
-                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                cells.forEach(function(cell) { cell.set('z', ++z, opt); });
-
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                cells.unshift(this);
+            } else {
+                cells = [this];
             }
 
-            this.stopBatch('to-front');
+            z = z - cells.length + 1;
+
+            var shouldUpdate = cells.some(function(cell, index) {
+                return cell.get('z') !== z + index;
+            });
+
+            if (shouldUpdate) {
+                this.startBatch('to-front');
+
+                z = z + cells.length;
+
+                cells.forEach(function(cell, index) {
+                    cell.set('z', z + index, opt);
+                });
+
+                this.stopBatch('to-front');
+            }
         }
 
         return this;
@@ -197,17 +213,34 @@ joint.dia.Cell = Backbone.Model.extend({
 
             opt = opt || {};
 
-            var z = (this.graph.getFirstCell().get('z') || 0) - 1;
+            var z = this.graph.getCells().reduce(function (minZ, cell) {
+                return Math.min(minZ, cell.get('z'));
+            }, Infinity);
 
-            this.startBatch('to-back');
+            var cells;
 
             if (opt.deep) {
-
-                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                cells.reverse().forEach(function(cell) { cell.set('z', z--, opt); });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                cells.unshift(this);
+            } else {
+                cells = [this];
             }
 
-            this.set('z', z, opt).stopBatch('to-back');
+            var shouldUpdate = cells.some(function(cell, index) {
+                return cell.get('z') !== z + index;
+            });
+
+            if (shouldUpdate) {
+                this.startBatch('to-back');
+
+                z -= cells.length;
+
+                cells.forEach(function(cell, index) {
+                    cell.set('z', z + index, opt);
+                });
+
+                this.stopBatch('to-back');
+            }
         }
 
         return this;

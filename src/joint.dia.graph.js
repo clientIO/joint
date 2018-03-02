@@ -66,7 +66,6 @@ joint.dia.Graph = Backbone.Model.extend({
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this._sortOnChangeZ, this);
-        this.on('batch:stop', this._onBatchStop, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -100,17 +99,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     _sortOnChangeZ: function() {
 
-        if (!this.hasActiveBatch('to-front') && !this.hasActiveBatch('to-back')) {
-            this.get('cells').sort();
-        }
-    },
-
-    _onBatchStop: function(data) {
-
-        var batchName = data && data.batchName;
-        if ((batchName === 'to-front' || batchName === 'to-back') && !this.hasActiveBatch(batchName)) {
-            this.get('cells').sort();
-        }
+        this.get('cells').sort();
     },
 
     _restructureOnAdd: function(cell) {
@@ -291,6 +280,12 @@ joint.dia.Graph = Backbone.Model.extend({
         }
 
         return cell;
+    },
+
+    minZIndex: function() {
+
+        var firstCell = this.get('cells').first();
+        return firstCell ? (firstCell.get('z') || 0) : 0;
     },
 
     maxZIndex: function() {
@@ -1040,13 +1035,17 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     hasActiveBatch: function(name) {
-        if (name) {
-            return !!this._batches[name];
-        } else {
+        if (arguments.length === 0) {
             return joint.util.toArray(this._batches).some(function(batches) {
                 return batches > 0;
             });
         }
+        if (Array.isArray(name)) {
+            return name.some(function (name) {
+                return !!this._batches[name];
+            }, this);
+        }
+        return !!this._batches[name];
     }
 });
 
