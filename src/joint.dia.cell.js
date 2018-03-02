@@ -1366,12 +1366,12 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:mousewheel', evt, x, y, delta);
     },
 
-    event: function(evt, eventName, x, y) {
+    onevent: function(evt, eventName, x, y) {
 
         this.notify(eventName, evt, x, y);
     },
 
-    magnet: function() {
+    onmagnet: function() {
 
         // noop
     },

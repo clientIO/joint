@@ -1905,7 +1905,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.notify('link:mousewheel', evt, x, y, delta);
     },
 
-    event: function(evt, eventName, x, y) {
+    onevent: function(evt, eventName, x, y) {
 
         // Backwards compatibility
         var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
@@ -1930,7 +1930,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    label: function(evt, x, y) {
+    onlabel: function(evt, x, y) {
 
         this.dragLabelStart(evt, x, y);
 

@@ -160,12 +160,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseleave': 'mouseleave',
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
-        'mousedown .joint-cell [event]': 'event', // interaction with cell with `event` attribute set
-        'touchstart .joint-cell [event]': 'event',
-        'mousedown .joint-cell [magnet]': 'magnet', // interaction with cell with `magnet` attribute set
-        'touchstart .joint-cell [magnet]': 'magnet',
-        'mousedown .joint-link .label': 'label', // interaction with link label
-        'touchstart .joint-link .label': 'label',
+        'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
+        'touchstart .joint-cell [event]': 'onevent',
+        'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
+        'touchstart .joint-cell [magnet]': 'onmagnet',
+        'mousedown .joint-link .label': 'onlabel', // interaction with link label
+        'touchstart .joint-link .label': 'onlabel',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
     },
 
@@ -1394,7 +1394,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    event: function(evt) {
+    onevent: function(evt) {
 
         var eventNode = evt.currentTarget;
         var eventName = eventNode.getAttribute('event');
@@ -1406,12 +1406,12 @@ joint.dia.Paper = joint.mvc.View.extend({
                 if (this.guard(evt, view)) return;
 
                 var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.event(evt, eventName, localPoint.x, localPoint.y);
+                view.onevent(evt, eventName, localPoint.x, localPoint.y);
             }
         }
     },
 
-    magnet: function(evt) {
+    onmagnet: function(evt) {
 
         var magnetNode = evt.currentTarget;
         var magnetValue = magnetNode.getAttribute('magnet');
@@ -1424,12 +1424,12 @@ joint.dia.Paper = joint.mvc.View.extend({
                 if (!this.options.validateMagnet(view, magnetNode)) return;
 
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-                view.magnet(evt, localPoint.x, localPoint.y);
+                view.onmagnet(evt, localPoint.x, localPoint.y);
             }
         }
     },
 
-    label: function(evt) {
+    onlabel: function(evt) {
 
         var labelNode = evt.currentTarget;
         var view = this.findView(labelNode);
@@ -1439,7 +1439,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             if (this.guard(evt, view)) return;
 
             var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-            view.label(evt, localPoint.x, localPoint.y);
+            view.onlabel(evt, localPoint.x, localPoint.y);
         }
     },
 

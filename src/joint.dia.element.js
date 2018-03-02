@@ -850,7 +850,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.notify('element:mousewheel', evt, x, y, delta);
     },
 
-    magnet: function (evt, x, y) {
+    onmagnet: function (evt, x, y) {
 
         this.dragMagnetStart(evt, x, y);
 

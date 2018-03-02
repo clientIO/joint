@@ -543,9 +543,9 @@ export namespace dia {
 
         protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void;
 
-        protected event(evt: JQuery.Event, eventName: string, x: number, y: number): void;
+        protected onevent(evt: JQuery.Event, eventName: string, x: number, y: number): void;
 
-        protected magnet(evt: JQuery.Event, x: number, y: number): void;
+        protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -688,7 +688,7 @@ export namespace dia {
 
         protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
 
-        protected label(evt: JQuery.Event, x: number, y: number): void;
+        protected onlabel(evt: JQuery.Event, x: number, y: number): void;
 
         protected dragConnectionStart(evt: JQuery.Event, x: number, y: number): void;
 
@@ -959,7 +959,11 @@ export namespace dia {
 
         protected mousewheel(evt: JQuery.Event): void;
 
-        protected event(evt: JQuery.Event): void;
+        protected onevent(evt: JQuery.Event): void;
+
+        protected onmagnet(evt: JQuery.Event): void;
+
+        protected onlabel(evt: JQuery.Event): void;
 
         protected guard(evt: JQuery.Event, view: CellView): boolean;
 
