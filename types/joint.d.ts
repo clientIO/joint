@@ -1982,7 +1982,7 @@ export namespace layout {
             rankSep?: number;
             marginX?: number;
             marginY?: number;
-            resizeCluster?: boolean;
+            resizeClusters?: boolean;
             clusterPadding?: dia.Padding;
             setPosition?: (element: dia.Element, position: dia.BBox) => void;
             setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
