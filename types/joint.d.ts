@@ -513,6 +513,8 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
+        findAttribute(attributeName: string, node: Element): string | null;
+
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         getStrokeBBox(el?: SVGElement): g.Rect;
@@ -541,7 +543,9 @@ export namespace dia {
 
         protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void;
 
-        protected event(evt: JQuery.Event, eventName: string, x: number, y: number): void;
+        protected onevent(evt: JQuery.Event, eventName: string, x: number, y: number): void;
+
+        protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -568,6 +572,22 @@ export namespace dia {
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
         protected renderMarkup(): void;
+
+        protected renderJSONMarkup(markup: MarkupJSON): void;
+
+        protected renderStringMarkup(markup: string): void;
+
+        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnetStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected drag(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnet(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnetEnd(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.LinkView
@@ -619,11 +639,11 @@ export namespace dia {
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addLabel(coordinates: g.PlainPoint, opt?: LabelOptions): number;
-        addLabel(x: number, y: number, opt?: LabelOptions): number;
+        addLabel(coordinates: g.PlainPoint, opt?: LinkView.LabelOptions): number;
+        addLabel(x: number, y: number, opt?: LinkView.LabelOptions): number;
 
-        addVertex(coordinates: g.PlainPoint, opt?: VertexOptions): number;
-        addVertex(x: number, y: number, opt?: VertexOptions): number;
+        addVertex(coordinates: g.PlainPoint, opt?: LinkView.VertexOptions): number;
+        addVertex(x: number, y: number, opt?: LinkView.VertexOptions): number;
 
         getConnection(): g.Path;
 
@@ -647,11 +667,12 @@ export namespace dia {
 
         getClosestPointRatio(point: g.PlainPoint): number;
 
-        getLabelPosition(x: number, y: number, opt?: LabelOptions): Link.LabelPosition;
+        getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
 
         getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
         getVertexIndex(x: number, y: number): number;
+        getVertexIndex(point: g.PlainPoint): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
@@ -666,6 +687,38 @@ export namespace dia {
         protected onSourceChange(element: Element, sourceEnd: any, opt: { [key: string]: any }): void;
 
         protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
+
+        protected onlabel(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnectionStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabelStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertexStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowheadStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnection(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabel(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertex(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowhead(evt: JQuery.Event, x: number, y: number): void;
+
+        protected drag(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnectionEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabelEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertexEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowheadEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.Paper
@@ -906,7 +959,11 @@ export namespace dia {
 
         protected mousewheel(evt: JQuery.Event): void;
 
-        protected event(evt: JQuery.Event): void;
+        protected onevent(evt: JQuery.Event): void;
+
+        protected onmagnet(evt: JQuery.Event): void;
+
+        protected onlabel(evt: JQuery.Event): void;
 
         protected guard(evt: JQuery.Event, view: CellView): boolean;
 
@@ -2006,6 +2063,10 @@ export namespace mvc {
         theme?: string;
     }
 
+    interface viewEventData {
+        [key: string]: any;
+    }
+
     class View<T extends Backbone.Model> extends Backbone.View<T> {
 
         constructor(opt?: ViewOptions<T>);
@@ -2018,9 +2079,18 @@ export namespace mvc {
 
         requireSetThemeOverride: boolean;
 
+        documentEvents?: Backbone.EventsHash;
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
+
+        delegateDocumentEvents(events?: Backbone.EventsHash, data?: viewEventData): this;
+
+        undelegateDocumentEvents(): this;
+
+        eventData(evt: JQuery.Event): viewEventData;
+        eventData(evt: JQuery.Event, data: viewEventData): this;
 
         protected init(): void;
 
