@@ -400,22 +400,87 @@ QUnit.module('paper', function(hooks) {
                 assert.ok(disconnectSpy.called);
                 assert.notOk(connectSpy.called);
             });
+
+            QUnit.test('disconnect when link pinning disabled', function(assert) {
+
+                this.paper.options.linkPinning = false;
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                var data = {};
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove', data: data }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup', data: data }, 50, 50);
+
+                assert.notOk(disconnectSpy.called, 'message');
+                assert.notOk(connectSpy.called, 'message');
+            });
         });
 
-        QUnit.test('disconnect when link pinning disabled', function(assert) {
 
-            this.paper.options.linkPinning = false;
+        QUnit.module('allowLink', function(hooks) {
 
-            var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+            QUnit.test('sanity', function(assert) {
 
-            var data = {};
-            connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
-            connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove', data: data }, 50, 50);
-            connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup', data: data }, 50, 50);
+                var allowLinkSpy = sinon.spy();
 
-            assert.notOk(disconnectSpy.called, 'message');
-            assert.notOk(connectSpy.called, 'message');
+                this.paper.options.allowLink = allowLinkSpy;
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                var data = {};
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove', data: data }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup', data: data }, 50, 50);
+
+                assert.ok(allowLinkSpy.calledOnce);
+                assert.ok(allowLinkSpy.calledWith(connectedLinkView, connectedLinkView.paper));
+                assert.equal(allowLinkSpy.thisValues[0], connectedLinkView.paper);
+            });
+
+            QUnit.test('enabled - disconnect when return false', function (assert) {
+
+                this.paper.options.allowLink = function() { return false };
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                var data = {};
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove', data: data }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup', data: data }, 50, 50);
+
+                assert.notOk(disconnectSpy.called);
+            });
+
+            QUnit.test('enabled - disconnect when return true', function (assert) {
+
+                this.paper.options.allowLink = function() { return true };
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                var data = {};
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove', data: data }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup', data: data }, 50, 50);
+
+                assert.ok(disconnectSpy.called);
+            });
+
+            QUnit.test('disconnect when disabled', function (assert) {
+
+                this.paper.options.allowLink = null;
+
+                var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
+
+                var data = {};
+                connectedLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                connectedLinkView.pointermove({ target: this.paper.el, type: 'mousemove', data: data }, 50, 50);
+                connectedLinkView.pointerup({ target: this.paper.el, type: 'mouseup', data: data }, 50, 50);
+
+                assert.ok(disconnectSpy.called, 'message');
+            });
         });
+
     });
 
     QUnit.module('connect/disconnect to ports event ', function(hooks) {
@@ -851,7 +916,7 @@ QUnit.module('paper', function(hooks) {
 
             paper.linkAllowed();
 
-        }, new Error('Must provide link model or view.'), 'should throw error when link model/view is missing');
+        }, new Error('Must provide a linkView.'), 'should throw error when linkview is missing');
 
         var rect1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -878,7 +943,6 @@ QUnit.module('paper', function(hooks) {
 
         var linkView = this.paper.findViewByModel(link);
 
-        assert.ok(this.paper.linkAllowed(link), 'can use link model');
         assert.ok(this.paper.linkAllowed(linkView), 'can use link view');
 
         var pinnedLink = new joint.dia.Link({
@@ -886,11 +950,15 @@ QUnit.module('paper', function(hooks) {
             target: { x: 200, y: 200 }
         });
 
+        this.graph.addCell(pinnedLink);
+
+        var pinnedLinkView = this.paper.findViewByModel(pinnedLink);
+
         this.paper.options.linkPinning = false;
-        assert.notOk(this.paper.linkAllowed(pinnedLink), 'pinned link not allowed when link pinning is disabled');
+        assert.notOk(this.paper.linkAllowed(pinnedLinkView), 'pinned link not allowed when link pinning is disabled');
 
         this.paper.options.linkPinning = true;
-        assert.ok(this.paper.linkAllowed(pinnedLink), 'pinned link allowed when link pinning is enabled');
+        assert.ok(this.paper.linkAllowed(pinnedLinkView), 'pinned link allowed when link pinning is enabled');
 
         var multiLink1 = new joint.dia.Link({
             source: { id: rect1.id },
@@ -904,11 +972,13 @@ QUnit.module('paper', function(hooks) {
 
         this.graph.addCells([multiLink1, multiLink2]);
 
+        var multiLink2View = this.paper.findViewByModel(multiLink2);
+
         this.paper.options.multiLinks = false;
-        assert.notOk(this.paper.linkAllowed(multiLink2), 'multi link not allowed when link multi-links is disabled');
+        assert.notOk(this.paper.linkAllowed(multiLink2View), 'multi link not allowed when link multi-links is disabled');
 
         this.paper.options.multiLinks = true;
-        assert.ok(this.paper.linkAllowed(multiLink2), 'multi link allowed when link multi-links is enabled');
+        assert.ok(this.paper.linkAllowed(multiLink2View), 'multi link allowed when link multi-links is enabled');
     });
 
     QUnit.test('setGridSize(gridSize)', function(assert) {

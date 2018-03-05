@@ -1047,6 +1047,49 @@ joint.dia.Graph = Backbone.Model.extend({
         }
         return !!this._batches[name];
     }
+
+}, {
+
+    validations: {
+
+        multiLinks: function(graph, link) {
+
+            // Do not allow multiple links to have the same source and target.
+            var source = link.get('source');
+            var target = link.get('target');
+
+            if (source.id && target.id) {
+
+                var sourceModel = link.getSourceElement();
+                if (sourceModel) {
+
+                    var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });
+                    var sameLinks = connectedLinks.filter(function (_link) {
+
+                        var _source = _link.get('source');
+                        var _target = _link.get('target');
+
+                        return _source && _source.id === source.id &&
+                            (!_source.port || (_source.port === source.port)) &&
+                            _target && _target.id === target.id &&
+                            (!_target.port || (_target.port === target.port));
+
+                    });
+
+                    if (sameLinks.length > 1) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        },
+
+        linkPinning: function(graph, link) {
+            return link.source().id && link.target().id;
+        }
+    }
+
 });
 
 joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
