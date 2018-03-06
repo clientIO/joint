@@ -11,13 +11,13 @@
 
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
-
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
 
         <!-- Dependencies: -->
         <script src="../node_modules/jquery/dist/jquery.js"></script>
         <script src="../node_modules/lodash/index.js"></script>
         <script src="../node_modules/backbone/backbone.js"></script>
-
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
@@ -33,14 +33,460 @@
             };
         </script>
 
-        <div id="link-styling" class="tutorial">
+        <div class="tutorial">
+
+            <h2>Links</h2>
+
+            <p><a href="hello-world.html">In the first part of the tutorial, we saw a working example of a
+                simple JointJS application:</a></p>
+
+            <div class="paper" id="paper-hello-world"></div>
+
+            <p><a href="graph-and-paper.html">In the previous section, we focused on making the elements look much more
+                interesting:</a></p>
+
+            <div class="paper" id="paper-elements"></div>
+
+            <p>In this section, we are going to understand the other crucial building block of JointJS diagrams - links.
+                This is an introduction to links as they appear in the Hello, World! application; more advanced topics
+                are covered later in the tutorial series.
+                We will continue with the code we modified in the previous section:</p>
+
+            <pre class="line-numbers" data-line="69-71,110-112,153-155" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- content --&gt;
+    &lt;div id="myholder"&gt;&lt;/div&gt;
+
+    &lt;!-- dependencies --&gt;
+    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/lodash/index.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/backbone/backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
+
+    &lt;!-- code --&gt;
+    &lt;script type="text/javascript"&gt;
+
+        var graph = new joint.dia.Graph;
+
+        var paper = new joint.dia.Paper({
+            el: document.getElementById('myholder'),
+            model: graph,
+            width: 600,
+            height: 300,
+            gridSize: 10,
+            drawGrid: true,
+            background: {
+                color: 'rgba(0, 255, 0, 0.3)'
+            }
+        });
+
+        var rect = new joint.shapes.standard.Rectangle();
+        rect.position(100, 30);
+        rect.resize(100, 30);
+        rect.attr({
+            body: {
+                fill: 'blue'
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: 'white'
+                }
+            }
+        });
+
+        var rect2 = new joint.shapes.standard.Rectangle();
+        rect2.position(400, 30);
+        rect2.resize(100, 30);
+        rect2.attr({
+            body: {
+                fill: '#2C3E50',
+                rx: 5,
+                ry: 5,
+                'stroke-width': 2
+            },
+            label: {
+                text: 'World!',
+                style: {
+                    fill: '#3498DB',
+                    'font-size': 18,
+                    'font-weight': 'bold',
+                    'font-variant': 'small-caps'
+                }
+            }
+        });
+
+        var link = new joint.shapes.standard.Link();
+        link.source({ id: rect.id });
+        link.target({ id: rect2.id });
+
+        var rect3 = new joint.shapes.standard.Rectangle();
+        rect3.position(100, 130);
+        rect3.resize(100, 30);
+        rect3.attr({
+            body: {
+                fill: '#E74C3C',
+                rx: 20,
+                ry: 20,
+                'stroke-width': 0
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: '#ECF0F1',
+                    'font-size': 11,
+                    'font-variant': 'small-caps'
+                }
+            }
+        });
+
+        var rect4 = new joint.shapes.standard.Rectangle();
+        rect4.position(400, 130);
+        rect4.resize(100, 30);
+        rect4.attr({
+            body: {
+                fill: '#8E44AD',
+                'stroke-width': 0
+            },
+            label: {
+                text: 'World!',
+                style: {
+                    fill: 'white',
+                    'font-size': 13
+                }
+            }
+        });
+
+        var link2 = new joint.shapes.standard.Link();
+        link2.source({ id: rect3.id });
+        link2.target({ id: rect4.id });
+
+        var rect5 = new joint.shapes.standard.Rectangle();
+        rect5.position(100, 230);
+        rect5.resize(100, 30);
+        rect5.attr({
+            body: {
+                fill: '#2ECC71',
+                'stroke-dasharray': '10,2'
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: 'black',
+                    'font-size': 13
+                }
+            }
+        });
+
+        var rect6 = new joint.shapes.standard.Rectangle();
+        rect6.position(400, 230);
+        rect6.resize(100, 30);
+        rect6.attr({
+            body: {
+                fill: '#F39C12',
+                rx: 20,
+                ry: 20,
+                'stroke-dasharray': '1,1'
+            },
+            label: {
+                text: 'World!',
+                style: {
+                    fill: 'gray',
+                    'font-size': 18,
+                    'font-weight': 'bold',
+                    'font-variant': 'small-caps',
+                    'text-shadow': '1px 1px 1px black'
+                }
+            }
+        });
+
+        var link3 = new joint.shapes.standard.Link();
+        link3.source({ id: rect5.id });
+        link3.target({ id: rect6.id });
+
+        graph2.addCells([rect, rect2, link, rect3, rect4, link2, rect5, rect6, link3]);
+
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <p>Working with links is similar to working with elements:</p>
+
+            <ul>
+                <li>First, a link is created by calling its constructor.</li>
+                <li>Then, different methods are called on the link to set its properties (source &amp; target, vertices,
+                    labels, attributes...).</li>
+            </ul>
+
+            <p>In our case, the three links are instances of
+                <a href="/docs/jointjs#shapes.standard.Link" target="_blank"><code>joint.shapes.standard.Link</code></a>.
+                The <a href="/docs/jointjs#shapes.standard.intro" target="_blank">standard shape library</a>
+                contains several other ready-made link definitions (e.g. DoubleLink and ShadowLink) that can
+                be used in your document.
+                Moreover, <a href="custom-links">advanced users may create their own link definitions instead</a>, by
+                extending the basic
+                <a href="/docs/jointjs#dia.Link" target="_blank"><code>joint.dia.Link</code></a> class.</p>
+
+            <p>Our demo showcases the two required <a href="/docs/jointjs#dia.Link" target="_blank">Link
+                methods</a>:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Link.prototype.source" target="_blank"><code>link.source()</code></a>
+                    - sets the source of the link. This can either be an object with an <code>id</code> attribute (as in
+                    our examples), or an object with <code>x</code> and <code>y</code> coordinates.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.target" target="_blank"><code>link.target()</code></a>
+                    - sets the target of the link. Same as above.</li>
+            </ul>
+
+            <p>Important optional method include:</p>
+
+            <ul>
+                <li>link.vertex()</li>
+                <li>link.label()</li>
+                <li>link.clone()</li>
+                <li>router: { name: 'orthogonal' }</li>
+                <li>connector: { name: 'rounded' }</li>
+            </ul>
+
+            <p>The most important method to mention, though, is
+                <a href="/docs/jointjs#dia.Paper.prototype.attr" target="_blank"><code>element.attr()</code></a>.
+                It allows the user to set the element's SVG attributes programmatically, without use of CSS.
+                (CSS may still be used on top of the styling defined here, and it will have precedence over the SVG
+                attributes.)
+                If you are completely new to SVG, you may want to have a look at, for example, the
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes" target="_blank">Fills
+                and Strokes tutorial on MDN</a>.</p>
+
+            <p>The <code>element.attr()</code> method can be called in two ways:</p>
+
+            <ul>
+                <li>With one object as argument (as called on <code>rect</code>):
+                    <ul>
+                        <li>The keys of the object are selectors that correspond to fields of the
+                            <a href="/docs/jointjs#dia.Cell.markup" target="_blank">markup attribute</a> of the element
+                            definition.
+                            These selectors identify the individual SVG elements to which the provided attributes should
+                            be applied.
+                            We can see two selectors defined on the
+                            <a href="/docs/jointjs#shapes.standard.Rectangle" target="_blank"><code>Rectangle</code></a>
+                            shape: <code>body</code> (the <code>&lt;rect&gt;</code> itself), and
+                            <code>label</code> (the <code>&lt;text&gt;</code> inside the shape).</li>
+                        <li>The values associated with those keys are objects that specify the attributes to pass to
+                            the corresponding selectors.
+                            In our example, the <code>body</code> is assigned a <code>fill</code> color, while the label
+                            has its <code>text</code> set to <code>'Hello'</code> and its styling specified.
+                            All SVG attributes are accepted; in addition, an extensive set of non-standard
+                            <a href="/docs/jointjs#dia.attributes" target="_blank">special JointJS attributes</a> is recognized that,
+                            for example, makes it easy to cross-reference individual SVG elements of the shape.
+                            That way, the user could specify the dimensions of the <code>label</code> of the
+                            <code>Rectangle</code> relatively to the dimensions of the shape <code>body</code>.
+                            <a href="special-attributes.html">Special attributes are discussed in detail later in the
+                            tutorial.</a>
+                            <a href="custom-attributes.html">Advanced users may even specify their own custom
+                            attributes.</a></li>
+                    </ul>
+                </li>
+                <li>With two arguments. This syntax allows setting the value of an individual element attribute (as
+                    called on <code>rect2</code>):
+                    <ul>
+                        <li>The first argument is the path to the attribute.
+                            In our example, it specifies the <code>text</code> attribute of the <code>label</code>
+                            selector.</li>
+                        <li>The second argument is the value to be assigned to that attribute; in our case,
+                            <code>'World!'</code></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <p>Let us apply this information by changing the look of our elements:</p>
+
+            <div class="paper" id="paper-links"></div>
+
+            <p>The full code to produce these shapes looks like this:</p>
+
+            <pre class="line-numbers" data-line="33-46,48-67,73-91,93-108,114-129,131-151" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- content --&gt;
+    &lt;div id="myholder"&gt;&lt;/div&gt;
+
+    &lt;!-- dependencies --&gt;
+    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/lodash/index.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/backbone/backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
+
+    &lt;!-- code --&gt;
+    &lt;script type="text/javascript"&gt;
+
+        var graph = new joint.dia.Graph;
+
+        var paper = new joint.dia.Paper({
+            el: document.getElementById('myholder'),
+            model: graph,
+            width: 600,
+            height: 300, // height had to be increased
+            gridSize: 10,
+            drawGrid: true,
+            background: {
+                color: 'rgba(0, 255, 0, 0.3)'
+            }
+        });
+
+        var rect = new joint.shapes.standard.Rectangle();
+        rect.position(100, 30);
+        rect.resize(100, 30);
+        rect.attr({
+            body: {
+                fill: 'blue'
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: 'white'
+                }
+            }
+        });
+
+        var rect2 = new joint.shapes.standard.Rectangle();
+        rect2.position(400, 30);
+        rect2.resize(100, 30);
+        rect2.attr({
+            body: {
+                fill: '#2C3E50',
+                rx: 5,
+                ry: 5,
+                'stroke-width': 2
+            },
+            label: {
+                text: 'World!',
+                style: {
+                    fill: '#3498DB',
+                    'font-size': 18,
+                    'font-weight': 'bold',
+                    'font-variant': 'small-caps'
+                }
+            }
+        });
+
+        var link = new joint.shapes.standard.Link();
+        link.source({ id: rect.id });
+        link.target({ id: rect2.id });
+
+        var rect3 = new joint.shapes.standard.Rectangle();
+        rect3.position(100, 130);
+        rect3.resize(100, 30);
+        rect3.attr({
+            body: {
+                fill: '#E74C3C',
+                rx: 20,
+                ry: 20,
+                'stroke-width': 0
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: '#ECF0F1',
+                    'font-size': 11,
+                    'font-variant': 'small-caps'
+                }
+            }
+        });
+
+        var rect4 = new joint.shapes.standard.Rectangle();
+        rect4.position(400, 130);
+        rect4.resize(100, 30);
+        rect4.attr({
+            body: {
+                fill: '#8E44AD',
+                'stroke-width': 0
+            },
+            label: {
+                text: 'World!',
+                style: {
+                    fill: 'white',
+                    'font-size': 13
+                }
+            }
+        });
+
+        var link2 = new joint.shapes.standard.Link();
+        link2.source({ id: rect3.id });
+        link2.target({ id: rect4.id });
+
+        var rect5 = new joint.shapes.standard.Rectangle();
+        rect5.position(100, 230);
+        rect5.resize(100, 30);
+        rect5.attr({
+            body: {
+                fill: '#2ECC71',
+                'stroke-dasharray': '10,2'
+            },
+            label: {
+                text: 'Hello',
+                style: {
+                    fill: 'black',
+                    'font-size': 13
+                }
+            }
+        });
+
+        var rect6 = new joint.shapes.standard.Rectangle();
+        rect6.position(400, 230);
+        rect6.resize(100, 30);
+        rect6.attr({
+            body: {
+                fill: '#F39C12',
+                rx: 20,
+                ry: 20,
+                'stroke-dasharray': '1,1'
+            },
+            label: {
+                text: 'World!',
+                style: {
+                    fill: 'gray',
+                    'font-size': 18,
+                    'font-weight': 'bold',
+                    'font-variant': 'small-caps',
+                    'text-shadow': '1px 1px 1px black'
+                }
+            }
+        });
+
+        var link3 = new joint.shapes.standard.Link();
+        link3.source({ id: rect5.id });
+        link3.target({ id: rect6.id });
+
+        graph2.addCells([rect, rect2, link, rect3, rect4, link2, rect5, rect6, link3]);
+
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <p>The <a href="filters-gradients">Filters and Gradients</a> tutorial illustrates some more advanced methods
+                of SVG styling when applied to elements.</p>
+
+            <p>We now know how to change the appearance of our elements.</p>
+
+            <p><a href="links.html">The next step is to learn how to work with links.</a></p>
+
+
+
+
 
             <h2>Link styling</h2>
 
             <p>Now when we know how to style elements, let's have a look on how to style links. You might be surprised but
                 the way links are styled is exactly the same as with styling elements. Again, we need to know the SVG
                 structure of links and then use either external CSS or
-                the <a href="/docs/jointjs/v1.0/joint.html#dia.Link.prototype.attr" target="_top">attr</a> method of <code>joint.dia.Link</code> (which is actually the
+                the <a href="/docs/jointjs/v1.0/joint.html#dia.Link.prototype.attr" target="_blank">attr</a> method of <code>joint.dia.Link</code> (which is actually the
                 same as of <code>joint.dia.Element</code>).
                 The SVG structure of links is the following:
             <pre><code>&lt;path class="connection"/&gt;
@@ -76,6 +522,11 @@
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.js"></script>
+
+        <script src="js/hello-world.js"></script>
+        <script src="js/elements.js"></script>
         <script src="js/links.js"></script>
     </body>
 </html>
