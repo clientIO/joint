@@ -383,8 +383,9 @@ export namespace dia {
             target?: Point | { id: string, selector?: string, port?: string };
             labels?: Label[];
             vertices?: Point[];
-            smooth?: boolean;
+            manhattan?: boolean;
             router?: routers.RouterJSON;
+            smooth?: boolean;
             connector?: connectors.ConnectorJSON;
         }
 
@@ -439,11 +440,17 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): Point | { id: string, selector?: string, port?: string } | null | undefined;
-        source(source: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        source(): g.PlainPoint | { id: string, selector?: string, port?: string } | null | undefined;
+        source(source: g.PlainPoint | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        target(): Point | { id: string, selector?: string, port?: string } | null | undefined;
-        target(target: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        target(): g.PlainPoint | { id: string, selector?: string, port?: string } | null | undefined;
+        target(target: g.PlainPoint | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+
+        router(): { name: string, args?: { [key: string]: any } } | null | undefined;
+        router(router: { name: string, args?: { [key: string]: any } } | null, opt?: Cell.Options): this;
+
+        connector(): { name: string, args?: { [key: string]: any } } | null | undefined;
+        connector(connector: { name: string, args?: { [key: string]: any } } | null, opt?: Cell.Options): this;
 
         label(index?: number): Link.Label;
         label(index: number, label: Link.Label, opt?: Cell.Options): this;

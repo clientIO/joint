@@ -26,7 +26,7 @@ var source = new joint.shapes.basic.Rect({
             text: 'Source',
             fill: '#fefefe',
             'font-size': 18,
-            'font-weight': 'bold', 
+            'font-weight': 'bold',
             'font-variant': 'small-caps'
         }
     }
@@ -51,7 +51,7 @@ var link = new joint.dia.Link({
     }
 });
 
-var obstacle = source.clone().translate(300, 100).attr({    
+var obstacle = source.clone().translate(300, 100).attr({
     text: {
         text: 'Obstacle',
         fill: '#2e2e2e'
