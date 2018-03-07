@@ -1,18 +1,8 @@
-var graph = new joint.dia.Graph;
+<p>New connectors can be defined in the <code>joint.connectors</code> namespace (e.g. <code>joint.connectors.myConnector</code>) or passed directly as a function to the <code>connector</code> property of a link. In either case, the connector function is expected to have the form <code>function(sourcePoint, targetPoint, vertices, args, linkView)</code> and must return a string representing the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">SVG path data</a> that will be used to render the link.</p>
 
-var paper = new joint.dia.Paper({
-    el: $('#paper'),
-    width: 1000,
-    height: 600,
-    gridSize: 10,
-    model: graph
-});
+<p>Example of a connector defined in the <code>joint.connectors</code> namespace:</p>
 
-// APPROACH 1:
-// define the connector inside joint.connectors
-// allows passing custom arguments
-// can be serialized with `toJSON()`
-joint.connectors.wobble = function(sourcePoint, targetPoint, vertices, args, linkView) {
+<pre><code>joint.connector.wobble = function(sourcePoint, targetPoint, vertices, args, linkView) {
 
     var SPREAD = args.spread || 20;
 
@@ -41,35 +31,26 @@ joint.connectors.wobble = function(sourcePoint, targetPoint, vertices, args, lin
         prev = next;
     }
 
-    return path.serialize();
+    return path;
 }
-
-var source = new joint.shapes.standard.Rectangle();
-source.position(50, 50);
-source.resize(140, 70);
-source.attr('label/text', 'Source');
-
-var target = source.clone();
-target.translate(700, 400)
-target.attr('label/text', 'Target');
 
 var link = new joint.shapes.standard.Link();
 link.source({ id: source.id });
 link.target({ id: target.id });
 
-// APPROACH 1:
-// pass by name under which it was saved in joint.connectors namespace
 link.connector('wobble', {
     spread: 10
-});
+});</code></pre>
 
-// APPROACH 2:
-// pass a function
-// does not enable passing custom arguments
-// cannot be serialized with `toJSON()`
-/*link.connector(function(sourcePoint, targetPoint, vertices, args, linkView) {
+<p>An example of a connector passed as a function is provided below. Notice that this approach does not enable passing custom <code>args</code> nor can it be serialized with the <code>graph.toJSON()</code> <a href="#dia.Graph.prototype.toJSON">function</a>.</p>
 
-    var SPREAD = args.spread || 20;
+<pre><code>var link = new joint.shapes.standard.Link();
+link.source({ id: source.id });
+link.target({ id: target.id });
+
+link.connector(function(sourcePoint, targetPoint, vertices, args, linkView) {
+
+    var SPREAD = 20;
 
     var points = vertices.concat(targetPoint)
     var prev = sourcePoint;
@@ -96,7 +77,5 @@ link.connector('wobble', {
         prev = next;
     }
 
-    return path.serialize();
-});*/
-
-graph.addCells([source, target, link]);
+    return path;
+});</code></pre>

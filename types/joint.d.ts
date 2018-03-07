@@ -378,15 +378,47 @@ export namespace dia {
 
     export namespace Link {
 
+        interface CustomRouter {
+            (
+                vertices: Point[],
+                args?: { [key: string]: any },
+                linkView?: LinkView
+            ): Point[];
+        }
+
+        interface CustomRouterJSON {
+            name: string;
+            args?: { [key: string]: any };
+        }
+
+        type Router = routers.Router | CustomRouter | routers.RouterJSON | CustomRouterJSON;
+
+        interface CustomConnector {
+            (
+                sourcePoint: Point,
+                targetPoint: Point,
+                routePoints: Point[],
+                args?: { [key: string]: any },
+                linkView?: LinkView
+            ): string | g.Path;
+        }
+
+        interface CustomConnectorJSON {
+            name: string;
+            args?: { [key: string]: any };
+        }
+
+        type Connector = connectors.Connector | CustomConnector | connectors.ConnectorJSON | CustomConnectorJSON;
+
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
             source?: Point | { id: string, selector?: string, port?: string };
             target?: Point | { id: string, selector?: string, port?: string };
             labels?: Label[];
             vertices?: Point[];
             manhattan?: boolean;
-            router?: routers.RouterJSON;
+            router?: routers.RouterJSON | routers.Router;
             smooth?: boolean;
-            connector?: connectors.ConnectorJSON;
+            connector?: connectors.ConnectorJSON | connectors.Connector;
         }
 
         interface LinkSelectors extends Cell.Selectors {
@@ -440,17 +472,19 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): g.PlainPoint | { id: string, selector?: string, port?: string } | null | undefined;
-        source(source: g.PlainPoint | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        source(): Point | { id: string, selector?: string, port?: string } | null | undefined;
+        source(source: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        target(): g.PlainPoint | { id: string, selector?: string, port?: string } | null | undefined;
-        target(target: g.PlainPoint | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        target(): Point | { id: string, selector?: string, port?: string } | null | undefined;
+        target(target: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        router(): { name: string, args?: { [key: string]: any } } | null | undefined;
-        router(router: { name: string, args?: { [key: string]: any } } | null, opt?: Cell.Options): this;
+        router(): Link.Router | null | undefined;
+        router(router: Link.Router | null, opt?: Cell.Options): this;
+        router(name: routers.RouterType | string, args?: routers.RouterArguments | { [key: string]: any }, opt?: Cell.Options): this;
 
-        connector(): { name: string, args?: { [key: string]: any } } | null | undefined;
-        connector(connector: { name: string, args?: { [key: string]: any } } | null, opt?: Cell.Options): this;
+        connector(): Link.Connector | null | undefined;
+        connector(connector: Link.Connector | null, opt?: Cell.Options): this;
+        connector(name: connectors.ConnectorType | string, args?: connectors.ConnectorArguments | { [key: string]: any }, opt?: Cell.Options): this;
 
         label(index?: number): Link.Label;
         label(index: number, label: Link.Label, opt?: Cell.Options): this;
@@ -2145,22 +2179,26 @@ export namespace routers {
 
     type RouterType = string & keyof RouterArgumentsMap;
 
+    type GenericRouterArguments<K extends RouterType> = RouterArgumentsMap[K];
+
     interface GenericRouter<K extends RouterType> {
         (
-            points: dia.Point[],
-            args?: RouterArgumentsMap[K],
+            vertices: dia.Point[],
+            args?: GenericRouterArguments<K>,
             linkView?: dia.LinkView
         ): dia.Point[];
     }
 
     interface GenericRouterJSON<K extends RouterType> {
         name: K;
-        args?: RouterArgumentsMap[K];
+        args?: GenericRouterArguments<K>;
     }
 
     type Router = GenericRouter<RouterType>;
 
     type RouterJSON = GenericRouterJSON<RouterType>;
+
+    type RouterArguments = GenericRouterArguments<RouterType>;
 
     export var manhattan: GenericRouter<'manhattan'>;
     export var metro: GenericRouter<'metro'>;
@@ -2199,24 +2237,28 @@ export namespace connectors {
 
     type ConnectorType = string & keyof ConnectorArgumentsMap;
 
+    type GenericConnectorArguments<K extends ConnectorType> = ConnectorArgumentsMap[K];
+
     interface GenericConnector<K extends ConnectorType> {
         (
             sourcePoint: dia.Point,
             targetPoint: dia.Point,
-            vertices: dia.Point[],
-            args?: ConnectorArgumentsMap[K],
+            routePoints: dia.Point[],
+            args?: GenericConnectorArguments<K>,
             linkView?: dia.LinkView
-        ): string;
+        ): string | g.Path;
     }
 
     interface GenericConnectorJSON<K extends ConnectorType> {
         name: K;
-        args?: ConnectorArgumentsMap[K];
+        args?: GenericConnectorArguments<K>;
     }
 
     type Connector = GenericConnector<ConnectorType>;
 
     type ConnectorJSON = GenericConnectorJSON<ConnectorType>;
+
+    type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
 
     export var normal: GenericConnector<'normal'>;
     export var rounded: GenericConnector<'rounded'>;

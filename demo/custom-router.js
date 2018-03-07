@@ -11,6 +11,7 @@ var paper = new joint.dia.Paper({
 // APPROACH 1:
 // define the router inside joint.routers
 // allows passing custom arguments
+// can be serialized with `toJSON()`
 joint.routers.randomWalk = function (vertices, args, linkView) {
 
     var NUM_BOUNCES = args.numBounces || 20;
@@ -44,16 +45,14 @@ link.target({ id: target.id });
 
 // APPROACH 1:
 // pass by name under which it was saved in joint.routers namespace
-link.router({
-    name: 'randomWalk',
-    args: {
-        numBounces: 10,
-    }
+link.router('randomWalk', {
+    numBounces: 10,
 })
 
 // APPROACH 2:
-// pass a function)
+// pass a function
 // does not enable passing custom arguments
+// cannot be serialized with `toJSON()`
 /*link.router(function(vertices, args, linkView) {
 
     var NUM_BOUNCES = args.numBounces || 20;
@@ -70,6 +69,6 @@ link.router({
     }
 
     return vertices;
-}*/
+});*/
 
 graph.addCells([source, target, link]);

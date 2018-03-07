@@ -1,238 +1,30 @@
 <p>The shape of the link is determined by the <b><code>vertices</code></b>, <b><code>connector</code></b> and <b><code>router</code></b> properties.</p>
 
-<h3>Vertices</h3>
+<h4>Vertices</h4>
 
-<p>The <code>vertices</code> array contains a list of points which are the points which the link should cross. The array can be accessed with the <code>link.vertices()</code> <a href="joint.html#dia.Link.prototype.vertices">function</a> and related functions.</p>
+<p>The <code>vertices</code> array is an array of user-defined points for the link to pass through. The array can be accessed with the <code>link.vertices()</code> <a href="joint.html#dia.Link.prototype.vertices">function</a> and related functions.</p>
 
 <pre><code>link.vertices();
 link.vertices([{ x: 100, y: 120 }, { x: 150, y: 60 }]);</code></pre>
 
-<h3 id="joint.routers">Routers</h3>
+<h4>Router</h4>
 
-<p>A <code>router</code> takes an array of vertices defined on the model and transforms them to an array of points (the <b>route</b>) that the link should go through. The <code>router</code> property of a link can be accessed with the <code>link.router()</code> <a href="joint.html#dia.Link.prototype.router">function</a>.</p>
+<p>Routers take an array of link vertices and transforms them into an array of route points that the link should go through. The <code>router</code> property of a link can be accessed with the <code>link.router()</code> <a href="joint.html#dia.Link.prototype.router">function</a>. A collection of <a href="#routers">routers</a> is provided in the JointJS library as the <code>joint.routers</code> namespace. This includes <q>smart routers</q> that are able to automatically avoid obstacles (elements) in their way.</p>
 
-<p>The difference between <code>vertices</code> and the route is that the vertices are user-defined while the route is computed. The route inserts additional private vertices to complement user vertices as necessary (e.g. to make sure the path is orthogonal). These private vertices cannot be interacted with by the user and are only exposed to the link's <code>connector</code> function.</p>
-
-<p>There are five built-in routers (<code>normal</code> (default), <code>orthogonal</code>, <code>oneSide</code>, <code>manhattan</code> and <code>metro</code>). The last two are our <q>smart routers</q>; they automatically avoid obstacles (elements) in their way.</p>
-
-<p>The <code>orthogonal</code>, <code>manhattan</code> and <code>oneSide</code> routers generate routes consisting exclusively of vertical and horizontal segments. The <code>metro</code> router generates routes consisting of orthogonal and diagonal segments.</p>
-
-<h4 id="joint.routers.normal">Normal</h4>
-
-<p>The <code>normal</code> router is the default router for links and it is the simplest router. It does not have any options and it does not do anything; it returns the vertices passed to it without modification as the route to be taken.</p>
-
-<pre><code>link.router({
-    name: 'normal'
+<pre><code>link.router('manhattan', {
+    excludeEnds: ['source'],
+    excludeTypes: ['myNamespace.MyCommentElement'],
+    startDirections: ['top'],
+    endDirections: ['bottom']
 });</code></pre>
 
-<h4 id="joint.routers.orthogonal">Orthogonal</h4>
+<h4>Connector</h4>
 
-<p>The <code>orthogonal</code> router returns a route with orthogonal line segments. It generates extra route points in order to create the right angles on the way. It does not avoid obstacles. The router has one optional argument; this can be passed as the <code>router.args.elementPadding</code> property:</p>
+<p>Connectors take an array of link route points and generates SVG path commands so the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="joint.html#dia.Link.prototype.connector">function</a>. A collection of <a href="#connectors">connectors</a> is provided in the JointJS library as the <code>joint.connectors</code> namespace.</p>
 
-<table>
-    <tr>
-        <th>elementPadding</th>
-        <td><i>number</i></td>
-        <td>The minimum distance from element at which the first/last route angle may be placed. Default is <code>20</code>.</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.router({
-    name: 'orthogonal',
-    args: {
-        elementPadding: 10
-    }
-});</code></pre>
-
-<p>(<i>Deprecated</i>) For the purposes of backwards compatibility, <code>orthogonal</code> routing can also be enabled by setting the <code>manhattan</code> property to <code>true</code>. Note that the meaning of <q>manhattan</q> in JointJS has changed over time.</p>
-
-<pre><code>// deprecated
-link.set('manhattan', true);</code></pre>
-
-<h4 id="joint.routers.oneSide">OneSide</h4>
-
-<p>The <code>oneSide</code> router is a restricted version of the <code>orthogonal</code> router. Exactly three route segments are generated. The route leaves the start element in a specified direction (the <code>args.side</code> property), transitions with a single segment towards the end element, and then enters the end element from the specified direction again. Note that this router does not support link <code>vertices</code>. The router does not avoid obstacles. Two arguments are accepted, which can be passed within the <code>router.args</code> property.</p>
-
-<table>
-    <tr>
-        <th>side</th>
-        <td><i>string</i></td>
-        <td>The direction of the route. Either <code>'left'</code>, <code>'right'</code>, <code>'top'</code> or <code>'bottom'</code>. Default is <code>'bottom'.</td>
-    </tr>
-    <tr>
-        <th>padding</th>
-        <td><i>number</i></td>
-        <td>Minimal gap between a connection point and the first/last vertex. It defaults to <code>40</code>.</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.router({
-    name: 'oneSide',
-    args: {
-        side: 'top',
-        padding: 30
-    }
-});</code></pre>
-
-<h4 id="joint.routers.manhattan">Manhattan</h4>
-
-<p>The <code>manhattan</code> router is the smart version of the <code>orthogonal</code> router. It connects vertices with orthogonal line segments, inserting route points when necessary, while avoiding obstacles in its way. The router has useful options that determine how the algorithm behaves. These options can be passed as the <code>router.args</code> property:</p>
-
-<table>
-    <tr>
-        <th>step</th>
-        <td><i>number</i></td>
-        <td>Size of the imaginary grid followed by the <code>manhattan</code> pathfinding algorithm. Also the size of padding applied around start/end elements and obstacles. Lower number -> higher complexity. The <code>manhattan</code> router performs best when <code>step</code> has the same value as <code>dia.Paper.option.gridSize</code>. Default is <code>10</code>.</td>
-    </tr>
-    <tr>
-        <th>maximumLoops</th>
-        <td><i>number</i></td>
-        <td>The maximum number of iterations of the pathfinding loop. If the number of iterations exceeds this maximum, pathfinding is aborted and the fallback router (<code>orthogonal</code>) is used instead. Higher number -> higher complexity. Default is <code>2000</code>.</td>
-    </tr>
-    <tr>
-        <th>maxAllowedDirectionChange</th>
-        <td><i>number</i></td>
-        <td>Maximum change of direction of the <code>manhattan</code> route, in degrees. Default is <code>90</code>.</td>
-    </tr>
-    <tr>
-        <th>perpendicular</th>
-        <td><i>boolean</i></td>
-        <td>Should the <code>linkView.perpendicular</code> option be in effect? This causes the router not to link precisely to the anchor of the end element but rather to a point close by that is orthogonal. This creates a clean connection between the element and the first/last vertex of the route. Default is <code>true</code>.</td>
-    </tr>
-    <tr>
-        <th>excludeEnds</th>
-        <td><i>Array&lt;string&gt;</i></td>
-        <td>An array with strings <code>'source'</code> and/or <code>'target'</code> that tells the algorithm that the given end element(s) should not be considered as an obstacle. Default is <code>[]</code> (both are considered obstacles).</td>
-    </tr>
-    <tr>
-        <th>excludeTypes</th>
-        <td><i>Array&lt;string&gt;</i></td>
-        <td>An array of element types that should not be considered obstacles when calculating the route. Default is <code>['basic.Text']</code>.</td>
-    </tr>
-    <tr>
-        <th>startDirection</th>
-        <td><i>Array&lt;string&gt;</i></td>
-        <td>An array that specifies the possible starting directions from an element. Change this in situations where you need the link to, for example, always start at the bottom of the source element (then, the value would be <code>['bottom']</code>). Default is <code>['left', 'right', 'top', 'bottom']</code> (all directions allowed).</td>
-    </tr>
-    <tr>
-        <th>endDirection</th>
-        <td><i>Array&lt;string&gt;</i></td>
-        <td>An array that specifies the possible ending directions to an element. Change this in situations where you need the link to, for example, always end at the bottom of the source element (then, the value would be <code>['bottom']</code>). Default is <code>['left', 'right', 'top', 'bottom']</code> (all directions allowed).</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.router({
-    name: 'manhattan',
-    args: {
-        excludeEnds: ['source'],
-        excludeTypes: ['myNamespace.MyCommentElement'],
-        startDirections: ['top'],
-        endDirections: ['bottom']
-    }
-});</code></pre>
-
-<h4 id="joint.routers.metro">Metro</h4>
-
-<p>The <code>metro</code> router is a modification of the <code>manhattan</code> router that produces an octolinear route consisting of orthogonal and diagonal line segments (i.e. akin to the London Underground map design). It also avoids obstacles, and accepts the same <code>router.args</code> as <code>manhattan</code>, with a few modifications:</p>
-
-<table>
-    <tr>
-        <th>maximumLoops</th>
-        <td><i>number</i></td>
-        <td>Does not use the <code>orthogonal</code> router as fallback if path cannot to be found in the given number of iterations. Instead, a custom octolinear fallback route is used that does not avoid obstacles.</td>
-    </tr>
-    <tr>
-        <th>maxAllowedDirectionChange</th>
-        <td><i>number</i></td>
-        <td>Default changes to <code>45</code>.</td>
-    </tr>
-    <tr>
-        <th>startDirection</th>
-        <td><i>Array&lt;string&gt;</i></td>
-        <td>Same as <code>manhattan</code> (i.e. only the four orthogonal directions are accepted as start directions).</td>
-    </tr>
-    <tr>
-        <th>endDirection</th>
-        <td><i>Array&lt;string&gt;</i></td>
-        <td>Same as <code>manhattan</code> (i.e. only the four orthogonal directions are accepted as end directions).</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.router({
-    name: 'metro',
-    args: {
-        excludeEnds: ['source'],
-        excludeTypes: ['myNamespace.MyCommentElement'],
-        startDirections: ['top'],
-        endDirections: ['bottom']
-    }
-});</code></pre>
-
-<h4 id="joint.routers.custom">Custom routers</h4>
-
-<p>New routers can be defined in the <code>joint.routers</code> namespace (e.g. <code>joint.routers.myRouter</code>; see below) or passed directly as a function to the <code>router</code> property of a link (<a href="#joint.connectors.custom">see the corresponding custom connector example</a>). The router function is expected to have the form <code>function(vertices, args, linkView)</code> and must return an array of vertices that the link should go through (not including the start/end elements; these are added later by the connector).</p>
-
-<p>Example of a router defined in the <code>joint.routers</code> namespace:</p>
-
-<pre><code>joint.routers.randomWalk = function (vertices, args, linkView) {
-
-    var NUM_BOUNCES = args.numBounces || 20;
-
-    vertices = joint.util.toArray(vertices).map(g.Point);
-
-    for (var i = 0; i < NUM_BOUNCES; i++) {
-
-        var sourceCorner = linkView.sourceBBox.center();
-        var targetCorner = linkView.targetBBox.center();
-
-        var randomPoint = g.Point.random(sourceCorner.x, targetCorner.x, sourceCorner.y, targetCorner.y);
-        vertices.push(randomPoint)
-    }
-
-    return vertices;
-}
-
-var link = new joint.shapes.standard.Link();
-link.source({ id: source.id });
-link.target({ id: target.id });
-
-// notice that this approach allows passing custom `args`
-link.router({
-    name: 'randomWalk',
-    args: {
-        numBounces: 10
-    }
-});</code></pre>
-
-<h3 id="joint.connectors">Connectors</h3>
-
-<p>A <code>connector</code> takes points returned by a router and generates SVG path commands so the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="joint.html#dia.Link.prototype.connector">function</a>.</p>
-
-<p>There are four built-in connectors in JointJS (<code>normal</code> (default), <code>rounded</code>, <code>smooth</code>, and <code>jumpover</code>). All four of these connectors accept the following optional argument, in addition to their own arguments:</p>
-
-<table>
-    <tr>
-        <th>raw</th>
-        <td><i>boolean</i></td>
-        <td>Should the router return the connection path as a <code>g.Path</code> rather than as a string? Default is <code>false</code>.</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.connector({
-    name: 'normal',
-    args: {
-        raw: true
-    }
+<pre><code>link.connector('rounded', {
+    raw: true,
+    radius: 20
 });</code></pre>
 
 <p>Note that the modular architecture of JointJS allows mixing-and-matching connectors with routers as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
@@ -240,122 +32,11 @@ link.router({
 <pre><code>var link = new joint.shapes.standard.Link();
 link.source({ id: rect.id });
 link.target({ id: rect2.id });
-link.router({ name: manhattan });
-link.connector({ name: jumpover });</code></pre>
+link.router('manhattan');
+link.connector('jumpover');</code></pre>
 
-<h4 id="joint.connectors.normal">Normal</h4>
+<h4>Styling</h4>
 
-<p>The <code>normal</code> connector is the defaults connector for links and it is the simplest connector. It simply connects provided route points with straight-line segments.</p>
+<p>Styling of the link is contained in the <b><code>attrs</code></b> property which has exactly the same structure as the <b><code>attrs</code></b> property of elements. Please refer to the <a href="#dia.Element">joint.dia.Element</a> section and <a href="#dia.Link">joint.dia.Link</a> sections of this page for more information on this.</p>
 
-<pre><code>link.connector({
-    name: 'normal'
-});</code></pre>
-
-<h4 id="joint.connectors.rounded">Rounded</h4>
-
-<p>The <code>rounded</code> connector connects provided route points with straight lines as well, but it smooths all corners on the route. It accepts one additional argument, which can be passed within the <code>connector.args</code> property:</p>
-
-<table>
-    <tr>
-        <th>radius</th>
-        <td><i>boolean</i></td>
-        <td>The curve radius of the rounded corners. Default is <code>10</code>.</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.connector({
-    name: 'rounded',
-    args: {
-        radius: 20
-    }
-});</code></pre>
-
-<h4 id="joint.connectors.smooth">Smooth</h4>
-
-<p>The <code>smooth</code> connector interpolates route points using a cubic bezier curve.</p>
-
-<pre><code>link.connector({
-    name: 'smooth'
-});</code></pre>
-
-<p>(<i>Deprecated</i>) For the purposes of backwards compatibility, the <code>smooth</code> connector may also be enabled by setting the <code>smooth</code> property to <code>true</code>.</p>
-
-<pre><code>// deprecated
-link.set('smooth', true)</code></pre>
-
-<h4 id="joint.connectors.jumpover">Jumpover</h4>
-
-<p>The <code>jumpover</code> connector draws straight lines with small arcs in place of link-link intersections. (For the time being, it cannot detect intersections of <code>smooth</code> router links). It accepts the following additional arguments, which can be passed as the <code>connector.args</code> property:</p>
-
-<table>
-    <tr>
-        <th>size</th>
-        <td><i>number</i></td>
-        <td>The size of the jump (the diameter of the arc, or the length of the empty spot on the line). Defaults to <code>5</code>.</td>
-    </tr>
-    <tr>
-        <th>jump</th>
-        <td><i>string</i></td>
-        <td>The style of the jump. Either <code>'arc'</code> (using an Arcto SVG path command), <code>'cubic'</code> (using a Curveto path command as a normalized approximation to Arcto), or <code>'gap'</code> (leaving a blank space). Defaults to <code>'arc'</code>.</td>
-    </tr>
-</table>
-
-<p>Example:</p>
-
-<pre><code>link.connector({
-    name: 'jumpover',
-    args: {
-        type: 'gap'
-    }
-});</code></pre>
-
-<h4 id="joint.connectors.custom">Custom connectors</h4>
-
-<p>New connectors can be defined in the <code>joint.connectors</code> namespace (e.g. <code>joint.connectors.myConnector</code>; <a href="#joint.routers.custom">see the corresponding custom router example</a>) or passed directly as a function to the <code>connector</code> property of a link (see below). In either case, the connector function is expected to have the form <code>function(sourcePoint, targetPoint, vertices, args, linkView)</code> and must return a string representing the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">SVG path data</a> that will be used to render the link.</p>
-
-<p>Example of a connector passed as a function:</p>
-
-<pre><code>var link = new joint.shapes.standard.Link();
-link.source({ id: source.id });
-link.target({ id: target.id });
-
-// notice that this approach does not enable passing custom `args`
-link.connector(function(sourcePoint, targetPoint, vertices, args, linkView) {
-
-    var SPREAD = 20;
-
-    var points = vertices.concat(targetPoint)
-    var prev = sourcePoint;
-    var path = new g.Path(g.Path.createSegment('M', prev));
-
-    var n = points.length;
-    for (var i = 0; i < n; i++) {
-
-        var next = points[i];
-        var distance = prev.distance(next);
-
-        var d = SPREAD;
-        while (d < distance) {
-            var current = prev.clone().move(next, -d);
-            current.offset(
-                Math.floor(7 * Math.random()) - 3,
-                Math.floor(7 * Math.random()) - 3
-            );
-            path.appendSegment(g.Path.createSegment('L', current));
-            d += SPREAD;
-        }
-
-        path.appendSegment(g.Path.createSegment('L', next));
-        prev = next;
-    }
-
-    return path.serialize();
-});</code></pre>
-
-<h3>Styling</h3>
-
-<p>Styling of the link is contained in the <b><code>attrs</code></b> property which has exactly the same structure as the <b><code>attrs</code></b> property of elements. Please refer to the <a href="#dia.Element">joint.dia.Element</a> section and  <a href="#dia.Link">joint.dia.Link</a> sections of this page for more information on this.</p>
-
-<p>Links also have the <b><code>z</code></b> property which is the z-level of the link. <code>z</code> property has exactly the same meaning as the <code>z</code> property of elements.</p>
+<p>Links also have the <b><code>z</code></b> property which specifies the z-level of the link. It has exactly the same meaning as the <code>z</code> property of elements.</p>

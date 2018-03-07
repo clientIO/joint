@@ -1,0 +1,53 @@
+<p>New routers can be defined in the <code>joint.routers</code> namespace (e.g. <code>joint.routers.myRouter</code>) or passed directly as a function to the <code>router</code> property of a link. In either case, the router function is expected to have the form <code>function(vertices, args, linkView)</code> and must return an array of route points that the link should go through (not including the start/end elements; these are added later by the connector).</p>
+
+<p>Example of a router defined in the <code>joint.routers</code> namespace:</p>
+
+<pre><code>joint.routers.randomWalk = function(vertices, args, linkView) {
+
+    var NUM_BOUNCES = args.numBounces || 20;
+
+    vertices = joint.util.toArray(vertices).map(g.Point);
+
+    for (var i = 0; i < NUM_BOUNCES; i++) {
+
+        var sourceCorner = linkView.sourceBBox.center();
+        var targetCorner = linkView.targetBBox.center();
+
+        var randomPoint = g.Point.random(sourceCorner.x, targetCorner.x, sourceCorner.y, targetCorner.y);
+        vertices.push(randomPoint)
+    }
+
+    return vertices;
+}
+
+var link = new joint.shapes.standard.Link();
+link.source({ id: source.id });
+link.target({ id: target.id });
+
+link.router('randomWalk', {
+    numBounces: 10
+});</code></pre>
+
+<p>An example of a router passed as a function is provided below. Notice that this approach does not enable passing custom <code>args</code> nor can it be serialized with the <code>graph.toJSON()</code> <a href="#dia.Graph.prototype.toJSON">function</a>.</p>
+
+<pre><code>var link = new joint.shapes.standard.Link();
+link.source({ id: source.id });
+link.target({ id: target.id });
+
+link.router(function(sourcePoint, targetPoint, vertices, args, linkView) {
+
+    var NUM_BOUNCES = 20;
+
+    vertices = joint.util.toArray(vertices).map(g.Point);
+
+    for (var i = 0; i < NUM_BOUNCES; i++) {
+
+        var sourceCorner = linkView.sourceBBox.center();
+        var targetCorner = linkView.targetBBox.center();
+
+        var randomPoint = g.Point.random(sourceCorner.x, targetCorner.x, sourceCorner.y, targetCorner.y);
+        vertices.push(randomPoint)
+    }
+
+    return vertices;
+});</code></pre>

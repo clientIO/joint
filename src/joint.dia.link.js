@@ -137,38 +137,46 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('target', target, opt);
     },
 
-    router: function(router, opt) {
+    router: function(name, args, opt) {
 
         // getter
-        if (router === undefined) {
+        if (name === undefined) {
             router = this.get('router');
             if (!router) {
                 if (this.get('manhattan')) router = { name: 'orthogonal' }; // backwards compatibility
                 return router;
             }
             if (typeof router === 'object') return joint.util.assign({}, router);
-            return router;
+            return router; // e.g. a function
         }
 
         // setter
-        return this.set('router', router, opt);
+        var isRouterProvided = ((typeof name === 'object') || (typeof name === 'function'));
+        var localRouter = isRouterProvided ? name : { name: name, args: args };
+        var localOpt = isRouterProvided ? args : opt;
+
+        return this.set('router', localRouter, localOpt);
     },
 
-    connector: function(connector, opt) {
+    connector: function(name, args, opt) {
 
         // getter
-        if (connector === undefined) {
+        if (name === undefined) {
             connector = this.get('connector');
             if (!connector) {
                 if (this.get('smooth')) connector = { name: 'smooth' }; // backwards compatibility
                 return connector;
             }
             if (typeof connector === 'object') return joint.util.assign({}, connector);
-            return connector;
+            return connector; // e.g. a function
         }
 
         // setter
-        return this.set('connector', connector, opt);
+        var isConnectorProvided = ((typeof name === 'object' || typeof name === 'function'));
+        var localConnector = isConnectorProvided ? name : { name: name, args: args };
+        var localOpt = isObjectProvided ? args : opt;
+
+        return this.set('connector', localConnector, localOpt);
     },
 
     // Labels API

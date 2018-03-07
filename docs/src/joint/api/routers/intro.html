@@ -1,0 +1,15 @@
+<p>Routers take an array of link vertices and transforms them into an array of route points that the link should go through. The <code>router</code> property of a link can be accessed with the <code>link.router()</code> <a href="joint.html#dia.Link.prototype.router">function</a>.</p>
+
+<p>The difference between <code>vertices</code> and the route is that the vertices are user-defined while the route is computed. The route inserts additional private vertices to complement user vertices as necessary (e.g. to make sure the route is orthogonal).</p>
+
+<p>There are five built-in routers (<code>normal</code> (default), <code>orthogonal</code>, <code>oneSide</code>, <code>manhattan</code> and <code>metro</code>). The last two are our <q>smart routers</q>; they automatically avoid obstacles (elements) in their way.</p>
+
+<p>The <code>orthogonal</code>, <code>manhattan</code> and <code>oneSide</code> routers generate routes consisting exclusively of vertical and horizontal segments. The <code>metro</code> router generates routes consisting of orthogonal and diagonal segments.</p>
+
+<p>Note that the modular architecture of JointJS allows mixing-and-matching routers with <a href="joint.html#dia.connectors">connectors</a> as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
+
+<pre><code>var link = new joint.shapes.standard.Link();
+link.source({ id: rect.id });
+link.target({ id: rect2.id });
+link.router('manhattan');
+link.connector('jumpover');</code></pre>
