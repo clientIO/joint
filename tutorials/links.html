@@ -76,7 +76,7 @@
             el: document.getElementById('myholder'),
             model: graph,
             width: 600,
-            height: 300,
+            height: 300, // height had to be increased
             gridSize: 10,
             drawGrid: true,
             background: {
@@ -107,15 +107,15 @@
                 fill: '#2C3E50',
                 rx: 5,
                 ry: 5,
-                'stroke-width': 2
+                strokeWidth: 2
             },
             label: {
                 text: 'World!',
                 style: {
                     fill: '#3498DB',
-                    'font-size': 18,
-                    'font-weight': 'bold',
-                    'font-variant': 'small-caps'
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    fontVariant: 'small-caps'
                 }
             }
         });
@@ -132,14 +132,14 @@
                 fill: '#E74C3C',
                 rx: 20,
                 ry: 20,
-                'stroke-width': 0
+                strokeWidth: 0
             },
             label: {
                 text: 'Hello',
                 style: {
                     fill: '#ECF0F1',
-                    'font-size': 11,
-                    'font-variant': 'small-caps'
+                    fontSize: 11,
+                    fontVariant: 'small-caps'
                 }
             }
         });
@@ -150,13 +150,13 @@
         rect4.attr({
             body: {
                 fill: '#8E44AD',
-                'stroke-width': 0
+                strokeWidth: 0
             },
             label: {
                 text: 'World!',
                 style: {
                     fill: 'white',
-                    'font-size': 13
+                    fontSize: 13
                 }
             }
         });
@@ -171,13 +171,13 @@
         rect5.attr({
             body: {
                 fill: '#2ECC71',
-                'stroke-dasharray': '10,2'
+                strokeDasharray: '10,2'
             },
             label: {
                 text: 'Hello',
                 style: {
                     fill: 'black',
-                    'font-size': 13
+                    fontSize: 13
                 }
             }
         });
@@ -190,16 +190,16 @@
                 fill: '#F39C12',
                 rx: 20,
                 ry: 20,
-                'stroke-dasharray': '1,1'
+                strokeDasharray: '1,1'
             },
             label: {
                 text: 'World!',
                 style: {
                     fill: 'gray',
-                    'font-size': 18,
-                    'font-weight': 'bold',
-                    'font-variant': 'small-caps',
-                    'text-shadow': '1px 1px 1px black'
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    fontVariant: 'small-caps',
+                    textShadow: '1px 1px 1px black'
                 }
             }
         });
@@ -219,7 +219,7 @@
             <ul>
                 <li>First, a link is created by calling its constructor.</li>
                 <li>Then, different methods are called on the link to set its properties (source &amp; target, vertices,
-                    labels, attributes...).</li>
+                    router &amp; connector, labels, attributes...).</li>
             </ul>
 
             <p>In our case, the three links are instances of
@@ -235,21 +235,28 @@
                 methods</a>:</p>
 
             <ul>
-                <li><a href="/docs/jointjs#dia.Link.prototype.source" target="_blank"><code>link.source()</code></a>
-                    - sets the source of the link. This can either be an object with an <code>id</code> attribute (as in
-                    our examples), or an object with <code>x</code> and <code>y</code> coordinates.</li>
-                <li><a href="/docs/jointjs#dia.Link.prototype.target" target="_blank"><code>link.target()</code></a>
-                    - sets the target of the link. Same as above.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.source" target="_blank"><code>link.source()</code></a> and
+                    <a href="/docs/jointjs#dia.Link.prototype.target" target="_blank"><code>link.target()</code></a>
+                    - sets the source/target of the link.
+                    To identify an element in the graph, pass an object in the form <code>{ id: elementId }</code> (as
+                    in our examples).
+                    To identify a fixed point on the paper, pass an object in the form <code>{ x: xCoordinate,
+                    y: yCoordinate }</code> (or a <code>g.Point</code>).</li>
             </ul>
 
-            <p>Important optional method include:</p>
+            <p>Important optional methods include:</p>
 
             <ul>
-                <li>link.vertex()</li>
-                <li>link.label()</li>
-                <li>link.clone()</li>
-                <li>router: { name: 'orthogonal' }</li>
-                <li>connector: { name: 'rounded' }</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.vertices" target="_blank"><code>link.vertices()</code></a>
+                    - sets the <code>vertices</code> array of the link.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.router" target="_blank"><code>link.router()</code></a>
+                    - sets the <code>router</code> of the link.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.connector" target="_blank"><code>link.connector()</code></a>
+                    - sets the <code>connector</code> of the link.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels()</code></a>
+                    - sets the <code>labels</code> array of the link.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.clone" target="_blank"><code>link.clone()</code></a>
+                    - clones an existing link, including its source, target, vertices, attributes (attributes are explained in more detail below).</li>
             </ul>
 
             <p>The most important method to mention, though, is

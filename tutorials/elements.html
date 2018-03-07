@@ -175,11 +175,13 @@
                             the corresponding selectors.
                             In our example, the <code>body</code> is assigned a <code>fill</code> color, while the label
                             has its <code>text</code> set to <code>'Hello'</code> and its styling specified.
-                            All SVG attributes are accepted; in addition, an extensive set of non-standard
-                            <a href="/docs/jointjs#dia.attributes" target="_blank">special JointJS attributes</a> is recognized that,
-                            for example, makes it easy to cross-reference individual SVG elements of the shape.
-                            That way, the user could specify the dimensions of the <code>label</code> of the
-                            <code>Rectangle</code> relatively to the dimensions of the shape <code>body</code>.
+                            All SVG attributes are accepted (for consistency, camelCase is very strongly encouraged
+                            here).
+                            In addition, an extensive set of non-standard
+                            <a href="/docs/jointjs#dia.attributes" target="_blank">special JointJS attributes</a> to
+                            enable cross-referencing of individual SVG elements of the shape.
+                            That way, for example, the user can specify the dimensions of the <code>label</code> of the
+                            <code>Rectangle</code> relatively to the dimensions of its <code>body</code>.
                             <a href="special-attributes.html">Special attributes are discussed in detail later in the
                             tutorial.</a>
                             <a href="custom-attributes.html">Advanced users may even specify their own custom
@@ -190,8 +192,8 @@
                     called on <code>rect2</code>):
                     <ul>
                         <li>The first argument is the path to the attribute.
-                            In our example, it specifies the <code>text</code> attribute of the <code>label</code>
-                            selector.</li>
+                            In our example, <code>'label/text'</code> specifies the <code>text</code> attribute of the
+                            <code>label</code> selector.</li>
                         <li>The second argument is the value to be assigned to that attribute; in our case,
                             <code>'World!'</code></li>
                     </ul>
@@ -259,15 +261,15 @@
                 fill: '#2C3E50',
                 rx: 5,
                 ry: 5,
-                'stroke-width': 2
+                strokeWidth: 2
             },
             label: {
                 text: 'World!',
                 style: {
                     fill: '#3498DB',
-                    'font-size': 18,
-                    'font-weight': 'bold',
-                    'font-variant': 'small-caps'
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    fontVariant: 'small-caps'
                 }
             }
         });
@@ -284,14 +286,14 @@
                 fill: '#E74C3C',
                 rx: 20,
                 ry: 20,
-                'stroke-width': 0
+                strokeWidth: 0
             },
             label: {
                 text: 'Hello',
                 style: {
                     fill: '#ECF0F1',
-                    'font-size': 11,
-                    'font-variant': 'small-caps'
+                    fontSize: 11,
+                    fontVariant: 'small-caps'
                 }
             }
         });
@@ -302,13 +304,13 @@
         rect4.attr({
             body: {
                 fill: '#8E44AD',
-                'stroke-width': 0
+                strokeWidth: 0
             },
             label: {
                 text: 'World!',
                 style: {
                     fill: 'white',
-                    'font-size': 13
+                    fontSize: 13
                 }
             }
         });
@@ -323,13 +325,13 @@
         rect5.attr({
             body: {
                 fill: '#2ECC71',
-                'stroke-dasharray': '10,2'
+                strokeDasharray: '10,2'
             },
             label: {
                 text: 'Hello',
                 style: {
                     fill: 'black',
-                    'font-size': 13
+                    fontSize: 13
                 }
             }
         });
@@ -342,16 +344,16 @@
                 fill: '#F39C12',
                 rx: 20,
                 ry: 20,
-                'stroke-dasharray': '1,1'
+                strokeDasharray: '1,1'
             },
             label: {
                 text: 'World!',
                 style: {
                     fill: 'gray',
-                    'font-size': 18,
-                    'font-weight': 'bold',
-                    'font-variant': 'small-caps',
-                    'text-shadow': '1px 1px 1px black'
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    fontVariant: 'small-caps',
+                    textShadow: '1px 1px 1px black'
                 }
             }
         });

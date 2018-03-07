@@ -1,4 +1,4 @@
-(function elementStyling() {
+(function elements() {
 
     var graph = new joint.dia.Graph;
 
@@ -37,15 +37,15 @@
             fill: '#2C3E50',
             rx: 5,
             ry: 5,
-            'stroke-width': 2
+            strokeWidth: 2
         },
         label: {
             text: 'World!',
             style: {
                 fill: '#3498DB',
-                'font-size': 18,
-                'font-weight': 'bold',
-                'font-variant': 'small-caps'
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontVariant: 'small-caps'
             }
         }
     });
@@ -62,14 +62,14 @@
             fill: '#E74C3C',
             rx: 20,
             ry: 20,
-            'stroke-width': 0
+            strokeWidth: 0
         },
         label: {
             text: 'Hello',
             style: {
                 fill: '#ECF0F1',
-                'font-size': 11,
-                'font-variant': 'small-caps'
+                fontSize: 11,
+                fontVariant: 'small-caps'
             }
         }
     });
@@ -80,13 +80,13 @@
     rect4.attr({
         body: {
             fill: '#8E44AD',
-            'stroke-width': 0
+            strokeWidth: 0
         },
         label: {
             text: 'World!',
             style: {
                 fill: 'white',
-                'font-size': 13
+                fontSize: 13
             }
         }
     });
@@ -101,13 +101,13 @@
     rect5.attr({
         body: {
             fill: '#2ECC71',
-            'stroke-dasharray': '10,2'
+            strokeDasharray: '10,2'
         },
         label: {
             text: 'Hello',
             style: {
                 fill: 'black',
-                'font-size': 13
+                fontSize: 13
             }
         }
     });
@@ -120,16 +120,16 @@
             fill: '#F39C12',
             rx: 20,
             ry: 20,
-            'stroke-dasharray': '1,1'
+            strokeDasharray: '1,1'
         },
         label: {
             text: 'World!',
             style: {
                 fill: 'gray',
-                'font-size': 18,
-                'font-weight': 'bold',
-                'font-variant': 'small-caps',
-                'text-shadow': '1px 1px 1px black'
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontVariant: 'small-caps',
+                textShadow: '1px 1px 1px black'
             }
         }
     });
