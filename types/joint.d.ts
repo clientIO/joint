@@ -416,9 +416,9 @@ export namespace dia {
             labels?: Label[];
             vertices?: Point[];
             manhattan?: boolean;
-            router?: routers.RouterJSON | routers.Router;
+            router?: Link.Router;
             smooth?: boolean;
-            connector?: connectors.ConnectorJSON | connectors.Connector;
+            connector?: Link.Connector;
         }
 
         interface LinkSelectors extends Cell.Selectors {
@@ -2212,20 +2212,22 @@ export namespace routers {
 export namespace connectors {
 
     interface NormalConnectorArguments {
-
+        raw?: boolean;
     }
 
     interface RoundedConnectorArguments {
-        radius?: number
+        raw?: boolean;
+        radius?: number;
     }
 
     interface SmoothConnectorArguments {
-
+        raw?: boolean;
     }
 
     interface JumpOverConnectorArguments {
+        raw?: boolean;
         size?: number;
-        jump?: 'arc' | 'gap' | 'cubic'
+        jump?: 'arc' | 'gap' | 'cubic';
     }
 
     interface ConnectorArgumentsMap {
