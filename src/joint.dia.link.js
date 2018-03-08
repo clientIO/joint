@@ -1090,7 +1090,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 sourcerConnectionPointDef = sourceConnectionPointDef.call(this, sourceView, sourceMagnet, 'source', this);
             }
             var sourcePointRef = firstWaypoint || targetAnchor;
-            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceAnchor, sourcePointRef, sourceBBox, sourceMagnet);
+            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceAnchor, sourcePointRef, sourceBBox, sourceMagnet, 'source');
         } else {
             sourcePoint = sourceAnchor;
         }
@@ -1102,7 +1102,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 targetConnectionPointDef = targetConnectionPointDef.call(this, targetView, targetMagnet, 'target', this);
             }
             var targetPointRef = lastWaypoint || sourceAnchor;
-            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetAnchor, targetPointRef, targetBBox, targetMagnet);
+            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetAnchor, targetPointRef, targetBBox, targetMagnet, 'target');
         } else {
             targetPoint = targetAnchor;
         }
@@ -1150,6 +1150,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     getAnchor: function(anchorDef, bbox, ref) {
+
+        // Backwards compatibility
+        // If `perpendicularLinks` flag is set on the paper and there are vertices
+        // on the link, then try to find a connection point that makes the link perpendicular
+        // even though the link won't point to the center of the targeted object.
+        if (this.paper.options.perpendicularLinks || this.options.perpendicular) {
+            anchorDef = { name: 'perpendicular' };
+        }
+
         if (!anchorDef) return bbox.center();
         var anchorName = anchorDef.name;
         var anchorFn = joint.anchors[anchorName];
@@ -1158,12 +1167,26 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return anchor || bbox.center();
     },
 
-    getConnectionPoint: function(connectionPointDef, anchor, refPoint, bbox) {
+
+    getConnectionPoint: function(connectionPointDef, anchor, refPoint, bbox, magnet, end) {
+
+        var connectionPoint;
+
+        // Backwards compatibility
+        var paperOptions = this.paper.options;
+        if (typeof paperOptions.linkConnectionPoint === 'function') {
+            var _view = (end === 'target') ? this.targetView : this.sourceView;
+            var _magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
+            connectionPoint = paperOptions.linkConnectionPoint(this, _view, _magnet, refPoint, end);
+            if (connectionPoint) return connectionPoint;
+        }
+
         if (!connectionPointDef) return anchor;
         var connectionPointName = connectionPointDef.name;
         var connectionPointFn = joint.connectionPoints[connectionPointName];
         if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
-        var connectionPoint = connectionPointFn.call(this, anchor, new g.Point(refPoint), bbox, connectionPointDef.args || {});
+        connectionPoint = connectionPointFn.call(this, anchor, new g.Point(refPoint), bbox, magnet, connectionPointDef.args || {});
+
         return connectionPoint || anchor;
     },
 
@@ -1633,120 +1656,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         return path;
-    },
-
-    // Find a point that is the start of the connection.
-    // If `selectorOrPoint` is a point, then we're done and that point is the start of the connection.
-    // If the `selectorOrPoint` is an element however, we need to know a reference point (or element)
-    // that the link leads to in order to determine the start of the connection on the original element.
-    getConnectionPoint2: function(end, selectorOrPoint, referenceSelectorOrPoint) {
-
-        var spot;
-
-        // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
-        // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
-        // set the `source`/`target` later.
-        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
-
-        if (!selectorOrPoint.id) {
-
-            // If the source is a point, we don't need a reference point to find the sticky point of connection.
-            spot = g.Point(selectorOrPoint);
-
-        } else {
-
-            // If the source is an element, we need to find a point on the element boundary that is closest
-            // to the reference point (or reference element).
-            // Get the bounding box of the spot relative to the paper viewport. This is necessary
-            // in order to follow paper viewport transformations (scale/rotate).
-            // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
-            // method, it exists since first render and are automatically updated
-            var spotBBox = g.Rect(end === 'source' ? this.sourceBBox : this.targetBBox);
-
-            var reference;
-
-            if (!referenceSelectorOrPoint.id) {
-
-                // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
-                reference = g.Point(referenceSelectorOrPoint);
-
-            } else {
-
-                // Reference was passed as an element, therefore we need to find a point on the reference
-                // element boundary closest to the source element.
-                // Get the bounding box of the spot relative to the paper viewport. This is necessary
-                // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBBox = g.Rect(end === 'source' ? this.targetBBox : this.sourceBBox);
-
-                reference = referenceBBox.intersectionWithLineFromCenterToPoint(spotBBox.center());
-                reference = reference || referenceBBox.center();
-            }
-
-            var paperOptions = this.paper.options;
-            // If `perpendicularLinks` flag is set on the paper and there are vertices
-            // on the link, then try to find a connection point that makes the link perpendicular
-            // even though the link won't point to the center of the targeted object.
-            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
-
-                var nearestSide;
-                var spotOrigin = spotBBox.origin();
-                var spotCorner = spotBBox.corner();
-
-                if (spotOrigin.y <= reference.y && reference.y <= spotCorner.y) {
-
-                    nearestSide = spotBBox.sideNearestToPoint(reference);
-                    switch (nearestSide) {
-                        case 'left':
-                            spot = g.Point(spotOrigin.x, reference.y);
-                            break;
-                        case 'right':
-                            spot = g.Point(spotCorner.x, reference.y);
-                            break;
-                        default:
-                            spot = spotBBox.center();
-                            break;
-                    }
-
-                } else if (spotOrigin.x <= reference.x && reference.x <= spotCorner.x) {
-
-                    nearestSide = spotBBox.sideNearestToPoint(reference);
-                    switch (nearestSide) {
-                        case 'top':
-                            spot = g.Point(reference.x, spotOrigin.y);
-                            break;
-                        case 'bottom':
-                            spot = g.Point(reference.x, spotCorner.y);
-                            break;
-                        default:
-                            spot = spotBBox.center();
-                            break;
-                    }
-
-                } else {
-
-                    // If there is no intersection horizontally or vertically with the object bounding box,
-                    // then we fall back to the regular situation finding straight line (not perpendicular)
-                    // between the object and the reference point.
-                    spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
-                    spot = spot || spotBBox.center();
-                }
-
-            } else if (paperOptions.linkConnectionPoint) {
-
-                var view = (end === 'target') ? this.targetView : this.sourceView;
-                var magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
-
-                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference, end);
-
-            } else {
-
-                spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
-                spot = spot || spotBBox.center();
-            }
-        }
-
-        return spot;
     },
 
     // Public API.
