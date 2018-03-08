@@ -69,7 +69,7 @@ link.connector('wobble', {
 // cannot be serialized with `toJSON()`
 /*link.connector(function(sourcePoint, targetPoint, vertices, args, linkView) {
 
-    var SPREAD = args.spread || 20;
+    var SPREAD = 20;
 
     var points = vertices.concat(targetPoint)
     var prev = sourcePoint;

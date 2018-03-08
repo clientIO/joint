@@ -55,7 +55,7 @@ link.router('randomWalk', {
 // cannot be serialized with `toJSON()`
 /*link.router(function(vertices, args, linkView) {
 
-    var NUM_BOUNCES = args.numBounces || 20;
+    var NUM_BOUNCES = 20;
 
     vertices = joint.util.toArray(vertices).map(g.Point);
 
