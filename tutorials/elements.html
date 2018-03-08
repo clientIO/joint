@@ -148,59 +148,89 @@
                     <a href="/docs/jointjs#dia.Paper.prototype.rotate" target="_blank">rotate</a> elements, too.</li>
             </ul>
 
-            <p>The most important method to mention, though, is
-                <a href="/docs/jointjs#dia.Paper.prototype.attr" target="_blank"><code>element.attr()</code></a>.
-                It allows the user to set the element's SVG attributes programmatically, without use of CSS.
-                (CSS may still be used on top of the styling defined here, and it will have precedence over the SVG
-                attributes.)
-                If you are completely new to SVG, you may want to have a look at, for example, the
-                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes" target="_blank">Fills
-                and Strokes tutorial on MDN</a>.</p>
-
-            <p>The <code>element.attr()</code> method can be called in two ways:</p>
+            <p id="attr">Visually, the most important function is the one that changes element styling:</p>
 
             <ul>
-                <li>With one object as argument (as called on <code>rect</code>):
-                    <ul>
-                        <li>The keys of the object are selectors that correspond to fields of the
-                            <a href="/docs/jointjs#dia.Cell.markup" target="_blank">markup attribute</a> of the element
-                            definition.
-                            These selectors identify the individual SVG elements to which the provided attributes should
-                            be applied.
-                            We can see two selectors defined on the
-                            <a href="/docs/jointjs#shapes.standard.Rectangle" target="_blank"><code>Rectangle</code></a>
-                            shape: <code>body</code> (the <code>&lt;rect&gt;</code> itself), and
-                            <code>label</code> (the <code>&lt;text&gt;</code> inside the shape).</li>
-                        <li>The values associated with those keys are objects that specify the attributes to pass to
-                            the corresponding selectors.
-                            In our example, the <code>body</code> is assigned a <code>fill</code> color, while the label
-                            has its <code>text</code> set to <code>'Hello'</code> and its styling specified.
-                            All SVG attributes are accepted (for consistency, camelCase is very strongly encouraged
-                            here).
-                            In addition, an extensive set of non-standard
-                            <a href="/docs/jointjs#dia.attributes" target="_blank">special JointJS attributes</a> to
-                            enable cross-referencing of individual SVG elements of the shape.
-                            That way, for example, the user can specify the dimensions of the <code>label</code> of the
-                            <code>Rectangle</code> relatively to the dimensions of its <code>body</code>.
-                            <a href="special-attributes.html">Special attributes are discussed in detail later in the
-                            tutorial.</a>
-                            <a href="custom-attributes.html">Advanced users may even specify their own custom
-                            attributes.</a></li>
-                    </ul>
-                </li>
-                <li>With two arguments. This syntax allows setting the value of an individual element attribute (as
-                    called on <code>rect2</code>):
-                    <ul>
-                        <li>The first argument is the path to the attribute.
-                            In our example, <code>'label/text'</code> specifies the <code>text</code> attribute of the
-                            <code>label</code> selector.</li>
-                        <li>The second argument is the value to be assigned to that attribute; in our case,
-                            <code>'World!'</code></li>
-                    </ul>
-                </li>
+                <li><a href="/docs/jointjs#dia.Element.prototype.attr" target="_blank"><code>element.attr()</code></a>
+                    - programmatically assigns SVG attributes directly to the SVGElements of the shape's markup.
+                    (CSS styles may still be used on top of the styling defined here, and they will have precedence over
+                    these attributes.)</li>
             </ul>
 
-            <p>Let us apply this information by changing the look of our elements:</p>
+            <p>When <code>element.attr()</code> is called with one object as argument, the keys of the object are
+                selectors that correspond to elements of shape SVG markup; each of those can have one or more attributes
+                defined alongside the value to be set.
+                If you only need to change one value, you can also call <code>element.attr()</code> with two arguments;
+                the first is the path of the attribute in the form <code>'selector/attribute'</code> and the second is
+                the value to be assigned.</p>
+
+            <p>If you are completely new to SVG, you may want to have a look at, for example, the
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes" target="_blank">Fills
+                and Strokes tutorial on MDN</a>.
+                JointJS is able to handle all
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute" target="_blank">standard SVG
+                attributes</a>, however, please note that we strongly encourage everyone to use camelCase versions of
+                attribute names for consistency and in order to avoid the need for quotation marks in attribute name
+                keys.
+                In addition, JointJS provides an extensive set of non-standard
+                <a href="/docs/jointjs#dia.attributes" target="_blank">special JointJS attributes</a>; these allow you
+                to work with JointJS
+                <a href="/docs/jointjs#dia.attributes.ports" target="_blank">ports</a> and
+                <a href="/docs/jointjs#dia.attriubtes.magnets" target="_blank">magnets</a>, and
+                <a href="/docs/jointjs#dia.attributes.ref" target="_blank"> to specify attributes relatively to other
+                shape selectors</a>, among other things.
+                <a href="special-attributes.html">Special attributes are discussed in detail later in the tutorial.</a>
+                <a href="custom-attributes.html">Advanced users may even specify their own custom attributes.</a></p>
+
+            <p>The
+                <a href="/docs/jointjs#shapes.standard.Rectangle" target="_blank"><code>joint.shapes.standard.Rectangle</code></a>
+                shape used in our example has two selectors defined:
+                <code>body</code> (the <code>&lt;rect&gt;</code> SVGElement itself), and <code>label</code> (the
+                <code>&lt;text&gt;</code> SVGElement inside the shape).
+                Other element shapes have their own selector names (although consistency was preserved where
+                applicable, e.g. with <code>body</code>); please refer to the <code>joint.shapes.standard</code>
+                <a href="/docs/jointjs#shapes.standard" target="_blank">documentation</a> for detailed information.</p>
+
+            <p>In the case of the <code>rect</code> element, we can see that the <code>body</code> selector is assigned
+                a <code>fill</code> color attribute, while at the same time the <code>label</code> selector has its
+                <code>text</code> attribute set to <code>'Hello'</code>, and its <code>style</code> specified.
+                Note that the <code>style</code> attribute can be assigned an object as well as a string.</p>
+
+            <pre><code>rect.attr({
+    body: { // selector for the &lt;rect&gt; SVGElement
+        fill: 'blue' // SVG attribute and value
+    },
+    label: { // selector for the &lt;text&gt; SVGElement
+        text: 'Hello', // SVG attribute and value
+        style: { // SVG `style` attribute in object form
+            fill: 'white'
+        }
+    }
+});</code></pre>
+
+            <p>In the case of the <code>rect2</code> element, we are assigning the value <code>'World!'</code> to
+                <code>'label/text'</code>.
+                Here <code>label</code> is the selector for the <code>&lt;text&gt;</code> SVGElement; <code>text</code>
+                is the attribute we want to modify.</p>
+
+            <pre><code>rect2.attr('label/text', 'World!');</code></pre>
+
+            <p>Note that this is equivalent to calling:</p>
+
+            <pre><code>rect2.attr('label', {
+    text: 'World!'
+});</code></pre>
+
+            <p>The same effect can also be achieved by passing a single object argument to
+                <code>rect2.attr()</code>:</p>
+
+            <pre><code>rect2.attr({
+    label: {
+        text: 'World!'
+    }
+});</code></pre>
+
+            <p>Now let us use the <code>element.attr()</code> to change the look of our elements:</p>
 
             <div class="paper" id="paper-elements"></div>
 
