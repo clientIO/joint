@@ -115,7 +115,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         if (source === undefined) {
             source = this.get('source');
             if (!source) return source;
-            if (typeof source === 'object') return joint.util.assign({}, source);
+            if (typeof source === 'object') return joint.util.clone(source);
             return source;
         }
 
@@ -129,7 +129,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         if (target === undefined) {
             target = this.get('target');
             if (!target) return target;
-            if (typeof target === 'object') return joint.util.assign({}, target);
+            if (typeof target === 'object') return joint.util.clone(target);
             return target;
         }
 
@@ -146,7 +146,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 if (this.get('manhattan')) router = { name: 'orthogonal' }; // backwards compatibility
                 return router;
             }
-            if (typeof router === 'object') return joint.util.assign({}, router);
+            if (typeof router === 'object') return joint.util.clone(router);
             return router; // e.g. a function
         }
 
@@ -167,14 +167,14 @@ joint.dia.Link = joint.dia.Cell.extend({
                 if (this.get('smooth')) connector = { name: 'smooth' }; // backwards compatibility
                 return connector;
             }
-            if (typeof connector === 'object') return joint.util.assign({}, connector);
+            if (typeof connector === 'object') return joint.util.clone(connector);
             return connector; // e.g. a function
         }
 
         // setter
         var isConnectorProvided = ((typeof name === 'object' || typeof name === 'function'));
         var localConnector = isConnectorProvided ? name : { name: name, args: args };
-        var localOpt = isObjectProvided ? args : opt;
+        var localOpt = isConnectorProvided ? args : opt;
 
         return this.set('connector', localConnector, localOpt);
     },
@@ -2489,7 +2489,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             arrowhead: end,
             whenNotAllowed: opt.whenNotAllowed || 'revert',
             initialMagnet: this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null),
-            initialEnd: joint.util.assign({}, this.model.get(end)),
+            initialEnd: joint.util.clone(this.model.get(end)),
             validateConnectionArgs: this._createValidateConnectionArgs(end)
         };
 
