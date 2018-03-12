@@ -84,16 +84,17 @@
                 }
             }
         });
+        rect.addTo(graph);
 
         var rect2 = rect.clone();
         rect2.translate(300, 0);
         rect2.attr('label/text', 'World!');
+        rect2.addTo(graph);
 
         var link = new joint.shapes.standard.Link();
         link.source({ id: rect.id });
         link.target({ id: rect2.id });
-
-        graph.addCells([rect, rect2, link]);
+        link.addTo(graph);
 
     &lt;/script&gt;
 &lt;/body&gt;
@@ -107,7 +108,6 @@
                 <li><a href="graph-and-paper">Define a graph and a paper</a></li>
                 <li><a href="elements">Create two rectangular elements</a></li>
                 <li><a href="links">Create one link to connect the elements</a></li>
-                <li><a href="graph-and-paper">Add the components to the graph</a></li>
             </ul>
 
             <p>We will look at each of these steps in turn.

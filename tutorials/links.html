@@ -42,7 +42,7 @@
 
             <div class="paper" id="paper-hello-world"></div>
 
-            <p><a href="graph-and-paper.html">In the previous section, we focused on making the elements look much more
+            <p><a href="elements.html">In the previous section, we focused on making the elements look much more
                 interesting:</a></p>
 
             <div class="paper" id="paper-elements"></div>
@@ -52,7 +52,7 @@
                 are covered later in the tutorial series.
                 We will continue with the code we modified in the previous section:</p>
 
-            <pre class="line-numbers" data-line="69-71,110-112,153-155" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="71-74,115-118,161-164" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -98,6 +98,7 @@
                 }
             }
         });
+        rect.addTo(graph);
 
         var rect2 = new joint.shapes.standard.Rectangle();
         rect2.position(400, 30);
@@ -119,10 +120,12 @@
                 }
             }
         });
+        rect2.addTo(graph);
 
         var link = new joint.shapes.standard.Link();
         link.source({ id: rect.id });
         link.target({ id: rect2.id });
+        link.addTo(graph);
 
         var rect3 = new joint.shapes.standard.Rectangle();
         rect3.position(100, 130);
@@ -143,6 +146,7 @@
                 }
             }
         });
+        rect3.addTo(graph);
 
         var rect4 = new joint.shapes.standard.Rectangle();
         rect4.position(400, 130);
@@ -160,10 +164,12 @@
                 }
             }
         });
+        rect4.addTo(graph);
 
         var link2 = new joint.shapes.standard.Link();
         link2.source({ id: rect3.id });
         link2.target({ id: rect4.id });
+        link2.addTo(graph);
 
         var rect5 = new joint.shapes.standard.Rectangle();
         rect5.position(100, 230);
@@ -181,6 +187,7 @@
                 }
             }
         });
+        rect5.addTo(graph);
 
         var rect6 = new joint.shapes.standard.Rectangle();
         rect6.position(400, 230);
@@ -203,12 +210,12 @@
                 }
             }
         });
+        rect6.addTo(graph);
 
         var link3 = new joint.shapes.standard.Link();
         link3.source({ id: rect5.id });
         link3.target({ id: rect6.id });
-
-        graph2.addCells([rect, rect2, link, rect3, rect4, link2, rect5, rect6, link3]);
+        link3.addTo(graph);
 
     &lt;/script&gt;
 &lt;/body&gt;
@@ -220,6 +227,7 @@
                 <li>First, a link is created by calling its constructor.</li>
                 <li>Then, different methods are called on the link to set its properties (source &amp; target, vertices,
                     router &amp; connector, attributes, labels...).</li>
+                <li>Finally, the link is added to the graph.</li>
             </ul>
 
             <p>In our case, the three links are instances of
@@ -244,7 +252,17 @@
                     y: yCoordinate }</code> (or a <code>g.Point</code>).</li>
             </ul>
 
-            <p>Important optional methods include:</p>
+            <p>Other important methods include:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Link.prototype.clone" target="_blank"><code>link.clone()</code></a>
+                    - clones an existing link, including its source, target, vertices, router, connector, attributes,
+                    and labels (attributes and labels are explained in more detail below).</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.addTo" target="_blank"><code>link.addTo()</code></a>
+                    - adds the link to a graph so it can be rendered.</li>
+            </ul>
+
+            <p>The shape of the link can be set with three optional methods:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Link.prototype.vertices" target="_blank"><code>link.vertices()</code></a>
@@ -257,7 +275,7 @@
                     The router is a function that takes the array of link vertices and adds additional points to it as
                     necessary to create a route with desired characteristics; for example, the <code>orthogonal</code>
                     router creates a route consisting of vertical and horizontal lines attached at right angles.
-                    JointJS comes witha collection of pre-defined routers in the
+                    JointJS comes with a collection of pre-defined routers in the
                     <a href="/docs/jointjs#routers" target="_blank"><code>joint.routers</code></a> namespace.
                     Two of the provided routers are <q>smart routers</q> that are able to navigate around obstacles in
                     their path.
@@ -268,21 +286,19 @@
                 <li><a href="/docs/jointjs#dia.Link.prototype.connector" target="_blank"><code>link.connector()</code></a>
                     - sets the <code>connector</code> of the link.
                     The connector is a function in charge of rendering the link's path on the paper.
-                    It takes the array of route points and constructs a series of SVG Path element commands to create a
-                    path with desired characteristics; for example, the <code>rounded</code> connector creates straight
-                    line segments with rounded corners around route points.
+                    It takes the array of route points and constructs a series of SVGPathElement
+                    <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d" target="_blank">path data
+                    commands</a> to create a path with desired characteristics; for example, the <code>rounded</code>
+                    connector creates straight line segments with rounded corners around route points.
                     JointJS comes with a collection of pre-defined connectors in the
                     <a href="/docs/jointjs#connectors" target="_blank"><code>joint.connectors</code></a> namespace.
                     The default is the <a href="/docs/jointjs#connectors.normal" target="_blank"><code>normal</code></a>
                     connector, which connects route points with simple straight lines.
                     <a href="/docs/jointjs#connectors.custom" target="_blank">Advanced users may provide their own
                     connectors to support custom connecting strategies.</a></li>
-                <li><a href="/docs/jointjs#dia.Link.prototype.clone" target="_blank"><code>link.clone()</code></a>
-                    - clones an existing link, including its source, target, vertices, router, connector, attributes,
-                    and labels (attributes and labels are explained in more detail below).</li>
             </ul>
 
-            <p>Link styling can be changed analogously to <a href="elements.html#attr">element styling</a>:</p>
+            <p>Link styling works analogously to <a href="elements.html#attr">element styling</a>:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Link.prototype.attr" target="_blank"><code>link.attr()</code></a>
@@ -314,13 +330,16 @@
     }
 });</code></pre>
 
-            <p>Finally, to change another aspect of the link presentation:</p>
+            <p>Finally, JointJS supports links labels as another way to modify the presentation of the link:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels()</code></a>
                     - sets the <code>labels</code> array of the link.
-                    Labels have <code>position</code>, <code>markup</code> and <code>attrs</code>.</li>
+                    Labels have <code>position</code>, <code>markup</code> and <code>attrs</code> properties.</li>
             </ul>
+
+            <p>The labels have position <code>0.5</code> by default. This means that they are positioned in the center
+                of the link.</p>
 
             <p>Now, let's have some fun with our links:</p>
 
@@ -331,13 +350,12 @@
             <p>This concludes the introductory section of the JointJS tutorial!
                 Congratulations!
                 As you can see, we came a long way from the initial Hello, World! application.
-                Now that you have seen the basics, you should be confident working with the most important building blocks of
-                JointJS - Graphs, Papers, Elements, and Links.
-                The next step is to head over to the intermediate section of the tutorial, which explains some handy
-                but more involved concepts, including interaction, persistence, and extending JointJS according to the
-                needs of your application.</p>
+                Now that you have seen the basics, you should be confident working with the most important building
+                blocks of JointJS - Graphs, Papers, Elements, and Links.</p>
 
-            <p><a href="links.html">The next step is to learn how to work with links.</a></p>
+            <p><a href="links.html">The next step is to head over to the intermediate section of the tutorial, which
+                explains some handy but more involved concepts, including interaction, persistence, and extending
+                JointJS according to the needs of your application.</a></p>
 
 
 

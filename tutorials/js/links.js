@@ -9,10 +9,9 @@
         gridSize: 1
     });
 
-    var link = new joint.dia.Link({
+    var link = new joint.shapes.standard.Link({
         source: { x: 10, y: 20 },
-        target: { x: 250, y: 20 },
-        attrs: {}
+        target: { x: 250, y: 20 }
     });
 
     link.attr({
@@ -20,6 +19,16 @@
         '.marker-source': { fill: 'red', d: 'M 10 0 L 0 5 L 10 10 z' },
         '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
     });
+
+    link.labels([
+        {
+            attrs: {
+                text: {
+                    text: 'Hello'
+                }
+            }
+        }
+    ]);
 
     var link2 = new joint.dia.Link({
         source: { x: 10, y: 60 },

@@ -52,7 +52,7 @@
                 topics are covered later in the tutorial series.
                 We will continue with the code we modified in the previous section:</p>
 
-            <pre class="line-numbers" data-line="33-46,48-50"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="33-47,49-52"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -98,16 +98,17 @@
                 }
             }
         });
+        rect.addTo(graph);
 
         var rect2 = rect.clone();
         rect2.translate(300, 0);
         rect2.attr('label/text', 'World!');
+        rect2.addTo(graph);
 
         var link = new joint.shapes.standard.Link();
         link.source({ id: rect.id });
         link.target({ id: rect2.id });
-
-        graph.addCells([rect, rect2, link]);
+        link.addTo(graph);
 
     &lt;/script&gt;
 &lt;/body&gt;
@@ -119,6 +120,7 @@
                 <li>First, an element is created by calling its constructor.</li>
                 <li>Then, different methods are called on the element to set its properties (position, size,
                     attributes...).</li>
+                <li>Finally, the element is added to the graph.</li>
             </ul>
 
             <p>In our case, the two elements are instances of
@@ -130,22 +132,25 @@
                 instead</a>, by extending the basic
                 <a href="/docs/jointjs#dia.Element" target="_blank"><code>joint.dia.Element</code></a> class.</p>
 
-            <p>Our demo showcases some of the most used <a href="/docs/jointjs#dia.Element" target="_blank">Element methods</a>:</p>
+            <p>Our demo showcases some of the most important
+                <a href="/docs/jointjs#dia.Element" target="_blank">Element methods</a>:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Element.prototype.position" target="_blank"><code>element.position()</code></a>
                     - sets the position of the origin of the element (the top-left corner), relative to the paper's
                     coordinate system (taking into account paper scaling and other transformations).</li>
-                <li><a href="/docs/jointjs#dia.Paper.prototype.resize" target="_blank"><code>element.resize()</code></a>
+                <li><a href="/docs/jointjs#dia.Element.prototype.resize" target="_blank"><code>element.resize()</code></a>
                     - sets the dimensions of the element.</li>
-                <li><a href="/docs/jointjs#dia.Paper.prototype.clone" target="_blank"><code>element.clone()</code></a>
+                <li><a href="/docs/jointjs#dia.Element.prototype.clone" target="_blank"><code>element.clone()</code></a>
                     - clones an existing element, including its position, dimensions, and attributes (attributes are
                     explained in more detail below).</li>
-                <li><a href="/docs/jointjs#dia.Paper.prototype.translate" target="_blank"><code>element.translate()</code></a>
+                <li><a href="/docs/jointjs#dia.Element.prototype.translate" target="_blank"><code>element.translate()</code></a>
                     - moves the element by the specified distance along the two coordinate axes.
                     There are methods to
-                    <a href="/docs/jointjs#dia.Paper.prototype.scale" target="_blank">scale</a> and
-                    <a href="/docs/jointjs#dia.Paper.prototype.rotate" target="_blank">rotate</a> elements, too.</li>
+                    <a href="/docs/jointjs#dia.Element.prototype.scale" target="_blank">scale</a> and
+                    <a href="/docs/jointjs#dia.Element.prototype.rotate" target="_blank">rotate</a> elements, too.</li>
+                <li><a href="/docs/jointjs#dia.Element.prototype.addTo" target="_blank"><code>element.addTo()</code></a>
+                    - adds the element to a graph so it can be rendered.
             </ul>
 
             <p id="attr">Visually, the most important function is the one that changes element styling:</p>
@@ -236,7 +241,7 @@
 
             <p>The full code to produce these shapes looks like this:</p>
 
-            <pre class="line-numbers" data-line="33-46,48-67,73-91,93-108,114-129,131-151" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="33-47,49-69,76-95,97-113,120-136,138-159" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -282,6 +287,7 @@
                 }
             }
         });
+        rect.addTo(graph);
 
         var rect2 = new joint.shapes.standard.Rectangle();
         rect2.position(400, 30);
@@ -303,10 +309,12 @@
                 }
             }
         });
+        rect2.addTo(graph);
 
         var link = new joint.shapes.standard.Link();
         link.source({ id: rect.id });
         link.target({ id: rect2.id });
+        link.addTo(graph);
 
         var rect3 = new joint.shapes.standard.Rectangle();
         rect3.position(100, 130);
@@ -327,6 +335,7 @@
                 }
             }
         });
+        rect3.addTo(graph);
 
         var rect4 = new joint.shapes.standard.Rectangle();
         rect4.position(400, 130);
@@ -344,10 +353,12 @@
                 }
             }
         });
+        rect4.addTo(graph);
 
         var link2 = new joint.shapes.standard.Link();
         link2.source({ id: rect3.id });
         link2.target({ id: rect4.id });
+        link2.addTo(graph);
 
         var rect5 = new joint.shapes.standard.Rectangle();
         rect5.position(100, 230);
@@ -365,6 +376,7 @@
                 }
             }
         });
+        rect5.addTo(graph);
 
         var rect6 = new joint.shapes.standard.Rectangle();
         rect6.position(400, 230);
@@ -387,12 +399,12 @@
                 }
             }
         });
+        rect6.addTo(graph);
 
         var link3 = new joint.shapes.standard.Link();
         link3.source({ id: rect5.id });
         link3.target({ id: rect6.id });
-
-        graph2.addCells([rect, rect2, link, rect3, rect4, link2, rect5, rect6, link3]);
+        link3.addTo(graph);
 
     &lt;/script&gt;
 &lt;/body&gt;

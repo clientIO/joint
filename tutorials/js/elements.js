@@ -28,6 +28,7 @@
             }
         }
     });
+    rect.addTo(graph);
 
     var rect2 = new joint.shapes.standard.Rectangle();
     rect2.position(400, 30);
@@ -49,10 +50,12 @@
             }
         }
     });
+    rect2.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
     link.source({ id: rect.id });
     link.target({ id: rect2.id });
+    link.addTo(graph);
 
     var rect3 = new joint.shapes.standard.Rectangle();
     rect3.position(100, 130);
@@ -73,6 +76,7 @@
             }
         }
     });
+    rect3.addTo(graph);
 
     var rect4 = new joint.shapes.standard.Rectangle();
     rect4.position(400, 130);
@@ -90,10 +94,12 @@
             }
         }
     });
+    rect4.addTo(graph);
 
     var link2 = new joint.shapes.standard.Link();
     link2.source({ id: rect3.id });
     link2.target({ id: rect4.id });
+    link2.addTo(graph);
 
     var rect5 = new joint.shapes.standard.Rectangle();
     rect5.position(100, 230);
@@ -111,6 +117,7 @@
             }
         }
     });
+    rect5.addTo(graph);
 
     var rect6 = new joint.shapes.standard.Rectangle();
     rect6.position(400, 230);
@@ -133,10 +140,10 @@
             }
         }
     });
+    rect6.addTo(graph);
 
     var link3 = new joint.shapes.standard.Link();
     link3.source({ id: rect5.id });
     link3.target({ id: rect6.id });
-
-    graph.addCells([rect, rect2, link, rect3, rect4, link2, rect5, rect6, link3]);
+    link3.addTo(graph);
 }());
