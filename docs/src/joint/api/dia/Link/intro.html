@@ -114,17 +114,16 @@ var link = new CustomLink({
     //...
 });</code></pre>
 
-<h4>Builtin Default Attributes for Default Markup</h4>
+<h4>Builtin Default Attributes</h4>
 
-<p>Deprecated.</p>
+<p>To ensure backwards compatibility, the link comes with a private builtin <code>defaultLabel</code> attribute. It is reproduced here for reference:</p>
 
-<p>To ensure backwards compatibility, when using default markup (i.e. not providing own <code>markup</code> as a type default or as an instance value), builtin default attributes are applied. They are presented here for completeness; if you need to specify your own attributes for default <code>joint.dia.Link</code> markup, remember to overwrite these values or to remove them by passing <code>null</code>:</p>
-
-<pre><code>// backwards compatibility
-// merged with default label properties and individual label properties
-// only used if builtin label markup has not been overridden
+<pre><code>// merged with default label properties and individual label properties
 defaultLabel: {
+    // builtin default markup:
     markup: '&lt;rect /&gt;&lt;text /&gt;',
+    // builtin default attributes:
+    // only used for builtin label markup
     attrs: {
         text: {
             textAnchor: 'middle',
@@ -143,7 +142,14 @@ defaultLabel: {
             refX: 0,
             refY: 0
         }
+    },
+    // builtin default position:
+    // used for any markup
+    position: {
+        distance: 0.5,
     }
 }</code></pre>
 
-<p>The use of default <code>joint.dia.Link</code> markup is deprecated. Instead, use one of the <code>joint.shapes.standard</code> Link types, or create a custom Link subtype with new default <code>markup</code>.</p>
+<p>If custom <code>position</code> object is not provided (neither as a type default nor as an instance value), the builtin <code>defaultLabel.position</code> is applied (<code>{ distance: 0.5 }</code>).</p>
+
+<p>Furthermore, if custom <code>markup</code> is not provided (neither as a type default nor as an instance value), the builtin <code>defaultLabel.markup</code> is applied, alongside the builtin <code>defaultLabel.attrs</code> object. If you do not want to use the builtin default markup and all its associated attrs, it is highly recommended that you provide both your own <code>markup</code> and your own <code>attrs</code>.</p>

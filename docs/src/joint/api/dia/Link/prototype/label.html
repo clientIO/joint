@@ -4,15 +4,33 @@
 <pre class="docs-method-signature"><code>link.label(index, properties [, opt])</code></pre>
 <p>Update <code>properties</code> of the label at <code>index</code>. By default, the new properties are merged into the old ones; pass the <code>{ rewrite: true }</code> option along to disregard old properties.</p>
 
-<p>One link can have multiple labels, and each label can have different properties:</p>
+<p>Example usage:
+
+<pre><code>link.label(0, {
+    position: {
+        distance: 0.5, // midway on the connection path
+        offset: {
+            x: 10, // 10 local x units to the right
+            y: -5 // 5 local y units above
+        }
+    }
+    attrs: {
+        rect: { fill: 'white' }, // white background
+        text: { fill: 'blue', text: 'my label' } // blue text
+    }
+});</code></pre>
+
+<p>Note that all labels are stored in an array on the link model under the attribute <code>labels</code>. Use the <code>link.labels</code> <a href="joint.html#dia.Link.prototype.labels">function</a> to access the array.</p>
+
+<p>One link can have multiple labels, and each label can have different properties, summarized in the following schema:</p>
 
 <pre><code>{
-    markup: string,
-    attrs: {
-        selector: SVG attributes | JointJS attributes
+    markup?: string,
+    attrs?: {
+        [key: CSS selector]: SVG attributes | JointJS attributes
     },
-    position: number | {
-        distance: number,
+    position?: number | {
+        distance?: number,
         offset?: number | { x: number, y: number },
         args?: {
             absoluteDistance?: boolean,
@@ -22,11 +40,11 @@
     }
 }</code></pre>
 
-<p>The <code>markup</code> property specifies the HTML markup of the label. If it is not provided, a default is chosen according to <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a>. The (deprecated) builtin default markup contains a <code>&lt;rect&gt;</code> element followed by <code>&lt;text&gt;</code> element.</p>
+<p>The <code>markup</code> property specifies the HTML markup of the label. If it is not provided, a default is chosen according to <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a>. If your link type does not define <code>defaultLabel.markup</code>, the builtin default markup is used, which contains a <code>&lt;rect&gt;</code> element followed by a <code>&lt;text&gt;</code> element.</p>
 
-<p>The <code>attrs</code> property is an object with CSS selectors (referring to SVG elements specified in <code>markup</code>) as keys and SVG attributes as values. If the (deprecated) builtin default markup is used, several <code>attrs</code> are applied for reasons of backwards compatibility. See <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a> for more information.</p>
+<p>The <code>attrs</code> property is an object with CSS selectors (referring to SVG elements specified in <code>markup</code>) as keys and SVG attributes as values. If the builtin default markup is used, several <code>attrs</code> are applied for reasons of backwards compatibility. See <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a> for more information.</p>
 
-<p>Finally, the <code>position</code> property specifies the position of the label, relative to the link <code>.connection</code> SVG path. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>args</code> properties:</p>
+<p>Finally, the <code>position</code> property specifies the position of the label, relative to the SVG path of the link. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>args</code> properties. If no <code>position</code> is provided, the builtin default (<code>{ distance: 0.5 }</code>) is used to maintain backwards compatibility.</p>
 
 <table>
     <tr>
@@ -135,21 +153,3 @@
         </td>
     </tr>
 </table>
-
-<p>Example label:
-
-<pre><code>link.label(0, {
-    position: {
-        distance: 0.5, // midway on the connection path
-        offset: {
-            x: 10, // 10 local x units to the right
-            y: -5 // 5 local y units above
-        }
-    }
-    attrs: {
-        rect: { fill: 'white' }, // white background
-        text: { fill: 'blue', text: 'my label' } // blue text
-    }
-});</code></pre>
-
-<p>Note that all labels are stored in an array on the link model under the attribute <code>labels</code>. Use the <code>link.labels</code> <a href="joint.html#dia.Link.prototype.labels">function</a> to access the array.</p>

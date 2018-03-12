@@ -60,14 +60,12 @@ joint.dia.Link = joint.dia.Cell.extend({
     // lower priority than defaultLabel.markup
     labelMarkup: undefined,
 
-    // deprecated
     // private
     _builtins: {
-        // backwards compatibility
         // merged with default label props and individual label props
-        // only used if builtin label markup is used
         defaultLabel: {
             markup: '<rect /><text />',
+            // only used if builtin label markup is used
             attrs: {
                 text: {
                     textAnchor: 'middle',
@@ -86,6 +84,10 @@ joint.dia.Link = joint.dia.Cell.extend({
                     refX: 0,
                     refY: 0
                 }
+            },
+            // default position for any markup
+            position: {
+                distance: 0.5
             }
         }
     },
@@ -634,7 +636,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // If it doesn't, add the <g> container here.
     _normalizeLabelMarkup: function(labelMarkup) {
 
-        if (!labelMarkup) throw new Error('No label markup provided');
+        if (!labelMarkup) throw new Error('dia.LinkView: no label markup provided.');
 
         var node = V(labelMarkup);
         if (Array.isArray(node) || node.tagName() !== 'G') {
@@ -679,9 +681,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var label = labels[i];
             var labelMarkup = label.markup;
 
-            var node = labelMarkup
-                ? this._normalizeLabelMarkup(labelMarkup)
-                : defaultNode.clone();
+            var node;
+            if (labelMarkup) node = this._normalizeLabelMarkup(labelMarkup)
+            else node = defaultNode.clone();
 
             node.attr('label-idx', i); // assign label-idx
             node.appendTo(vLabels);
@@ -691,6 +693,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateLabels();
 
         return this;
+    },
+
+    // merge default label attrs into label attrs
+    // keep `undefined` or `null` because `{}` means something else
+    _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
+
+        if (labelAttrs === null) return null;
+        if (labelAttrs === undefined) {
+
+            if (defaultLabelAttrs === null) return null;
+            if (defaultLabelAttrs === undefined) {
+
+                if (hasCustomMarkup) return undefined;
+                return builtinDefaultLabelAttrs;
+            }
+
+            if (hasCustomMarkup) return defaultLabelAttrs;
+            return joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs);
+        }
+
+        if (hasCustomMarkup) return joint.util.merge({}, defaultLabelAttrs, labelAttrs);
+        return joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
     },
 
     updateLabels: function() {
@@ -717,13 +741,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var labelMarkup = label.markup;
             var labelAttrs = label.attrs;
 
-            var attrs;
-            if (labelMarkup || defaultLabelMarkup) { // if user specified own markup
-                attrs = joint.util.merge({}, defaultLabelAttrs, labelAttrs);
-
-            } else { // merge in builtin attrs only if builtin markup is used
-                attrs = joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
-            }
+            var attrs = this._mergeLabelAttrs(
+                (labelMarkup || defaultLabelMarkup),
+                labelAttrs,
+                defaultLabelAttrs,
+                builtinDefaultLabelAttrs
+            );
 
             this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
                 rootBBox: new g.Rect(label.size)
@@ -961,20 +984,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
      // if label position is a number, normalize it to a position object
-     // this makes sure that default offset and args are ignored for this label
+     // this makes sure that label positions can be merged properly
     _normalizeLabelPosition: function(labelPosition) {
 
         if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
         return labelPosition;
-    },
-
-    // merge default label position into label position
-    _mergeLabelPosition: function(defaultLabelPosition, labelPosition) {
-
-        if (!labelPosition) return defaultLabelPosition;
-        if (typeof defaultLabelPosition === 'number') return labelPosition;
-
-        return position = joint.util.merge({}, defaultLabelPosition, labelPosition);
     },
 
     updateLabelPositions: function() {
@@ -991,17 +1005,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labels = model.get('labels') || [];
         if (!labels.length) return this;
 
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
+
         var defaultLabel = model._getDefaultLabel();
-        var defaultLabelPosition = defaultLabel.position;
+        var defaultLabelPosition = defaultLabel.position = this._normalizeLabelPosition(defaultLabel.position);
+
+        var defaultPosition = joint.util.merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
             var labelPosition = label.position = this._normalizeLabelPosition(label.position);
 
-            var position = this._mergeLabelPosition(defaultLabelPosition, labelPosition);
-            var labelPoint = this.getLabelCoordinates(position);
+            var position = joint.util.merge({}, defaultPosition, labelPosition);
 
+            var labelPoint = this.getLabelCoordinates(position);
             this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
@@ -1234,19 +1253,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return defaultLabelPosition.args;
     },
 
-    _getLabelPositionArgs: function() {
+    _getLabelPositionArgs: function(idx) {
 
-        var labelPosition = this.model.label(this._labelIdx).position || {};
+        var labelPosition = this.model.label(idx).position || {};
         return labelPosition.args;
     },
 
     // merge default label position args into label position args
-    // keep `undefined` because `{}` means something else
-    _mergeLabelPositionArgs: function(defaultLabelPositionArgs, labelPositionArgs) {
+    // keep `undefined` or `null` because `{}` means something else
+    _mergeLabelPositionArgs: function(labelPositionArgs, defaultLabelPositionArgs) {
 
         if (labelPositionArgs === null) return null;
-        if (labelPositionArgs === undefined) return defaultLabelPositionArgs;
-        if (!defaultLabelPositionArgs) return labelPositionArgs;
+        if (labelPositionArgs === undefined) {
+
+            if (defaultLabelPositionArgs === null) return null;
+            return defaultLabelPositionArgs;
+        }
 
         return joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
     },
@@ -1266,7 +1288,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
         var labelPositionArgs = localOpt;
-        var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
+        var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
         var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
         var idx = -1;
@@ -1374,7 +1396,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
         if (!joint.util.isFunction(routerFn)) {
-            throw new Error('unknown router: "' + router.name + '"');
+            throw new Error('dia.LinkView: unknown router: "' + router.name + '".');
         }
 
         var args = router.args || {};
@@ -1403,7 +1425,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var connectorFn = joint.util.isFunction(connector) ? connector : namespace[connector.name];
         if (!joint.util.isFunction(connectorFn)) {
-            throw new Error('unknown connector: "' + connector.name + '"');
+            throw new Error('dia.LinkView: unknown connector: "' + connector.name + '".');
         }
 
         var args = joint.util.clone(connector.args || {});
@@ -1696,9 +1718,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     getLabelCoordinates: function(labelPosition) {
 
-        var labelDistance = 0;
+        var labelDistance;
         if (typeof labelPosition === 'number') labelDistance = labelPosition;
-        else if (labelPosition.distance) labelDistance = labelPosition.distance;
+        else if (typeof labelPosition.distance === 'number') labelDistance = labelPosition.distance;
+        else throw new Error('dia.LinkView: invalid label position distance.');
 
         var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
 
@@ -1966,8 +1989,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
         var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
-        var labelPositionArgs = this._getLabelPositionArgs();
-        var positionArgs = this._mergeLabelPositionArgs(defaultLabelPositionArgs, labelPositionArgs);
+        var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
+        var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
         this.eventData(evt, {
             action: 'label-move',
