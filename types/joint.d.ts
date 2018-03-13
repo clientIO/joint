@@ -446,11 +446,11 @@ export namespace dia {
         target(): Point | { id: string | number, selector?: string, port?: string } | null | undefined;
         target(target: Point | { id: string | number, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        router(): routers.Router | routers.RouterJSON | undefined;
+        router(): routers.Router | routers.RouterJSON | null;
         router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
         router(name: routers.RouterType, args?: routers.RouterArguments, opt?: Cell.Options): this;
 
-        connector(): connectors.Connector | connectors.ConnectorJSON | undefined;
+        connector(): connectors.Connector | connectors.ConnectorJSON | null;
         connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: Cell.Options): this;
         connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: Cell.Options): this;
 
