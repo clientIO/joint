@@ -113,10 +113,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (source === undefined) {
-            source = this.get('source');
-            if (!source) return source;
-            if (typeof source === 'object') return joint.util.clone(source);
-            return source;
+            return joint.util.clone(this.get('source'));
         }
 
         // setter
@@ -127,10 +124,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (target === undefined) {
-            target = this.get('target');
-            if (!target) return target;
-            if (typeof target === 'object') return joint.util.clone(target);
-            return target;
+            return joint.util.clone(this.get('target'));
         }
 
         // setter
@@ -143,8 +137,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         if (name === undefined) {
             router = this.get('router');
             if (!router) {
-                if (this.get('manhattan')) router = { name: 'orthogonal' }; // backwards compatibility
-                return router;
+                if (this.get('manhattan')) return { name: 'orthogonal' }; // backwards compatibility
+                return null;
             }
             if (typeof router === 'object') return joint.util.clone(router);
             return router; // e.g. a function
@@ -164,8 +158,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         if (name === undefined) {
             connector = this.get('connector');
             if (!connector) {
-                if (this.get('smooth')) connector = { name: 'smooth' }; // backwards compatibility
-                return connector;
+                if (this.get('smooth')) return { name: 'smooth' }; // backwards compatibility
+                return null;
             }
             if (typeof connector === 'object') return joint.util.clone(connector);
             return connector; // e.g. a function
