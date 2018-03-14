@@ -439,7 +439,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var model = this.model;
         var modelAttrs = model.attr();
         this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
-            rootBBox: g.Rect(model.size()),
+            rootBBox: new g.Rect(model.size()),
+            selectors: this.selectors,
             scalableNode: this.scalableNode,
             rotatableNode: this.rotatableNode,
             // Use rendering only attributes if they differs from the model attributes

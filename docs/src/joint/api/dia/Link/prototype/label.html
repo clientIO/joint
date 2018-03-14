@@ -7,6 +7,24 @@
 <p>Example usage:
 
 <pre><code>link.label(0, {
+    markup: [
+        {
+            tagName: 'rect',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }
+    ],
+    attrs: {
+        body: {
+            fill: 'white' // white background
+        },
+        label: {
+            text: 'my label', // text to show
+            fill: 'blue' // blue text
+        }
+    },
     position: {
         distance: 0.5, // midway on the connection path
         offset: {
@@ -14,20 +32,23 @@
             y: -5 // 5 local y units above
         }
     }
-    attrs: {
-        rect: { fill: 'white' }, // white background
-        text: { fill: 'blue', text: 'my label' } // blue text
-    }
 });</code></pre>
 
-<p>Note that all labels are stored in an array on the link model under the attribute <code>labels</code>. Use the <code>link.labels</code> <a href="joint.html#dia.Link.prototype.labels">function</a> to access the array.</p>
+<p>Note that all labels are stored in an array on the link model under the attribute <code>labels</code>. Use the <code>link.labels</code> <a href="#dia.Link.prototype.labels">function</a> to access the array.</p>
 
-<p>One link can have multiple labels, and each label can have different properties, summarized in the following schema:</p>
+<h3>Label Properties</h3>
+
+<p>One link can have multiple labels, and each label can have different properties. Properties recognized by JointJS are summarized in the following TypeScript-like schema:</p>
 
 <pre><code>{
-    markup?: string,
+    markup?: string | Array&lt;{
+        tagName: SVGElement,
+        selector?: string
+    }&gt;,
     attrs?: {
-        [key: CSS selector]: SVG attributes | JointJS attributes
+        [key: selector]: {
+            [key: SVG attribute | JointJS attribute]: any
+        } | null
     },
     position?: number | {
         distance?: number,
@@ -40,9 +61,21 @@
     }
 }</code></pre>
 
-<p>The <code>markup</code> property specifies the HTML markup of the label. If it is not provided, a default is chosen according to <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a>. If your link type does not define <code>defaultLabel.markup</code>, the builtin default markup is used, which contains a <code>&lt;rect&gt;</code> element followed by a <code>&lt;text&gt;</code> element.</p>
+<h4>Label Markup</h4>
 
-<p>The <code>attrs</code> property is an object with CSS selectors (referring to SVG elements specified in <code>markup</code>) as keys and SVG attributes as values. If the builtin default markup is used, several <code>attrs</code> are applied for reasons of backwards compatibility. See <code>Link</code> <a href="joint.html#dia.Link.intro">documentation</a> for more information.</p>
+<p>The <code>markup</code> property specifies the markup of the label. It can be provided either as a parsable SVG (e.g. <code>'&lt;rect /&gt;&lt;text /&gt;'</code>), or as a JSON array (e.g.<code>[{ tagName: 'rect' }, { tagName: 'text' }]</code>). The JSON allows the user to specify custom selectors for the SVGElements; these can then be used for targeting elements from within the <code>attrs</code> property.</p>
+
+<p>If <code>markup</code> is not provided on the label, markup is taken from the Link type's <code>defaultLabel.markup</code> property. A custom Link type can be created by the user, providing a <code>defaultLabel</code> (see the <code>Link</code> <a href="#dia.Link.intro">documentation</a> for more information). However, if the used link type does not provide <code>defaultLabel.markup</code> (this includes <code>joint.dia.Link</code> and <code>joint.shapes.standard.Link</code>), the builtin default Link markup is used, which defines markup as a JSON array with a <code>'body'</code> (a <code>&lt;rect&gt;</code> SVGElement) under a <code>'label'</code> (a <code>&lt;text&gt;</code> SVGElement).</p>
+
+<h4>Label Attributes</h4>
+
+<p>The <code>attrs</code> property is an object where the keys are CSS selectors (referring to custom selectors or SVGElements specified in <code>markup</code>, e.g. <code>body</code> in the above example). They are expected to contain objects that specify native SVG and/or JointJS special attributes (e.g. <code>fill</code>), alongside the value to be assigned (e.g. <code>'white'</code>).</p>
+
+<p>If the Link type provides <code>defaultLabel.attrs</code>, these attrs are merged with <code>label.attrs</code>. This allows you to reference selectors from <code>defaultLabel.markup</code> in <code>label.attrs</code> and, for example, simply add an attribute (<code>attrs: { body: { stroke: 'black' } }</code>).</p>
+
+<p>If the builtin default markup is used (i.e. no custom <code>label.markup</code> was provided, and no <code>defaultLabel.markup</code>), several builtin default <code>attrs</code> are applied for reasons of backwards compatibility. These are merged with <code>defaultLabel.attrs</code> (if present on the Link prototype) and then <code>label.attrs</code> (if provided). See <code>Link</code> <a href="#dia.Link.intro">documentation</a> for more information.</p>
+
+<h4>Label Position</h4>
 
 <p>Finally, the <code>position</code> property specifies the position of the label, relative to the SVG path of the link. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>args</code> properties. If no <code>position</code> is provided, the builtin default (<code>{ distance: 0.5 }</code>) is used to maintain backwards compatibility.</p>
 
@@ -126,7 +159,7 @@
                 <tr>
                     <th>args</th>
                     <td>
-                        <p>Optional. An object with boolean options for the <code>linkView.getLabelPosition()</code> <a href="joint.html#dia.linkView.prototype.getLabelPosition">function</a>.</p>
+                        <p>Optional. An object with boolean options for the <code>linkView.getLabelPosition()</code> <a href="#dia.linkView.prototype.getLabelPosition">function</a>.</p>
                         <table>
                             <tr>
                                 <th>absoluteDistance</th>

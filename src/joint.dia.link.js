@@ -62,20 +62,31 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // private
     _builtins: {
-        // merged with default label props and individual label props
         defaultLabel: {
-            markup: '<rect /><text />',
-            // only used if builtin label markup is used
+            // builtin default markup:
+            // used if neither defaultLabel.markup
+            // nor label.markup is set
+            markup: [
+                {
+                    tagName: 'rect',
+                    selector: 'body'
+                }, {
+                    tagName: 'text',
+                    selector: 'label'
+                }
+            ],
+            // builtin default attributes:
+            // applied only if builtin default markup is used
             attrs: {
-                text: {
-                    textAnchor: 'middle',
-                    fontSize: 14,
+                label: {
                     fill: '#000000',
-                    pointerEvents: 'none',
-                    yAlignment: 'middle'
+                    fontSize: 14,
+                    textAnchor: 'middle',
+                    yAlignment: 'middle',
+                    pointerEvents: 'none'
                 },
-                rect: {
-                    ref: 'text',
+                body: {
+                    ref: 'label',
                     fill: '#ffffff',
                     rx: 3,
                     ry: 3,
@@ -85,7 +96,9 @@ joint.dia.Link = joint.dia.Cell.extend({
                     refY: 0
                 }
             },
-            // default position for any markup
+            // builtin default position:
+            // used if neither defaultLabel.position
+            // nor label.position is set
             position: {
                 distance: 0.5
             }
@@ -632,22 +645,64 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.vel.append(children);
     },
 
-    // Label markup may come wrapped in <g class="label" />, or not.
-    // If it doesn't, add the <g> container here.
-    _normalizeLabelMarkup: function(labelMarkup) {
+    _getLabelMarkup: function(labelMarkup) {
 
-        if (!labelMarkup) throw new Error('dia.LinkView: no label markup provided.');
+        if (!labelMarkup) return undefined;
 
-        var node = V(labelMarkup);
-        if (Array.isArray(node) || node.tagName() !== 'G') {
-            // default markup is not wrapped in <g class="label" />
-            // add a <g class="label" /> container
-            node = V('g').append(node);
+        if (Array.isArray(labelMarkup)) return this._getLabelJSONMarkup(labelMarkup);
+        if (typeof labelMarkup === 'string') return this._getLabelStringMarkup(labelMarkup);
+        throw new Error('dia.linkView: invalid label markup');
+    },
+
+    _getLabelJSONMarkup: function(labelMarkup) {
+
+        return joint.util.parseDOMJSON(labelMarkup); // fragment and selectors
+    },
+
+    _getLabelStringMarkup: function(labelMarkup) {
+
+        var children = V(labelMarkup);
+        var fragment = document.createDocumentFragment();
+
+        if (!Array.isArray(children)) {
+            fragment.append(children.node);
+
+        } else {
+            for (var i = 0, n = children.length; i < n; i++) {
+                var currentChild = children[i].node;
+                fragment.appendChild(currentChild);
+            }
         }
 
-        node.addClass('label');
+        return { fragment: fragment, selectors: {} }; // no selectors
+    },
 
-        return node;
+    // Label markup fragment may come wrapped in <g class="label" />, or not.
+    // If it doesn't, add the <g /> container here.
+    _normalizeLabelMarkup: function(markup) {
+
+        if (!markup) return undefined;
+
+        var fragment = markup.fragment;
+        if (!(markup.fragment instanceof DocumentFragment) || !markup.fragment.hasChildNodes()) throw new Error('dia.LinkView: invalid label markup.');
+
+        var vNode;
+        var childNodes = fragment.childNodes;
+
+        if ((childNodes.length > 1) || childNodes[0].nodeName.toUpperCase() !== 'G') {
+            // default markup fragment is not wrapped in <g />
+            // add a <g /> container
+
+            vNode = V('g');
+            vNode.append(fragment);
+            vNode.addClass('label');
+
+        } else {
+            vNode = V(childNodes[0]);
+            vNode.addClass('label');
+        }
+
+        return { node: vNode.node, selectors: markup.selectors };
     },
 
     renderLabels: function() {
@@ -655,6 +710,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var cache = this._V;
         var vLabels = cache.labels;
         var labelCache = this._labelCache = {};
+        var labelSelectors = this._labelSelectors = {};
 
         if (vLabels) vLabels.empty();
 
@@ -669,25 +725,37 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
         }
 
-        var defaultLabel = model._getDefaultLabel();
-        var builtinDefaultLabel = model._builtins.defaultLabel;
-
-        // prepare an instance of a vectorized SVGDOM node for default label element
-        // all labels can then just `clone()` this node to create a duplicate
-        var defaultNode = this._normalizeLabelMarkup(defaultLabel.markup || builtinDefaultLabel.markup);
-
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
-            var labelMarkup = label.markup;
+            var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
 
             var node;
-            if (labelMarkup) node = this._normalizeLabelMarkup(labelMarkup)
-            else node = defaultNode.clone();
+            var selectors;
+            if (labelMarkup) {
+                node = labelMarkup.node;
+                selectors = labelMarkup.selectors;
 
-            node.attr('label-idx', i); // assign label-idx
-            node.appendTo(vLabels);
-            labelCache[i] = node; // cache node so `updateLabels()` can just update label node positions
+            } else {
+                var builtinDefaultLabel =  model._builtins.defaultLabel;
+                var builtinDefaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(builtinDefaultLabel.markup));
+
+                var defaultLabel = model._getDefaultLabel();
+                var defaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(defaultLabel.markup));
+
+                var defaultMarkup = defaultLabelMarkup || builtinDefaultLabelMarkup;
+
+                node = defaultMarkup.node;
+                selectors = defaultMarkup.selectors;
+            }
+
+            var vLabel = V(node);
+            vLabel.attr('label-idx', i); // assign label-idx
+            vLabel.appendTo(vLabels);
+            labelCache[i] = vLabel; // cache node for `updateLabels()` so it can just update label node positions
+
+            selectors['root'] = vLabel.node;
+            labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
         }
 
         this.updateLabels();
@@ -737,6 +805,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var vLabel = this._labelCache[i];
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
+            var selectors = this._labelSelectors[i];
+
             var label = labels[i];
             var labelMarkup = label.markup;
             var labelAttrs = label.attrs;
@@ -749,7 +819,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             );
 
             this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
-                rootBBox: new g.Rect(label.size)
+                rootBBox: new g.Rect(label.size),
+                selectors: selectors
             });
         }
 
@@ -846,7 +917,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateConnection(opt);
 
         // update SVG attributes defined by 'attrs/'.
-        this.updateDOMSubtreeAttributes(this.el, this.model.attr());
+        this.updateDOMSubtreeAttributes(this.el, this.model.attr(), { selectors: this.selectors });
 
         this.updateDefaultConnectionPath();
 
@@ -1358,7 +1429,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var connection;
         if (typeof selector === 'string') {
             // Use custom connection path.
-            connection = this.findBySelector(selector)[0];
+            connection = this.findBySelector(selector, this.el, this.selectors)[0];
         } else {
             // Select connection path automatically.
             var cache = this._V;

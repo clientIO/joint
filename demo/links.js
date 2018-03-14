@@ -52,30 +52,42 @@ $('#perpendicularLinks').on('change', function() {
 // custom link definition
 var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     defaultLabel: {
-        markup: '<circle /><text />',
+        markup: [
+            {
+                tagName: 'circle',
+                selector: 'body'
+            }, {
+                tagName: 'text',
+                selector: 'label'
+            }
+        ],
         attrs: {
-            text: {
+            label: {
                 text: '%', // default label text
-                textAnchor: 'middle',
+                fill: '#ff0000', // default text color
                 fontSize: 14,
-                fill: '#ff0000',
-                pointerEvents: 'none',
-                yAlignment: 'middle'
+                textAnchor: 'middle',
+                yAlignment: 'middle',
+                pointerEvents: 'none'
             },
-            circle: {
-                ref: 'text',
-                refR: 1,
-                refCx: 0,
-                refCy: 0,
+            body: {
+                ref: 'label',
                 fill: '#ffffff',
                 stroke: '#000000',
-                strokeWidth: 1
+                strokeWidth: 1,
+                refR: 1,
+                refCx: 0,
+                refCy: 0
             }
         },
         position: {
             distance: 0.5, // place label at midpoint by default
-            offset: { y: -20 }, // offset labels by 20px upwards by default
-            args: { absoluteOffset: true } // keep offset absolute when moving by default
+            offset: {
+                y: -20 // offset label by 20px upwards by default
+            },
+            args: {
+                absoluteOffset: true // keep offset absolute when moving by default
+            }
         }
     }
 });
@@ -321,26 +333,37 @@ var link7 = new CustomLink({
     },
     labels: [
         {
-            attrs: { text: { text: '1..n' } },
+            attrs: {
+                label: {
+                    text: '1..n'
+                }
+            },
             position: {
                 distance: 29, // individual absolute positioning
                 offset: null, // remove default offset
-                args: { absoluteOffset: null } // disable absolute offset when moving
+                args: {
+                    absoluteOffset: null // disable absolute offset when moving
+                }
             }
         },
         {
-
-            markup: '<rect /><text />', // individual markup
+            markup: [  // individual markup
+                {
+                    tagName: 'rect',
+                    selector: 'body'
+                }, {
+                    tagName: 'text',
+                    selector: 'label'
+                }
+            ],
             attrs: {
-                text: {
+                label: {
                     text: 'JointJS',
                     fill: 'white',
                     fontFamily: 'sans-serif',
                     textAnchor: 'left'
                 },
-                circle: null, // erase default `circle` attr (it is not used)
-                rect: {
-                    ref: 'text',
+                body: {
                     stroke: 'red',
                     strokeWidth: 2,
                     fill: '#F39C12',
@@ -349,31 +372,43 @@ var link7 = new CustomLink({
                     refWidth: '140%',
                     refHeight: '140%',
                     refX: '-20%',
-                    refY: '-20%'
+                    refY: '-20%',
+                    refR: null,
+                    refCx: null,
+                    refCy: null
                 }
             },
             position: {
                 // keep default distance
-                offset: { x: 10, y: 25 } // individual absolute offset
+                offset: { // individual absolute offset
+                    x: 10,
+                    y: 25
+                }
                 // keep default args
             }
         },
         {
-            markup: '<circle /><path />', // individual markup
+            markup: [
+                {
+                    tagName: 'circle',
+                    selector: 'body'
+                }, {
+                    tagName: 'path',
+                    selector: 'symbol'
+                }
+            ],
             attrs: {
-                text: null, // erase default `text` attr (it is not used)
-                circle: {
-                    // erase unused `circle` default attrs
+                body: {
                     ref: null,
-                    refR: null,
-                    refCx: null,
-                    refCy: null,
-                    r: 15,
                     fill: 'lightgray',
                     stroke: 'black',
-                    strokeWidth: 2
+                    strokeWidth: 2,
+                    r: 15,
+                    refR: null,
+                    refCx: null,
+                    refCy: null
                 },
-                path: { // add attrs for individually added `path`
+                symbol: { // add attrs for individually added `path`
                     d: 'M 0 -15 0 -35 20 -35',
                     stroke: 'black',
                     strokeWidth: 2,
