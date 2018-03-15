@@ -1,4 +1,4 @@
-<p>The basic model for diagram links. It inherits from <a href="joint.html#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
+<p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
 
 <p>Links have two crucial attributes: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined as an element id or as a Point:</p>
 
@@ -15,17 +15,17 @@ var link2 = new joint.dia.Link({
 <p>These are not the only attributes that may be specified for a newly-created <code>joint.dia.Link</code>, however. An individual link instance may provide a value for these attributes:</p>
 
 <ul>
-    <li><code>markup</code> - provide custom link markup. May be specified as an SVG string or JSON array.</li>
+    <li><code>markup</code> - provide custom link markup. May be specified as an <a href="#dia.Cell.markup">XML string or JSON array</a>.</li>
     <li><code>attrs</code> - provide custom link attributes. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
-    <li><code>vertices</code> - provide an array of <a href="joint.html#dia.Link.prototype.vertex">vertices</a>.</li>
+    <li><code>vertices</code> - provide an array of <a href="#dia.Link.prototype.vertex">vertices</a>.</li>
     <li><code>vertexMarkup</code> - provide custom vertex markup (on hover).</li>
     <li><code>toolMarkup</code> - provide custom tool markup (on hover).</li>
     <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
     <li><code>arrowheadMarkup</code> - provide custom arrowhead markup (on hover).</li>
-    <li><code>labels</code> - provide an array of <a href="joint.html#dia.Link.prototype.label">labels</a>. Each can have its own markup, position, and attrs specified.</li>
+    <li><code>labels</code> - provide an array of <a href="#dia.Link.prototype.label">labels</a>. Each can have its own markup, position, and attrs specified.</li>
 </ul>
 
-<p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="joint.html#dia.LinkView.intro">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
+<p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="#dia.LinkView.intro">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
 
 <pre><code>var CustomLinkView = joint.dia.LinkView.extend({
     contextmenu: function(evt, x, y) {
@@ -50,7 +50,7 @@ var paper = new joint.dia.Paper({
 
 var link1 = new joint.dia.Link({
     //...
-    customLinkInteractions: true
+    customLinkInteractions: true // right-click adds a label
 });
 
 var link2 = new joint.dia.Link({
@@ -58,14 +58,12 @@ var link2 = new joint.dia.Link({
     customLinkInteractions: false // or omit completely
 });</code></pre>
 
-<p>Note that if a label instance on the link has custom <code>markup</code> defined, extraneous selectors may be introduced to <code>label.attrs</code> through a merge with <code>defaultLabel.attrs</code> (see below). If that is undesirable, overwrite unused selector objects from <code>defaultLabel.attrs</code> with <code>null</code> values.</p>
-
 <h4>Custom Link</h4>
 
 <p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override Link properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link attributes are applicable in this context:</p>
 
 <ul>
-    <li><code>markup</code> - provide default link markup for all instances of this Link type. May be specified as an SVG string or JSON array.</li>
+    <li><code>markup</code> - provide default link markup for all instances of this Link type. May be specified as an <a href="#dia.Cell.markup">XML string or JSON array</a>.</li>
     <li><code>attrs</code> - provide default link attributes for all instances of this Link type. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
     <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
     <li><code>toolMarkup</code> - provide custom tool markup for all instances of this Link type (on hover).</li>
@@ -74,37 +72,47 @@ var link2 = new joint.dia.Link({
     <li><code>defaultLabel</code> - provide default properties (markup, attrs, position) for all labels created on an instance of this Link type.</li>
 </ul>
 
-<p>The values of these defaults may be important; the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
+<p>The values of these defaults may be important; the <code>linkView.addLabel()</code> <a href="#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
 
 <p>Example:</p>
 
 <pre><code>var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     defaultLabel: {
-        markup: '&lt;circle /&gt;&lt;text /&gt;',
+        markup: [
+            {
+                tagName: 'circle',
+                selector: 'body'
+            }, {
+                tagName: 'text',
+                selector: 'label'
+            }
+        ],
         attrs: {
-            text: {
-                textAnchor: 'middle',
+            label: {
+                text: '%', // default label text
+                fill: '#ff0000', // default text color
                 fontSize: 14,
-                fill: '#ff0000',
-                text: '%',
-                pointerEvents: 'none',
-                yAlignment: 'middle'
+                textAnchor: 'middle',
+                yAlignment: 'middle',
+                pointerEvents: 'none'
             },
-            circle: {
-                ref: 'text',
-                refR: 1,
-                refCx: 0,
-                refCy: 0,
+            body: {
+                ref: 'label',
                 fill: '#ffffff',
                 stroke: '#000000',
-                strokeWidth: 1
+                strokeWidth: 1,
+                refR: 1,
+                refCx: 0,
+                refCy: 0
             }
         },
         position: {
-            offset: -20,
+            distance: 0.5, // place label at midpoint by default
+            offset: {
+                y: -20 // offset label by 20px upwards by default
+            },
             args: {
-                absoluteDistance: true,
-                reverseDistance: true
+                absoluteOffset: true // keep offset absolute when moving by default
             }
         }
     }
@@ -114,24 +122,30 @@ var link = new CustomLink({
     //...
 });</code></pre>
 
-<h4>Builtin Default Attributes for Default Markup</h4>
+<h4>Builtin Default Attributes</h4>
 
-<p>Deprecated.</p>
+<p>To ensure backwards compatibility, the <code>joint.dia.Link</code> class comes with a private builtin <code>defaultLabel</code> attribute. It is reproduced here for reference:</p>
 
-<p>To ensure backwards compatibility, when using default markup (i.e. not providing own <code>markup</code> as a type default or as an instance value), builtin default attributes are applied. They are presented here for completeness; if you need to specify your own attributes for default <code>joint.dia.Link</code> markup, remember to overwrite these values or to remove them by passing <code>null</code>:</p>
-
-<pre><code>// backwards compatibility
-// merged with default label properties and individual label properties
-// only used if builtin label markup has not been overridden
-defaultLabel: {
-    markup: '&lt;rect /&gt;&lt;text /&gt;',
+<pre><code>defaultLabel: {
+    // builtin default markup:
+    // used if neither defaultLabel.markup
+    // nor label.markup is set
+    markup: [
+        {
+            tagName: 'rect'
+        }, {
+            tagName: 'text'
+        }
+    ],
+    // builtin default attributes:
+    // applied only if builtin default markup is used
     attrs: {
         text: {
-            textAnchor: 'middle',
-            fontSize: 14,
             fill: '#000000',
-            pointerEvents: 'none',
-            yAlignment: 'middle'
+            fontSize: 14,
+            textAnchor: 'middle',
+            yAlignment: 'middle',
+            pointerEvents: 'none'
         },
         rect: {
             ref: 'text',
@@ -143,7 +157,15 @@ defaultLabel: {
             refX: 0,
             refY: 0
         }
+    },
+    // builtin default position:
+    // used if neither defaultLabel.position
+    // nor label.position is set
+    position: {
+        distance: 0.5
     }
 }</code></pre>
 
-<p>The use of default <code>joint.dia.Link</code> markup is deprecated. Instead, use one of the <code>joint.shapes.standard</code> Link types, or create a custom Link subtype with new default <code>markup</code>.</p>
+<p>If custom <code>position</code> object is not provided (neither as a type default nor as an instance value), builtin default label position is applied instead (<code>{ distance: 0.5 }</code>).</p>
+
+<p>Furthermore, if custom <code>markup</code> is not provided (neither as a type default nor as an instance value), builtin default label markup is applied, alongside the builtin default label attrs object. However, it is very highly recommended that you provide both your own <code>markup</code> and your own <code>attrs</code> - unless you want to use the builtin default precisely as-is.</p>

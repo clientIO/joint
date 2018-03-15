@@ -792,13 +792,12 @@ joint.dia.CellView = joint.mvc.View.extend({
                 (joint.util.isBoolean(interactive) && interactive !== false);
     },
 
-    findBySelector: function(selector, root) {
+    findBySelector: function(selector, root, selectors) {
 
         root || (root = this.el);
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
-        var selectors = this.selectors;
         if (selectors && selectors[selector]) return [selectors[selector]];
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
@@ -1132,15 +1131,20 @@ joint.dia.CellView = joint.mvc.View.extend({
         return { sx: sx, sy: sy };
     },
 
-    findNodesAttributes: function(attrs, root, selectorCache) {
+    findNodesAttributes: function(attrs, root, selectorCache, selectors) {
 
         // TODO: merge attributes in order defined by `index` property
+
+        // most browsers sort elements in attrs by order of addition
+        // which is useful but not required
+
+        // link.updateLabels() relies on that assumption for merging label attrs over default label attrs
 
         var nodesAttrs = {};
 
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
-            var selected = selectorCache[selector] = this.findBySelector(selector, root);
+            var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
             for (var i = 0, n = selected.length; i < n; i++) {
                 var node = selected[i];
                 var nodeId = V.ensureId(node);
@@ -1149,8 +1153,11 @@ joint.dia.CellView = joint.mvc.View.extend({
                 if (prevNodeAttrs) {
                     if (!prevNodeAttrs.merged) {
                         prevNodeAttrs.merged = true;
-                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes);
+                        // if prevNode attrs is `null`, replace with `{}`
+                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes) || {};
                     }
+                    // if prevNode attrs not set (or `null` or`{}`), use node attrs
+                    // if node attrs not set (or `null` or `{}`), use prevNode attrs
                     joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
                     nodesAttrs[nodeId] = {
@@ -1171,6 +1178,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         opt || (opt = {});
         opt.rootBBox || (opt.rootBBox = g.Rect());
+        opt.selectors || (opt.selectors = this.selectors); // selector collection to use
 
         // Cache table for query results and bounding box calculation.
         // Note that `selectorCache` needs to be invalidated for all
@@ -1183,11 +1191,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         var item, node, nodeAttrs, nodeData, processedAttrs;
 
         var roAttrs = opt.roAttributes;
-        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache);
+        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache, opt.selectors);
         // `nodesAttrs` are different from all attributes, when
         // rendering only  attributes sent to this method.
         var nodesAllAttrs = (roAttrs)
-            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache)
+            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
             : nodesAttrs;
 
         for (var nodeId in nodesAttrs) {
@@ -1209,9 +1217,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 var refNode;
                 if (refSelector) {
-                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode, opt.selectors))[0];
                     if (!refNode) {
-                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exist.');
                     }
                 } else {
                     refNode = null;

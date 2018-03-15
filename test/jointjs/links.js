@@ -743,26 +743,62 @@ QUnit.module('links', function(hooks) {
             updateSpy.reset();
 
 
-            l.prop('labels/0/attrs/text/text', 'label3');
+            l.prop('labels/0/attrs/text/text', 'label3', { rewrite: true });
             assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
             renderSpy.reset();
             updateSpy.reset();
 
-            l.prop('labels/0', { attrs: { text: { text: 'label4' }}});
+            l.prop('labels/0', { attrs: { text: { text: 'label4' }}}, { rewrite: true });
             assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
             renderSpy.reset();
             updateSpy.reset();
 
-            l.prop('labels/1', { markup: '<rect/><text/>' });
+            l.prop('labels/1', { markup: '<rect/><text/>' }, { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
             renderSpy.reset();
             updateSpy.reset();
 
-            l.prop('labels/0/markup', '<rect/><text/>');
+            l.prop('labels/0/markup', '<rect/><text/>', { rewrite: true });
             assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/1', { markup: [{ tagName: 'rect' }, { tagName: 'text' }] }, { rewrite: true });
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/0/markup', [{ tagName: 'rect' }, { tagName: 'text' }], { rewrite: true });
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/1', { markup: [{ tagName: 'rect', selector: 'body' }, { tagName: 'text', selector: 'label' }] }, { rewrite: true });
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/0/markup', [{ tagName: 'rect', selector: 'body' }, { tagName: 'text', selector: 'label' }], { rewrite: true });
+            assert.ok(renderSpy.calledOnce);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/0/attrs/label/text', 'label3', { rewrite: true });
+            assert.ok(renderSpy.notCalled);
+            assert.ok(updateSpy.calledOnce);
+            renderSpy.reset();
+            updateSpy.reset();
+
+            l.prop('labels/0', { attrs: { label: { text: 'label4' }}}, { rewrite: true });
+            assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
             renderSpy.reset();
             updateSpy.reset();
