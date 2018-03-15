@@ -29,17 +29,16 @@
             }
         }
     });
-    rect.addTo(graph);
 
     var rect2 = rect.clone();
-    rect2.translate(300, 0);
-    rect2.attr('label/text', 'World!');
-    rect2.addTo(graph);
+    rect.translate(300, 0);
+    rect.attr('label/text', 'World!');
 
     var link = new joint.shapes.standard.Link();
     link.source({ id: rect.id });
     link.target({ id: rect2.id });
-    link.addTo(graph);
+
+    graph.addCells([rect, rect2, link]);
 
     graph.on('all', function(eventName, cell) {
         console.log(arguments);

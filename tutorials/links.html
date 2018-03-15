@@ -48,8 +48,8 @@
             <div class="paper" id="paper-elements"></div>
 
             <p>In this section, we are going to understand the other crucial building block of JointJS diagrams - links.
-                This is an introduction to links as they appear in the Hello, World! application; more advanced topics
-                are covered later in the tutorial series.
+                This is an introduction to links as they appear in the Hello, World! application;
+                <a href="custom-links.html">more advanced topics are covered later in the tutorial series</a>.
                 We will continue with the code we modified in the previous section:</p>
 
             <pre class="line-numbers" data-line="71-74,115-118,161-164" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
@@ -320,6 +320,8 @@
             <p>For example, we can change the color of a link by changing the <code>stroke</code> color attribute on the
                 <code>line</code> selector:</p>
 
+            <div class="paper" id="paper-links-attr"></div>
+
             <pre><code>link.attr('line/stroke', 'orange');</code></pre>
 
             <p>The same effect can be achieved by passing a single object argument to <code>link.attr</code>:</p>
@@ -330,22 +332,122 @@
     }
 });</code></pre>
 
-            <p>Finally, JointJS supports links labels as another way to modify the presentation of the link:</p>
+            <p>JointJS also supports link labels:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels()</code></a>
                     - sets the <code>labels</code> array of the link.
-                    Labels have <code>position</code>, <code>markup</code> and <code>attrs</code> properties.</li>
+                    Labels have <code>markup</code>, <code>attrs</code>, and <code>position</code> properties.</li>
             </ul>
 
-            <p>The labels have position <code>0.5</code> by default. This means that they are positioned in the center
-                of the link.</p>
+            <p>A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
+                class, from which the <code>joint.shapes.standard.Link</code> type inherits it.
+                The builtin default label has two selectors defined:
+                <code>label</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
+                <code>body</code> (a <code>&lt;rect&gt;</code> SVGElement for label background).
+                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                Thus, adding a label can be as simple as passing a value for the <code>label/text</code> attribute:</p>
 
-            <p>Now, let's have some fun with our links:</p>
+            <div class="paper" id="paper-links-builtin-label"></div>
+
+            <pre><code>link.labels([{
+    attrs: {
+        label: {
+            text: 'Hello world'
+        }
+    }
+}]);</code></pre>
+
+            <p>Note that we can also use the
+                <a href="/docs/jointjs#dia.Link.prototype.appendLabel" target="_blank"><code>link.appendLabel()</code></a>
+                convenience function to add our label to the link:</p>
+
+            <pre><code>link.appendLabel({
+    attrs: {
+        label: {
+            text: 'Hello world'
+        }
+    }
+});</code></pre>
+
+            <p>Labels are positioned at the center point of the link (<code>distance</code> of 0.5) by default.
+                Three kinds of <code>distance</code> values are recognized for custom <code>position</code>.
+                A value between 0 and 1 causes the label to be positioned relatively to link length.
+                Positive values signify absolute position in pixels away from start point.
+                Finally, negative values mean absolute position away from end point:</p>
+
+            <div class="paper" id="paper-links-label-distance"></div>
+
+            <pre><code>link.appendLabel({
+    attrs: {
+        label: {
+            text: '0.1'
+        }
+    },
+    position: {
+        distance: 0.1
+    }
+});
+
+link.appendLabel({
+    attrs: {
+        label: {
+            text: '30'
+        }
+    },
+    position: {
+        distance: 30
+    }
+});
+
+link.appendLabel({
+    attrs: {
+        label: {
+            text: '-10'
+        }
+    },
+    position: {
+        distance: -10
+    }
+});</code></pre>
+
+            <p>While we are positioning our label, we also have to mention label offsets.
+                Alongside <code>distance</code>, the <code>position</code> property also accepts an
+                <code>offset</code> property.
+                A positive number is offset relatively and to the right of the link, while a negative number is offset
+                to the left.
+                An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
+                in the two dimensions.
+                The following example illustrates these three options. (Note that all labels have the default
+                <code>position.distance</code> of <code>0.5</code>; it is just the <code>offset</code> that
+                changes.)</p>
+
+            <div class="paper" id="paper-links-label-offset"></div>
+
+            <pre><code>
+</code></pre>
+
+            <p>Of course, it is also possible to change the appearance of your labels.
+                Simply specify custom <code>markup</code> in JSON format and pass some <code>attrs</code>.
+                As a bonus, you can define custom selectors to identify components of your label.
+                Let's define a complex circular label that shows what JointJS can do:</p>
+
+            <div class="paper" id="paper-links-label-styling"></div>
+
+            <pre><code>
+</code></pre>
+
+            <p>The <code>ref</code> attributes are an example of JointJS special attributes.
+                <a href="special-attributes.html">These are discussed in detail later in the tutorial.</a></p>
+
+            <p>Now, let's have some fun with the links in our example:</p>
 
             <div class="paper" id="paper-links"></div>
 
-            <p>The full code to produce these shapes looks like this:</p>
+            <p>The full code to produce this diagram looks like this:</p>
+
+            <pre><code>
+</code></pre>
 
             <p>This concludes the introductory section of the JointJS tutorial!
                 Congratulations!
@@ -353,7 +455,7 @@
                 Now that you have seen the basics, you should be confident working with the most important building
                 blocks of JointJS - Graphs, Papers, Elements, and Links.</p>
 
-            <p><a href="links.html">The next step is to head over to the intermediate section of the tutorial, which
+            <p><a href="">The next step is to head over to the intermediate section of the tutorial, which
                 explains some handy but more involved concepts, including interaction, persistence, and extending
                 JointJS according to the needs of your application.</a></p>
 
@@ -407,6 +509,11 @@
 
         <script src="js/hello-world.js"></script>
         <script src="js/elements.js"></script>
+        <script src="js/links-attr.js"></script>
+        <script src="js/links-builtin-label.js"></script>
+        <script src="js/links-label-distance.js"></script>
+        <script src="js/links-label-offset.js"></script>
+        <script src="js/links-label-styling.js"></script>
         <script src="js/links.js"></script>
     </body>
 </html>

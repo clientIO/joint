@@ -215,9 +215,9 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('labels', labels, opt);
     },
 
-    addLabel: function (idx, label, opt) {
+    insertLabel: function (idx, label, opt) {
 
-        label = label || { position: 0 };
+        if (!label) throw new Error('dia.Link: no label provided');
 
         var labels = this.labels();
         var n = labels.length;
@@ -226,6 +226,13 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         labels.splice(idx, 0, label);
         return this.labels(labels, opt);
+    },
+
+    // convenience function
+    // add label to end of labels array
+    appendLabel: function (label, opt) {
+
+        return this.insertLabel(-1, label, opt);
     },
 
     removeLabel: function (idx, opt) {
@@ -265,9 +272,9 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('vertices', vertices, opt);
     },
 
-    addVertex: function (idx, vertex, opt) {
+    insertVertex: function (idx, vertex, opt) {
 
-        vertex = vertex || { x: 0, y: 0 };
+        if (!vertex) throw new Error('dia.Link: no vertex provided');
 
         var vertices = this.vertices();
         var n = vertices.length;
@@ -1555,8 +1562,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
         var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
-        var idx = -1;
-        this.model.addLabel(idx, label, localOpt);
+        this.model.appendLabel(idx, label, localOpt);
         return idx;
     },
 
@@ -1571,7 +1577,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var vertex = { x: localX, y: localY };
         var idx = this.getVertexIndex(localX, localY);
-        this.model.addVertex(idx, vertex, localOpt);
+        this.model.insertVertex(idx, vertex, localOpt);
         return idx;
     },
 
