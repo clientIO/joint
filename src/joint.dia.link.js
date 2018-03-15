@@ -756,7 +756,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             vLabel.appendTo(vLabels);
             labelCache[i] = vLabel; // cache node for `updateLabels()` so it can just update label node positions
 
-            selectors['root'] = vLabel.node;
+            selectors[this.selector] = vLabel.node;
             labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
         }
 
