@@ -132,25 +132,23 @@ var link = new CustomLink({
     // nor label.markup is set
     markup: [
         {
-            tagName: 'rect',
-            selector: 'body'
+            tagName: 'rect'
         }, {
-            tagName: 'text',
-            selector: 'label'
+            tagName: 'text'
         }
     ],
     // builtin default attributes:
     // applied only if builtin default markup is used
     attrs: {
-        label: {
+        text: {
             fill: '#000000',
             fontSize: 14,
             textAnchor: 'middle',
             yAlignment: 'middle',
             pointerEvents: 'none'
         },
-        body: {
-            ref: 'label',
+        rect: {
+            ref: 'text',
             fill: '#ffffff',
             rx: 3,
             ry: 3,

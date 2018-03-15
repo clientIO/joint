@@ -68,25 +68,23 @@ joint.dia.Link = joint.dia.Cell.extend({
             // nor label.markup is set
             markup: [
                 {
-                    tagName: 'rect',
-                    selector: 'body'
+                    tagName: 'rect'
                 }, {
-                    tagName: 'text',
-                    selector: 'label'
+                    tagName: 'text'
                 }
             ],
             // builtin default attributes:
             // applied only if builtin default markup is used
             attrs: {
-                label: {
+                text: {
                     fill: '#000000',
                     fontSize: 14,
                     textAnchor: 'middle',
                     yAlignment: 'middle',
                     pointerEvents: 'none'
                 },
-                body: {
-                    ref: 'label',
+                rect: {
+                    ref: 'text',
                     fill: '#ffffff',
                     rx: 3,
                     ry: 3,
@@ -442,6 +440,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     _labelCache: null,
+    _labelSelectors: null,
     _markerCache: null,
     _V: null,
     _dragData: null, // deprecated
@@ -463,6 +462,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
         // nodes in `updateLabelPosition()` in order to update the label positions.
         this._labelCache = {};
+
+        // a cache of label selectors
+        this._labelSelectors = {};
 
         // keeps markers bboxes and positions again for quicker access
         this._markerCache = {};
