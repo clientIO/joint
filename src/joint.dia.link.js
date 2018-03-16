@@ -1562,7 +1562,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
         var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
-        this.model.appendLabel(idx, label, localOpt);
+        var idx = -1;
+        this.model.insertLabel(idx, label, localOpt);
         return idx;
     },
 
