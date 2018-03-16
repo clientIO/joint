@@ -7,6 +7,11 @@
         model: graph,
         width: 600,
         height: 100,
+        gridSize: 10,
+        drawGrid: true,
+        background: {
+            color: 'rgba(0, 255, 0, 0.3)'
+        }
     });
 
     var link = new joint.shapes.standard.Link();
@@ -18,8 +23,4 @@
         }
     });
     link.addTo(graph);
-
-    graph.on('all', function(eventName, cell) {
-        console.log(arguments);
-    });
 }());

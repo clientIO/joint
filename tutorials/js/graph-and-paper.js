@@ -39,8 +39,4 @@
     link.source({ id: rect.id });
     link.target({ id: rect2.id });
     link.addTo(graph);
-
-    graph.on('all', function(eventName, cell) {
-        console.log(arguments);
-    });
 }());
