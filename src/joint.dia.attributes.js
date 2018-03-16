@@ -470,12 +470,23 @@
             set: setWrapper('ry', 'height')
         },
 
-        refR: {
+        refRInscribed: {
             set: (function(attrName) {
                 var widthFn = setWrapper(attrName, 'width');
                 var heightFn = setWrapper(attrName, 'height');
                 return function(value, refBBox) {
                     var fn = (refBBox.height > refBBox.width) ? widthFn : heightFn;
+                    return fn(value, refBBox);
+                }
+            })('r')
+        },
+
+        refRCircumscribed: {
+            set: (function(attrName) {
+                var widthFn = setWrapper(attrName, 'width');
+                var heightFn = setWrapper(attrName, 'height');
+                return function(value, refBBox) {
+                    var fn = (refBBox.height < refBBox.width) ? widthFn : heightFn;
                     return fn(value, refBBox);
                 }
             })('r')
@@ -549,6 +560,7 @@
     };
 
     // Aliases
+    attributesNS.refR = attributesNS.refRInscribed;
     attributesNS.refD = attributesNS.refDResetOffset;
     attributesNS.refPoints = attributesNS.refPointsResetOffset;
 

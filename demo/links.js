@@ -75,7 +75,7 @@ var CustomLink = joint.dia.Link.define('examples.CustomLink', {
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeWidth: 1,
-                refR: 1,
+                refRCircumscribed: '50%',
                 refCx: 0,
                 refCy: 0
             }
@@ -335,7 +335,7 @@ var link7 = new CustomLink({
         {
             attrs: {
                 label: {
-                    text: '1..n'
+                    text: 'aadfaopdhdos'
                 }
             },
             position: {
@@ -373,7 +373,7 @@ var link7 = new CustomLink({
                     refHeight: '140%',
                     refX: '-20%',
                     refY: '-20%',
-                    refR: null,
+                    refRCircumscribed: null,
                     refCx: null,
                     refCy: null
                 }
@@ -404,7 +404,7 @@ var link7 = new CustomLink({
                     stroke: 'black',
                     strokeWidth: 2,
                     r: 15,
-                    refR: null,
+                    refRCircumscribed: null,
                     refCx: null,
                     refCy: null
                 },
