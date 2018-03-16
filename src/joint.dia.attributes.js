@@ -482,14 +482,23 @@
         },
 
         refRCircumscribed: {
-            set: (function(attrName) {
-                var widthFn = setWrapper(attrName, 'width');
-                var heightFn = setWrapper(attrName, 'height');
-                return function(value, refBBox) {
-                    var fn = (refBBox.height < refBBox.width) ? widthFn : heightFn;
-                    return fn(value, refBBox);
+            set: function(value, refBBox) {
+                var isValuePercentage = util.isPercentage(value);
+                value = parseFloat(value);
+                if (isValuePercentage) {
+                    value /= 100;
                 }
-            })('r')
+
+                var diagonalLength = Math.sqrt((refBBox.height * refBBox.height) + (refBBox.width * refBBox.width));
+
+                var rValue;
+                if (isFinite(value)) {
+                    if (isValuePercentage || value >= 0 && value <= 1) rValue = value * diagonalLength;
+                    else rValue = Math.max(value + diagonalLength, 0);
+                }
+
+                return { r: rValue };
+            }
         },
 
         refCx: {
