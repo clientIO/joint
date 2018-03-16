@@ -37,6 +37,9 @@
 
             <h2>Link Labels</h2>
 
+            <p><a href="links.html">The basic tutorial series offered an introduction into link labels.</a>
+                This section explains everything you need to know to make full use of the powerful label system.</p>
+
             <p>JointJS offers a full suite of methods for working with link labels:</p>
 
             <ul>
@@ -54,8 +57,10 @@
                     - removes the label at <code>index</code>.</li>
             </ul>
 
+            <h3 id="builtin-default-label">Builtin Default Label</h3>
+
             <p>A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
-                class, from which the <code>joint.shapes.standard.Link</code> type inherits it.
+                class, from which all subtypes, including <code>joint.shapes.standard.Link</code>, inherit it.
                 The builtin default label has two tags:
                 <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
                 <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
@@ -64,7 +69,6 @@
 
             <div class="paper" id="paper-link-labels-builtin"></div>
 
-
             <pre><code>link.appendLabel({
     attrs: {
         text: {
@@ -72,6 +76,8 @@
         }
     }
 });</code></pre>
+
+            <h3 id="label-position">Label Position</h3>
 
             <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) by
                 default.
@@ -115,6 +121,8 @@ link.appendLabel({
         distance: -100
     }
 });</code></pre>
+
+            <h3 id="label-offset">Label Offset</h3>
 
             <p>It is also possible to set label offsets.
                 This is done with the <code>label.position.offset</code> property.
@@ -163,6 +171,8 @@ link.appendLabel({
         }
     }
 });</code></pre>
+
+            <h3 id="label-styling">Label Styling</h3>
 
             <p>Of course, it is also possible to change the appearance of your labels.
                 Simply specify custom <code>markup</code> in JSON format and pass some <code>attrs</code>.
