@@ -52,48 +52,32 @@
     link.addTo(graph);
 
     function contract(link) {
-        link.transition('source/x', 200, {
+        link.transition('source', { x: 200, y: 40 }, {
             delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
-        link.transition('source/y', 40, {
+        link.transition('target', { x: 400, y: 40 }, {
             delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/x', 400, {
-            delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/y', 40, {
-            delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
         link.stretchToggle = true;
     }
 
     function stretch(link) {
-        link.transition('source/x', 100, {
+        link.transition('source', { x: 100, y: 40 }, {
             delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
-        link.transition('source/y', 40, {
+        link.transition('target', { x: 500, y: 40 }, {
             delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/x', 500, {
-            delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/y', 40, {
-            delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
         link.stretchToggle = false;

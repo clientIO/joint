@@ -36,8 +36,8 @@
         ],
         attrs: {
             label: {
-                text: '%',
-                fill: '#ff0000',
+                text: '½',
+                fill: '#000000',
                 fontSize: 14,
                 textAnchor: 'middle',
                 yAlignment: 'middle',
@@ -60,8 +60,8 @@
                 textAnchor: 'middle',
                 yAlignment: 'middle',
                 pointerEvents: 'none',
-                refX: 20,
-                refY: -5
+                refX: 16.5,
+                refY: -2
             },
             asteriskBody: {
                 ref: 'asterisk',

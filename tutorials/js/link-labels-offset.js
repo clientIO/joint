@@ -21,81 +21,77 @@
     link.appendLabel({
         attrs: {
             text: {
-                text: '15'
+                text: '＊',
+                fill: '#ff0000',
+                fontSize: 20
+            },
+            rect: {
+                display: 'none'
+            }
+        }
+    })
+    link.appendLabel({
+        attrs: {
+            text: {
+                text: '20'
             }
         },
         position: {
-            offset: 15
+            offset: 20
         }
     });
     link.appendLabel({
         attrs: {
             text: {
-                text: '-15'
+                text: '-20'
             }
         },
         position: {
-            offset: -15
+            offset: -20
         }
     });
     link.appendLabel({
         attrs: {
             text: {
-                text: '{ x: 30, y: 30 }'
+                text: '{ x: 80, y: -20 }'
             }
         },
         position: {
             offset: {
-                x: 30,
-                y: 30
+                x: 80,
+                y: -20
             }
         }
     });
     link.addTo(graph);
 
     function counterclockwise(link) {
-        link.transition('source/x', 380, {
+        link.transition('source', { x: 380, y: 180 }, {
             delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
-        link.transition('source/y', 180, {
+        link.transition('target', { x: 220, y: 20 }, {
             delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/x', 220, {
-            delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/y', 20, {
-            delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
         link.clockwiseToggle = true;
     }
 
     function clockwise(link) {
-        link.transition('source/x', 220, {
+        link.transition('source', { x: 220, y: 180 }, {
             delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
-        link.transition('source/y', 180, {
+        link.transition('target', { x: 380, y: 20 }, {
             delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/x', 380, {
-            delay: 1000,
-            duration: 4000
-        });
-
-        link.transition('target/y', 20, {
-            delay: 1000,
-            duration: 4000
+            duration: 4000,
+            valueFunction: joint.util.interpolate.object
         });
 
         link.clockwiseToggle = false;

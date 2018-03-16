@@ -77,11 +77,14 @@
     }
 });</code></pre>
 
+            <p><a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">The full builtin default
+                label definition can be found in the documentation.</a></p>
+
             <h3 id="label-position">Label Position</h3>
 
             <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) by
                 default.
-                Three kinds of <code>distance</code> values are recognized for custom <code>position</code>.
+                Three kinds of <code>label.position.distance</code> values are recognized for setting custom position.
                 A value between <code>0</code> and <code>1</code> causes the label to be positioned relatively to link length.
                 Positive values signify absolute position in local SVG units away from start point.
                 Finally, negative values mean absolute position away from end point.
@@ -130,47 +133,52 @@ link.appendLabel({
                 causes the label to be offset to the left.
                 An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
                 in the two dimensions.
-                The following example illustrates these three options. (Note that all labels have the default
-                <code>position.distance</code> of <code>0.5</code>; it is just the <code>offset</code> that
-                changes.)</p>
+                The following example illustrates these three options.
+                (Note that all labels have the default <code>position.distance</code> of <code>0.5</code>; it is just
+                the <code>offset</code> that changes.
+                The red asterisk marks the reference point of all labels on the link.)</p>
 
             <div class="paper" id="paper-link-labels-offset"></div>
 
             <pre><code>link.appendLabel({
     attrs: {
         text: {
-            text: '15'
+            text: '20'
         }
     },
     position: {
-        offset: 15
+        offset: 20
     }
 });
 
 link.appendLabel({
     attrs: {
         text: {
-            text: '-15'
+            text: '-20'
         }
     },
     position: {
-        offset: -15
+        offset: -20
     }
 });
 
 link.appendLabel({
     attrs: {
         text: {
-            text: '{ x: 30, y: 30 }'
+            text: '{ x: 80, y: -20 }'
         }
     },
     position: {
         offset: {
-            x: 30,
-            y: 30
+            x: 80,
+            y: -20
         }
     }
 });</code></pre>
+
+            <p>By default, labels' anchor point is centered horizontally and vertically, as it was in this example.
+                This can be changed by the <code>textAnchor</code> and <code>yAlignment</code> attributes,
+                respectively.</p>
 
             <h3 id="label-styling">Label Styling</h3>
 
@@ -199,8 +207,8 @@ link.appendLabel({
     ],
     attrs: {
         label: {
-            text: '%',
-            fill: '#ff0000',
+            text: '½',
+            fill: '#000000',
             fontSize: 14,
             textAnchor: 'middle',
             yAlignment: 'middle',
@@ -223,8 +231,8 @@ link.appendLabel({
             textAnchor: 'middle',
             yAlignment: 'middle',
             pointerEvents: 'none',
-            refX: 20,
-            refY: -5
+            refX: 16.5,
+            refY: -2
         },
         asteriskBody: {
             ref: 'asterisk',
@@ -241,7 +249,7 @@ link.appendLabel({
 });</code></pre>
 
             <p>The <code>ref</code> attributes are an example of JointJS special attributes.
-                <a href="special-attributes.html">These are discussed in detail later in the tutorial.</a></p>
+                <a href="special-attributes.html">These are discussed in detail elsewhere in the tutorial.</a></p>
 
         </div><!--end tutorial-->
 

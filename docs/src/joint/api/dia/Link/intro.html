@@ -58,7 +58,7 @@ var link2 = new joint.dia.Link({
     customLinkInteractions: false // or omit completely
 });</code></pre>
 
-<h4>Custom Link</h4>
+<h4 id="dia.Link.intro.customLink">Custom Link</h4>
 
 <p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override Link properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link attributes are applicable in this context:</p>
 
@@ -122,7 +122,7 @@ var link = new CustomLink({
     //...
 });</code></pre>
 
-<h4>Builtin Default Attributes</h4>
+<h4 id="dia.Link.intro.builtinDefaultAttributes">Builtin Default Attributes</h4>
 
 <p>To ensure backwards compatibility, the <code>joint.dia.Link</code> class comes with a private builtin <code>defaultLabel</code> attribute. It is reproduced here for reference:</p>
 
