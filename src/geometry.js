@@ -1180,6 +1180,50 @@ var g = (function() {
                     ellipse.b === this.b;
         },
 
+        intersectionWithLine: function(line) {
+
+            var intersections = [];
+            var a1 = line.start;
+            var a2 = line.end;
+            var rx = this.a;
+            var ry = this.b;
+            var dir = line.vector();
+            var diff = a1.difference(new Point(this));
+            var mDir = new Point(dir.x / (rx * rx), dir.y / (ry * ry));
+            var mDiff = new Point(diff.x / (rx * rx), diff.y / (ry * ry));
+
+            var a = dir.dot(mDir);
+            var b = dir.dot(mDiff);
+            var c = diff.dot(mDiff) - 1.0;
+            var d = b * b - a * c;
+
+            if (d < 0) {
+                return null;
+            } else if (d > 0) {
+                var root = sqrt(d);
+                var ta = (-b - root) / a;
+                var tb = (-b + root) / a;
+
+                if ((ta < 0 || 1 < ta) && (tb < 0 || 1 < tb)) {
+                    // if ((ta < 0 && tb < 0) || (ta > 1 && tb > 1)) outside else inside
+                    return null;
+                } else {
+                    if (0 <= ta && ta <= 1) intersections.push(a1.lerp(a2, ta));
+                    if (0 <= tb && tb <= 1) intersections.push(a1.lerp(a2, tb));
+                }
+            } else {
+                var t = -b / a;
+                if (0 <= t && t <= 1) {
+                    intersections.push(a1.lerp(a2, t));
+                } else {
+                    // outside
+                    return null;
+                }
+            }
+
+            return intersections;
+        },
+
         // Find point on me where line from my center to
         // point p intersects my boundary.
         // @param {number} angle If angle is specified, intersection with rotated ellipse is computed.
@@ -1313,66 +1357,51 @@ var g = (function() {
                     this.end.y === l.end.y;
         },
 
-        // @return {point} Point where I'm intersecting a line.
-        // @return [point] Points where I'm intersecting a rectangle.
-        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersect: function(l) {
+        intersectionWithLine: function(line) {
 
-            if (l instanceof Line) {
-                // Parameter is a line.
+            var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
+            var pt2Dir = new Point(line.end.x - line.start.x, line.end.y - line.start.y);
+            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
+            var deltaPt = new Point(line.start.x - this.start.x, line.start.y - this.start.y);
+            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
+            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
 
-                var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-                var pt2Dir = new Point(l.end.x - l.start.x, l.end.y - l.start.y);
-                var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-                var deltaPt = new Point(l.start.x - this.start.x, l.start.y - this.start.y);
-                var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-                var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+            if (det === 0 || alpha * det < 0 || beta * det < 0) {
+                // No intersection found.
+                return null;
+            }
 
-                if (det === 0 || alpha * det < 0 || beta * det < 0) {
-                    // No intersection found.
+            if (det > 0) {
+                if (alpha > det || beta > det) {
                     return null;
                 }
 
-                if (det > 0) {
-                    if (alpha > det || beta > det) {
-                        return null;
-                    }
-
-                } else {
-                    if (alpha < det || beta < det) {
-                        return null;
-                    }
+            } else {
+                if (alpha < det || beta < det) {
+                    return null;
                 }
-
-                return new Point(
-                    this.start.x + (alpha * pt1Dir.x / det),
-                    this.start.y + (alpha * pt1Dir.y / det)
-                );
             }
 
-            if (l instanceof Rect) {
-                // Parameter is a rectangle.
+            return new Point(
+                this.start.x + (alpha * pt1Dir.x / det),
+                this.start.y + (alpha * pt1Dir.y / det)
+            );
+        },
 
-                var r = l;
-                var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
-                var points = [];
-                var dedupeArr = [];
-                var pt, i;
+        // @return {point} Point where I'm intersecting a line.
+        // @return [point] Points where I'm intersecting a rectangle.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersect: function(shape, opt) {
 
-                var n = rectLines.length;
-                for (i = 0; i < n; i ++) {
-
-                    pt = this.intersect(rectLines[i]);
-                    if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
-                        points.push(pt);
-                        dedupeArr.push(pt.toString());
-                    }
-                }
-
-                return points.length > 0 ? points : null;
+            if (shape instanceof Line ||
+                shape instanceof Rect ||
+                shape instanceof Polyline ||
+                shape instanceof Ellipse ||
+                shape instanceof Path
+            ) {
+                return shape.intersectionWithLine(this, opt);
             }
 
-            // Parameter is neither a Line nor a Rectangle.
             return null;
         },
 
@@ -2294,6 +2323,80 @@ var g = (function() {
             return this.segmentIndexAtLength(length, localOpt);
         },
 
+        toPoints: function(opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+
+            var points = [];
+            var partialPoints = [];
+            for (var i = 0; i < numSegments; i++) {
+                var segment = segments[i];
+                if (segment.isVisible) {
+                    var currentSegmentSubdivisions = segmentSubdivisions[i];
+                    if (currentSegmentSubdivisions.length > 0) {
+                        var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
+                            return curve.start;
+                        });
+                        Array.prototype.push.apply(partialPoints, subdivisionPoints);
+                    } else {
+                        partialPoints.push(segment.start);
+                    }
+                } else if (partialPoints.length > 0) {
+                    partialPoints.push(segments[i - 1].end);
+                    points.push(partialPoints);
+                    partialPoints = [];
+                }
+            }
+
+            if (partialPoints.length > 0) {
+                partialPoints.push(this.end);
+                points.push(partialPoints);
+            }
+            return points;
+        },
+
+        toPolylines: function(opt) {
+
+            var polylines = [];
+            var points = this.toPoints(opt);
+            for (var i = 0, n = points.length; i < n; i++) {
+                polylines.push(new Polyline(points[i]));
+            }
+
+            return polylines;
+        },
+
+        intersectionWithLine: function(line, opt) {
+
+            var intersection = null;
+            var polylines = this.toPolylines(opt);
+            for (var i = 0, n = polylines.length; i < n; i++) {
+                var polyline = polylines[i];
+                var polylineIntersection = line.intersect(polyline);
+                if (polylineIntersection) {
+                    intersection || (intersection = []);
+                    if (Array.isArray(polylineIntersection)) {
+                        Array.prototype.push.apply(intersection, polylineIntersection);
+                    } else {
+                        intersection.push(polylineIntersection);
+                    }
+                }
+            }
+            if (intersection && intersection.length > 1) {
+                intersection.sort(function(a, b) {
+                    return a.squaredDistance(line.start) - b.squaredDistance(line.start);
+                });
+            }
+
+            return intersection;
+        },
+
         // Accepts negative length.
         segmentIndexAtLength: function(length, opt) {
 
@@ -2825,6 +2928,14 @@ var g = (function() {
         cross: function(p1, p2) {
 
             return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
+        },
+
+
+        // Linear interpolation
+        lerp: function(p, t) {
+            var x = this.x;
+            var y = this.y;
+            return new Point(x + (p.x - x) * t, y + (p.y - y) * t);
         }
     };
 
@@ -2869,6 +2980,21 @@ var g = (function() {
             var w = this.width * ct + this.height * st;
             var h = this.width * st + this.height * ct;
             return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        },
+
+        innerRect: function(angle) {
+
+            // x = (1/(cos(t)^2-sin(t)^2)) * (  bx * cos(t) - by * sin(t))
+            // y = (1/(cos(t)^2-sin(t)^2)) * (- bx * sin(t) + by * cos(t))
+            var bx = this.width;
+            var by = this.height;
+            var t = toRad(angle || 0);
+            var cosT = cos(t);
+            var sinT = sin(t);
+            var w = (1 / (cosT * cosT - sinT * sinT)) * (  bx * cosT - by * sinT);
+            var h = (1 / (cosT * cosT - sinT * sinT)) * (- bx * sinT + by * cosT);
+            var c = this.center();
+            return new g.Rect(c.x - w / 2, c.y - h / 2, w, h);
         },
 
         bottomLeft: function() {
@@ -2962,6 +3088,27 @@ var g = (function() {
             var y = max(myOrigin.y, rOrigin.y);
 
             return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
+        },
+
+        intersectionWithLine: function(line) {
+
+            var r = this;
+            var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
+            var points = [];
+            var dedupeArr = [];
+            var pt, i;
+
+            var n = rectLines.length;
+            for (i = 0; i < n; i ++) {
+
+                pt = line.intersect(rectLines[i]);
+                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                    points.push(pt);
+                    dedupeArr.push(pt.toString());
+                }
+            }
+
+            return points.length > 0 ? points : null;
         },
 
         // Find point on my boundary where line starting
@@ -3791,6 +3938,28 @@ var g = (function() {
 
             // if no valid line, return null
             return null;
+        },
+
+        intersectionWithLine: function(l) {
+            var line = new Line(l);
+            var p = line.start;
+            var distance = Infinity;
+            var intersection = null;
+            var points = this.points;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var l2 = new Line(a, b);
+                var int = line.intersect(l2);
+                if (int) {
+                    var dist = int.squaredDistance(p);
+                    if (dist < distance) {
+                        distance = dist;
+                        intersection = int;
+                    }
+                }
+            }
+            return intersection;
         },
 
         translate: function(tx, ty) {
@@ -4680,12 +4849,20 @@ var g = (function() {
 
     Closepath.prototype = extend(segmentPrototype, Line.prototype, closepathPrototype);
 
-    Path.segmentTypes = {
+    var segmentTypes = Path.segmentTypes = {
         L: Lineto,
         C: Curveto,
         M: Moveto,
-        Z: Closepath
+        Z: Closepath,
+        z: Closepath
     };
+
+    Path.regexSupportedData = new RegExp('^[\\s\\d' + Object.keys(segmentTypes).join('') + ',.]*$');
+
+    Path.isDataSupported = function(d) {
+        if (typeof d !== 'string') return false;
+        return this.regexSupportedData.test(d);
+    }
 
     return g;
 

@@ -1095,6 +1095,56 @@ V = Vectorizer = (function() {
         throw new Error(tagName + ' cannot be converted to PATH.');
     };
 
+    V.prototype.toGeometryShape = function() {
+        var x, y, width, height, cx, cy, r, rx, ry, points, d;
+        switch (this.tagName()) {
+
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                width = parseFloat(this.attr('width')) || 0;
+                height = parseFloat(this.attr('height')) || 0;
+                return new g.Rect(x, y, width, height);
+
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy = parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+                return new g.Ellipse({ x: cx, y: cy }, r, r);
+
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy = parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+                return new g.Ellipse({ x: cx, y: cy }, rx, ry);
+
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return new g.Polyline(points);
+
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                if (points.length > 1) points.push(points[0]);
+                return new g.Polyline(points);
+
+            case 'PATH':
+                d = this.attr('d');
+                if (!g.Path.isDataSupported(d)) d = V.normalizePathData(d);
+                return new g.Path(d);
+
+            case 'LINE':
+                x1 = parseFloat(this.attr('x1')) || 0;
+                y1 = parseFloat(this.attr('y1')) || 0;
+                x2 = parseFloat(this.attr('x2')) || 0;
+                y2 = parseFloat(this.attr('y2')) || 0;
+                return new g.Line({ x: x1, y: y1 }, { x: x2, y: y2 });
+        }
+
+        // Anything else is a rectangle
+        return this.getBBox();
+    },
+
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
     // `target` is an SVG element to which `node`s transformations are relative to.
@@ -1102,81 +1152,162 @@ V = Vectorizer = (function() {
     // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
     // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
     // an intersection is found. Returns `undefined` otherwise.
-    VPrototype.findIntersection = function(ref, target) {
+    VPrototype.findIntersection = function(targetRef, target, opt) {
 
-        var svg = this.svg().node;
-        target = target || svg;
-        var bbox = this.getBBox({ target: target });
-        var center = bbox.center();
+        opt || (opt = {});
+        target || (target = this.svg());
 
-        if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
+        var targetMatrix = this.getTransformToElement(target);
+        var localMatrix = targetMatrix.inverse();
+        var localBBox = this.getBBox();
+        var localPoint;
+        var localLine;
 
-        var spot;
-        var tagName = this.tagName();
+        if (targetRef instanceof g.Line) {
+            localLine = V.transformLine(targetRef, localMatrix);
+            localPoint = localLine.start;
+            if (!localBBox.containsPoint(localLine.end) /* && !localBBox.intersectionWithLine(localLine) */) localLine.end = localBBox.center();
+        } else {
+            localPoint = V.transformPoint(new g.Point(targetRef), localMatrix);
+            localLine = new g.Line(localPoint, localBBox.center());
+        }
+
+        if (localBBox.containsPoint(localPoint)) return undefined;
+
+        var localShape = this.toGeometryShape();
+        var intersection = localLine.intersect(localShape, { precision: opt.precision });
+        if (intersection) {
+            if (V.isArray(intersection)) intersection = intersection[0];
+            return V.transformPoint(intersection, targetMatrix);
+        }
+
+        return null;
+
+        // var spot;
+        // var tagName = this.tagName();
+        // var center = bbox.center();
 
         // Little speed up optimalization for `<rect>` element. We do not do conversion
         // to path element and sampling but directly calculate the intersection through
         // a transformed geometrical rectangle.
-        if (tagName === 'RECT') {
+        // if (tagName === 'TEXT') {
+        //     var localAnchor = anchor ? V.transformPoint(anchor, matrix.inverse()) : bbox.center();
+        //     var intersections = new g.Line(localRef, localAnchor).intersect(bbox);
+        //     if (intersections) {
+        //         spot = intersections[0];
+        //     }
+        // } else if (tagName === 'RECT') {
 
-            var gRect = new g.Rect(
-                parseFloat(this.attr('x') || 0),
-                parseFloat(this.attr('y') || 0),
-                parseFloat(this.attr('width')),
-                parseFloat(this.attr('height'))
-            );
-            // Get the rect transformation matrix with regards to the SVG document.
-            var rectMatrix = this.getTransformToElement(target);
-            // Decompose the matrix to find the rotation angle.
-            var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
-            // Now we want to rotate the rectangle back so that we
-            // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
-            var resetRotation = svg.createSVGTransform();
-            resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-            var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-            spot = (new g.Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+        //     var gRect = new g.Rect(
+        //         parseFloat(this.attr('x') || 0),
+        //         parseFloat(this.attr('y') || 0),
+        //         parseFloat(this.attr('width')),
+        //         parseFloat(this.attr('height'))
+        //     );
 
-        } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
+        //     if (anchor) {
+        //         var localAnchor = V.transformPoint(anchor, matrix.inverse());
+        //         var intersections = new g.Line(localRef, localAnchor).setLength(1e6).intersect(gRect);
+        //         if (intersections) {
+        //             intersections.sort(function(a, b) {
+        //                 return (b.squaredDistance(localRef) < a.squaredDistance(localRef)) ?  1: -1;
+        //             });
+        //             spot = intersections[0];
+        //         }
+        //     } else {
+        //         spot = gRect.intersectionWithLineFromCenterToPoint(localRef);
+        //     }
 
-            var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-            var samples = pathNode.sample();
-            var minDistance = Infinity;
-            var closestSamples = [];
+        // } else if (anchor && (tagName === 'ELLIPSE')) {
 
-            var i, sample, gp, centerDistance, refDistance, distance;
+        //     var cx = parseFloat(this.attr('cx')) || 0;
+        //     var cy = parseFloat(this.attr('cy')) || 0;
+        //     var rx = parseFloat(this.attr('rx')) || 0;
+        //     var ry = parseFloat(this.attr('ry')) || 0;
+        //     var gEllipse = g.Ellipse({ x: cx, y: cy }, rx, ry);
 
-            for (i = 0; i < samples.length; i++) {
+        //     var localAnchor = V.transformPoint(anchor, matrix.inverse());
+        //     if (!bbox.containsPoint(localAnchor)) {
+        //         localAnchor = center;
+        //     }
+        //     var line  = new g.Line(localRef, localAnchor).setLength(1e6);
 
-                sample = samples[i];
-                // Convert the sample point in the local coordinate system to the global coordinate system.
-                gp = V.createSVGPoint(sample.x, sample.y);
-                gp = gp.matrixTransform(this.getTransformToElement(target));
-                sample = new g.Point(gp);
-                centerDistance = sample.distance(center);
-                // Penalize a higher distance to the reference point by 10%.
-                // This gives better results. This is due to
-                // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-                refDistance = sample.distance(ref) * 1.1;
-                distance = centerDistance + refDistance;
+        //     var intersection = gEllipse.intersectionWithLineFromCenterToPoint(localRef);
+        //     spot = intersection;
+        //     console.log(spot);
 
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestSamples = [{ sample: sample, refDistance: refDistance }];
-                } else if (distance < minDistance + 1) {
-                    closestSamples.push({ sample: sample, refDistance: refDistance });
-                }
-            }
+        // } else if (anchor && (tagName === 'POLYGON')) {
 
-            closestSamples.sort(function(a, b) {
-                return a.refDistance - b.refDistance;
-            });
+        //     var points = V.getPointsFromSvgNode(this);
+        //     if (points.length > 1) {
+        //         points.push(points[0]);
+        //     }
+        //     var localAnchor = V.transformPoint(anchor, matrix.inverse());
+        //     if (!bbox.containsPoint(localAnchor)) {
+        //         localAnchor = center;
+        //     }
+        //     var gPolyline = new g.Polyline(points);
+        //     var line  = new g.Line(localRef, localAnchor).setLength(1e6);
 
-            if (closestSamples[0]) {
-                spot = closestSamples[0].sample;
-            }
-        }
+        //     var intersection = gPolyline.intersectionWithLine(line);
+        //     spot = intersection;
 
-        return spot;
+        // } else if (anchor && (tagName === 'POLYLINE')) {
+
+        //     var points = V.getPointsFromSvgNode(this);
+        //     var localAnchor = V.transformPoint(anchor, matrix.inverse());
+        //     if (!bbox.containsPoint(localAnchor)) {
+        //         localAnchor = center;
+        //     }
+        //     var gPolyline = new g.Polyline(points);
+        //     var line  = new g.Line(localRef, localAnchor).setLength(1e6);
+
+        //     var intersection = gPolyline.intersectionWithLine(line);
+        //     spot = intersection;
+
+        // } else if (tagName === 'PATH'  || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
+
+        //     var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+        //     var samples = pathNode.sample();
+        //     var minDistance = Infinity;
+        //     var closestSamples = [];
+
+        //     var i, sample, centerDistance, refDistance, distance;
+
+        //     for (i = 0; i < samples.length; i++) {
+
+        //         sample = samples[i];
+        //         // Convert the sample point in the local coordinate system to the global coordinate system.
+        //         sample = new g.Point(sample);
+        //         centerDistance = sample.distance(center);
+        //         // Penalize a higher distance to the reference point by 10%.
+        //         // This gives better results. This is due to
+        //         // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+        //         refDistance = sample.distance(localRef) * 1.1;
+        //         distance = centerDistance + refDistance;
+
+        //         if (distance < minDistance) {
+        //             minDistance = distance;
+        //             closestSamples = [{ sample: sample, refDistance: refDistance }];
+        //         } else if (distance < minDistance + 1) {
+        //             closestSamples.push({ sample: sample, refDistance: refDistance });
+        //         }
+        //     }
+
+        //     closestSamples.sort(function(a, b) {
+        //         return a.refDistance - b.refDistance;
+        //     });
+
+        //     if (closestSamples[0]) {
+        //         spot = closestSamples[0].sample;
+        //     }
+        // }
+
+        // if (spot) {
+        //     return V.transformPoint(spot, matrix);
+        // }
+
+        // return spot;
     };
 
     /**
@@ -1606,6 +1737,23 @@ V = Vectorizer = (function() {
         return new g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
 
+    V.transformLine = function(l, matrix) {
+
+        return new g.Line(
+            V.transformPoint(l.start, matrix),
+            V.transformPoint(l.end, matrix)
+        );
+    };
+
+    V.transformPolyline = function(p, matrix) {
+
+        var inPoints = (p instanceof g.Polyline) ? p.points : p;
+        if (!V.isArray(inPoints)) inPoints = [];
+        var outPoints = [];
+        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i]);
+        return new g.Polyline(outPoints);
+    },
+
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).
     V.styleToObject = function(styleString) {
@@ -1833,27 +1981,23 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        var points = V.getPointsFromSvgNode(V(polygon).node);
-
-        if (!(points.length > 0)) return null;
+        var points = V.getPointsFromSvgNode(polygon);
+        if (points.length === 0) return null;
 
         return V.svgPointsToPath(points) + ' Z';
     };
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(V(polyline).node);
-
-        if (!(points.length > 0)) return null;
+        var points = V.getPointsFromSvgNode(polyline);
+        if (points.length === 0) return null;
 
         return V.svgPointsToPath(points);
     };
 
     V.svgPointsToPath = function(points) {
 
-        var i;
-
-        for (i = 0; i < points.length; i++) {
+        for (var i = 0, n = points.length; i < n; i++) {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
@@ -1866,7 +2010,7 @@ V = Vectorizer = (function() {
         var points = [];
         var nodePoints = node.points;
         if (nodePoints) {
-            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+            for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
                 points.push(nodePoints.getItem(i));
             }
         }

@@ -556,6 +556,11 @@
                 'fill': 'none',
                 'pointer-events': 'none'
             }
+        }],
+        defaultLabel: [{
+            markup: []
+
+
         }]
     });
 
@@ -578,7 +583,10 @@
                 strokeWidth: 6,
                 strokeLinejoin: 'round'
             }
-        }
+        },
+        labels: [{
+            text: 'blah'
+        }]
     }, {
         markup: [{
             tagName: 'path',

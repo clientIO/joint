@@ -321,6 +321,7 @@ var joint = {
 
         })(),
 
+        // ** Deprecated **
         shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
 
             var bbox;

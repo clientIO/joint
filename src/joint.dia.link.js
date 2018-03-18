@@ -1050,8 +1050,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var model = this.model;
         var sourceDef = model.get('source');
         var targetDef = model.get('target');
-        var sourceBBox = this.sourceBBox;
-        var targetBBox = this.targetBBox;
         var sourceView = this.sourceView;
         var targetView = this.targetView;
         var paperOptions = this.paper.options;
@@ -1060,12 +1058,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var sourceAnchor;
         if (sourceView) {
             sourceMagnet = (this.sourceMagnet || sourceView.el);
-            var sourceAnchorRef = (firstWaypoint) ? new g.Rect(firstWaypoint) : targetBBox;
+            var sourceAnchorRef = (firstWaypoint) ? new g.Point(firstWaypoint) : this.targetMagnet || (targetView && targetView.el) || g.Point(targeDef);
             var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultSourceAnchor;
             if (typeof sourceAnchorDef === 'function') {
                 sourceAnchorDef = sourceAnchorDef.call(this, sourceView, sourceMagnet, 'source', this);
             }
-            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceBBox, sourceAnchorRef);
+            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
         } else {
             sourceAnchor = firstWaypoint || new g.Point(sourceDef);
         }
@@ -1073,12 +1071,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var targetAnchor;
         if (targetView) {
             targetMagnet = (this.targetMagnet || targetView.el);
-            var targetAnchorRef = new g.Rect(lastWaypoint || sourceAnchor);
+            var targetAnchorRef = new g.Point(lastWaypoint || sourceAnchor);
             var targetAnchorDef = targetDef.anchor || paperOptions.defaultTargetAnchor;
             if (typeof targetAnchorDef === 'function') {
                 targetAnchorDef = targetAnchorDef.call(this, targetView, targetMagnet, 'source', this);
             }
-            targetAnchor = this.getAnchor(targetAnchorDef, targetBBox, targetAnchorRef);
+            targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
         } else {
             targetAnchor = lastWaypoint || new g.Point(targetDef);
         }
@@ -1090,7 +1088,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 sourcerConnectionPointDef = sourceConnectionPointDef.call(this, sourceView, sourceMagnet, 'source', this);
             }
             var sourcePointRef = firstWaypoint || targetAnchor;
-            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceAnchor, sourcePointRef, sourceBBox, sourceMagnet, 'source');
+            var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
+            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
         } else {
             sourcePoint = sourceAnchor;
         }
@@ -1102,7 +1101,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 targetConnectionPointDef = targetConnectionPointDef.call(this, targetView, targetMagnet, 'target', this);
             }
             var targetPointRef = lastWaypoint || sourceAnchor;
-            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetAnchor, targetPointRef, targetBBox, targetMagnet, 'target');
+            var targetLine = new g.Line(targetPointRef, targetAnchor);
+            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
         } else {
             targetPoint = targetAnchor;
         }
@@ -1149,7 +1149,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    getAnchor: function(anchorDef, bbox, ref) {
+    getAnchor: function(anchorDef, cellView, magnet, ref) {
 
         // Backwards compatibility
         // If `perpendicularLinks` flag is set on the paper and there are vertices
@@ -1163,21 +1163,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var anchorName = anchorDef.name;
         var anchorFn = joint.anchors[anchorName];
         if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
-        var anchor = anchorFn.call(this, bbox.clone(), ref, anchorDef.args || {});
+        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {});
         return anchor || bbox.center();
     },
 
 
-    getConnectionPoint: function(connectionPointDef, anchor, refPoint, bbox, magnet, end) {
+    getConnectionPoint: function(connectionPointDef, view, magnet, line, end) {
 
         var connectionPoint;
 
         // Backwards compatibility
         var paperOptions = this.paper.options;
         if (typeof paperOptions.linkConnectionPoint === 'function') {
-            var _view = (end === 'target') ? this.targetView : this.sourceView;
-            var _magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
-            connectionPoint = paperOptions.linkConnectionPoint(this, _view, _magnet, refPoint, end);
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, end);
             if (connectionPoint) return connectionPoint;
         }
 
@@ -1185,7 +1183,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var connectionPointName = connectionPointDef.name;
         var connectionPointFn = joint.connectionPoints[connectionPointName];
         if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
-        connectionPoint = connectionPointFn.call(this, anchor, new g.Point(refPoint), bbox, magnet, connectionPointDef.args || {});
+        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {});
 
         return connectionPoint || anchor;
     },

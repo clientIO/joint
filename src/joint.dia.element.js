@@ -360,6 +360,15 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
+    angle: function(angle, opt) {
+        // getter
+        if (angle === undefined) {
+            return g.normalizeAngle(this.get('angle') || 0);
+        }
+
+        return this.set('angle', g.normalizeAngle(angle), opt);
+    },
+
     getBBox: function(opt) {
 
         opt = opt || {};
@@ -411,6 +420,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return classNames.join(' ');
     },
 
+    metrics: null,
+
     initialize: function() {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -423,6 +434,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.listenTo(model, 'change:markup', this.render);
 
         this._initializePorts();
+
+        this.metrics = {};
     },
 
     /**
@@ -433,6 +446,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     update: function(cell, renderingOnlyAttrs) {
+
+        this.metrics = {};
 
         this._removePorts();
 
@@ -561,6 +576,64 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
+    },
+
+    getMagnetBBox: function(magnet) {
+
+        var metrics = this.getMagnetMetrics(magnet)
+        var rect = metrics.boundingRect;
+        var magnetMatrix = metrics.magnetMatrix;
+        var translateMatrix = metrics.translateMatrix;
+        var rotateMatrix = metrics.rotateMatrix;
+        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+    },
+
+    getMagnetUnrotatedBBox: function(magnet) {
+
+        var metrics = this.getMagnetMetrics(magnet)
+        var rect = metrics.boundingRect;
+        var magnetMatrix = metrics.magnetMatrix;
+        var translateMatrix = metrics.translateMatrix;
+        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
+    },
+
+    getMagnetMetrics: function(magnet) {
+
+        var vMagnet = V(magnet);
+        var id = V.ensureId(vMagnet);
+
+        var metrics = this.metrics[id];
+        if (!metrics) metrics = this.metrics[id] = {
+            boundingRect: vMagnet.getBBox(),
+            magnetMatrix: vMagnet.getTransformToElement(this.el)
+        }
+
+        return {
+            boundingRect: metrics.boundingRect.clone(),
+            magnetMatrix: V.createSVGMatrix(metrics.magnetMatrix),
+            translateMatrix: this.getRootTranslateMatrix(),
+            rotateMatrix: this.getRootRotateMatrix()
+        }
+    },
+
+    getRootTranslateMatrix: function() {
+        var model = this.model;
+        var position = model.position();
+        var mt = V.createSVGMatrix().translate(position.x, position.y);
+        return mt;
+    },
+
+    getRootRotateMatrix: function() {
+        var model = this.model;
+        var angle = model.angle();
+        var mr = V.createSVGMatrix();
+        if (angle) {
+            var bbox = model.getBBox();
+            var cx = bbox.width / 2;
+            var cy = bbox.height / 2;
+            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
+        }
+        return mr;
     },
 
     // Rotatable & Scalable Group
