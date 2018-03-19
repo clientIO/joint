@@ -165,8 +165,8 @@
             </ul>
 
             <p>When <code>element.attr()</code> is called with one object as argument, the keys of the object are
-                selectors that correspond to elements of shape SVG markup; each of those can have one or more attributes
-                defined alongside the value to be set.
+                selectors that correspond to SVGElements of the shape's markup; each of those can have one or more
+                attributes defined alongside the value to be set.
                 If you only need to change one value, you can also call <code>element.attr()</code> with two arguments;
                 the first is the path of the attribute in the form <code>'selector/attribute'</code> and the second is
                 the value to be assigned.</p>
@@ -235,11 +235,11 @@
     }
 });</code></pre>
 
-            <p>Now let us use the <code>element.attr()</code> to change the look of our elements:</p>
+            <h3 id="example">Example</h3>
+
+            <p>Now let us use <code>element.attr()</code> to change the look of our elements:</p>
 
             <div class="paper" id="paper-elements"></div>
-
-            <p>The full code to produce these shapes looks like this:</p>
 
             <pre class="line-numbers" data-line="33-47,49-69,76-95,97-113,120-136,138-159" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
@@ -410,7 +410,7 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <p>The <a href="filters-gradients">Filters and Gradients</a> tutorial illustrates some more advanced methods
+            <p>The <a href="filters-gradients.html">Filters and Gradients</a> tutorial illustrates some more advanced methods
                 of SVG styling when applied to elements.</p>
 
             <p>We now know how to change the appearance of our elements.</p>

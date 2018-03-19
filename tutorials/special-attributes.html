@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+        <script>
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+                return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+            };
+        </script>
+
+        <div class="tutorial">
+
+            <h2>Link Labels</h2>
+
+            <p><a href="links.html">The basic tutorial series offered an introduction into link labels.</a>
+                This section explains everything you need to know to make full use of the powerful label system.</p>
+
+            <p>JointJS offers a full suite of methods for working with link labels:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels(labels)</code></a>
+                    - sets the <code>labels</code> array of the link.
+                    If called without arguments, returns the <code>labels</code> array.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.label" target="_blank"><code>link.label(index, label)</code></a>
+                    - sets the provided <code>label</code> at the given <code>index</code>.
+                    If called with <code>index</code> only, returns that label.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.insertLabel" target="_blank"><code>link.insertLabel(index, label)</code></a>
+                    - inserts the provided <code>label</code> at the given <code>index</code>.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.appendLabel" target="_blank"><code>link.appendLabel(label)</code></a>
+                    - shortcut function. Inserts the <code>label</code> at the end of the <code>labels</code> array.</li>
+                <li><a href="/docs/jointjs#dia.Link.prototype.removeLabel" target="_blank"><code>link.removeLabel(index)</code></a>
+                    - removes the label at <code>index</code>.</li>
+            </ul>
+
+            <h3 id="builtin-default-label">Builtin Default Label</h3>
+
+            <p>A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
+                class, from which all subtypes, including <code>joint.shapes.standard.Link</code>, inherit it.
+                The builtin default label has two tags:
+                <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
+                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
+                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
+
+            <div class="paper" id="paper-link-labels-builtin"></div>
+
+            <pre><code>link.appendLabel({
+    attrs: {
+        text: {
+            text: 'Hello world'
+        }
+    }
+});</code></pre>
+
+            <p><a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">The full builtin default
+                label definition can be found in the documentation.</a></p>
+
+            <h3 id="label-position">Label Position</h3>
+
+            <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) by
+                default.
+                Three kinds of <code>label.position.distance</code> values are recognized for setting custom position.
+                A value between <code>0</code> and <code>1</code> causes the label to be positioned relatively to link length.
+                Positive values signify absolute position in local SVG units away from start point.
+                Finally, negative values mean absolute position away from end point.
+                An animated example is presented below:</p>
+
+            <div class="paper" id="paper-link-labels-distance"></div>
+
+            <pre><code>link.appendLabel({
+    attrs: {
+        text: {
+            text: '0.25'
+        }
+    },
+    position: {
+        distance: 0.25
+    }
+});
+
+link.appendLabel({
+    attrs: {
+        text: {
+            text: '150'
+        }
+    },
+    position: {
+        distance: 150
+    }
+});
+
+link.appendLabel({
+    attrs: {
+        text: {
+            text: '-100'
+        }
+    },
+    position: {
+        distance: -100
+    }
+});</code></pre>
+
+            <h3 id="label-offset">Label Offset</h3>
+
+            <p>It is also possible to set label offsets.
+                This is done with the <code>label.position.offset</code> property.
+                With a positive number, the label is offset relatively and to the right of the link; a negative number
+                causes the label to be offset to the left.
+                An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
+                in the two dimensions.
+                The following example illustrates these three options.
+                (Note that all labels have the default <code>position.distance</code> of <code>0.5</code>; it is just
+                the <code>offset</code> that changes.
+                The red asterisk marks the reference point of all labels on the link.)</p>
+
+            <div class="paper" id="paper-link-labels-offset"></div>
+
+            <pre><code>link.appendLabel({
+    attrs: {
+        text: {
+            text: '20'
+        }
+    },
+    position: {
+        offset: 20
+    }
+});
+
+link.appendLabel({
+    attrs: {
+        text: {
+            text: '-20'
+        }
+    },
+    position: {
+        offset: -20
+    }
+});
+
+link.appendLabel({
+    attrs: {
+        text: {
+            text: '{ x: 80, y: -20 }'
+        }
+    },
+    position: {
+        offset: {
+            x: 80,
+            y: -20
+        }
+    }
+});</code></pre>
+
+            <p>By default, labels' anchor point is centered horizontally and vertically, as it was in this example.
+                This can be changed by the <code>textAnchor</code> and <code>yAlignment</code> attributes,
+                respectively.</p>
+
+            <h3 id="label-styling">Label Styling</h3>
+
+            <p>Of course, it is also possible to change the appearance of your labels.
+                Simply specify custom <code>markup</code> in JSON format and pass some <code>attrs</code>.
+                As a bonus, you can define custom selectors to identify individual components of your label.
+                Let's define a complex circular label that shows what JointJS can do:</p>
+
+            <div class="paper" id="paper-link-labels-styling"></div>
+
+            <pre><code>link.appendLabel({
+    markup: [
+        {
+            tagName: 'circle',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }, {
+            tagName: 'circle',
+            selector: 'asteriskBody'
+        }, {
+            tagName: 'text',
+            selector: 'asterisk'
+        }
+    ],
+    attrs: {
+        label: {
+            text: '½',
+            fill: '#000000',
+            fontSize: 14,
+            textAnchor: 'middle',
+            yAlignment: 'middle',
+            pointerEvents: 'none'
+        },
+        body: {
+            ref: 'label',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeWidth: 1,
+            refR: 1,
+            refCx: 0,
+            refCy: 0
+        },
+        asterisk: {
+            ref: 'label',
+            text: '＊',
+            fill: '#ff0000',
+            fontSize: 8,
+            textAnchor: 'middle',
+            yAlignment: 'middle',
+            pointerEvents: 'none',
+            refX: 16.5,
+            refY: -2
+        },
+        asteriskBody: {
+            ref: 'asterisk',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeWidth: 1,
+            refR: 1,
+            refCx: '50%',
+            refCy: '50%',
+            refX: 0,
+            refY: 0
+        }
+    }
+});</code></pre>
+
+            <p>The <code>ref</code> attributes are an example of JointJS special attributes.
+                <a href="special-attributes.html">These are discussed in detail elsewhere in the tutorial.</a></p>
+
+        </div><!--end tutorial-->
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.js"></script>
+
+        <script src="js/link-labels-builtin.js"></script>
+        <script src="js/link-labels-distance.js"></script>
+        <script src="js/link-labels-offset.js"></script>
+        <script src="js/link-labels-styling.js"></script>
+    </body>
+</html>

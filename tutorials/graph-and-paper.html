@@ -199,6 +199,7 @@
             }
         });
         //paper.scale(0.5, 0.5); // see below
+        //paper.translate(300, 50); // see below
 
         var rect = new joint.shapes.standard.Rectangle();
         rect.position(100, 30);
@@ -230,7 +231,7 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <h3 id="paper-scaling">Paper Scaling</h3>
+            <h3 id="paper-scaling">Appendix: Paper Scaling</h3>
 
             <p>At any point after defining the paper, we can use the
                 <a href="/docs/jointjs#dia.Paper.prototype.scale" target="_blank"><code>paper.scale()</code></a>
@@ -243,6 +244,18 @@
             <div class="paper" id="paper-graph-and-paper-scaled"></div>
 
             <pre><code>paper.scale(0.5, 0.5);</code></pre>
+
+            <h3 id="paper-translation">Appendix: Paper Translation</h3>
+
+            <p>We can also use the
+                <a href="/docs/jointjs#dia.Paper.prototype.scale" target="_blank"><code>paper.translate()</code></a>
+                function to move the origin of the paper coordinates and all of its contents; when used in a
+                <a href="interaction.html">custom interaction</a>, this may support paper panning functionality.
+                The example presents the scaled diagram from above translated by 300 and 50 units:</p>
+
+            <div class="paper" id="paper-graph-and-paper-translated"></div>
+
+            <pre><code>paper.translate(300, 50);</code></pre>
 
             <p>We now understand the importance of the Graph and Paper objects, and know how to change the appearance of
                 our paper.</p>
@@ -258,5 +271,6 @@
         <script src="js/hello-world.js"></script>
         <script src="js/graph-and-paper.js"></script>
         <script src="js/graph-and-paper-scaled.js"></script>
+        <script src="js/graph-and-paper-translated.js"></script>
     </body>
 </html>

@@ -235,7 +235,7 @@
                 The <a href="/docs/jointjs#shapes.standard.intro" target="_blank">standard shape library</a>
                 contains several other ready-made link definitions (e.g. DoubleLink and ShadowLink) that can
                 be used in your document.
-                Moreover, <a href="custom-links">advanced users may create their own link definitions instead</a>, by
+                Moreover, <a href="custom-links.html">advanced users may create their own link definitions instead</a>, by
                 extending the basic
                 <a href="/docs/jointjs#dia.Link" target="_blank"><code>joint.dia.Link</code></a> class.</p>
 
@@ -321,6 +321,29 @@
                     these attributes.)</li>
             </ul>
 
+            <p>When <code>link.attr()</code> is called with one object as argument, the keys of the object are
+                selectors that correspond to SVGElements of the link's markup; each of those can have one or more
+                attributes defined alongside the value to be set.
+                If you only need to change one value, you can also call <code>link.attr()</code> with two arguments;
+                the first is the path of the attribute in the form <code>'selector/attribute'</code> and the second is
+                the value to be assigned.</p>
+
+            <p>If you are completely new to SVG, you may want to have a look at, for example, the
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Fills_and_Strokes" target="_blank">Fills
+                and Strokes tutorial on MDN</a>.
+                JointJS is able to handle all
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute" target="_blank">standard SVG
+                attributes</a>, however, please note that we strongly encourage everyone to use camelCase versions of
+                attribute names for consistency and in order to avoid the need for quotation marks in attribute name
+                keys.
+                In addition, JointJS provides an extensive set of non-standard
+                <a href="/docs/jointjs#dia.attributes" target="_blank">special JointJS attributes</a>; these allow you
+                to
+                <a href="/docs/jointjs#dia.attributes.ref" target="_blank">specify attributes relatively to other
+                shape selectors</a>, among other things.
+                <a href="special-attributes.html">Special attributes are discussed in detail later in the tutorial.</a>
+                <a href="custom-attributes.html">Advanced users may even specify their own custom attributes.</a></p>
+
             <p>The
                 <a href="/docs/jointjs#shapes.standard.Link" target="_blank"><code>joint.shapes.standard.Link</code></a>
                 shape used in our example has two selectors defined:
@@ -346,11 +369,11 @@
     }
 });</code></pre>
 
-            <p>Now, let's have some fun with the links in our example:</p>
+            <h3 id="example">Example</h3>
+
+            <p>Now, let's use <code>link.attr()</code> to have some fun with our links:</p>
 
             <div class="paper" id="paper-links"></div>
-
-            <p>The full code to produce this diagram looks like this:</p>
 
             <pre class="line-numbers" data-line="71-92,133-159,202-233,235-239" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
@@ -430,16 +453,16 @@
                 stroke: 'blue',
                 strokeWidth: 1,
                 sourceMarker: {
-                    type: 'path',
-                    stroke: 'black',
-                    fill: 'red',
-                    d: 'M 10 -5 0 0 10 5 Z'
+                    'type': 'path',
+                    'stroke': 'black',
+                    'fill': 'red',
+                    'd': 'M 10 -5 0 0 10 5 Z'
                 },
                 targetMarker: {
-                    type: 'path',
-                    stroke: 'black',
-                    fill: 'yellow',
-                    d: 'M 10 -5 0 0 10 5 Z'
+                    'type': 'path',
+                    'stroke': 'black',
+                    'fill': 'yellow',
+                    'd': 'M 10 -5 0 0 10 5 Z'
                 }
             }
         });
@@ -494,17 +517,17 @@
                 strokeDasharray: '5 5',
                 strokeDashoffset: 7.5,
                 sourceMarker: {
-                    type: 'path',
-                    stroke: 'none',
-                    fill: '#3498DB',
-                    d: 'M 20 -10 0 0 20 10 Z \
+                    'type': 'path',
+                    'stroke': 'none',
+                    'fill': '#3498DB',
+                    'd': 'M 20 -10 0 0 20 10 Z \
                         M 40 -10 20 0 40 10 Z'
                 },
                 targetMarker: {
-                    type: 'path',
-                    stroke: 'none',
-                    fill: '#3498DB',
-                    d: 'M 7.5 -10 2.5 -10 2.5 10 7.5 10 Z \
+                    'type': 'path',
+                    'stroke': 'none',
+                    'fill': '#3498DB',
+                    'd': 'M 7.5 -10 2.5 -10 2.5 10 7.5 10 Z \
                         M 17.5 -10 12.5 -10 12.5 10 17.5 10 Z \
                         M 40 -10 20 0 40 10 Z'
                 }
@@ -562,25 +585,25 @@
             new g.Point(350, 290),
         ]);
         link3.set('router', { name: 'orthogonal' });
-        link3.set('connector', { name: 'rounded' })
+        link3.set('connector', { name: 'rounded' });
         link3.attr({
             line: {
                 stroke: 'gray',
                 strokeWidth: 4,
                 strokeDasharray: '4 2',
                 sourceMarker: {
-                    type: 'image',
+                    'type': 'image',
                     'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-                    width: 24,
-                    height: 24,
-                    y: -12
+                    'width': 24,
+                    'height': 24,
+                    'y': -12
                 },
                 targetMarker: {
-                    type: 'image',
+                    'type': 'image',
                     'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-                    width: 24,
-                    height: 24,
-                    y: -12
+                    'width': 24,
+                    'height': 24,
+                    'y': -12
                 }
             }
         });
@@ -596,7 +619,79 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <h3 id="link-labels">Link Labels</h3>
+            <h3 id="link-arrowheads">Appendix: Link Arrowheads</h3>
+
+            <p>In our examples, we used two <a href="special-attributes.html">special attributes</a> to change the link
+                arrowheads;
+                <a href="/docs/jointjs#dia.attributes.sourceMarker" target="_blank"><code>sourceMarker</code></a> and
+                <a href="/docs/jointjs#dia.attributes.targetMarker" target="_blank"><code>targetMarker</code></a>.
+                (In the case of <code>joint.shapes.standard.Link</code>, they are defined on the <code>line</code>
+                selector.)
+                The <code>'type'</code> of the arrowhead can be any valid SVGElement type; we will look at
+                <code>path</code> and <code>image</code> arrowheads specifically, but we will mention the others in
+                <a href="special-attributes.html">more advanced sections of the tutorial</a>.
+                Just remember that in this context, JointJS's camelCase translation does not work; for that reason, we
+                strongly encourage everyone to use quotation marks around all arrowhead marker properties (i.e.
+                <code>'type'</code> and not <code>type</code>).</p>
+
+            <p>The following example shows how to create a link with two simple <code>path</code> arrowheads.
+                Notice that if the <code>'fill'</code> and <code>'stroke'</code> colors are not specified, they are
+                adopted from the <code>line.stroke</code> attribute.
+                The two arrowheads have the same path data commands, despite pointing in opposite directions; this is
+                because all <code>targetMarker</code> values are automatically rotated by 180 degrees.
+                The path commands' coordinate system has origin at the tip of the link and is rotated
+                according to the slope of the link at that point.
+                Together, these characteristics mean that you can design all your arrowheads as if they were pointing
+                left and towards the point <code>0,0</code> in local coordinates; JointJS will take care of the
+                rest.</p>
+
+            <div class="paper" id="paper-links-arrowheads-path"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'path',
+            'd': 'M 20 -10 0 0 20 10 Z'
+        },
+        targetMarker: {
+            'type': 'path',
+            'stroke': 'green',
+            'stroke-width': 2
+            'fill': 'yellow',
+            'd': 'M 20 -10 0 0 20 10 Z'
+        }
+    }
+});</code></pre>
+
+            <p>Creating <code>image</code> arrowheads is similarly straightforward.
+                You just need to provide an url with the path to your image to the <code>'xlink:href'</code> property,
+                and then specify the desired <code>'width'</code> and <code>'height'</code>.
+                The image for <code>targetMarker</code> will be automatically rotated by 180 degrees, as expected.
+                Remember to reposition the image in the <code>'y'</code> axis if you need the arrowhead to be
+                centered.</p>
+
+            <div class="paper" id="paper-links-arrowheads-image"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'image',
+            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+            'width': 24,
+            'height': 24,
+            'y': -12
+        },
+        targetMarker: {
+            'type': 'image',
+            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+            'width': 24,
+            'height': 24,
+            'y': -12
+        }
+    }
+});</code></pre>
+
+            <h3 id="link-labels">Appendix: Link Labels</h3>
 
             <p>JointJS also supports link labels:</p>
 
@@ -643,8 +738,15 @@
 
             <p>This concludes the introductory section of the JointJS tutorial!
                 Congratulations!
-                As you can see, we came a long way from the initial Hello, World! application.
-                Now that you have seen the basics, you should be confident working with the most important building
+                We have come a long way from the initial Hello, World! application:</p>
+
+            <div class="paper" id="paper-hello-world-copy"></div>
+
+            <p></p>
+
+            <div class="paper" id="paper-links-copy"></div>
+
+            <p>Now that you have seen the basics, you should be confident working with the most important building
                 blocks of JointJS - Graphs, Papers, Elements, and Links.</p>
 
             <p><a href="intermediate.html">The next step is to head over to the intermediate section of the tutorial, which
@@ -660,6 +762,10 @@
         <script src="js/elements.js"></script>
         <script src="js/links-attr.js"></script>
         <script src="js/links.js"></script>
+        <script src="js/links-arrowheads-path.js"></script>
+        <script src="js/links-arrowheads-image.js"></script>
         <script src="js/link-labels-builtin.js"></script>
+        <script src="js/hello-world-copy.js"></script>
+        <script src="js/links-copy.js"></script>
     </body>
 </html>

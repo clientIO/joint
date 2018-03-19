@@ -1,9 +1,9 @@
-(function links() {
+(function linksCopy() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-links'),
+        el: document.getElementById('paper-links-copy'),
         model: graph,
         width: 600,
         height: 300,
