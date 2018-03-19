@@ -470,7 +470,7 @@
             set: setWrapper('ry', 'height')
         },
 
-        refR: {
+        refRInscribed: {
             set: (function(attrName) {
                 var widthFn = setWrapper(attrName, 'width');
                 var heightFn = setWrapper(attrName, 'height');
@@ -479,6 +479,26 @@
                     return fn(value, refBBox);
                 }
             })('r')
+        },
+
+        refRCircumscribed: {
+            set: function(value, refBBox) {
+                var isValuePercentage = util.isPercentage(value);
+                value = parseFloat(value);
+                if (isValuePercentage) {
+                    value /= 100;
+                }
+
+                var diagonalLength = Math.sqrt((refBBox.height * refBBox.height) + (refBBox.width * refBBox.width));
+
+                var rValue;
+                if (isFinite(value)) {
+                    if (isValuePercentage || value >= 0 && value <= 1) rValue = value * diagonalLength;
+                    else rValue = Math.max(value + diagonalLength, 0);
+                }
+
+                return { r: rValue };
+            }
         },
 
         refCx: {
@@ -549,6 +569,7 @@
     };
 
     // Aliases
+    attributesNS.refR = attributesNS.refRInscribed;
     attributesNS.refD = attributesNS.refDResetOffset;
     attributesNS.refPoints = attributesNS.refPointsResetOffset;
 
