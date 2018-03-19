@@ -1,0 +1,81 @@
+<p>New connectors can be defined in the <code>joint.connectors</code> namespace (e.g. <code>joint.connectors.myConnector</code>) or passed directly as a function to the <code>connector</code> property of a link. In either case, the connector function is expected to have the form <code>function(sourcePoint, targetPoint, vertices, args, linkView)</code> and must return a string representing the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">SVG path data</a> that will be used to render the link.</p>
+
+<p>Example of a connector defined in the <code>joint.connectors</code> namespace:</p>
+
+<pre><code>joint.connector.wobble = function(sourcePoint, targetPoint, vertices, args, linkView) {
+
+    var SPREAD = args.spread || 20;
+
+    var points = vertices.concat(targetPoint)
+    var prev = sourcePoint;
+    var path = new g.Path(g.Path.createSegment('M', prev));
+
+    var n = points.length;
+    for (var i = 0; i < n; i++) {
+
+        var next = points[i];
+        var distance = prev.distance(next);
+
+        var d = SPREAD;
+        while (d < distance) {
+            var current = prev.clone().move(next, -d);
+            current.offset(
+                Math.floor(7 * Math.random()) - 3,
+                Math.floor(7 * Math.random()) - 3
+            );
+            path.appendSegment(g.Path.createSegment('L', current));
+            d += SPREAD;
+        }
+
+        path.appendSegment(g.Path.createSegment('L', next));
+        prev = next;
+    }
+
+    return path;
+}
+
+var link = new joint.shapes.standard.Link();
+link.source({ id: source.id });
+link.target({ id: target.id });
+
+link.connector('wobble', {
+    spread: 10
+});</code></pre>
+
+<p>An example of a connector passed as a function is provided below. Notice that this approach does not enable passing custom <code>args</code> nor can it be serialized with the <code>graph.toJSON()</code> <a href="#dia.Graph.prototype.toJSON">function</a>.</p>
+
+<pre><code>var link = new joint.shapes.standard.Link();
+link.source({ id: source.id });
+link.target({ id: target.id });
+
+link.connector(function(sourcePoint, targetPoint, vertices, args, linkView) {
+
+    var SPREAD = 20;
+
+    var points = vertices.concat(targetPoint)
+    var prev = sourcePoint;
+    var path = new g.Path(g.Path.createSegment('M', prev));
+
+    var n = points.length;
+    for (var i = 0; i < n; i++) {
+
+        var next = points[i];
+        var distance = prev.distance(next);
+
+        var d = SPREAD;
+        while (d < distance) {
+            var current = prev.clone().move(next, -d);
+            current.offset(
+                Math.floor(7 * Math.random()) - 3,
+                Math.floor(7 * Math.random()) - 3
+            );
+            path.appendSegment(g.Path.createSegment('L', current));
+            d += SPREAD;
+        }
+
+        path.appendSegment(g.Path.createSegment('L', next));
+        prev = next;
+    }
+
+    return path;
+});</code></pre>

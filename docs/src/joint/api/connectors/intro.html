@@ -1,0 +1,25 @@
+<p>Connectors take an array of link route points and generate SVG path commands so that the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="#dia.Link.prototype.connector">function</a>.</p>
+
+<p>There are four built-in connectors in JointJS (<code>normal</code> (default), <code>rounded</code>, <code>smooth</code>, and <code>jumpover</code>). All four of these connectors accept the following optional argument, in addition to their own arguments:</p>
+
+<table>
+    <tr>
+        <th>raw</th>
+        <td><i>boolean</i></td>
+        <td>Should the router return the connection path as a <code>g.Path</code> rather than as a string? Default is <code>false</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.connector('normal', {
+    raw: true
+});</code></pre>
+
+<p>Note that the modular architecture of JointJS allows mixing-and-matching connectors with <a href="#dia.routers">routers</a> as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
+
+<pre><code>var link = new joint.shapes.standard.Link();
+link.source({ id: rect.id });
+link.target({ id: rect2.id });
+link.router('manhattan');
+link.connector('jumpover');</code></pre>

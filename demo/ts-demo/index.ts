@@ -3,11 +3,16 @@ import './custom';
 import {V, g} from "./build/joint";
 import * as $ from "jquery";
 
+const $body = $('body');
+
 // Paper:
+$body.append($('<h3 />').text('Example Paper'));
+$body.append($('<div id="paper" style="border: 1px dashed #ddd" />'));
+
 const graph = new joint.dia.Graph;
 const paper = new joint.dia.Paper({
     el: $('#paper'),
-    width: 400,
+    width: 500,
     height: 200,
     gridSize: 20,
     model: graph,
@@ -16,7 +21,7 @@ const paper = new joint.dia.Paper({
 });
 
 let rect = new joint.shapes.basic.Rect()
-    .position(10, 10)
+    .position(40, 20)
     .size(100, 100)
     .addTo(graph)
 
@@ -29,28 +34,35 @@ var Circle = joint.shapes.basic.Circle.define('CustomCircle', {
 });
 
 let circle = new Circle()
-    .position(150, 50)
-    .size(50, 50)
+    .position(180, 60)
+    .size(60, 60)
     .addTo(graph);
 
 // create the CustomRect - it's defined in the custom.ts
 let customRect = new joint.shapes.app.CustomRect()
-    .position(50, 50)
+    .position(80, 60)
     .size(100, 100)
     .addTo(graph);
 
 customRect.test();
 joint.shapes.app.CustomRect.staticTest()
 
+let link = new joint.shapes.standard.Link()
+    .source({ id: rect.id })
+    .target({ id: customRect. id })
+    .router('manhattan', { step: 20 })
+    .connector('rounded', { radius: 20 })
+    .addTo(graph);
+
 // VECTORIZER DEMO:
 // Display all SVG shapes and convert them to paths.
-const $body = $('body');
+$body.append($('<h3 />').text('Example SVG created by Vectorizer'));
 
 const svg = joint.V('svg');
 svg.attr('width', 500);
-svg.attr('height', 600);
+svg.attr('height', 550);
+svg.attr('style', 'border: 1px dashed #ddd');
 
-$body.append($('<h3/>').text('Example SVG created by Vectorizer'));
 $body.append(svg.node);
 
 // Line:

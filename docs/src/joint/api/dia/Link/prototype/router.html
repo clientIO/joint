@@ -1,0 +1,16 @@
+<pre class="docs-method-signature"><code>link.router()</code></pre>
+<p>Return a shallow copy of the <code>router</code> property of the link.</p>
+
+<p>For backwards compatibility, if there is no router, the function also checks whether the legacy <code>manhattan</code> property is set on the link and returns <code>{ name: orthogonal }</code> if it is.</p>
+
+<pre class="docs-method-signature"><code>link.router(router [, opt])</code></pre>
+<p>Set the <code>router</code> of the link.</p>
+
+<p>If the <code>router</code> argument is an object, it is expected to have the form <code>{ name: routerName, args?: routerArgs }</code>. Here <code>routerName</code> is expected to match either the name of a <a href="#routers">built-in router</a> or the name of a <a href="#routers.custom">custom router</a>.</p>
+
+<p>If the <code>router</code> argument is a function, it is expected to define a <a href="#routers.custom">custom router</a> with the signature <code>function(vertices, routerArgs, linkView)</code> that returns an array of route points.</p>
+
+<pre class="docs-method-signature"><code>link.router(routerName [, routerArgs, opt])</code></pre>
+<p>Set the <code>router</code> of the link to have the value <code>{ name: routerName, args: routerArgs }</code>.</p>
+
+<p>The <code>routerName</code> string is expected to match either the name of a <a href="#routers">built-in router</a> or the name of a <a href="#routers.custom">custom router</a>. The <code>routerArgs</code> parameter is optional.</p>

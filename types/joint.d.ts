@@ -383,9 +383,10 @@ export namespace dia {
             target?: Point | { id: string, selector?: string, port?: string };
             labels?: Label[];
             vertices?: Point[];
+            manhattan?: boolean;
+            router?: routers.Router | routers.RouterJSON;
             smooth?: boolean;
-            router?: routers.RouterJSON;
-            connector?: connectors.ConnectorJSON;
+            connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
         interface LinkSelectors extends Cell.Selectors {
@@ -439,11 +440,19 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): Point | { id: string, selector?: string, port?: string } | null | undefined;
-        source(source: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        source(): Point | { id: string | number, selector?: string, port?: string } | null | undefined;
+        source(source: Point | { id: string | number, selector?: string, port?: string } | null, opt?: Cell.Options): this;
 
-        target(): Point | { id: string, selector?: string, port?: string } | null | undefined;
-        target(target: Point | { id: string, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        target(): Point | { id: string | number, selector?: string, port?: string } | null | undefined;
+        target(target: Point | { id: string | number, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+
+        router(): routers.Router | routers.RouterJSON | null;
+        router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
+        router(name: routers.RouterType, args?: routers.RouterArguments, opt?: Cell.Options): this;
+
+        connector(): connectors.Connector | connectors.ConnectorJSON | null;
+        connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: Cell.Options): this;
+        connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: Cell.Options): this;
 
         label(index?: number): Link.Label;
         label(index: number, label: Link.Label, opt?: Cell.Options): this;
@@ -639,10 +648,10 @@ export namespace dia {
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addLabel(coordinates: g.PlainPoint, opt?: LinkView.LabelOptions): number;
+        addLabel(coordinates: Point, opt?: LinkView.LabelOptions): number;
         addLabel(x: number, y: number, opt?: LinkView.LabelOptions): number;
 
-        addVertex(coordinates: g.PlainPoint, opt?: LinkView.VertexOptions): number;
+        addVertex(coordinates: Point, opt?: LinkView.VertexOptions): number;
         addVertex(x: number, y: number, opt?: LinkView.VertexOptions): number;
 
         getConnection(): g.Path;
@@ -661,18 +670,18 @@ export namespace dia {
 
         getTangentAtRatio(ratio: number): g.Line;
 
-        getClosestPoint(point: g.PlainPoint): g.Point;
+        getClosestPoint(point: Point): g.Point;
 
-        getClosestPointLength(point: g.PlainPoint): number;
+        getClosestPointLength(point: Point): number;
 
-        getClosestPointRatio(point: g.PlainPoint): number;
+        getClosestPointRatio(point: Point): number;
 
         getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
 
         getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
         getVertexIndex(x: number, y: number): number;
-        getVertexIndex(point: g.PlainPoint): number;
+        getVertexIndex(point: Point): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
@@ -2134,22 +2143,27 @@ export namespace routers {
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
         'oneSide': OneSideRouterArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type RouterType = string & keyof RouterArgumentsMap;
+    type RouterType = keyof RouterArgumentsMap;
+
+    type GenericRouterArguments<K extends RouterType> = RouterArgumentsMap[K];
 
     interface GenericRouter<K extends RouterType> {
         (
-            points: dia.Point[],
-            args?: RouterArgumentsMap[K],
+            vertices: dia.Point[],
+            args?: GenericRouterArguments<K>,
             linkView?: dia.LinkView
         ): dia.Point[];
     }
 
     interface GenericRouterJSON<K extends RouterType> {
         name: K;
-        args?: RouterArgumentsMap[K];
+        args?: GenericRouterArguments<K>;
     }
+
+    type RouterArguments = GenericRouterArguments<RouterType>;
 
     type Router = GenericRouter<RouterType>;
 
@@ -2167,20 +2181,22 @@ export namespace routers {
 export namespace connectors {
 
     interface NormalConnectorArguments {
-
+        raw?: boolean;
     }
 
     interface RoundedConnectorArguments {
-        radius?: number
+        raw?: boolean;
+        radius?: number;
     }
 
     interface SmoothConnectorArguments {
-
+        raw?: boolean;
     }
 
     interface JumpOverConnectorArguments {
+        raw?: boolean;
         size?: number;
-        jump?: 'arc' | 'gap' | 'cubic'
+        jump?: 'arc' | 'gap' | 'cubic';
     }
 
     interface ConnectorArgumentsMap {
@@ -2188,24 +2204,29 @@ export namespace connectors {
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type ConnectorType = string & keyof ConnectorArgumentsMap;
+    type ConnectorType = keyof ConnectorArgumentsMap;
+
+    type GenericConnectorArguments<K extends ConnectorType> = ConnectorArgumentsMap[K];
 
     interface GenericConnector<K extends ConnectorType> {
         (
             sourcePoint: dia.Point,
             targetPoint: dia.Point,
-            vertices: dia.Point[],
-            args?: ConnectorArgumentsMap[K],
+            routePoints: dia.Point[],
+            args?: GenericConnectorArguments<K>,
             linkView?: dia.LinkView
-        ): string;
+        ): string | g.Path;
     }
 
     interface GenericConnectorJSON<K extends ConnectorType> {
         name: K;
-        args?: ConnectorArgumentsMap[K];
+        args?: GenericConnectorArguments<K>;
     }
+
+    type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
 
     type Connector = GenericConnector<ConnectorType>;
 
@@ -2240,20 +2261,25 @@ export namespace highlighters {
         'addClass': AddClassHighlighterArguments;
         'opacity': OpacityHighlighterArguments;
         'stroke': StrokeHighlighterArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type HighlighterType = string & keyof HighlighterArgumentsMap;
+    type HighlighterType = keyof HighlighterArgumentsMap;
+
+    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
+
+    interface GenericHighlighter<K extends HighlighterType> {
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
 
     interface GenericHighlighterJSON<K extends HighlighterType> {
         name: K;
-        options?: HighlighterArgumentsMap[K];
+        options?: GenericHighlighterArguments<K>;
     }
 
-    interface GenericHighlighter<K extends HighlighterType> {
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
-    }
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
 
     type Highlighter = GenericHighlighter<HighlighterType>;
 

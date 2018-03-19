@@ -1,0 +1,16 @@
+<pre class="docs-method-signature"><code>link.connector()</code></pre>
+<p>Return a shallow copy of the <code>connector</code> property of the link.</p>
+
+<p>For backwards compatibility, if there is no connector, the function also checks whether the legacy <code>smooth</code> property is set on the link and returns <code>{ name: smooth }</code> if it is.</p>
+
+<pre class="docs-method-signature"><code>link.connector(connector [, opt])</code></pre>
+<p>Set the <code>connector</code> of the link.</p>
+
+<p>If the <code>connector</code> argument is an object, it is expected to have the form <code>{ name: connectorName, args?: connectorArgs }</code>. Here <code>connectorName</code> is expected to match either the name of a <a href="#connectors">built-in connector</a> or the name of a <a href="#connectors.custom">custom connector</a>.</p>
+
+<p>If the <code>connector</code> argument is a function, it is expected to define a <a href="#connectors.custom">custom connector</a> with the signature <code>function(sourcePoint, targetPoint, vertices, connectorArgs, linkView)</code> that returns a string representing the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">SVG path data</a> that will be used to render the link.</p>
+
+<pre class="docs-method-signature"><code>link.connector(connectorName [, connectorArgs, opt])</code></pre>
+<p>Set the <code>connector</code> of the link to have the value <code>{ name: connectorName, args: connectorArgs }</code>.</p>
+
+<p>The <code>connectorName</code> string is expected to match either the name of a <a href="#connectors">built-in connector</a> or the name of a <a href="#connectors.custom">custom connector</a>. The <code>connectorArgs</code> parameter is optional.</p>

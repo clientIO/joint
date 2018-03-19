@@ -1,0 +1,20 @@
+<p>The <code>orthogonal</code> router returns a route with orthogonal line segments. It generates extra route points in order to create the right angles on the way. It does not avoid obstacles. The router has one optional argument; this can be passed as the <code>router.args.elementPadding</code> property:</p>
+
+<table>
+    <tr>
+        <th>elementPadding</th>
+        <td><i>number</i></td>
+        <td>The minimum distance from element at which the first/last route angle may be placed. Default is <code>20</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.router('orthogonal', {
+    elementPadding: 10
+});</code></pre>
+
+<p>(<i>Deprecated</i>) For the purposes of backwards compatibility, <code>orthogonal</code> routing can also be enabled by setting the <code>manhattan</code> property to <code>true</code>. Note that the meaning of <q>manhattan</q> in JointJS has changed over time.</p>
+
+<pre><code>// deprecated
+link.set('manhattan', true);</code></pre>

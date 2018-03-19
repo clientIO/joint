@@ -4,4 +4,3 @@ lib/*/*
 coverage.info
 npm-debug.log
 phantomjsdriver.log
-test/jointjs/lodash4/libs/**

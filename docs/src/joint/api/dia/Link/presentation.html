@@ -1,0 +1,42 @@
+<p>The shape of the link is determined by the <b><code>vertices</code></b>, <b><code>connector</code></b> and <b><code>router</code></b> properties.</p>
+
+<h4>Vertices</h4>
+
+<p>The <code>vertices</code> array is an array of user-defined points for the link to pass through. The array can be accessed with the <code>link.vertices()</code> <a href="#dia.Link.prototype.vertices">function</a> and related functions.</p>
+
+<pre><code>link.vertices();
+link.vertices([{ x: 100, y: 120 }, { x: 150, y: 60 }]);</code></pre>
+
+<h4>Router</h4>
+
+<p>Routers take an array of link vertices and transform them into an array of route points that the link should go through. The <code>router</code> property of a link can be accessed with the <code>link.router()</code> <a href="#dia.Link.prototype.router">function</a>. A collection of pre-made <a href="#routers">routers</a> is provided inside the JointJS library in the <code>joint.routers</code> namespace. This includes <q>smart routers</q> that are able to automatically avoid obstacles (elements) in their way.</p>
+
+<pre><code>link.router('manhattan', {
+    excludeEnds: ['source'],
+    excludeTypes: ['myNamespace.MyCommentElement'],
+    startDirections: ['top'],
+    endDirections: ['bottom']
+});</code></pre>
+
+<h4>Connector</h4>
+
+<p>Connectors take an array of link route points and generate SVG path commands so that the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="#dia.Link.prototype.connector">function</a>. A collection of pre-made <a href="#connectors">connectors</a> is provided inside the JointJS library in the <code>joint.connectors</code> namespace.</p>
+
+<pre><code>link.connector('rounded', {
+    raw: true,
+    radius: 20
+});</code></pre>
+
+<p>Note that the modular architecture of JointJS allows mixing-and-matching connectors with routers as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
+
+<pre><code>var link = new joint.shapes.standard.Link();
+link.source({ id: rect.id });
+link.target({ id: rect2.id });
+link.router('manhattan');
+link.connector('jumpover');</code></pre>
+
+<h4>Styling</h4>
+
+<p>Styling of the link is contained in the <b><code>attrs</code></b> property which has exactly the same structure as the <b><code>attrs</code></b> property of elements. Please refer to the <a href="#dia.Element">joint.dia.Element</a> and <a href="#dia.Link">joint.dia.Link</a> sections of this page for more information.</p>
+
+<p>Links also have the <b><code>z</code></b> property which specifies the z-level of the link. It has exactly the same meaning as the <code>z</code> property of elements.</p>

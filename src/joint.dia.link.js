@@ -125,7 +125,10 @@ joint.dia.Link = joint.dia.Cell.extend({
     source: function(source, opt) {
 
         // getter
-        if (source === undefined) return joint.util.assign({}, this.get('source'));
+        if (source === undefined) {
+            return joint.util.clone(this.get('source'));
+        }
+
         // setter
         return this.set('source', source, opt);
     },
@@ -133,9 +136,54 @@ joint.dia.Link = joint.dia.Cell.extend({
     target: function(target, opt) {
 
         // getter
-        if (target === undefined) return joint.util.assign({}, this.get('target'));
+        if (target === undefined) {
+            return joint.util.clone(this.get('target'));
+        }
+
         // setter
         return this.set('target', target, opt);
+    },
+
+    router: function(name, args, opt) {
+
+        // getter
+        if (name === undefined) {
+            router = this.get('router');
+            if (!router) {
+                if (this.get('manhattan')) return { name: 'orthogonal' }; // backwards compatibility
+                return null;
+            }
+            if (typeof router === 'object') return joint.util.clone(router);
+            return router; // e.g. a function
+        }
+
+        // setter
+        var isRouterProvided = ((typeof name === 'object') || (typeof name === 'function'));
+        var localRouter = isRouterProvided ? name : { name: name, args: args };
+        var localOpt = isRouterProvided ? args : opt;
+
+        return this.set('router', localRouter, localOpt);
+    },
+
+    connector: function(name, args, opt) {
+
+        // getter
+        if (name === undefined) {
+            connector = this.get('connector');
+            if (!connector) {
+                if (this.get('smooth')) return { name: 'smooth' }; // backwards compatibility
+                return null;
+            }
+            if (typeof connector === 'object') return joint.util.clone(connector);
+            return connector; // e.g. a function
+        }
+
+        // setter
+        var isConnectorProvided = ((typeof name === 'object' || typeof name === 'function'));
+        var localConnector = isConnectorProvided ? name : { name: name, args: args };
+        var localOpt = isConnectorProvided ? args : opt;
+
+        return this.set('connector', localConnector, localOpt);
     },
 
     // Labels API
@@ -1452,19 +1500,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     findRoute: function(oldVertices) {
 
         var namespace = joint.routers;
-        var router = this.model.get('router');
+        var router = this.model.router();
         var defaultRouter = this.paper.options.defaultRouter;
 
         if (!router) {
-
-            if (this.model.get('manhattan')) {
-                // backwards compability
-                router = { name: 'orthogonal' };
-            } else if (defaultRouter) {
-                router = defaultRouter;
-            } else {
-                return oldVertices;
-            }
+            if (defaultRouter) router = defaultRouter;
+            else return oldVertices; // no router specified
         }
 
         var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
@@ -1474,7 +1515,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var args = router.args || {};
 
-        var newVertices = routerFn.call(this, oldVertices || [], args, this);
+        var newVertices = routerFn.call(
+            this, // context
+            oldVertices || [], // vertices
+            args, // options
+            this // linkView
+        );
 
         return newVertices;
     },
@@ -1484,16 +1530,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     findPath: function(route) {
 
         var namespace = joint.connectors;
-        var connector = this.model.get('connector');
+        var connector = this.model.connector();
         var defaultConnector = this.paper.options.defaultConnector;
 
         if (!connector) {
-            // backwards compability
-            if (this.model.get('smooth')) {
-                connector = { name: 'smooth' };
-            } else {
-                connector = defaultConnector || {};
-            }
+            connector = defaultConnector || {};
         }
 
         var connectorFn = joint.util.isFunction(connector) ? connector : namespace[connector.name];
@@ -1502,16 +1543,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var args = joint.util.clone(connector.args || {});
-        // Request raw g.Path as the result.
-        args.raw = true;
+        args.raw = true; // Request raw g.Path as the result.
 
         var path = connectorFn.call(
-            this,
-            this._markerCache.sourcePoint, // Note that the value is translated by the size
-            this._markerCache.targetPoint, // of the marker. (We'r not using this.sourcePoint)
-            route || this.model.vertices(),
+            this, // context
+            this._markerCache.sourcePoint, // source // Note that the value is translated by the size
+            this._markerCache.targetPoint, // target // of the marker. (We are not using this.sourcePoint)
+            route || this.model.vertices(), // vertices
             args, // options
-            this
+            this // linkView
         );
 
         if (typeof path === 'string') {
@@ -2539,7 +2579,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             arrowhead: end,
             whenNotAllowed: opt.whenNotAllowed || 'revert',
             initialMagnet: this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null),
-            initialEnd: joint.util.assign({}, this.model.get(end)),
+            initialEnd: joint.util.clone(this.model.get(end)),
             validateConnectionArgs: this._createValidateConnectionArgs(end)
         };
 
