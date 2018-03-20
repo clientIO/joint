@@ -134,8 +134,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         // i.e. link source/target can be a point e.g. link.get('source') ==> { x: 100, y: 100 };
         linkPinning: true,
 
-        // Custom validation after an interaction with a link ends
-        // Recogines a function. If returns `false` the link is disallowed (removed or reverted)
+        // Custom validation after an interaction with a link ends.
+        // Recognizes a function. If `false` is returned, the link is disallowed (removed or reverted)
         // (linkView, paper) => boolean
         allowLink: null,
 
