@@ -575,48 +575,68 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             return this.paper.localToPaperRect(bbox);
         }
 
+        // TODO: use `getNodeBBox` with paper.matrix()
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
     },
 
-    getMagnetBBox: function(magnet) {
+    magnetCache: function(magnet) {
 
-        var metrics = this.getMagnetMetrics(magnet)
-        var rect = metrics.boundingRect;
-        var magnetMatrix = metrics.magnetMatrix;
-        var translateMatrix = metrics.translateMatrix;
-        var rotateMatrix = metrics.rotateMatrix;
+        var id = V.ensureId(magnet);
+        var metrics = this.metrics[id];
+        if (!metrics) metrics = this.metrics[id] = {};
+        return metrics;
+    },
+
+    getNodeData: function(magnet) {
+
+        var metrics = this.magnetCache(magnet);
+        if (!metrics.data) metrics.data = {};
+        return metrics.data;
+    },
+
+    getNodeBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        var rotateMatrix = this.getRootRotateMatrix();
         return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
     },
 
-    getMagnetUnrotatedBBox: function(magnet) {
+    getNodeBoundingRect: function(magnet) {
 
-        var metrics = this.getMagnetMetrics(magnet)
-        var rect = metrics.boundingRect;
-        var magnetMatrix = metrics.magnetMatrix;
-        var translateMatrix = metrics.translateMatrix;
+        var metrics = this.magnetCache(magnet);
+        if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
+        return new g.Rect(metrics.boundingRect);
+    },
+
+    getNodeUnrotatedBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
         return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
     },
 
-    getMagnetMetrics: function(magnet) {
+    getNodeShape: function(magnet) {
 
-        var vMagnet = V(magnet);
-        var id = V.ensureId(vMagnet);
+        var metrics = this.magnetCache(magnet);
+        if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
+        return metrics.geometryShape.clone();
+    },
 
-        var metrics = this.metrics[id];
-        if (!metrics) metrics = this.metrics[id] = {
-            boundingRect: vMagnet.getBBox(),
-            magnetMatrix: vMagnet.getTransformToElement(this.el)
+    getNodeMatrix: function(magnet) {
+
+        var metrics = this.magnetCache(magnet);
+        if (metrics.magnetMatrix === undefined) {
+            var target = this.rotatableNode || this.el;
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
         }
-
-        return {
-            boundingRect: metrics.boundingRect.clone(),
-            magnetMatrix: V.createSVGMatrix(metrics.magnetMatrix),
-            translateMatrix: this.getRootTranslateMatrix(),
-            rotateMatrix: this.getRootRotateMatrix()
-        }
+        return V.createSVGMatrix(metrics.magnetMatrix);
     },
 
     getRootTranslateMatrix: function() {
+
         var model = this.model;
         var position = model.position();
         var mt = V.createSVGMatrix().translate(position.x, position.y);
@@ -624,9 +644,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     getRootRotateMatrix: function() {
+
+        var mr = V.createSVGMatrix();
         var model = this.model;
         var angle = model.angle();
-        var mr = V.createSVGMatrix();
         if (angle) {
             var bbox = model.getBBox();
             var cx = bbox.width / 2;

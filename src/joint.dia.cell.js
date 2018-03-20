@@ -1112,6 +1112,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             nodeMatrix.e = nodePosition.x;
             nodeMatrix.f = nodePosition.y;
             node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+            // TODO: store nodeMatrix metrics?
         }
     },
 

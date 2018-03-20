@@ -2388,11 +2388,6 @@ var g = (function() {
                     }
                 }
             }
-            if (intersection && intersection.length > 1) {
-                intersection.sort(function(a, b) {
-                    return a.squaredDistance(line.start) - b.squaredDistance(line.start);
-                });
-            }
 
             return intersection;
         },

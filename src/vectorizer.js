@@ -1166,7 +1166,7 @@ V = Vectorizer = (function() {
         if (targetRef instanceof g.Line) {
             localLine = V.transformLine(targetRef, localMatrix);
             localPoint = localLine.start;
-            if (!localBBox.containsPoint(localLine.end) /* && !localBBox.intersectionWithLine(localLine) */) localLine.end = localBBox.center();
+            //if (!localBBox.containsPoint(localLine.end) /* && !localBBox.intersectionWithLine(localLine) */) localLine.end = localBBox.center();
         } else {
             localPoint = V.transformPoint(new g.Point(targetRef), localMatrix);
             localLine = new g.Line(localPoint, localBBox.center());

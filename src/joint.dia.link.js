@@ -1058,14 +1058,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var sourceAnchor;
         if (sourceView) {
             sourceMagnet = (this.sourceMagnet || sourceView.el);
-            var sourceAnchorRef = (firstWaypoint) ? new g.Point(firstWaypoint) : this.targetMagnet || (targetView && targetView.el) || g.Point(targeDef);
+            var sourceAnchorRef = (firstWaypoint) ? new g.Point(firstWaypoint) : this.targetMagnet || (targetView && targetView.el) || g.Point(targetDef);
             var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultSourceAnchor;
             if (typeof sourceAnchorDef === 'function') {
                 sourceAnchorDef = sourceAnchorDef.call(this, sourceView, sourceMagnet, 'source', this);
             }
             sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
         } else {
-            sourceAnchor = firstWaypoint || new g.Point(sourceDef);
+            sourceAnchor = new g.Point(sourceDef);
         }
         // Anchor Target
         var targetAnchor;
@@ -1078,7 +1078,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
             targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
         } else {
-            targetAnchor = lastWaypoint || new g.Point(targetDef);
+            targetAnchor = new g.Point(targetDef);
         }
         // Connection Point Source
         var sourcePoint;
@@ -2042,7 +2042,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
         } else {
-            joint.dia.CellView.prototype.event.apply(this, arguments);
+            joint.dia.CellView.prototype.onevent.apply(this, arguments);
         }
     },
 

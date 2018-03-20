@@ -139,7 +139,7 @@
                 angle = tangent.vector().vectorAngle(zeroVector);
                 p = tangent.start;
             } else {
-                p = path.start;
+                p = this.path.start;
                 angle = 0;
             }
             return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
