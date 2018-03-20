@@ -784,6 +784,7 @@ export namespace dia {
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
             linkPinning?: boolean;
+            allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
             // events
             guard?: (evt: JQuery.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;

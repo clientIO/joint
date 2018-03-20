@@ -134,6 +134,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         // i.e. link source/target can be a point e.g. link.get('source') ==> { x: 100, y: 100 };
         linkPinning: true,
 
+        // Custom validation after an interaction with a link ends.
+        // Recognizes a function. If `false` is returned, the link is disallowed (removed or reverted)
+        // (linkView, paper) => boolean
+        allowLink: null,
+
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
         clickThreshold: 0,
 
@@ -1015,64 +1020,28 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this.clientOffset().offset(window.scrollX, window.scrollY);
     },
 
-    linkAllowed: function(linkViewOrModel) {
+    linkAllowed: function(linkView) {
 
-        var link;
-
-        if (linkViewOrModel instanceof joint.dia.Link) {
-            link = linkViewOrModel;
-        } else if (linkViewOrModel instanceof joint.dia.LinkView) {
-            link = linkViewOrModel.model;
-        } else {
-            throw new Error('Must provide link model or view.');
+        if (!(linkView instanceof joint.dia.LinkView)) {
+            throw new Error('Must provide a linkView.');
         }
 
-        if (!this.options.multiLinks) {
+        var link = linkView.model;
+        var paperOptions = this.options;
+        var graph = this.model;
+        var ns = graph.constructor.validations;
 
-            // Do not allow multiple links to have the same source and target.
-
-            var source = link.get('source');
-            var target = link.get('target');
-
-            if (source.id && target.id) {
-
-                var sourceModel = link.getSourceElement();
-
-                if (sourceModel) {
-
-                    var connectedLinks = this.model.getConnectedLinks(sourceModel, {
-                        outbound: true,
-                        inbound: false
-                    });
-
-                    var numSameLinks = connectedLinks.filter(function(_link) {
-
-                        var _source = _link.get('source');
-                        var _target = _link.get('target');
-
-                        return _source && _source.id === source.id &&
-                                (!_source.port || (_source.port === source.port)) &&
-                                _target && _target.id === target.id &&
-                                (!_target.port || (_target.port === target.port));
-
-                    }).length;
-
-                    if (numSameLinks > 1) {
-                        return false;
-                    }
-                }
-            }
+        if (!paperOptions.multiLinks) {
+            if (!ns.multiLinks.call(this, graph, link)) return false;
         }
 
-        if (
-            !this.options.linkPinning &&
-            (
-                !joint.util.has(link.get('source'), 'id') ||
-                !joint.util.has(link.get('target'), 'id')
-            )
-        ) {
+        if (!paperOptions.linkPinning) {
             // Link pinning is not allowed and the link is not connected to the target.
-            return false;
+            if (!ns.linkPinning.call(this, graph, link)) return false;
+        }
+
+        if (typeof paperOptions.allowLink === 'function') {
+            if (!paperOptions.allowLink.call(this, linkView, this)) return false;
         }
 
         return true;
