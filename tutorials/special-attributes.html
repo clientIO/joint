@@ -35,231 +35,106 @@
 
         <div class="tutorial">
 
-            <h2>Link Labels</h2>
+            <h2>Special Attributes</h2>
 
-            <p><a href="links.html">The basic tutorial series offered an introduction into link labels.</a>
-                This section explains everything you need to know to make full use of the powerful label system.</p>
+            <p>Special attributes are JointJS-specific attributes that offer functionality beyond that of native SVG
+                attributes.</p>
 
-            <p>JointJS offers a full suite of methods for working with link labels:</p>
+            <p>The main way to define the styling of diagram elements, links, and labels in JointJS is through
+                <code>attrs</code> objects.
+                If the attributes passed are standard SVG attributes, they are merely passed down to the individual
+                SVGElements of the shape; then it is the job of the browser to apply them to the elements and render
+                the shapes in the requested manner when asked to do so by JointJS View classes.
+                However, if JointJS encounters one of its special attributes, it takes over with custom logic in order
+                to offer advanced functionality; the results are then encoded back as standard SVG attributes.
+                <a href="custom-attributes.html">Advanced users of JointJS can even define their own custom
+                attributes.</a></p>
 
-            <ul>
-                <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels(labels)</code></a>
-                    - sets the <code>labels</code> array of the link.
-                    If called without arguments, returns the <code>labels</code> array.</li>
-                <li><a href="/docs/jointjs#dia.Link.prototype.label" target="_blank"><code>link.label(index, label)</code></a>
-                    - sets the provided <code>label</code> at the given <code>index</code>.
-                    If called with <code>index</code> only, returns that label.</li>
-                <li><a href="/docs/jointjs#dia.Link.prototype.insertLabel" target="_blank"><code>link.insertLabel(index, label)</code></a>
-                    - inserts the provided <code>label</code> at the given <code>index</code>.</li>
-                <li><a href="/docs/jointjs#dia.Link.prototype.appendLabel" target="_blank"><code>link.appendLabel(label)</code></a>
-                    - shortcut function. Inserts the <code>label</code> at the end of the <code>labels</code> array.</li>
-                <li><a href="/docs/jointjs#dia.Link.prototype.removeLabel" target="_blank"><code>link.removeLabel(index)</code></a>
-                    - removes the label at <code>index</code>.</li>
-            </ul>
+            <p>All JointJS special attributes use camelCase naming.
+                For consistency, it is thus very strongly recommended that you make use JointJS's ability to translate
+                camelCase into native SVG's kebab-case, and use camelCase when setting native SVG attributes as
+                well.</p>
 
-            <h3 id="builtin-default-label">Builtin Default Label</h3>
+            <p>A list of native SVG attributes can be found elsewhere on the Internet; have a look, for example, at
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN's SVG Attribute reference</a>.
+                In this section of the tutorial, we want to show you what additional things JointJS allows you to
+                do.</p>
 
-            <p>A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
-                class, from which all subtypes, including <code>joint.shapes.standard.Link</code>, inherit it.
-                The builtin default label has two tags:
-                <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
-                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
-                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
-                Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
+            <h3>Relative Attributes</h3>
 
-            <div class="paper" id="paper-link-labels-builtin"></div>
+            <p>One of the most common requests when working with SVG is to adjust the dimensions of one element
+                depending on the dimensions of another element.
+                JointJS allows you to do that with a suite of <code>ref</code> attributes.
+                The <code>ref</code> attribute itself specifies which selector should act as a parent; the element
+                whose dimensions will serve as a reference.
+                Then, the specific <code>ref</code> methods determine how that information should be used by the child
+                element.</p>
 
-            <pre><code>link.appendLabel({
+            <p>For the two following examples, we will define a custom element named <code>DoubleRectangle</code>, a
+                subtype of <code>joint.dia.Element</code>.
+                We want it to have two SVGRectElements - a red-tinted <code>rectangle</code> and a blue-tinted
+                <code>rectangle2</code>, respectively:</p>
+
+            <pre><code>var DoubleRectangle = joint.dia.Element.define('examples.DoubleRectangle', {
     attrs: {
-        text: {
-            text: 'Hello world'
-        }
-    }
-});</code></pre>
-
-            <p><a href="/docs/jointjs#dia.Link.intro.builtinDefaultAttributes" target="_blank">The full builtin default
-                label definition can be found in the documentation.</a></p>
-
-            <h3 id="label-position">Label Position</h3>
-
-            <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) by
-                default.
-                Three kinds of <code>label.position.distance</code> values are recognized for setting custom position.
-                A value between <code>0</code> and <code>1</code> causes the label to be positioned relatively to link length.
-                Positive values signify absolute position in local SVG units away from start point.
-                Finally, negative values mean absolute position away from end point.
-                An animated example is presented below:</p>
-
-            <div class="paper" id="paper-link-labels-distance"></div>
-
-            <pre><code>link.appendLabel({
-    attrs: {
-        text: {
-            text: '0.25'
-        }
-    },
-    position: {
-        distance: 0.25
-    }
-});
-
-link.appendLabel({
-    attrs: {
-        text: {
-            text: '150'
-        }
-    },
-    position: {
-        distance: 150
-    }
-});
-
-link.appendLabel({
-    attrs: {
-        text: {
-            text: '-100'
-        }
-    },
-    position: {
-        distance: -100
-    }
-});</code></pre>
-
-            <h3 id="label-offset">Label Offset</h3>
-
-            <p>It is also possible to set label offsets.
-                This is done with the <code>label.position.offset</code> property.
-                With a positive number, the label is offset relatively and to the right of the link; a negative number
-                causes the label to be offset to the left.
-                An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
-                in the two dimensions.
-                The following example illustrates these three options.
-                (Note that all labels have the default <code>position.distance</code> of <code>0.5</code>; it is just
-                the <code>offset</code> that changes.
-                The red asterisk marks the reference point of all labels on the link.)</p>
-
-            <div class="paper" id="paper-link-labels-offset"></div>
-
-            <pre><code>link.appendLabel({
-    attrs: {
-        text: {
-            text: '20'
-        }
-    },
-    position: {
-        offset: 20
-    }
-});
-
-link.appendLabel({
-    attrs: {
-        text: {
-            text: '-20'
-        }
-    },
-    position: {
-        offset: -20
-    }
-});
-
-link.appendLabel({
-    attrs: {
-        text: {
-            text: '{ x: 80, y: -20 }'
-        }
-    },
-    position: {
-        offset: {
-            x: 80,
-            y: -20
-        }
-    }
-});</code></pre>
-
-            <p>By default, labels' anchor point is centered horizontally and vertically, as it was in this example.
-                This can be changed by the <code>textAnchor</code> and <code>yAlignment</code> attributes,
-                respectively.</p>
-
-            <h3 id="label-styling">Label Styling</h3>
-
-            <p>Of course, it is also possible to change the appearance of your labels.
-                Simply specify custom <code>markup</code> in JSON format and pass some <code>attrs</code>.
-                As a bonus, you can define custom selectors to identify individual components of your label.
-                Let's define a complex circular label that shows what JointJS can do:</p>
-
-            <div class="paper" id="paper-link-labels-styling"></div>
-
-            <pre><code>link.appendLabel({
-    markup: [
-        {
-            tagName: 'circle',
-            selector: 'body'
-        }, {
-            tagName: 'text',
-            selector: 'label'
-        }, {
-            tagName: 'circle',
-            selector: 'asteriskBody'
-        }, {
-            tagName: 'text',
-            selector: 'asterisk'
-        }
-    ],
-    attrs: {
-        label: {
-            text: '½',
-            fill: '#000000',
-            fontSize: 14,
-            textAnchor: 'middle',
-            yAlignment: 'middle',
-            pointerEvents: 'none'
-        },
-        body: {
-            ref: 'label',
-            fill: '#ffffff',
-            stroke: '#000000',
+        rect: {
             strokeWidth: 1,
-            refR: 1,
-            refCx: 0,
-            refCy: 0
+            stroke: '#000000'
         },
-        asterisk: {
-            ref: 'label',
-            text: '＊',
-            fill: '#ff0000',
-            fontSize: 8,
-            textAnchor: 'middle',
-            yAlignment: 'middle',
-            pointerEvents: 'none',
-            refX: 16.5,
-            refY: -2
+        rectangle: {
+            fill: 'rgba(255,0,0,0.3)'
         },
-        asteriskBody: {
-            ref: 'asterisk',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeWidth: 1,
-            refR: 1,
-            refCx: '50%',
-            refCy: '50%',
-            refX: 0,
-            refY: 0
+        rectangle2: {
+            fill: 'rgba(0,0,255,0.3)'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'rect',
+        selector: 'rectangle',
+    }, {
+        tagName: 'rect',
+        selector: 'rectangle2'
+    }]
+});</code></pre>
+
+            <p>We create an instance of DoubleRectangle, and name it <code>element</code>.
+                We specify that width and height of <code>rectangle2</code> within <code>element</code> should both be
+                set as <code>50%</code> of the width and height of <code>rectangle</code>.
+                We can see that the dimensions of <code>rectangle2</code> start off as 50% of <code>rectangle</code>,
+                and are automatically updated to maintain that ratio even as we set the dimensions of
+                <code>rectangle</code> to change automatically:</p>
+
+            <div class="paper" id="paper-special-attributes-rectangles"></div>
+
+            <pre><code>var element = new DoubleRectangle({
+    attrs: {
+        rectangle: {
+            width: 100,
+            height: 100
+        },
+        rectangle2: {
+            ref: 'rectangle',
+            refWidth: '50%',
+            refHeight: '50%'
         }
     }
 });</code></pre>
 
-            <p>The <code>ref</code> attributes are an example of JointJS special attributes.
-                <a href="special-attributes.html">These are discussed in detail elsewhere in the tutorial.</a></p>
+
+                It provides an extensive set of non-standard special attributes that allow you
+                <a href="/docs/jointjs#dia.attributes.ref" target="_blank">specify attributes relatively to other
+                shape selectors</a>, among other things.</p>
+
+            <p>We mentioned special JointJS attributes in connection with <a href="elements.html">element</a>, and
+                <a href="links.html">link styling</a>; they are additional non-standard attributes that allow
+                They can be used in your <a href="links.html">links</a>, and even in the
+                <a href="link-labels.html">labels of your links</p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
-        <script src="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
-        <script src="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.js"></script>
 
-        <script src="js/link-labels-builtin.js"></script>
-        <script src="js/link-labels-distance.js"></script>
-        <script src="js/link-labels-offset.js"></script>
-        <script src="js/link-labels-styling.js"></script>
+        <script src="js/special-attributes-rectangles.js"></script>
     </body>
 </html>
