@@ -37,6 +37,9 @@
 
             <h2>Special Attributes</h2>
 
+            <p>This is the first article of the intermediate section of the JointJS tutorial.
+                <a href="intermediate.html">Return to index.</a></p>
+
             <p>Special attributes are JointJS-specific attributes that offer functionality beyond that of native SVG
                 attributes.</p>
 
@@ -53,88 +56,258 @@
             <p>All JointJS special attributes use camelCase naming.
                 For consistency, it is thus very strongly recommended that you make use JointJS's ability to translate
                 camelCase into native SVG's kebab-case, and use camelCase when setting native SVG attributes as
-                well.</p>
+                well (i.e. <code>strokeWidth</code> instead of native <code>'stroke-width'</code>).</p>
 
             <p>A list of native SVG attributes can be found elsewhere on the Internet; have a look, for example, at
                 <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN's SVG Attribute reference</a>.
                 In this section of the tutorial, we want to show you what additional things JointJS allows you to
                 do.</p>
 
-            <h3>Relative Attributes</h3>
+            <h3 id="relative-dimensions">Relative Dimensions</h3>
 
-            <p>One of the most common requests when working with SVG is to adjust the dimensions of one element
-                depending on the dimensions of another element.
+            <p>One of the most common requests when working with SVG is to set the dimensions of SVGElements relatively.
                 JointJS allows you to do that with a suite of <code>ref</code> attributes.
-                The <code>ref</code> attribute itself specifies which selector should act as a parent; the element
-                whose dimensions will serve as a reference.
-                Then, the specific <code>ref</code> methods determine how that information should be used by the child
-                element.</p>
+                These attributes allow you to size shape components as a percentage of the dimensions of the shape's
+                model.
+                Moreover, since all calculations are programmatic and do not rely on browser's bbox measurements, using
+                these attributes does not impact performance of your app.</p>
 
-            <p>For the two following examples, we will define a custom element named <code>DoubleRectangle</code>, a
-                subtype of <code>joint.dia.Element</code>.
-                We want it to have two SVGRectElements - a red-tinted <code>rectangle</code> and a blue-tinted
-                <code>rectangle2</code>, respectively:</p>
+            <ul>
+                <li><a href="/docs/jointjs#dia.attributes.refWidth" target="_blank"><code>refWidth</code></a> and
+                    <a href="/docs/jointjs#dia.attributes.refHeight" target="_blank"><code>refHeight</code></a> - sets
+                    the width of the component relative to model bbox.</li>
+                <li><a href="/docs/jointjs#dia.attributes.refX" target="_blank"><code>refX</code></a> and
+                    <a href="/docs/jointjs#dia.attributes.refY" target="_blank"><code>refY</code></a> - sets the
+                    coordinates of the top-left corner of the component relative to the top-left corner of model
+                    bbox. Stacks with the native <code>x</code>/<code>y</code> attribute.</li>
+                <li><a href="/docs/jointjs#dia.attributes.refCx" target="_blank"><code>refCx</code></a> and
+                    <a href="/docs/jointjs#dia.attributes.refCy" target="_blank"><code>refCy</code></a> - sets the
+                    coordinates of the circle/ellipse center.
+                    Can be used alongside <code>refX</code>/<code>refY</code>.</li>
+                <li><a href="/docs/jointjs#dia.attributes.refRx" target="_blank"><code>refRx</code></a> and
+                    <a href="/docs/jointjs#dia.attributes.refRy" target="_blank"><code>refRy</code></a> - sets the
+                    radius of the ellipse relative to model bbox dimensions.
+                    Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
+                    will be 100% of model dimension while the diameter of the ellipse in that direction will be 200% of
+                    model size.
+                    If you want the ellipse to fit into the model, use <code>'50%'</code>.</li>
+                <li><a href="/docs/jointjs#dia.attributes.refR" target="_blank"><code>refR</code></a> - sets the radius
+                    of the circle relative to the length of the shorter side of model bbox.
+                    Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
+                    will be 100% of the length of model side.
+                    If you want the circle to fit inside the model, use <code>'50%'</code>.
+                    There is also
+                    <a href="/docs/jointjs#dia.attributes.refRCircumscribed" target="_blank"><code>refRCircumscribed</code></a>,
+                    which sets the radius of the circle relative to the longest diagonal of model bbox.</li>
+            </ul>
 
-            <pre><code>var DoubleRectangle = joint.dia.Element.define('examples.DoubleRectangle', {
+            <p>Let us see the relative attributes in action.
+                We define a custom element type named <code>CustomElement</code> as a subtype of
+                <code>joint.dia.Element</code>.
+                We want it to have three SVGElements - a red-tinted <code>ellipse</code> named <code>e</code>, a
+                green-tinted <code>rect</code> named <code>r</code>, and a blue-tinted <code>circle</code> named
+                <code>c</code>, respectively.
+                The <code>outline</code> SVGRectElement shows us the reference bbox of the element model.
+                In the example, we use JointJS transitions to vary the dimensions of <code>element</code> from 40:40 to
+                270:100.
+                (We also adjust position to make sure the element stays in the visible area of our paper.)
+                Notice that the components of the element adjust automatically as the size of the reference model
+                changes:</p>
+
+            <div class="paper" id="paper-special-attributes-relative-dimensions"></div>
+
+            <pre><code>var CustomElement = joint.dia.Element.define('examples.CustomElement', {
     attrs: {
-        rect: {
+        e: {
             strokeWidth: 1,
-            stroke: '#000000'
-        },
-        rectangle: {
+            stroke: '#000000',
             fill: 'rgba(255,0,0,0.3)'
         },
-        rectangle2: {
+        r: {
+            strokeWidth: 1,
+            stroke: '#000000',
+            fill: 'rgba(0,255,0,0.3)'
+        },
+        c: {
+            strokeWidth: 1,
+            stroke: '#000000',
             fill: 'rgba(0,0,255,0.3)'
+        },
+        outline: {
+            refX: 0,
+            refY: 0,
+            refWidth: '100%',
+            refHeight: '100%',
+            strokeWidth: 1,
+            stroke: '#000000',
+            strokeDasharray: '5 5',
+            strokeDashoffset: 2.5,
+            fill: 'none'
         }
     }
 }, {
     markup: [{
-        tagName: 'rect',
-        selector: 'rectangle',
+        tagName: 'ellipse',
+        selector: 'e'
     }, {
         tagName: 'rect',
-        selector: 'rectangle2'
+        selector: 'r'
+    }, {
+        tagName: 'circle',
+        selector: 'c'
+    }, {
+        tagName: 'rect',
+        selector: 'outline'
     }]
-});</code></pre>
+});
 
-            <p>We create an instance of DoubleRectangle, and name it <code>element</code>.
-                We specify that width and height of <code>rectangle2</code> within <code>element</code> should both be
-                set as <code>50%</code> of the width and height of <code>rectangle</code>.
-                We can see that the dimensions of <code>rectangle2</code> start off as 50% of <code>rectangle</code>,
-                and are automatically updated to maintain that ratio even as we set the dimensions of
-                <code>rectangle</code> to change automatically:</p>
-
-            <div class="paper" id="paper-special-attributes-rectangles"></div>
-
-            <pre><code>var element = new DoubleRectangle({
+var element = new CustomElement({
     attrs: {
-        rectangle: {
-            width: 100,
-            height: 100
+        e: {
+            refRx: '50%',
+            refRy: '25%',
+            refCx: '50%',
+            refCy: 0,
+            refX: '-50%',
+            refY: '25%'
         },
-        rectangle2: {
-            ref: 'rectangle',
+        r: {
+            refX: '100%',
+            x: -10, // additional x offset
+            refY: '100%',
+            y: -10, // additional y offset
             refWidth: '50%',
-            refHeight: '50%'
+            refHeight: '50%',
+        },
+        c: {
+            refRCircumscribed: '50%',
+            refCx: '50%',
+            refCy: '50%'
         }
     }
 });</code></pre>
 
+        <h3 id="text-relative-dimensions">Relative Dimensions Based on Text</h3>
 
-                It provides an extensive set of non-standard special attributes that allow you
-                <a href="/docs/jointjs#dia.attributes.ref" target="_blank">specify attributes relatively to other
-                shape selectors</a>, among other things.</p>
+            <p>An advanced application of relative attributes is using them to set the dimensions of shape components
+                based on the dimensions of bboxes of rendered JointJS views.
+                This is especially valuable when you need to base the position and size of components on elements that
+                JointJS is not able to work with programmatically; namely, text elements.
+                Note that because this method relies on browser measurements, it is noticeably slower and less precise
+                than the <a href="#relative-dimensions">model-based method</a> mentioned above; you should use that
+                method for components that can be modeled by JointJS.</p>
 
-            <p>We mentioned special JointJS attributes in connection with <a href="elements.html">element</a>, and
-                <a href="links.html">link styling</a>; they are additional non-standard attributes that allow
-                They can be used in your <a href="links.html">links</a>, and even in the
-                <a href="link-labels.html">labels of your links</p>
+            <p>The key is the <code>ref</code> special attribute:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.attributes.ref" target="_blank"><code>ref</code></a> - a selector
+                    reference to the component whose measured bbox should be used as the base of relative
+                    attributes.</li>
+            </ul>
+
+            <p>We define a custom element type named <code>CustomTextElement</code> as a subtype of
+                <code>joint.dia.Element</code>.
+                It is very similar to <code>CustomElement</code> defined above, except this time, all components refer
+                to a new <code>text</code> component named <code>label</code>.
+                In the example, we use JointJS transitions to vary the text content of <code>label</code>.
+                Notice that the components of the element adjust automatically as the size of label changes due to the
+                added characters:</p>
+
+            <div class="paper" id="paper-special-attributes-text-relative-dimensions"></div>
+
+            <pre><code>var CustomTextElement = joint.dia.Element.define('examples.CustomTextElement', {
+    attrs: {
+        label: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fontSize: 72
+        },
+        e: {
+            strokeWidth: 1,
+            stroke: '#000000',
+            fill: 'rgba(255,0,0,0.3)'
+        },
+        r: {
+            strokeWidth: 1,
+            stroke: '#000000',
+            fill: 'rgba(0,255,0,0.3)'
+        },
+        c: {
+            strokeWidth: 1,
+            stroke: '#000000',
+            fill: 'rgba(0,0,255,0.3)'
+        },
+        outline: {
+            ref: 'label',
+            refX: 0,
+            refY: 0,
+            refWidth: '100%',
+            refHeight: '100%',
+            strokeWidth: 1,
+            stroke: '#000000',
+            strokeDasharray: '5 5',
+            strokeDashoffset: 2.5,
+            fill: 'none'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'ellipse',
+        selector: 'e'
+    }, {
+        tagName: 'rect',
+        selector: 'r'
+    }, {
+        tagName: 'circle',
+        selector: 'c'
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }, {
+        tagName: 'rect',
+        selector: 'outline'
+    }]
+});
+
+var element = new CustomTextElement({
+    attrs: {
+        label: {
+            text: 'Hello,\nWorld!'
+        },
+        e: {
+            ref: 'label',
+            refRx: '50%',
+            refRy: '25%',
+            refCx: '50%',
+            refCy: 0,
+            refX: '-50%',
+            refY: '25%'
+        },
+        r: {
+            ref: 'label',
+            refX: '100%',
+            x: -10, // additional x offset
+            refY: '100%',
+            y: -10, // additional y offset
+            refWidth: '50%',
+            refHeight: '50%',
+        },
+        c: {
+            ref: 'label',
+            refRCircumscribed: '50%',
+            // c is already centered at label anchor
+        }
+    }
+});</code></pre>
+
+            <p><a href="interaction.html">In the next section of the intermediate tutorial, we will find out how to
+                introduce interaction to our diagram.</a></p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
-        <script src="js/special-attributes-rectangles.js"></script>
+        <script src="js/special-attributes-relative-dimensions.js"></script>
+        <script src="js/special-attributes-text-relative-dimensions.js"></script>
     </body>
 </html>

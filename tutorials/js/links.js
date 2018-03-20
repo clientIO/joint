@@ -191,8 +191,8 @@
         new g.Point(300, 230),
         new g.Point(350, 290),
     ]);
-    link3.set('router', { name: 'orthogonal' });
-    link3.set('connector', { name: 'rounded' });
+    link3.router('orthogonal');
+    link3.connector('rounded');
     link3.attr({
         line: {
             stroke: 'gray',
@@ -219,6 +219,6 @@
     var link4 = new joint.shapes.standard.Link();
     link4.source({ id: rect5.id });
     link4.target({ id: rect6.id });
-    link4.set('connector', { name: 'jumpover', args: { size: 10 } });
+    link4.connector('jumpover', { size: 10 });
     link4.addTo(graph);
 }());

@@ -21,7 +21,7 @@
     link.labels([{
         attrs: {
             text: {
-                text: 'Hello world!'
+                text: 'Hello, World!'
             }
         }
     }]);
