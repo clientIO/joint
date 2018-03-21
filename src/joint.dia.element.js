@@ -579,7 +579,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
     },
 
-    magnetCache: function(magnet) {
+    nodeCache: function(magnet) {
 
         var id = V.ensureId(magnet);
         var metrics = this.metrics[id];
@@ -589,7 +589,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     getNodeData: function(magnet) {
 
-        var metrics = this.magnetCache(magnet);
+        var metrics = this.nodeCache(magnet);
         if (!metrics.data) metrics.data = {};
         return metrics.data;
     },
@@ -605,7 +605,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     getNodeBoundingRect: function(magnet) {
 
-        var metrics = this.magnetCache(magnet);
+        var metrics = this.nodeCache(magnet);
         if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
         return new g.Rect(metrics.boundingRect);
     },
@@ -620,14 +620,14 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     getNodeShape: function(magnet) {
 
-        var metrics = this.magnetCache(magnet);
+        var metrics = this.nodeCache(magnet);
         if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
         return metrics.geometryShape.clone();
     },
 
     getNodeMatrix: function(magnet) {
 
-        var metrics = this.magnetCache(magnet);
+        var metrics = this.nodeCache(magnet);
         if (metrics.magnetMatrix === undefined) {
             var target = this.rotatableNode || this.el;
             metrics.magnetMatrix = V(magnet).getTransformToElement(target);

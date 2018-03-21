@@ -91,13 +91,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         // e.g. { name: 'oneSide', args: { padding: 10 }} or a function
         defaultRouter: { name: 'normal' },
 
-        defaultSourceAnchor: { name: 'center' },
+        defaultAnchor: { name: 'center' },
 
-        defaultSourceConnectionPoint: { name: 'boundary' },
-
-        defaultTargetAnchor: { name: 'center' },
-
-        defaultTargetConnectionPoint: { name: 'boundary' },
+        defaultConnectionPoint: { name: 'bbox' },
 
         /* CONNECTING */
 

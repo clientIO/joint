@@ -1027,15 +1027,27 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             path.translate(tx, ty);
 
         } else {
-            // Necessary path finding
-            route = this.findRoute(model.vertices(), opt);
-            // finds all the connection points taking new vertices into account
-            var endPoints = this.findEndPoints(route);
-            // make connection points public
-            this.sourcePoint = endPoints.sourcePoint;
-            this.targetPoint = endPoints.targetPoint;
 
-            path = this.findPath(route);
+            var vertices = model.vertices();
+            // 1. Find Anchors
+
+            var anchors = this.findAnchors(vertices);
+            var sourceAnchor = this.sourceAnchor = anchors.source;
+            var targetAnchor = this.targetAnchor = anchors.target;
+
+            // 2. Find Route
+            route = this.findRoute(vertices, opt);
+
+            // 3. Find Connection Points
+            var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
+            var sourcePoint = this.sourcePoint = connectionPoints.source;
+            var targetPoint = this.targetPoint = connectionPoints.target;
+
+            // 3b. Find Marker Connection Point - Backwards Compatibility
+            var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
+
+            // 4. Find Connection
+            path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
         }
 
         this.route = route;
@@ -1043,69 +1055,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.metrics = {};
     },
 
-    findEndPoints: function(route) {
+    findMarkerPoints: function(route, sourcePoint, targetPoint) {
 
         var firstWaypoint = route[0];
         var lastWaypoint = route[route.length - 1];
-        var model = this.model;
-        var sourceDef = model.get('source');
-        var targetDef = model.get('target');
-        var sourceView = this.sourceView;
-        var targetView = this.targetView;
-        var paperOptions = this.paper.options;
-        var sourceMagnet, targetMagnet;
-        // Anchor Source
-        var sourceAnchor;
-        if (sourceView) {
-            sourceMagnet = (this.sourceMagnet || sourceView.el);
-            var sourceAnchorRef = (firstWaypoint) ? new g.Point(firstWaypoint) : this.targetMagnet || (targetView && targetView.el) || g.Point(targetDef);
-            var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultSourceAnchor;
-            if (typeof sourceAnchorDef === 'function') {
-                sourceAnchorDef = sourceAnchorDef.call(this, sourceView, sourceMagnet, 'source', this);
-            }
-            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
-        } else {
-            sourceAnchor = new g.Point(sourceDef);
-        }
-        // Anchor Target
-        var targetAnchor;
-        if (targetView) {
-            targetMagnet = (this.targetMagnet || targetView.el);
-            var targetAnchorRef = new g.Point(lastWaypoint || sourceAnchor);
-            var targetAnchorDef = targetDef.anchor || paperOptions.defaultTargetAnchor;
-            if (typeof targetAnchorDef === 'function') {
-                targetAnchorDef = targetAnchorDef.call(this, targetView, targetMagnet, 'source', this);
-            }
-            targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
-        } else {
-            targetAnchor = new g.Point(targetDef);
-        }
-        // Connection Point Source
-        var sourcePoint;
-        if (sourceView) {
-            var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultSourceConnectionPoint;
-            if (typeof sourceConnectionPointDef === 'function') {
-                sourcerConnectionPointDef = sourceConnectionPointDef.call(this, sourceView, sourceMagnet, 'source', this);
-            }
-            var sourcePointRef = firstWaypoint || targetAnchor;
-            var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
-            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
-        } else {
-            sourcePoint = sourceAnchor;
-        }
-        // Connection Point Target
-        var targetPoint;
-        if (targetView) {
-            var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultTargetConnectionPoint;
-            if (typeof targetConnectionPointDef === 'function') {
-                targetConnectionPointDef = targetConnectionPointDef.call(this, targetView, targetMagnet, 'target', this);
-            }
-            var targetPointRef = lastWaypoint || sourceAnchor;
-            var targetLine = new g.Line(targetPointRef, targetAnchor);
-            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
-        } else {
-            targetPoint = targetAnchor;
-        }
 
         // Move the source point by the width of the marker taking into account
         // its scale around x-axis. Note that scale is the only transform that
@@ -1119,7 +1072,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._V.markerSource) {
 
             cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-
             sourceMarkerPoint = g.point(sourcePoint).move(
                 firstWaypoint || targetPoint,
                 cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
@@ -1129,7 +1081,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._V.markerTarget) {
 
             cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-
             targetMarkerPoint = g.point(targetPoint).move(
                 lastWaypoint || sourcePoint,
                 cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
@@ -1140,12 +1091,111 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
         cache.targetPoint = targetMarkerPoint || targetPoint.clone();
 
+        return {
+            source: sourceMarkerPoint,
+            target: targetMarkerPoint
+        }
+    },
+
+    findAnchors: function(vertices) {
+
+        var model = this.model;
+        var firstVertex = vertices[0];
+        var lastVertex = vertices[vertices.length - 1];
+        var sourceDef = model.get('source');
+        var targetDef = model.get('target');
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        var paperOptions = this.paper.options;
+        var sourceMagnet, targetMagnet;
+
+        // Anchor Source
+        var sourceAnchor;
+        if (sourceView) {
+            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceAnchorRef;
+            if (firstVertex) {
+                sourceAnchorRef = new g.Point(firstVertex);
+            } else if (targetView) {
+                // TODO: the source anchor reference is not a point, how to deal with this?
+                sourceAnchorRef = this.targetMagnet || targetView.el;
+            } else {
+                sourceAnchorRef = new g.Point(targetDef);
+            }
+            var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultAnchor;
+            if (typeof sourceAnchorDef === 'function') {
+                sourceAnchorDef = sourceAnchorDef.call(this, sourceView, sourceMagnet, 'source', this);
+            }
+            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
+        } else {
+            sourceAnchor = new g.Point(sourceDef);
+        }
+
+        // Anchor Target
+        var targetAnchor;
+        if (targetView) {
+            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
+            var targetAnchorDef = targetDef.anchor || paperOptions.defaultAnchor;
+            if (typeof targetAnchorDef === 'function') {
+                targetAnchorDef = targetAnchorDef.call(this, targetView, targetMagnet, 'source', this);
+            }
+            targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
+        } else {
+            targetAnchor = new g.Point(targetDef);
+        }
+
+        // Con
+        return {
+            source: sourceAnchor,
+            target: targetAnchor
+        }
+    },
+
+    findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
+
+        var firstWaypoint = route[0];
+        var lastWaypoint = route[route.length - 1];
+        var model = this.model;
+        var sourceDef = model.get('source');
+        var targetDef = model.get('target');
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        var paperOptions = this.paper.options;
+        var sourceMagnet, targetMagnet;
+
+        // Connection Point Source
+        var sourcePoint;
+        if (sourceView) {
+            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
+            if (typeof sourceConnectionPointDef === 'function') {
+                sourcerConnectionPointDef = sourceConnectionPointDef.call(this, sourceView, sourceMagnet, 'source', this);
+            }
+            var sourcePointRef = firstWaypoint || targetAnchor;
+            var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
+            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
+        } else {
+            sourcePoint = sourceAnchor;
+        }
+        // Connection Point Target
+        var targetPoint;
+        if (targetView) {
+            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
+            if (typeof targetConnectionPointDef === 'function') {
+                targetConnectionPointDef = targetConnectionPointDef.call(this, targetView, targetMagnet, 'target', this);
+            }
+            var targetPointRef = lastWaypoint || sourceAnchor;
+            var targetLine = new g.Line(targetPointRef, targetAnchor);
+            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
+        } else {
+            targetPoint = targetAnchor;
+        }
 
         return {
-            sourceAnchor: sourceAnchor,
-            sourcePoint: sourcePoint,
-            targetAnchor: targetAnchor,
-            targetPoint: targetPoint
+            source: sourcePoint,
+            target: targetPoint
         }
     },
 
@@ -1196,6 +1246,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         cache.targetPoint.offset(tx, ty);
         this.sourcePoint.offset(tx, ty);
         this.targetPoint.offset(tx, ty);
+        this.sourceAnchor.offset(tx, ty);
+        this.targetAnchor.offset(tx, ty);
     },
 
      // if label position is a number, normalize it to a position object
@@ -1621,7 +1673,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     // Return the `d` attribute value of the `<path>` element representing the link
     // between `source` and `target`.
-    findPath: function(route) {
+    findPath: function(route, sourcePoint, targetPoint) {
 
         var namespace = joint.connectors;
         var connector = this.model.connector();
@@ -1641,9 +1693,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var path = connectorFn.call(
             this, // context
-            this._markerCache.sourcePoint, // source // Note that the value is translated by the size
-            this._markerCache.targetPoint, // target // of the marker. (We are not using this.sourcePoint)
-            route || this.model.vertices(), // vertices
+            sourcePoint, // start point
+            targetPoint, // end point
+            route, // vertices
             args, // options
             this // linkView
         );

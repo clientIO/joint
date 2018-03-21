@@ -1,8 +1,9 @@
 (function(joint, util) {
 
     function bboxWrapper(method) {
-        return function (cellView, magnet, ref, opt) {
-            var bbox = cellView.getNodeBBox(magnet);
+        return function (view, magnet, ref, opt) {
+            var rotate = !!opt.rotate;
+            var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
             var anchor = bbox[method]();
             var dx = opt.dx;
             if (dx) {
@@ -28,25 +29,24 @@
                     anchor.y += dy;
                 }
             }
-            return anchor;
+            return (rotate) ? anchor.rotate(bbox.center(), -view.model.angle()) : anchor;
         }
     }
 
     function resolveRefAsBBoxCenter(fn) {
-        return function(cellView, magnet, ref, opt, linkView) {
+        return function(view, magnet, ref, opt, linkView) {
             if (ref instanceof Element) {
                 var refView = this.paper.findView(ref);
                 var refPoint = refView.getNodeBBox(ref).center();
-                return fn.call(this, cellView, magnet, refPoint, opt, linkView)
+                return fn.call(this, view, magnet, refPoint, opt, linkView)
             }
             return fn.apply(this, arguments);
         }
     }
 
-    function perpendicular(cellView, magnet, refPoint, opt) {
-        var cell = cellView.model;
-        var angle = cell.angle();
-        var bbox = cellView.getNodeBBox(magnet);
+    function perpendicular(view, magnet, refPoint, opt) {
+        var angle = view.model.angle();
+        var bbox = view.getNodeBBox(magnet);
         var anchor = bbox.center();
         var topLeft = bbox.origin();
         var bottomRight = bbox.corner();
@@ -64,21 +64,32 @@
         return anchor;
     }
 
-    function midSide(cellView, magnet, refPoint, opt) {
-        var bbox = cellView.getNodeBBox(magnet);
+    function midSide(view, magnet, refPoint, opt) {
+        var rotate = !!opt.rotate;
+        var bbox, angle, center;
+        if (rotate) {
+            bbox = view.getNodeUnrotatedBBox(magnet);
+            center = bbox.center();
+            angle = view.model.angle();
+        } else {
+            bbox = view.getNodeBBox(magnet);
+        }
         var padding = opt.padding;
         if (isFinite(padding)) bbox.inflate(padding);
+        if (rotate) refPoint.rotate(center, angle);
         var side = bbox.sideNearestToPoint(refPoint);
+        var anchor;
         switch (side) {
-            case 'left': return bbox.leftMiddle();
-            case 'right': return bbox.rightMiddle();
-            case 'top': return bbox.topMiddle();
-            case 'bottom': return bbox.bottomMiddle();
+            case 'left': anchor = bbox.leftMiddle(); break;
+            case 'right': anchor = bbox.rightMiddle(); break;
+            case 'top': anchor = bbox.topMiddle(); break;
+            case 'bottom': anchor = bbox.bottomMiddle(); break;
         }
+
+        return (rotate) ? anchor.rotate(center, -angle) : anchor;
     }
 
     joint.anchors = {
-
         center: bboxWrapper('center'),
         top: bboxWrapper('topMiddle'),
         bottom: bboxWrapper('bottomMiddle'),

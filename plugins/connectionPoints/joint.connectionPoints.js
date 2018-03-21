@@ -24,7 +24,7 @@
 
         var angle = view.model.angle();
         if (angle === 0) {
-            return bboxIntersectio(line, view, magnet);
+            return bboxIntersection(line, view, magnet);
         }
 
         var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
@@ -54,7 +54,7 @@
             while (node && node.tagName.toUpperCase() === 'G') node = node.firstChild;
         }
 
-        if (!(node instanceof Element)) return anhor;
+        if (!(node instanceof Element)) return anchor;
 
         var localShape = view.getNodeShape(node);
         var magnetMatrix = view.getNodeMatrix(node);
@@ -106,7 +106,6 @@
     }
 
     joint.connectionPoints = {
-
         anchor: anchor,
         bbox: bboxIntersection,
         rectangle: rectangleIntersection,

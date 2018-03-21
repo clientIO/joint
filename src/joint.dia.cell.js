@@ -829,7 +829,6 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         el = el || this.el;
         var bbox = V(el).getBBox({ target: this.paper.viewport });
-        return bbox;
         var strokeWidth;
         if (isMagnet) {
 
