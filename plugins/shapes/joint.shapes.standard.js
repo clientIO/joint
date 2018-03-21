@@ -556,11 +556,6 @@
                 'fill': 'none',
                 'pointer-events': 'none'
             }
-        }],
-        defaultLabel: [{
-            markup: []
-
-
         }]
     });
 
