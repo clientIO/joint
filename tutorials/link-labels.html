@@ -41,7 +41,7 @@
                 <a href="special-attributes.html">Go back to custom links.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
-            <p><a href="links.html">The basic tutorial series offered an introduction into link labels.</a>
+            <p><a href="links.html#link-labels">The basic tutorial series offered an introduction into link labels.</a>
                 This section explains everything you need to know to make full use of the powerful label system.</p>
 
             <p>JointJS offers a full suite of methods for working with link labels:</p>
@@ -71,7 +71,7 @@
                 The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
                 Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
 
-            <div class="paper" id="paper-link-labels-builtin"></div>
+            <div class="paper" id="paper-links-label-builtin"></div>
 
             <pre><code>link.appendLabel({
     attrs: {
@@ -138,9 +138,7 @@ link.appendLabel({
                 An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
                 in the two dimensions.
                 The following example illustrates these three options.
-                (Note that all labels have the default <code>position.distance</code> of <code>0.5</code>; it is just
-                the <code>offset</code> that changes.
-                The red asterisk marks the reference point of all labels on the link.)</p>
+                The red asterisk marks the reference point of all labels on the link.</p>
 
             <div class="paper" id="paper-link-labels-offset"></div>
 
@@ -151,6 +149,7 @@ link.appendLabel({
         }
     },
     position: {
+        distance: 0.66,
         offset: 20
     }
 });
@@ -162,6 +161,7 @@ link.appendLabel({
         }
     },
     position: {
+        distance: 0.66,
         offset: -20
     }
 });
@@ -169,20 +169,22 @@ link.appendLabel({
 link.appendLabel({
     attrs: {
         text: {
-            text: '{ x: 80, y: -20 }'
+            text: '{ x: -40, y: 60 }'
         }
     },
     position: {
+        distance: 0.66,
         offset: {
-            x: 80,
-            y: -20
+            x: -40,
+            y: 60
         }
     }
 });</code></pre>
 
             <p>By default, labels' anchor point is centered horizontally and vertically, as it was in this example.
-                This can be changed by the <code>textAnchor</code> and <code>yAlignment</code> attributes,
-                respectively.</p>
+                This can be changed by the <code>textAnchor</code> and
+                <a href="/docs/jointjs#dia.attributes.textVerticalAnchor"><code>textVerticalAnchor</code></a>
+                attributes, respectively.</p>
 
             <h3 id="label-styling">Label Styling</h3>
 
@@ -270,7 +272,7 @@ link.appendLabel({
         <script src="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
         <script src="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.js"></script>
 
-        <script src="js/link-labels-builtin.js"></script>
+        <script src="js/links-label-builtin.js"></script>
         <script src="js/link-labels-distance.js"></script>
         <script src="js/link-labels-offset.js"></script>
         <script src="js/link-labels-styling.js"></script>

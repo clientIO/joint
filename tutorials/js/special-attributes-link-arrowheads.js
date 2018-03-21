@@ -1,9 +1,9 @@
-(function linksArrowheadsImage() {
+(function specialAttributesLinkArrowheads() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-links-arrowheads-image'),
+        el: document.getElementById('paper-special-attributes-link-arrowheads'),
         model: graph,
         width: 600,
         height: 100,
@@ -23,18 +23,19 @@
     link.attr({
         line: {
             sourceMarker: {
-                'type': 'image',
-                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-                'width': 24,
-                'height': 24,
-                'y': -12
+                'type': 'rect',
+                'width': 50,
+                'height': 10,
+                'y': -5,
+                'fill': 'rgba(255,0,0,0.3)',
+                'stroke': 'black'
             },
             targetMarker: {
-                'type': 'image',
-                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-                'width': 24,
-                'height': 24,
-                'y': -12
+                'type': 'circle',
+                'r': 10,
+                'cx': 10,
+                'fill': 'rgba(0,255,0,0.3)',
+                'stroke': 'black'
             }
         }
     });

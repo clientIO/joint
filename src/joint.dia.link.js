@@ -68,9 +68,11 @@ joint.dia.Link = joint.dia.Cell.extend({
             // nor label.markup is set
             markup: [
                 {
-                    tagName: 'rect'
+                    tagName: 'rect',
+                    selector: 'rect' // faster than tagName CSS selector
                 }, {
-                    tagName: 'text'
+                    tagName: 'text',
+                    selector: 'text' // faster than tagName CSS selector
                 }
             ],
             // builtin default attributes:

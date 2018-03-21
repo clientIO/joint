@@ -73,6 +73,13 @@
             }
         }
     });
+    link.labels([{
+        attrs: {
+            text: {
+                text: 'Hello, World!'
+            }
+        }
+    }]);
     link.addTo(graph);
 
     var rect3 = new joint.shapes.standard.Rectangle();

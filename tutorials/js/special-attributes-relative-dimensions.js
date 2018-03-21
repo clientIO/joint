@@ -60,29 +60,28 @@
         }]
     });
 
-    var element = new CustomElement({
-        attrs: {
-            e: {
-                refRx: '50%',
-                refRy: '25%',
-                refCx: '50%',
-                refCy: 0,
-                refX: '-50%',
-                refY: '25%'
-            },
-            r: {
-                refX: '100%',
-                x: -10, // additional x offset
-                refY: '100%',
-                y: -10, // additional y offset
-                refWidth: '50%',
-                refHeight: '50%',
-            },
-            c: {
-                refRCircumscribed: '50%',
-                refCx: '50%',
-                refCy: '50%'
-            }
+    var element = new CustomElement();
+    element.attr({
+        e: {
+            refRx: '50%',
+            refRy: '25%',
+            refCx: '50%',
+            refCy: 0,
+            refX: '-50%',
+            refY: '25%'
+        },
+        r: {
+            refX: '100%',
+            x: -10, // additional x offset
+            refY: '100%',
+            y: -10, // additional y offset
+            refWidth: '50%',
+            refHeight: '50%',
+        },
+        c: {
+            refRCircumscribed: '50%',
+            refCx: '50%',
+            refCy: '50%'
         }
     });
     element.position(280, 130);

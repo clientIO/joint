@@ -20,7 +20,7 @@
             label: {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
-                fontSize: 72
+                fontSize: 48
             },
             e: {
                 strokeWidth: 1,
@@ -69,41 +69,40 @@
         }]
     });
 
-    var element = new CustomTextElement({
-        attrs: {
-            label: {
-                text: 'H'
-            },
-            e: {
-                ref: 'label',
-                refRx: '50%',
-                refRy: '25%',
-                refCx: '50%',
-                refCy: 0,
-                refX: '-50%',
-                refY: '25%'
-            },
-            r: {
-                ref: 'label',
-                refX: '100%',
-                x: -10, // additional x offset
-                refY: '100%',
-                y: -10, // additional y offset
-                refWidth: '50%',
-                refHeight: '50%',
-            },
-            c: {
-                ref: 'label',
-                refRCircumscribed: '50%',
-                // c is already centered at label anchor
-            }
+    var element = new CustomTextElement();
+    element.attr({
+        label: {
+            text: 'H'
+        },
+        e: {
+            ref: 'label',
+            refRx: '50%',
+            refRy: '25%',
+            refCx: '50%',
+            refCy: 0,
+            refX: '-50%',
+            refY: '25%'
+        },
+        r: {
+            ref: 'label',
+            refX: '100%',
+            x: -10, // additional x offset
+            refY: '100%',
+            y: -10, // additional y offset
+            refWidth: '50%',
+            refHeight: '50%',
+        },
+        c: {
+            ref: 'label',
+            refRCircumscribed: '50%',
+            // c is already centered at label anchor
         }
     });
     element.position(300, 150);
     element.addTo(graph);
 
     function type(element) {
-        element.transition('attrs/label/text', 'Hello,\nWorld!', {
+        element.transition('attrs/label/text', 'Hello, World!', {
             delay: 1000,
             duration: 4000,
             valueFunction: function(start, end) {
@@ -121,7 +120,7 @@
             delay: 1000,
             duration: 4000,
             timingFunction: function(time) {
-                return 1-time;
+                return (1 - time);
             },
             valueFunction: function(start, end) {
                 return function(time) {

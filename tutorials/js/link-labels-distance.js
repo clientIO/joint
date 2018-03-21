@@ -6,7 +6,7 @@
         el: document.getElementById('paper-link-labels-distance'),
         model: graph,
         width: 600,
-        height: 100,
+        height: 300,
         gridSize: 10,
         drawGrid: true,
         background: {
@@ -16,9 +16,9 @@
     });
 
     var link = new joint.shapes.standard.Link();
-    link.source(new g.Point(100, 40));
-    link.target(new g.Point(500, 40));
-    link.vertices([new g.Point(300, 60)]);
+    link.source(new g.Point(100, 110));
+    link.target(new g.Point(500, 110));
+    link.vertices([new g.Point(300, 190)]);
     link.appendLabel({
         attrs: {
             text: {
@@ -52,39 +52,60 @@
     link.addTo(graph);
 
     function contract(link) {
-        link.transition('source', { x: 200, y: 40 }, {
+        link.transition('source', { x: 200, y: 110 }, {
             delay: 1000,
             duration: 4000,
+            timingFunction: function(time) {
+                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
+            },
             valueFunction: joint.util.interpolate.object
         });
 
-        link.transition('target', { x: 400, y: 40 }, {
+        link.transition('target', { x: 400, y: 110 }, {
             delay: 1000,
             duration: 4000,
+            timingFunction: function(time) {
+                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
+            },
             valueFunction: joint.util.interpolate.object
         });
 
-        link.stretchToggle = true;
+        link.oscillateToggle = true;
     }
 
-    function stretch(link) {
-        link.transition('source', { x: 100, y: 40 }, {
+    function oscillate(link) {
+        link.transition('source', { x: 100, y: 190 }, {
             delay: 1000,
             duration: 4000,
+            timingFunction: function(time) {
+                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
+            },
             valueFunction: joint.util.interpolate.object
         });
 
-        link.transition('target', { x: 500, y: 40 }, {
+        link.transition('vertices/0', { x: 300, y: 110 }, {
             delay: 1000,
             duration: 4000,
+            timingFunction: function(time) {
+                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
+            },
             valueFunction: joint.util.interpolate.object
         });
 
-        link.stretchToggle = false;
+        link.transition('target', { x: 500, y: 190 }, {
+            delay: 1000,
+            duration: 4000,
+            timingFunction: function(time) {
+                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
+            },
+            valueFunction: joint.util.interpolate.object
+        });
+
+        link.oscillateToggle = false;
     }
 
     link.currentTransitions = 0;
-    link.stretchToggle = false;
+    link.oscillateToggle = 0;
 
     contract(link);
 
@@ -96,7 +117,7 @@
         link.currentTransitions -= 1;
 
         if (link.currentTransitions === 0) {
-            if (link.stretchToggle) stretch(link);
+            if (link.oscillateToggle) oscillate(link);
             else contract(link)
         }
     });

@@ -369,13 +369,126 @@
     }
 });</code></pre>
 
+            <h3 id="link-arrowheads">Link Arrowheads</h3>
+
+            <p>Two <a href="special-attributes.html#link-arrowheads">special attributes</a> are in charge of link arrowheads;
+                <a href="/docs/jointjs#dia.attributes.sourceMarker" target="_blank"><code>sourceMarker</code></a> and
+                <a href="/docs/jointjs#dia.attributes.targetMarker" target="_blank"><code>targetMarker</code></a>.
+                (In the case of <code>joint.shapes.standard.Link</code>, they are defined on the <code>line</code>
+                selector.)
+                The <code>'type'</code> of the arrowhead can be any valid SVGElement type; we will look at
+                <code>path</code> and <code>image</code> arrowheads specifically, but we will mention the others in
+                <a href="special-attributes.html#link-arrowheads">more advanced sections of the tutorial</a>.</p>
+
+            <p>The following example shows how to create a link with two simple <code>path</code> arrowheads.
+                Notice that if the <code>'fill'</code> and <code>'stroke'</code> colors are not specified, they are
+                adopted from the <code>line.stroke</code> attribute.
+                The two arrowheads have the same path data commands, despite pointing in opposite directions; this is
+                because all <code>targetMarker</code> values are automatically rotated by 180 degrees.
+                The path commands' coordinate system has origin at the tip of the link and is rotated
+                according to the slope of the link at that point.
+                Together, these characteristics mean that you can design all your arrowheads as if they were pointing
+                left and towards the point <code>0,0</code> in local coordinates; JointJS will take care of the
+                rest.</p>
+
+            <div class="paper" id="paper-links-arrowheads-path"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'path',
+            'd': 'M 20 -10 0 0 20 10 Z'
+        },
+        targetMarker: {
+            'type': 'path',
+            'stroke': 'green',
+            'stroke-width': 2
+            'fill': 'yellow',
+            'd': 'M 20 -10 0 0 20 10 Z'
+        }
+    }
+});</code></pre>
+
+            <p>Creating <code>image</code> arrowheads is similarly straightforward.
+                You just need to provide an url with the path to your image to the <code>'xlink:href'</code> property,
+                and then specify the desired <code>'width'</code> and <code>'height'</code>.
+                The image for <code>targetMarker</code> will be automatically rotated by 180 degrees, as expected.
+                Remember to reposition the image in the <code>'y'</code> axis if you need the arrowhead to be
+                centered.</p>
+
+            <div class="paper" id="paper-links-arrowheads-image"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'image',
+            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+            'width': 24,
+            'height': 24,
+            'y': -12
+        },
+        targetMarker: {
+            'type': 'image',
+            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+            'width': 24,
+            'height': 24,
+            'y': -12
+        }
+    }
+});</code></pre>
+
+            <h3 id="link-labels">Link Labels</h3>
+
+            <p>JointJS also supports link labels:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels()</code></a>
+                    - sets the <code>labels</code> array of the link.
+                    Labels have <code>markup</code>, <code>attrs</code>, and <code>position</code> properties.</li>
+            </ul>
+
+            <p><a href="link-labels.html">Link labels are explained in more detail in a separate section of this
+                tutorial</a>.
+                A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
+                class, from which the <code>joint.shapes.standard.Link</code> type inherits it.
+                The builtin default label has two tags:
+                <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
+                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
+                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
+
+            <div class="paper" id="paper-links-label-builtin"></div>
+
+            <pre><code>link.labels([{
+    attrs: {
+        text: {
+            text: 'Hello, World'
+        }
+    }
+}]);</code></pre>
+
+            <p>Note that since we were only adding one label, we could have also used the
+                <a href="/docs/jointjs#dia.Link.prototype.appendLabel" target="_blank"><code>link.appendLabel()</code></a>
+                convenience function:</p>
+
+            <pre><code>link.appendLabel({
+    attrs: {
+        text: {
+            text: 'Hello, World'
+        }
+    }
+});</code></pre>
+
+            <p><a href="link-labels.html">More advanced topics about link labels, including custom position, styling
+                and markup, are explained in a separate section of this tutorial.</a></p>
+
             <h3 id="example">Example</h3>
 
-            <p>Now, let's use <code>link.attr()</code> to have some fun with our links:</p>
+            <p>Now, let's use what we learned to have some fun with our links:</p>
 
             <div class="paper" id="paper-links"></div>
 
-            <pre class="line-numbers" data-line="71-92,133-159,202-233,235-239" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="71-99,140-166,209-240,242-246" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -466,6 +579,13 @@
                 }
             }
         });
+        link.labels([{
+            attrs: {
+                text: {
+                    text: 'Hello, World!'
+                }
+            }
+        }]);
         link.addTo(graph);
 
         var rect3 = new joint.shapes.standard.Rectangle();
@@ -619,123 +739,6 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <h3 id="link-arrowheads">Appendix: Link Arrowheads</h3>
-
-            <p>In our examples, we used two <a href="special-attributes.html">special attributes</a> to change the link
-                arrowheads;
-                <a href="/docs/jointjs#dia.attributes.sourceMarker" target="_blank"><code>sourceMarker</code></a> and
-                <a href="/docs/jointjs#dia.attributes.targetMarker" target="_blank"><code>targetMarker</code></a>.
-                (In the case of <code>joint.shapes.standard.Link</code>, they are defined on the <code>line</code>
-                selector.)
-                The <code>'type'</code> of the arrowhead can be any valid SVGElement type; we will look at
-                <code>path</code> and <code>image</code> arrowheads specifically, but we will mention the others in
-                <a href="special-attributes.html">more advanced sections of the tutorial</a>.
-                Just remember that in this context, JointJS's camelCase translation does not work; for that reason, we
-                strongly encourage everyone to use quotation marks around all arrowhead marker properties (i.e.
-                <code>'type'</code> and not <code>type</code>).</p>
-
-            <p>The following example shows how to create a link with two simple <code>path</code> arrowheads.
-                Notice that if the <code>'fill'</code> and <code>'stroke'</code> colors are not specified, they are
-                adopted from the <code>line.stroke</code> attribute.
-                The two arrowheads have the same path data commands, despite pointing in opposite directions; this is
-                because all <code>targetMarker</code> values are automatically rotated by 180 degrees.
-                The path commands' coordinate system has origin at the tip of the link and is rotated
-                according to the slope of the link at that point.
-                Together, these characteristics mean that you can design all your arrowheads as if they were pointing
-                left and towards the point <code>0,0</code> in local coordinates; JointJS will take care of the
-                rest.</p>
-
-            <div class="paper" id="paper-links-arrowheads-path"></div>
-
-            <pre><code>link.attr({
-    line: {
-        sourceMarker: {
-            'type': 'path',
-            'd': 'M 20 -10 0 0 20 10 Z'
-        },
-        targetMarker: {
-            'type': 'path',
-            'stroke': 'green',
-            'stroke-width': 2
-            'fill': 'yellow',
-            'd': 'M 20 -10 0 0 20 10 Z'
-        }
-    }
-});</code></pre>
-
-            <p>Creating <code>image</code> arrowheads is similarly straightforward.
-                You just need to provide an url with the path to your image to the <code>'xlink:href'</code> property,
-                and then specify the desired <code>'width'</code> and <code>'height'</code>.
-                The image for <code>targetMarker</code> will be automatically rotated by 180 degrees, as expected.
-                Remember to reposition the image in the <code>'y'</code> axis if you need the arrowhead to be
-                centered.</p>
-
-            <div class="paper" id="paper-links-arrowheads-image"></div>
-
-            <pre><code>link.attr({
-    line: {
-        sourceMarker: {
-            'type': 'image',
-            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-            'width': 24,
-            'height': 24,
-            'y': -12
-        },
-        targetMarker: {
-            'type': 'image',
-            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-            'width': 24,
-            'height': 24,
-            'y': -12
-        }
-    }
-});</code></pre>
-
-            <h3 id="link-labels">Appendix: Link Labels</h3>
-
-            <p>JointJS also supports link labels:</p>
-
-            <ul>
-                <li><a href="/docs/jointjs#dia.Link.prototype.labels" target="_blank"><code>link.labels()</code></a>
-                    - sets the <code>labels</code> array of the link.
-                    Labels have <code>markup</code>, <code>attrs</code>, and <code>position</code> properties.</li>
-            </ul>
-
-            <p><a href="link-labels.html">Link labels are explained in more detail in a separate section of this
-                tutorial</a>.
-                A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
-                class, from which the <code>joint.shapes.standard.Link</code> type inherits it.
-                The builtin default label has two tags:
-                <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
-                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
-                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
-                Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
-
-            <div class="paper" id="paper-link-labels-builtin"></div>
-
-            <pre><code>link.labels([{
-    attrs: {
-        text: {
-            text: 'Hello, World'
-        }
-    }
-}]);</code></pre>
-
-            <p>Note that since we were only adding one label, we could have also used the
-                <a href="/docs/jointjs#dia.Link.prototype.appendLabel" target="_blank"><code>link.appendLabel()</code></a>
-                convenience function:</p>
-
-            <pre><code>link.appendLabel({
-    attrs: {
-        text: {
-            text: 'Hello, World'
-        }
-    }
-});</code></pre>
-
-            <p><a href="link-labels.html">More advanced topics about link labels, including custom position, styling
-                and markup, are explained in a separate section of this tutorial.</a></p>
-
             <p>This concludes the introductory section of the JointJS tutorial!
                 Congratulations!
                 We have come a long way from the initial Hello, World! application:</p>
@@ -761,10 +764,10 @@
         <script src="js/hello-world.js"></script>
         <script src="js/elements.js"></script>
         <script src="js/links-attr.js"></script>
-        <script src="js/links.js"></script>
         <script src="js/links-arrowheads-path.js"></script>
         <script src="js/links-arrowheads-image.js"></script>
-        <script src="js/link-labels-builtin.js"></script>
+        <script src="js/links-label-builtin.js"></script>
+        <script src="js/links.js"></script>
         <script src="js/hello-world-copy.js"></script>
         <script src="js/links-copy.js"></script>
     </body>

@@ -41,7 +41,13 @@
                 <a href="intermediate.html">Return to index.</a></p>
 
             <p>Special attributes are JointJS-specific attributes that offer functionality beyond that of native SVG
-                attributes.</p>
+                attributes.
+                We have already mentioned them when talking about
+                <a href="elements.html#element-styling">element styling</a>, and seen them in action when adding
+                <a href="links.html#link-arrowheads">link arrowheads</a>.
+                They become much more important when we talk about creating custom
+                <a href="custom-elements.html">elements</a>, <a href="custom-links.html">links</a> and
+                <a href="link-labels.html#label-styling">link labels</a>.</p>
 
             <p>The main way to define the styling of diagram elements, links, and labels in JointJS is through
                 <code>attrs</code> objects.
@@ -67,7 +73,7 @@
 
             <p>One of the most common requests when working with SVG is to set the dimensions of SVGElements relatively.
                 JointJS allows you to do that with a suite of <code>ref</code> attributes.
-                These attributes allow you to size shape components as a percentage of the dimensions of the shape's
+                These attributes allow you to size shape subelements as a percentage of the dimensions of the shape's
                 model.
                 Moreover, since all calculations are programmatic and do not rely on browser's bbox measurements, using
                 these attributes does not impact performance of your app.</p>
@@ -75,10 +81,10 @@
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.refWidth" target="_blank"><code>refWidth</code></a> and
                     <a href="/docs/jointjs#dia.attributes.refHeight" target="_blank"><code>refHeight</code></a> - sets
-                    the width of the component relative to model bbox.</li>
+                    the width of the subelement relative to model bbox.</li>
                 <li><a href="/docs/jointjs#dia.attributes.refX" target="_blank"><code>refX</code></a> and
                     <a href="/docs/jointjs#dia.attributes.refY" target="_blank"><code>refY</code></a> - sets the
-                    coordinates of the top-left corner of the component relative to the top-left corner of model
+                    coordinates of the top-left corner of the subelement relative to the top-left corner of model
                     bbox. Stacks with the native <code>x</code>/<code>y</code> attribute.</li>
                 <li><a href="/docs/jointjs#dia.attributes.refCx" target="_blank"><code>refCx</code></a> and
                     <a href="/docs/jointjs#dia.attributes.refCy" target="_blank"><code>refCy</code></a> - sets the
@@ -111,7 +117,7 @@
                 In the example, we use JointJS transitions to vary the dimensions of <code>element</code> from 40:40 to
                 270:100.
                 (We also adjust position to make sure the element stays in the visible area of our paper.)
-                Notice that the components of the element adjust automatically as the size of the reference model
+                Notice that the subelements of the shape adjust automatically as the size of the reference model
                 changes:</p>
 
             <div class="paper" id="paper-special-attributes-relative-dimensions"></div>
@@ -161,56 +167,55 @@
     }]
 });
 
-var element = new CustomElement({
-    attrs: {
-        e: {
-            refRx: '50%',
-            refRy: '25%',
-            refCx: '50%',
-            refCy: 0,
-            refX: '-50%',
-            refY: '25%'
-        },
-        r: {
-            refX: '100%',
-            x: -10, // additional x offset
-            refY: '100%',
-            y: -10, // additional y offset
-            refWidth: '50%',
-            refHeight: '50%',
-        },
-        c: {
-            refRCircumscribed: '50%',
-            refCx: '50%',
-            refCy: '50%'
-        }
+var element = new CustomElement();
+element.attr({
+    e: {
+        refRx: '50%',
+        refRy: '25%',
+        refCx: '50%',
+        refCy: 0,
+        refX: '-50%',
+        refY: '25%'
+    },
+    r: {
+        refX: '100%',
+        x: -10, // additional x offset
+        refY: '100%',
+        y: -10, // additional y offset
+        refWidth: '50%',
+        refHeight: '50%',
+    },
+    c: {
+        refRCircumscribed: '50%',
+        refCx: '50%',
+        refCy: '50%'
     }
 });</code></pre>
 
         <h3 id="text-relative-dimensions">Relative Dimensions Based on Text</h3>
 
-            <p>An advanced application of relative attributes is using them to set the dimensions of shape components
+            <p>An advanced application of relative attributes is using them to set the dimensions of shape subelements
                 based on the dimensions of bboxes of rendered JointJS views.
-                This is especially valuable when you need to base the position and size of components on elements that
-                JointJS is not able to work with programmatically; namely, text elements.
+                This is especially valuable when you need to base the position and size of shape components on
+                <code>&lt;text&gt;</code> subelements since JointJS is not able to work with them programmatically.
                 Note that because this method relies on browser measurements, it is noticeably slower and less precise
                 than the <a href="#relative-dimensions">model-based method</a> mentioned above; you should use that
-                method for components that can be modeled by JointJS.</p>
+                method for subelements that can be modeled by JointJS.</p>
 
             <p>The key is the <code>ref</code> special attribute:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.ref" target="_blank"><code>ref</code></a> - a selector
-                    reference to the component whose measured bbox should be used as the base of relative
+                    reference to the subelement whose measured bbox should be used as the base of relative
                     attributes.</li>
             </ul>
 
             <p>We define a custom element type named <code>CustomTextElement</code> as a subtype of
                 <code>joint.dia.Element</code>.
-                It is very similar to <code>CustomElement</code> defined above, except this time, all components refer
+                It is very similar to <code>CustomElement</code> defined above, except this time, all subelements refer
                 to a new <code>text</code> component named <code>label</code>.
                 In the example, we use JointJS transitions to vary the text content of <code>label</code>.
-                Notice that the components of the element adjust automatically as the size of label changes due to the
+                Notice that the subelements of the shape adjust automatically as the size of label changes due to the
                 added characters:</p>
 
             <div class="paper" id="paper-special-attributes-text-relative-dimensions"></div>
@@ -220,7 +225,7 @@ var element = new CustomElement({
         label: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            fontSize: 72
+            fontSize: 48
         },
         e: {
             strokeWidth: 1,
@@ -269,34 +274,395 @@ var element = new CustomElement({
     }]
 });
 
-var element = new CustomTextElement({
-    attrs: {
-        label: {
-            text: 'Hello,\nWorld!'
+var element = new CustomTextElement();
+element.attr({
+    label: {
+        text: 'Hello, World!'
+    },
+    e: {
+        ref: 'label',
+        refRx: '50%',
+        refRy: '25%',
+        refCx: '50%',
+        refCy: 0,
+        refX: '-50%',
+        refY: '25%'
+    },
+    r: {
+        ref: 'label',
+        refX: '100%',
+        x: -10, // additional x offset
+        refY: '100%',
+        y: -10, // additional y offset
+        refWidth: '50%',
+        refHeight: '50%',
+    },
+    c: {
+        ref: 'label',
+        refRCircumscribed: '50%',
+        // c is already centered at label anchor
+    }
+});</code></pre>
+
+            <h3 id="link-arrowheads">Link Arrowheads</h3>
+
+            <p>Two special attributes are in charge of link arrowheads.
+                <a href="links.html#link-arrowheads">We already mentioned them in the basic tutorial:</a></p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.attributes.sourceMarker" target="_blank"><code>sourceMarker</code></a>
+                    and
+                    <a href="/docs/jointjs#dia.attributes.targetMarker" target="_blank"><code>targetMarker</code></a> -
+                    sets an arrowhead of requested SVGElement <code>'type'</code> to the start/end of the link.
+                    The other properties passed in the object are expected to be SVG attributes for that
+                    SVGElement.</li>
+            </ul>
+
+            <p>Link arrowhead special attributes expect an object with <i>native SVG attributes</i>.
+                This means that they are not able to understand JointJS special attributes, and they cannot make use of
+                JointJS's camelCase translation.
+                In order to better communicate these restrictions to programmers, we strongly encourage the use of
+                quotation marks around all arrowhead marker properties (i.e. <code>'type'</code> and not
+                <code>type</code>; <code>'stroke-width'</code> and not <code>strokeWidth</code>).</p>
+
+            <p>The <code>'type'</code> of the arrowhead can be any valid SVGElement type.
+                The following example shows how to create a link with two simple <code>&lt;path&gt;</code> arrowheads.</p>
+
+            <p>The two arrowheads have the same path data commands, despite pointing in opposite directions; this is
+                because all <code>targetMarker</code> values are automatically rotated by 180 degrees.
+                The path commands' coordinate system has origin at the tip of the link and is rotated
+                according to the slope of the link at that point.
+                This means that you can design all your arrowheads as if they were pointing left and towards the point
+                <code>0,0</code> in local coordinates, and then rely on JointJS's automatic arrowhead rotation.</p>
+
+            <p>Note that, in general, if the <code>'fill'</code> and <code>'stroke'</code> colors are not specified,
+                they are adopted from the <code>line.stroke</code> attribute.</p>
+
+            <div class="paper" id="paper-links-arrowheads-path"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'path',
+            'd': 'M 20 -10 0 0 20 10 Z'
         },
-        e: {
-            ref: 'label',
-            refRx: '50%',
-            refRy: '25%',
-            refCx: '50%',
-            refCy: 0,
-            refX: '-50%',
-            refY: '25%'
-        },
-        r: {
-            ref: 'label',
-            refX: '100%',
-            x: -10, // additional x offset
-            refY: '100%',
-            y: -10, // additional y offset
-            refWidth: '50%',
-            refHeight: '50%',
-        },
-        c: {
-            ref: 'label',
-            refRCircumscribed: '50%',
-            // c is already centered at label anchor
+        targetMarker: {
+            'type': 'path',
+            'stroke': 'green',
+            'stroke-width': 2
+            'fill': 'yellow',
+            'd': 'M 20 -10 0 0 20 10 Z'
         }
+    }
+});</code></pre>
+
+            <p>To create an <code>&lt;image&gt;</code> arrowhead, you need to provide an url with the path to your image to the
+                <code>'xlink:href'</code> property, and then specify the desired <code>'width'</code> and
+                <code>'height'</code>.
+                The image for <code>targetMarker</code> will be automatically rotated by 180 degrees.
+                Remember to reposition the image in the <code>'y'</code> axis (by <code>-1/2</code> of
+                <code>'height'</code>) if you need the arrowhead to be centered.</p>
+
+            <div class="paper" id="paper-links-arrowheads-image"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'image',
+            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+            'width': 24,
+            'height': 24,
+            'y': -12
+        },
+        targetMarker: {
+            'type': 'image',
+            'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+            'width': 24,
+            'height': 24,
+            'y': -12
+        }
+    }
+});</code></pre>
+
+            <p>To create an arrowhead of arbitrary SVGElement type, simply specify the <code>'type'</code>
+                appropriately, and then provide native SVG attributes to style it.
+                Keep in mind that <code>'circle'</code> and <code>'ellipse'</code> SVG elements have origin in their
+                center; they need to be repositioned in the <code>'x'</code> axis if you do not want them to overflow
+                the end of the link.</p>
+
+            <div class="paper" id="paper-special-attributes-link-arrowheads"></div>
+
+            <pre><code>link.attr({
+    line: {
+        sourceMarker: {
+            'type': 'rect',
+            'width': 50,
+            'height': 10,
+            'y': -5,
+            'fill': 'rgba(255,0,0,0.3)',
+            'stroke': 'black'
+        },
+        targetMarker: {
+            'type': 'circle',
+            'r': 10,
+            'cx': 10,
+            'fill': 'rgba(0,255,0,0.3)',
+            'stroke': 'black'
+        }
+    }
+});</code></pre>
+
+            <h3 id="link-relative-dimensions">Relative Dimensions on Links</h3>
+
+            <p>Several special attributes on links allow you to position subelements relatively to the link's connection
+                path:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.attributes.connection" target="_blank"><code>connection</code></a> - if
+                    set to <code>true</code>, the subelement will follow the link connection path.
+                    Applicable only to <code>&lt;path&gt;</code> subelements.</li>
+                <li><a href="/docs/jointjs#dia.attributes.atConnectionLength" target="_blank"><code>atConnectionLength</code></a>
+                    - sets the absolute distance from the beginning of the path at which the anchor of the subelement
+                    should be placed.
+                    Negative distances are counted from the end of the connection path.</li>
+                <li><a href="/docs/jointjs#dia.attributes.atConnectionRatio" target="_blank"><code>atConnectionRatio</code></a>
+                    - sets the relative distance from the beginning of the path at which the anchor of the subelement
+                    should be placed.
+                    Accepts numbers between <code>0</code> and <code>1</code>.</li>
+            </ul>
+
+            <p>These attributes make them ideal for adding symbols and arrowheads on the connection path and have them
+                rotate as the path slope changes:</p>
+
+            <div class="paper" id="paper-special-attributes-link-relative-dimensions"></div>
+
+            <pre><code>var CustomLink = joint.dia.Link.define('examples.CustomLink', {
+    attrs: {
+        line: {
+            connection: true,
+            fill: 'none',
+            stroke: 'orange',
+            strokeWidth: 2,
+            sourceMarker: {
+                'type': 'circle',
+                'r': 4,
+                'fill': 'white',
+                'stroke': 'orange',
+                'stroke-width': '2'
+            },
+            targetMarker: {
+                'type': 'circle',
+                'r': 4,
+                'fill': 'white',
+                'stroke': 'orange',
+                'stroke-width': '2'
+            }
+        },
+        arrowhead: {
+            d: 'M -20 -10 0 0 -20 10 Z',
+            fill: 'orange',
+            stroke: 'none'
+        },
+        symbol: {
+            d: 'M -20 -20 20 20',
+            stroke: 'black',
+            targetMarker: {
+                'type': 'path',
+                'd': 'M 0 0 10 -5 10 5 Z',
+                'fill': 'black',
+                'stroke': 'none'
+            }
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'path',
+        selector: 'line'
+    }, {
+        tagName: 'path',
+        selector: 'arrowhead'
+    }, {
+        tagName: 'path',
+        selector: 'symbol'
+    }]
+});
+
+var link = new CustomLink();
+link.attr({
+    symbol: {
+        atConnectionRatio: 0.25
+    },
+    arrowhead: {
+        atConnectionRatio: 0.75,
+    }
+});</code></pre>
+
+            <p>As an even more advanced application, these attributes may be used to construct fake
+                <a href="link-labels.html">link labels</a> that rotate according to the slope of the link.
+                However, link subelements are more difficult to set up and use dynamically than link labels and have
+                several important limitations when used this way for text:</p>
+
+            <ul>
+                <li>They cannot use the <code>ref</code> attribute.
+                    This means that they are unable to automatically set their width and height values based on the
+                    browser-calculated dimensions of the text bbox.
+                    It is up to the programmer to provide approximate width and height values to accommodate the label
+                    text.</li>
+                <li>They cannot be positioned with relative offsets.
+                    There is no built-in method to instruct a relatively-positioned subelement to be offset by 20 pixels
+                    perpendicularly to the left of the connection path, for example.</li>
+            </ul>
+
+            <p>Both of these limitations can be overcome with custom attributes, but this is a complex problem beyond
+                the scope of this tutorial.
+                Instead, we encourage you to take advantage of our easy-to-use <a href="link-labels.html">link label
+                API</a> unless you need label rotation.</p>
+
+            <p>Let us create a custom link with several relatively-positioned subelements.
+                The demo was designed to emulate functionality shown in the link label
+                <a href="link-labels.html#label-position">position</a> and
+                <a href="link-labels.html#label-offset">offset</a> examples.
+                The red asterisk marks the reference point of the offset subelement on the link.</p>
+
+            <div class="paper" id="paper-special-attributes-link-relative-dimensions-text"></div>
+
+            <pre><code>var CustomLink = joint.dia.Link.define('examples.CustomLink', {
+    attrs: {
+        line: {
+            connection: true,
+            fill: 'none',
+            stroke: 'orange',
+            strokeWidth: 2,
+            sourceMarker: {
+                'type': 'circle',
+                'r': 4,
+                'fill': 'white',
+                'stroke': 'orange',
+                'stroke-width': '2'
+            },
+            targetMarker: {
+                'type': 'circle',
+                'r': 4,
+                'fill': 'white',
+                'stroke': 'orange',
+                'stroke-width': '2'
+            }
+        },
+        relativeLabel: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fill: 'black'
+        },
+        relativeLabelBody: {
+            x: -20,
+            y: -10,
+            width: 40,
+            height: 20,
+            fill: 'white',
+            stroke: 'black'
+        },
+        absoluteLabel: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fill: 'black'
+        },
+        absoluteLabelBody: {
+            x: -20,
+            y: -10,
+            width: 40,
+            height: 20,
+            fill: 'white',
+            stroke: 'black'
+        },
+        absoluteReverseLabel: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fill: 'black'
+        },
+        absoluteReverseLabelBody: {
+            x: -20,
+            y: -10,
+            width: 40,
+            height: 20,
+            fill: 'white',
+            stroke: 'black'
+        },
+        offsetLabel: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fill: 'black'
+        },
+        offsetLabelBody: {
+            width: 120,
+            height: 20,
+            fill: 'white',
+            stroke: 'black'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'path',
+        selector: 'line'
+    }, {
+        tagName: 'rect',
+        selector: 'relativeLabelBody'
+    }, {
+        tagName: 'text',
+        selector: 'relativeLabel'
+    }, {
+        tagName: 'rect',
+        selector: 'absoluteLabelBody'
+    }, {
+        tagName: 'text',
+        selector: 'absoluteLabel'
+    }, {
+        tagName: 'rect',
+        selector: 'absoluteReverseLabelBody'
+    }, {
+        tagName: 'text',
+        selector: 'absoluteReverseLabel'
+    }, {
+        tagName: 'rect',
+        selector: 'offsetLabelBody'
+    }, {
+        tagName: 'text',
+        selector: 'offsetLabel'
+    }]
+});
+
+var link = new CustomLink();
+link.attr({
+    relativeLabel: {
+        atConnectionRatio: 0.25,
+        text: '0.25'
+    },
+    relativeLabelBody: {
+        atConnectionRatio: 0.25
+    },
+    absoluteLabel: {
+        atConnectionLength: 150,
+        text: '150'
+    },
+    absoluteLabelBody: {
+        atConnectionLength: 150
+    },
+    absoluteReverseLabel: {
+        atConnectionLength: -100,
+        text: '-100'
+    },
+    absoluteReverseLabelBody: {
+        atConnectionLength: -100
+    },
+    offsetLabel: {
+        atConnectionRatio: 0.66,
+        x: -40,
+        y: 60,
+        text: '{ x: -40, y: 60 }'
+    },
+    offsetLabelBody: {
+        atConnectionRatio: 0.66,
+        x: -100, // -40 + -60
+        y: 50 // 60 + -10
     }
 });</code></pre>
 
@@ -309,5 +675,10 @@ var element = new CustomTextElement({
 
         <script src="js/special-attributes-relative-dimensions.js"></script>
         <script src="js/special-attributes-text-relative-dimensions.js"></script>
+        <script src="js/links-arrowheads-path.js"></script>
+        <script src="js/links-arrowheads-image.js"></script>
+        <script src="js/special-attributes-link-arrowheads.js"></script>
+        <script src="js/special-attributes-link-relative-dimensions.js"></script>
+        <script src="js/special-attributes-link-relative-dimensions-text.js"></script>
     </body>
 </html>

@@ -1,9 +1,9 @@
-(function linkLabelsBuiltin() {
+(function linksLabelBuiltin() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-link-labels-builtin'),
+        el: document.getElementById('paper-links-label-builtin'),
         model: graph,
         width: 600,
         height: 100,
