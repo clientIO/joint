@@ -1,0 +1,150 @@
+<p>JointJS supports adding labels on links. One link can have multiple labels, and each label can have different properties.</p>
+
+<p>Properties recognized by JointJS are summarized in the following TypeScript-like schema:</p>
+
+<pre><code>{
+    markup?: string | Array&lt;{
+        tagName: SVGElement,
+        selector?: string
+    }&gt;,
+    attrs?: {
+        [key: selector]: {
+            [key: SVG attribute | JointJS attribute]: any
+        } | null
+    },
+    position?: number | {
+        distance?: number,
+        offset?: number | { x: number, y: number },
+        args?: {
+            absoluteDistance?: boolean,
+            reverseDistance?: boolean,
+            absoluteOffset?: boolean
+        }
+    }
+}</code></pre>
+
+<h4>Markup</h4>
+
+<p>The <code>markup</code> property specifies the markup of the label. It can be provided either as a parsable SVG (e.g. <code>'&lt;rect /&gt;&lt;text /&gt;'</code>), or as a JSON array (e.g.<code>[{ tagName: 'rect' }, { tagName: 'text' }]</code>). The JSON allows the user to specify custom selectors for the SVGElements; these can then be used for targeting elements from within the <code>attrs</code> property.</p>
+
+<p>If <code>markup</code> is not provided on the label, markup is taken from the Link type's <code>defaultLabel.markup</code> property. A custom Link type can be created by the user, providing a <code>defaultLabel</code> (see the <code>Link</code> <a href="#dia.Link.intro">documentation</a> for more information). However, if the used link type does not provide <code>defaultLabel.markup</code> (this includes <code>joint.dia.Link</code> and <code>joint.shapes.standard.Link</code>), the builtin default Link markup is used, which defines markup as a JSON array with a <code>'body'</code> (a <code>&lt;rect&gt;</code> SVGElement) under a <code>'label'</code> (a <code>&lt;text&gt;</code> SVGElement).</p>
+
+<h4>Styling</h4>
+
+<p>The <code>attrs</code> property is an object where the keys are CSS selectors (referring to custom selectors or SVGElements specified in <code>markup</code>, e.g. <code>body</code> in the above example). They are expected to contain objects that specify native SVG and/or JointJS special attributes (e.g. <code>fill</code>), alongside the value to be assigned (e.g. <code>'white'</code>).</p>
+
+<p>If the Link type provides <code>defaultLabel.attrs</code>, these attrs are merged with <code>label.attrs</code>. This allows you to reference selectors from <code>defaultLabel.markup</code> in <code>label.attrs</code> and, for example, simply add an attribute (<code>attrs: { body: { stroke: 'black' } }</code>).</p>
+
+<p>If the builtin default markup is used (i.e. no custom <code>label.markup</code> was provided, and no <code>defaultLabel.markup</code>), several builtin default <code>attrs</code> are applied for reasons of backwards compatibility. These are merged with <code>defaultLabel.attrs</code> (if present on the Link prototype) and then <code>label.attrs</code> (if provided). See <code>Link</code> <a href="#dia.Link.intro">documentation</a> for more information.</p>
+
+<h4>Position</h4>
+
+<p>Finally, the <code>position</code> property specifies the position of the label, relative to the SVG path of the link. It may be defined as a number or as an object with <code>distance</code> and optionally <code>offset</code> and <code>args</code> properties. If no <code>position</code> is provided, the builtin default (<code>{ distance: 0.5 }</code>) is used to maintain backwards compatibility.</p>
+
+<table>
+    <tr>
+        <td><i>number</i></td>
+        <td>
+            <table>
+                <tr>
+                    <td>
+                        If the distance is in the <code>[0,1]</code> range (inclusive), then the position of the label is defined as a percentage of the total length of the <code>.connection</code> path (the normalized length). For example, passing the number <code>0.5</code> positions the label to the middle of the <code>.connection</code> path.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        If the distance is larger than <code>1</code> (exclusive), the label will be positioned <code>distance</code> pixels away from the beginning of the path along the <code>.connection</code> path.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        If the distance is a negative number, the label will be positioned <code>distance</code> pixels away from the end of the path along the <code>.connection</code> path.
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td><i>object</i></td>
+        <td>
+            <p>If <code>position</code> is specified as an object, it may have three properties:</p>
+            <table>
+                <tr>
+                    <th>distance</th>
+                    <td>
+                        A number specifying the distance of the label along the <code>.connection</code> path. Same as above.
+                    </td>
+                </tr>
+                <tr>
+                    <th>offset</th>
+                    <td>
+                        <p>Optional. Either a number or an object with <code>x</code> and <code>y</code> properties.</p>
+                        <table>
+                            <tr>
+                                <td><i>number</i></td>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                If the offset is a positive number, displace the label perpendicularly to the right (in the direction of the <code>.connection</code> path) in the paper local coordinate system. (An offset of <code>0</code> is the default; it means no offset in either direction.)
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                If the offset is a negative number, displace the label perpendicularly to the left (in the direction of the <code>.connection</code> path) in the paper local coordinate system.
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i>object</i></td>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <th>x</th>
+                                            <td>
+                                                Offset the label by <code>x</code> in the paper local coordinate system.
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>y</th>
+                                            <td>
+                                                Offset the label by <code>y</code> in the paper local coordinate system.
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <th>args</th>
+                    <td>
+                        <p>Optional. An object with boolean options for the <code>linkView.getLabelPosition()</code> <a href="#dia.linkView.prototype.getLabelPosition">function</a>.</p>
+                        <table>
+                            <tr>
+                                <th>absoluteDistance</th>
+                                <td>
+                                    If user moves the label, record <code>distance</code> as an absolute number. (Relative distances used by default).
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>reverseDistance</th>
+                                <td>
+                                    If <code>absoluteDistane</code> is set and user moves the label, record <code>distance</code> as a negative absolute number. (Positive distances used by default.)
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>absoluteOffset</th>
+                                <td>
+                                    If user moves the label, record <code>offset</code> as an object with absolute <code>x</code> and <code>y</code> coordinates. (Relative offsets used by default).
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
