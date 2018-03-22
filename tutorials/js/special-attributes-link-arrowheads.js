@@ -6,7 +6,7 @@
         el: document.getElementById('paper-special-attributes-link-arrowheads'),
         model: graph,
         width: 600,
-        height: 100,
+        height: 300,
         gridSize: 10,
         drawGrid: true,
         background: {
@@ -15,10 +15,10 @@
     });
 
     var link = new joint.shapes.standard.Link();
-    link.source(new g.Point(100, 50));
-    link.target(new g.Point(500, 50));
+    link.source(new g.Point(228.84550125020417, 100.76702664502545));
+    link.target(new g.Point(416.2834258874138, 72.03741369165368));
     link.vertices([
-        new g.Point(300, 50)
+        new g.Point(300, 150)
     ]);
     link.attr({
         line: {
@@ -41,36 +41,49 @@
     });
     link.addTo(graph);
 
-    function down(link) {
-        link.transition('vertices/0', { x: 300, y: 90 }, {
+    function hourHand(link) {
+        link.transition('source', ((10 + (9.36 / 60)) / 12), {
             delay: 1000,
-            duration: 4000,
-            timingFunction: function(time) {
-                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
-            },
-            valueFunction: joint.util.interpolate.object
+            duration: 19000,
+            valueFunction: function(start, startTime) {
+                var timeCorrection = ((startTime * (2 * Math.PI)) - (Math.PI / 2));
+                var origin = new g.Point(300, 150);
+                var radius = 140 / 1.618;
+                return function(t) {
+                    return {
+                        x: origin.x + (radius * Math.cos((t * 2 * Math.PI) + timeCorrection)),
+                        y: origin.y + (radius * Math.sin((t * 2 * Math.PI) + timeCorrection))
+                    }
+                }
+            }
         });
-
-        link.upToggle = true;
     }
 
-    function up(link) {
-        link.transition('vertices/0', { x: 300, y: 10 }, {
+    function minuteHand(link) {
+        link.transition('target', (9.36 / 60), {
             delay: 1000,
-            duration: 4000,
+            duration: 19000,
             timingFunction: function(time) {
-                return (time <= 0.5) ? (2 * time) : (2 * (1 - time));
+                return ((time * 12) - (Math.floor(time * 12)))
             },
-            valueFunction: joint.util.interpolate.object
+            valueFunction: function(start, startTime) {
+                var timeCorrection = ((startTime * (2 * Math.PI)) - (Math.PI / 2));
+                var origin = new g.Point(300, 150);
+                var radius = 140;
+                return function(t) {
+                    return {
+                        x: origin.x + (radius * Math.cos((t * 2 * Math.PI) + timeCorrection)),
+                        y: origin.y + (radius * Math.sin((t * 2 * Math.PI) + timeCorrection))
+                    }
+                }
+            }
         });
-
-        link.upToggle = false;
     }
 
     link.currentTransitions = 0;
-    link.upToggle = false;
 
-    down(link);
+    hourHand(link);
+    minuteHand(link);
 
     link.on('transition:start', function(link) {
         link.currentTransitions += 1;
@@ -80,8 +93,8 @@
         link.currentTransitions -= 1;
 
         if (link.currentTransitions === 0) {
-            if (link.upToggle) up(link);
-            else down(link)
+            hourHand(link);
+            minuteHand(link);
         }
     });
 }());

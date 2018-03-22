@@ -41,6 +41,147 @@
                 <a href="special-attributes.html">Go back to special attributes.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
+            <p>JointJS offers several different ways to enable user interaction.
+                Events are triggered on your paper and on individual element/link views.</p>
+
+            <h3 id="builtin-events">Builtin Paper Events</h3>
+
+            <p>Paper automatically triggers several builtin events upon user interaction; you can find the full list in
+                <a href="/docs/jointjs#dia.Paper.events">Paper documentation</a>.
+                You can simply listen for them on the paper; this is the easiest way to detect interaction of a certain
+                kind on all instances of a type of diagram components.
+                For example, the event <code>'link:pointerdblclick'</code> is triggered when a double click is detected
+                on any link in the diagram.
+                A corresponding event for elements (<code>'element:pointerdblclick'</code>), cells in general
+                (<code>'cell:pointerdblclick'</code>), and for blank areas on the paper
+                (<code>'blank:pointerdblclick'</code>) is provided as well.</p>
+
+            <p>Let us illustrate all paper <code>'pointerdblclick'</code> events in one example.
+                The generic <code>'cell'</code> event listener triggers an alert whenever an Element or Link is
+                clicked.
+                The more specific <code>'element'</code> and <code>'link'</code> event listeners change the color of
+                their model's stroke.
+                The <code>'blank'</code> event listener changes the color of the Paper background (no alert is displayed
+                in this case because no Cell was clicked).</p>
+
+            <div class="paper" id="paper-interaction-builtin-events"></div>
+
+            <pre><code>paper.on('blank:pointerdblclick', function() {
+    resetAll(this);
+
+    this.drawBackground({
+        color: 'orange'
+    })
+});
+
+paper.on('element:pointerdblclick', function(elementView) {
+    resetAll(this);
+
+    var currentElement = elementView.model;
+    currentElement.attr('body/stroke', 'orange')
+});
+
+paper.on('link:pointerdblclick', function(linkView) {
+    resetAll(this);
+
+    var currentLink = linkView.model;
+    currentLink.attr('line/stroke', 'orange')
+    currentLink.label(0, {
+        attrs: {
+            body: {
+                stroke: 'orange'
+            }
+        }
+    })
+});
+
+paper.on('cell:pointerdblclick', function(cellView) {
+    var currentCell = cellView.model;
+
+    var cellLabel;
+    if (currentCell.isElement()) cellLabel = currentCell.attr('label/text');
+    else if (currentCell.isLink()) cellLabel = currentCell.label(0).attrs.label.text;
+
+    alert('Cell clicked: ' + currentCell.prop('type') + ' ("' + cellLabel + '")');
+});
+
+// restore original colors before changing them
+function resetAll(paper) {
+    paper.drawBackground({
+        color: 'white'
+    })
+
+    var elements = paper.model.getElements();
+    for (var i = 0, ii = elements.length; i < ii; i++) {
+        var currentElement = elements[i];
+        currentElement.attr('body/stroke', 'black');
+    }
+
+    var links = paper.model.getLinks();
+    for (var j = 0, jj = links.length; j < jj; j++) {
+        var currentLink = links[j];
+        currentLink.attr('line/stroke', 'black');
+        currentLink.label(0, {
+            attrs: {
+                body: {
+                    stroke: 'black'
+                }
+            }
+        })
+    }
+}</code></pre>
+
+            <p>The event listener callback functions have the signature
+                <code>callback([cellView,] eventObject, eventX, eventY)</code> (<code>cellView</code> is not provided
+                for <code>'blank'</code> events, for obvious reasons).
+                The <code>eventObject</code> can be used to, for example, <code>stopPropagation()</code>.
+                The <code>x</code> and <code>y</code> coordinates can be useful when placing markers at sites of user
+                interaction.
+                We have not used these three parameters in the above example, but you will encounter them frequently in
+                JointJS event listeners.</p>
+
+            <h3 id="custom-event-names">Custom Event Names</h3>
+
+            <p>The easiest way to add a custom event to an individual component on your diagram is to use the
+                <code>event</code> <a href="special-attributes.js" target="_blank">special attribute</a>.</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.attributes.event" target="_blank"><code>event</code></a> - adds an event
+                    of the specified name to the subelement; to be triggered on pointerdown/touchstart DOM event.</li>
+            </ul>
+
+            <p>Then, you can simply attach a listener to your graph that gets called when your event is detected by the
+                paper.
+                In the following example, we define a custom event <code>'element:color-change'</code> and listen for
+                it:</p>
+
+            <div class="paper" id="paper-interaction-event-attribute"></div>
+
+            <pre><code>rect.attr({
+    body: {
+        event: 'element:color-change',
+        cursor: 'pointer',
+        fill: 'green'
+    },
+    label: {
+        event: 'element:color-change',
+        cursor: 'pointer',
+        text: 'Change Color',
+        style: {
+            fill: 'white'
+        }
+    }
+});
+
+paper.on('element:color-change', function(elementView, evt) {
+    evt.stopPropagation(); // stop any further actions with the element view (e.g. dragging)
+
+    var model = elementView.model;
+
+    if (model.attr('body/fill') === 'green') model.attr('body/fill', 'red');
+    else model.attr('body/fill', 'green');
+});</code></pre>
+
             <p><a href="serialization.html">In the next section of the intermediate tutorial, we will learn about data
                 serialization.</a></p>
 
@@ -48,7 +189,7 @@
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
-        <script src="js/special-attributes-relative-dimensions.js"></script>
-        <script src="js/special-attributes-text-relative-dimensions.js"></script>
+        <script src="js/interaction-builtin-events.js"></script>
+        <script src="js/interaction-event-attribute.js"></script>
     </body>
 </html>

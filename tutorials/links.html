@@ -389,17 +389,18 @@
                 according to the slope of the link at that point.
                 Together, these characteristics mean that you can design all your arrowheads as if they were pointing
                 left and towards the point <code>0,0</code> in local coordinates; JointJS will take care of the
-                rest.</p>
+                rest.
+                Let's illustrate with a simple clock.:</p>
 
             <div class="paper" id="paper-links-arrowheads-path"></div>
 
             <pre><code>link.attr({
     line: {
-        sourceMarker: {
+        sourceMarker: { // hour hand
             'type': 'path',
             'd': 'M 20 -10 0 0 20 10 Z'
         },
-        targetMarker: {
+        targetMarker: { // minute hand
             'type': 'path',
             'stroke': 'green',
             'stroke-width': 2
@@ -414,7 +415,8 @@
                 and then specify the desired <code>'width'</code> and <code>'height'</code>.
                 The image for <code>targetMarker</code> will be automatically rotated by 180 degrees, as expected.
                 Remember to reposition the image in the <code>'y'</code> axis if you need the arrowhead to be
-                centered.</p>
+                centered.
+                Let's return to our clock example:</p>
 
             <div class="paper" id="paper-links-arrowheads-image"></div>
 
