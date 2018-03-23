@@ -1643,7 +1643,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         setTimeout(onAnimationEnd(vToken, callback), duration);
     },
 
-    findRoute: function(oldVertices) {
+    findRoute: function(vertices) {
+
+        vertices || (vertices = []);
 
         var namespace = joint.routers;
         var router = this.model.router();
@@ -1651,7 +1653,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!router) {
             if (defaultRouter) router = defaultRouter;
-            else return oldVertices; // no router specified
+            else return vertices.map(g.Point, g); // no router specified
         }
 
         var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
@@ -1661,14 +1663,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var args = router.args || {};
 
-        var newVertices = routerFn.call(
+        var route = routerFn.call(
             this, // context
-            oldVertices || [], // vertices
+            vertices, // vertices
             args, // options
             this // linkView
         );
 
-        return newVertices;
+        if (!route) return vertices.map(g.Point, g);
+        return route || [];
     },
 
     // Return the `d` attribute value of the `<path>` element representing the link
