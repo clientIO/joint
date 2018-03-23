@@ -3,7 +3,6 @@
 var graph = new joint.dia.Graph;
 
 var paper = new joint.dia.Paper({
-
     el: document.getElementById('paper'),
     model: graph,
     width: 800,

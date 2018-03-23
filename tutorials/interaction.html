@@ -147,12 +147,12 @@ function resetAll(paper) {
                 <a href="/docs/jointjs#dia.Link.events" target="_blank">Link events</a> you can react on.
                 To react on these events, add a listener on your models.</p>
 
-            <p>In the example, the event <code>'change:position'</code> is triggered on element when it is moved, and
-                the new position of its center is written into its label.
-                The event <code>'change:target'</code> is triggered on link when its target is moved, and the new
-                position of its target endpoint is written into a label on the link.
-                Note that we have to call the <code>update()</code> on the link's view to make sure user changes are
-                reflected.</p>
+            <p>In the example, the event <code>'change:position'</code> is triggered on the element when it is moved; we
+                determine the new position of the element's center and write it into its text label.
+                The event <code>'change:target'</code> is triggered on the link when its target is moved; we use that
+                event to write the new target position into the link label.
+                Note that we have to call the <code>update()</code> function on the link's view
+                (<code>link.findView(paper)</code>) to make sure user changes are reflected.</p>
 
             <div class="paper" id="paper-interaction-model-events"></div>
 
@@ -248,16 +248,18 @@ paper.on('element:color-change', function(elementView, evt) {
     width: 600,
     height: 100,
     gridSize: 1,
+    background: {
+        color: 'white'
+    },
     elementView: joint.dia.ElementView.extend({
         pointerdblclick: function(evt, x, y) {
             this.model.remove();
-        },
-
+        }
     }),
     linkView: joint.dia.LinkView.extend({
         pointerdblclick: function(evt, x, y) {
             this.model.remove();
-        },
+        }
     })
 });</code></pre>
 
@@ -281,6 +283,9 @@ this.notify('element:pointerdblclick', evt, x, y);</code></pre>
     width: 600,
     height: 100,
     gridSize: 1,
+    background: {
+        color: 'white'
+    },
     elementView: joint.dia.ElementView.extend({
         pointerdblclick: function(evt, x, y) {
             joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);

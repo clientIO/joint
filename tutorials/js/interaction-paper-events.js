@@ -10,8 +10,7 @@
         gridSize: 1,
         background: {
             color: 'white'
-        },
-        interactive: false
+        }
     });
 
     var rect = new joint.shapes.standard.Rectangle();

@@ -8,11 +8,13 @@
         width: 600,
         height: 100,
         gridSize: 1,
+        background: {
+            color: 'white'
+        },
         elementView: joint.dia.ElementView.extend({
             pointerdblclick: function(evt, x, y) {
                 this.model.remove();
             }
-
         }),
         linkView: joint.dia.LinkView.extend({
             pointerdblclick: function(evt, x, y) {

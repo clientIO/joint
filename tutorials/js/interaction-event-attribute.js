@@ -7,7 +7,10 @@
         model: graph,
         width: 600,
         height: 100,
-        gridSize: 1
+        gridSize: 1,
+        background: {
+            color: 'white'
+        }
     });
 
     var rect = new joint.shapes.standard.Rectangle();

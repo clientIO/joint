@@ -8,6 +8,9 @@
         width: 600,
         height: 100,
         gridSize: 1,
+        background: {
+            color: 'white'
+        },
         elementView: joint.dia.ElementView.extend({
             pointerdblclick: function(evt, x, y) {
                 joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
