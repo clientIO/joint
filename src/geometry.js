@@ -2977,21 +2977,6 @@ var g = (function() {
             return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
         },
 
-        innerRect: function(angle) {
-
-            // x = (1/(cos(t)^2-sin(t)^2)) * (  bx * cos(t) - by * sin(t))
-            // y = (1/(cos(t)^2-sin(t)^2)) * (- bx * sin(t) + by * cos(t))
-            var bx = this.width;
-            var by = this.height;
-            var t = toRad(angle || 0);
-            var cosT = cos(t);
-            var sinT = sin(t);
-            var w = (1 / (cosT * cosT - sinT * sinT)) * (  bx * cosT - by * sinT);
-            var h = (1 / (cosT * cosT - sinT * sinT)) * (- bx * sinT + by * cosT);
-            var c = this.center();
-            return new g.Rect(c.x - w / 2, c.y - h / 2, w, h);
-        },
-
         bottomLeft: function() {
 
             return new Point(this.x, this.y + this.height);

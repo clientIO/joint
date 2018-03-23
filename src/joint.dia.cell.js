@@ -927,6 +927,29 @@ joint.dia.CellView = joint.mvc.View.extend({
         return selector;
     },
 
+    getLinkEnd: function(magnet, x, y, link, endType) {
+
+        var id = this.model.id;
+        var port = this.findAttribute('port', magnet);
+        var selector = this.getSelector(magnet);
+
+        // Find a unique `selector` of the element under pointer that is a magnet. If the
+        // `magnet` is the root element of the `view` itself,
+        // the returned `selector` will be `undefined`.
+        var end = { id: id };
+        if (port != null) end.port = port;
+        if (selector != null) end.selector = selector;
+
+        var paper = this.paper;
+        var connectionPolicy = paper.options.connectionPolicy;
+        if (typeof connectionPolicy === 'function') {
+            var policy = connectionPolicy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
+            if (policy) end = policy;
+        }
+
+        return end;
+    },
+
     findAttribute: function(attributeName, node) {
 
         if (!node) return null;

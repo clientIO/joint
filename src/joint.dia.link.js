@@ -2252,7 +2252,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (paper.options.snapLinks) {
             this._snapArrowheadEnd(data);
         } else {
-            this._connectArrowheadEnd(data);
+            this._connectArrowheadEnd(data, x, y);
         }
 
         if (!paper.linkAllowed(this)) {
@@ -2319,16 +2319,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
         if (data.closestView) {
-            data.closestView.unhighlight(data.closestEnd.selector, {
+            data.closestView.unhighlight(data.closestMagnet, {
                 connecting: true,
                 snapping: true
             });
         }
-        data.closestView = data.closestEnd = null;
+        data.closestView = data.closestMagnet = null;
 
         var distance;
         var minDistance = Number.MAX_VALUE;
         var pointer = g.point(x, y);
+        var paper = this.paper;
 
         viewsInArea.forEach(function (view) {
 
@@ -2341,19 +2342,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < r && distance < minDistance) {
 
-                    if (this.paper.options.validateConnection.apply(
-                        this.paper, data.validateConnectionArgs(view, null)
+                    if (paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, null)
                     )) {
                         minDistance = distance;
                         data.closestView = view;
-                        data.closestEnd = { id: view.model.id };
+                        data.closestMagnet = view.el;
                     }
                 }
             }
 
-            view.$('[magnet]').each(function (index, magnet) {
+            view.$('[magnet]').each(function(index, magnet) {
 
-                var bbox = V(magnet).getBBox({ target: this.paper.viewport });
+                var bbox = view.getNodeBBox(magnet);
 
                 distance = pointer.distance({
                     x: bbox.x + bbox.width / 2,
@@ -2362,16 +2363,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (distance < r && distance < minDistance) {
 
-                    if (this.paper.options.validateConnection.apply(
-                        this.paper, data.validateConnectionArgs(view, magnet)
+                    if (paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, magnet)
                     )) {
                         minDistance = distance;
                         data.closestView = view;
-                        data.closestEnd = {
-                            id: view.model.id,
-                            selector: view.getSelector(magnet),
-                            port: view.findAttribute('port', magnet)
-                        };
+                        data.closestMagnet = magnet;
                     }
                 }
 
@@ -2379,14 +2376,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         }, this);
 
-        if (data.closestView) {
-            data.closestView.highlight(data.closestEnd.selector, {
+        var end;
+        var closestView = data.closestView;
+        var closestMagnet = data.closestMagnet;
+        var endType = data.arrowhead;
+        if (closestView) {
+            closestView.highlight(closestMagnet, {
                 connecting: true,
                 snapping: true
             });
+            end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+        } else {
+            end = { x: x, y: y };
         }
 
-        this.model.set(data.arrowhead, data.closestEnd || { x: x, y: y }, { ui: true });
+        this.model.set(endType, end || { x: x, y: y }, { ui: true });
     },
 
     _snapArrowheadEnd: function(data) {
@@ -2394,15 +2398,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Finish off link snapping.
         // Everything except view unhighlighting was already done on pointermove.
         var closestView = data.closestView;
-        var closestEnd = data.closestEnd;
-        if (closestView && closestEnd) {
+        var closestMagnet = data.closestMagnet;
+        if (closestView && closestMagnet) {
 
-            var selector = closestEnd.selector;
-            closestView.unhighlight(selector, { connecting: true, snapping: true });
-            data.magnetUnderPointer = closestView.findMagnet(selector);
+            closestView.unhighlight(closestMagnet, { connecting: true, snapping: true });
+            data.magnetUnderPointer = closestView.findMagnet(closestMagnet);
         }
 
-        data.closestView = data.closestEnd = null;
+        data.closestView = data.closestMagnet = null;
     },
 
     _connectArrowhead: function(target, x, y, data) {
@@ -2450,25 +2453,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.model.set(data.arrowhead, { x: x, y: y }, { ui: true });
     },
 
-    _connectArrowheadEnd: function(data) {
+    _connectArrowheadEnd: function(data, x, y) {
 
-        var viewUnderPointer = data.viewUnderPointer;
-        var magnetUnderPointer = data.magnetUnderPointer;
-        if (!magnetUnderPointer || !viewUnderPointer) return;
+        var view = data.viewUnderPointer;
+        var magnet = data.magnetUnderPointer;
+        if (!magnet || !view) return;
 
-        viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
-        // Find a unique `selector` of the element under pointer that is a magnet. If the
-        // `data.magnetUnderPointer` is the root element of the `data.viewUnderPointer` itself,
-        // the returned `selector` will be `undefined`. That means we can directly pass it to the
-        // `source`/`target` attribute of the link model below.
-        var selector = viewUnderPointer.getSelector(magnetUnderPointer);
-        var port = viewUnderPointer.findAttribute('port', magnetUnderPointer);
+        view.unhighlight(magnet, { connecting: true });
 
-        var arrowheadValue = { id: viewUnderPointer.model.id };
-        if (port != null) arrowheadValue.port = port;
-        if (selector != null) arrowheadValue.selector = selector;
-
-        this.model.set(data.arrowhead, arrowheadValue, { ui: true });
+        var endType = data.arrowhead;
+        var end = view.getLinkEnd(magnet, x, y, this.model, endType);
+        this.model.set(endType, end, { ui: true });
     },
 
     _beforeArrowheadMove: function(data) {

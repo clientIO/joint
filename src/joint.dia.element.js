@@ -360,13 +360,8 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
-    angle: function(angle, opt) {
-        // getter
-        if (angle === undefined) {
-            return g.normalizeAngle(this.get('angle') || 0);
-        }
-
-        return this.set('angle', g.normalizeAngle(angle), opt);
+    angle: function() {
+        return g.normalizeAngle(this.get('angle') || 0);
     },
 
     getBBox: function(opt) {
@@ -975,18 +970,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var paper = this.paper;
         var graph = paper.model;
-        var link = paper.getDefaultLink(this, evt.target);
+        var magnet = evt.target;
+        var link = paper.getDefaultLink(this, magnet);
+        var sourceEnd = this.getLinkEnd(magnet, x, y, link, 'source');
+        var targetEnd = { x: x, y: y };
 
-        link.set({
-            source: {
-                id: this.model.id,
-                port: this.findAttribute('port', evt.target),
-                selector: this.getSelector(evt.target),
-            },
-            target: { x: x, y: y }
-        });
-
-        link.addTo(graph, { async: false });
+        link.set({ source: sourceEnd, target: targetEnd });
+        link.addTo(graph, { async: false, ui: true });
 
         var linkView = link.findView(paper);
         joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
