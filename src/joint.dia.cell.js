@@ -941,10 +941,10 @@ joint.dia.CellView = joint.mvc.View.extend({
         if (selector != null) end.selector = selector;
 
         var paper = this.paper;
-        var connectionPolicy = paper.options.connectionPolicy;
-        if (typeof connectionPolicy === 'function') {
-            var policy = connectionPolicy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
-            if (policy) end = policy;
+        var connectionStrategy = paper.options.connectionStrategy;
+        if (typeof connectionStrategy === 'function') {
+            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
+            if (strategy) end = strategy;
         }
 
         return end;

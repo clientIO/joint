@@ -97,6 +97,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         /* CONNECTING */
 
+        connectionStrategy: null,
+
         // Check whether to add a new link to the graph when user clicks on an a magnet.
         validateMagnet: function(cellView, magnet) {
             return magnet.getAttribute('magnet') !== 'passive';

@@ -39,7 +39,8 @@ module.exports = function(grunt) {
             'plugins/layout/ports/*.js',
             'plugins/highlighters/*.js',
             'plugins/anchors/*.js',
-            'plugins/connectionPoints/*.js'
+            'plugins/connectionPoints/*.js',
+            'plugins/connectionStrategies/*.js'
         ],
 
         geometry: ['src/geometry.js'],
