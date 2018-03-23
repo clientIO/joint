@@ -1,9 +1,9 @@
-(function interactionBuiltinEvents() {
+(function interactionPaperEvents() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-interaction-builtin-events'),
+        el: document.getElementById('paper-interaction-paper-events'),
         model: graph,
         width: 600,
         height: 100,
@@ -16,7 +16,7 @@
 
     var rect = new joint.shapes.standard.Rectangle();
     rect.position(100, 30);
-    rect.resize(100, 30);
+    rect.resize(100, 40);
     rect.attr({
         body: {
             cursor: 'pointer',
@@ -55,6 +55,7 @@
             }],
             attrs: {
                 label: {
+                    cursor: 'pointer',
                     text: 'Link',
                     textAnchor: 'middle',
                     textVerticalAnchor: 'middle',
@@ -62,6 +63,7 @@
                     fill: 'black'
                 },
                 body: {
+                    cursor: 'pointer',
                     ref: 'label',
                     refX: '-10%',
                     refY: '-10%',
@@ -76,8 +78,31 @@
     ]);
     link.addTo(graph);
 
+    var info = new joint.shapes.standard.Rectangle();
+    info.position(250, 70);
+    info.resize(100, 20);
+    info.attr({
+        body: {
+            visibility: 'hidden',
+            cursor: 'default',
+            fill: 'white',
+            stoke: 'black'
+        },
+        label: {
+            visibility: 'hidden',
+            text: 'Link clicked',
+            cursor: 'default',
+            fill: 'black',
+            fontSize: 12
+        }
+    });
+    info.addTo(graph);
+
     paper.on('blank:pointerdblclick', function() {
         resetAll(this);
+
+        info.attr('body/visibility', 'hidden');
+        info.attr('label/visibility', 'hidden');
 
         this.drawBackground({
             color: 'orange'
@@ -106,11 +131,12 @@
     });
 
     paper.on('cell:pointerdblclick', function(cellView) {
-        var currentCell = cellView.model;
-        var cellLabel;
-        if (currentCell.isElement()) cellLabel = currentCell.attr('label/text');
-        else if (currentCell.isLink()) cellLabel = currentCell.label(0).attrs.label.text;
-        alert('Cell clicked: ' + currentCell.prop('type') + ' ("' + cellLabel + '")');
+        var isElement = cellView.model.isElement();
+        var message = (isElement ? 'Element' : 'Link') + ' clicked';
+        info.attr('label/text', message);
+
+        info.attr('body/visibility', 'visible');
+        info.attr('label/visibility', 'visible');
     });
 
     function resetAll(paper) {

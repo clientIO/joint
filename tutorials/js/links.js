@@ -16,7 +16,7 @@
 
     var rect = new joint.shapes.standard.Rectangle();
     rect.position(100, 30);
-    rect.resize(100, 30);
+    rect.resize(100, 40);
     rect.attr({
         body: {
             fill: 'blue'
@@ -32,7 +32,7 @@
 
     var rect2 = new joint.shapes.standard.Rectangle();
     rect2.position(400, 30);
-    rect2.resize(100, 30);
+    rect2.resize(100, 40);
     rect2.attr({
         body: {
             fill: '#2C3E50',
@@ -84,7 +84,7 @@
 
     var rect3 = new joint.shapes.standard.Rectangle();
     rect3.position(100, 130);
-    rect3.resize(100, 30);
+    rect3.resize(100, 40);
     rect3.attr({
         body: {
             fill: '#E74C3C',
@@ -105,7 +105,7 @@
 
     var rect4 = new joint.shapes.standard.Rectangle();
     rect4.position(400, 130);
-    rect4.resize(100, 30);
+    rect4.resize(100, 40);
     rect4.attr({
         body: {
             fill: '#8E44AD',
@@ -124,7 +124,87 @@
     var link2 = new joint.shapes.standard.Link();
     link2.source({ id: rect3.id });
     link2.target({ id: rect4.id });
+    link2.vertices([
+        new g.Point(250, 100),
+        new g.Point(300, 150),
+        new g.Point(350, 200)
+    ]);
+    link2.router('orthogonal');
+    link2.connector('rounded');
     link2.attr({
+        line: {
+            stroke: 'gray',
+            strokeWidth: 4,
+            strokeDasharray: '4 2',
+            sourceMarker: {
+                'type': 'image',
+                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+                'width': 24,
+                'height': 24,
+                'y': -12
+            },
+            targetMarker: {
+                'type': 'image',
+                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
+                'width': 24,
+                'height': 24,
+                'y': -12
+            }
+        }
+    });
+    link2.addTo(graph);
+
+    var link3 = new joint.shapes.standard.Link();
+    link3.source({ id: rect3.id });
+    link3.target({ id: rect4.id });
+    link3.connector('jumpover', { size: 10 });
+    link3.addTo(graph);
+
+    var rect5 = new joint.shapes.standard.Rectangle();
+    rect5.position(100, 230);
+    rect5.resize(100, 40);
+    rect5.attr({
+        body: {
+            fill: '#2ECC71',
+            strokeDasharray: '10,2'
+        },
+        label: {
+            text: 'Hello',
+            style: {
+                fill: 'black',
+                fontSize: 13
+            }
+        }
+    });
+    rect5.addTo(graph);
+
+    var rect6 = new joint.shapes.standard.Rectangle();
+    rect6.position(400, 230);
+    rect6.resize(100, 40);
+    rect6.attr({
+        body: {
+            fill: '#F39C12',
+            rx: 20,
+            ry: 20,
+            strokeDasharray: '1,1'
+        },
+        label: {
+            text: 'World!',
+            style: {
+                fill: 'gray',
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontVariant: 'small-caps',
+                textShadow: '1px 1px 1px black'
+            }
+        }
+    });
+    rect6.addTo(graph);
+
+    var link4 = new joint.shapes.standard.Link();
+    link4.source({ id: rect5.id });
+    link4.target({ id: rect6.id });
+    link4.attr({
         line: {
             stroke: '#3498DB',
             strokeWidth: 3,
@@ -147,85 +227,5 @@
             }
         }
     });
-    link2.addTo(graph);
-
-    var rect5 = new joint.shapes.standard.Rectangle();
-    rect5.position(100, 230);
-    rect5.resize(100, 30);
-    rect5.attr({
-        body: {
-            fill: '#2ECC71',
-            strokeDasharray: '10,2'
-        },
-        label: {
-            text: 'Hello',
-            style: {
-                fill: 'black',
-                fontSize: 13
-            }
-        }
-    });
-    rect5.addTo(graph);
-
-    var rect6 = new joint.shapes.standard.Rectangle();
-    rect6.position(400, 230);
-    rect6.resize(100, 30);
-    rect6.attr({
-        body: {
-            fill: '#F39C12',
-            rx: 20,
-            ry: 20,
-            strokeDasharray: '1,1'
-        },
-        label: {
-            text: 'World!',
-            style: {
-                fill: 'gray',
-                fontSize: 18,
-                fontWeight: 'bold',
-                fontVariant: 'small-caps',
-                textShadow: '1px 1px 1px black'
-            }
-        }
-    });
-    rect6.addTo(graph);
-
-    var link3 = new joint.shapes.standard.Link();
-    link3.source({ id: rect5.id });
-    link3.target({ id: rect6.id });
-    link3.vertices([
-        new g.Point(250, 200),
-        new g.Point(300, 230),
-        new g.Point(350, 290),
-    ]);
-    link3.router('orthogonal');
-    link3.connector('rounded');
-    link3.attr({
-        line: {
-            stroke: 'gray',
-            strokeWidth: 4,
-            strokeDasharray: '4 2',
-            sourceMarker: {
-                'type': 'image',
-                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-                'width': 24,
-                'height': 24,
-                'y': -12
-            },
-            targetMarker: {
-                'type': 'image',
-                'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',
-                'width': 24,
-                'height': 24,
-                'y': -12
-            }
-        }
-    });
-    link3.addTo(graph);
-
-    var link4 = new joint.shapes.standard.Link();
-    link4.source({ id: rect5.id });
-    link4.target({ id: rect6.id });
-    link4.connector('jumpover', { size: 10 });
     link4.addTo(graph);
 }());

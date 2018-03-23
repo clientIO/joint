@@ -11,8 +11,8 @@
     });
 
     var rect = new joint.shapes.standard.Rectangle();
-    rect.position(250, 35);
-    rect.resize(100, 30);
+    rect.position(250, 30);
+    rect.resize(100, 40);
     rect.attr({
         body: {
             event: 'element:color-change',

@@ -44,30 +44,33 @@
             <p>JointJS offers several different ways to enable user interaction.
                 Events are triggered on your paper and on individual element/link views.</p>
 
-            <h3 id="builtin-events">Builtin Paper Events</h3>
+            <h3 id="paper-events">Builtin Paper Events</h3>
 
-            <p>Paper automatically triggers several builtin events upon user interaction; you can find the full list in
-                <a href="/docs/jointjs#dia.Paper.events">Paper documentation</a>.
-                You can simply listen for them on the paper; this is the easiest way to detect interaction of a certain
-                kind on all instances of a type of diagram components.
-                For example, the event <code>'link:pointerdblclick'</code> is triggered when a double click is detected
+            <p>Paper automatically triggers several builtin events upon user interaction.
+                These include pointerdown, double click and right click events, as well as link connection or cell
+                highlighting events.
+                You can find the full list in <a href="/docs/jointjs#dia.Paper.events" target="_blank">Paper
+                documentation</a>.
+                Reacting on any of these events is as simple as adding a listener on your paper; this is the easiest way
+                to detect one type of interaction on all instances of a component.</p>
+
+            <p>For example, the event <code>'link:pointerdblclick'</code> is triggered when a double click is detected
                 on any link in the diagram.
                 A corresponding event for elements (<code>'element:pointerdblclick'</code>), cells in general
                 (<code>'cell:pointerdblclick'</code>), and for blank areas on the paper
-                (<code>'blank:pointerdblclick'</code>) is provided as well.</p>
+                (<code>'blank:pointerdblclick'</code>) is provided as well,
+                Here, the cell event listener unhides an element with a message whenever an Element or Link is clicked.
+                The more specific element and link event listeners change the color of their model's stroke.
+                Finally, the blank event listener hides the message element and changes the color of the Paper
+                background:</p>
 
-            <p>Let us illustrate all paper <code>'pointerdblclick'</code> events in one example.
-                The generic <code>'cell'</code> event listener triggers an alert whenever an Element or Link is
-                clicked.
-                The more specific <code>'element'</code> and <code>'link'</code> event listeners change the color of
-                their model's stroke.
-                The <code>'blank'</code> event listener changes the color of the Paper background (no alert is displayed
-                in this case because no Cell was clicked).</p>
-
-            <div class="paper" id="paper-interaction-builtin-events"></div>
+            <div class="paper" id="paper-interaction-paper-events"></div>
 
             <pre><code>paper.on('blank:pointerdblclick', function() {
     resetAll(this);
+
+    info.attr('body/visibility', 'hidden');
+    info.attr('label/visibility', 'hidden');
 
     this.drawBackground({
         color: 'orange'
@@ -96,16 +99,10 @@ paper.on('link:pointerdblclick', function(linkView) {
 });
 
 paper.on('cell:pointerdblclick', function(cellView) {
-    var currentCell = cellView.model;
-
-    var cellLabel;
-    if (currentCell.isElement()) cellLabel = currentCell.attr('label/text');
-    else if (currentCell.isLink()) cellLabel = currentCell.label(0).attrs.label.text;
-
-    alert('Cell clicked: ' + currentCell.prop('type') + ' ("' + cellLabel + '")');
+    info.attr('body/visibility', 'visible');
+    info.attr('label/visibility', 'visible');
 });
 
-// restore original colors before changing them
 function resetAll(paper) {
     paper.drawBackground({
         color: 'white'
@@ -140,18 +137,57 @@ function resetAll(paper) {
                 We have not used these three parameters in the above example, but you will encounter them frequently in
                 JointJS event listeners.</p>
 
-            <h3 id="custom-event-names">Custom Event Names</h3>
+            <h3 id="model-events">Builtin Model Events</h3>
+
+            <p>The Element and Link models come with several builtin events as well.
+                These events react to changes in the models' properties, including position, size and attributes, and to
+                status of model transitions.
+                JointJS documentation contains a full list of
+                <a href="/docs/jointjs#dia.Element.events" target="_blank">Element events</a> and
+                <a href="/docs/jointjs#dia.Link.events" target="_blank">Link events</a> you can react on.
+                To react on these events, add a listener on your models.</p>
+
+            <p>In the example, the event <code>'change:position'</code> is triggered on element when it is moved, and
+                the new position of its center is written into its label.
+                The event <code>'change:target'</code> is triggered on link when its target is moved, and the new
+                position of its target endpoint is written into a label on the link.
+                Note that we have to call the <code>update()</code> on the link's view to make sure user changes are
+                reflected.</p>
+
+            <div class="paper" id="paper-interaction-model-events"></div>
+
+            <pre><code>element.on('change:position', function() {
+    var center = this.getBBox().center();
+    var label = center.toString();
+    this.attr('label/text', label);
+});
+
+link.on('change:target', function() {
+    var target = new g.Point(this.target());
+    var label = target.toString();
+    this.label(0, {
+        attrs: {
+            label: {
+                text: label
+            }
+        }
+    });
+
+    this.findView(paper).update();
+});</code></pre>
+
+            <h3 id="custom-pointerdown-events">Custom Pointerdown Events</h3>
 
             <p>The easiest way to add a custom event to an individual component on your diagram is to use the
                 <code>event</code> <a href="special-attributes.js" target="_blank">special attribute</a>.</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.event" target="_blank"><code>event</code></a> - adds an event
-                    of the specified name to the subelement; to be triggered on pointerdown/touchstart DOM event.</li>
+                    of the specified name to the subelement's model; to be triggered when JointJS detects a pointerdown
+                    event (mousedown/touchstart DOM event) on the subelement.</li>
             </ul>
 
-            <p>Then, you can simply attach a listener to your graph that gets called when your event is detected by the
-                paper.
+            <p>Then, you can simply attach a listener on your paper that gets called when the event is detected.
                 In the following example, we define a custom event <code>'element:color-change'</code> and listen for
                 it:</p>
 
@@ -182,6 +218,94 @@ paper.on('element:color-change', function(elementView, evt) {
     else model.attr('body/fill', 'green');
 });</code></pre>
 
+            <h3 id="custom-view-events">Custom View Events</h3>
+
+            <p>For more advanced event customization, we need to delve into custom views.
+                That is an advanced topic with many powerful options; <a href="cutom-views.html">we dedicate an entire
+                tutorial page to it</a>.
+                Here we will concentrate on extending our View objects with custom events.</p>
+
+            <p>The Paper object has two options that determine the views used to render diagram components:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Paper.prototype.options.elementView" target="_blank"><code>elementView</code></a>
+                    - sets the ElementView to use to render Element models on this paper.
+                    Defaults to
+                    <a href="/docs/jointjs#dia.ElementView" target="_blank"><code>joint.dia.ElementView</code></a>.</li>
+                <li><a href="/docs/jointjs#dia.Paper.prototype.options.linkView" target="_blank"><code>linkView</code></a>
+                    - sets the LinkView to use to render Link models. Defaults to
+                    <a href="/docs/jointjs#dia.LinkView" target="_blank"><code>joint.dia.LinkView</code></a>.</li>
+            </ul>
+
+            <p>We will use these two options to provide extended versions of the default ElementView and LinkView.
+                The example removes double-clicked components:</p>
+
+            <div class="paper" id="paper-custom-view-events"></div>
+
+            <pre><code>var paper = new joint.dia.Paper({
+    el: document.getElementById('paper-custom-view-events'),
+    model: graph,
+    width: 600,
+    height: 100,
+    gridSize: 1,
+    elementView: joint.dia.ElementView.extend({
+        pointerdblclick: function(evt, x, y) {
+            this.model.remove();
+        },
+
+    }),
+    linkView: joint.dia.LinkView.extend({
+        pointerdblclick: function(evt, x, y) {
+            this.model.remove();
+        },
+    })
+});</code></pre>
+
+            <p>You can maintain recognition of the event by the <a href="#paper-events">builtin paper mechanism</a>
+                if you notify the CellView and Paper about the event.
+                For example, in our custom ElementView pointerdblclick handler, we would include this:</p>
+
+            <pre><code>joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+this.notify('element:pointerdblclick', evt, x, y);</code></pre>
+
+            <p>This can be useful if you need to maintain default event handling behavior.
+                The following example integrates showing a message element on Cell click from the
+                <a href="#paper-events">paper events demo</a> with removing the components from the previous
+                example:</p>
+
+            <div class="paper" id="paper-custom-view-events-propagation"></div>
+
+            <pre><code>var paper = new joint.dia.Paper({
+    el: document.getElementById('paper-custom-view-events'),
+    model: graph,
+    width: 600,
+    height: 100,
+    gridSize: 1,
+    elementView: joint.dia.ElementView.extend({
+        pointerdblclick: function(evt, x, y) {
+            joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+            this.notify('element:pointerdblclick', evt, x, y);
+            this.model.remove();
+        }
+    }),
+    linkView: joint.dia.LinkView.extend({
+        pointerdblclick: function(evt, x, y) {
+            joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+            this.notify('link:pointerdblclick', evt, x, y);
+            this.model.remove();
+        }
+    })
+});
+
+paper.on('cell:pointerdblclick', function(cellView) {
+    var isElement = cellView.model.isElement();
+    var message = (isElement ? 'Element' : 'Link') + ' removed';
+    info.attr('label/text', message);
+
+    info.attr('body/visibility', 'visible');
+    info.attr('label/visibility', 'visible');
+});</code></pre>
+
             <p><a href="serialization.html">In the next section of the intermediate tutorial, we will learn about data
                 serialization.</a></p>
 
@@ -189,7 +313,10 @@ paper.on('element:color-change', function(elementView, evt) {
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
-        <script src="js/interaction-builtin-events.js"></script>
+        <script src="js/interaction-paper-events.js"></script>
+        <script src="js/interaction-model-events.js"></script>
         <script src="js/interaction-event-attribute.js"></script>
+        <script src="js/interaction-custom-view-events.js"></script>
+        <script src="js/interaction-custom-view-events-propagation.js"></script>
     </body>
 </html>

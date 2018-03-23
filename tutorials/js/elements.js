@@ -16,7 +16,7 @@
 
     var rect = new joint.shapes.standard.Rectangle();
     rect.position(100, 30);
-    rect.resize(100, 30);
+    rect.resize(100, 40);
     rect.attr({
         body: {
             fill: 'blue'
@@ -32,7 +32,7 @@
 
     var rect2 = new joint.shapes.standard.Rectangle();
     rect2.position(400, 30);
-    rect2.resize(100, 30);
+    rect2.resize(100, 40);
     rect2.attr({
         body: {
             fill: '#2C3E50',
@@ -59,7 +59,7 @@
 
     var rect3 = new joint.shapes.standard.Rectangle();
     rect3.position(100, 130);
-    rect3.resize(100, 30);
+    rect3.resize(100, 40);
     rect3.attr({
         body: {
             fill: '#E74C3C',
@@ -80,7 +80,7 @@
 
     var rect4 = new joint.shapes.standard.Rectangle();
     rect4.position(400, 130);
-    rect4.resize(100, 30);
+    rect4.resize(100, 40);
     rect4.attr({
         body: {
             fill: '#8E44AD',
@@ -103,7 +103,7 @@
 
     var rect5 = new joint.shapes.standard.Rectangle();
     rect5.position(100, 230);
-    rect5.resize(100, 30);
+    rect5.resize(100, 40);
     rect5.attr({
         body: {
             fill: '#2ECC71',
@@ -121,7 +121,7 @@
 
     var rect6 = new joint.shapes.standard.Rectangle();
     rect6.position(400, 230);
-    rect6.resize(100, 30);
+    rect6.resize(100, 40);
     rect6.attr({
         body: {
             fill: '#F39C12',
