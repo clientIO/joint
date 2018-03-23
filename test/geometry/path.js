@@ -702,12 +702,12 @@ QUnit.module('path', function(hooks) {
             var error;
 
             // closepath -> lowercase
-            try {
-                segment = g.Path.createSegment('z');
-            } catch (e) {
-                error = e;
-            }
-            assert.ok(typeof error !== 'undefined', 'Should throw an error when called with lowercase `z` as type.');
+            segment = g.Path.createSegment('z');
+            assert.ok(segment instanceof g.Path.segmentTypes.z);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            // lowecase `z` still translates into capital `Z`
+            assert.equal(clonedPath.toString(), 'Z');
 
             // closepath -> no arguments (correct)
             segment = g.Path.createSegment('Z');
