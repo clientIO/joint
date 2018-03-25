@@ -1399,39 +1399,38 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var selector = this.constructor.makeSelector(end);
             var oppositeEndType = endType == 'source' ? 'target' : 'source';
             var oppositeEnd = model.get(oppositeEndType) || {};
-            var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
+            var endId = end.id;
+            var oppositeEndId = oppositeEnd.id;
+            var oppositeSelector = oppositeEndId && this.constructor.makeSelector(oppositeEnd);
 
             // Caching end models bounding boxes.
             // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
             // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
             // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
-            if (opt.handleBy === this.cid && selector == oppositeSelector) {
+            if (opt.handleBy === this.cid && (endId === oppositeEndId) && selector == oppositeSelector) {
 
                 // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
-                this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
                 this[endType + 'View'] = this[oppositeEndType + 'View'];
                 this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
                 // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
-                // If `opt.translateBy` is an ID of the element that was originally translated. This allows us
-                // to just offset the cached bounding box by the translation instead of calculating the bounding
-                // box from scratch on every translate.
+                // If `opt.translateBy` is an ID of the element that was originally translated.
 
-                var bbox = this[endType + 'BBox'];
-                bbox.x += opt.tx;
-                bbox.y += opt.ty;
+                // Noop
 
             } else {
                 // The slowest path, source/target could have been rotated or resized or any attribute
                 // that affects the bounding box of the view might have been changed.
 
-                var view = this.paper.findViewByModel(end.id);
-                var magnetElement = view.el.querySelector(selector);
+                var view = this.paper.findViewByModel(endId);
+                var magnetElement = null;
+                if (selector) {
+                    magnetElement = view.el.querySelector(selector);
+                }
 
-                this[endType + 'BBox'] = view.getStrokeBBox(magnetElement);
                 this[endType + 'View'] = view;
                 this[endType + 'Magnet'] = magnetElement;
             }
@@ -1447,12 +1446,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 doUpdate = false;
             }
 
-            if (!this.updatePostponed && oppositeEnd.id) {
+            if (!this.updatePostponed && oppositeEndId) {
                 // The update was not postponed (that can happen e.g. on the first change event) and the opposite
                 // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
                 // we're reacting on change:source event, the oppositeEnd is the target model).
 
-                var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
+                var oppositeEndModel = this.paper.getModelById(oppositeEndId);
 
                 // Passing `handleBy` flag via event option.
                 // Note that if we are listening to the same model for event 'change' twice.
@@ -1481,7 +1480,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         } else {
 
             // the link end is a point ~ rect 1x1
-            this[endType + 'BBox'] = g.rect(end.x || 0, end.y || 0, 1, 1);
             this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
@@ -1671,7 +1669,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         );
 
         if (!route) return vertices.map(g.Point, g);
-        return route || [];
+        return route;
     },
 
     // Return the `d` attribute value of the `<path>` element representing the link
@@ -2625,16 +2623,50 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     makeSelector: function(end) {
 
-        var selector = '[model-id="' + end.id + '"]';
+        var selector = '';
         // `port` has a higher precendence over `selector`. This is because the selector to the magnet
         // might change while the name of the port can stay the same.
         if (end.port) {
-            selector += ' [port="' + end.port + '"]';
+            selector += '[port="' + end.port + '"]';
         } else if (end.selector) {
-            selector += ' ' + end.selector;
+            selector +=  end.selector;
         }
 
         return selector;
     }
 
+});
+
+
+Object.defineProperty(joint.dia.LinkView.prototype, 'sourceBBox', {
+
+    enumerable: true,
+
+    get: function() {
+        var sourceView = this.sourceView;
+        var sourceMagnet = this.sourceMagnet;
+        if (sourceView) {
+            if (!sourceMagnet) sourceMagnet = sourceView.el;
+            return sourceView.getNodeBBox(sourceMagnet);
+        }
+        var sourceDef = this.model.source();
+        return new g.Rect(sourceDef.x, sourceDef.y, 1, 1);
+    }
+
+});
+
+Object.defineProperty(joint.dia.LinkView.prototype, 'targetBBox', {
+
+    enumerable: true,
+
+    get: function() {
+        var targetView = this.targetView;
+        var targetMagnet = this.targetMagnet;
+        if (targetView) {
+            if (!targetMagnet) targetMagnet = targetView.el;
+            return targetView.getNodeBBox(targetMagnet);
+        }
+        var targetDef = this.model.target();
+        return new g.Rect(targetDef.x, targetDef.y, 1, 1);
+    }
 });
