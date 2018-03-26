@@ -642,7 +642,7 @@
             if (Array.isArray(portMarkup)) {
                 var portDoc = util.parseDOMJSON(portMarkup);
                 var portFragment = portDoc.fragment;
-                if (portFragment.children.length > 1) {
+                if (portFragment.childNodes.length > 1) {
                     portElement = V('g').append(portFragment);
                 } else {
                     portElement = V(portFragment.firstChild);
@@ -669,7 +669,7 @@
             if (Array.isArray(labelMarkup)) {
                 var labelDoc = util.parseDOMJSON(labelMarkup);
                 var labelFragment = labelDoc.fragment;
-                if (labelFragment.children.length > 1) {
+                if (labelFragment.childNodes.length > 1) {
                     labelElement = V('g').append(labelFragment);
                 } else {
                     labelElement = V(labelFragment.firstChild);

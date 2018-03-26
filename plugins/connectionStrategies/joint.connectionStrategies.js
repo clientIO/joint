@@ -35,4 +35,4 @@
         pinRelative: pin(true)
     }
 
-})(joint, joint.util)
+})(joint, joint.util);
