@@ -1434,9 +1434,7 @@ var g = (function() {
             if (t <= 0) return start.clone();
             if (t >= 1) return end.clone();
 
-            var x = (1 - t) * start.x + t * end.x;
-            var y = (1 - t) * start.y + t * end.y;
-            return new Point(x, y);
+            return start.lerp(end, t);
         },
 
         pointAtLength: function(length) {
@@ -2930,9 +2928,10 @@ var g = (function() {
 
         // Linear interpolation
         lerp: function(p, t) {
+
             var x = this.x;
             var y = this.y;
-            return new Point(x + (p.x - x) * t, y + (p.y - y) * t);
+            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
         }
     };
 

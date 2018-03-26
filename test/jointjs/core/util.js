@@ -873,6 +873,8 @@ QUnit.module('util', function(hooks) {
                 ]);
                 assert.ok(res.selectors.test1 instanceof SVGRectElement);
                 assert.ok(res.selectors.test2 instanceof SVGCircleElement);
+                assert.equal(res.selectors.test1.getAttribute('joint-selector'), 'test1');
+                assert.equal(res.selectors.test2.getAttribute('joint-selector'), 'test2');
             });
 
             QUnit.test('html', function(assert) {
@@ -882,6 +884,8 @@ QUnit.module('util', function(hooks) {
                 ], V.namespace.xhtml);
                 assert.ok(res.selectors.test1 instanceof HTMLDivElement);
                 assert.ok(res.selectors.test2 instanceof HTMLImageElement);
+                assert.equal(res.selectors.test1.getAttribute('joint-selector'), 'test1');
+                assert.equal(res.selectors.test2.getAttribute('joint-selector'), 'test2');
             });
 
             QUnit.test('uniqueness', function(assert) {
