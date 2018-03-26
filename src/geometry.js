@@ -3923,24 +3923,16 @@ var g = (function() {
 
         intersectionWithLine: function(l) {
             var line = new Line(l);
-            var p = line.start;
-            var distance = Infinity;
-            var intersection = null;
+            var intersections = [];
             var points = this.points;
             for (var i = 0, n = points.length - 1; i < n; i++) {
                 var a = points[i];
                 var b = points[i+1];
                 var l2 = new Line(a, b);
-                var int = line.intersect(l2);
-                if (int) {
-                    var dist = int.squaredDistance(p);
-                    if (dist < distance) {
-                        distance = dist;
-                        intersection = int;
-                    }
-                }
+                var int = line.intersectionWithLine(l2);
+                if (int) intersections.push(int);
             }
-            return intersection;
+            return (intersections.length > 0) ? intersections : null;
         },
 
         translate: function(tx, ty) {
