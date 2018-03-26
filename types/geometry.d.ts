@@ -255,7 +255,7 @@ export namespace g {
         intersect(rect: Rect): Point[] | null;
         intersect(ellipse: Ellipse): Point[] | null;
         intersect(polyline: Polyline): Point[] | null;
-        intersect(path: Path): Point[] | null;
+        intersect(path: Path, opt?: SegmentSubdivisionsOpt): Point[] | null;
 
         intersectionWithLine(l: Line): Point | null;
 
@@ -393,7 +393,7 @@ export namespace g {
 
         static segmentTypes: SegmentTypes;
 
-        static isDataSupported(data: string): boolean;
+        static isDataSupported(pathData: string): boolean;
     }
 
     class Point implements PlainPoint {
