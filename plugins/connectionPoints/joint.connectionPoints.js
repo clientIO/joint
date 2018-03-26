@@ -6,33 +6,43 @@
         return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint) })[0];
     }
 
-    // Connection Points
+    function offset(p1, p2, offset) {
 
-    function anchor(line) {
-        return line.end;
+        if (!isFinite(offset)) p1;
+        return p1.move(p2, -offset);
     }
 
-    function bboxIntersection(line, view, magnet) {
+    // Connection Points
+
+    function anchor(line, view, magnet, opt) {
+        return offset(line.end, line.start, opt.offset);
+    }
+
+    function bboxIntersection(line, view, magnet, opt) {
 
         var bbox = view.getNodeBBox(magnet);
         var intersections = line.intersect(bbox);
-        if (!intersections) return line.end;
-        return closestIntersection(intersections, line.start);
+        var cp = (intersections)
+            ? closestIntersection(intersections, line.start)
+            : line.end;
+        return offset(cp, line.start, opt.offset);
     }
 
-    function rectangleIntersection(line, view, magnet) {
+    function rectangleIntersection(line, view, magnet, opt) {
 
         var angle = view.model.angle();
         if (angle === 0) {
-            return bboxIntersection(line, view, magnet);
+            return bboxIntersection(line, view, magnet, opt);
         }
 
         var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
         var center = bboxWORotation.center();
         var lineWORotation = line.clone().rotate(center, angle);
         var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
-        if (!intersections) return line.end;
-        return closestIntersection(intersections, lineWORotation.start).rotate(center, -angle);
+        var cp = (intersections)
+            ? closestIntersection(intersections, lineWORotation.start).rotate(center, -angle)
+            : line.end;
+        return offset(cp, line.start, opt.offset);
     }
 
     var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
@@ -101,8 +111,8 @@
             }
         }
 
-        if (!intersection) return anchor;
-        return V.transformPoint(intersection, targetMatrix);
+        var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
+        return offset(cp, line.start, opt.offset);
     }
 
     joint.connectionPoints = {

@@ -818,6 +818,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
+    // ** Deprecated **
     getStrokeBBox: function(el) {
         // Return a bounding box rectangle that takes into account stroke.
         // Note that this is a naive and ad-hoc implementation that does not

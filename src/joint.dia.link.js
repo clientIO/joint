@@ -1123,9 +1123,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 sourceAnchorRef = new g.Point(targetDef);
             }
             var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultAnchor;
-            if (typeof sourceAnchorDef === 'function') {
-                sourceAnchorDef = sourceAnchorDef.call(this, sourceView, sourceMagnet, 'source', this);
-            }
             sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
         } else {
             sourceAnchor = new g.Point(sourceDef);
@@ -1137,9 +1134,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             targetMagnet = (this.targetMagnet || targetView.el);
             var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
             var targetAnchorDef = targetDef.anchor || paperOptions.defaultAnchor;
-            if (typeof targetAnchorDef === 'function') {
-                targetAnchorDef = targetAnchorDef.call(this, targetView, targetMagnet, 'source', this);
-            }
             targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
         } else {
             targetAnchor = new g.Point(targetDef);
@@ -1169,9 +1163,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (sourceView) {
             sourceMagnet = (this.sourceMagnet || sourceView.el);
             var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            if (typeof sourceConnectionPointDef === 'function') {
-                sourcerConnectionPointDef = sourceConnectionPointDef.call(this, sourceView, sourceMagnet, 'source', this);
-            }
             var sourcePointRef = firstWaypoint || targetAnchor;
             var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
             sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
@@ -1183,9 +1174,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetView) {
             targetMagnet = (this.targetMagnet || targetView.el);
             var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            if (typeof targetConnectionPointDef === 'function') {
-                targetConnectionPointDef = targetConnectionPointDef.call(this, targetView, targetMagnet, 'target', this);
-            }
             var targetPointRef = lastWaypoint || sourceAnchor;
             var targetLine = new g.Line(targetPointRef, targetAnchor);
             targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
@@ -1210,9 +1198,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         if (!anchorDef) return bbox.center();
-        var anchorName = anchorDef.name;
-        var anchorFn = joint.anchors[anchorName];
-        if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
+        var anchorFn;
+        if (typeof anchorDef === 'function') {
+            anchorFn = anchorDef;
+        } else {
+            var anchorName = anchorDef.name;
+            anchorFn = joint.anchors[anchorName];
+            if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
+        }
         var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {});
         return anchor || bbox.center();
     },
@@ -1230,11 +1223,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         if (!connectionPointDef) return anchor;
-        var connectionPointName = connectionPointDef.name;
-        var connectionPointFn = joint.connectionPoints[connectionPointName];
-        if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
+        var connectionPointFn;
+        if (typeof connectionPointDef === 'function') {
+            connectionPointFn = connectionPointDef;
+        } else {
+            var connectionPointName = connectionPointDef.name;
+            connectionPointFn = joint.connectionPoints[connectionPointName];
+            if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
+        }
         connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {});
-
         return connectionPoint || anchor;
     },
 

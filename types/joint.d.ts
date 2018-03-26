@@ -819,8 +819,8 @@ export namespace dia {
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
-            defaultAnchor?: anchors.AnchorJSON  | ((connectedView: CellView, magnet: SVGElement, end: string, linkView: LinkView) => anchors.AnchorJSON);
-            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | ((connectedView: CellView, magnet: SVGElement, end: string, linkView: LinkView) => connectionPoints.ConnectionPointJSON);
+            defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
         }
 
         interface ScaleContentOptions {
@@ -2262,13 +2262,21 @@ export namespace connectors {
 
 export namespace anchors {
 
-    interface BBoxAnchorArguments {
+    interface RotateAnchorArguments {
+        rotate?: boolean;
+    }
+
+    interface BBoxAnchorArguments extends RotateAnchorArguments {
         dx?: number | string;
         dy?: number | string;
     }
 
     interface PaddingAnchorArguments {
-        radius?: number
+        padding?: number;
+    }
+
+    interface MidSideAnchorArguments extends RotateAnchorArguments, PaddingAnchorArguments {
+
     }
 
     interface AnchorArgumentsMap {
@@ -2282,15 +2290,17 @@ export namespace anchors {
         'bottomLeft': BBoxAnchorArguments,
         'bottomRight': BBoxAnchorArguments,
         'perpendicular': PaddingAnchorArguments;
-        'midSide': PaddingAnchorArguments;
+        'midSide': MidSideAnchorArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type AnchorType = string & keyof AnchorArgumentsMap;
+    type AnchorType = keyof AnchorArgumentsMap;
 
     interface GenericAnchor<K extends AnchorType> {
         (
-            bbox: g.Rect,
-            refBBox: g.Rect,
+            view: dia.CellView,
+            magnet: SVGElement,
+            ref: g.Point | SVGElement,
             opt: AnchorArgumentsMap[K]
         ): g.Point;
     }
@@ -2322,33 +2332,32 @@ export namespace anchors {
 export namespace connectionPoints {
 
     interface ConnectionPointArguments {
-
+        offset?: number;
     }
 
-    interface BBoxConnectionPointArguments {
-        dx?: number | string;
-        dy?: number | string;
-    }
-
-    interface GeometricPrecisionConnectionPointArguments {
+    interface BoundaryConnectionPointArguments extends ConnectionPoint {
         selector?: Array<string | number> | string;
+        precision?: number;
+        extrapolate?: boolean;
+        sticky?: boolean;
+        insideout?: boolean;
     }
 
     interface ConnectionPointArgumentsMap {
         'anchor': ConnectionPointArguments,
-        'nearest': ConnectionPointArguments,
-        'boundary': ConnectionPointArguments,
-        'geometricPrecision': GeometricPrecisionConnectionPointArguments,
+        'bbox': ConnectionPointArguments,
+        'rectangle': ConnectionPointArguments,
+        'boundary': BoundaryConnectionPointArguments,
+        [key: string]: { [key: string]: any };
     }
 
-    type ConnectionPointType = string & keyof ConnectionPointArgumentsMap;
+    type ConnectionPointType = keyof ConnectionPointArgumentsMap;
 
     interface GenericConnectionPoint<K extends ConnectionPointType> {
         (
-            anchor: g.Point,
-            ref: g.Point,
-            bbox: g.Rect,
-            magnet: Element,
+            line: g.Line,
+            view: dia.CellView,
+            magnet: SVGElement,
             opt: ConnectionPointArgumentsMap[K]
         ): g.Point;
     }
@@ -2363,9 +2372,9 @@ export namespace connectionPoints {
     type ConnectionPointJSON = GenericConnectionPointJSON<ConnectionPointType>;
 
     export var anchor: GenericConnectionPoint<'anchor'>;
-    export var nearest: GenericConnectionPoint<'nearest'>;
+    export var bbox: GenericConnectionPoint<'bbox'>;
+    export var rectangle: GenericConnectionPoint<'rectangle'>;
     export var boundary: GenericConnectionPoint<'boundary'>;
-    export var geometricPrecision: GenericConnectionPoint<'geometricPrecision'>;
 }
 
 // highlighters
