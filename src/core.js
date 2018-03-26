@@ -563,6 +563,40 @@ var joint = {
             return lines.join('\n');
         },
 
+        // Sanitize HTML
+        // Based on https://gist.github.com/ufologist/5a0da51b2b9ef1b861c30254172ac3c9
+        // Parses a string into an array of DOM nodes.
+        // Then outputs it back as a string.
+        sanitizeHTML: function(html) {
+
+            // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
+
+            // If documentContext (second parameter) is not specified or given as `null` or `undefined`, a new document is used.
+            // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
+
+            // If keepScripts (last parameter) is `false`, scripts are not executed.
+            var output = $($.parseHTML('<div>' + html + '</div>', null, false));
+
+            output.find('*').each(function() { // for all nodes
+                var currentNode = this;
+
+                $.each(currentNode.attributes, function() { // for all attributes in each node
+                    var currentAttribute = this;
+
+                    var attrName = currentAttribute.name;
+                    var attrValue = currentAttribute.value;
+
+                    // Remove attribute names that start with "on" (e.g. onload, onerror...).
+                    // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
+                    if (attrName.indexOf('on') === 0 || attrValue.indexOf('javascript:') === 0) {
+                        $(currentNode).removeAttr(attrName);
+                    }
+                });
+            });
+
+            return output.html();
+        },
+
         // Download `blob` as file with `fileName`.
         // Does not work in IE9.
         downloadBlob: function(blob, fileName) {

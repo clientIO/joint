@@ -373,7 +373,7 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
 
     updateSize: function(cell, size) {
 
-        // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
+        // Selector `foreignObject' doesn't work across all browsers, we're using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
             '.fobj': joint.util.assign({}, size),
@@ -390,7 +390,7 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
             // Content element is a <div> element.
             this.attr({
                 '.content': {
-                    html: content
+                    html: joint.util.sanitizeHTML(content)
                 }
             });
 

@@ -1,0 +1,20 @@
+<pre class="docs-method-signature"><code>util.sanitizeHTML(html)</code></pre>
+<p>Sanitize the provided HTML (string) to protect against XSS attacks. The algorithm has several steps:</p>
+
+<ul>
+    <li>Wrap the provided HTML inside a <code>&lt;div&gt;</code> tag. This will remove tags that are invalid in that context (e.g. <code>&lt;body&gt;</code> and <code>&lt;head&gt;</code>).</li>
+    <li>Parse the provided HTML in a new document context (using <code>jQuery.parseHTML()</code>). This prevents inline events from firing and also prevents image GET requests from being sent.</li>
+    <li>Discard all <code>&lt;script&gt;</code> tags.</li>
+    <li>Iterate through all DOM nodes and remove all <code>on...</code> attributes (e.g. <code>onload</code>, <code>onerror</code>).</li>
+    <li>Iterate through all attributes of the nodes and remove all that use the <code>javascript:</code> pseudo-protocol as value.</li>
+    <li>Return the sanitized HTML back as a string.</li>
+</ul>
+
+<p>The six simple steps protect against the most common XSS attacks; however, we cannot guarantee bulletproof security here. If you need stronger security, you should always keep an eye on a <a href="https://www.owasp.org/index.php/XSS_Filter_Evasion_Cheat_Sheet"> list XSS attacks</a> and replace the <code>joint.util.sanitizeHTML()</code> function with your own, more secure version.</p>
+
+<p>Examples:</p>
+
+<pre><code>joint.util.sanitizeHTML('&lt;html&gt;&lt;body&gt;&lt;p&gt;Hello&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;') === '&lt;p&gt;Hello&lt;/p&gt;'
+joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;script&gt;alert("Hacked");&lt;/script&gt;') === '&lt;p&gt;Hello&lt;/p&gt;'
+joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;img onload="alert(&amp;quot;Hacked&amp;quot;);"&gt;') === '&lt;p&gt;Hello&lt;/p&gt;&lt;img&gt;'
+joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;img src="javascript:alert(&amp;quot;Hacked&amp;quot;);"&gt;') === '&lt;p&gt;Hello&lt;/p&gt;&lt;img&gt;'</code></pre>
