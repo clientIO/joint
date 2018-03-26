@@ -1152,162 +1152,82 @@ V = Vectorizer = (function() {
     // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
     // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
     // an intersection is found. Returns `undefined` otherwise.
-    VPrototype.findIntersection = function(targetRef, target, opt) {
+    VPrototype.findIntersection = function(ref, target) {
 
-        opt || (opt = {});
-        target || (target = this.svg());
+        var svg = this.svg().node;
+        target = target || svg;
+        var bbox = this.getBBox({ target: target });
+        var center = bbox.center();
 
-        var targetMatrix = this.getTransformToElement(target);
-        var localMatrix = targetMatrix.inverse();
-        var localBBox = this.getBBox();
-        var localPoint;
-        var localLine;
+        if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
 
-        if (targetRef instanceof g.Line) {
-            localLine = V.transformLine(targetRef, localMatrix);
-            localPoint = localLine.start;
-            //if (!localBBox.containsPoint(localLine.end) /* && !localBBox.intersectionWithLine(localLine) */) localLine.end = localBBox.center();
-        } else {
-            localPoint = V.transformPoint(new g.Point(targetRef), localMatrix);
-            localLine = new g.Line(localPoint, localBBox.center());
-        }
-
-        if (localBBox.containsPoint(localPoint)) return undefined;
-
-        var localShape = this.toGeometryShape();
-        var intersection = localLine.intersect(localShape, { precision: opt.precision });
-        if (intersection) {
-            if (V.isArray(intersection)) intersection = intersection[0];
-            return V.transformPoint(intersection, targetMatrix);
-        }
-
-        return null;
-
-        // var spot;
-        // var tagName = this.tagName();
-        // var center = bbox.center();
+        var spot;
+        var tagName = this.tagName();
 
         // Little speed up optimalization for `<rect>` element. We do not do conversion
         // to path element and sampling but directly calculate the intersection through
         // a transformed geometrical rectangle.
-        // if (tagName === 'TEXT') {
-        //     var localAnchor = anchor ? V.transformPoint(anchor, matrix.inverse()) : bbox.center();
-        //     var intersections = new g.Line(localRef, localAnchor).intersect(bbox);
-        //     if (intersections) {
-        //         spot = intersections[0];
-        //     }
-        // } else if (tagName === 'RECT') {
+        if (tagName === 'RECT') {
 
-        //     var gRect = new g.Rect(
-        //         parseFloat(this.attr('x') || 0),
-        //         parseFloat(this.attr('y') || 0),
-        //         parseFloat(this.attr('width')),
-        //         parseFloat(this.attr('height'))
-        //     );
+            var gRect = new g.Rect(
+                parseFloat(this.attr('x') || 0),
+                parseFloat(this.attr('y') || 0),
+                parseFloat(this.attr('width')),
+                parseFloat(this.attr('height'))
+            );
+            // Get the rect transformation matrix with regards to the SVG document.
+            var rectMatrix = this.getTransformToElement(target);
+            // Decompose the matrix to find the rotation angle.
+            var rectMatrixComponents = V.decomposeMatrix(rectMatrix);
+            // Now we want to rotate the rectangle back so that we
+            // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
+            var resetRotation = svg.createSVGTransform();
+            resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
+            var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+            spot = (new g.Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
 
-        //     if (anchor) {
-        //         var localAnchor = V.transformPoint(anchor, matrix.inverse());
-        //         var intersections = new g.Line(localRef, localAnchor).setLength(1e6).intersect(gRect);
-        //         if (intersections) {
-        //             intersections.sort(function(a, b) {
-        //                 return (b.squaredDistance(localRef) < a.squaredDistance(localRef)) ?  1: -1;
-        //             });
-        //             spot = intersections[0];
-        //         }
-        //     } else {
-        //         spot = gRect.intersectionWithLineFromCenterToPoint(localRef);
-        //     }
+        } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
 
-        // } else if (anchor && (tagName === 'ELLIPSE')) {
 
-        //     var cx = parseFloat(this.attr('cx')) || 0;
-        //     var cy = parseFloat(this.attr('cy')) || 0;
-        //     var rx = parseFloat(this.attr('rx')) || 0;
-        //     var ry = parseFloat(this.attr('ry')) || 0;
-        //     var gEllipse = g.Ellipse({ x: cx, y: cy }, rx, ry);
+            var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
+            var samples = pathNode.sample();
+            var minDistance = Infinity;
+            var closestSamples = [];
 
-        //     var localAnchor = V.transformPoint(anchor, matrix.inverse());
-        //     if (!bbox.containsPoint(localAnchor)) {
-        //         localAnchor = center;
-        //     }
-        //     var line  = new g.Line(localRef, localAnchor).setLength(1e6);
+            var i, sample, gp, centerDistance, refDistance, distance;
 
-        //     var intersection = gEllipse.intersectionWithLineFromCenterToPoint(localRef);
-        //     spot = intersection;
-        //     console.log(spot);
+            for (i = 0; i < samples.length; i++) {
 
-        // } else if (anchor && (tagName === 'POLYGON')) {
+                sample = samples[i];
+                // Convert the sample point in the local coordinate system to the global coordinate system.
+                gp = V.createSVGPoint(sample.x, sample.y);
+                gp = gp.matrixTransform(this.getTransformToElement(target));
+                sample = new g.Point(gp);
+                centerDistance = sample.distance(center);
+                // Penalize a higher distance to the reference point by 10%.
+                // This gives better results. This is due to
+                // inaccuracies introduced by rounding errors and getPointAtLength() returns.
+                refDistance = sample.distance(ref) * 1.1;
+                distance = centerDistance + refDistance;
 
-        //     var points = V.getPointsFromSvgNode(this);
-        //     if (points.length > 1) {
-        //         points.push(points[0]);
-        //     }
-        //     var localAnchor = V.transformPoint(anchor, matrix.inverse());
-        //     if (!bbox.containsPoint(localAnchor)) {
-        //         localAnchor = center;
-        //     }
-        //     var gPolyline = new g.Polyline(points);
-        //     var line  = new g.Line(localRef, localAnchor).setLength(1e6);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestSamples = [{ sample: sample, refDistance: refDistance }];
+                } else if (distance < minDistance + 1) {
+                    closestSamples.push({ sample: sample, refDistance: refDistance });
+                }
+            }
 
-        //     var intersection = gPolyline.intersectionWithLine(line);
-        //     spot = intersection;
+            closestSamples.sort(function (a, b) {
+                return a.refDistance - b.refDistance;
+            });
 
-        // } else if (anchor && (tagName === 'POLYLINE')) {
+            if (closestSamples[0]) {
+                spot = closestSamples[0].sample;
+            }
+        }
 
-        //     var points = V.getPointsFromSvgNode(this);
-        //     var localAnchor = V.transformPoint(anchor, matrix.inverse());
-        //     if (!bbox.containsPoint(localAnchor)) {
-        //         localAnchor = center;
-        //     }
-        //     var gPolyline = new g.Polyline(points);
-        //     var line  = new g.Line(localRef, localAnchor).setLength(1e6);
-
-        //     var intersection = gPolyline.intersectionWithLine(line);
-        //     spot = intersection;
-
-        // } else if (tagName === 'PATH'  || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
-
-        //     var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
-        //     var samples = pathNode.sample();
-        //     var minDistance = Infinity;
-        //     var closestSamples = [];
-
-        //     var i, sample, centerDistance, refDistance, distance;
-
-        //     for (i = 0; i < samples.length; i++) {
-
-        //         sample = samples[i];
-        //         // Convert the sample point in the local coordinate system to the global coordinate system.
-        //         sample = new g.Point(sample);
-        //         centerDistance = sample.distance(center);
-        //         // Penalize a higher distance to the reference point by 10%.
-        //         // This gives better results. This is due to
-        //         // inaccuracies introduced by rounding errors and getPointAtLength() returns.
-        //         refDistance = sample.distance(localRef) * 1.1;
-        //         distance = centerDistance + refDistance;
-
-        //         if (distance < minDistance) {
-        //             minDistance = distance;
-        //             closestSamples = [{ sample: sample, refDistance: refDistance }];
-        //         } else if (distance < minDistance + 1) {
-        //             closestSamples.push({ sample: sample, refDistance: refDistance });
-        //         }
-        //     }
-
-        //     closestSamples.sort(function(a, b) {
-        //         return a.refDistance - b.refDistance;
-        //     });
-
-        //     if (closestSamples[0]) {
-        //         spot = closestSamples[0].sample;
-        //     }
-        // }
-
-        // if (spot) {
-        //     return V.transformPoint(spot, matrix);
-        // }
-
-        // return spot;
+        return spot;
     };
 
     /**
