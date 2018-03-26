@@ -421,6 +421,8 @@ export namespace g {
 
         equals(p: Point): boolean;
 
+        lerp(p: Point, t: number): Point;
+
         magnitude(): number;
 
         manhattanDistance(p: PlainPoint): number;
