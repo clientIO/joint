@@ -2365,6 +2365,7 @@ var g = (function() {
 
             var polylines = [];
             var points = this.toPoints(opt);
+            if (!points) return null;
             for (var i = 0, n = points.length; i < n; i++) {
                 polylines.push(new Polyline(points[i]));
             }
@@ -2376,6 +2377,7 @@ var g = (function() {
 
             var intersection = null;
             var polylines = this.toPolylines(opt);
+            if (!polylines) return null;
             for (var i = 0, n = polylines.length; i < n; i++) {
                 var polyline = polylines[i];
                 var polylineIntersection = line.intersect(polyline);

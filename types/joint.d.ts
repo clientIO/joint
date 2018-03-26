@@ -381,7 +381,7 @@ export namespace dia {
     export namespace Link {
 
         interface EndCellJSON {
-            id: string;
+            id: number | string;
             selector?: string;
             port?: string;
             anchor?: anchors.AnchorJSON;
