@@ -261,6 +261,10 @@ export class Vectorizer {
 
     static transformPoint(p: g.PlainPoint, matrix: SVGMatrix): g.Point;
 
+    static transformLine(p: g.Line, matrix: SVGMatrix): g.Line;
+
+    static transformPolyline(p: g.Polyline | g.PlainPoint[], matrix: SVGMatrix): g.Polyline;
+
     static styleToObject(styleString: string): { [key: string]: string };
 
     static createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;

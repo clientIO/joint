@@ -345,6 +345,8 @@ export namespace dia {
 
         rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { [key: string]: any }): this;
 
+        angle(): number;
+
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
         fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;

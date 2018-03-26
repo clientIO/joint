@@ -1750,7 +1750,7 @@ V = Vectorizer = (function() {
         var inPoints = (p instanceof g.Polyline) ? p.points : p;
         if (!V.isArray(inPoints)) inPoints = [];
         var outPoints = [];
-        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i]);
+        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i], matrix);
         return new g.Polyline(outPoints);
     },
 
