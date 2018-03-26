@@ -2335,7 +2335,7 @@ export namespace connectionPoints {
         offset?: number;
     }
 
-    interface BoundaryConnectionPointArguments extends ConnectionPoint {
+    interface BoundaryConnectionPointArguments extends ConnectionPointArguments {
         selector?: Array<string | number> | string;
         precision?: number;
         extrapolate?: boolean;
