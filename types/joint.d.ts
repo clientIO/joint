@@ -1855,6 +1855,8 @@ export namespace util {
 
     export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
 
+    export function sanitizeHTML(html: string): string;
+
     export function downloadBlob(blob: Blob, fileName: string): void;
 
     export function downloadDataUri(dataUri: string, fileName: string): void;
