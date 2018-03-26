@@ -929,16 +929,23 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     getLinkEnd: function(magnet, x, y, link, endType) {
 
-        var id = this.model.id;
+        var model = this.model;
+        var id = model.id;
         var port = this.findAttribute('port', magnet);
-        var selector = this.getSelector(magnet);
+        // Find a unique `selector` of the element under pointer that is a magnet.
+        var selector = magnet.getAttribute('joint-selector');
 
-        // Find a unique `selector` of the element under pointer that is a magnet. If the
-        // `magnet` is the root element of the `view` itself,
-        // the returned `selector` will be `undefined`.
         var end = { id: id };
-        if (port != null) end.port = port;
-        if (selector != null) end.selector = selector;
+        if (selector != null) end.magnet = selector;
+        if (port != null) {
+            end.port = port;
+            if (!model.hasPort(port) && !selector) {
+                // port created via the `port` attribute (not API)
+                end.selector = this.getSelector(magnet);
+            }
+        } else if (selector == null && this.el !== magnet) {
+            end.selector = this.getSelector(magnet);
+        }
 
         var paper = this.paper;
         var connectionStrategy = paper.options.connectionStrategy;
@@ -948,6 +955,21 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return end;
+    },
+
+    getMagnetFromLinkEnd: function(end) {
+
+        var root = this.el;
+        var port = end.port;
+        var selector = end.magnet;
+        var magnet;
+        if (port != null && this.model.hasPort(port)) {
+            magnet = this.findPortNode(port, selector) || root;
+        } else {
+            magnet = this.findBySelector(selector || end.selector, root, this.selectors)[0];
+        }
+
+        return magnet;
     },
 
     findAttribute: function(attributeName, node) {

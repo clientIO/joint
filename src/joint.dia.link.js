@@ -1425,14 +1425,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // The slowest path, source/target could have been rotated or resized or any attribute
                 // that affects the bounding box of the view might have been changed.
 
-                var view = this.paper.findViewByModel(endId);
-                var magnetElement = null;
-                if (selector) {
-                    magnetElement = view.el.querySelector(selector);
+                var connectedModel = this.paper.model.getCell(endId);
+                if (!connectedModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
+                var connectedView = connectedModel.findView(this.paper);
+                if (connectedView) {
+                    var connectedMagnet = connectedView.getMagnetFromLinkEnd(end);
+                    if (connectedMagnet === connectedView.el) connectedMagnet = null;
+                    this[endType + 'View'] = connectedView;
+                    this[endType + 'Magnet'] = connectedMagnet;
+                } else {
+                    // the view is not rendered yet
+                    this[endType + 'View'] = this[endType + 'Magnet'] = null;
                 }
-
-                this[endType + 'View'] = view;
-                this[endType + 'Magnet'] = magnetElement;
             }
 
             if (opt.handleBy === this.cid && opt.translateBy &&

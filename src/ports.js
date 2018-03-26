@@ -599,6 +599,14 @@
             return this._createPortElement(port);
         },
 
+        findPortNode: function(portId, selector) {
+            var portCache = this._portElementsCache[portId];
+            if (!portCache) return null;
+            var portRoot = portCache.portContentElement.node;
+            var portSelectors = portCache.portContentSelectors;
+            return this.findBySelector(selector, portRoot, portSelectors)[0];
+        },
+
         /**
          * @private
          */
@@ -699,7 +707,9 @@
                 portElement: portContainerElement,
                 portLabelElement: labelElement,
                 portSelectors: portContainerSelectors,
-                portLabelSelectors: labelSelectors
+                portLabelSelectors: labelSelectors,
+                portContentElement: portElement,
+                portContentSelectors: portSelectors
             };
 
             return portContainerElement;

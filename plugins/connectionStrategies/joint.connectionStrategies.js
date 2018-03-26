@@ -1,4 +1,4 @@
-(function(joint) {
+(function(joint, util) {
 
     function abs2rel(value, max) {
         if (max === 0) return '0%';
@@ -15,7 +15,7 @@
             var dy = coords.y - bbox.y;
             if (relative) {
                 dx = abs2rel(dx, bbox.width);
-                dy = abs2rel(dy, bbox.width);
+                dy = abs2rel(dy, bbox.height);
             }
             end.anchor = {
                 name: 'topLeft',
@@ -30,8 +30,9 @@
     }
 
     joint.connectionStrategies = {
+        defaultAnchor: util.noop,
         pinAbsolute: pin(false),
         pinRelative: pin(true)
     }
 
-})(joint)
+})(joint, joint.util)

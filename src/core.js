@@ -1561,9 +1561,10 @@ var joint = {
                     if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
                     var node = document.createElementNS(ns, tagName);
                     var svg = (ns === svgNamespace);
+                    var wrapper = (svg) ? V : $;
                     // Attributes
                     var attributes = nodeDef.attributes;
-                    if (attributes) ((svg) ? V : $)(node).attr(attributes);
+                    if (attributes) wrapper(node).attr(attributes);
                     // Style
                     var style = nodeDef.style;
                     if (style) $(node).css(style);
@@ -1581,6 +1582,7 @@ var joint = {
                         var nodeSelector = nodeDef.selector;
                         if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                         selectors[nodeSelector] = node;
+                        wrapper(node).attr('joint-selector', nodeSelector);
                     }
                     parentNode.appendChild(node);
                     // Children
