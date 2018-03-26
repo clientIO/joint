@@ -76,7 +76,9 @@
                 These attributes allow you to size shape subelements as a percentage of the dimensions of the shape's
                 model.
                 Moreover, since all calculations are programmatic and do not rely on browser's bbox measurements, using
-                these attributes does not impact performance of your app.</p>
+                these attributes does not impact performance of your app.
+                (<a href="#text-relative-dimensions">There is also a view-based method if you need to work with text; it
+                is explained in the following section.</a>)</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.refWidth" target="_blank"><code>refWidth</code></a> and
@@ -356,8 +358,8 @@ element.attr({
     }
 });</code></pre>
 
-            <p>To create an <code>&lt;image&gt;</code> arrowhead, you need to provide an url with the path to your image to the
-                <code>'xlink:href'</code> property, and then specify the desired <code>'width'</code> and
+            <p>To create an <code>&lt;image&gt;</code> arrowhead, you need to provide an URL with the path to your image
+                to the <code>'xlink:href'</code> property, and then specify the desired <code>'width'</code> and
                 <code>'height'</code>.
                 The image for <code>targetMarker</code> will be automatically rotated by 180 degrees.
                 Remember to reposition the image in the <code>'y'</code> axis (by <code>-1/2</code> of
@@ -497,7 +499,9 @@ link.attr({
     }
 });</code></pre>
 
-            <p>As an even more advanced application, these attributes may be used to construct fake
+            <h3 id="link-subelement-labels">Link Subelement Labels</h3>
+
+            <p>An even more advanced application of special attributes uses them at link subelements to construct fake
                 <a href="link-labels.html">link labels</a> that rotate according to the slope of the link.
                 However, link subelements are more difficult to set up and use dynamically than link labels and have
                 several important limitations when used this way for text:</p>
@@ -513,10 +517,10 @@ link.attr({
                     perpendicularly to the left of the connection path, for example.</li>
             </ul>
 
-            <p>Both of these limitations can be overcome with custom attributes, but this is a complex problem beyond
-                the scope of this tutorial.
+            <p>Both of these limitations can be overcome with <a href="custom-attributes.html">custom JointJS
+                attributes</a>, but that is a complex exercise beyond the scope of this tutorial.
                 Instead, we encourage you to take advantage of our easy-to-use <a href="link-labels.html">link label
-                API</a> unless you need label rotation.</p>
+                API</a> unless you absolutely need label rotation.</p>
 
             <p>Let us create a custom link with several relatively-positioned subelements.
                 The demo was designed to emulate functionality shown in the link label

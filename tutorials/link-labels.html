@@ -38,7 +38,7 @@
             <h2>Link Labels</h2>
 
             <p>This is the sixth article of the intermediate section of the JointJS tutorial.
-                <a href="special-attributes.html">Go back to custom links.</a>
+                <a href="custom-links.html">Go back to custom links.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
             <p><a href="links.html#link-labels">The basic tutorial series offered an introduction into link labels.</a>
@@ -92,7 +92,9 @@
                 A value between <code>0</code> and <code>1</code> causes the label to be positioned relatively to link length.
                 Positive values signify absolute position in local SVG units away from start point.
                 Finally, negative values mean absolute position away from end point.
-                An animated example is presented below:</p>
+                An animated example is presented below.
+                (<a href="special-attributes.html#link-subelement-labels">Link labels can also be emulated with link
+                subelements and special attributes; this technique is explained elsewhere in the tutorial.</a>)</p>
 
             <div class="paper" id="paper-link-labels-distance"></div>
 
@@ -138,7 +140,9 @@ link.appendLabel({
                 An object with <code>x</code> and <code>y</code> coordinates offsets the label absolutely by that amount
                 in the two dimensions.
                 The following example illustrates these three options.
-                The red asterisk marks the reference point of all labels on the link.</p>
+                The red asterisk marks the reference point of all labels on the link.
+                (<a href="special-attributes.html#link-subelement-labels">Link labels can also be emulated with link
+                subelements and special attributes; this technique is explained elsewhere in the tutorial.</a>)</p>
 
             <div class="paper" id="paper-link-labels-offset"></div>
 
@@ -255,7 +259,8 @@ link.appendLabel({
 });</code></pre>
 
             <p>The <code>ref</code> attributes are an example of JointJS special attributes.
-                <a href="special-attributes.html">These are discussed in detail elsewhere in the tutorial.</a></p>
+                <a href="special-attributes.html#text-relative-dimensions">These are discussed in detail elsewhere in
+                the tutorial.</a></p>
 
             <p>This concludes the intermediate section of the JointJS tutorial!
                 Congratulations!
@@ -263,8 +268,8 @@ link.appendLabel({
                 JointJS attributes and can react to user interaction.</p>
 
             <p><a href="advanced.html">The next step is to head over to the advanced section of the tutorial, in which
-                we archive our solutions to some of the most interesting and complex problems our clients have
-                faced.</a></p>
+                we explain custom views and attributes and archive our solutions to some of the most interesting and
+                complex problems our clients have faced.</a></p>
 
         </div><!--end tutorial-->
 
