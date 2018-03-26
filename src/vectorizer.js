@@ -1188,7 +1188,6 @@ V = Vectorizer = (function() {
 
         } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
 
-
             var pathNode = (tagName === 'PATH') ? this : this.convertToPath();
             var samples = pathNode.sample();
             var minDistance = Infinity;
@@ -1218,7 +1217,7 @@ V = Vectorizer = (function() {
                 }
             }
 
-            closestSamples.sort(function (a, b) {
+            closestSamples.sort(function(a, b) {
                 return a.refDistance - b.refDistance;
             });
 
