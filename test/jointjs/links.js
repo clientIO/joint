@@ -1173,12 +1173,28 @@ QUnit.module('links', function(hooks) {
         assert.equal(lv.update.callCount, 1, 'update: link point to point, link translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link point to point, link translated');
 
+        l.set('target', { id: 'a' });
+        lv.update.reset();
+        l.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: link point to element, source translated');
+
+        l.set('target', { x: 0, y: 0 });
         l.set('source', { id: 'a' });
         lv.update.reset();
         a.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: link element to point, source translated');
+
+        lv.update.reset();
+        l.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element to point, link translated');
 
+        l.vertices([{ x: 0, y: 0 }]);
+        lv.update.reset();
+        a.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: link element to point with vertices, link translated');
+
         // loop
+        l.vertices([]);
         l.set('target', { id: 'a' });
         lv.update.reset();
         a.translate(10, 10);
@@ -1194,6 +1210,11 @@ QUnit.module('links', function(hooks) {
         lv.update.reset();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices, source translated');
+
+        l.set('target', { x: 0, y: 0 });
+        lv.update.reset();
+        l.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: link point-element with vertices, link translated');
 
         // loop + vertices
         l.set('target', { id: 'a' });

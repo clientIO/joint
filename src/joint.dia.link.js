@@ -549,9 +549,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // or when an embedded link is translated by its ancestor.
         // 1. Always do update.
         // 2. Do update only if the opposite end ('target') is also a point.
-        if (!opt.translateBy || !this.model.target().id) {
-            opt.updateConnectionOnly = true;
-            this.update(this.model, null, opt);
+        var model = this.model;
+        if (!opt.translateBy || !model.get('target').id || !source.id) {
+            this.update(model, null, opt);
         }
     },
 
@@ -560,9 +560,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Start watching the new target model.
         this.watchTarget(cell, target);
         // See `onSourceChange` method.
-        if (!opt.translateBy) {
-            opt.updateConnectionOnly = true;
-            this.update(this.model, null, opt);
+        var model = this.model;
+        if (!opt.translateBy || (model.get('source').id && !target.id && joint.util.isEmpty(model.get('vertices')))) {
+            this.update(model, null, opt);
         }
     },
 
@@ -577,7 +577,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!opt.translateBy || opt.translateBy === this.model.id) {
             // Vertices were changed (not as a reaction on translate)
             // or link.translate() was called or
-            opt.updateConnectionOnly = true;
             this.update(cell, null, opt);
         }
     },
@@ -1485,7 +1484,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         if (doUpdate) {
-            opt.updateConnectionOnly = true;
             this.update(model, null, opt);
         }
     },
