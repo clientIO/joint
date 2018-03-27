@@ -41,17 +41,62 @@
                 <a href="serialization.html">Go back to serialization.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
-            <p>JointJS has built-in elements for basic shapes. These shapes are all in the <code>joint.shapes.basic</code>
-                namespace and consist of <code>joint.shapes.basic.Rect</code>, <code>joint.shapes.basic.Circle</code>,
-                <code>joint.shapes.basic.Text</code> and <code>joint.shapes.basic.Image</code>. Additionally,
-                JointJS has plugins that contain shapes and links for elements of some well-known diagrams. Though there
-                is plenty of shapes to choose from, you might be missing one and want to create your own.</p>
-            <p>Creating new shapes is quite simple though you need some basic knowledge of SVG elements. The most important
-                SVG elements you should know about
-                are <code>rect</code>, <code>text</code>, <code>circle</code>, <code>ellipse</code>, <code>image</code> and
-                <code>path</code>. Their thorough description
-                together with examples can be found e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element" target="_blank">MDN</a>.
-                Combining these, you can make basically any 2D shape you like.</p>
+            <p>JointJS comes with several collections of built-in shapes in addition to the default
+                <code>joint.dia.Element</code> and <code>joint.dia.Link</code> classes.
+                We already saw a few shapes from the <code>joint.shapes.standard</code> collection in the basic
+                <a href="elements.html">element</a> and <a href="links.html">links</a> demos.
+                Additionally, JointJS has plugins that contain shape and link definitions for components of some
+                well-known diagramming languages.</p>
+
+            <p>However, even though there are many default shapes to choose from, you might find that you are missing
+                one and want to create your own shape definition.
+                Creating new shapes is very simple in JointJS if you already know SVG.
+                The most important SVG elements are <code>rect</code>, <code>text</code>, <code>circle</code>,
+                <code>ellipse</code>, <code>image</code> and <code>path</code>.
+                Their thorough description with examples and illustrations can be found elsewhere on the Internet, e.g.
+                on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element" target="_blank">MDN</a>.
+                What is important for us is to realize that combining the basic SVG shapes, we can define any 2D shape
+                we need.</p>
+
+            <p>For that, we use a builtin JointJS function:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Cell.define"><code>joint.dia.Element.define()</code></a> - define a new
+                Cell class of the given name.
+                Optionally, you can provide default instance properties, prototype properties, and static
+                properties of the class.</li>
+            </ul>
+
+            <h3>Identifier</h3>
+
+            <p>The first argument of the <code>define()</code> function is an unique identifier under which you want to
+                be able to find the new type.
+                You can then instantiate the class by calling <code>new joint.shapes.CustomType()</code>.</p>
+
+            <h3>Markup</h3>
+
+            <!--<p>The second argument of the <code>define()</code> function is the most interesting.
+                It allows you to specify the default properties of instances of the new type.
+                Elements have two crucial properties - <code>markup</code> and <code>attrs</code>.
+                We talked a little bit about element attributes in the <a href="elements.html#element-styling">basic
+                section of the tutorial</a>, but we have never mentioned markup before.</p>-->
+
+            <p>Markup is usually provided inside the third argument of the <code>define()</code> function (prototype
+                properties); this is because markup is something that all instances of the element type are expected to
+                have in common.
+                Markup is specified in JSON format.
+                (JointJS also supports specifying the markup as a string with SVG tags, but that approach is noticeably
+                slower due to the need for parsing.
+                Therefore, we encourage everyone to use the JSON markup.)
+                An array is expected, with each member of the array representing one subelement of the new shape.
+                Subelements are represented with objects containing a <code>tagName</code> (a string with the SVG tag
+                name of the subelement) and optionally a <code>selector</code> (a string identifier for this subelement
+                in the shape).
+                For example, the familiar <code>joint.shapes.standard.Rectangle</code> has the following
+                <code>markup</code> in its definition:</p>
+
+            <pre><code></code></pre>
+
             <p> As it was mentioned, custom elements are created by combining SVG tags. Many times, it is useful to position
                 one
                 element relatively to another. Imagine a basic situation where you want to have a rectangle element and a
