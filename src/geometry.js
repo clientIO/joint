@@ -1382,10 +1382,10 @@ var g = (function() {
                 }
             }
 
-            return new Point(
+            return [new Point(
                 this.start.x + (alpha * pt1Dir.x / det),
                 this.start.y + (alpha * pt1Dir.y / det)
-            );
+            )];
         },
 
         // @return {point} Point where I'm intersecting a line.
@@ -1399,7 +1399,14 @@ var g = (function() {
                 shape instanceof Ellipse ||
                 shape instanceof Path
             ) {
-                return shape.intersectionWithLine(this, opt);
+                var intersection = shape.intersectionWithLine(this, opt);
+
+                // Backwards compatibility
+                if (intersection && (shape instanceof Line)) {
+                    intersection = intersection[0];
+                }
+
+                return intersection;
             }
 
             return null;

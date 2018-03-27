@@ -251,13 +251,13 @@ export namespace g {
 
         equals(line: Line): boolean;
 
-        intersect(line: Line): Point | null;
+        intersect(line: Line): Point | null; // Backwards compatibility, should return an array
         intersect(rect: Rect): Point[] | null;
         intersect(ellipse: Ellipse): Point[] | null;
         intersect(polyline: Polyline): Point[] | null;
         intersect(path: Path, opt?: SegmentSubdivisionsOpt): Point[] | null;
 
-        intersectionWithLine(l: Line): Point | null;
+        intersectionWithLine(l: Line): Point[] | null;
 
         isDifferentiable(): boolean;
 
@@ -364,7 +364,7 @@ export namespace g {
 
         tangentAtLength(length: number, opt?: SegmentSubdivisionsOpt): Line | null;
 
-        toPoints(opt?: SegmentSubdivisionsOpt): Point[] | null;
+        toPoints(opt?: SegmentSubdivisionsOpt): Point[][] | null;
 
         toPolylines(opt?: SegmentSubdivisionsOpt): Polyline[] | null;
 

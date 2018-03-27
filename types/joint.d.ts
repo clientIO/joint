@@ -382,6 +382,7 @@ export namespace dia {
 
         interface EndCellJSON {
             id: number | string;
+            magnet?: string;
             selector?: string;
             port?: string;
             anchor?: anchors.AnchorJSON;
