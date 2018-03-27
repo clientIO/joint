@@ -3937,7 +3937,7 @@ var g = (function() {
                 var b = points[i+1];
                 var l2 = new Line(a, b);
                 var int = line.intersectionWithLine(l2);
-                if (int) intersections.push(int);
+                if (int) intersections.push(int[0]);
             }
             return (intersections.length > 0) ? intersections : null;
         },
