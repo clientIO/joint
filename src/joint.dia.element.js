@@ -382,7 +382,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         var position = this.get('position');
         var size = this.get('size');
 
-        return g.rect(position.x, position.y, size.width, size.height);
+        return new g.Rect(position.x, position.y, size.width, size.height);
     }
 });
 
@@ -565,13 +565,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     getBBox: function (opt) {
 
+        var bbox;
         if (opt && opt.useModelGeometry) {
-            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
-            return this.paper.localToPaperRect(bbox);
+            var model = this.model;
+            bbox = model.getBBox().bbox(model.angle());
+        } else {
+            bbox = this.getNodeBBox(this.el);
         }
 
-        // TODO: use `getNodeBBox` with paper.matrix()
-        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
+        return this.paper.localToPaperRect(bbox);
     },
 
     nodeCache: function(magnet) {
