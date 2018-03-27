@@ -41,7 +41,41 @@
                 <a href="interaction.html">Go back to interaction.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
-            <p>Data serialization (persistence) is very easy in JointJS.</p>
+            <p>Data serialization (persistence) is very easy in JointJS.
+                It is done through two import/export functions on the Graph class:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Graph.prototype.toJSON" target="_blank"><code>graph.toJSON()</code></a> -
+                converts the whole graph into a JSON object.</li>
+                <li><a href="/docs/jointjs#dia.Graph.prototype.fromJSON" target="_blank"><code>graph.fromJSON()</code></a>
+                - converts a JSON object into a graph.</li>
+            </ul>
+
+            <p>The two functions work with JSON objects - not JSON strings.
+                However, you can easily convert back and forth using the native JavaScript <code>JSON.stringify()</code>
+                and <code>JSON.parse()</code> functions.
+                Depending on how you store your app data, you may store the JSON objects directly (e.g. in a
+                non-relational database like MongoDB), or in the stringified form (which can be stored anywhere
+                plaintext can be stored, at the added cost of stringifying/parsing of the JSON object).</p>
+
+            <p>Keep in mind the general limitations of the JSON format.
+                Some commonly used native JavaScript data types (including <code>Function</code>, <code>Date</code>, and
+                <code>undefined</code>) <a href="https://en.wikipedia.org/wiki/JSON#Unsupported_native_data_types">are
+                not supported</a>.
+                The variables that have values of these types will not be persisted.
+                Among other things, this means that if persistence is important in your application, you should choose
+                to define custom element/link subtypes instead of embedding custom functions into default
+                <code>joint.dia.Element</code> and <code>joint.dia.Link</code> types.</p>
+
+            <p>Additionally, if you want to make use of the JSON objects and directly store them into MongoDB, you
+                should remember its additional limitation that object keys must not start with the <code>.</code> (dot)
+                and <code>$</code> (dollar sign) symbols.
+                Those are reserved for internal use of the database.
+                This is significant in the context of JointJS because it precludes the use of CSS-style selectors in the
+                <code>attrs</code> arrays of your Elements and Links.
+                Therefore, if persistence is important to you and you want to save data directly to MongoDB, you should
+                always define custom subelement selectors in your markup and instead of relying on CSS-style
+                selectors.</p>
 
             <p><a href="custom-elements.html">In the next section of the intermediate tutorial, we will learn about
                 creating custom elements.</a></p>
@@ -49,11 +83,5 @@
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
-
-        <script src="js/interaction-paper-events.js"></script>
-        <script src="js/interaction-model-events.js"></script>
-        <script src="js/interaction-event-attribute.js"></script>
-        <script src="js/interaction-custom-view-events.js"></script>
-        <script src="js/interaction-custom-view-events-propagation.js"></script>
     </body>
 </html>

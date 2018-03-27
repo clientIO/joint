@@ -512,9 +512,11 @@ link.attr({
                     browser-calculated dimensions of the text bbox.
                     It is up to the programmer to provide approximate width and height values to accommodate the label
                     text.</li>
-                <li>They cannot be positioned with relative offsets.
-                    There is no built-in method to instruct a relatively-positioned subelement to be offset by 20 pixels
-                    perpendicularly to the left of the connection path, for example.</li>
+                <li>They cannot be positioned with absolute offsets.
+                    There is no built-in method to instruct a relatively-positioned subelement to be offset by 60 pixels
+                    down and 40 pixels left regardless of link slope, for example.
+                    Relative offsets (e.g. positioning a subelement 40 pixels perpendicularly to the line) may be
+                    simulated with a clever use of the native <code>x</code> and <code>y</code> SVG attributes.</li>
             </ul>
 
             <p>Both of these limitations can be overcome with <a href="custom-attributes.html">custom JointJS
@@ -526,7 +528,7 @@ link.attr({
                 The demo was designed to emulate functionality shown in the link label
                 <a href="link-labels.html#label-position">position</a> and
                 <a href="link-labels.html#label-offset">offset</a> examples.
-                The red asterisk marks the reference point of the offset subelement on the link.</p>
+                The red asterisk marks the reference point of the offset subelements on the link.</p>
 
             <div class="paper" id="paper-special-attributes-link-relative-dimensions-text"></div>
 
@@ -591,13 +593,24 @@ link.attr({
             fill: 'white',
             stroke: 'black'
         },
-        offsetLabel: {
+        offsetLabelPositive: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             fill: 'black'
         },
-        offsetLabelBody: {
-            width: 120,
+        offsetLabelPositiveBody: {
+            width: 70,
+            height: 20,
+            fill: 'white',
+            stroke: 'black'
+        },
+        offsetLabelNegative: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fill: 'black'
+        },
+        offsetLabelNegativeBody: {
+            width: 70,
             height: 20,
             fill: 'white',
             stroke: 'black'
@@ -627,10 +640,16 @@ link.attr({
         selector: 'absoluteReverseLabel'
     }, {
         tagName: 'rect',
-        selector: 'offsetLabelBody'
+        selector: 'offsetLabelPositiveBody'
     }, {
         tagName: 'text',
-        selector: 'offsetLabel'
+        selector: 'offsetLabelPositive'
+    }, {
+        tagName: 'rect',
+        selector: 'offsetLabelNegativeBody'
+    }, {
+        tagName: 'text',
+        selector: 'offsetLabelNegative'
     }]
 });
 
@@ -657,16 +676,25 @@ link.attr({
     absoluteReverseLabelBody: {
         atConnectionLength: -100
     },
-    offsetLabel: {
+    offsetLabelPositive: {
         atConnectionRatio: 0.66,
-        x: -40,
-        y: 60,
-        text: '{ x: -40, y: 60 }'
+        y: 40,
+        text: '{ y: 40 }'
     },
-    offsetLabelBody: {
+    offsetLabelPositiveBody: {
         atConnectionRatio: 0.66,
-        x: -100, // -40 + -60
-        y: 50 // 60 + -10
+        x: -35, // 0 + -35
+        y: 30 // 40 + -10
+    },
+    offsetLabelNegative: {
+        atConnectionRatio: 0.66,
+        y: -40,
+        text: '{ y: -40 }'
+    },
+    offsetLabelNegativeBody: {
+        atConnectionRatio: 0.66,
+        x: -35, // 0 + -35
+        y: -50 // -40 + -10
     }
 });</code></pre>
 

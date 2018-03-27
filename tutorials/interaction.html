@@ -42,7 +42,7 @@
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
             <p>JointJS offers several different ways to enable user interaction.
-                Events are triggered on your paper and on individual element/link views.</p>
+                Events are triggered on your paper, on individual element/link views.</p>
 
             <h3 id="paper-events">Builtin Paper Events</h3>
 
@@ -175,6 +175,12 @@ link.on('change:target', function() {
 
     this.findView(paper).update();
 });</code></pre>
+
+            <p>The Graph model also triggers a few events.
+                These involve interaction with the graph itself (changing, adding, and removing cells); the new state of
+                the graph is sent to the event listener.
+                <a href="/docs/jointjs#dia.Graph.events" target="_blank">A full list of events</a> is presented in the
+                documentation.</p>
 
             <h3 id="custom-pointerdown-events">Custom Pointerdown Events</h3>
 
