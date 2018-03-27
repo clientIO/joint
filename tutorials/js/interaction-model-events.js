@@ -87,7 +87,5 @@
                 }
             }
         });
-
-        this.findView(paper).update();
     });
 }());

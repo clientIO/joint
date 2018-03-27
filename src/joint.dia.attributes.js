@@ -130,18 +130,19 @@
         };
     }
 
-    function atConnectionWrapper(method) {
+    function atConnectionWrapper(method, opt) {
         var zeroVector = new g.Point(1, 0);
         return function(value) {
             var p, angle;
             var tangent = this[method](value);
             if (tangent) {
-                angle = tangent.vector().vectorAngle(zeroVector);
+                angle = (opt.rotate) ? tangent.vector().vectorAngle(zeroVector) : 0;
                 p = tangent.start;
             } else {
                 p = this.path.start;
                 angle = 0;
             }
+            if (angle === 0) return { transform: 'translate(' + p.x + ',' + p.y + ')' };
             return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
         }
     }
@@ -557,14 +558,24 @@
             }
         },
 
-        atConnectionLength: {
+        atConnectionLengthKeepGradient: {
             qualify: isLinkView,
-            set: atConnectionWrapper('getTangentAtLength')
+            set: atConnectionWrapper('getTangentAtLength', { rotate: true })
         },
 
-        atConnectionRatio: {
+        atConnectionLengthIgnoreGradient: {
             qualify: isLinkView,
-            set: atConnectionWrapper('getTangentAtRatio')
+            set: atConnectionWrapper('getTangentAtLength', { rotate: false })
+        },
+
+        atConnectionRatioKeepGradient: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtRatio', { rotate: true })
+        },
+
+        atConnectionRatioIgnoreGradient: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
         }
     };
 
@@ -572,6 +583,8 @@
     attributesNS.refR = attributesNS.refRInscribed;
     attributesNS.refD = attributesNS.refDResetOffset;
     attributesNS.refPoints = attributesNS.refPointsResetOffset;
+    attributesNS.atConnectionLength = attributesNS.atConnectionLengthKeepGradient;
+    attributesNS.atConnectionRatio = attributesNS.atConnectionRatioKeepGradient;
 
     // This allows to combine both absolute and relative positioning
     // refX: 50%, refX2: 20

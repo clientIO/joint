@@ -22,10 +22,16 @@
                 selector: 'line',
             }, {
                 tagName: 'path',
-                selector: 'offsetLabelConnectorPositive'
+                selector: 'offsetLabelPositiveConnector'
             }, {
                 tagName: 'path',
-                selector: 'offsetLabelConnectorNegative'
+                selector: 'offsetLabelNegativeConnector'
+            }, {
+                tagName: 'path',
+                selector: 'offsetLabelAbsoluteConnector'
+            }, {
+                tagName: 'text',
+                selector: 'offsetLabelMarker'
             }
         ]
     });
@@ -44,57 +50,37 @@
                 d: 'M 10 -5 0 0 10 5 z'
             }
         },
-        offsetLabelConnectorPositive: {
+        offsetLabelMarker: {
             atConnectionRatio: 0.66,
-            stroke: 'black',
-            strokeDasharray: '4 4',
-            d: 'M 0 0 0 40'
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            text: '＊',
+            fill: '#ff0000',
+            fontSize: 20
         },
-        offsetLabelConnectorNegative: {
+        offsetLabelPositiveConnector: {
             atConnectionRatio: 0.66,
+            d: 'M 0 0 0 40',
             stroke: 'black',
-            strokeDasharray: '4 4',
-            d: 'M 0 0 0 -40'
-        }
-    })
-    link.appendLabel({
-        markup: [
-            {
-                tagName: 'path',
-                selector: 'offsetLabelConnectorAbsolute'
-            }
-        ],
-        attrs: {
-            offsetLabelConnectorAbsolute: {
-                stroke: 'black',
-                strokeDasharray: '4 4',
-                d: 'M 0 0 -40 60'
-            }
+            strokeDasharray: '5 5'
         },
-        position: {
-            distance: 0.66
+        offsetLabelNegativeConnector: {
+            atConnectionRatio: 0.66,
+            d: 'M 0 0 0 -40',
+            stroke: 'black',
+            strokeDasharray: '5 5'
+        },
+        offsetLabelAbsoluteConnector: {
+            atConnectionRatioIgnoreGradient: 0.66,
+            d: 'M 0 0 -40 80',
+            stroke: 'black',
+            strokeDasharray: '5 5'
         }
-    })
+    });
     link.appendLabel({
         attrs: {
             text: {
-                text: '＊',
-                fill: '#ff0000',
-                fontSize: 20,
-                fontWeight: 'bold'
-            },
-            rect: {
-                display: 'none'
-            }
-        },
-        position: {
-            distance: 0.66
-        }
-    })
-    link.appendLabel({
-        attrs: {
-            text: {
-                text: '40'
+                text: 'offset: 40'
             }
         },
         position: {
@@ -105,7 +91,7 @@
     link.appendLabel({
         attrs: {
             text: {
-                text: '-40'
+                text: 'offset: -40'
             }
         },
         position: {
@@ -116,14 +102,14 @@
     link.appendLabel({
         attrs: {
             text: {
-                text: '{ x: -40, y: 60 }'
+                text: 'offset: -40,80'
             }
         },
         position: {
             distance: 0.66,
             offset: {
                 x: -40,
-                y: 60
+                y: 80
             }
         }
     });

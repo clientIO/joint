@@ -40,12 +40,13 @@
             relativeLabel: {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
-                fill: 'black'
+                fill: 'black',
+                fontSize: 12
             },
             relativeLabelBody: {
-                x: -20,
+                x: -15,
                 y: -10,
-                width: 40,
+                width: 30,
                 height: 20,
                 fill: 'white',
                 stroke: 'black'
@@ -53,12 +54,13 @@
             absoluteLabel: {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
-                fill: 'black'
+                fill: 'black',
+                fontSize: 12
             },
             absoluteLabelBody: {
-                x: -20,
+                x: -15,
                 y: -10,
-                width: 40,
+                width: 30,
                 height: 20,
                 fill: 'white',
                 stroke: 'black'
@@ -66,12 +68,13 @@
             absoluteReverseLabel: {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
-                fill: 'black'
+                fill: 'black',
+                fontSize: 12
             },
             absoluteReverseLabelBody: {
-                x: -20,
+                x: -15,
                 y: -10,
-                width: 40,
+                width: 30,
                 height: 20,
                 fill: 'white',
                 stroke: 'black'
@@ -79,10 +82,11 @@
             offsetLabelPositive: {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
-                fill: 'black'
+                fill: 'black',
+                fontSize: 12
             },
             offsetLabelPositiveBody: {
-                width: 70,
+                width: 120,
                 height: 20,
                 fill: 'white',
                 stroke: 'black'
@@ -90,15 +94,29 @@
             offsetLabelNegative: {
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
-                fill: 'black'
+                fill: 'black',
+                fontSize: 12
             },
             offsetLabelNegativeBody: {
-                width: 70,
+                width: 120,
+                height: 20,
+                fill: 'white',
+                stroke: 'black'
+            },
+            offsetLabelAbsolute: {
+                textAnchor: 'middle',
+                textVerticalAnchor: 'middle',
+                fill: 'black',
+                fontSize: 12
+            },
+            offsetLabelAbsoluteBody: {
+                width: 140,
                 height: 20,
                 fill: 'white',
                 stroke: 'black'
             },
             offsetLabelMarker: {
+                atConnectionRatio: 0.66,
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
                 text: '＊',
@@ -106,10 +124,20 @@
                 fontSize: 20
             },
             offsetLabelPositiveConnector: {
+                atConnectionRatio: 0.66,
+                d: 'M 0 0 0 40',
                 stroke: 'black',
                 strokeDasharray: '5 5'
             },
             offsetLabelNegativeConnector: {
+                atConnectionRatio: 0.66,
+                d: 'M 0 0 0 -40',
+                stroke: 'black',
+                strokeDasharray: '5 5'
+            },
+            offsetLabelAbsoluteConnector: {
+                atConnectionRatioIgnoreGradient: 0.66,
+                d: 'M 0 0 -40 80',
                 stroke: 'black',
                 strokeDasharray: '5 5'
             }
@@ -124,6 +152,9 @@
         }, {
             tagName: 'path',
             selector: 'offsetLabelNegativeConnector'
+        }, {
+            tagName: 'path',
+            selector: 'offsetLabelAbsoluteConnector'
         }, {
             tagName: 'text',
             selector: 'offsetLabelMarker'
@@ -157,6 +188,12 @@
         }, {
             tagName: 'text',
             selector: 'offsetLabelNegative'
+        }, {
+            tagName: 'rect',
+            selector: 'offsetLabelAbsoluteBody'
+        }, {
+            tagName: 'text',
+            selector: 'offsetLabelAbsolute'
         }]
     });
 
@@ -189,33 +226,33 @@
         offsetLabelPositive: {
             atConnectionRatio: 0.66,
             y: 40,
-            text: '{ y: 40 }'
+            text: 'keepGradient: 0,40'
         },
         offsetLabelPositiveBody: {
             atConnectionRatio: 0.66,
-            x: -35, // 0 + -35
+            x: -60, // 0 + -60
             y: 30 // 40 + -10
         },
         offsetLabelNegative: {
             atConnectionRatio: 0.66,
             y: -40,
-            text: '{ y: -40 }'
+            text: 'keepGradient: 0,-40'
         },
         offsetLabelNegativeBody: {
             atConnectionRatio: 0.66,
-            x: -35, // 0 + -35
+            x: -60, // 0 + -60
             y: -50 // -40 + -10
         },
-        offsetLabelMarker: {
-            atConnectionRatio: 0.66
+        offsetLabelAbsolute: {
+            atConnectionRatioIgnoreGradient: 0.66,
+            x: -40,
+            y: 80,
+            text: 'ignoreGradient: -40,80'
         },
-        offsetLabelPositiveConnector: {
-            atConnectionRatio: 0.66,
-            d: 'M 0 0 0 40'
-        },
-        offsetLabelNegativeConnector: {
-            atConnectionRatio: 0.66,
-            d: 'M 0 0 0 -40'
+        offsetLabelAbsoluteBody: {
+            atConnectionRatioIgnoreGradient: 0.66,
+            x: -110, // -40 + -70
+            y: 70 // 80 + -10
         }
     });
     link.addTo(graph);

@@ -423,14 +423,16 @@ element.attr({
                 <li><a href="/docs/jointjs#dia.attributes.connection" target="_blank"><code>connection</code></a> - if
                     set to <code>true</code>, the subelement will follow the link connection path.
                     Applicable only to <code>&lt;path&gt;</code> subelements.</li>
-                <li><a href="/docs/jointjs#dia.attributes.atConnectionLength" target="_blank"><code>atConnectionLength</code></a>
+                <li><a href="/docs/jointjs#dia.attributes.atConnectionLengthKeepGradient" target="_blank"><code>atConnectionLength</code></a>
                     - sets the absolute distance from the beginning of the path at which the anchor of the subelement
                     should be placed.
-                    Negative distances are counted from the end of the connection path.</li>
-                <li><a href="/docs/jointjs#dia.attributes.atConnectionRatio" target="_blank"><code>atConnectionRatio</code></a>
+                    Negative distances are counted from the end of the connection path.
+                    Rotates subelement according to link gradient at requested length.</li>
+                <li><a href="/docs/jointjs#dia.attributes.atConnectionRatioKeepGradient" target="_blank"><code>atConnectionRatio</code></a>
                     - sets the relative distance from the beginning of the path at which the anchor of the subelement
                     should be placed.
-                    Accepts numbers between <code>0</code> and <code>1</code>.</li>
+                    Accepts numbers between <code>0</code> and <code>1</code>.
+                    Rotates subelement according to link gradient at requested ratio.</li>
             </ul>
 
             <p>These attributes are ideal for adding symbols and arrowheads on the connection path and have them rotate
@@ -503,8 +505,9 @@ link.attr({
 
             <p>An even more advanced application of special attributes uses them at link subelements to construct fake
                 <a href="link-labels.html">link labels</a> that rotate according to the slope of the link.
-                However, link subelements are more difficult to set up and use dynamically than link labels and have
-                several important limitations when used this way for text:</p>
+                However, keep in mind that link subelements are more difficult to set up and use dynamically than link
+                labels (JointJS does not come with a built-in API to do this), and that they have a very important
+                limitation when used this way:</p>
 
             <ul>
                 <li>They cannot use the <code>ref</code> attribute.
@@ -512,17 +515,28 @@ link.attr({
                     browser-calculated dimensions of the text bbox.
                     It is up to the programmer to provide approximate width and height values to accommodate the label
                     text.</li>
-                <li>They cannot be positioned with absolute offsets.
-                    There is no built-in method to instruct a relatively-positioned subelement to be offset by 60 pixels
-                    down and 40 pixels left regardless of link slope, for example.
-                    Relative offsets (e.g. positioning a subelement 40 pixels perpendicularly to the line) may be
-                    simulated with a clever use of the native <code>x</code> and <code>y</code> SVG attributes.</li>
             </ul>
 
-            <p>Both of these limitations can be overcome with <a href="custom-attributes.html">custom JointJS
-                attributes</a>, but that is a complex exercise beyond the scope of this tutorial.
-                Instead, we encourage you to take advantage of our easy-to-use <a href="link-labels.html">link label
-                API</a> unless you absolutely need label rotation.</p>
+            <p>We encourage you to take advantage of our easy-to-use <a href="link-labels.html">link label API</a>
+                unless you need label rotation.</p>
+
+            <p>It is also possible to create link subelement labels that do not rotate according to the slope of the
+                link; this is useful for absolutely-offset link labels.
+                (Note that this functionality is very similar to the functionality of link labels.)
+                There are two special attributes that do this:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.attributes.atConnectionLengthIgnoreGradient" target="_blank"><code>atConnectionLengthIgnoreGradient</code></a>
+                    - sets the absolute distance from the beginning of the path at which the anchor of the subelement
+                    should be placed.
+                    Negative distances are counted from the end of the connection path.
+                    Does not rotate subelement according to path gradient.</li>
+                <li><a href="/docs/jointjs#dia.attributes.atConnectionRatioIgnoreGradient" target="_blank"><code>atConnectionRatioIgnoreGradient</code></a>
+                    - sets the relative distance from the beginning of the path at which the anchor of the subelement
+                    should be placed.
+                    Accepts numbers between <code>0</code> and <code>1</code>.
+                    Does not rotate subelement according to path gradient.</li>
+            </ul>
 
             <p>Let us create a custom link with several relatively-positioned subelements.
                 The demo was designed to emulate functionality shown in the link label
@@ -557,12 +571,13 @@ link.attr({
         relativeLabel: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            fill: 'black'
+            fill: 'black',
+            fontSize: 12
         },
         relativeLabelBody: {
-            x: -20,
+            x: -15,
             y: -10,
-            width: 40,
+            width: 30,
             height: 20,
             fill: 'white',
             stroke: 'black'
@@ -570,12 +585,13 @@ link.attr({
         absoluteLabel: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            fill: 'black'
+            fill: 'black',
+            fontSize: 12
         },
         absoluteLabelBody: {
-            x: -20,
+            x: -15,
             y: -10,
-            width: 40,
+            width: 30,
             height: 20,
             fill: 'white',
             stroke: 'black'
@@ -583,12 +599,13 @@ link.attr({
         absoluteReverseLabel: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            fill: 'black'
+            fill: 'black',
+            fontSize: 12
         },
         absoluteReverseLabelBody: {
-            x: -20,
+            x: -15,
             y: -10,
-            width: 40,
+            width: 30,
             height: 20,
             fill: 'white',
             stroke: 'black'
@@ -596,10 +613,11 @@ link.attr({
         offsetLabelPositive: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            fill: 'black'
+            fill: 'black',
+            fontSize: 12
         },
         offsetLabelPositiveBody: {
-            width: 70,
+            width: 120,
             height: 20,
             fill: 'white',
             stroke: 'black'
@@ -607,10 +625,23 @@ link.attr({
         offsetLabelNegative: {
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
-            fill: 'black'
+            fill: 'black',
+            fontSize: 12
         },
         offsetLabelNegativeBody: {
-            width: 70,
+            width: 120,
+            height: 20,
+            fill: 'white',
+            stroke: 'black'
+        },
+        offsetLabelAbsolute: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            fill: 'black',
+            fontSize: 12
+        },
+        offsetLabelAbsoluteBody: {
+            width: 140,
             height: 20,
             fill: 'white',
             stroke: 'black'
@@ -650,6 +681,12 @@ link.attr({
     }, {
         tagName: 'text',
         selector: 'offsetLabelNegative'
+    }, {
+        tagName: 'rect',
+        selector: 'offsetLabelAbsoluteBody'
+    }, {
+        tagName: 'text',
+        selector: 'offsetLabelAbsolute'
     }]
 });
 
@@ -679,22 +716,33 @@ link.attr({
     offsetLabelPositive: {
         atConnectionRatio: 0.66,
         y: 40,
-        text: '{ y: 40 }'
+        text: 'keepGradient: 0,40'
     },
     offsetLabelPositiveBody: {
         atConnectionRatio: 0.66,
-        x: -35, // 0 + -35
+        x: -60, // 0 + -60
         y: 30 // 40 + -10
     },
     offsetLabelNegative: {
         atConnectionRatio: 0.66,
         y: -40,
-        text: '{ y: -40 }'
+        text: 'keepGradient: 0,-40'
     },
     offsetLabelNegativeBody: {
         atConnectionRatio: 0.66,
-        x: -35, // 0 + -35
+        x: -60, // 0 + -60
         y: -50 // -40 + -10
+    },
+    offsetLabelAbsolute: {
+        atConnectionRatioIgnoreGradient: 0.66,
+        x: -40,
+        y: 80,
+        text: 'ignoreGradient: -40,80'
+    },
+    offsetLabelAbsoluteBody: {
+        atConnectionRatioIgnoreGradient: 0.66,
+        x: -110, // -40 + -70
+        y: 70 // 80 + -10
     }
 });</code></pre>
 

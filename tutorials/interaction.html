@@ -150,9 +150,7 @@ function resetAll(paper) {
             <p>In the example, the event <code>'change:position'</code> is triggered on the element when it is moved; we
                 determine the new position of the element's center and write it into its text label.
                 The event <code>'change:target'</code> is triggered on the link when its target is moved; we use that
-                event to write the new target position into the link label.
-                Note that we have to call the <code>update()</code> function on the link's view
-                (<code>link.findView(paper)</code>) to make sure user changes are reflected.</p>
+                event to write the new target position into the link label.</p>
 
             <div class="paper" id="paper-interaction-model-events"></div>
 
@@ -172,8 +170,6 @@ link.on('change:target', function() {
             }
         }
     });
-
-    this.findView(paper).update();
 });</code></pre>
 
             <p>The Graph model also triggers a few events.
