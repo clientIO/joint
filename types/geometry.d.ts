@@ -217,6 +217,8 @@ export namespace g {
 
         equals(ellipse: Ellipse): boolean;
 
+        intersectionWithLine(l: Line): Point[] | null;
+
         intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
 
         toString(): string;
@@ -231,6 +233,7 @@ export namespace g {
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string);
         constructor(line: Line);
+        constructor();
 
         bbox(): Rect;
 
@@ -248,8 +251,13 @@ export namespace g {
 
         equals(line: Line): boolean;
 
-        intersect(line: Line): Point | null;
+        intersect(line: Line): Point | null; // Backwards compatibility, should return an array
         intersect(rect: Rect): Point[] | null;
+        intersect(ellipse: Ellipse): Point[] | null;
+        intersect(polyline: Polyline): Point[] | null;
+        intersect(path: Path, opt?: SegmentSubdivisionsOpt): Point[] | null;
+
+        intersectionWithLine(l: Line): Point[] | null;
 
         isDifferentiable(): boolean;
 
@@ -325,6 +333,8 @@ export namespace g {
         insertSegment(index: number, segment: Segment): void;
         insertSegment(index: number, segments: Segment[]): void;
 
+        intersectionWithLine(l: Line, opt?: SegmentSubdivisionsOpt): Point[] | null;
+
         isDifferentiable(): boolean;
 
         isValid(): boolean;
@@ -354,6 +364,10 @@ export namespace g {
 
         tangentAtLength(length: number, opt?: SegmentSubdivisionsOpt): Line | null;
 
+        toPoints(opt?: SegmentSubdivisionsOpt): Point[][] | null;
+
+        toPolylines(opt?: SegmentSubdivisionsOpt): Polyline[] | null;
+
         translate(tx?: number, ty?: number): this;
         translate(tx: PlainPoint): this;
 
@@ -378,6 +392,8 @@ export namespace g {
         static parse(pathData: string): Path;
 
         static segmentTypes: SegmentTypes;
+
+        static isDataSupported(pathData: string): boolean;
     }
 
     class Point implements PlainPoint {
@@ -404,6 +420,8 @@ export namespace g {
         squaredDistance(p: PlainPoint | string): number;
 
         equals(p: Point): boolean;
+
+        lerp(p: Point, t: number): Point;
 
         magnitude(): number;
 
@@ -481,6 +499,8 @@ export namespace g {
 
         isDifferentiable(): boolean;
 
+        intersectionWithLine(l: Line): Point[] | null;
+
         length(): number;
 
         pointAt(ratio: number): Point | null;
@@ -536,6 +556,8 @@ export namespace g {
         equals(r: PlainRect): boolean;
 
         intersect(r: Rect): Rect | null;
+
+        intersectionWithLine(l: Line): Point[] | null;
 
         intersectionWithLineFromCenterToPoint(p: PlainPoint | string, angle?: number): Point;
 

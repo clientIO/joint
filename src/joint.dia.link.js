@@ -1027,12 +1027,27 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             path.translate(tx, ty);
 
         } else {
-            // Necessary path finding
-            route = this.findRoute(model.vertices(), opt);
-            // finds all the connection points taking new vertices into account
-            this._findConnectionPoints(route);
 
-            path = this.findPath(route);
+            var vertices = model.vertices();
+            // 1. Find Anchors
+
+            var anchors = this.findAnchors(vertices);
+            var sourceAnchor = this.sourceAnchor = anchors.source;
+            var targetAnchor = this.targetAnchor = anchors.target;
+
+            // 2. Find Route
+            route = this.findRoute(vertices, opt);
+
+            // 3. Find Connection Points
+            var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
+            var sourcePoint = this.sourcePoint = connectionPoints.source;
+            var targetPoint = this.targetPoint = connectionPoints.target;
+
+            // 3b. Find Marker Connection Point - Backwards Compatibility
+            var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
+
+            // 4. Find Connection
+            path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
         }
 
         this.route = route;
@@ -1040,23 +1055,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.metrics = {};
     },
 
-    _findConnectionPoints: function(vertices) {
+    findMarkerPoints: function(route, sourcePoint, targetPoint) {
 
-        // cache source and target points
-        var sourcePoint, targetPoint, sourceMarkerPoint, targetMarkerPoint;
-        var verticesArr = joint.util.toArray(vertices);
-
-        var firstVertex = verticesArr[0];
-
-        sourcePoint = this.getConnectionPoint(
-            'source', this.model.source(), firstVertex || this.model.target()
-        ).round();
-
-        var lastVertex = verticesArr[verticesArr.length - 1];
-
-        targetPoint = this.getConnectionPoint(
-            'target', this.model.target(), lastVertex || sourcePoint
-        ).round();
+        var firstWaypoint = route[0];
+        var lastWaypoint = route[route.length - 1];
 
         // Move the source point by the width of the marker taking into account
         // its scale around x-axis. Note that scale is the only transform that
@@ -1064,13 +1066,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // as all other transforms (translate/rotate) will be replaced
         // by the `translateAndAutoOrient()` function.
         var cache = this._markerCache;
+        // cache source and target points
+        var sourceMarkerPoint, targetMarkerPoint;
 
         if (this._V.markerSource) {
 
             cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-
             sourceMarkerPoint = g.point(sourcePoint).move(
-                firstVertex || targetPoint,
+                firstWaypoint || targetPoint,
                 cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
             ).round();
         }
@@ -1078,9 +1081,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._V.markerTarget) {
 
             cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-
             targetMarkerPoint = g.point(targetPoint).move(
-                lastVertex || sourcePoint,
+                lastWaypoint || sourcePoint,
                 cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
             ).round();
         }
@@ -1089,9 +1091,148 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
         cache.targetPoint = targetMarkerPoint || targetPoint.clone();
 
-        // make connection points public
-        this.sourcePoint = sourcePoint;
-        this.targetPoint = targetPoint;
+        return {
+            source: sourceMarkerPoint,
+            target: targetMarkerPoint
+        }
+    },
+
+    findAnchors: function(vertices) {
+
+        var model = this.model;
+        var firstVertex = vertices[0];
+        var lastVertex = vertices[vertices.length - 1];
+        var sourceDef = model.get('source');
+        var targetDef = model.get('target');
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        var paperOptions = this.paper.options;
+        var sourceMagnet, targetMagnet;
+
+        // Anchor Source
+        var sourceAnchor;
+        if (sourceView) {
+            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceAnchorRef;
+            if (firstVertex) {
+                sourceAnchorRef = new g.Point(firstVertex);
+            } else if (targetView) {
+                // TODO: the source anchor reference is not a point, how to deal with this?
+                sourceAnchorRef = this.targetMagnet || targetView.el;
+            } else {
+                sourceAnchorRef = new g.Point(targetDef);
+            }
+            var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultAnchor;
+            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
+        } else {
+            sourceAnchor = new g.Point(sourceDef);
+        }
+
+        // Anchor Target
+        var targetAnchor;
+        if (targetView) {
+            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
+            var targetAnchorDef = targetDef.anchor || paperOptions.defaultAnchor;
+            targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
+        } else {
+            targetAnchor = new g.Point(targetDef);
+        }
+
+        // Con
+        return {
+            source: sourceAnchor,
+            target: targetAnchor
+        }
+    },
+
+    findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
+
+        var firstWaypoint = route[0];
+        var lastWaypoint = route[route.length - 1];
+        var model = this.model;
+        var sourceDef = model.get('source');
+        var targetDef = model.get('target');
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        var paperOptions = this.paper.options;
+        var sourceMagnet, targetMagnet;
+
+        // Connection Point Source
+        var sourcePoint;
+        if (sourceView) {
+            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
+            var sourcePointRef = firstWaypoint || targetAnchor;
+            var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
+            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
+        } else {
+            sourcePoint = sourceAnchor;
+        }
+        // Connection Point Target
+        var targetPoint;
+        if (targetView) {
+            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
+            var targetPointRef = lastWaypoint || sourceAnchor;
+            var targetLine = new g.Line(targetPointRef, targetAnchor);
+            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
+        } else {
+            targetPoint = targetAnchor;
+        }
+
+        return {
+            source: sourcePoint,
+            target: targetPoint
+        }
+    },
+
+    getAnchor: function(anchorDef, cellView, magnet, ref) {
+
+        // Backwards compatibility
+        // If `perpendicularLinks` flag is set on the paper and there are vertices
+        // on the link, then try to find a connection point that makes the link perpendicular
+        // even though the link won't point to the center of the targeted object.
+        if (this.paper.options.perpendicularLinks || this.options.perpendicular) {
+            anchorDef = { name: 'perpendicular' };
+        }
+
+        if (!anchorDef) return bbox.center();
+        var anchorFn;
+        if (typeof anchorDef === 'function') {
+            anchorFn = anchorDef;
+        } else {
+            var anchorName = anchorDef.name;
+            anchorFn = joint.anchors[anchorName];
+            if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
+        }
+        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {});
+        return anchor || bbox.center();
+    },
+
+
+    getConnectionPoint: function(connectionPointDef, view, magnet, line, end) {
+
+        var connectionPoint;
+
+        // Backwards compatibility
+        var paperOptions = this.paper.options;
+        if (typeof paperOptions.linkConnectionPoint === 'function') {
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, end);
+            if (connectionPoint) return connectionPoint;
+        }
+
+        if (!connectionPointDef) return anchor;
+        var connectionPointFn;
+        if (typeof connectionPointDef === 'function') {
+            connectionPointFn = connectionPointDef;
+        } else {
+            var connectionPointName = connectionPointDef.name;
+            connectionPointFn = joint.connectionPoints[connectionPointName];
+            if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
+        }
+        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {});
+        return connectionPoint || anchor;
     },
 
     _translateConnectionPoints: function(tx, ty) {
@@ -1102,6 +1243,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         cache.targetPoint.offset(tx, ty);
         this.sourcePoint.offset(tx, ty);
         this.targetPoint.offset(tx, ty);
+        this.sourceAnchor.offset(tx, ty);
+        this.targetAnchor.offset(tx, ty);
     },
 
      // if label position is a number, normalize it to a position object
@@ -1253,41 +1396,44 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var selector = this.constructor.makeSelector(end);
             var oppositeEndType = endType == 'source' ? 'target' : 'source';
             var oppositeEnd = model.get(oppositeEndType) || {};
-            var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
+            var endId = end.id;
+            var oppositeEndId = oppositeEnd.id;
+            var oppositeSelector = oppositeEndId && this.constructor.makeSelector(oppositeEnd);
 
             // Caching end models bounding boxes.
             // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
             // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
             // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
-            if (opt.handleBy === this.cid && selector == oppositeSelector) {
+            if (opt.handleBy === this.cid && (endId === oppositeEndId) && selector == oppositeSelector) {
 
                 // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
-                this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
                 this[endType + 'View'] = this[oppositeEndType + 'View'];
                 this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
                 // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
-                // If `opt.translateBy` is an ID of the element that was originally translated. This allows us
-                // to just offset the cached bounding box by the translation instead of calculating the bounding
-                // box from scratch on every translate.
+                // If `opt.translateBy` is an ID of the element that was originally translated.
 
-                var bbox = this[endType + 'BBox'];
-                bbox.x += opt.tx;
-                bbox.y += opt.ty;
+                // Noop
 
             } else {
                 // The slowest path, source/target could have been rotated or resized or any attribute
                 // that affects the bounding box of the view might have been changed.
 
-                var view = this.paper.findViewByModel(end.id);
-                var magnetElement = view.el.querySelector(selector);
-
-                this[endType + 'BBox'] = view.getStrokeBBox(magnetElement);
-                this[endType + 'View'] = view;
-                this[endType + 'Magnet'] = magnetElement;
+                var connectedModel = this.paper.model.getCell(endId);
+                if (!connectedModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
+                var connectedView = connectedModel.findView(this.paper);
+                if (connectedView) {
+                    var connectedMagnet = connectedView.getMagnetFromLinkEnd(end);
+                    if (connectedMagnet === connectedView.el) connectedMagnet = null;
+                    this[endType + 'View'] = connectedView;
+                    this[endType + 'Magnet'] = connectedMagnet;
+                } else {
+                    // the view is not rendered yet
+                    this[endType + 'View'] = this[endType + 'Magnet'] = null;
+                }
             }
 
             if (opt.handleBy === this.cid && opt.translateBy &&
@@ -1301,12 +1447,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 doUpdate = false;
             }
 
-            if (!this.updatePostponed && oppositeEnd.id) {
+            if (!this.updatePostponed && oppositeEndId) {
                 // The update was not postponed (that can happen e.g. on the first change event) and the opposite
                 // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
                 // we're reacting on change:source event, the oppositeEnd is the target model).
 
-                var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
+                var oppositeEndModel = this.paper.getModelById(oppositeEndId);
 
                 // Passing `handleBy` flag via event option.
                 // Note that if we are listening to the same model for event 'change' twice.
@@ -1335,7 +1481,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         } else {
 
             // the link end is a point ~ rect 1x1
-            this[endType + 'BBox'] = g.rect(end.x || 0, end.y || 0, 1, 1);
             this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
@@ -1497,7 +1642,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         setTimeout(onAnimationEnd(vToken, callback), duration);
     },
 
-    findRoute: function(oldVertices) {
+    findRoute: function(vertices) {
+
+        vertices || (vertices = []);
 
         var namespace = joint.routers;
         var router = this.model.router();
@@ -1505,7 +1652,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!router) {
             if (defaultRouter) router = defaultRouter;
-            else return oldVertices; // no router specified
+            else return vertices.map(g.Point, g); // no router specified
         }
 
         var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
@@ -1515,19 +1662,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var args = router.args || {};
 
-        var newVertices = routerFn.call(
+        var route = routerFn.call(
             this, // context
-            oldVertices || [], // vertices
+            vertices, // vertices
             args, // options
             this // linkView
         );
 
-        return newVertices;
+        if (!route) return vertices.map(g.Point, g);
+        return route;
     },
 
     // Return the `d` attribute value of the `<path>` element representing the link
     // between `source` and `target`.
-    findPath: function(route) {
+    findPath: function(route, sourcePoint, targetPoint) {
 
         var namespace = joint.connectors;
         var connector = this.model.connector();
@@ -1547,9 +1695,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var path = connectorFn.call(
             this, // context
-            this._markerCache.sourcePoint, // source // Note that the value is translated by the size
-            this._markerCache.targetPoint, // target // of the marker. (We are not using this.sourcePoint)
-            route || this.model.vertices(), // vertices
+            sourcePoint, // start point
+            targetPoint, // end point
+            route, // vertices
             args, // options
             this // linkView
         );
@@ -1560,120 +1708,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         return path;
-    },
-
-    // Find a point that is the start of the connection.
-    // If `selectorOrPoint` is a point, then we're done and that point is the start of the connection.
-    // If the `selectorOrPoint` is an element however, we need to know a reference point (or element)
-    // that the link leads to in order to determine the start of the connection on the original element.
-    getConnectionPoint: function(end, selectorOrPoint, referenceSelectorOrPoint) {
-
-        var spot;
-
-        // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
-        // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
-        // set the `source`/`target` later.
-        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
-
-        if (!selectorOrPoint.id) {
-
-            // If the source is a point, we don't need a reference point to find the sticky point of connection.
-            spot = g.Point(selectorOrPoint);
-
-        } else {
-
-            // If the source is an element, we need to find a point on the element boundary that is closest
-            // to the reference point (or reference element).
-            // Get the bounding box of the spot relative to the paper viewport. This is necessary
-            // in order to follow paper viewport transformations (scale/rotate).
-            // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
-            // method, it exists since first render and are automatically updated
-            var spotBBox = g.Rect(end === 'source' ? this.sourceBBox : this.targetBBox);
-
-            var reference;
-
-            if (!referenceSelectorOrPoint.id) {
-
-                // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
-                reference = g.Point(referenceSelectorOrPoint);
-
-            } else {
-
-                // Reference was passed as an element, therefore we need to find a point on the reference
-                // element boundary closest to the source element.
-                // Get the bounding box of the spot relative to the paper viewport. This is necessary
-                // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBBox = g.Rect(end === 'source' ? this.targetBBox : this.sourceBBox);
-
-                reference = referenceBBox.intersectionWithLineFromCenterToPoint(spotBBox.center());
-                reference = reference || referenceBBox.center();
-            }
-
-            var paperOptions = this.paper.options;
-            // If `perpendicularLinks` flag is set on the paper and there are vertices
-            // on the link, then try to find a connection point that makes the link perpendicular
-            // even though the link won't point to the center of the targeted object.
-            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
-
-                var nearestSide;
-                var spotOrigin = spotBBox.origin();
-                var spotCorner = spotBBox.corner();
-
-                if (spotOrigin.y <= reference.y && reference.y <= spotCorner.y) {
-
-                    nearestSide = spotBBox.sideNearestToPoint(reference);
-                    switch (nearestSide) {
-                        case 'left':
-                            spot = g.Point(spotOrigin.x, reference.y);
-                            break;
-                        case 'right':
-                            spot = g.Point(spotCorner.x, reference.y);
-                            break;
-                        default:
-                            spot = spotBBox.center();
-                            break;
-                    }
-
-                } else if (spotOrigin.x <= reference.x && reference.x <= spotCorner.x) {
-
-                    nearestSide = spotBBox.sideNearestToPoint(reference);
-                    switch (nearestSide) {
-                        case 'top':
-                            spot = g.Point(reference.x, spotOrigin.y);
-                            break;
-                        case 'bottom':
-                            spot = g.Point(reference.x, spotCorner.y);
-                            break;
-                        default:
-                            spot = spotBBox.center();
-                            break;
-                    }
-
-                } else {
-
-                    // If there is no intersection horizontally or vertically with the object bounding box,
-                    // then we fall back to the regular situation finding straight line (not perpendicular)
-                    // between the object and the reference point.
-                    spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
-                    spot = spot || spotBBox.center();
-                }
-
-            } else if (paperOptions.linkConnectionPoint) {
-
-                var view = (end === 'target') ? this.targetView : this.sourceView;
-                var magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
-
-                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference, end);
-
-            } else {
-
-                spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
-                spot = spot || spotBBox.center();
-            }
-        }
-
-        return spot;
     },
 
     // Public API.
@@ -2062,7 +2096,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
 
         } else {
-            joint.dia.CellView.prototype.event.apply(this, arguments);
+            joint.dia.CellView.prototype.onevent.apply(this, arguments);
         }
     },
 
@@ -2220,7 +2254,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (paper.options.snapLinks) {
             this._snapArrowheadEnd(data);
         } else {
-            this._connectArrowheadEnd(data);
+            this._connectArrowheadEnd(data, x, y);
         }
 
         if (!paper.linkAllowed(this)) {
@@ -2287,16 +2321,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
         if (data.closestView) {
-            data.closestView.unhighlight(data.closestEnd.selector, {
+            data.closestView.unhighlight(data.closestMagnet, {
                 connecting: true,
                 snapping: true
             });
         }
-        data.closestView = data.closestEnd = null;
+        data.closestView = data.closestMagnet = null;
 
         var distance;
         var minDistance = Number.MAX_VALUE;
         var pointer = g.point(x, y);
+        var paper = this.paper;
 
         viewsInArea.forEach(function (view) {
 
@@ -2309,19 +2344,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < r && distance < minDistance) {
 
-                    if (this.paper.options.validateConnection.apply(
-                        this.paper, data.validateConnectionArgs(view, null)
+                    if (paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, null)
                     )) {
                         minDistance = distance;
                         data.closestView = view;
-                        data.closestEnd = { id: view.model.id };
+                        data.closestMagnet = view.el;
                     }
                 }
             }
 
-            view.$('[magnet]').each(function (index, magnet) {
+            view.$('[magnet]').each(function(index, magnet) {
 
-                var bbox = V(magnet).getBBox({ target: this.paper.viewport });
+                var bbox = view.getNodeBBox(magnet);
 
                 distance = pointer.distance({
                     x: bbox.x + bbox.width / 2,
@@ -2330,16 +2365,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (distance < r && distance < minDistance) {
 
-                    if (this.paper.options.validateConnection.apply(
-                        this.paper, data.validateConnectionArgs(view, magnet)
+                    if (paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, magnet)
                     )) {
                         minDistance = distance;
                         data.closestView = view;
-                        data.closestEnd = {
-                            id: view.model.id,
-                            selector: view.getSelector(magnet),
-                            port: view.findAttribute('port', magnet)
-                        };
+                        data.closestMagnet = magnet;
                     }
                 }
 
@@ -2347,14 +2378,21 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         }, this);
 
-        if (data.closestView) {
-            data.closestView.highlight(data.closestEnd.selector, {
+        var end;
+        var closestView = data.closestView;
+        var closestMagnet = data.closestMagnet;
+        var endType = data.arrowhead;
+        if (closestView) {
+            closestView.highlight(closestMagnet, {
                 connecting: true,
                 snapping: true
             });
+            end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+        } else {
+            end = { x: x, y: y };
         }
 
-        this.model.set(data.arrowhead, data.closestEnd || { x: x, y: y }, { ui: true });
+        this.model.set(endType, end || { x: x, y: y }, { ui: true });
     },
 
     _snapArrowheadEnd: function(data) {
@@ -2362,15 +2400,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Finish off link snapping.
         // Everything except view unhighlighting was already done on pointermove.
         var closestView = data.closestView;
-        var closestEnd = data.closestEnd;
-        if (closestView && closestEnd) {
+        var closestMagnet = data.closestMagnet;
+        if (closestView && closestMagnet) {
 
-            var selector = closestEnd.selector;
-            closestView.unhighlight(selector, { connecting: true, snapping: true });
-            data.magnetUnderPointer = closestView.findMagnet(selector);
+            closestView.unhighlight(closestMagnet, { connecting: true, snapping: true });
+            data.magnetUnderPointer = closestView.findMagnet(closestMagnet);
         }
 
-        data.closestView = data.closestEnd = null;
+        data.closestView = data.closestMagnet = null;
     },
 
     _connectArrowhead: function(target, x, y, data) {
@@ -2418,25 +2455,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.model.set(data.arrowhead, { x: x, y: y }, { ui: true });
     },
 
-    _connectArrowheadEnd: function(data) {
+    _connectArrowheadEnd: function(data, x, y) {
 
-        var viewUnderPointer = data.viewUnderPointer;
-        var magnetUnderPointer = data.magnetUnderPointer;
-        if (!magnetUnderPointer || !viewUnderPointer) return;
+        var view = data.viewUnderPointer;
+        var magnet = data.magnetUnderPointer;
+        if (!magnet || !view) return;
 
-        viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
-        // Find a unique `selector` of the element under pointer that is a magnet. If the
-        // `data.magnetUnderPointer` is the root element of the `data.viewUnderPointer` itself,
-        // the returned `selector` will be `undefined`. That means we can directly pass it to the
-        // `source`/`target` attribute of the link model below.
-        var selector = viewUnderPointer.getSelector(magnetUnderPointer);
-        var port = viewUnderPointer.findAttribute('port', magnetUnderPointer);
+        view.unhighlight(magnet, { connecting: true });
 
-        var arrowheadValue = { id: viewUnderPointer.model.id };
-        if (port != null) arrowheadValue.port = port;
-        if (selector != null) arrowheadValue.selector = selector;
-
-        this.model.set(data.arrowhead, arrowheadValue, { ui: true });
+        var endType = data.arrowhead;
+        var end = view.getLinkEnd(magnet, x, y, this.model, endType);
+        this.model.set(endType, end, { ui: true });
     },
 
     _beforeArrowheadMove: function(data) {
@@ -2595,16 +2624,50 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     makeSelector: function(end) {
 
-        var selector = '[model-id="' + end.id + '"]';
+        var selector = '';
         // `port` has a higher precendence over `selector`. This is because the selector to the magnet
         // might change while the name of the port can stay the same.
         if (end.port) {
-            selector += ' [port="' + end.port + '"]';
+            selector += '[port="' + end.port + '"]';
         } else if (end.selector) {
-            selector += ' ' + end.selector;
+            selector +=  end.selector;
         }
 
         return selector;
     }
 
+});
+
+
+Object.defineProperty(joint.dia.LinkView.prototype, 'sourceBBox', {
+
+    enumerable: true,
+
+    get: function() {
+        var sourceView = this.sourceView;
+        var sourceMagnet = this.sourceMagnet;
+        if (sourceView) {
+            if (!sourceMagnet) sourceMagnet = sourceView.el;
+            return sourceView.getNodeBBox(sourceMagnet);
+        }
+        var sourceDef = this.model.source();
+        return new g.Rect(sourceDef.x, sourceDef.y, 1, 1);
+    }
+
+});
+
+Object.defineProperty(joint.dia.LinkView.prototype, 'targetBBox', {
+
+    enumerable: true,
+
+    get: function() {
+        var targetView = this.targetView;
+        var targetMagnet = this.targetMagnet;
+        if (targetView) {
+            if (!targetMagnet) targetMagnet = targetView.el;
+            return targetView.getNodeBBox(targetMagnet);
+        }
+        var targetDef = this.model.target();
+        return new g.Rect(targetDef.x, targetDef.y, 1, 1);
+    }
 });

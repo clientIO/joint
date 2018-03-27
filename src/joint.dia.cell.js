@@ -818,6 +818,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
+    // ** Deprecated **
     getStrokeBBox: function(el) {
         // Return a bounding box rectangle that takes into account stroke.
         // Note that this is a naive and ad-hoc implementation that does not
@@ -829,7 +830,6 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         el = el || this.el;
         var bbox = V(el).getBBox({ target: this.paper.viewport });
-
         var strokeWidth;
         if (isMagnet) {
 
@@ -926,6 +926,51 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return selector;
+    },
+
+    getLinkEnd: function(magnet, x, y, link, endType) {
+
+        var model = this.model;
+        var id = model.id;
+        var port = this.findAttribute('port', magnet);
+        // Find a unique `selector` of the element under pointer that is a magnet.
+        var selector = magnet.getAttribute('joint-selector');
+
+        var end = { id: id };
+        if (selector != null) end.magnet = selector;
+        if (port != null) {
+            end.port = port;
+            if (!model.hasPort(port) && !selector) {
+                // port created via the `port` attribute (not API)
+                end.selector = this.getSelector(magnet);
+            }
+        } else if (selector == null && this.el !== magnet) {
+            end.selector = this.getSelector(magnet);
+        }
+
+        var paper = this.paper;
+        var connectionStrategy = paper.options.connectionStrategy;
+        if (typeof connectionStrategy === 'function') {
+            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
+            if (strategy) end = strategy;
+        }
+
+        return end;
+    },
+
+    getMagnetFromLinkEnd: function(end) {
+
+        var root = this.el;
+        var port = end.port;
+        var selector = end.magnet;
+        var magnet;
+        if (port != null && this.model.hasPort(port)) {
+            magnet = this.findPortNode(port, selector) || root;
+        } else {
+            magnet = this.findBySelector(selector || end.selector, root, this.selectors)[0];
+        }
+
+        return magnet;
     },
 
     findAttribute: function(attributeName, node) {
@@ -1112,6 +1157,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             nodeMatrix.e = nodePosition.x;
             nodeMatrix.f = nodePosition.y;
             node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+            // TODO: store nodeMatrix metrics?
         }
     },
 

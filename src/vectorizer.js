@@ -1095,6 +1095,56 @@ V = Vectorizer = (function() {
         throw new Error(tagName + ' cannot be converted to PATH.');
     };
 
+    V.prototype.toGeometryShape = function() {
+        var x, y, width, height, cx, cy, r, rx, ry, points, d;
+        switch (this.tagName()) {
+
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                width = parseFloat(this.attr('width')) || 0;
+                height = parseFloat(this.attr('height')) || 0;
+                return new g.Rect(x, y, width, height);
+
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy = parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+                return new g.Ellipse({ x: cx, y: cy }, r, r);
+
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy = parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+                return new g.Ellipse({ x: cx, y: cy }, rx, ry);
+
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return new g.Polyline(points);
+
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                if (points.length > 1) points.push(points[0]);
+                return new g.Polyline(points);
+
+            case 'PATH':
+                d = this.attr('d');
+                if (!g.Path.isDataSupported(d)) d = V.normalizePathData(d);
+                return new g.Path(d);
+
+            case 'LINE':
+                x1 = parseFloat(this.attr('x1')) || 0;
+                y1 = parseFloat(this.attr('y1')) || 0;
+                x2 = parseFloat(this.attr('x2')) || 0;
+                y2 = parseFloat(this.attr('y2')) || 0;
+                return new g.Line({ x: x1, y: y1 }, { x: x2, y: y2 });
+        }
+
+        // Anything else is a rectangle
+        return this.getBBox();
+    },
+
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
     // `target` is an SVG element to which `node`s transformations are relative to.
@@ -1606,6 +1656,23 @@ V = Vectorizer = (function() {
         return new g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
 
+    V.transformLine = function(l, matrix) {
+
+        return new g.Line(
+            V.transformPoint(l.start, matrix),
+            V.transformPoint(l.end, matrix)
+        );
+    };
+
+    V.transformPolyline = function(p, matrix) {
+
+        var inPoints = (p instanceof g.Polyline) ? p.points : p;
+        if (!V.isArray(inPoints)) inPoints = [];
+        var outPoints = [];
+        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i], matrix);
+        return new g.Polyline(outPoints);
+    },
+
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).
     V.styleToObject = function(styleString) {
@@ -1833,27 +1900,23 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        var points = V.getPointsFromSvgNode(V(polygon).node);
-
-        if (!(points.length > 0)) return null;
+        var points = V.getPointsFromSvgNode(polygon);
+        if (points.length === 0) return null;
 
         return V.svgPointsToPath(points) + ' Z';
     };
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(V(polyline).node);
-
-        if (!(points.length > 0)) return null;
+        var points = V.getPointsFromSvgNode(polyline);
+        if (points.length === 0) return null;
 
         return V.svgPointsToPath(points);
     };
 
     V.svgPointsToPath = function(points) {
 
-        var i;
-
-        for (i = 0; i < points.length; i++) {
+        for (var i = 0, n = points.length; i < n; i++) {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
@@ -1866,7 +1929,7 @@ V = Vectorizer = (function() {
         var points = [];
         var nodePoints = node.points;
         if (nodePoints) {
-            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+            for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
                 points.push(nodePoints.getItem(i));
             }
         }

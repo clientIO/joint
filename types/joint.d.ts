@@ -345,6 +345,8 @@ export namespace dia {
 
         rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { [key: string]: any }): this;
 
+        angle(): number;
+
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
         fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
@@ -378,9 +380,23 @@ export namespace dia {
 
     export namespace Link {
 
+        interface EndCellJSON {
+            id: number | string;
+            magnet?: string;
+            selector?: string;
+            port?: string;
+            anchor?: anchors.AnchorJSON;
+            connectionPoint?: connectionPoints.ConnectionPointJSON;
+        }
+
+        interface EndPointJSON {
+            x: number;
+            y: number;
+        }
+
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
-            source?: Point | { id: string, selector?: string, port?: string };
-            target?: Point | { id: string, selector?: string, port?: string };
+            source?: EndCellJSON | EndPointJSON;
+            target?: EndCellJSON | EndPointJSON;
             labels?: Label[];
             vertices?: Point[];
             manhattan?: boolean;
@@ -440,11 +456,11 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): Point | { id: string | number, selector?: string, port?: string } | null | undefined;
-        source(source: Point | { id: string | number, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        source(): Link.EndCellJSON | Link.EndPointJSON;
+        source(source: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
 
-        target(): Point | { id: string | number, selector?: string, port?: string } | null | undefined;
-        target(target: Point | { id: string | number, selector?: string, port?: string } | null, opt?: Cell.Options): this;
+        target(): Link.EndCellJSON | Link.EndPointJSON;
+        target(target: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
 
         router(): routers.Router | routers.RouterJSON | null;
         router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
@@ -804,6 +820,8 @@ export namespace dia {
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
+            defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
         }
 
         interface ScaleContentOptions {
@@ -2239,6 +2257,125 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+}
+
+// anchors
+
+export namespace anchors {
+
+    interface RotateAnchorArguments {
+        rotate?: boolean;
+    }
+
+    interface BBoxAnchorArguments extends RotateAnchorArguments {
+        dx?: number | string;
+        dy?: number | string;
+    }
+
+    interface PaddingAnchorArguments {
+        padding?: number;
+    }
+
+    interface MidSideAnchorArguments extends RotateAnchorArguments, PaddingAnchorArguments {
+
+    }
+
+    interface AnchorArgumentsMap {
+        'center': BBoxAnchorArguments,
+        'top': BBoxAnchorArguments,
+        'bottom': BBoxAnchorArguments,
+        'left': BBoxAnchorArguments,
+        'right': BBoxAnchorArguments,
+        'topLeft': BBoxAnchorArguments,
+        'topRight': BBoxAnchorArguments,
+        'bottomLeft': BBoxAnchorArguments,
+        'bottomRight': BBoxAnchorArguments,
+        'perpendicular': PaddingAnchorArguments;
+        'midSide': MidSideAnchorArguments;
+        [key: string]: { [key: string]: any };
+    }
+
+    type AnchorType = keyof AnchorArgumentsMap;
+
+    interface GenericAnchor<K extends AnchorType> {
+        (
+            view: dia.CellView,
+            magnet: SVGElement,
+            ref: g.Point | SVGElement,
+            opt: AnchorArgumentsMap[K]
+        ): g.Point;
+    }
+
+    interface GenericAnchorJSON<K extends AnchorType> {
+        name: K;
+        args?: AnchorArgumentsMap[K];
+    }
+
+    type Anchor = GenericAnchor<AnchorType>;
+
+    type AnchorJSON = GenericAnchorJSON<AnchorType>;
+
+    export var center: GenericAnchor<'center'>;
+    export var top: GenericAnchor<'top'>;
+    export var bottom: GenericAnchor<'bottom'>;
+    export var left: GenericAnchor<'left'>;
+    export var right: GenericAnchor<'right'>;
+    export var topLeft: GenericAnchor<'topLeft'>;
+    export var topRight: GenericAnchor<'topRight'>;
+    export var bottomLeft: GenericAnchor<'bottomLeft'>;
+    export var bottomRight: GenericAnchor<'bottomRight'>;
+    export var perpendicular: GenericAnchor<'perpendicular'>;
+    export var midSide: GenericAnchor<'midSide'>;
+}
+
+// connection points
+
+export namespace connectionPoints {
+
+    interface ConnectionPointArguments {
+        offset?: number;
+    }
+
+    interface BoundaryConnectionPointArguments extends ConnectionPointArguments {
+        selector?: Array<string | number> | string;
+        precision?: number;
+        extrapolate?: boolean;
+        sticky?: boolean;
+        insideout?: boolean;
+    }
+
+    interface ConnectionPointArgumentsMap {
+        'anchor': ConnectionPointArguments,
+        'bbox': ConnectionPointArguments,
+        'rectangle': ConnectionPointArguments,
+        'boundary': BoundaryConnectionPointArguments,
+        [key: string]: { [key: string]: any };
+    }
+
+    type ConnectionPointType = keyof ConnectionPointArgumentsMap;
+
+    interface GenericConnectionPoint<K extends ConnectionPointType> {
+        (
+            line: g.Line,
+            view: dia.CellView,
+            magnet: SVGElement,
+            opt: ConnectionPointArgumentsMap[K]
+        ): g.Point;
+    }
+
+    interface GenericConnectionPointJSON<K extends ConnectionPointType> {
+        name: K;
+        args?: ConnectionPointArgumentsMap[K];
+    }
+
+    type ConnectionPoint = GenericConnectionPoint<ConnectionPointType>;
+
+    type ConnectionPointJSON = GenericConnectionPointJSON<ConnectionPointType>;
+
+    export var anchor: GenericConnectionPoint<'anchor'>;
+    export var bbox: GenericConnectionPoint<'bbox'>;
+    export var rectangle: GenericConnectionPoint<'rectangle'>;
+    export var boundary: GenericConnectionPoint<'boundary'>;
 }
 
 // highlighters

@@ -360,6 +360,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
+    angle: function() {
+        return g.normalizeAngle(this.get('angle') || 0);
+    },
+
     getBBox: function(opt) {
 
         opt = opt || {};
@@ -378,7 +382,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         var position = this.get('position');
         var size = this.get('size');
 
-        return g.rect(position.x, position.y, size.width, size.height);
+        return new g.Rect(position.x, position.y, size.width, size.height);
     }
 });
 
@@ -411,6 +415,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return classNames.join(' ');
     },
 
+    metrics: null,
+
     initialize: function() {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -423,6 +429,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.listenTo(model, 'change:markup', this.render);
 
         this._initializePorts();
+
+        this.metrics = {};
     },
 
     /**
@@ -433,6 +441,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     },
 
     update: function(cell, renderingOnlyAttrs) {
+
+        this.metrics = {};
 
         this._removePorts();
 
@@ -555,12 +565,93 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     getBBox: function (opt) {
 
+        var bbox;
         if (opt && opt.useModelGeometry) {
-            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
-            return this.paper.localToPaperRect(bbox);
+            var model = this.model;
+            bbox = model.getBBox().bbox(model.angle());
+        } else {
+            bbox = this.getNodeBBox(this.el);
         }
 
-        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
+        return this.paper.localToPaperRect(bbox);
+    },
+
+    nodeCache: function(magnet) {
+
+        var id = V.ensureId(magnet);
+        var metrics = this.metrics[id];
+        if (!metrics) metrics = this.metrics[id] = {};
+        return metrics;
+    },
+
+    getNodeData: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (!metrics.data) metrics.data = {};
+        return metrics.data;
+    },
+
+    getNodeBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        var rotateMatrix = this.getRootRotateMatrix();
+        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+    },
+
+    getNodeBoundingRect: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
+        return new g.Rect(metrics.boundingRect);
+    },
+
+    getNodeUnrotatedBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
+    },
+
+    getNodeShape: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
+        return metrics.geometryShape.clone();
+    },
+
+    getNodeMatrix: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.magnetMatrix === undefined) {
+            var target = this.rotatableNode || this.el;
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
+        }
+        return V.createSVGMatrix(metrics.magnetMatrix);
+    },
+
+    getRootTranslateMatrix: function() {
+
+        var model = this.model;
+        var position = model.position();
+        var mt = V.createSVGMatrix().translate(position.x, position.y);
+        return mt;
+    },
+
+    getRootRotateMatrix: function() {
+
+        var mr = V.createSVGMatrix();
+        var model = this.model;
+        var angle = model.angle();
+        if (angle) {
+            var bbox = model.getBBox();
+            var cx = bbox.width / 2;
+            var cy = bbox.height / 2;
+            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
+        }
+        return mr;
     },
 
     // Rotatable & Scalable Group
@@ -881,18 +972,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var paper = this.paper;
         var graph = paper.model;
-        var link = paper.getDefaultLink(this, evt.target);
+        var magnet = evt.target;
+        var link = paper.getDefaultLink(this, magnet);
+        var sourceEnd = this.getLinkEnd(magnet, x, y, link, 'source');
+        var targetEnd = { x: x, y: y };
 
-        link.set({
-            source: {
-                id: this.model.id,
-                port: this.findAttribute('port', evt.target),
-                selector: this.getSelector(evt.target),
-            },
-            target: { x: x, y: y }
-        });
-
-        link.addTo(graph, { async: false });
+        link.set({ source: sourceEnd, target: targetEnd });
+        link.addTo(graph, { async: false, ui: true });
 
         var linkView = link.findView(paper);
         joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);

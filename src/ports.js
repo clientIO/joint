@@ -468,9 +468,23 @@
 
     util.assign(joint.dia.ElementView.prototype, {
 
-        portContainerMarkup: '<g class="joint-port"/>',
-        portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
-        portLabelMarkup: '<text class="joint-port-label" fill="#000000"/>',
+        portContainerMarkup: 'g',
+        portMarkup: [{
+            tagName: 'circle',
+            selector: 'circle',
+            attributes: {
+                'r': 10,
+                'fill': '#FFFFFF',
+                'stroke': '#000000'
+            }
+        }],
+        portLabelMarkup: [{
+            tagName: 'text',
+            selector: 'text',
+            attributes: {
+                'fill': '#000000'
+            }
+        }],
         /** @type {Object<string, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
         _portElementsCache: null,
 
@@ -585,6 +599,14 @@
             return this._createPortElement(port);
         },
 
+        findPortNode: function(portId, selector) {
+            var portCache = this._portElementsCache[portId];
+            if (!portCache) return null;
+            var portRoot = portCache.portContentElement.node;
+            var portSelectors = portCache.portContentSelectors;
+            return this.findBySelector(selector, portRoot, portSelectors)[0];
+        },
+
         /**
          * @private
          */
@@ -611,28 +633,86 @@
          */
         _createPortElement: function(port) {
 
-            var portContentElement = V(this._getPortMarkup(port));
-            var portLabelContentElement = V(this._getPortLabelMarkup(port.label));
 
-            if (portContentElement && portContentElement.length > 1) {
-                throw new Error('ElementView: Invalid port markup - multiple roots.');
+            var portElement;
+            var labelElement;
+
+            var portMarkup = this._getPortMarkup(port);
+            var portSelectors;
+            if (Array.isArray(portMarkup)) {
+                var portDoc = util.parseDOMJSON(portMarkup);
+                var portFragment = portDoc.fragment;
+                if (portFragment.childNodes.length > 1) {
+                    portElement = V('g').append(portFragment);
+                } else {
+                    portElement = V(portFragment.firstChild);
+                }
+                portSelectors = portDoc.selectors;
+            } else {
+                portElement = V(portMarkup);
+                if (Array.isArray(portElement)) {
+                    portElement = V('g').append(portElement);
+                }
             }
 
-            portContentElement.attr({
+            if (!portElement) {
+                throw new Error('ElementView: Invalid port markup.');
+            }
+
+            portElement.attr({
                 'port': port.id,
                 'port-group': port.group
             });
 
-            var portElement = V(this.portContainerMarkup)
-                .append(portContentElement)
-                .append(portLabelContentElement);
+            var labelMarkup = this._getPortLabelMarkup(port.label);
+            var labelSelectors;
+            if (Array.isArray(labelMarkup)) {
+                var labelDoc = util.parseDOMJSON(labelMarkup);
+                var labelFragment = labelDoc.fragment;
+                if (labelFragment.childNodes.length > 1) {
+                    labelElement = V('g').append(labelFragment);
+                } else {
+                    labelElement = V(labelFragment.firstChild);
+                }
+                labelSelectors = labelDoc.selectors;
+            } else {
+                labelElement = V(labelMarkup);
+                if (Array.isArray(labelElement)) {
+                    labelElement = V('g').append(labelElement);
+                }
+            }
+
+            if (!labelElement) {
+                throw new Error('ElementView: Invalid port label markup.');
+            }
+
+            var portContainerSelectors;
+            if (portSelectors && labelSelectors) {
+                for (var key in labelSelectors) {
+                    if (portSelectors[key]) throw new Error('ElementView: selectors within port must be unique.');
+                }
+                portContainerSelectors = util.assign({}, portSelectors, labelSelectors);
+            } else {
+                portContainerSelectors = portSelectors || labelSelectors;
+            }
+
+            var portContainerElement = V(this.portContainerMarkup)
+                .addClass('joint-port')
+                .append([
+                    portElement.addClass('joint-port-body'),
+                    labelElement.addClass('joint-port-label')
+                ]);
 
             this._portElementsCache[port.id] = {
-                portElement: portElement,
-                portLabelElement: portLabelContentElement
+                portElement: portContainerElement,
+                portLabelElement: labelElement,
+                portSelectors: portContainerSelectors,
+                portLabelSelectors: labelSelectors,
+                portContentElement: portElement,
+                portContentSelectors: portSelectors
             };
 
-            return portElement;
+            return portContainerElement;
         },
 
         /**
@@ -651,14 +731,16 @@
                 var portTransformation = metrics.portTransformation;
                 this.applyPortTransform(cached.portElement, portTransformation);
                 this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-                    rootBBox: g.Rect(metrics.portSize)
+                    rootBBox: new g.Rect(metrics.portSize),
+                    selectors: cached.portSelectors
                 });
 
                 var labelTransformation = metrics.labelTransformation;
                 if (labelTransformation) {
                     this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
                     this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
-                        rootBBox: g.Rect(metrics.labelSize)
+                        rootBBox: new g.Rect(metrics.labelSize),
+                        selectors: cached.portLabelSelectors
                     });
                 }
             }

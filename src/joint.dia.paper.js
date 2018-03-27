@@ -91,7 +91,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         // e.g. { name: 'oneSide', args: { padding: 10 }} or a function
         defaultRouter: { name: 'normal' },
 
+        defaultAnchor: { name: 'center' },
+
+        defaultConnectionPoint: { name: 'bbox' },
+
         /* CONNECTING */
+
+        connectionStrategy: null,
 
         // Check whether to add a new link to the graph when user clicks on an a magnet.
         validateMagnet: function(cellView, magnet) {

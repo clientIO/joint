@@ -1,0 +1,5 @@
+<pre class="docs-method-signature"><code>V.transformLine(line, matrix)</code></pre>
+<p>Transform a line by an SVG transformation represented by <code>matrix</code>.</p>
+<pre><code>var line = new g.Line({ x: 10, y: 20 }, { x: 100, y: 200 });
+var rotatedLine = V.transformLine(line, V.createSVGMatrix().rotate(45));
+</code></pre>

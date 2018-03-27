@@ -329,5 +329,18 @@ QUnit.module('point', function() {
                 assert.equal(p0.cross(p2, p1), -3);
             });
         });
+
+        QUnit.module('lerp(p, t)', function() {
+
+            QUnit.test('returns the linear interpolation of vector p0@p1 at parameter t', function (assert) {
+
+                var p0 = new g.Point(10, 20)
+                var p1 = new g.Point(30, 40);
+
+                assert.equal(p0.lerp(p1, 0).toString(), '10@20');
+                assert.equal(p0.lerp(p1, 0.5).toString(), '20@30');
+                assert.equal(p0.lerp(p1, 1).toString(), '30@40');
+            });
+        });
     });
 });

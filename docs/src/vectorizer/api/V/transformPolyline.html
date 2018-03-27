@@ -1,0 +1,5 @@
+<pre class="docs-method-signature"><code>V.transformPolyline(polyline, matrix)</code></pre>
+<p>Transform a polyline (or an array of points) by an SVG transformation represented by <code>matrix</code>.</p>
+<pre><code>var polyline = new g.Polyline([{ x: 10, y: 20 }, { x: 20, y: 30 }, { x: 100, y: 30 }]);
+var rotatedPolyline = V.transformPolyline(polyline, V.createSVGMatrix().rotate(45));
+</code></pre>

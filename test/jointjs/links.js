@@ -352,7 +352,7 @@ QUnit.module('links', function(hooks) {
         var linkView = this.paper.findViewByModel(link);
 
         // disconnect:
-        link.set('source', linkView.getConnectionPoint('source', link.previous('source'), link.get('target')));
+        link.set('source', linkView.sourcePoint.toJSON());
 
         assert.notOk(link.get('source').id, 'source of the link became a point');
         assert.ok(link.get('target').id, 'target of the link is still not a point');
@@ -373,7 +373,7 @@ QUnit.module('links', function(hooks) {
         assert.checkDataPath(linkView.$('.connection').attr('d'), 'M 140 70 L 320 70', 'link path data updated after the just connected source moved');
 
         // disconnect:
-        link.set('target', linkView.getConnectionPoint('target', link.previous('target'), link.get('source')));
+        link.set('target', linkView.targetPoint.toJSON());
 
         assert.notOk(link.get('target').id, 'target of the link became a point');
         assert.ok(link.get('source').id, 'source of the link is still not a point');
@@ -825,11 +825,11 @@ QUnit.module('links', function(hooks) {
         simulate.mouseup({ el: myrect2View.$('text')[0] });
 
         var link = this.graph.getLinks()[0];
-
+        var linkView = link.findView(this.paper);
         assert.equal(link.get('source').port, 'port1', 'port was automatically assigned to the link source');
         assert.equal(link.get('target').port, 'port2', 'port was automatically assigned to the link target');
-        assert.equal(myrectView.$(link.get('source').selector)[0], myrectView.$('text')[0], 'source selector points to the magnet element');
-        assert.equal(myrect2View.$(link.get('target').selector)[0], myrect2View.$('text')[0], 'target selector points to the magnet element');
+        assert.equal(linkView.sourceMagnet, myrectView.$('text')[0], 'source selector points to the magnet element');
+        assert.equal(linkView.targetMagnet, myrect2View.$('text')[0], 'target selector points to the magnet element');
 
         // The functionality below is not implemented, hence skiping the test.
         // myrect.attr('text', { port: 'port3' });
