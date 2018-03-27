@@ -731,7 +731,7 @@
                 var portTransformation = metrics.portTransformation;
                 this.applyPortTransform(cached.portElement, portTransformation);
                 this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-                    rootBBox: g.Rect(metrics.portSize),
+                    rootBBox: new g.Rect(metrics.portSize),
                     selectors: cached.portSelectors
                 });
 
@@ -739,7 +739,7 @@
                 if (labelTransformation) {
                     this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
                     this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
-                        rootBBox: g.Rect(metrics.labelSize),
+                        rootBBox: new g.Rect(metrics.labelSize),
                         selectors: cached.portLabelSelectors
                     });
                 }
