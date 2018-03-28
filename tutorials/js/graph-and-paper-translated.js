@@ -25,9 +25,7 @@
         },
         label: {
             text: 'Hello',
-            style: {
-                fill: 'white'
-            }
+            fill: 'white'
         }
     });
     rect.addTo(graph);

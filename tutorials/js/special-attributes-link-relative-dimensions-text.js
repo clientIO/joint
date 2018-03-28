@@ -12,7 +12,7 @@
         background: {
             color: 'rgba(0, 255, 0, 0.3)'
         },
-        interactive: true
+        interactive: false
     });
 
     var CustomLink = joint.dia.Link.define('examples.CustomLink', {
@@ -20,21 +20,12 @@
             line: {
                 connection: true,
                 fill: 'none',
-                stroke: 'orange',
+                stroke: '#333333',
                 strokeWidth: 2,
-                sourceMarker: {
-                    'type': 'circle',
-                    'r': 4,
-                    'fill': 'white',
-                    'stroke': 'orange',
-                    'stroke-width': '2'
-                },
+                strokeLinejoin: 'round',
                 targetMarker: {
-                    'type': 'circle',
-                    'r': 4,
-                    'fill': 'white',
-                    'stroke': 'orange',
-                    'stroke-width': '2'
+                    type: 'path',
+                    d: 'M 10 -5 0 0 10 5 z'
                 }
             },
             relativeLabel: {
@@ -120,8 +111,11 @@
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
                 text: '＊',
-                fill: '#ff0000',
-                fontSize: 20
+                fill: 'red',
+                stroke: 'black',
+                strokeWidth: 1.2,
+                fontSize: 30,
+                fontWeight: 'bold'
             },
             offsetLabelPositiveConnector: {
                 atConnectionRatio: 0.66,

@@ -23,9 +23,7 @@
         },
         label: {
             text: 'Hello',
-            style: {
-                fill: 'white'
-            }
+            fill: 'white'
         }
     });
     rect.addTo(graph);
@@ -42,12 +40,10 @@
         },
         label: {
             text: 'World!',
-            style: {
-                fill: '#3498DB',
-                fontSize: 18,
-                fontWeight: 'bold',
-                fontVariant: 'small-caps'
-            }
+            fill: '#3498DB',
+            fontSize: 18,
+            fontWeight: 'bold',
+            fontVariant: 'small-caps'
         }
     });
     rect2.addTo(graph);
@@ -69,11 +65,9 @@
         },
         label: {
             text: 'Hello',
-            style: {
-                fill: '#ECF0F1',
-                fontSize: 11,
-                fontVariant: 'small-caps'
-            }
+            fill: '#ECF0F1',
+            fontSize: 11,
+            fontVariant: 'small-caps'
         }
     });
     rect3.addTo(graph);
@@ -88,10 +82,8 @@
         },
         label: {
             text: 'World!',
-            style: {
-                fill: 'white',
-                fontSize: 13
-            }
+            fill: 'white',
+            fontSize: 13
         }
     });
     rect4.addTo(graph);
@@ -111,10 +103,8 @@
         },
         label: {
             text: 'Hello',
-            style: {
-                fill: 'black',
-                fontSize: 13
-            }
+            fill: 'black',
+            fontSize: 13
         }
     });
     rect5.addTo(graph);
@@ -131,13 +121,11 @@
         },
         label: {
             text: 'World!',
-            style: {
-                fill: 'gray',
-                fontSize: 18,
-                fontWeight: 'bold',
-                fontVariant: 'small-caps',
-                textShadow: '1px 1px 1px black'
-            }
+            fill: 'gray',
+            fontSize: 18,
+            fontWeight: 'bold',
+            fontVariant: 'small-caps',
+            textShadow: '1px 1px 1px black'
         }
     });
     rect6.addTo(graph);

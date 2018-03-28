@@ -12,7 +12,7 @@
         background: {
             color: 'rgba(0, 255, 0, 0.3)'
         },
-        interactive: true
+        interactive: false
     });
 
     var CustomLink = joint.dia.Link.define('examples.CustomLink', {

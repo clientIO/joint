@@ -48,15 +48,40 @@
                 <li><a href="/docs/jointjs#dia.Graph.prototype.toJSON" target="_blank"><code>graph.toJSON()</code></a> -
                 converts the whole graph into a JSON object.</li>
                 <li><a href="/docs/jointjs#dia.Graph.prototype.fromJSON" target="_blank"><code>graph.fromJSON()</code></a>
-                - converts a JSON object into a graph.</li>
+                - overwrite current graph contents with converted contents of a provided JSON object.</li>
             </ul>
 
-            <p>The two functions work with JSON objects - not JSON strings.
-                However, you can easily convert back and forth using the native JavaScript <code>JSON.stringify()</code>
-                and <code>JSON.parse()</code> functions.
-                Depending on how you store your app data, you may store the JSON objects directly (e.g. in a
-                non-relational database like MongoDB), or in the stringified form (which can be stored anywhere
-                plaintext can be stored, at the added cost of stringifying/parsing of the JSON object).</p>
+            <p>Note that the functions are also able to preserve any custom properties you save on the graph:</p>
+
+            <pre><code>var graph1 = new joint.dia.Graph();
+graph1.set('customAttribute', true);
+var jsonObject = graph1.toJSON();
+
+// transmission of `jsonObject` across network etc.
+
+var graph2 = new joint.dia.Graph(); // new empty graph
+graph2.fromJSON(jsonObject);
+graph2.get('customAttribute'); // returns true</code></pre>
+
+            <p>It is important to remember that the two functions work with JSON objects - not JSON strings.
+                However, if necessary, you can easily convert back and forth using the native JavaScript
+                <code>JSON.stringify()</code> and <code>JSON.parse()</code> functions:</p>
+
+            <pre><code>var graph1 = new joint.dia.Graph();
+var jsonObject = graph1.toJSON();
+var jsonString = JSON.stringify(jsonObject);
+
+// transmission of `jsonString` across network etc.
+
+var graph2 = new joint.dia.Graph(); // new empty graph
+graph2.fromJSON(JSON.parse(jsonString));</code></pre>
+
+            <p>Depending on how you store/transmit your app data, you may work with the JSON objects directly (e.g. when
+                storing it in a non-relational database like MongoDB), or in the stringified form (which can be stored
+                anywhere plaintext can be stored, at the added cost of stringifying &amp; parsing of the JSON object for
+                every transmission).</p>
+
+            <h3 id="limitations">Limitations</h3>
 
             <p>Keep in mind the general limitations of the JSON format.
                 Some commonly used native JavaScript data types (including <code>Function</code>, <code>Date</code>, and
@@ -68,14 +93,14 @@
                 <code>joint.dia.Element</code> and <code>joint.dia.Link</code> types.</p>
 
             <p>Additionally, if you want to make use of the JSON objects and directly store them into MongoDB, you
-                should remember its additional limitation that object keys must not start with the <code>.</code> (dot)
-                and <code>$</code> (dollar sign) symbols.
-                Those are reserved for internal use of the database.
+                should remember its additional restriction on object keys starting with the <code>.</code> (dot) or
+                <code>$</code> (dollar sign) symbols.
+                Those are reserved for internal use of the MongoDB system.
                 This is significant in the context of JointJS because it precludes the use of CSS-style selectors in the
                 <code>attrs</code> arrays of your Elements and Links.
                 Therefore, if persistence is important to you and you want to save data directly to MongoDB, you should
-                always define custom subelement selectors in your markup and instead of relying on CSS-style
-                selectors.</p>
+                always define <a href="custom-elements.html#markup">custom subelement selectors in the markup of your
+                custom elements</a> instead of relying on CSS-style selectors.</p>
 
             <p><a href="custom-elements.html">In the next section of the intermediate tutorial, we will learn about
                 creating custom elements.</a></p>

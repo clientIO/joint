@@ -52,7 +52,7 @@
                 <a href="custom-elements.html">more advanced topics are covered later in the tutorial series</a>.
                 We will continue with the code we modified in the previous section:</p>
 
-            <pre class="line-numbers" data-line="33-47,49-52"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="33-45,47-50"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -93,9 +93,7 @@
             },
             label: {
                 text: 'Hello',
-                style: {
-                    fill: 'white'
-                }
+                fill: 'white'
             }
         });
         rect.addTo(graph);
@@ -197,19 +195,17 @@
                 <a href="/docs/jointjs#shapes.standard" target="_blank">documentation</a> for detailed information.</p>
 
             <p>In the case of the <code>rect</code> element, we can see that the <code>body</code> selector is assigned
-                a <code>fill</code> color attribute, while at the same time the <code>label</code> selector has its
-                <code>text</code> attribute set to <code>'Hello'</code>, and its <code>style</code> specified.
-                Note that the <code>style</code> attribute can be assigned an object as well as a string.</p>
+                a <code>fill</code> color attribute, while the <code>label</code> selector also has its
+                <code>text</code> content set to <code>'Hello'</code> (via a
+                <a href="/docs/jointjs#dia.attributes.text">JointJS special attribute</a>).</p>
 
             <pre><code>rect.attr({
     body: { // selector for the &lt;rect&gt; SVGElement
-        fill: 'blue' // SVG attribute and value
+        fill: 'blue'
     },
     label: { // selector for the &lt;text&gt; SVGElement
-        text: 'Hello', // SVG attribute and value
-        style: { // SVG `style` attribute in object form
-            fill: 'white'
-        }
+        text: 'Hello',
+        fill: 'white'
     }
 });</code></pre>
 
@@ -241,7 +237,7 @@
 
             <div class="paper" id="paper-elements"></div>
 
-            <pre class="line-numbers" data-line="33-47,49-69,76-95,97-113,120-136,138-159" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="33-45,47-65,72-89,91-105,112-126,128-147" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -282,9 +278,7 @@
             },
             label: {
                 text: 'Hello',
-                style: {
-                    fill: 'white'
-                }
+                fill: 'white'
             }
         });
         rect.addTo(graph);
@@ -301,12 +295,10 @@
             },
             label: {
                 text: 'World!',
-                style: {
-                    fill: '#3498DB',
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    fontVariant: 'small-caps'
-                }
+                fill: '#3498DB',
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontVariant: 'small-caps'
             }
         });
         rect2.addTo(graph);
@@ -328,11 +320,9 @@
             },
             label: {
                 text: 'Hello',
-                style: {
-                    fill: '#ECF0F1',
-                    fontSize: 11,
-                    fontVariant: 'small-caps'
-                }
+                fill: '#ECF0F1',
+                fontSize: 11,
+                fontVariant: 'small-caps'
             }
         });
         rect3.addTo(graph);
@@ -347,10 +337,8 @@
             },
             label: {
                 text: 'World!',
-                style: {
-                    fill: 'white',
-                    fontSize: 13
-                }
+                fill: 'white',
+                fontSize: 13
             }
         });
         rect4.addTo(graph);
@@ -370,10 +358,8 @@
             },
             label: {
                 text: 'Hello',
-                style: {
-                    fill: 'black',
-                    fontSize: 13
-                }
+                fill: 'black',
+                fontSize: 13
             }
         });
         rect5.addTo(graph);
@@ -390,13 +376,11 @@
             },
             label: {
                 text: 'World!',
-                style: {
-                    fill: 'gray',
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    fontVariant: 'small-caps',
-                    textShadow: '1px 1px 1px black'
-                }
+                fill: 'gray',
+                fontSize: 18,
+                fontWeight: 'bold',
+                fontVariant: 'small-caps',
+                textShadow: '1px 1px 1px black'
             }
         });
         rect6.addTo(graph);

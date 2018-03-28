@@ -55,8 +55,11 @@
             textAnchor: 'middle',
             textVerticalAnchor: 'middle',
             text: '＊',
-            fill: '#ff0000',
-            fontSize: 20
+            fill: 'red',
+            stroke: 'black',
+            strokeWidth: 1.2,
+            fontSize: 30,
+            fontWeight: 'bold'
         },
         offsetLabelPositiveConnector: {
             atConnectionRatio: 0.66,

@@ -41,7 +41,362 @@
                 <a href="custom-elements.html">Go back to custom elements.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
-            <p>JointJS has built-in elements for basic link shapes.</p>
+            <p>JointJS comes with several built-in link shapes; we have already encountered
+                <code>joint.shapes.standard.Link</code> in the basic <a href="links.html">links</a> demo.</p>
+
+            <p>However, builtin link definitions are not as plentiful as element definitions.
+                It is thus very possible that you will find the need to define your own custom label.
+                Creating custom links is very similar to <a href="custom-elements.html">creating custom elements</a>,
+                with a few differences.</p>
+
+            <p>A new Link subtype is registered by calling the <code>defineM</code> function:</p>
+
+            <ul>
+                <li><a href="/docs/jointjs#dia.Cell.define" target="_blank"><code>Link.define(type [, defaultInstanceProperties, prototypeProperties, staticProperties])</code></a>
+                - define a new subtype of this <code>Link</code> class.</li>
+            </ul>
+
+            <p>If you want to create a Link subtype from scratch, you should inherit from the default
+                <code>joint.dia.Link</code> class by calling <code>joint.dia.Link.define()</code>.
+                You can also inherit from any predefined link (e.g. <code>joint.shapes.standard.Link.define()</code>)
+                and even any custom link subtype you have previously defined.</p>
+
+            <p>Here is how the parameters of the <code>define()</code> function map to familiar building blocks of
+                elements:</p>
+
+            <ul>
+                <li><code>type</code> - the <a href="#name">name</a> of the subtype class.</li>
+                <li><code>defaultInstanceProperties</code> - object that contains properties to be assigned to every
+                constructed instance of the subtype.
+                Used for specifying <a href="#default-attributes">default attributes</a>.</li>
+                <li><code>prototypeProperties</code> - object that contains properties to be assigned on the subtype
+                prototype.
+                Intended for properties intrinsic to the subtype, not usually modified.
+                Used for specifying shape <a href="#markup">markup</a>.</li>
+                <li><code>staticProperties</code> - object that contains properties to be assigned on the subtype
+                constructor.
+                Not very common, used mostly for <a href="#static-properties">alternative constructor
+                functions</a>.</li>
+            </ul>
+
+            <p>Let us use the familiar
+                <a href="/docs/jointjs#shapes.standard.Link" target="_blank"><code>joint.shapes.standard.Link</code></a>
+                shape definition as an example:</p>
+
+            <pre><code>joint.dia.Link.define('standard.Link', {
+    attrs: {
+        line: {
+            connection: true,
+            stroke: '#333333',
+            strokeWidth: 2,
+            strokeLinejoin: 'round',
+            targetMarker: {
+                type: 'path',
+                d: 'M 10 -5 0 0 10 5 z'
+            }
+        },
+        wrapper: {
+            connection: true,
+            strokeWidth: 10,
+            strokeLinejoin: 'round'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'path',
+        selector: 'wrapper',
+        attributes: {
+            'fill': 'none',
+            'cursor': 'pointer',
+            'stroke': 'transparent'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'line',
+        attributes: {
+            'fill': 'none',
+            'pointer-events': 'none'
+        }
+    }]
+});</code></pre>
+
+            <h3 id="name">Name</h3>
+
+            <p>The first argument of the <code>define()</code> function is a unique identifier under which you want to
+                be able to find the new type.
+                The first part of the name, <code>joint.shapes</code>, is implied.
+                Thus, we can see that the name of a type accessed as <code>joint.shapes.standard.Link</code> has to
+                be <code>'standard.Link'</code>.</p>
+
+            <h3 id="markup">Markup</h3>
+
+            <p>Markup is usually provided inside the third argument of the <code>define()</code> function (prototype
+                properties) for improved performance.
+                (This is because markup is something that all instances of the link type are expected to have in
+                common, so inheriting from subtype prototype is more efficient.
+                Nevertheless, it is still possible to provide custom markup to individual instances of your class by
+                providing individual <code>markup</code> later.)</p>
+
+            <p>The <code>markup</code> property is specified as a JSON array.
+                Each member of the array is taken to define one subelement of the new shape.
+                Subelements are defined with objects containing a <code>tagName</code> (a string with the SVG tag
+                name of the subelement) and a <code>selector</code> (a string identifier for this subelement
+                in the shape).
+                More advanced <code>markup.attributes</code> are explored in the <a href="custom-links.html">custom
+                links tutorial</a>.
+                Although JointJS can also understand SVG markup in string form, that approach is noticeably slower due
+                to the need for parsing and lack of capacity for custom selectors.</p>
+
+            <p>Attributes can also be defined inside markup.
+                These are intended for attributes that all instances of a link type are expected to have; then, it is
+                more efficient for all instances to inherit these attributes from their prototype instead of all
+                instances having to have their own copy.
+                (Again, it is possible to overwrite these prototype attributes by individual instance attributes.)
+                An important caveat is that <code>markup.attributes</code> are expected to be <i>SVG native
+                attributes</i>, not JointJS attrs.
+                Thus, JointJS special attributes are not recognized, and there is no kebab-case translation.
+                Using quotes around all attribute names is encouraged in this context, to communicate these restrictions
+                to programmers.</p>
+
+            <p>A <code>joint.shapes.standard.Link</code> is composed of two subelements - an
+                SVGPathElement named <code>line</code> and an SVGPathElement named <code>wrapper</code>.
+                The <code>line</code> is the subelement that is supposed to be styled, while <code>wrapper</code> is a
+                transparent helper subelement underneath the <code>line</code> that is designed to make it easier to
+                interact with the link.
+                The <code>markup.attributes</code> reflect these two intended restrictions - <code>line</code> has
+                <code>'pointer-events'</code> deactivated, while <code>wrapper</code> has a transparent stroke by
+                default.
+                Both paths also remove the default SVGPathElement <code>'fill'</code> which is very disruptive when
+                dealing with links.
+                (It is easier to set <code>'fill': 'none'</code> here than to specify it every single attrs object we
+                use.)</p>
+
+            <pre><code>{
+    markup: [{
+        tagName: 'path',
+        selector: 'wrapper',
+        attributes: {
+            'fill': 'none',
+            'cursor': 'pointer',
+            'stroke': 'transparent'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'line',
+        attributes: {
+            'fill': 'none',
+            'pointer-events': 'none'
+        }
+    }]
+}</code></pre>
+
+            <h3 id="default-attributes">Default Attributes</h3>
+
+            <p>Default attributes are usually provided inside the second argument of the <code>define()</code> function
+                (default instance properties). (This is because all instances of the element type are expected to have
+                their own individual attributes, so inheriting from the prototype is likely to cause unnecessary
+                overhead.)</p>
+
+            <p>In the <code>attrs</code> object, keys correspond to subelement selectors, as defined in the
+                <a href="#markup">markup</a>.
+                For each subelement, an object with attribute name-value pairs is then expected.
+                Each of these attributes can be a native SVG attribute or a <a href="special-attributes.html">JointJS
+                special attribute</a>.</p>
+
+            <p>In <code>joint.shapes.standard.Rectangle</code>, we can see that the subelement referenced by
+                <code>body</code> (i.e. the SVGRectElement component of the shape) has its default width and height set
+                in terms of the model size (using the
+                <a href="special-attributes.html#relative-dimensions">relative-dimension special attributes</a>
+                <code>refWidth</code>/<code>refHeight</code>),
+                alongside the fill and stroke styling.
+                The <code>label</code> subelement (the SVGTextElement component of the shape) has its text anchor set to
+                the center of the text bbox; that point is then positioned into the center of the model bbox by the
+                <a href="special-attributes.html#relative-dimensions">two relative-position special attributes</a>
+                <code>refX</code>/<code>refY</code>.
+                Its font size is specified, and the font fill color:</p>
+
+            <pre><code>{
+    attrs: {
+        body: {
+            refWidth: '100%',
+            refHeight: '100%',
+            strokeWidth: 2,
+            stroke: '#000000',
+            fill: '#FFFFFF'
+        },
+        label: {
+            textVerticalAnchor: 'middle',
+            textAnchor: 'middle',
+            refX: '50%',
+            refY: '50%',
+            fontSize: 14,
+            fill: '#333333'
+        }
+    }
+}</code></pre>
+
+            <p>We mentioned model size - the dimensions of the <code>body</code> depend on it - but what is it?
+                Model size is set by the user, whenever they call the
+                <a href="/docs/jointjs#dia.Element.prototype.resize"><code>element.resize()</code></a> function on an
+                instance of <code>joint.shapes.standard.Rectangle</code>.
+                For example, if we used <code>element.resize(100, 100)</code>, the referenced size would be 100px by
+                100px; consequently, if no transformations were applied, the <code>body</code> would have the dimensions
+                (100,100).
+                The model bbox is invisible on its own; it only becomes visible through subelements that reference it.
+                Here, that subelement is the <code>body</code> subelement.</p>
+
+            <p>There does not need to be a direct mapping between model size and any visible subelements.
+                It is perfectly possible to replace the <code>refWidth</code>/<code>refHeight</code> relative
+                attributes with the native SVG (absolute) <code>width</code>/<code>height</code>; this would create a
+                subelement with constant dimensions - 20px by 20px, for example - regardless of model size.
+                That may be ideal for control buttons.</p>
+
+            <p>Similarly, the position of <code>label</code> anchor is defined in terms of model size and position.
+                Model position is modified by calling the
+                <a href="/docs/jointjs#dia.Element.prototype.position"><code>element.position()</code></a> function on
+                an instance of <code>joint.shapes.standard.Rectangle</code>.
+                For example, if we called <code>element.position(-100, -100)</code>, the origin of the reference
+                coordinates would move to the point (-100,-100) on the paper.</p>
+
+            <p>We can see that, by default, the anchor of the <code>label</code> of
+                <code>joint.shapes.standard.Rectangle</code> is placed at
+                <code>refX: '50%'</code>,<code>refY: '50%'</code> by default.
+                The percentages refer to model size; thus, if model size were kept at (100,100), they would mean that
+                the anchor of the <code>label</code> will be offset from the reference origin by (50,50).
+                Thus, if model position were (-100,-100) and size were (100, 100), the label anchor would be positioned
+                at (-50,-50).</p>
+
+            <p>Relative positioning and sizing of elements is explained in more detail in a
+                <a href="special-attributes.html#relative-dimensions">separate section of the tutorial</a>.</p>
+
+            <h3 id="static-properties">Static Properties</h3>
+
+            <p>Static properties are not used by <code>joint.shapes.standard.Rectangle</code>, but let us discuss them
+                a little bit to give you a complete overview of custom elements.</p>
+
+            <p>Imagine we wanted to define our own subtype of <code>joint.shapes.standard.Rectangle</code> (which we
+                name <code>'examples.CustomRectangle'</code>), with the added benefit of a constructor function that
+                chose a random style for the rectangle body - maybe because we expect to need to add a lot of diverse
+                rectangle shapes quickly.
+                We could do this with a static function <code>createRandom</code>; then, we would have two ways to
+                obtain an instance of CustomRectangle:</p>
+
+            <p>With the standard constructor ...</p>
+
+            <pre><code>var customRectangle = new joint.shapes.examples.CustomRectangle();</code></pre>
+
+            <p>... or with the new static function:</p>
+
+            <pre><code>var customRectangle = joint.shapes.examples.CustomRectangle.createRandom();</code></pre>
+
+            <h3 id="example">Example</h3>
+
+            <p>Let us apply everything we learned so far and create a new
+                <cdoe>joint.shapes.examples.CustomRectangle</cdoe> class based on
+                <code>joint.shapes.standard.Rectangle</code>.
+                Keep in mind that the provided instance properties are mixined with the parent definition, but prototype
+                and static properties are not.
+                This means that it is enough for us to record only the attributes that changed in the definition of the
+                custom element subtype, but markup has to be defined explicitly.</p>
+
+            <pre><code>joint.shapes.standard.Rectangle.define('examples.CustomRectangle', {
+    attrs: {
+        body: {
+            rx: 10,
+            ry: 10,
+            strokeWidth: 1,
+            fill: 'orange'
+        },
+        button: {
+            event: 'button-clicked',
+            cursor: 'pointer',
+            refCx: '100%',
+            cy: 0,
+            r: 10,
+            strokeWidth: 1,
+            stroke: 'black',
+            fill: 'red'
+        },
+        label: {
+            textAnchor: 'left',
+            refX: 10,
+            fill: 'black',
+            fontWeight: 'bold'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }, {
+        tagName: 'circle',
+        selector: 'button'
+    }]
+}, {
+    createRandom: function() {
+
+        function randomColor() {
+
+            var color = {};
+            color.r = Math.floor(Math.random() * 256);
+            color.g = Math.floor(Math.random() * 256);
+            color.b = Math.floor(Math.random() * 256);
+            return color;
+        }
+
+        function invertColor(color) {
+
+            var inverted = {};
+            inverted.r = Math.abs(color.r - 255);
+            inverted.g = Math.abs(color.g - 255);
+            inverted.b = Math.abs(color.b - 255);
+            return inverted;
+        }
+
+        function colorString(color) {
+
+            return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
+        }
+
+        var rectangle = new joint.shapes.examples.CustomRectangle();
+
+        var fillColor = randomColor();
+        var strokeColor = randomColor();
+        var labelColor = invertColor(fillColor);
+
+        var fill = colorString(fillColor);
+        var stroke = colorString(strokeColor);
+        var strokeWidth = Math.floor(Math.random() * 6);
+        var strokeDasharray = Math.floor(Math.random() * 6) + ' ' + Math.floor(Math.random() * 6);
+        var radius = Math.floor(Math.random() * 21);
+        var labelFill = colorString(labelColor);
+
+        rectangle.attr({
+            body: {
+                fill: fill,
+                stroke: stroke,
+                strokeWidth: strokeWidth,
+                strokeDasharray: strokeDasharray,
+                rx: radius,
+                ry: radius
+            },
+            label: {
+                fill: labelFill
+            }
+        });
+
+        return rectangle;
+    }
+});</code></pre>
+
+            <p>The following example shows our custom element alongside the default
+                <code>joint.shapes.standard.Rectangle</code>.
+                Try refreshing the page to see the <code>createRandom()</code> constructor function in action.</p>
+
+            <div class="paper" id="paper-custom-links"></div>
 
             <p><a href="link-labels.html">In the next section of the intermediate tutorial, we will learn about link
                 labels.</a></p>
@@ -50,5 +405,6 @@
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
+        <script src="js/custom-links.js"></script>
     </body>
 </html>

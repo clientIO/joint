@@ -130,40 +130,50 @@ function resetAll(paper) {
 
             <p>The event listener callback functions have the signature
                 <code>callback([cellView,] eventObject, eventX, eventY)</code> (<code>cellView</code> is not provided
-                for <code>'blank'</code> events, for obvious reasons).
+                for <code>'blank:…'</code> events, for obvious reasons).
+                Inside the listeners, the paper itself is available as <code>this</code>.
                 The <code>eventObject</code> can be used to, for example, <code>stopPropagation()</code>.
                 The <code>x</code> and <code>y</code> coordinates can be useful when placing markers at sites of user
                 interaction.
                 We have not used these three parameters in the above example, but you will encounter them frequently in
                 JointJS event listeners.</p>
 
-            <h3 id="model-events">Builtin Model Events</h3>
+            <p>Note that all of these events are also triggered on the individual <code>cellView</code> (element or link
+                view) the user interacted with.
+                Therefore, you could achieve the same functionality as above by adding a listener on every elementView
+                and linkView separately.
+                While this approach has its uses, we recommend using paper listeners; having a single listener cover all
+                interaction options is better practice in JavaScript than having dozens of listeners for individual
+                views.</p>
 
-            <p>The Element and Link models come with several builtin events as well.
-                These events react to changes in the models' properties, including position, size and attributes, and to
-                status of model transitions.
-                JointJS documentation contains a full list of
-                <a href="/docs/jointjs#dia.Element.events" target="_blank">Element events</a> and
-                <a href="/docs/jointjs#dia.Link.events" target="_blank">Link events</a> you can react on.
-                To react on these events, add a listener on your models.</p>
+            <h3 id="model-events">Builtin Graph Events</h3>
+
+            <p>The Graph model comes with several builtin events as well.
+                These events react to changes in the cell model's properties, including position, size, attributes, and
+                status of JointJS transitions.
+                JointJS documentation contains a generic list of
+                <a href="/docs/jointjs#dia.Graph.events" target="_blank">Graph events</a> you can react on, alongside
+                more specific lists for <a href="/docs/jointjs#dia.Element.events" target="_blank">Element events</a>
+                and <a href="/docs/jointjs#dia.Link.events" target="_blank">Link events</a>.
+                To react on these events, add a listener on your Graph model.</p>
 
             <p>In the example, the event <code>'change:position'</code> is triggered on the element when it is moved; we
                 determine the new position of the element's center and write it into its text label.
                 The event <code>'change:target'</code> is triggered on the link when its target is moved; we use that
                 event to write the new target position into the link label.</p>
 
-            <div class="paper" id="paper-interaction-model-events"></div>
+            <div class="paper" id="paper-interaction-graph-events"></div>
 
-            <pre><code>element.on('change:position', function() {
-    var center = this.getBBox().center();
+            <pre><code>graph.on('change:position', function(cell) {
+    var center = cell.getBBox().center();
     var label = center.toString();
-    this.attr('label/text', label);
+    cell.attr('label/text', label);
 });
 
-link.on('change:target', function() {
-    var target = new g.Point(this.target());
+graph.on('change:target', function(cell) {
+    var target = new g.Point(cell.target());
     var label = target.toString();
-    this.label(0, {
+    cell.label(0, {
         attrs: {
             label: {
                 text: label
@@ -172,11 +182,21 @@ link.on('change:target', function() {
     });
 });</code></pre>
 
-            <p>The Graph model also triggers a few events.
-                These involve interaction with the graph itself (changing, adding, and removing cells); the new state of
-                the graph is sent to the event listener.
-                <a href="/docs/jointjs#dia.Graph.events" target="_blank">A full list of events</a> is presented in the
-                documentation.</p>
+            <p>The event listener callback functions have the signature
+                <code>callback(cell [, …])</code>, with additional arguments provided by individual events.
+                Inside the listeners, the graph itself is available as <code>this</code>.
+                In our example, we were able to assume that the received <code>cell</code> model is an element and link,
+                respectively, because <code>link</code> does not trigger <code>'change:position'</code> events, and
+                conversely because <code>element</code> does not trigger <code>'change:target'</code>.
+                Keep in mind that some Graph events can be triggered on both data types, however.</p>
+
+            <p>Similarly to builtin paper events, these events are also triggered on the individual <code>cell</code>
+                (element or link model) the user interacted with.
+                Therefore, you could achieve the same functionality as above by adding a listener on every element and
+                link separately.
+                While this approach has its uses, we recommend using graph listeners; having a single listener cover all
+                interaction options is better practice in JavaScript than having dozens of listeners for individual
+                models.</p>
 
             <h3 id="custom-pointerdown-events">Custom Pointerdown Events</h3>
 
@@ -189,35 +209,109 @@ link.on('change:target', function() {
                     event (mousedown/touchstart DOM event) on the subelement.</li>
             </ul>
 
-            <p>Then, you can simply attach a listener on your paper that gets called when the event is detected.
-                In the following example, we define a custom event <code>'element:color-change'</code> and listen for
-                it:</p>
+            <p>This special attribute is useful for creating elements with custom tool subelements (e.g. a minimize
+                button).
+                Then, you can simply attach a listener on your paper that gets called when your custom event is
+                detected.
+                In the following example, we define a custom event <code>'element:button-pressed'</code> on the
+                <code>button</code> subelement and listen for it.
+                When the button is pressed, the element's <code>body</code> and <code>label</code> are hidden, and the
+                symbol in the button is changed to indicate that the element can be unminimized:</p>
 
             <div class="paper" id="paper-interaction-event-attribute"></div>
 
-            <pre><code>rect.attr({
-    body: {
-        event: 'element:color-change',
-        cursor: 'pointer',
-        fill: 'green'
-    },
-    label: {
-        event: 'element:color-change',
-        cursor: 'pointer',
-        text: 'Change Color',
-        style: {
+            <pre><code>var CustomElement = joint.dia.Element.define('examples.CustomElement', {
+    attrs: {
+        body: {
+            refWidth: '100%',
+            refHeight: '100%',
+            strokeWidth: 2,
+            stroke: 'black',
             fill: 'white'
+        },
+        label: {
+            textVerticalAnchor: 'middle',
+            textAnchor: 'middle',
+            refX: '50%',
+            refY: '50%',
+            fontSize: 14,
+            fill: 'black'
+        },
+        button: {
+            cursor: 'pointer',
+            ref: 'buttonLabel',
+            refWidth: '150%',
+            refHeight: '150%',
+            refX: '-25%',
+            refY: '-25%'
+        },
+        buttonLabel: {
+            pointerEvents: 'none',
+            refX: '100%',
+            refY: 0,
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle'
         }
     }
+}, {
+    markup: [{
+        tagName: 'rect',
+        selector: 'body',
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }, {
+        tagName: 'rect',
+        selector: 'button'
+    }, {
+        tagName: 'text',
+        selector: 'buttonLabel'
+    }]
 });
 
-paper.on('element:color-change', function(elementView, evt) {
+var element = new CustomElement();
+element.position(250, 30);
+element.resize(100, 40);
+element.attr({
+    label: {
+        pointerEvents: 'none',
+        visibility: 'visible',
+        text: 'Element'
+    },
+    body: {
+        cursor: 'default',
+        visibility: 'visible'
+    },
+    button: {
+        event: 'element:button-pressed',
+        fill: 'orange',
+        stroke: 'black',
+        strokeWidth: 2
+    },
+    buttonLabel: {
+        text: '＿', // fullwidth underscore
+        fill: 'black',
+        fontSize: 8,
+        fontWeight: 'bold'
+    }
+});
+element.addTo(graph);
+
+paper.on('element:button-pressed', function(elementView, evt) {
     evt.stopPropagation(); // stop any further actions with the element view (e.g. dragging)
 
     var model = elementView.model;
 
-    if (model.attr('body/fill') === 'green') model.attr('body/fill', 'red');
-    else model.attr('body/fill', 'green');
+    if (model.attr('body/visibility') === 'visible') {
+        model.attr('body/visibility', 'hidden');
+        model.attr('label/visibility', 'hidden');
+        model.attr('buttonLabel/text', '＋'); // fullwidth plus
+
+    } else {
+        model.attr('body/visibility', 'visible');
+        model.attr('label/visibility', 'visible');
+        model.attr('buttonLabel/text', '＿'); // fullwidth underscore
+    }
 });</code></pre>
 
             <h3 id="custom-view-events">Custom View Events</h3>
@@ -253,6 +347,7 @@ paper.on('element:color-change', function(elementView, evt) {
     background: {
         color: 'white'
     },
+    interactive: false, // disable default interaction (e.g. dragging)
     elementView: joint.dia.ElementView.extend({
         pointerdblclick: function(evt, x, y) {
             this.model.remove();
@@ -288,6 +383,7 @@ this.notify('element:pointerdblclick', evt, x, y);</code></pre>
     background: {
         color: 'white'
     },
+    interactive: false, // disable default interaction (e.g. dragging)
     elementView: joint.dia.ElementView.extend({
         pointerdblclick: function(evt, x, y) {
             joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
@@ -321,7 +417,7 @@ paper.on('cell:pointerdblclick', function(cellView) {
         <script src="../node_modules/prismjs/prism.js"></script>
 
         <script src="js/interaction-paper-events.js"></script>
-        <script src="js/interaction-model-events.js"></script>
+        <script src="js/interaction-graph-events.js"></script>
         <script src="js/interaction-event-attribute.js"></script>
         <script src="js/interaction-custom-view-events.js"></script>
         <script src="js/interaction-custom-view-events-propagation.js"></script>

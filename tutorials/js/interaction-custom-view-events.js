@@ -11,6 +11,7 @@
         background: {
             color: 'white'
         },
+        interactive: false,
         elementView: joint.dia.ElementView.extend({
             pointerdblclick: function(evt, x, y) {
                 this.model.remove();

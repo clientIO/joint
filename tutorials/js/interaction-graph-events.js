@@ -1,16 +1,17 @@
-(function interactionModelEvents() {
+(function interactionGraphEvents() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-interaction-model-events'),
+        el: document.getElementById('paper-interaction-graph-events'),
         model: graph,
         width: 600,
         height: 100,
         gridSize: 1,
         background: {
             color: 'white'
-        }
+        },
+        interactive: true
     });
 
     var element = new joint.shapes.standard.Rectangle();
@@ -18,13 +19,12 @@
     element.resize(100, 40);
     element.attr({
         body: {
-            cursor: 'pointer',
             fill: 'white',
             stoke: 'black'
         },
         label: {
             text: '150@50',
-            cursor: 'pointer',
+            cursor: 'move',
             fill: 'black'
         }
     });
@@ -35,7 +35,11 @@
     link.target(new g.Point(450, 50));
     link.attr({
         line: {
+            cursor: 'move',
             stroke: 'black'
+        },
+        wrapper: {
+            cursor: 'move'
         }
     })
     link.labels([
@@ -49,6 +53,7 @@
             }],
             attrs: {
                 label: {
+                    pointerEvents: 'none',
                     text: '450@50',
                     textAnchor: 'middle',
                     textVerticalAnchor: 'middle',
@@ -61,6 +66,7 @@
                     refY: '-10%',
                     refWidth: '120%',
                     refHeight: '120%',
+                    pointerEvents: 'none',
                     fill: 'white',
                     stroke: 'black',
                     strokeWidth: 2
@@ -71,16 +77,16 @@
     ]);
     link.addTo(graph);
 
-    element.on('change:position', function() {
-        var center = this.getBBox().center();
+    graph.on('change:position', function(cell) {
+        var center = cell.getBBox().center();
         var label = center.toString();
-        this.attr('label/text', label);
+        cell.attr('label/text', label);
     });
 
-    link.on('change:target', function() {
-        var target = new g.Point(this.target());
+    graph.on('change:target', function(cell) {
+        var target = new g.Point(cell.target());
         var label = target.toString();
-        this.label(0, {
+        cell.label(0, {
             attrs: {
                 label: {
                     text: label

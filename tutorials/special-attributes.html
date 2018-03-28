@@ -87,20 +87,25 @@
                 <li><a href="/docs/jointjs#dia.attributes.refX" target="_blank"><code>refX</code></a> and
                     <a href="/docs/jointjs#dia.attributes.refY" target="_blank"><code>refY</code></a> - sets the
                     coordinates of the top-left corner of the subelement relative to the top-left corner of model
-                    bbox. Stacks with the native <code>x</code>/<code>y</code> attribute.</li>
+                    bbox.
+                    Percentages are interpreted relative to model bbox.</li>
+                    Stacks with the native <code>x</code>/<code>y</code> attribute.
                 <li><a href="/docs/jointjs#dia.attributes.refCx" target="_blank"><code>refCx</code></a> and
                     <a href="/docs/jointjs#dia.attributes.refCy" target="_blank"><code>refCy</code></a> - sets the
                     coordinates of the circle/ellipse center.
-                    Can be used alongside <code>refX</code>/<code>refY</code>.</li>
+                    Percentages are interpreted relative to model bbox.</li>
+                    Can be used alongside <code>refX</code>/<code>refY</code>.
                 <li><a href="/docs/jointjs#dia.attributes.refRx" target="_blank"><code>refRx</code></a> and
                     <a href="/docs/jointjs#dia.attributes.refRy" target="_blank"><code>refRy</code></a> - sets the
                     radius of the ellipse relative to model bbox dimensions.
+                    Percentages are interpreted relative to model bbox.
                     Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
-                    will be 100% of model dimension while the diameter of the ellipse in that direction will be 200% of
-                    model size.
-                    If you want the ellipse to fit into the model, use <code>'50%'</code>.</li>
+                    will be 100% of model size while the diameter of the ellipse in that direction will be 200% of model
+                    size.
+                    Thus, if you want the ellipse to fit into the model, use <code>'50%'</code>.</li>
                 <li><a href="/docs/jointjs#dia.attributes.refR" target="_blank"><code>refR</code></a> - sets the radius
                     of the circle relative to the length of the shorter side of model bbox.
+                    Percentages are interpreted relative to model bbox.
                     Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
                     will be 100% of the length of model side.
                     If you want the circle to fit inside the model, use <code>'50%'</code>.
@@ -116,8 +121,8 @@
                 green-tinted <code>rect</code> named <code>r</code>, and a blue-tinted <code>circle</code> named
                 <code>c</code>, respectively.
                 The <code>outline</code> SVGRectElement shows us the reference bbox of the element model.
-                In the example, we use JointJS transitions to vary the dimensions of <code>element</code> from 40:40 to
-                270:100.
+                In the example, we use JointJS transitions to vary the dimensions of <code>element</code> from (40,40)
+                to (270,100).
                 (We also adjust position to make sure the element stays in the visible area of our paper.)
                 Notice that the subelements of the shape adjust automatically as the size of the reference model
                 changes:</p>
@@ -361,8 +366,10 @@ element.attr({
             <p>To create an <code>&lt;image&gt;</code> arrowhead, you need to provide an URL with the path to your image
                 to the <code>'xlink:href'</code> property, and then specify the desired <code>'width'</code> and
                 <code>'height'</code>.
-                The image for <code>targetMarker</code> will be automatically rotated by 180 degrees.
-                Remember to reposition the image in the <code>'y'</code> axis (by <code>-1/2</code> of
+                Keep in mind that both of your markers should reference images pointing <q>left</q>; the image for
+                <code>targetMarker</code> will be automatically rotated by 180 degrees by JointJS, and then both markers
+                will match the gradient of the link path.
+                Remember to reposition the image in the <code>'y'</code> axis (by <code>-1/2</code> the value of
                 <code>'height'</code>) if you need the arrowhead to be centered.</p>
 
             <div class="paper" id="paper-links-arrowheads-image"></div>
@@ -389,8 +396,8 @@ element.attr({
             <p>To create an arrowhead of arbitrary SVGElement type, simply specify the <code>'type'</code>
                 appropriately, and then provide native SVG attributes to style it.
                 Keep in mind that <code>'circle'</code> and <code>'ellipse'</code> SVG elements have origin in their
-                center; they need to be repositioned in the <code>'x'</code> axis if you do not want them to overflow
-                the end of the link.</p>
+                center; they need to be repositioned with the <code>'cx'</code> attribute (by the value of
+                <code>'r'</code>) if you do not want them to overflow the end of the link.</p>
 
             <div class="paper" id="paper-special-attributes-link-arrowheads"></div>
 
@@ -538,11 +545,18 @@ link.attr({
                     Does not rotate subelement according to path gradient.</li>
             </ul>
 
-            <p>Let us create a custom link with several relatively-positioned subelements.
-                The demo was designed to emulate functionality shown in the link label
+            <p>(The <a href="#link-relative-dimensions">previously mentioned</a>
+                <code>atConnectionLength</code>/<code>atConnectionRattio</code> attributes are actually aliases for more
+                verbose names <code>atConnectionLengthKeepGradient</code>/<code>atConnectionRatioKeepGradient</code>.
+                You should see that these names were designed to complement the names of the two attributes newly
+                introduced above.)</p>
+
+            <p>In both cases (that is, whether we keep link gradient or not), offsetting of link subelement labels is
+                achieved by clever use of the native <code>x</code> and <code>y</code> SVG attributes.
+                Let us illustrate with the following demo, designed to emulate functionality shown in the link label
                 <a href="link-labels.html#label-position">position</a> and
                 <a href="link-labels.html#label-offset">offset</a> examples.
-                The red asterisk marks the reference point of the offset subelements on the link.</p>
+                The red asterisk marks the reference point of the offset subelements of the link.</p>
 
             <div class="paper" id="paper-special-attributes-link-relative-dimensions-text"></div>
 
@@ -551,21 +565,12 @@ link.attr({
         line: {
             connection: true,
             fill: 'none',
-            stroke: 'orange',
+            stroke: '#333333',
             strokeWidth: 2,
-            sourceMarker: {
-                'type': 'circle',
-                'r': 4,
-                'fill': 'white',
-                'stroke': 'orange',
-                'stroke-width': '2'
-            },
+            strokeLinejoin: 'round',
             targetMarker: {
-                'type': 'circle',
-                'r': 4,
-                'fill': 'white',
-                'stroke': 'orange',
-                'stroke-width': '2'
+                type: 'path',
+                d: 'M 10 -5 0 0 10 5 z'
             }
         },
         relativeLabel: {
@@ -745,6 +750,11 @@ link.attr({
         y: 70 // 80 + -10
     }
 });</code></pre>
+
+            <p>Notice that we had to write much more complex code than in the link labels demo, and that if we wanted
+                to add more <q>labels</q>, we would have to manipulate <code>link.markup</code> and
+                <code>link.attrs</code> directly.
+                We do not recommend this approach to beginner users of JointJS.</p>
 
             <p><a href="interaction.html">In the next section of the intermediate tutorial, we will find out how to
                 introduce interaction to our diagram.</a></p>
