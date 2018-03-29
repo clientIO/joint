@@ -1,9 +1,9 @@
-(function specialAttributesLinkRelativeDimensions() {
+(function specialAttributesLinkRelativePosition() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-special-attributes-link-relative-dimensions'),
+        el: document.getElementById('paper-special-attributes-link-relative-position'),
         model: graph,
         width: 600,
         height: 300,

@@ -218,7 +218,7 @@
                 The <code>wrapper</code> subelement (the interactive SVGPathElement component of the link) has a wider
                 transparent stroke to make the link easier to click for users.
                 Finally, notice that both subelements have the <code>connection</code>
-                <a href="special-attributes.html#link-relative-dimensions">special attribute</a> set to
+                <a href="special-attributes.html#link-relative-position">special attribute</a> set to
                 <code>true</code>.
                 This means that they both automatically follow the connection path of the link instance as calculated by
                 the <a href="links.html#link-geometry">link geometry functions</a>:</p>
@@ -230,7 +230,7 @@
             stroke: '#333333',
             strokeWidth: 2,
             strokeLinejoin: 'round',
-            'targetMarker': {
+            targetMarker: {
                 'type': 'path',
                 'd': 'M 10 -5 0 0 10 5 z'
             }
@@ -362,7 +362,7 @@
 }, {
     createRandom: function() {
 
-        var link = new joint.shapes.examples.CustomLink();
+        var link = new this();
 
         var stroke = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
         var strokeWidth = Math.floor(Math.random() * 10) + 1;

@@ -64,7 +64,7 @@
     }, {
         createRandom: function() {
 
-            var link = new joint.shapes.examples.CustomLink();
+            var link = new this();
 
             var stroke = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
             var strokeWidth = Math.floor(Math.random() * 10) + 1;

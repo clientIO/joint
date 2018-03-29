@@ -307,7 +307,7 @@
 }, {
     createRandom: function() {
 
-        var rectangle = new joint.shapes.examples.CustomRectangle();
+        var rectangle = new this();
 
         var fill = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
         var stroke = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);

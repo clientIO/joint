@@ -417,7 +417,7 @@ element.attr({
     }
 });</code></pre>
 
-            <h3 id="link-relative-dimensions">Relative Dimensions on Links</h3>
+            <h3 id="link-relative-position">Relative Position on Links</h3>
 
             <p>Several special attributes on links allow you to position subelements relatively to the link's connection
                 path:</p>
@@ -442,7 +442,7 @@ element.attr({
                 according to path slope.
                 Let us illustrate with a <a href="custom-links.html">custom link type</a>:</p>
 
-            <div class="paper" id="paper-special-attributes-link-relative-dimensions"></div>
+            <div class="paper" id="paper-special-attributes-link-relative-position"></div>
 
             <pre><code>var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     attrs: {
@@ -542,7 +542,7 @@ link.attr({
                     Does not rotate subelement according to path gradient.</li>
             </ul>
 
-            <p>(The <a href="#link-relative-dimensions">previously mentioned</a>
+            <p>(The <a href="#link-relative-position">previously mentioned</a>
                 <code>atConnectionLength</code>/<code>atConnectionRattio</code> attributes are actually aliases for more
                 verbose names <code>atConnectionLengthKeepGradient</code>/<code>atConnectionRatioKeepGradient</code>.
                 You should see that these names were designed to complement the names of the two attributes newly
@@ -767,7 +767,7 @@ link.attr({
         <script src="js/links-arrowheads-path.js"></script>
         <script src="js/links-arrowheads-image.js"></script>
         <script src="js/special-attributes-link-arrowheads.js"></script>
-        <script src="js/special-attributes-link-relative-dimensions.js"></script>
+        <script src="js/special-attributes-link-relative-position.js"></script>
         <script src="js/special-attributes-link-subelement-labels.js"></script>
     </body>
 </html>
