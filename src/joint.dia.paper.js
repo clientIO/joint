@@ -171,6 +171,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseleave': 'mouseleave',
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
+        'mouseenter .joint-cell': 'mouseenter',
+        'mouseleave .joint-cell': 'mouseleave',
         'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
@@ -609,7 +611,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         return new ViewClass({
             model: cell,
-            interactive: this.options.interactive
+            interactive: this.options.interactive,
+            tools: this.options.tools
         });
     },
 

@@ -29,7 +29,7 @@
                     anchor.y += dy;
                 }
             }
-            return (rotate) ? anchor.rotate(bbox.center(), -view.model.angle()) : anchor;
+            return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
         }
     }
 
@@ -69,7 +69,7 @@
         var bbox, angle, center;
         if (rotate) {
             bbox = view.getNodeUnrotatedBBox(magnet);
-            center = bbox.center();
+            center = view.model.getBBox().center();
             angle = view.model.angle();
         } else {
             bbox = view.getNodeBBox(magnet);

@@ -24,6 +24,7 @@ module.exports = function(grunt) {
             'src/joint.mvc.view.js',
             'src/joint.dia.graph.js',
             'src/joint.dia.attributes.js',
+            'src/joint.dia.tools.js',
             'src/joint.dia.cell.js',
             'src/joint.dia.element.js',
             'src/joint.dia.link.js',
@@ -40,7 +41,8 @@ module.exports = function(grunt) {
             'plugins/highlighters/*.js',
             'plugins/anchors/*.js',
             'plugins/connectionPoints/*.js',
-            'plugins/connectionStrategies/*.js'
+            'plugins/connectionStrategies/*.js',
+            'plugins/tools/*.js'
         ],
 
         geometry: ['src/geometry.js'],

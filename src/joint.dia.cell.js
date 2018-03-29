@@ -1343,6 +1343,46 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
+    onRemove: function() {
+        this.removeTools();
+    },
+
+    _toolsView: null,
+
+    hasTools: function() {
+        return !!this._toolsView;
+    },
+
+    addTools: function (tools) {
+
+        this.removeTools();
+
+        var toolsView = this._toolsView = new joint.dia.ToolsView({
+            tools: tools || this.options.tools.call(this.paper, this),
+            relatedView: this
+        })
+
+        this.vel.append(toolsView.el);
+        return this;
+    },
+
+    updateTools: function (opt) {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.update(opt);
+        return this;
+    },
+
+    removeTools: function () {
+
+        var toolsView = this._toolsView;
+        if (toolsView) {
+            toolsView.remove();
+            this._toolsView = null;
+        }
+        return this;
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 

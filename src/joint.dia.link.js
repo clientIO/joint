@@ -984,6 +984,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
+        this.updateTools(opt);
         // Local perpendicular flag (as opposed to one defined on paper).
         // Could be enabled inside a connector/router. It's valid only
         // during the update execution.
@@ -992,6 +993,27 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updatePostponed = false;
 
         return this;
+    },
+
+    removeRedundantLinearVertices: function(opt) {
+        var link = this.model;
+        var vertices = link.vertices();
+        var conciseVertices = [];
+        var n = vertices.length;
+        var m = 0;
+        for (var i = 0; i < n; i++) {
+            var current = new g.Point(vertices[i]).round();
+            var prev = new g.Point(conciseVertices[m - 1] || this.sourceAnchor);
+            if (prev.round().equals(current)) continue;
+            var next = g.Point(vertices[i + 1] || this.targetAnchor);
+            var line = new g.Line(prev, next.round());
+            if (line.pointOffset(current) === 0) continue;
+            conciseVertices.push({ x: vertices[i].x, y: vertices[i].y });
+            m++;
+        }
+        if (n === m) return 0;
+        link.set('vertices', conciseVertices, opt);
+        return (n - m);
     },
 
     updateDefaultConnectionPath: function() {
@@ -1114,7 +1136,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var targetDef = model.get('target');
         var sourceView = this.sourceView;
         var targetView = this.targetView;
-        var paperOptions = this.paper.options;
         var sourceMagnet, targetMagnet;
 
         // Anchor Source
@@ -1130,8 +1151,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             } else {
                 sourceAnchorRef = new g.Point(targetDef);
             }
-            var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultAnchor;
-            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
+            sourceAnchor = this.getAnchor(sourceDef.anchor, sourceView, sourceMagnet, sourceAnchorRef);
         } else {
             sourceAnchor = new g.Point(sourceDef);
         }
@@ -1141,8 +1161,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetView) {
             targetMagnet = (this.targetMagnet || targetView.el);
             var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
-            var targetAnchorDef = targetDef.anchor || paperOptions.defaultAnchor;
-            targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
+            targetAnchor = this.getAnchor(targetDef.anchor, targetView, targetMagnet, targetAnchorRef);
         } else {
             targetAnchor = new g.Point(targetDef);
         }
@@ -1197,15 +1216,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     getAnchor: function(anchorDef, cellView, magnet, ref) {
 
-        // Backwards compatibility
-        // If `perpendicularLinks` flag is set on the paper and there are vertices
-        // on the link, then try to find a connection point that makes the link perpendicular
-        // even though the link won't point to the center of the targeted object.
-        if (this.paper.options.perpendicularLinks || this.options.perpendicular) {
-            anchorDef = { name: 'perpendicular' };
+        if (!anchorDef) {
+            var paperOptions = this.paper.options;
+            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+                // Backwards compatibility
+                // If `perpendicularLinks` flag is set on the paper and there are vertices
+                // on the link, then try to find a connection point that makes the link perpendicular
+                // even though the link won't point to the center of the targeted object.
+                anchorDef = { name: 'perpendicular' };
+            } else {
+                anchorDef = paperOptions.defaultAnchor;
+            }
         }
 
-        if (!anchorDef) return bbox.center();
+        if (!anchorDef) throw new Error('Anchor required.');
         var anchorFn;
         if (typeof anchorDef === 'function') {
             anchorFn = anchorDef;
@@ -1982,6 +2006,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             case 'connection-wrap':
                 this.dragConnectionStart(evt, x, y);
                 return;
+
+            case 'marker-source':
+            case 'marker-target':
+                return;
         }
 
         this.dragStart(evt, x, y);
@@ -2196,7 +2224,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             action: 'move',
             dx: x,
             dy: y
-        })
+        });
     },
 
     // Drag Handlers
@@ -2273,6 +2301,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         this._afterArrowheadMove(data);
+
+        // mouseleave event is not triggered due to changing pointer-events to `none`.
+        if (!this.vel.contains(evt.target)) {
+            this.mouseleave(evt);
+        }
     },
 
     dragEnd: function() {
