@@ -12,6 +12,7 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
         <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.css">
 
         <!-- Dependencies: -->
         <script src="../node_modules/jquery/dist/jquery.js"></script>
@@ -33,16 +34,21 @@
         </script>
         <div class="tutorial">
 
-            <h2>Hello world!</h2>
+            <h2>Installation</h2>
 
-            <p>In the following few pages of the tutorial, we will understand how to create a basic
-                <a href="introduction.html">JointJS diagram</a>:</p>
+            <p><a href="hello-world.html">In the first part of the tutorial, we saw a working example of a
+                simple JointJS application:</a></p>
 
             <div class="paper" id="paper-hello-world"></div>
 
-            <p>Feel free to copy-paste the program code into a new file and see it in action for yourself:</p>
+            <p>In this section, we will learn how to install JointJS and include it on our page.</p>
 
-            <pre class="line-numbers"><code>&lt;!DOCTYPE html&gt;
+            <p>For your JointJS application to run, the JointJS library and its dependencies have to be included in the
+                source HTML of your page.
+                Our initial example used a CDN to link to the required source files for JointJS, jQuery, Lodash and
+                Backbone:</p>
+
+            <pre class="line-numbers" data-line="4,11-14"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/2.1.0/joint.css" /&gt;
@@ -98,26 +104,82 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
-            <p>Even though the code is quite short, it creates a fully interactive JointJS diagram.
-                The program does everything a JointJS application needs to do in order to produce a visual output:</p>
+            <p>If you do not wish to use a CDN, you can install JointJS locally instead.
+                Assuming that you have <a href="https://www.npmjs.com/package/npm">NPM</a> installed on your system, run
+                the following command in the command line (Terminal/Command Prompt):
 
-            <ul>
-                <li><a href="installation.html">Include JointJS and its dependencies</a></li>
-                <li><a href="graph-and-paper.html">Define a graph and a paper</a></li>
-                <li><a href="elements.html">Create two rectangular elements</a></li>
-                <li><a href="links.html">Create one link to connect the elements</a></li>
-            </ul>
+            <pre><code>npm install --save jointjs</code></pre>
 
-            <p>We will look at each of these steps in turn.
-                Use this list as an index of the basic tutorial topics.</p>
+            <p>You can then find all the required source files in their respective folders inside the generated
+                <code>node_modules</code> folder.
+                The code segment would then look like the following (this is the form used in JointJS demos):</p>
 
-            <p><a href="installation.html">First, we need to make sure we have JointJS installed and ready to
-                use.</a></p>
+            <pre class="line-numbers" data-line="4,11-14"><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- content --&gt;
+    &lt;div id="myholder"&gt;&lt;/div&gt;
+
+    &lt;!-- dependencies --&gt;
+    &lt;script src="node_modules/jquery/dist/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/lodash/index.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/backbone/backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="node_modules/jointjs/dist/joint.js"&gt;&lt;/script&gt;
+
+    &lt;!-- code --&gt;
+    &lt;script type="text/javascript"&gt;
+
+        var graph = new joint.dia.Graph;
+
+        var paper = new joint.dia.Paper({
+            el: document.getElementById('myholder'),
+            model: graph,
+            width: 600,
+            height: 100,
+            gridSize: 1
+        });
+
+        var rect = new joint.shapes.standard.Rectangle();
+        rect.position(100, 30);
+        rect.resize(100, 40);
+        rect.attr({
+            body: {
+                fill: 'blue'
+            },
+            label: {
+                text: 'Hello',
+                fill: 'white'
+            }
+        });
+        rect.addTo(graph);
+
+        var rect2 = rect.clone();
+        rect2.translate(300, 0);
+        rect2.attr('label/text', 'World!');
+        rect2.addTo(graph);
+
+        var link = new joint.shapes.standard.Link();
+        link.source({ id: rect.id });
+        link.target({ id: rect2.id });
+        link.addTo(graph);
+
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+            <p>Now that JointJS is included on our page, we can start building our diagram.</p>
+
+            <p><a href="graph-and-paper.html">As a next step, we need to create a graph and assign it to a
+                paper.</a></p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
         <script src="../node_modules/prismjs/plugins/line-numbers/prism-line-numbers.js"></script>
+        <script src="../node_modules/prismjs/plugins/line-highlight/prism-line-highlight.js"></script>
 
         <script src="js/hello-world.js"></script>
     </body>

@@ -476,9 +476,11 @@ export namespace dia {
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
 
-        addLabel(index: number, label: Link.Label, opt?: Cell.Options): this;
+        insertLabel(index: number, label: Link.Label, opt?: Cell.Options): Link.Label[];
 
-        removeLabel(index?: number, opt?: Cell.Options): this;
+        appendLabel(label: Link.Label, opt?: Cell.Options): Link.Label[];
+
+        removeLabel(index?: number, opt?: Cell.Options): Link.Label[];
 
         vertex(index?: number): Link.Vertex;
         vertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
@@ -486,9 +488,9 @@ export namespace dia {
         vertices(): Link.Vertex[];
         vertices(vertices: Link.Vertex[]): this;
 
-        addVertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
+        insertVertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): Link.Vertex[];
 
-        removeVertex(index?: number, opt?: Cell.Options): this;
+        removeVertex(index?: number, opt?: Cell.Options): Link.Vertex[];
 
         reparent(opt?: Cell.Options): Element;
 

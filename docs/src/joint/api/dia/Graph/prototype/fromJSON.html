@@ -1,11 +1,25 @@
-<pre class="docs-method-signature"><code>graph.fromJSON(json, [options])</code></pre>
+<pre class="docs-method-signature"><code>graph.fromJSON(jsonObject, [options])</code></pre>
 
-<p>Load the graph from a JSON object (not string).</p>
+<p>Load a graph from a JSON object (not string). Used in conjunction with the <code>graph.toJSON()</code> <a href="#dia.Graph.prototype.toJSON">function</a>.</p>
 
-<pre><code>var jsonString = JSON.stringify(graph)
-// ... send jsonString to the server, 
-// store it to the localStorage or do whatever you want
-// ... later on
-graph.fromJSON(JSON.parse(jsonString))</code></pre>
+<p>The <code>options</code> object may contain additional data that is passed over to graph change event listeners.</p>
 
-<p><code>options</code> object can optionally contain additional data that is passed over to the event listeners of the graph changes.</p>
+<p>Note that this method does not expect a JSON string but rather an object in the JSON format. Use <code>JSON.parse(jsonString)</code> if you need to convert a JSON string into the object form:</p>
+
+<pre><code>graph.fromJSON(JSON.parse(jsonString));</code></pre>
+
+<p>Example of storing stringified JSON objects:</p>
+
+<pre><code>var jsonString = JSON.stringify(graph.toJSON());
+// ... send jsonString to the server
+// store jsonString to localStorage or do whatever you want
+// later on ...
+graph.fromJSON(JSON.parse(jsonString));</code></pre>
+
+<p>Example of storing JSON objects directly:</p>
+
+<pre><code>var jsonObject = graph.toJSON();
+// ... send jsonObject to the server
+// store jsonObject (e.g. in a non-relational database)
+// later on ...
+graph.fromJSON(jsonObject)</code></pre>

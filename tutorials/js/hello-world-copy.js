@@ -1,9 +1,9 @@
-(function helloWorld() {
+(function helloWorldCopy() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-hello-world'),
+        el: document.getElementById('paper-hello-world-copy'),
         model: graph,
         width: 600,
         height: 100,

@@ -12,12 +12,10 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
 
-
         <!-- Dependencies: -->
         <script src="../node_modules/jquery/dist/jquery.js"></script>
         <script src="../node_modules/lodash/index.js"></script>
         <script src="../node_modules/backbone/backbone.js"></script>
-
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
@@ -37,35 +35,46 @@
 
         <div class="tutorial">
 
-            <h2>Getting started</h2>
+            <h2>About JointJS</h2>
 
-            <p><strong>JointJS diagramming library</strong> lets you create fully interactive diagramming tools for all
-                modern browsers.
-                JointJS is not only a drawing library but its MVC (more MV) architecture separates graph, element and link
-                models from
-                their rendering. This makes it easy to plug JointJS to your backend application. Moreover, JointJS is built
-                with <a href="http://backbonejs.org" target="_blank">Backbone</a> MVC library, so if you
-                know Backbone, you'll feel like at home with JointJS. The same goes for a lot of constructs you'll see in
-                JointJS. JointJS is not trying to reinvent the wheel for technologies that are
-                common to web developers. Things that you learn with JointJS will be helpful to you elsewhere.
-                JointJS is based on <a href="http://jquery.com" target="_blank">jQuery</a>, <a href="http://underscorejs.org" target="_blank">Underscore</a>,
-                <a href="http://backbonejs.org" target="_blank">Backbone</a> and 
-                <a href="http://www.w3.org/Graphics/SVG/IG/resources/svgprimer.html" target="_blank">SVG</a>.</p>
+            <p><strong>The JointJS diagramming library</strong> lets you create fully interactive diagramming tools for all
+                modern browsers, relying only on JavaScript and
+                <a href="http://www.w3.org/Graphics/SVG/IG/resources/svgprimer.html" target="_blank">SVG</a>.
+                Its MVC (more MV) architecture separates graph, element and link models from their rendering, which
+                makes it easy to plug JointJS to your backend application.
+                JointJS is not trying to reinvent the wheel for technologies that are commonly used by web
+                developers; things that you learn with JointJS will be useful to you elsewhere.
+                JointJS is built with <a href="http://backbonejs.org" target="_blank">Backbone</a> MVC
+                library and makes use of <a href="http://jquery.com" target="_blank">jQuery</a> and
+                <a href="https://lodash.com" target="_blank">Lodash</a>.</p>
 
-            <p>Diagrams consist of elements connected with links. A diagram in JointJS is represented by a model <code>joint.dia.Graph</code>.
-                This model then collects cells (a term representing both elements and links). A cell could therefore be
-                either an element (<code>joint.dia.Element</code> or its inheritants) or
-                a link (<code>joint.dia.Link</code>). In JointJS (starting from version 0.6), you manipulate models, not
-                views.</p>
+            <p>A diagram in JointJS is represented by a Graph model (<code>joint.dia.Graph</code>) to which you add
+                models of cells - either Elements (subtypes of <code>joint.dia.Element</code>) or Links (subtypes of
+                <code>joint.dia.Link</code>).
+                To present the diagram, attach it to a Paper view (<code>joint.dia.Paper</code>).
+                Starting from version 0.6, you manipulate models, not views; the paper generates ElementViews and
+                LinkViews for you from the data provided by the graph models.
+                The architecture is illustrated in the following diagram (created with JointJS!).</p>
 
             <img src="images/arch.png" alt="JointJS high-level architecture" width="700"/>
 
-            <p>JointJS provides you with basic diagram elements but also with ready-to-use elements of some well-known
-                diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...). New plugins
-                can be written pretty easily (later on this).</p>
+            <p>JointJS provides a visual library of common geometric shapes, as well as an extensive collection of
+                ready-to-use components from several well-known diagramming languages (ERD, OrgChart, FSA, UML,
+                PN, DEVS, ...).
+                The JointJS framework has been designed with an eye towards modularity.
+                This makes it easy for advanced users to create their own shapes and to extend built-in functionality
+                with custom plugins.
+                <a href="https://www.jointjs.com">Rappid</a>, a commercial extension to JointJS, provides a number of
+                pre-made plugins that extend its functionality with widgets, interaction components, and
+                additional shapes (BPMN diagrams).</p>
 
-            <p>To be able to see something on the screen, the graph model must be attached to the
-                <code>joint.dia.Paper</code> view.</p>
+            <p>Let's learn how create great diagrams with JointJS!</p>
+
+            <p><a href="hello-world.html">We will start by examining a simple Hello, World! application
+                together.</a></p>
+
+            <p><a href="intermediate.html">If you are already comfortable with the basics of JointJS, we can learn about
+                some more complex concepts in the intermediate section of the tutorial.</a></p>
 
         </div><!--end tutorial-->
 

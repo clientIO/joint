@@ -1,2 +1,7 @@
-<pre class="docs-method-signature"><code>graph.toJSON()</code></pre><p>Return an object representing the graph ready for JSON serialization. This can be used for persistance or serialization. Note that this method doesn't
-                    return a JSON string but rather an object that can be then serialized to JSON with <code>JSON.stringify()</code>.</p>
+<pre class="docs-method-signature"><code>graph.toJSON()</code></pre>
+
+<p>Return an object representation of the graph, which can be used for persistence or serialization. Use the <code>graph.fromJSON()</code> <a href="#dia.Graph.prototype.fromJSON">function</a> to load a previously converted graph.</p>
+
+<p>Note that this method does not return a JSON string but rather an object that can then be serialized to JSON with <code>JSON.stringify(jsonObject)</code>:</p>
+
+<pre><code>var jsonString = JSON.stringify(graph.toJSON());</code></pre>
