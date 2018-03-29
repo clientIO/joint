@@ -41,7 +41,7 @@
                 <a href="interaction.html">Go back to interaction.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
-            <p>Data serialization (persistence) is very easy in JointJS.
+            <p>Data serialization is very easy in JointJS.
                 It is done through two import/export functions on the Graph class:</p>
 
             <ul>
@@ -51,17 +51,23 @@
                 - overwrite current graph contents with converted contents of a provided JSON object.</li>
             </ul>
 
-            <p>Note that the functions are also able to preserve any custom properties you save on the graph:</p>
+            <h3 id="persistence">Persistence</h3>
+
+            <p>The functions preserve all cells that have been added to the graph.
+                Additionally, note that custom properties saved on the graph are preserved as well.
+                You can use this to store additional state information:</p>
 
             <pre><code>var graph1 = new joint.dia.Graph();
-graph1.set('customAttribute', true);
+graph1.set('graphCustomProperty', true);
+graph1.set('graphExportTime', Date.now());
 var jsonObject = graph1.toJSON();
 
 // transmission of `jsonObject` across network etc.
 
 var graph2 = new joint.dia.Graph(); // new empty graph
 graph2.fromJSON(jsonObject);
-graph2.get('customAttribute'); // returns true</code></pre>
+graph2.get('graphCustomProperty'); // true
+graph2.get('graphExportTime'); // e.g. 627247800000</code></pre>
 
             <p>It is important to remember that the two functions work with JSON objects - not JSON strings.
                 However, if necessary, you can easily convert back and forth using the native JavaScript
@@ -80,6 +86,33 @@ graph2.fromJSON(JSON.parse(jsonString));</code></pre>
                 storing it in a non-relational database like MongoDB), or in the stringified form (which can be stored
                 anywhere plaintext can be stored, at the added cost of stringifying &amp; parsing of the JSON object for
                 every transmission).</p>
+
+            <h3 id="synthetic-graphs">Synthetic Graphs</h3>
+
+            <p>It is of course also possible to avoid using the <code>graph.toJSON()</code> function altogether and
+                instead construct your own synthetic graphs; you just need to make sure that the object you provide is
+                valid JSON and that it contains a <code>cells</code> array property:</p>
+
+            <pre><code>var graph = new joint.dia.Graph();
+graph.fromJSON({
+    cells: [{
+        id: 1,
+        type: "standard.Rectangle",
+        position: {
+            x: 100,
+            y: 100
+        },
+        size: {
+            width: 100,
+            height: 100
+        }
+    }]
+});</code></pre>
+
+            <p>The <code>cells</code> array can even be empty, if you want to create an empty synthetic graph:</p>
+
+            <pre><code>var graph = new joint.dia.Graph();
+graph.fromJSON({ cells: [] });</code></pre>
 
             <h3 id="limitations">Limitations</h3>
 

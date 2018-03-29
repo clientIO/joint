@@ -43,7 +43,7 @@ var ColoredEllipse = Ellipse.define('examples.ColoredEllipse', {
     // useful for custom methods that need access to this instance
     // shared by all instances of the class
     randomizeStrokeColor: function() {
-        var randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16);
+        var randomColor = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
         return this.attr('ellipse/stroke', randomColor);
     }
 }, {

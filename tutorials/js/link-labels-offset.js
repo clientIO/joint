@@ -46,8 +46,8 @@
             strokeWidth: 2,
             strokeLinejoin: 'round',
             targetMarker: {
-                type: 'path',
-                d: 'M 10 -5 0 0 10 5 z'
+                'type': 'path',
+                'd': 'M 10 -5 0 0 10 5 z'
             }
         },
         offsetLabelMarker: {

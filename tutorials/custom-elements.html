@@ -178,9 +178,9 @@
             <h3 id="default-attributes">Default Attributes</h3>
 
             <p>Default attributes are usually provided inside the second argument of the <code>define()</code> function
-                (default instance properties). (This is because all instances of the element type are expected to have
-                their own individual attributes, so inheriting from the prototype is likely to cause unnecessary
-                overhead.)</p>
+                (default instance properties).
+                (This is because all instances of the element type are expected to have their own individual attributes,
+                so inheriting from the prototype is likely to cause unnecessary overhead.)</p>
 
             <p>In the <code>attrs</code> object, keys correspond to subelement selectors, as defined in the
                 <a href="#markup">markup</a>.
@@ -254,23 +254,15 @@
             <p>Relative positioning and sizing of elements is explained in more detail in a
                 <a href="special-attributes.html#relative-dimensions">separate section of the tutorial</a>.</p>
 
-            <!--<p>Attributes can also be defined inside markup.
-                These are intended for attributes that are expected to be in common for all elements, but is largely
-                syntactic sugar as far as JointJS is concerned.
-                These attributes are expected to be native SVG attributes, not JointJS attrs.
-                Thus, JointJS special attributes are not recognized, and there is no kebab-case translation.
-                Using quotes around all attribute names is encouraged, to communicate these restrictions to
-                programmers.</p>-->
-
             <h3 id="static-properties">Static Properties</h3>
 
-            <p>Static properties are not used by <code>joint.shapes.standard.Rectangle</code>, but let us discuss them
-                a little bit to give you a complete overview of custom elements.</p>
+            <p>Static properties are not used by <code>joint.shapes.standard.Rectangle</code>, but let us discuss them a
+                little bit to gain a complete overview of custom elements.</p>
 
             <p>Imagine we wanted to define our own subtype of <code>joint.shapes.standard.Rectangle</code> (which we
                 name <code>'examples.CustomRectangle'</code>), with the added benefit of a constructor function that
-                chose a random style for the rectangle body - maybe because we expect to need to add a lot of diverse
-                rectangle shapes quickly.
+                chose a random style for the rectangle body - maybe because we need to add a lot of diverse rectangle
+                shapes quickly.
                 We could do this with a static function <code>createRandom</code>; then, we would have two ways to
                 obtain an instance of CustomRectangle:</p>
 
@@ -282,6 +274,8 @@
 
             <pre><code>var customRectangle = joint.shapes.examples.CustomRectangle.createRandom();</code></pre>
 
+            <p>Both of these functions are demonstrated in our <a href="#example">example</a>.</p>
+
             <h3 id="example">Example</h3>
 
             <p>Let us apply everything we learned so far and create a new
@@ -290,82 +284,36 @@
                 Keep in mind that the provided instance properties are mixined with the parent definition, but prototype
                 and static properties are not.
                 This means that it is enough for us to record only the attributes that changed in the definition of the
-                custom element subtype, but markup has to be defined explicitly.</p>
+                custom element subtype (however, if we wanted to change the markup, we would have to do so
+                explicitly).</p>
 
             <pre><code>joint.shapes.standard.Rectangle.define('examples.CustomRectangle', {
     attrs: {
         body: {
-            rx: 10,
+            rx: 10, // add a corner radius
             ry: 10,
             strokeWidth: 1,
-            fill: 'orange'
-        },
-        button: {
-            event: 'button-clicked',
-            cursor: 'pointer',
-            refCx: '100%',
-            cy: 0,
-            r: 10,
-            strokeWidth: 1,
-            stroke: 'black',
-            fill: 'red'
+            fill: 'cornflowerblue'
         },
         label: {
-            textAnchor: 'left',
-            refX: 10,
-            fill: 'black',
-            fontWeight: 'bold'
+            textAnchor: 'left', // align text to left
+            refX: 10, // offset text from right edge of model bbox
+            fill: 'white',
+            fontSize: 18
         }
     }
 }, {
-    markup: [{
-        tagName: 'rect',
-        selector: 'body'
-    }, {
-        tagName: 'text',
-        selector: 'label'
-    }, {
-        tagName: 'circle',
-        selector: 'button'
-    }]
+    // inherit joint.shapes.standard.Rectangle.markup
 }, {
     createRandom: function() {
 
-        function randomColor() {
-
-            var color = {};
-            color.r = Math.floor(Math.random() * 256);
-            color.g = Math.floor(Math.random() * 256);
-            color.b = Math.floor(Math.random() * 256);
-            return color;
-        }
-
-        function invertColor(color) {
-
-            var inverted = {};
-            inverted.r = Math.abs(color.r - 255);
-            inverted.g = Math.abs(color.g - 255);
-            inverted.b = Math.abs(color.b - 255);
-            return inverted;
-        }
-
-        function colorString(color) {
-
-            return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
-        }
-
         var rectangle = new joint.shapes.examples.CustomRectangle();
 
-        var fillColor = randomColor();
-        var strokeColor = randomColor();
-        var labelColor = invertColor(fillColor);
-
-        var fill = colorString(fillColor);
-        var stroke = colorString(strokeColor);
+        var fill = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
+        var stroke = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
         var strokeWidth = Math.floor(Math.random() * 6);
         var strokeDasharray = Math.floor(Math.random() * 6) + ' ' + Math.floor(Math.random() * 6);
         var radius = Math.floor(Math.random() * 21);
-        var labelFill = colorString(labelColor);
 
         rectangle.attr({
             body: {
@@ -376,8 +324,11 @@
                 rx: radius,
                 ry: radius
             },
-            label: {
-                fill: labelFill
+            label: { // ensure visibility on dark backgrounds
+                fill: 'black',
+                stroke: 'white',
+                strokeWidth: 1,
+                fontWeight: 'bold'
             }
         });
 
@@ -385,14 +336,16 @@
     }
 });</code></pre>
 
-            <p>The following example shows our custom element alongside the default
-                <code>joint.shapes.standard.Rectangle</code>.
-                Try refreshing the page to see the <code>createRandom()</code> constructor function in action.</p>
+            <p>The following example shows the default look of <code>joint.shapes.standard.Rectangle</code> (i.e. with
+                no instance attributes set) alongside the default look of our custom element and the randomized results
+                of the <code>createRandom()</code> constructor function.
+                Try <a onClick="window.location.reload()" style="cursor: pointer">refreshing the page</a> to see
+                <code>createRandom()</code> in action.</p>
 
             <div class="paper" id="paper-custom-elements"></div>
 
-            <p><a href="custom-links.html">In the next section of the intermediate tutorial, we will learn about
-                creating custom links.</a></p>
+            <p><a href="custom-links.html">Now that we know how to create custom element models, let us learn about
+                custom links.</a></p>
 
         </div><!--end tutorial-->
 

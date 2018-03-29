@@ -146,7 +146,7 @@ function resetAll(paper) {
                 interaction options is better practice in JavaScript than having dozens of listeners for individual
                 views.</p>
 
-            <h3 id="model-events">Builtin Graph Events</h3>
+            <h3 id="graph-events">Builtin Graph Events</h3>
 
             <p>The Graph model comes with several builtin events as well.
                 These events react to changes in the cell model's properties, including position, size, attributes, and
@@ -157,8 +157,8 @@ function resetAll(paper) {
                 and <a href="/docs/jointjs#dia.Link.events" target="_blank">Link events</a>.
                 To react on these events, add a listener on your Graph model.</p>
 
-            <p>In the example, the event <code>'change:position'</code> is triggered on the element when it is moved; we
-                determine the new position of the element's center and write it into its text label.
+            <p>In the following example, the event <code>'change:position'</code> is triggered on the element when it is
+                moved; we determine the new position of the element's center and write it into its text label.
                 The event <code>'change:target'</code> is triggered on the link when its target is moved; we use that
                 event to write the new target position into the link label.</p>
 
@@ -182,13 +182,22 @@ graph.on('change:target', function(cell) {
     });
 });</code></pre>
 
-            <p>The event listener callback functions have the signature
-                <code>callback(cell [, …])</code>, with additional arguments provided by individual events.
+            <p>The callback functions of the cell graph change events have the signature
+                <code>callback(cell, newValue)</code>.
                 Inside the listeners, the graph itself is available as <code>this</code>.
-                In our example, we were able to assume that the received <code>cell</code> model is an element and link,
-                respectively, because <code>link</code> does not trigger <code>'change:position'</code> events, and
-                conversely because <code>element</code> does not trigger <code>'change:target'</code>.
-                Keep in mind that some Graph events can be triggered on both data types, however.</p>
+                In our example, we were able to assume that the received <code>cell</code> model is of the type Element
+                and Link, respectively, because <code>Link</code> objects do not trigger <code>'change:position'</code>
+                events, and <code>Element</code> objects do not trigger <code>'change:target'</code>.
+                Keep in mind that some Graph events can be triggered on both data types, however (e.g.
+                <code>'change:attrs'</code>); depending on what you are trying to do, you might need to check the actual
+                <code>cell</code> data type first.</p>
+
+            <p>Other graph event listeners are provided with different parameters.
+                The generic <code>'graph:change'</code> event listeners receive only the changed cell but not the new
+                value (<code>callback(cell)</code>).
+                The <code>'graph:add'</code> event listeners receive the added cell and the <i>updated</i> cells array
+                (<code>callback(cell, newCells)</code>), whereas the <code>'graph:remove'</code> event listeners receive
+                the removed cell and the <i>original</i> cells array (<code>callback(cell, oldCells)</code>).</p>
 
             <p>Similarly to builtin paper events, these events are also triggered on the individual <code>cell</code>
                 (element or link model) the user interacted with.
@@ -198,10 +207,35 @@ graph.on('change:target', function(cell) {
                 interaction options is better practice in JavaScript than having dozens of listeners for individual
                 models.</p>
 
-            <h3 id="custom-pointerdown-events">Custom Pointerdown Events</h3>
+            <p>The graph can also react on changes in its own properties.
+                For example, calling <code>graph.set('property', true)</code> would trigger
+                <code>'change:property'</code> on the <code>graph</code>).
+                Event listeners for graph attribute changes receive a reference to the graph and the new value as their
+                parameters (<code>callback(graph, newValue)</code>).</p>
+
+            <p>Beware that due to backwards-compatibility considerations, this can lead to confusion if we are careless
+                in choosing custom graph property names!
+                If we named our custom graph property <code>position</code> instead of <code>property</code>, the
+                triggered event would be identified as <code>'change:position'</code>, and would thus be captured by the
+                event listener in our example - but the callback would have to contend with an unexpected set of
+                arguments.
+                To avoid such name collisions, we strongly recommend adopting a naming convention for custom graph
+                properties - e.g. starting their variable names with the word <q>graph</q> (i.e.
+                <code>graphProperty</code> and <code>graphPosition</code>).
+                If that is not an option, and you need to support custom graph attributes, you can make yourself safe by
+                asserting that the <code>cell</code> parameter is not actually a <code>Graph</code>:</p>
+
+            <pre><code>graph.on('change:position', function(cell) {
+    if (cell instanceof joint.dia.Graph) return;
+    var center = cell.getBBox().center();
+    var label = center.toString();
+    cell.attr('label/text', label);
+});</code></pre>
+
+            <h3 id="event-attribute">Subelement Event Attribute</h3>
 
             <p>The easiest way to add a custom event to an individual component on your diagram is to use the
-                <code>event</code> <a href="special-attributes.js" target="_blank">special attribute</a>.</p>
+                <code>event</code> <a href="special-attributes.html" target="_blank">special attribute</a>.</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.event" target="_blank"><code>event</code></a> - adds an event
@@ -212,11 +246,15 @@ graph.on('change:target', function(cell) {
             <p>This special attribute is useful for creating elements with custom tool subelements (e.g. a minimize
                 button).
                 Then, you can simply attach a listener on your paper that gets called when your custom event is
-                detected.
-                In the following example, we define a custom event <code>'element:button-pressed'</code> on the
-                <code>button</code> subelement and listen for it.
-                When the button is pressed, the element's <code>body</code> and <code>label</code> are hidden, and the
-                symbol in the button is changed to indicate that the element can be unminimized:</p>
+                detected.</p>
+
+            <p>In the following example, we define a <a href="custom-elements.html">custom element type</a> with a
+                <code>button</code> subelement.
+                We attach a custom event <code>'element:button:pointerdown'</code> to the <code>button</code> and listen
+                for it.
+                When <code>button</code> is pressed, the element's <code>body</code> and <code>label</code> are hidden
+                (<q>minimized</q>), and the symbol in the button is changed to indicate that the element can be now be
+                unminimized:</p>
 
             <div class="paper" id="paper-interaction-event-attribute"></div>
 
@@ -283,7 +321,7 @@ element.attr({
         visibility: 'visible'
     },
     button: {
-        event: 'element:button-pressed',
+        event: 'element:button:pointerdown',
         fill: 'orange',
         stroke: 'black',
         strokeWidth: 2
@@ -297,7 +335,7 @@ element.attr({
 });
 element.addTo(graph);
 
-paper.on('element:button-pressed', function(elementView, evt) {
+paper.on('element:button:pointerdown', function(elementView, evt) {
     evt.stopPropagation(); // stop any further actions with the element view (e.g. dragging)
 
     var model = elementView.model;
@@ -317,8 +355,7 @@ paper.on('element:button-pressed', function(elementView, evt) {
             <h3 id="custom-view-events">Custom View Events</h3>
 
             <p>For more advanced event customization, we need to delve into custom views.
-                That is an advanced topic with many powerful options; <a href="cutom-views.html">we dedicate an entire
-                tutorial page to it</a>.
+                That is an advanced topic with many powerful options; we will dedicate an entire tutorial page to it.
                 Here we will concentrate on extending our View objects with custom events.</p>
 
             <p>The Paper object has two options that determine the views used to render diagram components:</p>

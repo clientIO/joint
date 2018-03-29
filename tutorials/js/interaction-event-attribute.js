@@ -77,7 +77,7 @@
             visibility: 'visible'
         },
         button: {
-            event: 'element:button-pressed',
+            event: 'element:button:pointerdown',
             fill: 'orange',
             stroke: 'black',
             strokeWidth: 2
@@ -91,7 +91,7 @@
     });
     element.addTo(graph);
 
-    paper.on('element:button-pressed', function(elementView, evt) {
+    paper.on('element:button:pointerdown', function(elementView, evt) {
         evt.stopPropagation(); // stop any further actions with the element view (e.g. dragging)
 
         var model = elementView.model;

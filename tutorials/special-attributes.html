@@ -55,9 +55,7 @@
                 SVGElements of the shape; then it is the job of the browser to apply them to the elements and render
                 the shapes in the requested manner when asked to do so by JointJS View classes.
                 However, if JointJS encounters one of its special attributes, it takes over with custom logic in order
-                to offer advanced functionality; the results are then encoded back as standard SVG attributes.
-                <a href="custom-attributes.html">Advanced users of JointJS can even define their own custom
-                attributes.</a></p>
+                to offer advanced functionality; the results are then encoded back as standard SVG attributes.</p>
 
             <p>All JointJS special attributes use camelCase naming.
                 For consistency, it is thus very strongly recommended that you make use JointJS's ability to translate
@@ -115,8 +113,8 @@
             </ul>
 
             <p>Let us see the relative attributes in action.
-                We define a custom element type named <code>CustomElement</code> as a subtype of
-                <code>joint.dia.Element</code>.
+                We define a <a href="custom-elements.html">custom element type</a> named <code>CustomElement</code> as a
+                subtype of <code>joint.dia.Element</code>.
                 We want it to have three SVGElements - a red-tinted <code>ellipse</code> named <code>e</code>, a
                 green-tinted <code>rect</code> named <code>r</code>, and a blue-tinted <code>circle</code> named
                 <code>c</code>, respectively.
@@ -217,8 +215,8 @@ element.attr({
                     attributes.</li>
             </ul>
 
-            <p>We define a custom element type named <code>CustomTextElement</code> as a subtype of
-                <code>joint.dia.Element</code>.
+            <p>We define a <a href="custom-elements.html">custom element type</a> named <code>CustomTextElement</code>
+                as a subtype of <code>joint.dia.Element</code>.
                 It is very similar to <code>CustomElement</code> defined above, except this time, all subelements refer
                 to a new <code>text</code> component named <code>label</code>.
                 In the example, we use JointJS transitions to vary the text content of <code>label</code>.
@@ -443,7 +441,8 @@ element.attr({
             </ul>
 
             <p>These attributes are ideal for adding symbols and arrowheads on the connection path and have them rotate
-                according to path slope:</p>
+                according to path slope.
+                Let us illustrate with a <a href="custom-links.html">custom link type</a>:</p>
 
             <div class="paper" id="paper-special-attributes-link-relative-dimensions"></div>
 
@@ -549,16 +548,18 @@ link.attr({
                 <code>atConnectionLength</code>/<code>atConnectionRattio</code> attributes are actually aliases for more
                 verbose names <code>atConnectionLengthKeepGradient</code>/<code>atConnectionRatioKeepGradient</code>.
                 You should see that these names were designed to complement the names of the two attributes newly
-                introduced above.)</p>
+                introduced above.)
+                In both cases (that is, whether we keep link gradient or not), offsetting of link subelement labels is
+                achieved by clever use of the native <code>x</code> and <code>y</code> SVG attributes.</p>
 
-            <p>In both cases (that is, whether we keep link gradient or not), offsetting of link subelement labels is
-                achieved by clever use of the native <code>x</code> and <code>y</code> SVG attributes.
-                Let us illustrate with the following demo, designed to emulate functionality shown in the link label
+            <p>Let us illustrate with the following demo.
+                A <a href="custom-links.html">custom link type</a> is defined with link label subelements positioned
+                in such a way as to emulate the functionality shown in the link label
                 <a href="link-labels.html#label-position">position</a> and
                 <a href="link-labels.html#label-offset">offset</a> examples.
-                The red asterisk marks the reference point of the offset subelements of the link.</p>
+                The red asterisk marks the reference point of the offset subelements on the link connection path.</p>
 
-            <div class="paper" id="paper-special-attributes-link-relative-dimensions-text"></div>
+            <div class="paper" id="paper-special-attributes-link-subelement-labels"></div>
 
             <pre><code>var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     attrs: {
@@ -569,8 +570,8 @@ link.attr({
             strokeWidth: 2,
             strokeLinejoin: 'round',
             targetMarker: {
-                type: 'path',
-                d: 'M 10 -5 0 0 10 5 z'
+                'type': 'path',
+                'd': 'M 10 -5 0 0 10 5 z'
             }
         },
         relativeLabel: {
@@ -769,6 +770,6 @@ link.attr({
         <script src="js/links-arrowheads-image.js"></script>
         <script src="js/special-attributes-link-arrowheads.js"></script>
         <script src="js/special-attributes-link-relative-dimensions.js"></script>
-        <script src="js/special-attributes-link-relative-dimensions-text.js"></script>
+        <script src="js/special-attributes-link-subelement-labels.js"></script>
     </body>
 </html>

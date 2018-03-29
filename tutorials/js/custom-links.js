@@ -9,132 +9,114 @@
         height: 300
     });
 
-    joint.shapes.standard.Rectangle.define('examples.CustomRectangle', {
+    joint.shapes.standard.Link.define('examples.CustomLink', {
         attrs: {
-            body: {
-                rx: 10,
-                ry: 10,
-                strokeWidth: 1,
-                fill: 'orange'
+            line: {
+                stroke: 'cornflowerblue',
+                strokeWidth: 5,
+                targetMarker: {
+                    'type': 'rect',
+                    'width': 10,
+                    'height': 20,
+                    'y': -10,
+                    'stroke': 'none'
+                }
+            }
+        },
+        defaultLabel: {
+            markup: [
+                {
+                    tagName: 'rect',
+                    selector: 'body'
+                }, {
+                    tagName: 'text',
+                    selector: 'label'
+                }
+            ],
+            attrs: {
+                label: {
+                    fill: 'black', // default text color
+                    fontSize: 12,
+                    textAnchor: 'middle',
+                    yAlignment: 'middle',
+                    pointerEvents: 'none'
+                },
+                body: {
+                    ref: 'label',
+                    fill: 'white',
+                    stroke: 'cornflowerblue',
+                    strokeWidth: 2,
+                    refWidth: '120%',
+                    refHeight: '120%',
+                    refX: '-10%',
+                    refY: '-10%'
+                }
             },
-            button: {
-                event: 'element:button-pressed',
-                cursor: 'pointer',
-                refCx: '100%',
-                cy: 0,
-                r: 10,
-                strokeWidth: 1,
-                stroke: 'black',
-                fill: 'red'
-            },
-            label: {
-                textAnchor: 'left',
-                refX: 10,
-                fill: 'black',
-                fontWeight: 'bold'
+            position: {
+                distance: 100, // default absolute position
+                args: {
+                    absoluteDistance: true
+                }
             }
         }
     }, {
-        markup: [{
-            tagName: 'rect',
-            selector: 'body'
-        }, {
-            tagName: 'text',
-            selector: 'label'
-        }, {
-            tagName: 'circle',
-            selector: 'button'
-        }]
+        // inherit joint.shapes.standard.Link.markup
     }, {
         createRandom: function() {
 
-            function randomColor() {
+            var link = new joint.shapes.examples.CustomLink();
 
-                var color = {};
-                color.r = Math.floor(Math.random() * 256);
-                color.g = Math.floor(Math.random() * 256);
-                color.b = Math.floor(Math.random() * 256);
-                return color;
-            }
+            var stroke = '#' + ('000000' + Math.floor(Math.random() * 16777215).toString(16)).slice(-6);
+            var strokeWidth = Math.floor(Math.random() * 10) + 1;
+            var strokeDasharray = (Math.floor(Math.random() * 5) + 1) + ' ' + (Math.floor(Math.random() * 5) + 1);
 
-            function invertColor(color) {
-
-                var inverted = {};
-                inverted.r = Math.abs(color.r - 255);
-                inverted.g = Math.abs(color.g - 255);
-                inverted.b = Math.abs(color.b - 255);
-                return inverted;
-            }
-
-            function colorString(color) {
-
-                return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
-            }
-
-            var rectangle = new joint.shapes.examples.CustomRectangle();
-
-            var fillColor = randomColor();
-            var strokeColor = randomColor();
-            var labelColor = invertColor(fillColor);
-
-            var fill = colorString(fillColor);
-            var stroke = colorString(strokeColor);
-            var strokeWidth = Math.floor(Math.random() * 6);
-            var strokeDasharray = Math.floor(Math.random() * 6) + ' ' + Math.floor(Math.random() * 6);
-            var radius = Math.floor(Math.random() * 21);
-            var labelFill = colorString(labelColor);
-
-            rectangle.attr({
-                body: {
-                    fill: fill,
+            link.attr({
+                line: {
                     stroke: stroke,
                     strokeWidth: strokeWidth,
-                    strokeDasharray: strokeDasharray,
-                    rx: radius,
-                    ry: radius
-                },
-                label: {
-                    fill: labelFill
+                    strokeDasharray: strokeDasharray
                 }
             });
 
-            return rectangle;
+            link.prop('defaultLabel/attrs/body/stroke', stroke);
+
+            return link;
         }
     });
 
-    var rect = new joint.shapes.standard.Rectangle();
-    rect.position(100, 30);
-    rect.resize(400, 40);
-    rect.attr({
-        text: {
-            text: 'shapes.standard.Rectangle()'
+    var link = new joint.shapes.standard.Link();
+    link.source(new g.Point(100, 50));
+    link.target(new g.Point(500, 50));
+    link.appendLabel({
+        attrs: {
+            text: {
+                text: 'Hello, World!'
+            }
         }
     });
-    rect.addTo(graph);
+    link.addTo(graph);
 
-    var rect2 = new joint.shapes.examples.CustomRectangle();
-    rect2.position(100, 130);
-    rect2.resize(400, 40);
-    rect2.attr({
-        label: {
-            text: 'shapes.examples.CustomRectangle()'
+    var link2 = new joint.shapes.examples.CustomLink();
+    link2.source(new g.Point(100, 150));
+    link2.target(new g.Point(500, 150));
+    link2.appendLabel({
+        attrs: {
+            label: {
+                text: 'Hello, World!'
+            }
         }
     });
-    rect2.addTo(graph);
+    link2.addTo(graph);
 
-    var rect3 = joint.shapes.examples.CustomRectangle.createRandom();
-    rect3.position(100, 230);
-    rect3.resize(400, 40);
-    rect3.attr({
-        label: {
-            text: 'shapes.examples.CustomRectangle.createRandom()'
+    var link3 = joint.shapes.examples.CustomLink.createRandom();
+    link3.source(new g.Point(100, 250));
+    link3.target(new g.Point(500, 250));
+    link3.appendLabel({
+        attrs: {
+            label: {
+                text: 'Hello, World!'
+            }
         }
     });
-    rect3.addTo(graph);
-
-    paper.on('element:button-pressed', function(elementView, evt) {
-        evt.stopPropagation();
-
-        alert('Button pressed');
-    });
+    link3.addTo(graph);
 }());

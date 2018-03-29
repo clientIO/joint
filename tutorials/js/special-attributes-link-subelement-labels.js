@@ -1,9 +1,9 @@
-(function specialAttributesLinkRelativeDimensionsText() {
+(function specialAttributesLinkSubelementLabels() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-special-attributes-link-relative-dimensions-text'),
+        el: document.getElementById('paper-special-attributes-link-subelement-labels'),
         model: graph,
         width: 600,
         height: 300,
@@ -24,8 +24,8 @@
                 strokeWidth: 2,
                 strokeLinejoin: 'round',
                 targetMarker: {
-                    type: 'path',
-                    d: 'M 10 -5 0 0 10 5 z'
+                    'type': 'path',
+                    'd': 'M 10 -5 0 0 10 5 z'
                 }
             },
             relativeLabel: {
