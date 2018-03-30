@@ -919,6 +919,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         }, this);
     },
 
+    clearTools: function() {
+        joint.dia.CellView.clearTools(this);
+        return this;
+    },
+
     getModelById: function(id) {
 
         return this.model.getCell(id);
