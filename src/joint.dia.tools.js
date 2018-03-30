@@ -93,13 +93,15 @@
             return this;
         },
 
-        blurTool: function() {
+        blurTool: function(bluredTool) {
             var tools = this.tools;
             if (!tools) return this;
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
-                tool.show();
-                tool.update();
+                if (tool !== bluredTool) {
+                    tool.show();
+                    tool.update();
+                }
             }
             return this;
         },

@@ -158,7 +158,6 @@
                 } else if (Math.abs(vertex.x - neighbors.next.x) < snapRadius) {
                     vertex.x = neighbors.next.x;
                 }
-
                 if (Math.abs(vertex.y - neighbors.prev.y) < snapRadius) {
                     vertex.y = neighbors.prev.y;
                 } else if (Math.abs(vertex.y - neighbors.next.y) < snapRadius) {
