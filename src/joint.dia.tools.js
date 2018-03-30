@@ -63,8 +63,8 @@
             if (tools) {
                 for (var i = 0, n = tools.length; i < n; i++) {
                     var tool = tools[i];
-                    if (opt.tool !== tool.cid) {
-                        tools[i].update();
+                    if (opt.tool !== tool.cid && tool.isVisible()) {
+                        tool.update();
                     }
                 }
             }

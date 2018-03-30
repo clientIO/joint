@@ -103,7 +103,6 @@
             return this;
         },
         update: function() {
-            if (!this.isVisible()) return this;
             this.render();
             return this;
         },
@@ -302,7 +301,6 @@
             return handle;
         },
         update: function() {
-            if (!this.isVisible()) return this;
             this.render();
             return this;
         },
@@ -504,7 +502,6 @@
             this.update()
         },
         update: function() {
-            if (!this.isVisible()) return this;
             var ratio = this.ratio;
             var view = this.relatedView;
             var tangent = view.getTangentAtRatio(ratio);
@@ -598,7 +595,6 @@
             this.update()
         },
         update: function() {
-            if (!this.isVisible()) return this;
             var tangent, position, angle;
             var distance = this.options.distance || 0;
             if (util.isPercentage(distance)) {
@@ -677,7 +673,6 @@
             this.update();
         },
         update: function() {
-            if (!this.isVisible()) return this;
             var bbox = this.relatedView.getConnection().bbox().inflate(this.options.padding);
             this.vel.attr(bbox.toJSON());
             return this;
@@ -721,7 +716,6 @@
             this.update();
         },
         update: function() {
-            if (!this.isVisible()) return this;
             var type = this.type;
             var relatedView = this.relatedView;
             var options = this.options;
