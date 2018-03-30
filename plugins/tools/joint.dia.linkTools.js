@@ -103,7 +103,9 @@
             return this;
         },
         update: function() {
+            if (!this.isVisible()) return this;
             this.render();
+            return this;
         },
         updatePath: function() {
             var connection = this.childNodes.connection;
@@ -140,7 +142,7 @@
             }
         },
         onHandleWillChange: function(handle, evt) {
-            this.activate();
+            this.focus();
         },
         onHandleChanging: function(handle, evt) {
             var relatedView = this.relatedView;
@@ -171,7 +173,7 @@
             if (!this.options.redundancyRemoval) return;
             var verticesRemoved = this.relatedView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
             if (verticesRemoved) this.render();
-            this.deactivate();
+            this.blur();
         },
         onHandleRemove: function(handle) {
             var index = handle.options.index;
@@ -300,6 +302,7 @@
             return handle;
         },
         update: function() {
+            if (!this.isVisible()) return this;
             this.render();
             return this;
         },
@@ -442,7 +445,7 @@
             for (var i = 0, n = handles.length; i < n; i++) {
                 if (i !== index) handles[i].hide()
             }
-            this.activate();
+            this.focus();
             var relatedView = this.relatedView;
             var relatedModel = relatedView.model;
             this.eventData(evt, {
@@ -457,7 +460,7 @@
                 this.relatedView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
             }
             this.render();
-            this.deactivate();
+            this.blur();
         },
         updateHandle: function(handle, vertex, nextVertex) {
             var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
@@ -501,6 +504,7 @@
             this.update()
         },
         update: function() {
+            if (!this.isVisible()) return this;
             var ratio = this.ratio;
             var view = this.relatedView;
             var tangent = view.getTangentAtRatio(ratio);
@@ -514,6 +518,7 @@
             }
             var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
             this.vel.transform(matrix, { absolute: true });
+            return this;
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
@@ -523,7 +528,7 @@
                 this.delegateDocumentEvents();
                 relatedView.paper.undelegateEvents();
             }
-            this.activate();
+            this.focus();
         },
         onPointerMove: function(evt) {
             var coords = paper.snapToGrid(evt.clientX, evt.clientY);
@@ -536,7 +541,7 @@
             var coords = paper.snapToGrid(evt.clientX, evt.clientY);
             relatedView.pointerup(evt, coords.x, coords.y);
             paper.delegateEvents();
-            this.deactivate();
+            this.blur();
         }
     });
 
@@ -593,6 +598,7 @@
             this.update()
         },
         update: function() {
+            if (!this.isVisible()) return this;
             var tangent, position, angle;
             var distance = this.options.distance || 0;
             if (util.isPercentage(distance)) {
@@ -612,6 +618,7 @@
                 .rotate(angle)
                 .translate(0, this.options.offset || 0);
             this.vel.transform(matrix, { absolute: true });
+            return this;
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
@@ -670,8 +677,10 @@
             this.update();
         },
         update: function() {
+            if (!this.isVisible()) return this;
             var bbox = this.relatedView.getConnection().bbox().inflate(this.options.padding);
             this.vel.attr(bbox.toJSON());
+            return this;
         }
     });
 
@@ -712,6 +721,7 @@
             this.update();
         },
         update: function() {
+            if (!this.isVisible()) return this;
             var type = this.type;
             var relatedView = this.relatedView;
             var options = this.options;
@@ -723,12 +733,13 @@
                 'fill': (customAnchor) ? options.customAnchorColor : options.defaultAnchorColor,
                 'visibility': (view) ? '' : 'hidden'
             });
+            return this;
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
-            this.activate();
+            this.focus();
         },
         resetAnchor: function(anchor) {
             var type = this.type;
@@ -772,7 +783,7 @@
         onPointerUp: function(evt) {
             this.paper.delegateEvents();
             this.undelegateDocumentEvents();
-            this.deactivate();
+            this.blur();
         },
 
         onPointerDblClick: function() {

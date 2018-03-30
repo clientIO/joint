@@ -4,6 +4,7 @@
         tagName: 'g',
         className: 'tool',
         svgElement: true,
+        _visible: true,
         setRelatedView: function(view, toolsView) {
             this.relatedView = view;
             this.paper = view.paper;
@@ -11,18 +12,23 @@
         },
         show: function() {
             this.el.style.display = '';
+            this._visible = true;
         },
         hide: function() {
             this.el.style.display = 'none';
+            this._visible = false;
         },
-        activate: function() {
+        focus: function() {
             var opacity = this.options.activateOpacity;
             if (isFinite(opacity)) this.el.style.opacity = opacity;
-            this.parentView.activate(this);
+            this.parentView.focusTool(this);
         },
-        deactivate: function() {
+        blur: function() {
             this.el.style.opacity = '';
-            this.parentView.deactivate(this);
+            this.parentView.blurTool(this);
+        },
+        isVisible: function() {
+            return !!this._visible;
         }
     });
 
@@ -65,13 +71,13 @@
             return this;
         },
 
-        activate: function(activeTool) {
+        focusTool: function(focusedTool) {
 
             var tools = this.tools;
             if (tools) {
                 for (var i = 0, n = tools.length; i < n; i++) {
                     var tool = tools[i];
-                    if (activeTool !== tool) {
+                    if (focusedTool !== tool) {
                         tool.hide();
                     } else {
                         tool.show();
@@ -81,11 +87,13 @@
             return this;
         },
 
-        deactivate: function(deactivateTool) {
+        blurTool: function() {
             var tools = this.tools;
             if (tools) {
                 for (var i = 0, n = tools.length; i < n; i++) {
-                    tools[i].show();
+                    var tool = tools[i];
+                    tool.show();
+                    tool.update();
                 }
             }
             return this;
