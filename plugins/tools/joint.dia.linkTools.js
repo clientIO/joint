@@ -631,9 +631,9 @@
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
-            var action = this.options.action;
-            if (typeof action === 'function') {
-                action.call(this.relatedView, evt, this.relatedView);
+            var actionFn = this.options.action;
+            if (typeof actionFn === 'function') {
+                actionFn.call(this.relatedView, evt, this.relatedView);
             }
         }
     });

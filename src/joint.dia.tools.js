@@ -5,7 +5,7 @@
         className: 'tool',
         svgElement: true,
         _visible: true,
-        setRelatedView: function(view, toolsView) {
+        configure: function(view, toolsView) {
             this.relatedView = view;
             this.paper = view.paper;
             this.parentView = toolsView;
@@ -18,6 +18,9 @@
             this.el.style.display = 'none';
             this._visible = false;
         },
+        isVisible: function() {
+            return !!this._visible;
+        },
         focus: function() {
             var opacity = this.options.activateOpacity;
             if (isFinite(opacity)) this.el.style.opacity = opacity;
@@ -26,9 +29,6 @@
         blur: function() {
             this.el.style.opacity = '';
             this.parentView.blurTool(this);
-        },
-        isVisible: function() {
-            return !!this._visible;
         }
     });
 
@@ -37,35 +37,42 @@
         className: 'tools',
         svgElement: true,
         tools: null,
+        options: {
+            tools: null,
+            relatedView: null,
+            name: null
+        },
 
-        init: function() {
-
-            var tools = this.options.tools;
-            var relatedView = this.options.relatedView;
+        configure: function(options) {
+            options = util.assign({}, this.options, options)
+            var tools = options.tools;
             if (!Array.isArray(tools)) return this;
+            var relatedView = options.relatedView;
+            if (!(relatedView instanceof joint.dia.CellView)) return this;
             var views = this.tools = [];
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
                 if (!(tool instanceof ToolView)) continue;
-                tool.setRelatedView(relatedView, this);
+                tool.configure(relatedView, this);
                 tool.render();
                 this.vel.append(tool.el);
                 views.push(tool);
             }
+        },
 
-            return this;
+        getName: function() {
+            return this.options.name;
         },
 
         update: function(opt) {
 
             opt || (opt = {});
             var tools = this.tools;
-            if (tools) {
-                for (var i = 0, n = tools.length; i < n; i++) {
-                    var tool = tools[i];
-                    if (opt.tool !== tool.cid && tool.isVisible()) {
-                        tool.update();
-                    }
+            if (!tools) return;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                if (opt.tool !== tool.cid && tool.isVisible()) {
+                    tool.update();
                 }
             }
             return this;
@@ -74,14 +81,13 @@
         focusTool: function(focusedTool) {
 
             var tools = this.tools;
-            if (tools) {
-                for (var i = 0, n = tools.length; i < n; i++) {
-                    var tool = tools[i];
-                    if (focusedTool !== tool) {
-                        tool.hide();
-                    } else {
-                        tool.show();
-                    }
+            if (!tools) return this;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                if (focusedTool !== tool) {
+                    tool.hide();
+                } else {
+                    tool.show();
                 }
             }
             return this;
@@ -89,12 +95,11 @@
 
         blurTool: function() {
             var tools = this.tools;
-            if (tools) {
-                for (var i = 0, n = tools.length; i < n; i++) {
-                    var tool = tools[i];
-                    tool.show();
-                    tool.update();
-                }
+            if (!tools) return this;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                tool.show();
+                tool.update();
             }
             return this;
         },
@@ -102,12 +107,11 @@
         onRemove: function() {
 
             var tools = this.tools;
-            if (tools) {
-                for (var i = 0, n = tools.length; i < n; i++) {
-                    tools[i].remove();
-                }
-                this.tools = null;
+            if (!tools) return this;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                tools[i].remove();
             }
+            this.tools = null;
         }
     });
 

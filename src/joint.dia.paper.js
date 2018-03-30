@@ -611,8 +611,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         return new ViewClass({
             model: cell,
-            interactive: this.options.interactive,
-            tools: this.options.tools
+            interactive: this.options.interactive
         });
     },
 

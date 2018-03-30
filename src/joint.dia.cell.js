@@ -1351,20 +1351,23 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     _toolsView: null,
 
-    hasTools: function() {
-        return !!this._toolsView;
+    hasTools: function(name) {
+        var toolsView = this._toolsView;
+        if (!toolsView) return false;
+        if (!name) return true;
+        return (toolsView.getName() === name);
     },
 
-    addTools: function(tools) {
+    addTools: function(toolsView) {
 
         this.removeTools();
 
-        var toolsView = this._toolsView = new joint.dia.ToolsView({
-            tools: tools || this.options.tools.call(this.paper, this),
-            relatedView: this
-        })
-
-        this.vel.append(toolsView.el);
+        if (toolsView instanceof joint.dia.ToolsView) {
+            this._toolsView = toolsView;
+            toolsView.configure({ relatedView: this });
+            toolsView.listenTo(this.paper, 'tools:clear', this.removeTools.bind(this));
+            this.vel.append(toolsView.el);
+        }
         return this;
     },
 
@@ -1475,5 +1478,10 @@ joint.dia.CellView = joint.mvc.View.extend({
     setInteractivity: function(value) {
 
         this.options.interactive = value;
+    }
+}, {
+
+    clearTools: function(paper) {
+        if (paper instanceof joint.dia.Paper) paper.trigger('tools:clear');
     }
 });
