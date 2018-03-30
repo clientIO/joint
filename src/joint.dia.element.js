@@ -563,7 +563,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
     },
 
-    getBBox: function (opt) {
+    getBBox: function(opt) {
 
         var bbox;
         if (opt && opt.useModelGeometry) {
@@ -942,7 +942,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.notify('element:mousewheel', evt, x, y, delta);
     },
 
-    onmagnet: function (evt, x, y) {
+    onmagnet: function(evt, x, y) {
 
         this.dragMagnetStart(evt, x, y);
 
@@ -962,6 +962,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             y: y,
             restrictedArea: this.paper.getRestrictedArea(this)
         });
+
+        this.paper.undelegateEvents();
     },
 
     dragMagnetStart: function(evt, x, y) {
@@ -1044,6 +1046,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         if (data.embedding) this.finalizeEmbedding(data);
+
+        this.paper.delegateEvents();
     },
 
     dragMagnetEnd: function(evt, x, y) {

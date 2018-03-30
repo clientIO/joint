@@ -1,4 +1,4 @@
-(function (dia, util, env, V) {
+(function(dia, util, env, V) {
 
     'use strict';
 

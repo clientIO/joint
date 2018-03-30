@@ -1,7 +1,7 @@
 (function(joint, util) {
 
     function bboxWrapper(method) {
-        return function (view, magnet, ref, opt) {
+        return function(view, magnet, ref, opt) {
             var rotate = !!opt.rotate;
             var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
             var anchor = bbox[method]();

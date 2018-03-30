@@ -632,7 +632,7 @@ module.exports = function(grunt) {
                 switch (reporter) {
                     case 'lcov':
                         data = reports.join('\n');
-                    break;
+                        break;
                 }
 
                 grunt.file.write(outputFile, data);

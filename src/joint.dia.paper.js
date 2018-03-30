@@ -1470,22 +1470,22 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    _getGriRefs: function () {
+    _getGriRefs: function() {
 
         if (!this._gridCache) {
 
             this._gridCache = {
                 root: V('svg', { width: '100%', height: '100%' }, V('defs')),
                 patterns: {},
-                add: function (id, vel) {
+                add: function(id, vel) {
                     V(this.root.node.childNodes[0]).append(vel);
                     this.patterns[id] = vel;
                     this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
                 },
-                get: function (id) {
+                get: function(id) {
                     return  this.patterns[id]
                 },
-                exist: function (id) {
+                exist: function(id) {
                     return this.patterns[id] !== undefined;
                 }
             }
@@ -1494,7 +1494,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this._gridCache;
     },
 
-    setGrid:function (drawGrid) {
+    setGrid: function(drawGrid) {
 
         this.clearGrid();
 
@@ -1502,13 +1502,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        optionsList.forEach(function (item) {
+        optionsList.forEach(function(item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
         return this;
     },
 
-    _resolveDrawGridOption: function (opt) {
+    _resolveDrawGridOption: function(opt) {
 
         var namespace = this.constructor.gridPatterns;
         if (joint.util.isString(opt) && Array.isArray(namespace[opt])) {
@@ -1556,7 +1556,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        this._gridSettings.forEach(function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function(gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
             var options = joint.util.merge(gridLayerSetting, localOptions[index], {

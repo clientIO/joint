@@ -2183,11 +2183,11 @@ V = Vectorizer = (function() {
             var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0 };
             var data = [];
 
-            String(pathString).replace(pathCommand, function (a, b, c) {
+            String(pathString).replace(pathCommand, function(a, b, c) {
 
                 var params = [];
                 var name = b.toLowerCase();
-                c.replace(pathValues, function (a, b) {
+                c.replace(pathValues, function(a, b) {
                     if (b) params.push(+b);
                 });
 

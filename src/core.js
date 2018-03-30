@@ -1541,7 +1541,7 @@ var joint = {
             }
         },
 
-        parseDOMJSON: function (json, namespace) {
+        parseDOMJSON: function(json, namespace) {
 
             var selectors = {};
             var svgNamespace = V.namespace.xmlns;

@@ -1,4 +1,4 @@
-(function (joint, util) {
+(function(joint, util) {
 
     var ToolView = joint.mvc.View.extend({
         tagName: 'g',

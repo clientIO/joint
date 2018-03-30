@@ -204,7 +204,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.prop(['labels', idx], label, opt);
     },
 
-    labels: function (labels, opt) {
+    labels: function(labels, opt) {
 
         // getter
         if (arguments.length === 0) {
@@ -248,7 +248,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // Vertices API
 
-    vertex: function (idx, vertex, opt) {
+    vertex: function(idx, vertex, opt) {
 
         var vertices = this.vertices();
 
@@ -261,7 +261,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.prop(['vertices', idx], vertex, opt);
     },
 
-    vertices: function (vertices, opt) {
+    vertices: function(vertices, opt) {
 
         // getter
         if (arguments.length === 0) {
@@ -287,7 +287,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.vertices(vertices, opt);
     },
 
-    removeVertex: function (idx, opt) {
+    removeVertex: function(idx, opt) {
 
         var vertices = this.vertices();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
@@ -2373,7 +2373,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var pointer = g.point(x, y);
         var paper = this.paper;
 
-        viewsInArea.forEach(function (view) {
+        viewsInArea.forEach(function(view) {
 
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {

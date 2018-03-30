@@ -795,6 +795,8 @@ joint.dia.CellView = joint.mvc.View.extend({
     findBySelector: function(selector, root, selectors) {
 
         root || (root = this.el);
+        selectors || (selectors = this.selectors);
+
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
@@ -1353,7 +1355,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         return !!this._toolsView;
     },
 
-    addTools: function (tools) {
+    addTools: function(tools) {
 
         this.removeTools();
 
@@ -1366,14 +1368,14 @@ joint.dia.CellView = joint.mvc.View.extend({
         return this;
     },
 
-    updateTools: function (opt) {
+    updateTools: function(opt) {
 
         var toolsView = this._toolsView;
         if (toolsView) toolsView.update(opt);
         return this;
     },
 
-    removeTools: function () {
+    removeTools: function() {
 
         var toolsView = this._toolsView;
         if (toolsView) {

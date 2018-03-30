@@ -1,4 +1,18 @@
-(function (joint, util, V, g) {
+(function(joint, util, V, g) {
+
+    function getAnchor(coords, view, magnet) {
+        // take advantage of an existing logic inside of the
+        // pin relative connection strategy
+        var end = joint.connectionStrategies.pinRelative.call(
+            this.paper,
+            {},
+            view,
+            magnet,
+            coords,
+            this.model
+        );
+        return end.anchor;
+    }
 
     var ToolView = joint.dia.ToolView;
 
@@ -25,22 +39,22 @@
             'stroke-width': 2,
             'cursor': 'move'
         },
-        position: function (x, y) {
+        position: function(x, y) {
             this.vel.attr({ cx: x, cy: y });
         },
-        onPointerDown: function (evt) {
+        onPointerDown: function(evt) {
             evt.stopPropagation();
             this.options.paper.undelegateEvents();
             this.delegateDocumentEvents();
             this.trigger('will-change');
         },
-        onPointerMove: function (evt) {
+        onPointerMove: function(evt) {
             this.trigger('changing', this, evt);
         },
-        onDoubleClick: function (evt) {
+        onDoubleClick: function(evt) {
             this.trigger('remove', this, evt);
         },
-        onPointerUp: function (evt) {
+        onPointerUp: function(evt) {
             this.trigger('changed', this, evt);
             this.undelegateDocumentEvents();
             this.options.paper.delegateEvents();
@@ -50,7 +64,7 @@
     var Vertices = ToolView.extend({
         options: {
             HandleClass: VertexHandle,
-            snapRadius: 10,
+            snapRadius: 20,
             redundancyRemoval: true,
             vertexAdding: true,
         },
@@ -69,7 +83,7 @@
         events: {
             'mousedown .joint-vertices-path': 'onPathPointerDown'
         },
-        onRender: function () {
+        onRender: function() {
             this.resetHandles();
             if (this.options.vertexAdding) {
                 this.renderChildren();
@@ -88,15 +102,14 @@
             }
             return this;
         },
-        update: function () {
+        update: function() {
             this.render();
         },
-        updatePath: function () {
-
+        updatePath: function() {
             var connection = this.childNodes.connection;
             if (connection) connection.setAttribute('d', this.relatedView.getConnection().serialize());
         },
-        startHandleListening: function (handle) {
+        startHandleListening: function(handle) {
             var relatedView = this.relatedView;
             if (relatedView.can('vertexMove')) {
                 this.listenTo(handle, 'will-change', this.onHandleWillChange);
@@ -107,7 +120,7 @@
                 this.listenTo(handle, 'remove', this.onHandleRemove);
             }
         },
-        resetHandles: function () {
+        resetHandles: function() {
             var handles = this.handles;
             this.handles = [];
             this.stopListening();
@@ -116,7 +129,7 @@
                 handles[i].remove();
             }
         },
-        getNeighborPoints: function (index) {
+        getNeighborPoints: function(index) {
             var linkView = this.relatedView;
             var vertices = linkView.model.vertices();
             var prev = (index > 0) ? vertices[index - 1] : linkView.sourceAnchor;
@@ -126,10 +139,10 @@
                 next: new g.Point(next)
             }
         },
-        onHandleWillChange: function (handle, evt) {
+        onHandleWillChange: function(handle, evt) {
             this.activate();
         },
-        onHandleChanging: function (handle, evt) {
+        onHandleChanging: function(handle, evt) {
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index;
@@ -153,18 +166,18 @@
             link.vertex(index, vertex, { ui: true, tool: this.cid });
             handle.position(vertex.x, vertex.y);
         },
-        onHandleChanged: function (handle, evt) {
+        onHandleChanged: function(handle, evt) {
             if (this.options.vertexAdding) this.updatePath();
             if (!this.options.redundancyRemoval) return;
             var verticesRemoved = this.relatedView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
             if (verticesRemoved) this.render();
             this.deactivate();
         },
-        onHandleRemove: function (handle) {
+        onHandleRemove: function(handle) {
             var index = handle.options.index;
             this.relatedView.model.removeVertex(index, { ui: true });
         },
-        onPathPointerDown: function (evt) {
+        onPathPointerDown: function(evt) {
             evt.stopPropagation();
             var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
             var index = this.relatedView.addVertex(vertex, { ui: true, tool: this.cid });
@@ -172,11 +185,10 @@
             var handle = this.handles[index];
             handle.onPointerDown(evt);
         },
-        onRemove: function () {
+        onRemove: function() {
             this.resetHandles();
         }
     });
-
 
     var SegmentHandle = joint.mvc.View.extend({
         tagName: 'g',
@@ -219,7 +231,7 @@
         onRender: function() {
             this.renderChildren();
         },
-        position: function (x, y, angle, view) {
+        position: function(x, y, angle, view) {
 
             var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
             var handle = this.childNodes.handle;
@@ -233,16 +245,16 @@
             line.setAttribute('x2', viewPoint.x);
             line.setAttribute('y2', viewPoint.y);
         },
-        onPointerDown: function (evt) {
+        onPointerDown: function(evt) {
             this.trigger('change:start', this, evt);
             evt.stopPropagation();
             this.options.paper.undelegateEvents();
-            this.delegateDocumentEvents();
+            this.delegateDocumentEvents(null, evt.data);
         },
-        onPointerMove: function (evt) {
+        onPointerMove: function(evt) {
             this.trigger('changing', this, evt);
         },
-        onPointerUp: function (evt) {
+        onPointerUp: function(evt) {
             this.undelegateDocumentEvents();
             this.options.paper.delegateEvents();
             this.trigger('change:end', this, evt);
@@ -256,13 +268,15 @@
     });
 
     var Segments = ToolView.extend({
+        precision: .5,
         options: {
             HandleClass: SegmentHandle,
             segmentLenghtThreshold: 40,
-            redundancyRemoval: true
+            redundancyRemoval: true,
+            anchor: getAnchor
         },
         handels: null,
-        onRender: function () {
+        onRender: function() {
             this.resetHandles();
             var relatedView = this.relatedView;
             var vertices = relatedView.model.vertices();
@@ -285,16 +299,16 @@
             this.startHandleListening(handle);
             return handle;
         },
-        update: function () {
+        update: function() {
             this.render();
             return this;
         },
-        startHandleListening: function (handle) {
+        startHandleListening: function(handle) {
             this.listenTo(handle, 'change:start', this.onHandleChangeStart);
             this.listenTo(handle, 'changing', this.onHandleChanging);
             this.listenTo(handle, 'change:end', this.onHandleChangeEnd);
         },
-        resetHandles: function () {
+        resetHandles: function() {
             var handles = this.handles;
             this.handles = [];
             this.stopListening();
@@ -307,8 +321,22 @@
             var handles = this.handles;
             for (var i = 0, n = handles.length; i < n; i++) handles[i].options.index += value;
         },
-
-        onHandleChanging: function (handle, evt) {
+        resetAnchor: function(type, anchor) {
+            var relatedModel = this.relatedView.model;
+            if (anchor) {
+                relatedModel.prop([type, 'anchor'], anchor, {
+                    rewrite: true,
+                    ui: true,
+                    tool: this.cid
+                });
+            } else {
+                relatedModel.removeProp([type, 'anchor'], {
+                    ui: true,
+                    tool: this.cid
+                });
+            }
+        },
+        onHandleChanging: function(handle, evt) {
 
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
@@ -319,49 +347,95 @@
             var vertex = vertices[index];
             var nextVertex = vertices[index + 1];
             var axis = handle.options.axis;
+            var anchorFn = this.options.anchor;
+            if (typeof anchorFn !== 'function') anchorFn = null;
+            var data = this.eventData(evt);
 
+            // First Segment
+            var sourceView = relatedView.sourceView;
+            var sourceBBox = relatedView.sourceBBox;
+            var changeSourceAnchor = false;
+            var deleteSourceAnchor = false;
             if (!vertex) {
                 vertex = relatedView.sourceAnchor.toJSON();
                 vertex[axis] = position[axis];
-                if (relatedView.sourceBBox.containsPoint(vertex)) {
+                if (sourceBBox.containsPoint(vertex)) {
                     vertex[axis] = position[axis];
+                    changeSourceAnchor = true;
                 } else {
+                    // we left the area of the source magnet for the first time
                     vertices.unshift(vertex);
                     this.shiftHandleIndexes(1);
+                    delateSourceAnchor = true;
                 }
             } else if (index === 0) {
-                if (relatedView.sourceBBox.containsPoint(vertex)) {
+                if (sourceBBox.containsPoint(vertex)) {
                     vertices.shift();
                     this.shiftHandleIndexes(-1);
+                    changeSourceAnchor = true;
                 } else {
                     vertex[axis] = position[axis];
+                    deleteSourceAnchor = true;
                 }
             } else {
                 vertex[axis] = position[axis];
             }
 
+            if (anchorFn && sourceView) {
+                if (changeSourceAnchor) {
+                    var sourceAnchorPosition = data.sourceAnchor.clone();
+                    sourceAnchorPosition[axis] = position[axis];
+                    var sourceAnchor = anchorFn.call(relatedView, sourceAnchorPosition, sourceView, relatedView.sourceMagnet || sourceView.el, 'source', relatedView);
+                    this.resetAnchor('source', sourceAnchor);
+                }
+                if (deleteSourceAnchor) {
+                    this.resetAnchor('source', data.sourceAnchorDef);
+                }
+            }
+
+            // Last segment
+            var targetView = relatedView.targetView;
+            var targetBBox = relatedView.targetBBox;
+            var changeTargetAnchor = false;
+            var deleteTargetAnchor = false;
             if (!nextVertex) {
                 nextVertex = relatedView.targetAnchor.toJSON();
                 nextVertex[axis] = position[axis];
-                if (relatedView.targetBBox.containsPoint(nextVertex)) {
-                    nextVertex[axis] = position[axis];
+                if (targetBBox.containsPoint(nextVertex)) {
+                    changeTargetAnchor = true;
                 } else {
+                    // we left the area of the target magnet for the first time
                     vertices.push(nextVertex);
+                    deleteTargetAnchor = true;
                 }
             } else if (index === vertices.length - 2) {
-                if (relatedView.targetBBox.containsPoint(nextVertex)) {
+                if (targetBBox.containsPoint(nextVertex)) {
                     vertices.pop();
+                    changeTargetAnchor = true;
                 } else {
                     nextVertex[axis] = position[axis];
+                    deleteTargetAnchor = true;
                 }
             } else {
                 nextVertex[axis] = position[axis];
+            }
+
+            if (anchorFn && targetView) {
+                if (changeTargetAnchor) {
+                    var targetAnchorPosition = data.targetAnchor.clone();
+                    targetAnchorPosition[axis] = position[axis];
+                    var targetAnchor = anchorFn.call(relatedView, targetAnchorPosition, targetView, relatedView.targetMagnet || targetView.el, 'target', relatedView);
+                    this.resetAnchor('target', targetAnchor);
+                }
+                if (deleteTargetAnchor) {
+                    this.resetAnchor('target', data.targetAnchorDef);
+                }
             }
 
             link.vertices(vertices, { ui: true, tool: this.cid });
             this.updateHandle(handle, vertex, nextVertex);
         },
-        onHandleChangeStart: function (handle) {
+        onHandleChangeStart: function(handle, evt) {
             var index = handle.options.index;
             var handles = this.handles;
             if (!Array.isArray(handles)) return;
@@ -369,17 +443,25 @@
                 if (i !== index) handles[i].hide()
             }
             this.activate();
+            var relatedView = this.relatedView;
+            var relatedModel = relatedView.model;
+            this.eventData(evt, {
+                sourceAnchor: relatedView.sourceAnchor.clone(),
+                targetAnchor: relatedView.targetAnchor.clone(),
+                sourceAnchorDef: util.clone(relatedModel.prop(['source', 'anchor'])),
+                targetAnchorDef: util.clone(relatedModel.prop(['target', 'anchor']))
+            });
         },
-        onHandleChangeEnd: function (handle) {
+        onHandleChangeEnd: function(handle) {
             if (this.options.redundancyRemoval) {
                 this.relatedView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
             }
             this.render();
             this.deactivate();
         },
-        updateHandle: function (handle, vertex, nextVertex) {
-            var vertical = Math.abs(vertex.x - nextVertex.x) < 1e-3;
-            var horizontal = Math.abs(vertex.y - nextVertex.y) < 1e-3;
+        updateHandle: function(handle, vertex, nextVertex) {
+            var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
+            var horizontal = Math.abs(vertex.y - nextVertex.y) < this.precision;
             if (vertical || horizontal) {
                 var segmentLine = new g.Line(vertex, nextVertex);
                 var length = segmentLine.length();
@@ -396,7 +478,7 @@
                 handle.hide();
             }
         },
-        onRemove: function () {
+        onRemove: function() {
             this.resetHandles();
         }
     });
@@ -404,7 +486,7 @@
     // End Markers
     var Arrowhead = ToolView.extend({
         tagName: 'path',
-        xAxisVector: g.Point(1, 0),
+        xAxisVector: new g.Point(1, 0),
         events: {
             mousedown: 'onPointerDown',
             touchstart: 'onPointerDown'
@@ -415,10 +497,10 @@
             mouseup: 'onPointerUp',
             touchend: 'onPointerUp'
         },
-        onRender: function () {
+        onRender: function() {
             this.update()
         },
-        update: function () {
+        update: function() {
             var ratio = this.ratio;
             var view = this.relatedView;
             var tangent = view.getTangentAtRatio(ratio);
@@ -433,7 +515,7 @@
             var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
             this.vel.transform(matrix, { absolute: true });
         },
-        onPointerDown: function (evt) {
+        onPointerDown: function(evt) {
             evt.stopPropagation();
             var relatedView = this.relatedView;
             if (relatedView.can('arrowheadMove')) {
@@ -443,11 +525,11 @@
             }
             this.activate();
         },
-        onPointerMove: function (evt) {
+        onPointerMove: function(evt) {
             var coords = paper.snapToGrid(evt.clientX, evt.clientY);
             this.relatedView.pointermove(evt, coords.x, coords.y);
         },
-        onPointerUp: function (evt) {
+        onPointerUp: function(evt) {
             this.undelegateDocumentEvents();
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
@@ -506,11 +588,11 @@
             distance: 0,
             offset: 0
         },
-        onRender: function () {
+        onRender: function() {
             this.renderChildren();
             this.update()
         },
-        update: function () {
+        update: function() {
             var tangent, position, angle;
             var distance = this.options.distance || 0;
             if (util.isPercentage(distance)) {
@@ -531,7 +613,7 @@
                 .translate(0, this.options.offset || 0);
             this.vel.transform(matrix, { absolute: true });
         },
-        onPointerDown: function (evt) {
+        onPointerDown: function(evt) {
             evt.stopPropagation();
             var action = this.options.action;
             if (typeof action === 'function') {
@@ -584,10 +666,10 @@
             'stroke-dasharray': '5, 5',
             'pointer-events': 'none'
         },
-        onRender: function () {
+        onRender: function() {
             this.update();
         },
-        update: function () {
+        update: function() {
             var bbox = this.relatedView.getConnection().bbox().inflate(this.options.padding);
             this.vel.attr(bbox.toJSON());
         }
@@ -598,14 +680,14 @@
         type: null,
         attributes: {
             'r': 6,
-            'fill': '#F34612',
             'stroke': '#FFFFFF',
             'stroke-width': 2,
             'cursor': 'pointer'
         },
         events: {
             mousedown: 'onPointerDown',
-            touchstart: 'onPointerDown'
+            touchstart: 'onPointerDown',
+            dblclick: 'onPointerDblClick'
         },
         documentEvents: {
             mousemove: 'onPointerMove',
@@ -622,51 +704,35 @@
                 if (bbox.containsPoint(rotatedCoords)) return coords;
                 return bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
             },
-            anchor: function(coords, view, magnet) {
-                // take advantage of an existing logic inside of the
-                // pin relative connection strategy
-                var end = joint.connectionStrategies.pinRelative.call(
-                    this.paper,
-                    {},
-                    view,
-                    magnet,
-                    coords,
-                    this.model
-                );
-                return end.anchor;
-            }
+            anchor: getAnchor,
+            customAnchorColor: '#F34612',
+            defaultAnchorColor: '#1ABC9C'
         },
         onRender: function() {
             this.update();
         },
         update: function() {
             var type = this.type;
-            var view = this.relatedView;
-            var position = view[type + 'Anchor'];
-            this.el.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
-            this.el.style.visibility = (view[type + 'View']) ? '' : 'hidden';
+            var relatedView = this.relatedView;
+            var options = this.options;
+            var position = relatedView[type + 'Anchor'];
+            var view = relatedView[type + 'View'];
+            var customAnchor = relatedView.model.prop([type, 'anchor']);
+            this.vel.attr({
+                'transform': 'translate(' + position.x + ',' + position.y + ')',
+                'fill': (customAnchor) ? options.customAnchorColor : options.defaultAnchorColor,
+                'visibility': (view) ? '' : 'hidden'
+            });
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
+            this.activate();
         },
-        onPointerMove: function(evt) {
-            var relatedView = this.relatedView;
-            var relatedModel = relatedView.model;
+        resetAnchor: function(anchor) {
             var type = this.type;
-            var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
-            var view = relatedView[type + 'View'];
-            var magnet = relatedView[type + 'Magnet'] || view.el;
-            var snapFn = this.options.snap;
-            if (typeof snapFn === 'function') {
-                coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView);
-            }
-            var anchor;
-            var anchorFn = this.options.anchor;
-            if (typeof anchorFn === 'function') {
-                anchor = anchorFn.call(relatedView, coords, view, magnet, type, relatedView);
-            }
+            var relatedModel = this.relatedView.model;
             if (anchor) {
                 relatedModel.prop([type, 'anchor'], anchor, {
                     rewrite: true,
@@ -679,11 +745,39 @@
                     tool: this.cid
                 });
             }
+        },
+        onPointerMove: function(evt) {
+
+            var relatedView = this.relatedView;
+            var type = this.type;
+            var view = relatedView[type + 'View'];
+            var magnet = relatedView[type + 'Magnet'] || view.el;
+
+            var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
+            var snapFn = this.options.snap;
+            if (typeof snapFn === 'function') {
+                coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView);
+            }
+
+            var anchor;
+            var anchorFn = this.options.anchor;
+            if (typeof anchorFn === 'function') {
+                anchor = anchorFn.call(relatedView, coords, view, magnet, type, relatedView);
+            }
+
+            this.resetAnchor(anchor);
             this.update();
         },
+
         onPointerUp: function(evt) {
             this.paper.delegateEvents();
             this.undelegateDocumentEvents();
+            this.deactivate();
+        },
+
+        onPointerDblClick: function() {
+            this.resetAnchor();
+            this.update();
         }
     });
 
