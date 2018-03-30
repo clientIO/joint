@@ -45,7 +45,7 @@
         onPointerDown: function(evt) {
             evt.stopPropagation();
             this.options.paper.undelegateEvents();
-            this.delegateDocumentEvents();
+            this.delegateDocumentEvents(null, evt.data);
             this.trigger('will-change');
         },
         onPointerMove: function(evt) {
@@ -142,6 +142,7 @@
         },
         onHandleWillChange: function(handle, evt) {
             this.focus();
+            this.relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
         },
         onHandleChanging: function(handle, evt) {
             var relatedView = this.relatedView;
@@ -170,9 +171,14 @@
         onHandleChanged: function(handle, evt) {
             if (this.options.vertexAdding) this.updatePath();
             if (!this.options.redundancyRemoval) return;
-            var verticesRemoved = this.relatedView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+            var linkView = this.relatedView;
+            var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
             if (verticesRemoved) this.render();
             this.blur();
+            linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
+            if (this.eventData(evt).vertexAdded) {
+                linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
+            }
         },
         onHandleRemove: function(handle) {
             var index = handle.options.index;
@@ -181,9 +187,11 @@
         onPathPointerDown: function(evt) {
             evt.stopPropagation();
             var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            this.relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
             var index = this.relatedView.addVertex(vertex, { ui: true, tool: this.cid });
             this.render();
             var handle = this.handles[index];
+            this.eventData(evt, { vertexAdded: true });
             handle.onPointerDown(evt);
         },
         onRemove: function() {
@@ -452,13 +460,16 @@
                 sourceAnchorDef: util.clone(relatedModel.prop(['source', 'anchor'])),
                 targetAnchorDef: util.clone(relatedModel.prop(['target', 'anchor']))
             });
+            relatedView.model.startBatch('segment-move', { ui: true, tool: this.cid });
         },
         onHandleChangeEnd: function(handle) {
+            var linkView = this.relatedView;
             if (this.options.redundancyRemoval) {
-                this.relatedView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+                linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
             }
             this.render();
             this.blur();
+            linkView.model.stopBatch('segment-move', { ui: true, tool: this.cid });
         },
         updateHandle: function(handle, vertex, nextVertex) {
             var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
@@ -520,6 +531,7 @@
         onPointerDown: function(evt) {
             evt.stopPropagation();
             var relatedView = this.relatedView;
+            relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
             if (relatedView.can('arrowheadMove')) {
                 relatedView.startArrowheadMove(this.arrowheadType);
                 this.delegateDocumentEvents();
@@ -539,6 +551,7 @@
             relatedView.pointerup(evt, coords.x, coords.y);
             paper.delegateEvents();
             this.blur();
+            relatedView.model.stopBatch('arrowhead-move', { ui: true, tool: this.cid });
         }
     });
 
@@ -734,6 +747,7 @@
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
             this.focus();
+            this.relatedView.model.startBatch('anchor-move', { ui: true, tool: this.cid });
         },
         resetAnchor: function(anchor) {
             var type = this.type;
@@ -778,6 +792,7 @@
             this.paper.delegateEvents();
             this.undelegateDocumentEvents();
             this.blur();
+            this.relatedView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
         },
 
         onPointerDblClick: function() {
