@@ -737,9 +737,9 @@
                 'pointer-events': 'none',
                 'fill': 'none',
                 'stroke': '#F34612',
-                'stroke-dasharray': '1,1',
-                'rx': 6,
-                'ry': 6
+                'stroke-dasharray': '2,4',
+                'rx': 5,
+                'ry': 5
             }
         }],
         events: {
@@ -816,7 +816,7 @@
             areaNode.setAttribute('y', -bbox.height / 2);
             areaNode.setAttribute('width', bbox.width);
             areaNode.setAttribute('height', bbox.height);
-            var origin = view.getBBox().center();
+            var origin = view.model.getBBox().center();
             var center = bbox.center().rotate(origin, -angle)
             areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle +')');
         },
