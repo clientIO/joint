@@ -1009,7 +1009,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (prev.equals(next)) continue;
             var line = new g.Line(prev, next);
             if (line.pointOffset(current) === 0) continue;
-            conciseVertices.push({ x: vertices[i].x, y: vertices[i].y });
+            conciseVertices.push(vertices[i]);
             m++;
         }
         if (n === m) return 0;

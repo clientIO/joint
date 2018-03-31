@@ -149,23 +149,27 @@
             var paper = relatedView.paper;
             var index = handle.options.index;
             var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
-            var link = relatedView.model;
+            this.snapVertex(vertex, index);
+            relatedView.model.vertex(index, vertex, { ui: true, tool: this.cid });
+            handle.position(vertex.x, vertex.y);
+        },
+        snapVertex: function(vertex, index) {
             var snapRadius = this.options.snapRadius;
             if (snapRadius > 0) {
                 var neighbors = this.getNeighborPoints(index);
-                if (Math.abs(vertex.x - neighbors.prev.x) < snapRadius) {
-                    vertex.x = neighbors.prev.x;
-                } else if (Math.abs(vertex.x - neighbors.next.x) < snapRadius) {
-                    vertex.x = neighbors.next.x;
+                var prev = neighbors.prev;
+                var next = neighbors.next;
+                if (Math.abs(vertex.x - prev.x) < snapRadius) {
+                    vertex.x = prev.x;
+                } else if (Math.abs(vertex.x - next.x) < snapRadius) {
+                    vertex.x = next.x;
                 }
-                if (Math.abs(vertex.y - neighbors.prev.y) < snapRadius) {
+                if (Math.abs(vertex.y - prev.y) < snapRadius) {
                     vertex.y = neighbors.prev.y;
-                } else if (Math.abs(vertex.y - neighbors.next.y) < snapRadius) {
-                    vertex.y = neighbors.next.y;
+                } else if (Math.abs(vertex.y - next.y) < snapRadius) {
+                    vertex.y = next.y;
                 }
             }
-            link.vertex(index, vertex, { ui: true, tool: this.cid });
-            handle.position(vertex.x, vertex.y);
         },
         onHandleChanged: function(handle, evt) {
             if (this.options.vertexAdding) this.updatePath();
@@ -186,8 +190,11 @@
         onPathPointerDown: function(evt) {
             evt.stopPropagation();
             var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
-            this.relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
-            var index = this.relatedView.addVertex(vertex, { ui: true, tool: this.cid });
+            var relatedView = this.relatedView;
+            relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
+            var index = relatedView.getVertexIndex(vertex.x, vertex.y);
+            this.snapVertex(vertex, index);
+            relatedView.model.addVertex(index, vertex, { ui: true, tool: this.cid });
             this.render();
             var handle = this.handles[index];
             this.eventData(evt, { vertexAdded: true });
@@ -281,7 +288,8 @@
             HandleClass: SegmentHandle,
             segmentLenghtThreshold: 40,
             redundancyRemoval: true,
-            anchor: getAnchor
+            anchor: getAnchor,
+            snapRadius: 10
         },
         handels: null,
         onRender: function() {
@@ -344,12 +352,32 @@
                 });
             }
         },
+        snapHandle: function(handle, position, data) {
+
+            var index = handle.options.index;
+            var linkView = this.relatedView;
+            var link = linkView.model;
+            var vertices = link.vertices();
+            var axis = handle.options.axis;
+            var prev = vertices[index - 2] || data.sourceAnchor;
+            var next = vertices[index + 1] || data.targetAnchor;
+            var snapRadius = this.options.snapRadius;
+
+            if (Math.abs(position[axis] - prev[axis]) < snapRadius) {
+                position[axis] = prev[axis];
+            } else if (Math.abs(position[axis] - next[axis]) < snapRadius) {
+                position[axis] = next[axis];
+            }
+        },
+
         onHandleChanging: function(handle, evt) {
 
+            var data = this.eventData(evt);
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index - 1;
             var position = paper.snapToGrid(evt.clientX, evt.clientY);
+            this.snapHandle(handle, position, data);
             var link = relatedView.model;
             var vertices = util.cloneDeep(link.vertices());
             var vertex = vertices[index];
@@ -357,7 +385,6 @@
             var axis = handle.options.axis;
             var anchorFn = this.options.anchor;
             if (typeof anchorFn !== 'function') anchorFn = null;
-            var data = this.eventData(evt);
 
             // First Segment
             var sourceView = relatedView.sourceView;
