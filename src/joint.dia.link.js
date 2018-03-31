@@ -1003,16 +1003,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var m = 0;
         for (var i = 0; i < n; i++) {
             var current = new g.Point(vertices[i]).round();
-            var prev = new g.Point(conciseVertices[m - 1] || this.sourceAnchor);
-            if (prev.round().equals(current)) continue;
-            var next = g.Point(vertices[i + 1] || this.targetAnchor);
-            var line = new g.Line(prev, next.round());
+            var prev = new g.Point(conciseVertices[m - 1] || this.sourceAnchor).round();
+            if (prev.equals(current)) continue;
+            var next = new g.Point(vertices[i + 1] || this.targetAnchor).round();
+            if (prev.equals(next)) continue;
+            var line = new g.Line(prev, next);
             if (line.pointOffset(current) === 0) continue;
             conciseVertices.push({ x: vertices[i].x, y: vertices[i].y });
             m++;
         }
         if (n === m) return 0;
-        link.set('vertices', conciseVertices, opt);
+        link.vertices(conciseVertices, opt);
         return (n - m);
     },
 
@@ -1031,6 +1032,44 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (cache.markerSource && cache.markerTarget) {
             this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
         }
+    },
+
+    getEndView: function(type) {
+        switch (type) {
+            case 'source':
+                return this.sourceView || null;
+            case 'target':
+                return this.targetView || null;
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
+    getEndAnchor: function(type) {
+        switch (type) {
+            case 'source':
+                return new g.Point(this.sourceAnchor);
+            case 'target':
+                return new g.Point(this.targetAnchor);
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
+    getEndMagnet: function(type) {
+        switch (type) {
+            case 'source':
+                var sourceView = this.sourceView;
+                if (!sourceView) break;
+                return this.sourceMagnet || sourceView.el;
+            case 'target':
+                var targetView = this.targetView;
+                if (!targetView) break;
+                return this.targetMagnet || targetView.el;
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+        return null;
     },
 
     updateConnection: function(opt) {

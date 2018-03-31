@@ -692,14 +692,29 @@
     });
 
     var Anchor = ToolView.extend({
-        tagName: 'circle',
+        tagName: 'g',
         type: null,
-        attributes: {
-            'r': 6,
-            'stroke': '#FFFFFF',
-            'stroke-width': 2,
-            'cursor': 'pointer'
-        },
+        children: [{
+            tagName: 'circle',
+            selector: 'anchor',
+            attributes: {
+                'r': 6,
+                'stroke': '#FFFFFF',
+                'stroke-width': 2,
+                'cursor': 'pointer'
+            }
+        }, {
+            tagName: 'rect',
+            selector: 'area',
+            attributes: {
+                'pointer-events': 'none',
+                'fill': 'none',
+                'stroke': '#F34612',
+                'stroke-dasharray': '1,1',
+                'rx': 6,
+                'ry': 6
+            }
+        }],
         events: {
             mousedown: 'onPointerDown',
             touchstart: 'onPointerDown',
@@ -722,30 +737,71 @@
             },
             anchor: getAnchor,
             customAnchorColor: '#F34612',
-            defaultAnchorColor: '#1ABC9C'
+            defaultAnchorColor: '#1ABC9C',
+            areaPadding: 7,
+            showArea: true
         },
         onRender: function() {
+            this.renderChildren();
+            this.toggleArea(false);
             this.update();
         },
         update: function() {
             var type = this.type;
             var relatedView = this.relatedView;
-            var options = this.options;
-            var position = relatedView[type + 'Anchor'];
-            var view = relatedView[type + 'View'];
-            var customAnchor = relatedView.model.prop([type, 'anchor']);
-            this.vel.attr({
-                'transform': 'translate(' + position.x + ',' + position.y + ')',
-                'fill': (customAnchor) ? options.customAnchorColor : options.defaultAnchorColor,
-                'visibility': (view) ? '' : 'hidden'
-            });
+            var view = relatedView.getEndView(type);
+            if (view) {
+                this.updateAnchor();
+                this.updateArea();
+                this.el.style.display = '';
+            } else {
+                this.el.style.display = 'none';
+            }
             return this;
+        },
+        updateAnchor: function() {
+            var childNodes = this.childNodes;
+            if (!childNodes) return;
+            var anchorNode = childNodes.anchor;
+            if (!anchorNode) return;
+            var relatedView = this.relatedView;
+            var type = this.type;
+            var position = relatedView.getEndAnchor(type);
+            var options = this.options;
+            var customAnchor = relatedView.model.prop([type, 'anchor']);
+            anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
+            anchorNode.setAttribute('fill', (customAnchor) ? options.customAnchorColor : options.defaultAnchorColor);
+        },
+        updateArea: function() {
+            var childNodes = this.childNodes;
+            if (!childNodes) return;
+            var areaNode = childNodes.area;
+            if (!areaNode) return;
+            var relatedView = this.relatedView;
+            var type = this.type;
+            var view = relatedView.getEndView(type);
+            var magnet = relatedView.getEndMagnet(type);
+            var padding = this.options.areaPadding;
+            if (!isFinite(padding)) padding = 0;
+            var bbox = view.getNodeUnrotatedBBox(magnet).inflate(padding);
+            var angle = view.model.angle();
+            areaNode.setAttribute('x', -bbox.width / 2);
+            areaNode.setAttribute('y', -bbox.height / 2);
+            areaNode.setAttribute('width', bbox.width);
+            areaNode.setAttribute('height', bbox.height);
+            var origin = view.getBBox().center();
+            var center = bbox.center().rotate(origin, -angle)
+            areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle +')');
+        },
+        toggleArea: function(visible) {
+            this.childNodes.area.style.display = (visible) ? '' : 'none';
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
             this.focus();
+            this.toggleArea(this.options.showArea);
             this.relatedView.model.startBatch('anchor-move', { ui: true, tool: this.cid });
         },
         resetAnchor: function(anchor) {
@@ -791,6 +847,7 @@
             this.paper.delegateEvents();
             this.undelegateDocumentEvents();
             this.blur();
+            this.toggleArea(false);
             this.relatedView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
         },
 
