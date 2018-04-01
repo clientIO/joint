@@ -1365,7 +1365,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         if (toolsView instanceof joint.dia.ToolsView) {
             this._toolsView = toolsView;
             toolsView.configure({ relatedView: this });
-            toolsView.listenTo(this.paper, 'tools:clear', this.removeTools.bind(this));
+            toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
             this.vel.append(toolsView.el);
         }
         return this;
@@ -1386,6 +1386,34 @@ joint.dia.CellView = joint.mvc.View.extend({
             this._toolsView = null;
         }
         return this;
+    },
+
+    hideTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.hide();
+        return this;
+    },
+
+    showTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.show();
+        return this;
+    },
+
+    onToolEvent: function(event) {
+        switch (event) {
+            case 'remove':
+                this.removeTools();
+                break;
+            case 'hide':
+                this.hideTools();
+                break;
+            case 'show':
+                this.showTools();
+                break;
+        }
     },
 
     // Interaction. The controller part.
@@ -1481,7 +1509,9 @@ joint.dia.CellView = joint.mvc.View.extend({
     }
 }, {
 
-    clearTools: function(paper) {
-        if (paper instanceof joint.dia.Paper) paper.trigger('tools:clear');
+    dispatchToolsEvent: function(paper, event) {
+        if ((typeof event === 'string') && (paper instanceof joint.dia.Paper)) {
+            paper.trigger('tools:event', event);
+        }
     }
 });

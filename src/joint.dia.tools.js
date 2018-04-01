@@ -5,27 +5,34 @@
         className: 'tool',
         svgElement: true,
         _visible: true,
+
         configure: function(view, toolsView) {
             this.relatedView = view;
             this.paper = view.paper;
             this.parentView = toolsView;
+            return this;
         },
+
         show: function() {
             this.el.style.display = '';
             this._visible = true;
         },
+
         hide: function() {
             this.el.style.display = 'none';
             this._visible = false;
         },
+
         isVisible: function() {
             return !!this._visible;
         },
+
         focus: function() {
-            var opacity = this.options.activateOpacity;
+            var opacity = this.options.focusOpacity;
             if (isFinite(opacity)) this.el.style.opacity = opacity;
             this.parentView.focusTool(this);
         },
+
         blur: function() {
             this.el.style.opacity = '';
             this.parentView.blurTool(this);
@@ -58,6 +65,7 @@
                 this.vel.append(tool.el);
                 views.push(tool);
             }
+            return this;
         },
 
         getName: function() {
@@ -84,10 +92,10 @@
             if (!tools) return this;
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
-                if (focusedTool !== tool) {
-                    tool.hide();
-                } else {
+                if (focusedTool === tool) {
                     tool.show();
+                } else {
+                    tool.hide();
                 }
             }
             return this;
@@ -98,12 +106,20 @@
             if (!tools) return this;
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
-                if (tool !== bluredTool) {
+                if (tool !== bluredTool && !tool.isVisible()) {
                     tool.show();
                     tool.update();
                 }
             }
             return this;
+        },
+
+        hide: function() {
+            return this.focusTool(null);
+        },
+
+        show: function() {
+            return this.blurTool(null);
         },
 
         onRemove: function() {

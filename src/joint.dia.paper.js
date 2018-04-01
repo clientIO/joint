@@ -919,8 +919,18 @@ joint.dia.Paper = joint.mvc.View.extend({
         }, this);
     },
 
-    clearTools: function() {
-        joint.dia.CellView.clearTools(this);
+    removeTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'remove');
+        return this;
+    },
+
+    hideTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'hide');
+        return this;
+    },
+
+    showTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'show');
         return this;
     },
 

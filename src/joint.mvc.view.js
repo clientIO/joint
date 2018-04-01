@@ -27,14 +27,15 @@ joint.mvc.View = Backbone.View.extend({
         this.init();
     },
 
-    renderChildren: function() {
-        var children = this.children;
+    renderChildren: function(children) {
+        children || (children = this.children);
         if (children) {
             var namespace = V.namespace[this.svgElement ? 'xmlns' : 'xhtml'];
             var doc = joint.util.parseDOMJSON(children, namespace);
             this.vel.empty().append(doc.fragment);
             this.childNodes = doc.selectors;
         }
+        return this;
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an

@@ -171,7 +171,7 @@ export namespace dia {
         }
 
         interface Constructor<T extends Backbone.Model> {
-            new (options?: { id: string }): T
+            new (opt?: { id: string }): T
         }
 
         interface Options {
@@ -548,6 +548,20 @@ export namespace dia {
 
         notify(eventName: string, ...eventArguments: any[]): void;
 
+        addTools(tools: dia.ToolsView): this;
+
+        hasTools(name?: string): boolean;
+
+        removeTools(): this;
+
+        showTools(): this;
+
+        hideTools(): this;
+
+        updateTools(opt?: { [key: string]: any }): this;
+
+        protected onToolEvent(eventName: string): void;
+
         protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerclick(evt: JQuery.Event, x: number, y: number): void;
@@ -573,6 +587,8 @@ export namespace dia {
         protected onevent(evt: JQuery.Event, eventName: string, x: number, y: number): void;
 
         protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
+
+        static dispatchToolsEvent(paper: dia.Paper, eventName: string): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -966,6 +982,14 @@ export namespace dia {
 
         update(): this;
 
+        // tools
+
+        removeTools(): this;
+
+        hideTools(): this;
+
+        showTools(): this;
+
         // protected
         protected pointerdblclick(evt: JQuery.Event): void;
 
@@ -1033,6 +1057,63 @@ export namespace dia {
 
         protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
     }
+
+    namespace ToolsView {
+
+        interface Options {
+            tools?: dia.ToolView[];
+            name?: string | null;
+            relatedView?: dia.CellView;
+        }
+    }
+
+    class ToolsView extends mvc.View<undefined> {
+
+        constructor(opt?: ToolsView.Options);
+
+        options: ToolsView.Options;
+
+        configure(opt?: ToolsView.Options): this;
+
+        getName(): string | null;
+
+        focusTool(tool: ToolView): this;
+
+        blurTool(tool: ToolView): this;
+
+        show(): this;
+
+        hide(): this;
+    }
+
+    namespace ToolView {
+
+        interface Options {
+            focusOpacity?: number;
+        }
+    }
+
+    class ToolView extends mvc.View<undefined> {
+
+        parentView: ToolsView;
+        relatedView: dia.CellView;
+        paper: Paper;
+
+        constructor(opt?: ToolView.Options);
+
+        configure(opt?: ToolView.Options): this;
+
+        show(): void;
+
+        hide(): void;
+
+        isVisible(): boolean;
+
+        focus(): void;
+
+        blur(): void;
+    }
+
 }
 
 export namespace shapes {
@@ -2113,6 +2194,8 @@ export namespace mvc {
 
         documentEvents?: Backbone.EventsHash;
 
+        children?: dia.MarkupJSON;
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
@@ -2123,6 +2206,8 @@ export namespace mvc {
 
         eventData(evt: JQuery.Event): viewEventData;
         eventData(evt: JQuery.Event, data: viewEventData): this;
+
+        renderChildren(children?: dia.MarkupJSON): this;
 
         protected init(): void;
 
@@ -2705,3 +2790,127 @@ export namespace attributes {
 }
 
 export function setTheme(theme: string): void;
+
+
+export namespace linkTools {
+
+    type AnchorCallback<T> = (
+        coords: g.Point,
+        view: dia.CellView,
+        magnet: SVGElement,
+        type: string,
+        linkView: dia.LinkView
+    ) => T;
+
+    namespace Vertices {
+        interface Options extends dia.ToolView.Options {
+            snapRadius?: number;
+            redundancyRemoval?: boolean;
+            vertexAdding?: boolean;
+        }
+    }
+
+    class Vertices extends dia.ToolView {
+
+        constructor(opt?: Vertices.Options);
+    }
+
+    namespace Segments {
+        interface Options extends dia.ToolView.Options {
+            snapRadius?: number;
+            snapHandle?: boolean;
+            redundancyRemoval?: boolean;
+            segmentLengthThreshold?: number;
+            anchor?: AnchorCallback<anchors.AnchorJSON>;
+        }
+    }
+
+    class Segments extends dia.ToolView {
+
+        constructor(opt?: Segments.Options);
+    }
+
+    abstract class Arrowhead extends dia.ToolView {
+
+        ratio: number;
+        arrowheadType: string;
+
+        protected onPointerDown(evt: JQuery.Event): void;
+
+        protected onPointerMove(evt: JQuery.Event): void;
+
+        protected onPointerUp(evt: JQuery.Event): void;
+    }
+
+    class SourceArrowhead extends Arrowhead {
+
+
+    }
+
+    class TargetArrowhead extends Arrowhead {
+
+
+    }
+
+    namespace Anchor {
+        interface Options extends dia.ToolView.Options {
+            snap?: AnchorCallback<g.PlainPoint>,
+            anchor?: AnchorCallback<anchors.AnchorJSON>,
+            customAnchorColor?: string;
+            defaultAnchorColor?: string;
+            areaPadding?: number;
+            showArea?: boolean;
+        }
+    }
+
+    abstract class Anchor extends dia.ToolView {
+
+        type: string;
+
+        constructor(opt?: Anchor.Options);
+    }
+
+    class SourceAnchor extends Anchor {
+
+
+    }
+
+    class TargetAnchor extends Anchor {
+
+
+    }
+
+    namespace Button {
+
+        type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
+
+        interface Options extends dia.ToolView.Options {
+            distance?: number;
+            offset?: number;
+            action?: ActionCallback;
+            markup?: dia.MarkupJSON;
+        }
+    }
+
+    class Button extends dia.ToolView {
+
+        constructor(opt?: Button.Options);
+
+        protected onPointerDown(evt: JQuery.Event): void;
+    }
+
+    class Remove extends dia.ToolView {
+
+    }
+
+    namespace Boundary {
+        interface Options extends dia.ToolView.Options {
+            padding: number;
+        }
+    }
+
+    class Boundary extends dia.ToolView {
+
+        constructor(opt?: Boundary.Options);
+    }
+}

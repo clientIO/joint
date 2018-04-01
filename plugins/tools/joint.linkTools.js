@@ -224,7 +224,7 @@
             selector: 'line',
             attributes: {
                 'stroke': '#1ABC9C',
-                'stroke-dasharray': '1,1',
+                'stroke-width': 2,
                 'fill': 'none',
                 'pointer-events': 'none'
             }
@@ -289,7 +289,8 @@
             segmentLenghtThreshold: 40,
             redundancyRemoval: true,
             anchor: getAnchor,
-            snapRadius: 10
+            snapRadius: 10,
+            snapHandle: true
         },
         handels: null,
         onRender: function() {
@@ -362,12 +363,12 @@
             var prev = vertices[index - 2] || data.sourceAnchor;
             var next = vertices[index + 1] || data.targetAnchor;
             var snapRadius = this.options.snapRadius;
-
             if (Math.abs(position[axis] - prev[axis]) < snapRadius) {
                 position[axis] = prev[axis];
             } else if (Math.abs(position[axis] - next[axis]) < snapRadius) {
                 position[axis] = next[axis];
             }
+            return position;
         },
 
         onHandleChanging: function(handle, evt) {
@@ -376,13 +377,14 @@
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index - 1;
-            var position = paper.snapToGrid(evt.clientX, evt.clientY);
-            this.snapHandle(handle, position, data);
+            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
+            var position = this.snapHandle(handle, coords.clone(), data);
+            var axis = handle.options.axis;
+            var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
             var link = relatedView.model;
             var vertices = util.cloneDeep(link.vertices());
             var vertex = vertices[index];
             var nextVertex = vertices[index + 1];
-            var axis = handle.options.axis;
             var anchorFn = this.options.anchor;
             if (typeof anchorFn !== 'function') anchorFn = null;
 
@@ -468,7 +470,7 @@
             }
 
             link.vertices(vertices, { ui: true, tool: this.cid });
-            this.updateHandle(handle, vertex, nextVertex);
+            this.updateHandle(handle, vertex, nextVertex, offset);
         },
         onHandleChangeStart: function(handle, evt) {
             var index = handle.options.index;
@@ -497,7 +499,7 @@
             this.blur();
             linkView.model.stopBatch('segment-move', { ui: true, tool: this.cid });
         },
-        updateHandle: function(handle, vertex, nextVertex) {
+        updateHandle: function(handle, vertex, nextVertex, offset) {
             var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
             var horizontal = Math.abs(vertex.y - nextVertex.y) < this.precision;
             if (vertical || horizontal) {
@@ -506,11 +508,13 @@
                 if (length < this.options.segmentLenghtThreshold) {
                     handle.hide();
                 } else {
-                    var position = segmentLine.midpoint();
+                    var position = segmentLine.midpoint()
+                    var axis = (vertical) ? 'x' : 'y';
+                    position[axis] += offset || 0;
                     var angle = segmentLine.vector().vectorAngle(new g.Point(1, 0));
                     handle.position(position.x, position.y, angle, this.relatedView);
                     handle.show();
-                    handle.options.axis = (vertical) ? 'x' : 'y';
+                    handle.options.axis = axis;
                 }
             } else {
                 handle.hide();
@@ -612,25 +616,12 @@
             'mousedown': 'onPointerDown',
             'touchstart': 'onPointerDown'
         },
-        children: [{
-            tagName: 'circle',
-            selector: 'button',
-            attributes: {
-                'r': 7,
-                'fill': '#FFFFFF',
-                'stroke': '#333333',
-                'stroke-width': 2,
-                'cursor': 'pointer',
-                'cx': 0,
-                'cy': 0
-            }
-        }],
         options: {
             distance: 0,
             offset: 0
         },
         onRender: function() {
-            this.renderChildren();
+            this.renderChildren(this.options.markup);
             this.update()
         },
         update: function() {
@@ -712,7 +703,9 @@
             this.update();
         },
         update: function() {
-            var bbox = this.relatedView.getConnection().bbox().inflate(this.options.padding);
+            var padding = this.options.padding;
+            if (!isFinite(padding)) padding = 0;
+            var bbox = this.relatedView.getConnection().bbox().inflate(padding);
             this.vel.attr(bbox.toJSON());
             return this;
         }
@@ -858,6 +851,7 @@
             var snapFn = this.options.snap;
             if (typeof snapFn === 'function') {
                 coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView);
+                coords = new g.Point(coords);
             }
 
             var anchor;
@@ -893,7 +887,7 @@
     });
 
     // Export
-    joint.dia.linkTools = {
+    joint.linkTools = {
         Vertices: Vertices,
         Segments: Segments,
         SourceArrowhead: SourceArrowhead,
