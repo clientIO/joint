@@ -479,8 +479,11 @@ QUnit.module('cellView', function(hooks) {
                 cellView.on('test-event', cellViewSpy);
                 // Event should be triggered
                 simulate.mousedown({ el: cellView.el.querySelector('.ab') });
+                simulate.mouseup({ el: cellView.el.querySelector('.ab') });
                 simulate.mousedown({ el: cellView.el.querySelector('.a') });
+                simulate.mouseup({ el: cellView.el.querySelector('.a') });
                 simulate.mousedown({ el: cellView.el.querySelector('.b') });
+                simulate.mouseup({ el: cellView.el.querySelector('.b') });
                 assert.equal(paperSpy.callCount, 3);
                 assert.equal(cellViewSpy.callCount, 3);
                 assert.ok(paperSpy.alwaysCalledWith(
