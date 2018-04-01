@@ -1303,6 +1303,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         } else {
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
         }
+
+        this.delegateEvents();
     },
 
     mouseover: function(evt) {
@@ -1440,6 +1442,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         data || (data = {});
         this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
         this.delegateDocumentEvents(null, data);
+        this.undelegateEvents();
     },
 
     // Guard the specified event. If the event is not interesting, guard returns `true`.

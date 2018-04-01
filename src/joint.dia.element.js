@@ -962,8 +962,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             y: y,
             restrictedArea: this.paper.getRestrictedArea(this)
         });
-
-        this.paper.undelegateEvents();
     },
 
     dragMagnetStart: function(evt, x, y) {
@@ -1046,8 +1044,6 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         if (data.embedding) this.finalizeEmbedding(data);
-
-        this.paper.delegateEvents();
     },
 
     dragMagnetEnd: function(evt, x, y) {

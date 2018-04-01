@@ -248,6 +248,7 @@ QUnit.module('links', function(hooks) {
         this.paper.options.defaultLink = new MyLink();
 
         simulate.mousedown({ el: rect });
+        simulate.mouseup({ el: rect });
 
         this.graph.getLinks()[0].remove();
 
@@ -259,6 +260,7 @@ QUnit.module('links', function(hooks) {
         };
 
         simulate.mousedown({ el: rect });
+        simulate.mouseup({ el: rect });
 
     });
 
@@ -1401,9 +1403,9 @@ QUnit.module('links', function(hooks) {
             });
         });
 
-        QUnit.module('labels', function () {
+        QUnit.module('labels', function() {
 
-            QUnit.test('getter', function (assert) {
+            QUnit.test('getter', function(assert) {
                 var link = new joint.dia.Link();
                 assert.deepEqual(link.labels(), []);
                 link.set('labels', [{ position: { distance: 10, offset: 10 } }]);
@@ -1411,14 +1413,14 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }]);
             });
 
-            QUnit.test('setter', function (assert) {
+            QUnit.test('setter', function(assert) {
                 var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
                 link.labels([{ position: { distance: 30, offset: 30 } }]);
                 assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 } }]);
             });
         });
 
-        QUnit.module('insertLabel', function () {
+        QUnit.module('insertLabel', function() {
 
             QUnit.test('sanity', function(assert) {
                 var link = new joint.dia.Link();
@@ -1438,7 +1440,7 @@ QUnit.module('links', function(hooks) {
             });
         });
 
-        QUnit.module('appendLabel', function () {
+        QUnit.module('appendLabel', function() {
 
             QUnit.test('sanity', function(assert) {
                 var link = new joint.dia.Link();
@@ -1456,7 +1458,7 @@ QUnit.module('links', function(hooks) {
             });
         });
 
-        QUnit.module('removeLabel', function () {
+        QUnit.module('removeLabel', function() {
 
             QUnit.test('sanity', function(assert) {
                 var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }, { position: { distance: 40, offset: 40 } }] });
@@ -1490,9 +1492,9 @@ QUnit.module('links', function(hooks) {
             });
         });
 
-        QUnit.module('vertices', function () {
+        QUnit.module('vertices', function() {
 
-            QUnit.test('getter', function (assert) {
+            QUnit.test('getter', function(assert) {
                 var link = new joint.dia.Link();
                 assert.deepEqual(link.vertices(), []);
                 link.set('vertices', [{ x: 0, y: 0 }]);
@@ -1500,14 +1502,14 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.vertices(), [{ x: 0, y: 0 }]);
             });
 
-            QUnit.test('setter', function (assert) {
+            QUnit.test('setter', function(assert) {
                 var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }] });
                 link.vertices([{ x: 3, y: 3 }]);
                 assert.deepEqual(link.get('vertices'), [{ x: 3, y: 3 }]);
             });
         });
 
-        QUnit.module('insertVertex', function () {
+        QUnit.module('insertVertex', function() {
 
             QUnit.test('sanity', function(assert) {
                 var link = new joint.dia.Link();
@@ -1527,7 +1529,7 @@ QUnit.module('links', function(hooks) {
             });
         });
 
-        QUnit.module('removeVertex', function () {
+        QUnit.module('removeVertex', function() {
 
             QUnit.test('sanity', function(assert) {
                 var link = new joint.dia.Link({ vertices: [{ x: 0, y: 0 }, { x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 3 }] });
