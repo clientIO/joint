@@ -194,7 +194,7 @@
             relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
             var index = relatedView.getVertexIndex(vertex.x, vertex.y);
             this.snapVertex(vertex, index);
-            relatedView.model.addVertex(index, vertex, { ui: true, tool: this.cid });
+            relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
             this.render();
             var handle = this.handles[index];
             this.eventData(evt, { vertexAdded: true });

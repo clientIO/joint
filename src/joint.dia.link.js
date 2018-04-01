@@ -217,7 +217,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('labels', labels, opt);
     },
 
-    insertLabel: function (idx, label, opt) {
+    insertLabel: function(idx, label, opt) {
 
         if (!label) throw new Error('dia.Link: no label provided');
 
@@ -232,12 +232,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // convenience function
     // add label to end of labels array
-    appendLabel: function (label, opt) {
+    appendLabel: function(label, opt) {
 
         return this.insertLabel(-1, label, opt);
     },
 
-    removeLabel: function (idx, opt) {
+    removeLabel: function(idx, opt) {
 
         var labels = this.labels();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
@@ -274,7 +274,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('vertices', vertices, opt);
     },
 
-    insertVertex: function (idx, vertex, opt) {
+    insertVertex: function(idx, vertex, opt) {
 
         if (!vertex) throw new Error('dia.Link: no vertex provided');
 
