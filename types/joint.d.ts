@@ -1095,6 +1095,7 @@ export namespace dia {
 
     class ToolView extends mvc.View<undefined> {
 
+        name: string | null;
         parentView: ToolsView;
         relatedView: dia.CellView;
         paper: Paper;
@@ -2446,7 +2447,9 @@ export namespace connectionPoints {
             line: g.Line,
             view: dia.CellView,
             magnet: SVGElement,
-            opt: ConnectionPointArgumentsMap[K]
+            opt: ConnectionPointArgumentsMap[K],
+            endType: string,
+            linkView: dia.LinkView
         ): g.Point;
     }
 

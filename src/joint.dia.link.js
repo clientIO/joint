@@ -1282,18 +1282,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
 
-    getConnectionPoint: function(connectionPointDef, view, magnet, line, end) {
+    getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
 
         var connectionPoint;
 
         // Backwards compatibility
         var paperOptions = this.paper.options;
         if (typeof paperOptions.linkConnectionPoint === 'function') {
-            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, end);
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, endType);
             if (connectionPoint) return connectionPoint;
         }
 
-        if (!connectionPointDef) return anchor;
+        if (!connectionPointDef) return line.end;
         var connectionPointFn;
         if (typeof connectionPointDef === 'function') {
             connectionPointFn = connectionPointDef;
@@ -1302,7 +1302,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             connectionPointFn = joint.connectionPoints[connectionPointName];
             if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
         }
-        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {});
+        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
         return connectionPoint || anchor;
     },
 

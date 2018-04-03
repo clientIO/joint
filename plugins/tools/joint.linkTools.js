@@ -564,7 +564,7 @@
             var position, angle;
             if (tangent) {
                 position = tangent.start;
-                angle = tangent.vector().vectorAngle(this.xAxisVector);
+                angle = tangent.vector().vectorAngle(this.xAxisVector) || 0;
             } else {
                 position = view.getPointAtRatio(ratio);
                 angle = 0;
@@ -652,7 +652,7 @@
             }
             if (tangent) {
                 position = tangent.start;
-                angle = tangent.vector().vectorAngle(new g.Point(1,0));
+                angle = tangent.vector().vectorAngle(new g.Point(1,0)) || 0;
             } else {
                 position = this.relatedView.getConnection().start;
                 angle = 0;

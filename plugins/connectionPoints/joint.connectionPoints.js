@@ -8,8 +8,10 @@
 
     function offset(p1, p2, offset) {
 
-        if (!isFinite(offset)) p1;
-        return p1.move(p2, -offset);
+        if (!isFinite(offset)) return p1;
+        var length = p1.distance(p2);
+        if (offset === 0 && length > 0) return p1;
+        return p1.move(p2, -Math.min(offset, length - 1));
     }
 
     // Connection Points
