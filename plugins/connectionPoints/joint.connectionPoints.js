@@ -61,7 +61,14 @@
         } else {
             // Find the closest non-group descendant
             node = magnet;
-            while (node && node.tagName.toUpperCase() === 'G') node = node.firstChild;
+            do {
+                var tagName = node.tagName.toUpperCase();
+                if (tagName === 'G') {
+                    node = node.firstChild;
+                } else if (tagName === 'TITLE') {
+                    node = node.nextSibling;
+                } else break;
+            } while (node)
         }
 
         if (!(node instanceof Element)) return anchor;
