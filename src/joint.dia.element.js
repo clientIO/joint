@@ -499,6 +499,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Cache transformation groups
         this.rotatableNode = vel.findOne('.rotatable');
         this.scalableNode = vel.findOne('.scalable');
+
+        var selectors = this.selectors = {};
+        selectors[this.selector] = this.el;
     },
 
     render: function() {

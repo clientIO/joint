@@ -14,6 +14,19 @@
         return end.anchor;
     }
 
+    function snapAnchor(snapRadius) {
+        return function(coords, view, magnet, type) {
+            var isSource = (type === 'source');
+            var refIndex = (isSource ? 0 : -1);
+            var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
+            if (ref) {
+                if (Math.abs(ref.x - coords.x) < snapRadius) coords.x = ref.x;
+                if (Math.abs(ref.y - coords.y) < snapRadius) coords.y = ref.y;
+            }
+            return coords;
+        }
+    }
+
     var ToolView = joint.dia.ToolView;
 
     // Vertex Handles
@@ -189,7 +202,7 @@
         },
         onPathPointerDown: function(evt) {
             evt.stopPropagation();
-            var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            var vertex = this.paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
             var relatedView = this.relatedView;
             relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
             var index = relatedView.getVertexIndex(vertex.x, vertex.y);
@@ -570,7 +583,7 @@
             this.focus();
         },
         onPointerMove: function(evt) {
-            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
+            var coords = this.paper.snapToGrid(evt.clientX, evt.clientY);
             this.relatedView.pointermove(evt, coords.x, coords.y);
         },
         onPointerUp: function(evt) {
@@ -664,7 +677,7 @@
                 'r': 7,
                 'fill': '#FFFFFF',
                 'stroke': '#F34612',
-                'stroke-width': 2,
+                'stroke-width': 1,
                 'cursor': 'pointer'
             }
         }, {
@@ -674,7 +687,7 @@
                 'd': 'M -3 -3 3 3 M -3 3 3 -3',
                 'fill': 'none',
                 'stroke': '#F34612',
-                'stroke-width': 1,
+                'stroke-width': 2,
                 'pointer-events': 'none'
             }
         }],
@@ -747,19 +760,13 @@
             touchend: 'onPointerUp'
         },
         options: {
-            snap: function(coords, view, magnet) {
-                var bbox = view.getNodeUnrotatedBBox(magnet);
-                var angle = view.model.angle();
-                var origin = view.model.getBBox().center();
-                var rotatedCoords = coords.clone().rotate(origin, angle);
-                if (bbox.containsPoint(rotatedCoords)) return coords;
-                return bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
-            },
+            snap: snapAnchor(10),
             anchor: getAnchor,
             customAnchorColor: '#F34612',
             defaultAnchorColor: '#1ABC9C',
             areaPadding: 7,
-            showArea: true
+            snapRadius: 10,
+            restrictArea: true
         },
         onRender: function() {
             this.renderChildren();
@@ -821,7 +828,7 @@
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
             this.focus();
-            this.toggleArea(this.options.showArea);
+            this.toggleArea(this.options.restrictArea);
             this.relatedView.model.startBatch('anchor-move', { ui: true, tool: this.cid });
         },
         resetAnchor: function(anchor) {
@@ -844,14 +851,25 @@
 
             var relatedView = this.relatedView;
             var type = this.type;
-            var view = relatedView[type + 'View'];
-            var magnet = relatedView[type + 'Magnet'] || view.el;
+            var view = relatedView.getEndView(type);
+            var magnet = relatedView.getEndMagnet(type);
 
             var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
             var snapFn = this.options.snap;
             if (typeof snapFn === 'function') {
                 coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView);
                 coords = new g.Point(coords);
+            }
+
+            if (this.options.restrictArea) {
+                // snap coords within node bbox
+                var bbox = view.getNodeUnrotatedBBox(magnet);
+                var angle = view.model.angle();
+                var origin = view.model.getBBox().center();
+                var rotatedCoords = coords.clone().rotate(origin, angle);
+                if (!bbox.containsPoint(rotatedCoords)) {
+                    coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+                }
             }
 
             var anchor;

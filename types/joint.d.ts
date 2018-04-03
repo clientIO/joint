@@ -2859,7 +2859,7 @@ export namespace linkTools {
             customAnchorColor?: string;
             defaultAnchorColor?: string;
             areaPadding?: number;
-            showArea?: boolean;
+            restrictArea?: boolean;
         }
     }
 
