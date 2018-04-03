@@ -766,7 +766,8 @@
             defaultAnchorColor: '#1ABC9C',
             areaPadding: 7,
             snapRadius: 10,
-            restrictArea: true
+            restrictArea: true,
+            redundancyRemoval: true
         },
         onRender: function() {
             this.renderChildren();
@@ -887,7 +888,9 @@
             this.undelegateDocumentEvents();
             this.blur();
             this.toggleArea(false);
-            this.relatedView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
+            var linkView = this.relatedView;
+            if (this.options.redundancyRemoval) linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+            linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
         },
 
         onPointerDblClick: function() {

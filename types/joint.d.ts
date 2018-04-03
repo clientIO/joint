@@ -2860,6 +2860,7 @@ export namespace linkTools {
             defaultAnchorColor?: string;
             areaPadding?: number;
             restrictArea?: boolean;
+            redundancyRemoval: boolean;
         }
     }
 
