@@ -14,6 +14,12 @@
         return p1.move(p2, -Math.min(offset, length - 1));
     }
 
+    function stroke(magnet) {
+        var stroke = magnet.getAttribute('stroke-width');
+        if (stroke === null) return 0;
+        return parseFloat(stroke) || 0;
+    }
+
     // Connection Points
 
     function anchor(line, view, magnet, opt) {
@@ -23,6 +29,7 @@
     function bboxIntersection(line, view, magnet, opt) {
 
         var bbox = view.getNodeBBox(magnet);
+        if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
         var intersections = line.intersect(bbox);
         var cp = (intersections)
             ? closestIntersection(intersections, line.start)
@@ -38,6 +45,7 @@
         }
 
         var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
+        if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
         var center = bboxWORotation.center();
         var lineWORotation = line.clone().rotate(center, angle);
         var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
@@ -121,7 +129,10 @@
         }
 
         var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
-        return offset(cp, line.start, opt.offset);
+        var cpOffset = opt.offset || 0;
+        if (opt.stroke) cpOffset += stroke(node) / 2;
+
+        return offset(cp, line.start, cpOffset);
     }
 
     joint.connectionPoints = {

@@ -2422,6 +2422,7 @@ export namespace connectionPoints {
 
     interface ConnectionPointArguments {
         offset?: number;
+        stroke?: boolean;
     }
 
     interface BoundaryConnectionPointArguments extends ConnectionPointArguments {

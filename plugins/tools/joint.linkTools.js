@@ -605,7 +605,7 @@
         ratio: 1,
         arrowheadType: 'target',
         attributes: {
-            'd': 'M -20 -10 0 0 -20 10 Z',
+            'd': 'M -10 -10 10 0 -10 10 Z',
             'fill': '#FFFFFF',
             'stroke': '#1ABC9C',
             'stroke-width': 2,
@@ -619,7 +619,7 @@
         ratio: 0,
         arrowheadType: 'source',
         attributes: {
-            'd': 'M 20 -10 0 0 20 10 Z',
+            'd': 'M 10 -10 -10 0 10 10 Z',
             'fill': '#FFFFFF',
             'stroke': '#1ABC9C',
             'stroke-width': 2,
