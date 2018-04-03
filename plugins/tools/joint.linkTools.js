@@ -75,6 +75,7 @@
     });
 
     var Vertices = ToolView.extend({
+        name: 'vertices',
         options: {
             HandleClass: VertexHandle,
             snapRadius: 20,
@@ -296,6 +297,7 @@
     });
 
     var Segments = ToolView.extend({
+        name: 'segments',
         precision: .5,
         options: {
             HandleClass: SegmentHandle,
@@ -599,6 +601,7 @@
     });
 
     var TargetArrowhead = Arrowhead.extend({
+        name: 'target-arrowhead',
         ratio: 1,
         arrowheadType: 'target',
         attributes: {
@@ -612,6 +615,7 @@
     });
 
     var SourceArrowhead = Arrowhead.extend({
+        name: 'source-arrowhead',
         ratio: 0,
         arrowheadType: 'source',
         attributes: {
@@ -625,6 +629,7 @@
     });
 
     var Button = ToolView.extend({
+        name: 'button',
         events: {
             'mousedown': 'onPointerDown',
             'touchstart': 'onPointerDown'
@@ -701,6 +706,7 @@
     });
 
     var Boundary = ToolView.extend({
+        name: 'boundary',
         tagName: 'rect',
         options: {
             padding: 10
@@ -900,10 +906,12 @@
     });
 
     var SourceAnchor = Anchor.extend({
+        name: 'source-anchor',
         type: 'source'
     });
 
     var TargetAnchor = Anchor.extend({
+        name: 'target-anchor',
         type: 'target'
     });
 

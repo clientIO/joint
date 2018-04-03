@@ -1,10 +1,16 @@
 (function(joint, util) {
 
     var ToolView = joint.mvc.View.extend({
+        name: null,
         tagName: 'g',
         className: 'tool',
         svgElement: true,
         _visible: true,
+
+        init: function() {
+            var name = this.name;
+            if (name) this.vel.attr('data-tool-name', name);
+        },
 
         configure: function(view, toolsView) {
             this.relatedView = view;
