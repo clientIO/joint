@@ -503,6 +503,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _dragData: null, // deprecated
 
     metrics: null,
+    decimalsRounding: 2,
 
     initialize: function(options) {
 
@@ -1278,14 +1279,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
         }
         var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {});
-        return anchor || bbox.center();
+        if (anchor) return anchor.round(this.decimalsRounding);
+        return new g.Point()
     },
 
 
     getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
 
         var connectionPoint;
-
+        var anchor = line.end;
         // Backwards compatibility
         var paperOptions = this.paper.options;
         if (typeof paperOptions.linkConnectionPoint === 'function') {
@@ -1293,7 +1295,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (connectionPoint) return connectionPoint;
         }
 
-        if (!connectionPointDef) return line.end;
+        if (!connectionPointDef) return anchor;
         var connectionPointFn;
         if (typeof connectionPointDef === 'function') {
             connectionPointFn = connectionPointDef;
@@ -1303,7 +1305,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
         }
         connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
-        return connectionPoint || anchor;
+        if (connectionPoint) return connectionPoint.round(this.decimalsRounding);
+        return anchor;
     },
 
     _translateConnectionPoints: function(tx, ty) {
@@ -1351,7 +1354,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var labelPosition = label.position = this._normalizeLabelPosition(label.position);
+            var labelPosition = this._normalizeLabelPosition(label.position);
 
             var position = joint.util.merge({}, defaultPosition, labelPosition);
 
