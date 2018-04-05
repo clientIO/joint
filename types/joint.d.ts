@@ -1064,6 +1064,7 @@ export namespace dia {
             tools?: dia.ToolView[];
             name?: string | null;
             relatedView?: dia.CellView;
+            component?: boolean;
         }
     }
 
@@ -1084,6 +1085,10 @@ export namespace dia {
         show(): this;
 
         hide(): this;
+
+        mount(): this;
+
+        protected simulateRelatedView(el: SVGElement): void;
     }
 
     namespace ToolView {

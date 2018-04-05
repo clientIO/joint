@@ -173,6 +173,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'DOMMouseScroll': 'mousewheel',
         'mouseenter .joint-cell': 'mouseenter',
         'mouseleave .joint-cell': 'mouseleave',
+        'mouseenter .joint-tools': 'mouseenter',
+        'mouseleave .joint-tools': 'mouseleave',
         'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
@@ -245,10 +247,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.svg = V('svg').attr({ width: '100%', height: '100%' }).node;
         this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
         this.defs = V('defs').node;
-
+        this.tools = V('g').addClass(joint.util.addClassNamePrefix('tools-container')).node;
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
         // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
-        V(this.svg).append([this.defs, this.viewport]);
+        V(this.svg).append([this.defs, this.viewport, this.tools]);
 
         this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
         if (this.options.background) {
@@ -312,7 +314,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Setter:
         ctm = V.createSVGMatrix(ctm);
-        V(viewport).transform(ctm, { absolute: true });
+        ctmString = V.matrixToTransformString(ctm);
+        viewport.setAttribute('transform', ctmString);
+        this.tools.setAttribute('transform', ctmString);
+
         this._viewportMatrix = ctm;
         this._viewportTransformString = viewport.getAttribute('transform');
 
@@ -1345,12 +1350,15 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
-
+        var relatedView = this.findView(evt.relatedTarget);
         if (view) {
+            // mouse moved from tool over view?
+            if (relatedView === view) return;
             view.mouseenter(evt);
-
         } else {
-            this.trigger('paper:mouseenter', evt); // `paper` (more descriptive), not `blank`
+            if (relatedView) return;
+            // `paper` (more descriptive), not `blank`
+            this.trigger('paper:mouseenter', evt);
         }
     },
 
@@ -1360,12 +1368,15 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
-
+        var relatedView = this.findView(evt.relatedTarget);
         if (view) {
+            // mouse moved from view over tool?
+            if (relatedView === view) return;
             view.mouseleave(evt);
-
         } else {
-            this.trigger('paper:mouseleave', evt); // `paper` (more descriptive), not `blank`
+            if (relatedView) return;
+            // `paper` (more descriptive), not `blank`
+            this.trigger('paper:mouseleave', evt);
         }
     },
 

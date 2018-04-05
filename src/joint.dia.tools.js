@@ -16,7 +16,12 @@
             this.relatedView = view;
             this.paper = view.paper;
             this.parentView = toolsView;
+            this.simulateRelatedView(this.el);
             return this;
+        },
+
+        simulateRelatedView: function(el) {
+            if (el) el.setAttribute('model-id', this.relatedView.model.id);
         },
 
         show: function() {
@@ -53,11 +58,12 @@
         options: {
             tools: null,
             relatedView: null,
-            name: null
+            name: null,
+            component: false
         },
 
         configure: function(options) {
-            options = util.assign({}, this.options, options)
+            options = util.assign(this.options, options);
             var tools = options.tools;
             if (!Array.isArray(tools)) return this;
             var relatedView = options.relatedView;
@@ -136,7 +142,18 @@
                 tools[i].remove();
             }
             this.tools = null;
+        },
+
+        mount: function() {
+            var options = this.options;
+            var relatedView = options.relatedView;
+            if (relatedView) {
+                var container = (options.component) ? relatedView.el : relatedView.paper.tools;
+                container.append(this.el);
+            }
+            return this;
         }
+
     });
 
     joint.dia.ToolsView = ToolsView;

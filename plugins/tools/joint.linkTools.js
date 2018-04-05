@@ -110,6 +110,7 @@
                 var handle = new (this.options.HandleClass)({ index: i, paper: this.paper });
                 handle.render();
                 handle.position(vertex.x, vertex.y);
+                this.simulateRelatedView(handle.el);
                 handle.vel.appendTo(this.el);
                 this.handles.push(handle);
                 this.startHandleListening(handle);
@@ -318,6 +319,7 @@
                 var vertex = vertices[i];
                 var nextVertex = vertices[i + 1];
                 var handle = this.renderHandle(vertex, nextVertex);
+                this.simulateRelatedView(handle.el);
                 this.handles.push(handle);
                 handle.options.index = i;
             }
@@ -583,6 +585,7 @@
                 relatedView.paper.undelegateEvents();
             }
             this.focus();
+            this.el.style.pointerEvents = 'none';
         },
         onPointerMove: function(evt) {
             var coords = this.paper.snapToGrid(evt.clientX, evt.clientY);
@@ -596,6 +599,7 @@
             relatedView.pointerup(evt, coords.x, coords.y);
             paper.delegateEvents();
             this.blur();
+            this.el.style.pointerEvents = '';
             relatedView.model.stopBatch('arrowhead-move', { ui: true, tool: this.cid });
         }
     });
@@ -610,7 +614,7 @@
             'stroke': '#1ABC9C',
             'stroke-width': 2,
             'cursor': 'move',
-            'class': 'source-arrowhead'
+            'class': 'target-arrowhead'
         }
     });
 
@@ -624,7 +628,7 @@
             'stroke': '#1ABC9C',
             'stroke-width': 2,
             'cursor': 'move',
-            'class': 'target-arrowhead'
+            'class': 'source-arrowhead'
         }
     });
 

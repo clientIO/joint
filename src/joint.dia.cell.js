@@ -1366,7 +1366,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             this._toolsView = toolsView;
             toolsView.configure({ relatedView: this });
             toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
-            this.vel.append(toolsView.el);
+            toolsView.mount();
         }
         return this;
     },
