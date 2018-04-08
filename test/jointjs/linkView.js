@@ -879,4 +879,94 @@ QUnit.module('linkView', function(hooks) {
             assert.equal(linkView.model.attributes.target.test, true);
         });
     });
+
+    QUnit.module('linkTools', function(hooks) {
+
+        QUnit.module('joint.dia.ToolView', function() {
+
+            QUnit.test('sanity', function(assert) {
+                assert.ok(joint.dia.ToolView);
+            });
+
+            QUnit.test('visibility', function(assert) {
+                var toolView = new joint.dia.ToolView();
+                toolView.hide();
+                assert.notOk(toolView.isVisible());
+                toolView.show();
+                assert.ok(toolView.isVisible());
+            });
+        });
+
+        QUnit.module('joint.dia.ToolsView', function() {
+
+            QUnit.test('sanity', function(assert) {
+                assert.ok(joint.dia.ToolsView);
+            });
+
+            QUnit.test('name', function(assert) {
+
+                var toolView = new joint.dia.ToolView();
+                var toolsView = new joint.dia.ToolsView({
+                    name: 'testName',
+                    tools: [toolView]
+                });
+
+                assert.equal(toolsView.getName(), 'testName');
+            });
+
+            QUnit.test('focus(), blur()', function(assert) {
+
+                var toolView1 = new joint.dia.ToolView();
+                var toolView2 = new joint.dia.ToolView();
+                var toolsView = new joint.dia.ToolsView({
+                    tools: [toolView1, toolView2]
+                });
+
+                linkView.addTools(toolsView);
+
+                assert.ok(toolView1.isVisible());
+                assert.ok(toolView2.isVisible());
+                toolsView.focusTool(toolView1);
+                assert.ok(toolView1.isVisible());
+                assert.notOk(toolView2.isVisible());
+                toolsView.blurTool(toolView1);
+                assert.ok(toolView1.isVisible());
+                assert.ok(toolView2.isVisible());
+            });
+        });
+
+        QUnit.test('addTools(), removeTools()', function(assert) {
+
+            assert.ok(paper.tools instanceof SVGElement);
+            assert.ok(V(paper.svg).contains(paper.tools));
+
+            var toolView = new joint.dia.ToolView();
+            var toolsView = new joint.dia.ToolsView({
+                tools: [toolView]
+            });
+
+            linkView.addTools(toolsView);
+            assert.ok(V(paper.tools).contains(toolsView.el));
+            assert.ok(toolsView.vel.contains(toolView.el));
+            assert.equal(paper.findView(toolView.el), linkView);
+
+            linkView.removeTools();
+            assert.notOk(V(paper.svg).contains(toolsView.el));
+        });
+
+        QUnit.test('hasTools()', function(assert) {
+
+            var toolView = new joint.dia.ToolView();
+            var toolsView = new joint.dia.ToolsView({
+                name: 'testName',
+                tools: [toolView]
+            });
+
+            assert.notOk(linkView.hasTools());
+            linkView.addTools(toolsView);
+            assert.ok(linkView.hasTools());
+            assert.ok(linkView.hasTools('testName'));
+            assert.notOk(linkView.hasTools('badName'));
+        });
+    })
 });

@@ -1118,6 +1118,8 @@ export namespace dia {
         focus(): void;
 
         blur(): void;
+
+        update(): void;
     }
 
 }

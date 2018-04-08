@@ -47,6 +47,10 @@
         blur: function() {
             this.el.style.opacity = '';
             this.parentView.blurTool(this);
+        },
+
+        update: function() {
+            // to be overriden
         }
     });
 
