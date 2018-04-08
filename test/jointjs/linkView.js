@@ -609,4 +609,274 @@ QUnit.module('linkView', function(hooks) {
             linkView.addVertex(150, 50);
         });
     });
+
+    QUnit.module('anchors', function(hooks) {
+
+        var r1, r2, rv1, rv2;
+
+        hooks.beforeEach(function() {
+            r1 = new joint.shapes.standard.Rectangle();
+            r2 = new joint.shapes.standard.Rectangle();
+            r1.addTo(paper.model);
+            r2.addTo(paper.model);
+            rv1 = r1.findView(paper);
+            rv2 = r2.findView(paper);
+        });
+
+        QUnit.test('sanity', function(assert) {
+            // Sourcer Anchor
+            var sourceAnchor = new g.Point(1, -1);
+            var sourceAnchorSpy = joint.anchors.test1 = sinon.spy(function() {
+                return sourceAnchor;
+            });
+            linkView.model.source({
+                id: r1.id,
+                anchor: { name: 'test1', args: { testArg1: true }}
+            });
+            assert.ok(sourceAnchorSpy.calledOnce);
+            assert.ok(sourceAnchorSpy.calledWithExactly(
+                rv1,
+                rv1.el,
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+            assert.equal(sourceAnchorSpy.thisValues[0], linkView);
+
+            // Target Anchor
+            var targetAnchor = new g.Point(-1, 1);
+            var targetAnchorSpy = joint.anchors.test2 = sinon.spy(function() {
+                return targetAnchor;
+            });
+            linkView.model.target({
+                id: r2.id,
+                anchor: { name: 'test2', args: { testArg2: true }}
+            });
+            assert.ok(targetAnchorSpy.calledOnce);
+            assert.ok(targetAnchorSpy.calledWithExactly(
+                rv2,
+                rv2.el,
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+            assert.equal(targetAnchorSpy.thisValues[0], linkView);
+
+            // Changing target updates both anchors
+            assert.ok(sourceAnchorSpy.calledTwice);
+
+            // Source Magnet
+            sourceAnchorSpy.reset();
+            linkView.model.prop('source/magnet', 'body');
+            assert.ok(sourceAnchorSpy.calledWithExactly(
+                rv1,
+                rv1.el.querySelector('rect'),
+                sinon.match.instanceOf(SVGElement), // requires resolving
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+
+            // Target Magnet
+            targetAnchorSpy.reset();
+            linkView.model.prop('target/magnet', 'body');
+            assert.ok(targetAnchorSpy.calledWithExactly(
+                rv2,
+                rv2.el.querySelector('rect'),
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+
+            assert.ok(sourceAnchor.equals(linkView.sourceAnchor));
+            assert.ok(targetAnchor.equals(linkView.targetAnchor));
+
+            // Link connected by source to a point does not use anchors
+            sourceAnchorSpy.reset();
+            linkView.model.removeProp('source/id');
+            assert.ok(sourceAnchorSpy.notCalled);
+
+            // Link connected by target to a point does not use anchors
+            targetAnchorSpy.reset();
+            linkView.model.removeProp('target/id');
+            assert.ok(targetAnchorSpy.notCalled);
+        });
+    });
+
+    QUnit.module('connectionPoints', function() {
+
+        var r1, r2, rv1, rv2;
+
+        hooks.beforeEach(function() {
+            r1 = new joint.shapes.standard.Rectangle();
+            r2 = new joint.shapes.standard.Rectangle();
+            r1.addTo(paper.model);
+            r2.addTo(paper.model);
+            rv1 = r1.findView(paper);
+            rv2 = r2.findView(paper);
+        });
+
+        QUnit.test('sanity', function(assert) {
+            // Sourcer connectionPoint
+            var sourcePoint = new g.Point(1, -1);
+            var sourceConnectionPointSpy = joint.connectionPoints.test1 = sinon.spy(function() {
+                return sourcePoint;
+            });
+            linkView.model.source({
+                id: r1.id,
+                connectionPoint: { name: 'test1', args: { testArg1: true }}
+            });
+            assert.ok(sourceConnectionPointSpy.calledOnce);
+            assert.ok(sourceConnectionPointSpy.calledWithExactly(
+                sinon.match.instanceOf(g.Line),
+                rv1,
+                rv1.el,
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+            assert.equal(sourceConnectionPointSpy.thisValues[0], linkView);
+            // Target connectionPoint
+            var targetPoint = new g.Point(-1, 1);
+            var targetConnectionPointSpy = joint.connectionPoints.test2 = sinon.spy(function() {
+                return targetPoint;
+            });
+            linkView.model.target({
+                id: r2.id,
+                connectionPoint: { name: 'test2', args: { testArg2: true }}
+            });
+            assert.ok(targetConnectionPointSpy.calledOnce);
+            assert.ok(targetConnectionPointSpy.calledWithExactly(
+                sinon.match.instanceOf(g.Line),
+                rv2,
+                rv2.el,
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+            assert.equal(targetConnectionPointSpy.thisValues[0], linkView);
+
+            // Changing target updates both connectionPoints
+            assert.ok(sourceConnectionPointSpy.calledTwice);
+
+            // Source Magnet
+            sourceConnectionPointSpy.reset();
+            linkView.model.prop('source/magnet', 'body');
+            assert.ok(sourceConnectionPointSpy.calledWithExactly(
+                sinon.match.instanceOf(g.Line),
+                rv1,
+                rv1.el.querySelector('rect'),
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+
+            // Target Magnet
+            targetConnectionPointSpy.reset();
+            linkView.model.prop('target/magnet', 'body');
+            assert.ok(targetConnectionPointSpy.calledWithExactly(
+                sinon.match.instanceOf(g.Line),
+                rv2,
+                rv2.el.querySelector('rect'),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+
+            assert.ok(sourcePoint.equals(linkView.sourcePoint));
+            assert.ok(targetPoint.equals(linkView.targetPoint));
+
+            // Link connected by source to a point does not use connectionPoints
+            sourceConnectionPointSpy.reset();
+            linkView.model.removeProp('source/id');
+            assert.ok(sourceConnectionPointSpy.notCalled);
+
+            // Link connected by target to a point does not use connectionPoints
+            targetConnectionPointSpy.reset();
+            linkView.model.removeProp('target/id');
+            assert.ok(targetConnectionPointSpy.notCalled);
+        });
+    });
+
+    QUnit.module('connectionStrategy', function(hooks) {
+
+        var r1, rv1;
+
+        hooks.beforeEach(function() {
+            r1 = new joint.shapes.standard.Rectangle();
+            r1.addTo(paper.model);
+            rv1 = r1.findView(paper);
+        });
+
+        QUnit.test('sannity', function(assert) {
+
+            var data;
+            var strategySpy = paper.options.connectionStrategy = sinon.spy(function(end) {
+                end.test = true;
+            });
+
+            // Source
+            data = {};
+            linkView.pointerdown({
+                target: linkView.el.querySelector('.marker-arrowhead[end=source]'),
+                type: 'mousedown',
+                data: data
+            }, 0, 0);
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 50, 50);
+            linkView.pointerup({
+                target: rv1.el,
+                type: 'mouseup',
+                data: data
+            }, 50, 50);
+
+            assert.ok(strategySpy.calledOnce);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: r1.id }),
+                rv1,
+                rv1.el,
+                sinon.match(function(coords) { return coords.equals(new g.Point(50, 50)) }),
+                linkView.model,
+                'source'
+            ));
+            assert.equal(strategySpy.thisValues[0], paper);
+            assert.equal(linkView.model.attributes.source.test, true);
+
+            // Target
+            data = {};
+            linkView.pointerdown({
+                target: linkView.el.querySelector('.marker-arrowhead[end=target]'),
+                type: 'mousedown',
+                data: data
+            }, 0, 0);
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 40, 40);
+            linkView.pointerup({
+                target: rv1.el,
+                type: 'mouseup',
+                data: data
+            }, 40, 40);
+
+            assert.ok(strategySpy.calledTwice);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: r1.id }),
+                rv1,
+                rv1.el,
+                sinon.match(function(coords) { return coords.equals(new g.Point(40, 40)) }),
+                linkView.model,
+                'target'
+            ));
+            assert.equal(strategySpy.thisValues[1], paper);
+            assert.equal(linkView.model.attributes.target.test, true);
+        });
+    });
 });

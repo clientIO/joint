@@ -1191,7 +1191,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             } else {
                 sourceAnchorRef = new g.Point(targetDef);
             }
-            sourceAnchor = this.getAnchor(sourceDef.anchor, sourceView, sourceMagnet, sourceAnchorRef);
+            sourceAnchor = this.getAnchor(sourceDef.anchor, sourceView, sourceMagnet, sourceAnchorRef, 'source');
         } else {
             sourceAnchor = new g.Point(sourceDef);
         }
@@ -1201,7 +1201,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetView) {
             targetMagnet = (this.targetMagnet || targetView.el);
             var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
-            targetAnchor = this.getAnchor(targetDef.anchor, targetView, targetMagnet, targetAnchorRef);
+            targetAnchor = this.getAnchor(targetDef.anchor, targetView, targetMagnet, targetAnchorRef, 'target');
         } else {
             targetAnchor = new g.Point(targetDef);
         }
@@ -1254,7 +1254,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    getAnchor: function(anchorDef, cellView, magnet, ref) {
+    getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
 
         if (!anchorDef) {
             var paperOptions = this.paper.options;
@@ -1278,7 +1278,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             anchorFn = joint.anchors[anchorName];
             if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
         }
-        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {});
+        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
         if (anchor) return anchor.round(this.decimalsRounding);
         return new g.Point()
     },

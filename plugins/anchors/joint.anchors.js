@@ -89,6 +89,24 @@
         return (rotate) ? anchor.rotate(center, -angle) : anchor;
     }
 
+    // Can find anchor from model, when there is no selector or the link end
+    // is connected to a port
+    function modelCenter(view, magnet) {
+        var model = view.model;
+        var bbox = model.getBBox();
+        var center = bbox.center();
+        var angle = model.angle();
+        var portId = view.findAttribute('port', magnet);
+        if (portId) {
+            portGroup = model.portProp(portId, 'group');
+            var portsPositions = model.getPortsPositions(portGroup);
+            var anchor = new g.Point(portsPositions[portId]).offset(bbox.origin());
+            anchor.rotate(center, -angle);
+            return anchor;
+        }
+        return center;
+    }
+
     joint.anchors = {
         center: bboxWrapper('center'),
         top: bboxWrapper('topMiddle'),
@@ -100,7 +118,8 @@
         bottomLeft: bboxWrapper('bottomLeft'),
         bottomRight: bboxWrapper('corner'),
         perpendicular: resolveRefAsBBoxCenter(perpendicular),
-        midSide: resolveRefAsBBoxCenter(midSide)
+        midSide: resolveRefAsBBoxCenter(midSide),
+        modelCenter: modelCenter
     }
 
 })(joint, joint.util);
