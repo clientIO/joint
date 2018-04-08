@@ -968,5 +968,46 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(linkView.hasTools('testName'));
             assert.notOk(linkView.hasTools('badName'));
         });
+
+        QUnit.module('events', function(hooks) {
+
+            var toolView1, toolsView1, toolView2, toolsView2;
+
+            hooks.beforeEach(function() {
+
+                toolView1 = new joint.dia.ToolView();
+                toolsView1 = new joint.dia.ToolsView({
+                    tools: [toolView1]
+                });
+
+                toolView2 = new joint.dia.ToolView();
+                toolsView2 = new joint.dia.ToolsView({
+                    tools: [toolView2]
+                });
+
+                linkView.addTools(toolsView1);
+                linkView2.addTools(toolsView2);
+            });
+
+            QUnit.test('tools:event -> remove', function(assert) {
+                paper.trigger('tools:event', 'remove');
+                assert.notOk(linkView.hasTools());
+                assert.notOk(linkView2.hasTools());
+            });
+
+            QUnit.test('tools:event -> show', function(assert) {
+                paper.trigger('tools:event', 'hide');
+                assert.notOk(toolView1.isVisible());
+                assert.notOk(toolView2.isVisible());
+            });
+
+            QUnit.test('tools:event -> hide', function(assert) {
+                toolsView1.hide();
+                toolsView2.hide();
+                paper.trigger('tools:event', 'show');
+                assert.ok(toolView1.isVisible());
+                assert.ok(toolView2.isVisible());
+            });
+        });
     })
 });
