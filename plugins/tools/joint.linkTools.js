@@ -46,9 +46,9 @@
             touchend: 'onPointerUp'
         },
         attributes: {
-            'r': 7,
-            'fill': '#FFFFFF',
-            'stroke': '#1ABC9C',
+            'r': 6,
+            'fill': '#33334F',
+            'stroke': '#FFFFFF',
             'stroke-width': 2,
             'cursor': 'move'
         },
@@ -238,7 +238,7 @@
             tagName: 'line',
             selector: 'line',
             attributes: {
-                'stroke': '#1ABC9C',
+                'stroke': '#33334F',
                 'stroke-width': 2,
                 'fill': 'none',
                 'pointer-events': 'none'
@@ -251,10 +251,10 @@
                 'height': 8,
                 'x': -10,
                 'y': -4,
-                'rx': 2,
-                'ry': 2,
-                'fill': '#FFFFFF',
-                'stroke': '#1ABC9C',
+                'rx': 4,
+                'ry': 4,
+                'fill': '#33334F',
+                'stroke': '#FFFFFF',
                 'stroke-width': 2
             }
         }],
@@ -609,9 +609,9 @@
         ratio: 1,
         arrowheadType: 'target',
         attributes: {
-            'd': 'M -10 -10 10 0 -10 10 Z',
-            'fill': '#FFFFFF',
-            'stroke': '#1ABC9C',
+            'd': 'M -10 -8 10 0 -10 8 Z',
+            'fill': '#33334F',
+            'stroke': '#FFFFFF',
             'stroke-width': 2,
             'cursor': 'move',
             'class': 'target-arrowhead'
@@ -623,9 +623,9 @@
         ratio: 0,
         arrowheadType: 'source',
         attributes: {
-            'd': 'M 10 -10 -10 0 10 10 Z',
-            'fill': '#FFFFFF',
-            'stroke': '#1ABC9C',
+            'd': 'M 10 -8 -10 0 10 8 Z',
+            'fill': '#33334F',
+            'stroke': '#FFFFFF',
             'stroke-width': 2,
             'cursor': 'move',
             'class': 'source-arrowhead'
@@ -684,9 +684,7 @@
             selector: 'button',
             attributes: {
                 'r': 7,
-                'fill': '#FFFFFF',
-                'stroke': '#F34612',
-                'stroke-width': 1,
+                'fill': '#FF1D00',
                 'cursor': 'pointer'
             }
         }, {
@@ -695,7 +693,7 @@
             attributes: {
                 'd': 'M -3 -3 3 3 M -3 3 3 -3',
                 'fill': 'none',
-                'stroke': '#F34612',
+                'stroke': '#FFFFFF',
                 'stroke-width': 2,
                 'pointer-events': 'none'
             }
@@ -717,7 +715,7 @@
         },
         attributes: {
             'fill': 'none',
-            'stroke': '#1ABC9C',
+            'stroke': '#33334F',
             'stroke-width': .5,
             'stroke-dasharray': '5, 5',
             'pointer-events': 'none'
@@ -741,9 +739,6 @@
             tagName: 'circle',
             selector: 'anchor',
             attributes: {
-                'r': 6,
-                'stroke': '#FFFFFF',
-                'stroke-width': 2,
                 'cursor': 'pointer'
             }
         }, {
@@ -752,7 +747,7 @@
             attributes: {
                 'pointer-events': 'none',
                 'fill': 'none',
-                'stroke': '#F34612',
+                'stroke': '#33334F',
                 'stroke-dasharray': '2,4',
                 'rx': 5,
                 'ry': 5
@@ -772,9 +767,19 @@
         options: {
             snap: snapAnchor(10),
             anchor: getAnchor,
-            customAnchorColor: '#F34612',
-            defaultAnchorColor: '#1ABC9C',
-            areaPadding: 7,
+            customAnchorAttributes: {
+                'stroke-width': 4,
+                'stroke': '#33334F',
+                'fill': '#FFFFFF',
+                'r': 5
+            },
+            defaultAnchorAttributes: {
+                'stroke-width': 2,
+                'stroke': '#FFFFFF',
+                'fill': '#33334F',
+                'r': 6
+            },
+            areaPadding: 6,
             snapRadius: 10,
             restrictArea: true,
             redundancyRemoval: true
@@ -808,7 +813,10 @@
             var options = this.options;
             var customAnchor = relatedView.model.prop([type, 'anchor']);
             anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
-            anchorNode.setAttribute('fill', (customAnchor) ? options.customAnchorColor : options.defaultAnchorColor);
+            var anchorAttributes = (customAnchor) ? options.customAnchorAttributes : options.defaultAnchorAttributes;
+            for (var attrName in anchorAttributes) {
+                anchorNode.setAttribute(attrName, anchorAttributes[attrName]);
+            }
         },
         updateArea: function() {
             var childNodes = this.childNodes;
