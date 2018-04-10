@@ -153,7 +153,7 @@
             var relatedView = options.relatedView;
             if (relatedView) {
                 var container = (options.component) ? relatedView.el : relatedView.paper.tools;
-                container.append(this.el);
+                container.appendChild(this.el);
             }
             return this;
         }

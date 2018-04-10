@@ -673,7 +673,9 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(sourceAnchorSpy.calledWithExactly(
                 rv1,
                 rv1.el.querySelector('rect'),
-                sinon.match.instanceOf(SVGElement), // requires resolving
+                sinon.match(function(value) {
+                    return value instanceof SVGElement
+                }), // requires resolving
                 sinon.match({ testArg1: true }),
                 'source',
                 linkView
