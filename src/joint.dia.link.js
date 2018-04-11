@@ -204,7 +204,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.prop(['labels', idx], label, opt);
     },
 
-    labels: function (labels, opt) {
+    labels: function(labels, opt) {
 
         // getter
         if (arguments.length === 0) {
@@ -217,7 +217,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('labels', labels, opt);
     },
 
-    insertLabel: function (idx, label, opt) {
+    insertLabel: function(idx, label, opt) {
 
         if (!label) throw new Error('dia.Link: no label provided');
 
@@ -232,12 +232,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // convenience function
     // add label to end of labels array
-    appendLabel: function (label, opt) {
+    appendLabel: function(label, opt) {
 
         return this.insertLabel(-1, label, opt);
     },
 
-    removeLabel: function (idx, opt) {
+    removeLabel: function(idx, opt) {
 
         var labels = this.labels();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
@@ -248,7 +248,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
     // Vertices API
 
-    vertex: function (idx, vertex, opt) {
+    vertex: function(idx, vertex, opt) {
 
         var vertices = this.vertices();
 
@@ -261,7 +261,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.prop(['vertices', idx], vertex, opt);
     },
 
-    vertices: function (vertices, opt) {
+    vertices: function(vertices, opt) {
 
         // getter
         if (arguments.length === 0) {
@@ -274,7 +274,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set('vertices', vertices, opt);
     },
 
-    insertVertex: function (idx, vertex, opt) {
+    insertVertex: function(idx, vertex, opt) {
 
         if (!vertex) throw new Error('dia.Link: no vertex provided');
 
@@ -287,7 +287,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.vertices(vertices, opt);
     },
 
-    removeVertex: function (idx, opt) {
+    removeVertex: function(idx, opt) {
 
         var vertices = this.vertices();
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
@@ -503,6 +503,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _dragData: null, // deprecated
 
     metrics: null,
+    decimalsRounding: 2,
 
     initialize: function(options) {
 
@@ -984,6 +985,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
+        this.updateTools(opt);
         // Local perpendicular flag (as opposed to one defined on paper).
         // Could be enabled inside a connector/router. It's valid only
         // during the update execution.
@@ -992,6 +994,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updatePostponed = false;
 
         return this;
+    },
+
+    removeRedundantLinearVertices: function(opt) {
+        var link = this.model;
+        var vertices = link.vertices();
+        var conciseVertices = [];
+        var n = vertices.length;
+        var m = 0;
+        for (var i = 0; i < n; i++) {
+            var current = new g.Point(vertices[i]).round();
+            var prev = new g.Point(conciseVertices[m - 1] || this.sourceAnchor).round();
+            if (prev.equals(current)) continue;
+            var next = new g.Point(vertices[i + 1] || this.targetAnchor).round();
+            if (prev.equals(next)) continue;
+            var line = new g.Line(prev, next);
+            if (line.pointOffset(current) === 0) continue;
+            conciseVertices.push(vertices[i]);
+            m++;
+        }
+        if (n === m) return 0;
+        link.vertices(conciseVertices, opt);
+        return (n - m);
     },
 
     updateDefaultConnectionPath: function() {
@@ -1009,6 +1033,44 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (cache.markerSource && cache.markerTarget) {
             this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
         }
+    },
+
+    getEndView: function(type) {
+        switch (type) {
+            case 'source':
+                return this.sourceView || null;
+            case 'target':
+                return this.targetView || null;
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
+    getEndAnchor: function(type) {
+        switch (type) {
+            case 'source':
+                return new g.Point(this.sourceAnchor);
+            case 'target':
+                return new g.Point(this.targetAnchor);
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
+    getEndMagnet: function(type) {
+        switch (type) {
+            case 'source':
+                var sourceView = this.sourceView;
+                if (!sourceView) break;
+                return this.sourceMagnet || sourceView.el;
+            case 'target':
+                var targetView = this.targetView;
+                if (!targetView) break;
+                return this.targetMagnet || targetView.el;
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+        return null;
     },
 
     updateConnection: function(opt) {
@@ -1114,7 +1176,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var targetDef = model.get('target');
         var sourceView = this.sourceView;
         var targetView = this.targetView;
-        var paperOptions = this.paper.options;
         var sourceMagnet, targetMagnet;
 
         // Anchor Source
@@ -1130,8 +1191,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             } else {
                 sourceAnchorRef = new g.Point(targetDef);
             }
-            var sourceAnchorDef = sourceDef.anchor || paperOptions.defaultAnchor;
-            sourceAnchor = this.getAnchor(sourceAnchorDef, sourceView, sourceMagnet, sourceAnchorRef);
+            sourceAnchor = this.getAnchor(sourceDef.anchor, sourceView, sourceMagnet, sourceAnchorRef, 'source');
         } else {
             sourceAnchor = new g.Point(sourceDef);
         }
@@ -1141,8 +1201,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (targetView) {
             targetMagnet = (this.targetMagnet || targetView.el);
             var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
-            var targetAnchorDef = targetDef.anchor || paperOptions.defaultAnchor;
-            targetAnchor = this.getAnchor(targetAnchorDef, targetView, targetMagnet, targetAnchorRef);
+            targetAnchor = this.getAnchor(targetDef.anchor, targetView, targetMagnet, targetAnchorRef, 'target');
         } else {
             targetAnchor = new g.Point(targetDef);
         }
@@ -1195,17 +1254,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    getAnchor: function(anchorDef, cellView, magnet, ref) {
+    getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
 
-        // Backwards compatibility
-        // If `perpendicularLinks` flag is set on the paper and there are vertices
-        // on the link, then try to find a connection point that makes the link perpendicular
-        // even though the link won't point to the center of the targeted object.
-        if (this.paper.options.perpendicularLinks || this.options.perpendicular) {
-            anchorDef = { name: 'perpendicular' };
+        if (!anchorDef) {
+            var paperOptions = this.paper.options;
+            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+                // Backwards compatibility
+                // If `perpendicularLinks` flag is set on the paper and there are vertices
+                // on the link, then try to find a connection point that makes the link perpendicular
+                // even though the link won't point to the center of the targeted object.
+                anchorDef = { name: 'perpendicular' };
+            } else {
+                anchorDef = paperOptions.defaultAnchor;
+            }
         }
 
-        if (!anchorDef) return bbox.center();
+        if (!anchorDef) throw new Error('Anchor required.');
         var anchorFn;
         if (typeof anchorDef === 'function') {
             anchorFn = anchorDef;
@@ -1214,19 +1278,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             anchorFn = joint.anchors[anchorName];
             if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
         }
-        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {});
-        return anchor || bbox.center();
+        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
+        if (anchor) return anchor.round(this.decimalsRounding);
+        return new g.Point()
     },
 
 
-    getConnectionPoint: function(connectionPointDef, view, magnet, line, end) {
+    getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
 
         var connectionPoint;
-
+        var anchor = line.end;
         // Backwards compatibility
         var paperOptions = this.paper.options;
         if (typeof paperOptions.linkConnectionPoint === 'function') {
-            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, end);
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, endType);
             if (connectionPoint) return connectionPoint;
         }
 
@@ -1239,8 +1304,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             connectionPointFn = joint.connectionPoints[connectionPointName];
             if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
         }
-        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {});
-        return connectionPoint || anchor;
+        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
+        if (connectionPoint) return connectionPoint.round(this.decimalsRounding);
+        return anchor;
     },
 
     _translateConnectionPoints: function(tx, ty) {
@@ -1281,14 +1347,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var builtinDefaultLabelPosition = builtinDefaultLabel.position;
 
         var defaultLabel = model._getDefaultLabel();
-        var defaultLabelPosition = defaultLabel.position = this._normalizeLabelPosition(defaultLabel.position);
+        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
 
         var defaultPosition = joint.util.merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var labelPosition = label.position = this._normalizeLabelPosition(label.position);
+            var labelPosition = this._normalizeLabelPosition(label.position);
 
             var position = joint.util.merge({}, defaultPosition, labelPosition);
 
@@ -1982,6 +2048,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             case 'connection-wrap':
                 this.dragConnectionStart(evt, x, y);
                 return;
+
+            case 'marker-source':
+            case 'marker-target':
+                return;
         }
 
         this.dragStart(evt, x, y);
@@ -2196,7 +2266,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             action: 'move',
             dx: x,
             dy: y
-        })
+        });
     },
 
     // Drag Handlers
@@ -2273,6 +2343,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         this._afterArrowheadMove(data);
+
+        // mouseleave event is not triggered due to changing pointer-events to `none`.
+        if (!this.vel.contains(evt.target)) {
+            this.mouseleave(evt);
+        }
     },
 
     dragEnd: function() {
@@ -2340,7 +2415,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var pointer = g.point(x, y);
         var paper = this.paper;
 
-        viewsInArea.forEach(function (view) {
+        viewsInArea.forEach(function(view) {
 
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {

@@ -9,8 +9,8 @@
         return function(end, view, magnet, coords) {
             var angle = view.model.angle();
             var bbox = view.getNodeUnrotatedBBox(magnet);
-            var center = bbox.center();
-            coords.rotate(center, angle);
+            var origin = view.model.getBBox().center();
+            coords.rotate(origin, angle);
             var dx = coords.x - bbox.x;
             var dy = coords.y - bbox.y;
             if (relative) {

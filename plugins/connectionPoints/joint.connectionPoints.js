@@ -8,8 +8,16 @@
 
     function offset(p1, p2, offset) {
 
-        if (!isFinite(offset)) p1;
-        return p1.move(p2, -offset);
+        if (!isFinite(offset)) return p1;
+        var length = p1.distance(p2);
+        if (offset === 0 && length > 0) return p1;
+        return p1.move(p2, -Math.min(offset, length - 1));
+    }
+
+    function stroke(magnet) {
+        var stroke = magnet.getAttribute('stroke-width');
+        if (stroke === null) return 0;
+        return parseFloat(stroke) || 0;
     }
 
     // Connection Points
@@ -21,6 +29,7 @@
     function bboxIntersection(line, view, magnet, opt) {
 
         var bbox = view.getNodeBBox(magnet);
+        if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
         var intersections = line.intersect(bbox);
         var cp = (intersections)
             ? closestIntersection(intersections, line.start)
@@ -36,6 +45,7 @@
         }
 
         var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
+        if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
         var center = bboxWORotation.center();
         var lineWORotation = line.clone().rotate(center, angle);
         var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
@@ -61,7 +71,14 @@
         } else {
             // Find the closest non-group descendant
             node = magnet;
-            while (node && node.tagName.toUpperCase() === 'G') node = node.firstChild;
+            do {
+                var tagName = node.tagName.toUpperCase();
+                if (tagName === 'G') {
+                    node = node.firstChild;
+                } else if (tagName === 'TITLE') {
+                    node = node.nextSibling;
+                } else break;
+            } while (node)
         }
 
         if (!(node instanceof Element)) return anchor;
@@ -112,7 +129,10 @@
         }
 
         var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
-        return offset(cp, line.start, opt.offset);
+        var cpOffset = opt.offset || 0;
+        if (opt.stroke) cpOffset += stroke(node) / 2;
+
+        return offset(cp, line.start, cpOffset);
     }
 
     joint.connectionPoints = {

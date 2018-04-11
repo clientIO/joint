@@ -1041,7 +1041,7 @@ joint.dia.Graph = Backbone.Model.extend({
             });
         }
         if (Array.isArray(name)) {
-            return name.some(function (name) {
+            return name.some(function(name) {
                 return !!this._batches[name];
             }, this);
         }
@@ -1064,7 +1064,7 @@ joint.dia.Graph = Backbone.Model.extend({
                 if (sourceModel) {
 
                     var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });
-                    var sameLinks = connectedLinks.filter(function (_link) {
+                    var sameLinks = connectedLinks.filter(function(_link) {
 
                         var _source = _link.get('source');
                         var _target = _link.get('target');

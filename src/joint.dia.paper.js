@@ -171,6 +171,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mouseleave': 'mouseleave',
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
+        'mouseenter .joint-cell': 'mouseenter',
+        'mouseleave .joint-cell': 'mouseleave',
+        'mouseenter .joint-tools': 'mouseenter',
+        'mouseleave .joint-tools': 'mouseleave',
         'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
@@ -243,10 +247,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.svg = V('svg').attr({ width: '100%', height: '100%' }).node;
         this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
         this.defs = V('defs').node;
-
+        this.tools = V('g').addClass(joint.util.addClassNamePrefix('tools-container')).node;
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
         // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
-        V(this.svg).append([this.defs, this.viewport]);
+        V(this.svg).append([this.defs, this.viewport, this.tools]);
 
         this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
         if (this.options.background) {
@@ -310,7 +314,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Setter:
         ctm = V.createSVGMatrix(ctm);
-        V(viewport).transform(ctm, { absolute: true });
+        ctmString = V.matrixToTransformString(ctm);
+        viewport.setAttribute('transform', ctmString);
+        this.tools.setAttribute('transform', ctmString);
+
         this._viewportMatrix = ctm;
         this._viewportTransformString = viewport.getAttribute('transform');
 
@@ -917,6 +924,21 @@ joint.dia.Paper = joint.mvc.View.extend({
         }, this);
     },
 
+    removeTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'remove');
+        return this;
+    },
+
+    hideTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'hide');
+        return this;
+    },
+
+    showTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'show');
+        return this;
+    },
+
     getModelById: function(id) {
 
         return this.model.getCell(id);
@@ -1286,6 +1308,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         } else {
             this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
         }
+
+        this.delegateEvents();
     },
 
     mouseover: function(evt) {
@@ -1326,12 +1350,15 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
-
+        var relatedView = this.findView(evt.relatedTarget);
         if (view) {
+            // mouse moved from tool over view?
+            if (relatedView === view) return;
             view.mouseenter(evt);
-
         } else {
-            this.trigger('paper:mouseenter', evt); // `paper` (more descriptive), not `blank`
+            if (relatedView) return;
+            // `paper` (more descriptive), not `blank`
+            this.trigger('paper:mouseenter', evt);
         }
     },
 
@@ -1341,12 +1368,15 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
-
+        var relatedView = this.findView(evt.relatedTarget);
         if (view) {
+            // mouse moved from view over tool?
+            if (relatedView === view) return;
             view.mouseleave(evt);
-
         } else {
-            this.trigger('paper:mouseleave', evt); // `paper` (more descriptive), not `blank`
+            if (relatedView) return;
+            // `paper` (more descriptive), not `blank`
+            this.trigger('paper:mouseleave', evt);
         }
     },
 
@@ -1423,6 +1453,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         data || (data = {});
         this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
         this.delegateDocumentEvents(null, data);
+        this.undelegateEvents();
     },
 
     // Guard the specified event. If the event is not interesting, guard returns `true`.
@@ -1467,22 +1498,22 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    _getGriRefs: function () {
+    _getGriRefs: function() {
 
         if (!this._gridCache) {
 
             this._gridCache = {
                 root: V('svg', { width: '100%', height: '100%' }, V('defs')),
                 patterns: {},
-                add: function (id, vel) {
+                add: function(id, vel) {
                     V(this.root.node.childNodes[0]).append(vel);
                     this.patterns[id] = vel;
                     this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
                 },
-                get: function (id) {
+                get: function(id) {
                     return  this.patterns[id]
                 },
-                exist: function (id) {
+                exist: function(id) {
                     return this.patterns[id] !== undefined;
                 }
             }
@@ -1491,7 +1522,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this._gridCache;
     },
 
-    setGrid:function (drawGrid) {
+    setGrid: function(drawGrid) {
 
         this.clearGrid();
 
@@ -1499,13 +1530,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        optionsList.forEach(function (item) {
+        optionsList.forEach(function(item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
         return this;
     },
 
-    _resolveDrawGridOption: function (opt) {
+    _resolveDrawGridOption: function(opt) {
 
         var namespace = this.constructor.gridPatterns;
         if (joint.util.isString(opt) && Array.isArray(namespace[opt])) {
@@ -1553,7 +1584,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        this._gridSettings.forEach(function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function(gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
             var options = joint.util.merge(gridLayerSetting, localOptions[index], {

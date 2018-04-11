@@ -1,4 +1,4 @@
-(function (dia, util, env, V) {
+(function(dia, util, env, V) {
 
     'use strict';
 
@@ -414,7 +414,7 @@
                     var xRight = x + w;
 
                     var ySideTop = y + ry;
-                    var yCurveTop = ySideTop + ry;
+                    var yCurveTop = ySideTop - ry;
                     var ySideBottom = y + h - ry;
                     var yCurveBottom = y + h;
 
@@ -425,8 +425,8 @@
                         'C', x, (ySideBottom + cy), (xCenter - cx), yCurveBottom, xCenter, yCurveBottom,
                         'C', (xCenter + cx), yCurveBottom, xRight, (ySideBottom + cy), xRight, ySideBottom,
                         'L', xRight, ySideTop,
-                        'C', xRight, (ySideTop + cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
-                        'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop + cy), xLeft, ySideTop,
+                        'C', xRight, (ySideTop - cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
+                        'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop - cy), xLeft, ySideTop,
                         'Z'
                     ];
                     return { d: data.join(' ') };
@@ -530,8 +530,8 @@
                 strokeWidth: 2,
                 strokeLinejoin: 'round',
                 targetMarker: {
-                    'type': 'path',
-                    'd': 'M 10 -5 0 0 10 5 z'
+                    type: 'path',
+                    d: 'M 10 -5 0 0 10 5 z'
                 }
             },
             wrapper: {
@@ -567,9 +567,9 @@
                 strokeWidth: 4,
                 strokeLinejoin: 'round',
                 targetMarker: {
-                    'type': 'path',
-                    'stroke': '#000000',
-                    'd': 'M 10 -3 10 -10 -2 0 10 10 10 3'
+                    type: 'path',
+                    stroke: '#000000',
+                    d: 'M 10 -3 10 -10 -2 0 10 10 10 3'
                 }
             },
             outline: {

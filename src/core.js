@@ -36,6 +36,18 @@ var joint = {
     // `joint.routers` namespace.
     routers: {},
 
+    // `joint.anchors` namespace.
+    anchors: {},
+
+    // `joint.connectionPoints` namespace.
+    connectionPoints: {},
+
+    // `joint.connectionStategies` namespace.
+    connectionStrategies: {},
+
+    // `joint.linkTools` namespace.
+    linkTools: {},
+
     // `joint.mvc` namespace.
     mvc: {
         views: {}
@@ -1541,7 +1553,7 @@ var joint = {
             }
         },
 
-        parseDOMJSON: function (json, namespace) {
+        parseDOMJSON: function(json, namespace) {
 
             var selectors = {};
             var svgNamespace = V.namespace.xmlns;

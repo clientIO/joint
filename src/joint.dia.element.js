@@ -499,6 +499,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Cache transformation groups
         this.rotatableNode = vel.findOne('.rotatable');
         this.scalableNode = vel.findOne('.scalable');
+
+        var selectors = this.selectors = {};
+        selectors[this.selector] = this.el;
     },
 
     render: function() {
@@ -563,7 +566,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
     },
 
-    getBBox: function (opt) {
+    getBBox: function(opt) {
 
         var bbox;
         if (opt && opt.useModelGeometry) {
@@ -942,7 +945,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.notify('element:mousewheel', evt, x, y, delta);
     },
 
-    onmagnet: function (evt, x, y) {
+    onmagnet: function(evt, x, y) {
 
         this.dragMagnetStart(evt, x, y);
 

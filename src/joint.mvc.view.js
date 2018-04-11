@@ -6,6 +6,8 @@ joint.mvc.View = Backbone.View.extend({
     themeClassNamePrefix: joint.util.addClassNamePrefix('theme-'),
     requireSetThemeOverride: false,
     defaultTheme: joint.config.defaultTheme,
+    children: null,
+    childNodes: null,
 
     constructor: function(options) {
 
@@ -23,6 +25,17 @@ joint.mvc.View = Backbone.View.extend({
 
         this.setTheme(this.options.theme || this.defaultTheme);
         this.init();
+    },
+
+    renderChildren: function(children) {
+        children || (children = this.children);
+        if (children) {
+            var namespace = V.namespace[this.svgElement ? 'xmlns' : 'xhtml'];
+            var doc = joint.util.parseDOMJSON(children, namespace);
+            this.vel.empty().append(doc.fragment);
+            this.childNodes = doc.selectors;
+        }
+        return this;
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an

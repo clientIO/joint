@@ -795,6 +795,8 @@ joint.dia.CellView = joint.mvc.View.extend({
     findBySelector: function(selector, root, selectors) {
 
         root || (root = this.el);
+        selectors || (selectors = this.selectors);
+
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
@@ -1343,6 +1345,77 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
+    onRemove: function() {
+        this.removeTools();
+    },
+
+    _toolsView: null,
+
+    hasTools: function(name) {
+        var toolsView = this._toolsView;
+        if (!toolsView) return false;
+        if (!name) return true;
+        return (toolsView.getName() === name);
+    },
+
+    addTools: function(toolsView) {
+
+        this.removeTools();
+
+        if (toolsView instanceof joint.dia.ToolsView) {
+            this._toolsView = toolsView;
+            toolsView.configure({ relatedView: this });
+            toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
+            toolsView.mount();
+        }
+        return this;
+    },
+
+    updateTools: function(opt) {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.update(opt);
+        return this;
+    },
+
+    removeTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) {
+            toolsView.remove();
+            this._toolsView = null;
+        }
+        return this;
+    },
+
+    hideTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.hide();
+        return this;
+    },
+
+    showTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.show();
+        return this;
+    },
+
+    onToolEvent: function(event) {
+        switch (event) {
+            case 'remove':
+                this.removeTools();
+                break;
+            case 'hide':
+                this.hideTools();
+                break;
+            case 'show':
+                this.showTools();
+                break;
+        }
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -1433,5 +1506,12 @@ joint.dia.CellView = joint.mvc.View.extend({
     setInteractivity: function(value) {
 
         this.options.interactive = value;
+    }
+}, {
+
+    dispatchToolsEvent: function(paper, event) {
+        if ((typeof event === 'string') && (paper instanceof joint.dia.Paper)) {
+            paper.trigger('tools:event', event);
+        }
     }
 });
