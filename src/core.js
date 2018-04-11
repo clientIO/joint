@@ -596,7 +596,7 @@ var joint = {
                 document.body.removeChild(svgDocument);
             }
 
-            return lines.join('\n');
+            return lines.join(eol);
         },
 
         // Sanitize HTML
