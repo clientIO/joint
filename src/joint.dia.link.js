@@ -1347,7 +1347,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var builtinDefaultLabelPosition = builtinDefaultLabel.position;
 
         var defaultLabel = model._getDefaultLabel();
-        var defaultLabelPosition = defaultLabel.position = this._normalizeLabelPosition(defaultLabel.position);
+        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
 
         var defaultPosition = joint.util.merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
