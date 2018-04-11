@@ -2899,6 +2899,7 @@ export namespace linkTools {
         interface Options extends dia.ToolView.Options {
             distance?: number;
             offset?: number;
+            rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
         }
