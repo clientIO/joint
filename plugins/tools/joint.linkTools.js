@@ -641,7 +641,7 @@
         options: {
             distance: 0,
             offset: 0,
-            rotate: true
+            rotate: false
         },
         onRender: function() {
             this.renderChildren(this.options.markup);
