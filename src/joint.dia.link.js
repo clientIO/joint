@@ -641,6 +641,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     render: function() {
 
         this.vel.empty();
+        this._V = {};
         this.renderMarkup();
         // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
         // returns zero values)
@@ -687,7 +688,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // custom markup may contain only one children
         if (!Array.isArray(children)) children = [children];
         // Cache all children elements for quicker access.
-        var cache = this._V = {}; // vectorized markup;
+        var cache = this._V; // vectorized markup;
         for (var i = 0, n = children.length; i < n; i++) {
             var child = children[i];
             var className = child.attr('class');
