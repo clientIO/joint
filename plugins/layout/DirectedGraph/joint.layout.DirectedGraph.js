@@ -103,7 +103,8 @@ joint.layout.DirectedGraph = {
             graph = graphOrCells;
         } else {
             // Reset cells in dry mode so the graph reference is not stored on the cells.
-            graph = (new joint.dia.Graph()).resetCells(graphOrCells, { dry: true });
+            // `sort: false` to prevent elements to change their order based on the z-index
+            graph = (new joint.dia.Graph()).resetCells(graphOrCells, { dry: true, sort: false });
         }
 
         // This is not needed anymore.
