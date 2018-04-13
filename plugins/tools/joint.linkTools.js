@@ -640,7 +640,8 @@
         },
         options: {
             distance: 0,
-            offset: 0
+            offset: 0,
+            rotate: false
         },
         onRender: function() {
             this.renderChildren(this.options.markup);
@@ -665,6 +666,7 @@
                 .translate(position.x, position.y)
                 .rotate(angle)
                 .translate(0, this.options.offset || 0);
+            if (!this.options.rotate) matrix = matrix.rotate(-angle);
             this.vel.transform(matrix, { absolute: true });
             return this;
         },
