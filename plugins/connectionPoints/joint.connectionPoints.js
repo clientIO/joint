@@ -15,6 +15,7 @@
     }
 
     function stroke(magnet) {
+
         var stroke = magnet.getAttribute('stroke-width');
         if (stroke === null) return 0;
         return parseFloat(stroke) || 0;
@@ -23,6 +24,7 @@
     // Connection Points
 
     function anchor(line, view, magnet, opt) {
+
         return offset(line.end, line.start, opt.offset);
     }
 

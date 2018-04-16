@@ -124,7 +124,7 @@ joint.dia.Link = joint.dia.Cell.extend({
         }, opt);
     },
 
-    source: function(source, opt) {
+    source: function(source, args, opt) {
 
         // getter
         if (source === undefined) {
@@ -132,10 +132,34 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         // setter
-        return this.set('source', source, opt);
+        var localSource;
+        var localOpt;
+
+        // `source` is a cell
+        var isCellProvided = ((typeof source.isElement === 'function') && (typeof source.isLink === 'function'));
+        if (isCellProvided) { // three arguments
+            localSource = joint.util.clone(args) || {};
+            localSource.id = source.id;
+            localOpt = opt;
+            return this.set('source', localSource, localOpt);
+        }
+
+        // `source` is a g.Point or an object with `x` and `y`
+        var isPointProvided = ((source.x !== undefined) && (source.y !== undefined));
+        if (isPointProvided) { // two arguments
+            localSource = source;
+            localOpt = args;
+            return this.set('source', localSource, localOpt);
+        }
+
+        // `source` is an object with an `id` property
+        // two arguments
+        localSource = source;
+        localOpt = args;
+        return this.set('source', localSource, localOpt);
     },
 
-    target: function(target, opt) {
+    target: function(target, args, opt) {
 
         // getter
         if (target === undefined) {
@@ -143,7 +167,31 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         // setter
-        return this.set('target', target, opt);
+        var localTarget;
+        var localOpt;
+
+        // `target` is a cell
+        var isCellProvided = ((typeof target.isElement === 'function') && (typeof target.isLink === 'function'));
+        if (isCellProvided) { // three arguments
+            localTarget = joint.util.clone(args) || {};
+            localTarget.id = target.id;
+            localOpt = opt;
+            return this.set('target', localTarget, localOpt);
+        }
+
+        // `target` is a g.Point or an object with `x` and `y`
+        var isPointProvided = ((target.x !== undefined) && (target.y !== undefined));
+        if (isPointProvided) { // two arguments
+            localTarget = target;
+            localOpt = args;
+            return this.set('target', localTarget, localOpt);
+        }
+
+        // `target` is an object with an `id` property
+        // two arguments
+        localTarget = target;
+        localOpt = args;
+        return this.set('target', localTarget, localOpt);
     },
 
     router: function(name, args, opt) {

@@ -1,0 +1,22 @@
+<p>Connection strategies come into play when the user modifies the position of link endpoints. There are two situations in which this is relevant:</p>
+
+<ul>
+	<li>When the user drags a link endpoint and connects it to an element or its port. The connection strategy determines the end anchor after the user is finished dragging the link endpoint. (Note that any individual <code>anchor</code> property that might have been assigned on the dragged link endpoint will be overridden by the connection strategy. If necessary, have a look at the <a href="#connectionStrategies.custom">custom connectionStrategy documentation</a> for information on replicating the functionality of <a href="#anchors">anchor</a> functions.)</li>
+	<li>When a user creates a link, for example by clicking a port. The connection strategy determines the new link's source anchor.</li>
+</ul>
+
+<p>There are three built-in connection strategies in JointJS:</p>
+
+<ul>
+    <li><code>defaultAnchor</code> - <a href="#connectionStrategies.defaultAnchor">default strategy; place the anchor at the default anchor position no matter where the user releases their pointer</a></li>
+    <li><code>pinAbsolute</code> - <a href="#connectionStrategies.pinAbsolute">place the anchor exactly where the user released their pointer and define the offset in absolute terms</a></li>
+    <li><code>pinRelative</code> - <a href="#connectionStrategies.pinRelative">place the anchor exactly where the user released their pointer and define the offset in relative terms</a></li>
+</ul>
+
+<p>The default connection strategy function is <code>null</code>, which is in fact equivalent to the <code>defaultAnchor</code> connection strategy.</p>
+
+<p>Please note that both the <code>anchor</code> and <code>connectionPoint</code> properties are rewritten in response to user interaction. None of the built-in connection strategies preserve the originally assigned anchor and connection point functions. (You could say that all of the built-in strategies are <code>defaultConnectionPoint</code>.) To assign precisely what you need as the anchor and connection point functions, you will have to define your own <a href="#connectionStrategies.custom">custom connection strategy</a>.</p>
+
+<p>Connection strategies are not assigned on a link-by-link basis. They are set with the <code>connectionStrategy</code> <a href="#dia.Paper.prototype.options.connectionStrategy">option on a paper</a>. The functions are provided directly by reference to the <code>joint.connectionStrategies</code> namespace. Example:</p>
+
+<pre><code>paper.options.connectionStrategy = joint.connectionStrategies.pinAbsolute;</code></pre>

@@ -49,8 +49,8 @@
     rect2.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
-    link.source({ id: rect.id });
-    link.target({ id: rect2.id });
+    link.source(rect);
+    link.target(rect2);
     link.attr({
         line: {
             stroke: 'blue',
@@ -114,8 +114,8 @@
     rect4.addTo(graph);
 
     var link2 = new joint.shapes.standard.Link();
-    link2.source({ id: rect3.id });
-    link2.target({ id: rect4.id });
+    link2.source(rect3);
+    link2.target(rect4);
     link2.vertices([
         new g.Point(250, 100),
         new g.Point(300, 150),
@@ -147,8 +147,8 @@
     link2.addTo(graph);
 
     var link3 = new joint.shapes.standard.Link();
-    link3.source({ id: rect3.id });
-    link3.target({ id: rect4.id });
+    link3.source(rect3);
+    link3.target(rect4);
     link3.connector('jumpover', { size: 10 });
     link3.addTo(graph);
 
@@ -190,8 +190,8 @@
     rect6.addTo(graph);
 
     var link4 = new joint.shapes.standard.Link();
-    link4.source({ id: rect5.id });
-    link4.target({ id: rect6.id });
+    link4.source(rect5);
+    link4.target(rect6);
     link4.attr({
         line: {
             stroke: '#3498DB',

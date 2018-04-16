@@ -1,0 +1,18 @@
+<p>The <code>pinRelative</code> connection strategy records the coordinates of user pointer and assigns the end anchor relatively, by reference to the top-left corner of the view bbox of the element above which the endpoint was dropped. Relative positioning ensures that if the element is subsequently resized, the anchor stays at the same relative distance from the edges (e.g. staying 25% of the way from the left side and 75% of the way from the top side).</p>
+
+<p>The end connection point is assigned according to <code>defaultConnectionPoint</code> <a href="#dia.Paper.prototype.options.defaultConnectionPoint">paper option</a>.</p>
+
+<p>Example:</p>
+
+<pre><code>paper.options.connectionStrategy = joint.connectionStrategies.pinRelative;</code></pre>
+
+<p>The end (source or target) that is being modified gets the <code>'topLeft'</code> anchor assigned by this connection strategy:</p>
+
+<pre><code>end.anchor = {
+    name: 'topLeft',
+    args: {
+    	rotate: true
+        dx: percentageString(coords.x - bbox.x),
+        dy: percentageString(coords.y - bbox.y)
+    }
+};</code></pre>

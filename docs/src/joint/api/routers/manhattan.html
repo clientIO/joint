@@ -1,20 +1,20 @@
-<p>The <code>manhattan</code> router is the smart version of the <code>orthogonal</code> router. It connects vertices with orthogonal line segments, inserting route points when necessary, while avoiding obstacles in its way. The router has useful options that determine how the algorithm behaves. These options can be passed as the <code>router.args</code> property:</p>
+<p>The <code>'manhattan'</code> router is the smart version of the <code>'orthogonal'</code> router. It connects vertices with orthogonal line segments, inserting route points when necessary, while avoiding obstacles in its way. The router has useful options that determine how the algorithm behaves. These options can be passed as the <code>router.args</code> property:</p>
 
 <table>
     <tr>
         <th>step</th>
         <td><i>number</i></td>
-        <td>Size of the imaginary grid followed by the <code>manhattan</code> pathfinding algorithm. Also the size of padding applied around start/end elements and obstacles. Lower number -> higher complexity. The <code>manhattan</code> router performs best when <code>step</code> has the same value as <code>dia.Paper.option.gridSize</code>. Default is <code>10</code>.</td>
+        <td>Size of the imaginary grid followed by the <code>'manhattan'</code> pathfinding algorithm. Also the size of padding applied around start/end elements and obstacles. Lower number -> higher complexity. The <code>'manhattan'</code> router performs best when <code>step</code> has the same value as <code>dia.Paper.option.gridSize</code>. Default is <code>10</code>.</td>
     </tr>
     <tr>
         <th>maximumLoops</th>
         <td><i>number</i></td>
-        <td>The maximum number of iterations of the pathfinding loop. If the number of iterations exceeds this maximum, pathfinding is aborted and the fallback router (<code>orthogonal</code>) is used instead. Higher number -> higher complexity. Default is <code>2000</code>.</td>
+        <td>The maximum number of iterations of the pathfinding loop. If the number of iterations exceeds this maximum, pathfinding is aborted and the fallback router (<code>'orthogonal'</code>) is used instead. Higher number -> higher complexity. Default is <code>2000</code>.</td>
     </tr>
     <tr>
         <th>maxAllowedDirectionChange</th>
         <td><i>number</i></td>
-        <td>Maximum change of direction of the <code>manhattan</code> route, in degrees. Default is <code>90</code>.</td>
+        <td>Maximum change of direction of the <code>'manhattan'</code> route, in degrees. Default is <code>90</code>.</td>
     </tr>
     <tr>
         <th>perpendicular</th>

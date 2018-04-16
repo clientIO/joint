@@ -119,8 +119,8 @@
         rect2.addTo(graph);
 
         var link = new joint.shapes.standard.Link();
-        link.source({ id: rect.id });
-        link.target({ id: rect2.id });
+        link.source(rect);
+        link.target(rect2);
         link.addTo(graph);
 
         var rect3 = new joint.shapes.standard.Rectangle();
@@ -159,8 +159,8 @@
         rect4.addTo(graph);
 
         var link2 = new joint.shapes.standard.Link();
-        link2.source({ id: rect3.id });
-        link2.target({ id: rect4.id });
+        link2.source(rect3);
+        link2.target(rect4);
         link2.addTo(graph);
 
         var rect5 = new joint.shapes.standard.Rectangle();
@@ -201,8 +201,8 @@
         rect6.addTo(graph);
 
         var link3 = new joint.shapes.standard.Link();
-        link3.source({ id: rect5.id });
-        link3.target({ id: rect6.id });
+        link3.source(rect5);
+        link3.target(rect6);
         link3.addTo(graph);
 
     &lt;/script&gt;
@@ -234,10 +234,9 @@
                 <li><a href="/docs/jointjs#dia.Link.prototype.source" target="_blank"><code>link.source()</code></a> and
                     <a href="/docs/jointjs#dia.Link.prototype.target" target="_blank"><code>link.target()</code></a>
                     - sets the source/target of the link.
-                    To identify an element in the graph, pass an object in the form <code>{ id: elementId }</code> (as
-                    in our examples).
-                    To identify a fixed point on the paper, pass an object in the form <code>{ x: xCoordinate,
-                    y: yCoordinate }</code> (or a <code>g.Point</code>).</li>
+                    To connect the link to an element, pass the element to the function (as we do in our example).
+                    To <q>pin</q> the link to a fixed point on the paper, pass a <code>g.Point</code> (or an object with
+                    <code>x</code> and <code>y</code> properties).</li>
             </ul>
 
             <p>Other important methods include:</p>
@@ -297,6 +296,11 @@
                 connector, which connects route points with simple straight lines.
                 <a href="/docs/jointjs#connectors.custom" target="_blank">Advanced users may provide their own
                 connectors to support custom connecting strategies.</a></p>
+
+            <p><a href="/docs/jointjs#dia.Link.presentation" target="_blank">Link geometry</a> is also affected by the
+                <a href="#anchors">anchor</a> and <a href="#connectionPoints">connectionPoint</a> methods applied to
+                link source and target, as well as the <a href="#connectionStrategies">connectionStrategy</a> set on the
+                paper.</p>
 
             <h3 id="link-styling">Link Styling</h3>
 
@@ -545,8 +549,8 @@
         rect2.addTo(graph);
 
         var link = new joint.shapes.standard.Link();
-        link.source({ id: rect.id });
-        link.target({ id: rect2.id });
+        link.source(rect);
+        link.target(rect2);
         link.attr({
             line: {
                 stroke: 'blue',
@@ -610,8 +614,8 @@
         rect4.addTo(graph);
 
         var link2 = new joint.shapes.standard.Link();
-        link2.source({ id: rect3.id });
-        link2.target({ id: rect4.id });
+        link2.source(rect3);
+        link2.target(rect4);
         link2.vertices([
             new g.Point(250, 100),
             new g.Point(300, 150),
@@ -643,8 +647,8 @@
         link2.addTo(graph);
 
         var link3 = new joint.shapes.standard.Link();
-        link3.source({ id: rect3.id });
-        link3.target({ id: rect4.id });
+        link3.source(rect3);
+        link3.target(rect4);
         link3.connector('jumpover', { size: 10 });
         link3.addTo(graph);
 
@@ -686,8 +690,8 @@
         rect6.addTo(graph);
 
         var link4 = new joint.shapes.standard.Link();
-        link4.source({ id: rect5.id });
-        link4.target({ id: rect6.id });
+        link4.source(rect5);
+        link4.target(rect6);
         link4.attr({
             line: {
                 stroke: '#3498DB',

@@ -42,7 +42,7 @@ var joint = {
     // `joint.connectionPoints` namespace.
     connectionPoints: {},
 
-    // `joint.connectionStategies` namespace.
+    // `joint.connectionStrategies` namespace.
     connectionStrategies: {},
 
     // `joint.linkTools` namespace.

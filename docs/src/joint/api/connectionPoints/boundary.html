@@ -1,0 +1,50 @@
+<p>The <code>'boundary'</code> connection point function places the connection point at the intersection between the link path end segment and the actual shape of the end element. (If JointJS is unable to determine the actual shape - e.g. for text - the element bbox is used instead, just as in the <code>'bbox'</code> <a href="#connectionPoints.bbox">connection point function</a>.) It accepts six additional arguments, which can be passed within the <code>connectionPoint.args</code> property:</p>
+
+<table>
+	<tr>
+        <th>insideout</th>
+        <td><i>boolean</i></td>
+        <td>What happens if the link path never leaves the interior area of the end element (e.g. because the other end anchor lies within the first end element)? Should the path line be extended until an intersection with the boundary is found? Default is <code>true</code>.</td>
+    </tr>
+    <tr>
+        <th>extrapolate</th>
+        <td><i>boolean</i></td>
+        <td>What happens if the link path never enters the interior area of the end element (e.g. because the anchor lies outside the end element)? Should the path line be extended to try and find the boundary? Default is <code>false</code>. Note that even if this option is <code>true</code>, an intersection is still not guaranteed. This option takes precedence over <code>connectionPoint.args.sticky</code>.</td>
+    </tr>
+    <tr>
+        <th>sticky</th>
+        <td><i>boolean</i></td>
+        <td>What happens if the link path never enters the interior area of the end element (e.g. because the anchor lies outside the end element)? Should the closest point on the end element boundary be used instead? Default is <code>false</code>. Note that setting this option to <code>true</code> guarantees that a connection point will be found on the shape boundary.</td>
+    </tr>
+    <tr>
+        <th>precision</th>
+        <td><i>number</i></td>
+        <td>The precision of the path intersection algorithm. Uses a logarithmic scale; increasing the number by 1 reduces the maximum observed error by a factor of ten. Default is <code>2</code>, corresponding to 1% error.</td>
+    </tr>
+    <tr>
+        <th>selector</th>
+        <td><i>string</i></td>
+        <td>A selector to identify subelement/magnet of the end element at whose boundary we want the connection point to be found. Default is <code>undefined</code>, meaning that the first non-group descendant of the end element's node will be considered. (An example of another setting that may be useful is <code>'root'</code>, which forces the usage of the root group bbox instead.)</td>
+    </tr>
+    <tr>
+        <th>stroke</th>
+        <td><i>boolean</i></td>
+        <td>Should the stroke width be included when calculating the connection point? Default is <code>false</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    connectionPoint: {
+        name: 'boundary',
+        args: {
+            offset: 10,
+            insideout: false,
+            extrapolate: true,
+            sticky: true,
+            precision: 3,
+            stroke: true
+        }
+    }
+});</code></pre>

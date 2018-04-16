@@ -54,8 +54,8 @@ target.translate(700, 400)
 target.attr('label/text', 'Target');
 
 var link = new joint.shapes.standard.Link();
-link.source({ id: source.id });
-link.target({ id: target.id });
+link.source(source);
+link.target(target);
 
 // APPROACH 1:
 // pass by name under which it was saved in joint.connectors namespace

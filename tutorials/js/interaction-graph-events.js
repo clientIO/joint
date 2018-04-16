@@ -31,7 +31,7 @@
     element.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
-    link.source({ id: element.id });
+    link.source(element);
     link.target(new g.Point(450, 50));
     link.attr({
         line: {

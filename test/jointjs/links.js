@@ -288,7 +288,7 @@ QUnit.module('links', function(hooks) {
 
         this.graph.addCell(element);
 
-        link.source({ id: element.id });
+        link.source(element);
 
         source = link.source();
 

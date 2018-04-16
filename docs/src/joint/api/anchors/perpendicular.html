@@ -1,0 +1,20 @@
+<p>The <code>'perpendicular'</code> anchor function tries to place the anchor of the link inside the view bbox so that the link is made orthogonal. The anchor is placed along two line segments inside the view bbox (between the centers of the top and bottom side and between the centers of the left and right sides). If it is not possible to place the anchor so that the link would be orthogonal, the anchor is placed at the <a href="#anchors.center">center</a> of the view bbox instead. The function accepts one argument, which can be passed within the <code>anchor.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>padding</th>
+        <td><i>number</i></td>
+        <td>Limit the area inside the view bbox available for placing the anchor by <code>padding</code>. Default is <code>0</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    anchor: {
+        name: 'perpendicular',
+        args: {
+            padding: 10
+        }
+    }
+});</code></pre>
