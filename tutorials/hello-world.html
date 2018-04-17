@@ -27,7 +27,7 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>

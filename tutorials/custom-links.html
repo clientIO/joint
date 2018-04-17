@@ -28,7 +28,7 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>
@@ -390,6 +390,8 @@
                 <code>createRandom()</code> in action.</p>
 
             <div class="paper" id="paper-custom-links"></div>
+
+            <p>JointJS source code: <a href="js/custom-links.js">custom-links.js</a></p>
 
             <p><a href="link-labels.html">In the next section of the intermediate tutorial, we will learn about link
                 labels.</a></p>

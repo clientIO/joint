@@ -28,7 +28,7 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>
@@ -165,7 +165,7 @@
             <p>The code is presented below.
                 The changes we made are highlighted:</p>
 
-            <pre class="line-numbers" data-line="26-30,32-33"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="26-30"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -196,8 +196,6 @@
                 color: 'rgba(0, 255, 0, 0.3)'
             }
         });
-        //paper.scale(0.5, 0.5); // see below
-        //paper.translate(300, 50); // see below
 
         var rect = new joint.shapes.standard.Rectangle();
         rect.position(100, 30);
@@ -227,6 +225,8 @@
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 
+            <p>JointJS source code: <a href="js/graph-and-paper.js">graph-and-paper.js</a></p>
+
             <h3 id="paper-scaling">Appendix: Paper Scaling</h3>
 
             <p>At any point after defining the paper, we can use the
@@ -241,6 +241,8 @@
 
             <pre><code>paper.scale(0.5, 0.5);</code></pre>
 
+            <p>JointJS source code: <a href="js/graph-and-paper-scaled.js">graph-and-paper-scaled.js</a></p>
+
             <h3 id="paper-translation">Appendix: Paper Translation</h3>
 
             <p>We can also use the
@@ -252,6 +254,8 @@
             <div class="paper" id="paper-graph-and-paper-translated"></div>
 
             <pre><code>paper.translate(300, 50);</code></pre>
+
+            <p>JointJS source code: <a href="js/graph-and-paper-translated.js">graph-and-paper-translated.js</a></p>
 
             <p>We now understand the importance of the Graph and Paper objects, and know how to change the appearance of
                 our paper.</p>
