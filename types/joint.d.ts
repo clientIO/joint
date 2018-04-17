@@ -817,7 +817,6 @@ export namespace dia {
             interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
-            connectionStrategy?: connectionStrategies.ConnectionStrategy;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
             validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: 'source' | 'target', linkView: LinkView) => boolean;
@@ -846,6 +845,8 @@ export namespace dia {
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
             defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
+            // connecting
+            connectionStrategy?: connectionStrategies.ConnectionStrategy;
         }
 
         interface ScaleContentOptions {
@@ -2565,7 +2566,7 @@ export namespace connectionStrategies {
         ): dia.Element;
     }
 
-    export var defaultAnchor: ConnectionStrategy;
+    export var useDefaults: ConnectionStrategy;
     export var pinAbsolute: ConnectionStrategy;
     export var pinRelative: ConnectionStrategy;
 }

@@ -36,7 +36,7 @@
     }
 
     joint.connectionStrategies = {
-        defaultAnchor: util.noop,
+        useDefaults: util.noop,
         pinAbsolute: pin(false),
         pinRelative: pin(true)
     }
