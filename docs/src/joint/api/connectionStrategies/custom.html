@@ -25,7 +25,41 @@
     </tr>
 </table>
 
-<p>It is very easy to replicate the built-in <a href="#anchors">anchor functions</a> for connection strategy scenarios - simply apply the anchor function to the received <code>end</code> parameter:</p>
+<p>Custom connection strategies may be enormously useful for your users. Here we provide some examples of custom functionality.</p>
+
+<h4 id="ancestors">Connecting to Ancestors</h4>
+
+<p>If your diagram makes heavy use of nested elements, it may be useful to always connect links to a top-level ancestor element (instead of the element on which the arrowhead was actually dropped by user interaction):</p>
+
+<pre><code>joint.connectionStrategies.topAncestor = function(end, endView) {
+
+    var ancestors = endView.model.getAncestors();
+    var numAncestors = ancestors.length;
+    var end = numAncestors ? ancestors[numAncestors - 1] : end;
+
+    return end;
+}
+
+paper.options.connectionStrategy = joint.connectionStrategies.topAncestor;</code></pre>
+
+<h4 id="ports">Connecting to Ports</h4>
+
+<p>If your diagram uses ports, you usually do not want links to be able to connect anywhere else. The solution is similar to the one above:</p>
+
+<pre><code>joint.connectionStrategies.firstPort = function(end, endView) {
+
+    var ports = endView.model.getPorts();
+    var numPorts = ports.length;
+    var end = numPorts ? { id: end.id, port: ports[0].id } : end;
+
+    return end;
+}
+
+paper.options.connectionStrategy = joint.connectionStrategies.firstPort;</code></pre>
+
+<h4 id="anchors">Replicating Built-in Anchor Functions</h4>
+
+<p>Furthermore, it is very easy to replicate the built-in <a href="#anchors">anchor functions</a> for connection strategy scenarios - simply apply the anchor function to the received <code>end</code> parameter:</p>
 
 <pre><code>joint.connectionStrategy.midSide = function(end) {
 
@@ -40,6 +74,8 @@
 }
 
 paper.options.connectionStrategy = joint.connectionStrategy.midSide;</code></pre>
+
+<h4 id="connectionPoints">Replicating Built-in Connection Point Functions</h4>
 
 <p>What if we needed to replicate a built-in <a href="#connectionPoints">connection point function</a> instead? We use the same idea as in the previous example:</p>
 
