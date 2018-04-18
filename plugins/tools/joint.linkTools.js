@@ -302,13 +302,13 @@
         precision: .5,
         options: {
             HandleClass: SegmentHandle,
-            segmentLenghtThreshold: 40,
+            segmentLengthThreshold: 40,
             redundancyRemoval: true,
             anchor: getAnchor,
             snapRadius: 10,
             snapHandle: true
         },
-        handels: null,
+        handles: null,
         onRender: function() {
             this.resetHandles();
             var relatedView = this.relatedView;
@@ -522,7 +522,7 @@
             if (vertical || horizontal) {
                 var segmentLine = new g.Line(vertex, nextVertex);
                 var length = segmentLine.length();
-                if (length < this.options.segmentLenghtThreshold) {
+                if (length < this.options.segmentLengthThreshold) {
                     handle.hide();
                 } else {
                     var position = segmentLine.midpoint()
