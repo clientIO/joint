@@ -129,11 +129,11 @@ var toolsView = new joint.dia.ToolsView({
                 <li><a href="/docs/jointjs#dia.LinkView.prototype.addTools" target="_blank"><code>linkView.addTools(toolsView)</code></a>
                     - adds given <code>toolsView</code> onto the link view.
                     The tools are visible by default.</li>
-                <li><a href="/docs/jointjs#dia.LinkView.prototype.showTools" target="_blank"><code>link.showTools()</code></a>
+                <li><a href="/docs/jointjs#dia.LinkView.prototype.showTools" target="_blank"><code>linkView.showTools()</code></a>
                     - shows tools on the link view.</li>
-                <li><a href="/docs/jointjs#dia.LinkView.prototype.hideTools" target="_blank"><code>link.hideTools()</code></a>
+                <li><a href="/docs/jointjs#dia.LinkView.prototype.hideTools" target="_blank"><code>linkView.hideTools()</code></a>
                     - hides tools on the link view.</li>
-                <li><a href="/docs/jointjs#dia.LinkView.prototype.removeTools" target="_blank"><code>link.removeTools()</code></a>
+                <li><a href="/docs/jointjs#dia.LinkView.prototype.removeTools" target="_blank"><code>linkView.removeTools()</code></a>
                     - removes tools from the link view.</li>
             </ul>
 
@@ -201,11 +201,12 @@ paper.on('blank:mouseover', function(linkView) {
             <p>It is possible to create custom buttons to complement the pre-made <code>Remove</code> button tool.
                 JointJS exposes the <code>joint.linkTools.Button</code> class for you to extend.
                 The behavior of the button on pointerdown interaction is determined by the callback function in
-                <code>options.action</code>.
-                You can add your button to the <code>joint.linkTools</code> namespace and then just use this class in
-                the code:</p>
+                <code>options.action</code>.</p>
 
             <div class="paper" id="paper-link-tools-custom-button"></div>
+
+            <p>You can add your button to the <code>joint.linkTools</code> namespace and then just use that class in
+                the code:</p>
 
             <pre><code>joint.linkTools.InfoButton = joint.linkTools.Button.extend({
     children: [{
