@@ -3,7 +3,7 @@
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-custom-view-events'),
+        el: document.getElementById('paper-interaction-custom-view-events'),
         model: graph,
         width: 600,
         height: 100,

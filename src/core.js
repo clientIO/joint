@@ -1,4 +1,3 @@
-
 // Global namespace.
 
 var joint = {
@@ -441,7 +440,10 @@ var joint = {
                 document.body.appendChild(svgDocument);
             }
 
-            var words = text.split(' ');
+            var separator = opt.separator || ' ';
+            var eol = opt.eol || '\n';
+
+            var words = text.split(separator);
             var full = [];
             var lines = [];
             var p;
@@ -450,6 +452,27 @@ var joint = {
             for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
                 var word = words[i];
+
+                if (!word) continue;
+
+                if (eol && word.indexOf(eol) >= 0) {
+                    // word cotains end-of-line character
+                    if (word.length > 1) {
+                        // separate word and continue cycle
+                        var eolWords = word.split(eol);
+                        for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
+                            eolWords.splice(2 * j + 1, 0, eol);
+                        }
+                        Array.prototype.splice.apply(words, [i, 1].concat(eolWords));
+                        i--;
+                        len += eolWords.length - 1;
+                    } else {
+                        // creates new line
+                        l++;
+                    }
+                    continue;
+                }
+
 
                 textNode.data = lines[l] ? lines[l] + ' ' + word : word;
 
@@ -573,7 +596,7 @@ var joint = {
                 document.body.removeChild(svgDocument);
             }
 
-            return lines.join('\n');
+            return lines.join(eol);
         },
 
         // Sanitize HTML

@@ -28,7 +28,7 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>
@@ -342,6 +342,8 @@
                 <code>createRandom()</code> in action.</p>
 
             <div class="paper" id="paper-custom-elements"></div>
+
+            <p>JointJS source code: <a href="js/custom-elements.js">custom-elements.js</a></p>
 
             <p><a href="custom-links.html">Now that we know how to create custom element models, let us learn about
                 custom links.</a></p>

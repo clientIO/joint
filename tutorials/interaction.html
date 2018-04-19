@@ -26,7 +26,7 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>
@@ -126,6 +126,8 @@ function resetAll(paper) {
     }
 }</code></pre>
 
+            <p>JointJS source code: <a href="js/interaction-paper-events.js">interaction-paper-events.js</a></p>
+
             <p>The event listener callback functions have the signature
                 <code>callback([cellView,] eventObject, eventX, eventY)</code> (<code>cellView</code> is not provided
                 for <code>'blank:…'</code> events, for obvious reasons).
@@ -179,6 +181,8 @@ graph.on('change:target', function(cell) {
         }
     });
 });</code></pre>
+
+            <p>JointJS source code: <a href="js/interaction-graph-events.js">interaction-graph-events.js</a></p>
 
             <p>The callback functions of the cell graph change events have the signature
                 <code>callback(cell, newValue)</code>.
@@ -350,11 +354,13 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
     }
 });</code></pre>
 
+            <p>JointJS source code: <a href="js/interaction-event-attribute.js">interaction-event-attribute.js</a></p>
+
             <h3 id="custom-view-events">Custom View Events</h3>
 
             <p>For more advanced event customization, we need to delve into custom views.
-                That is an advanced topic with many powerful options; we will dedicate an entire tutorial page to it.
-                Here we will concentrate on extending our View objects with custom events.</p>
+                That is an advanced topic with many powerful options; here we will concentrate on extending our View
+                objects with custom events.</p>
 
             <p>The Paper object has two options that determine the views used to render diagram components:</p>
 
@@ -371,7 +377,7 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
             <p>We will use these two options to provide extended versions of the default ElementView and LinkView.
                 The example removes double-clicked components:</p>
 
-            <div class="paper" id="paper-custom-view-events"></div>
+            <div class="paper" id="paper-interaction-custom-view-events"></div>
 
             <pre><code>var paper = new joint.dia.Paper({
     el: document.getElementById('paper-custom-view-events'),
@@ -395,6 +401,10 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
     })
 });</code></pre>
 
+            <p>JointJS source code: <a href="js/interaction-custom-view-events.js">interaction-custom-view-events.js</a></p>
+
+            <h3 id="custom-view-events-propagation">Custom View Event Propagation</h3>
+
             <p>You can maintain recognition of the event by the <a href="#paper-events">builtin paper mechanism</a>
                 if you notify the CellView and Paper about the event.
                 For example, in our custom ElementView pointerdblclick handler, we would include this:</p>
@@ -407,7 +417,7 @@ this.notify('element:pointerdblclick', evt, x, y);</code></pre>
                 <a href="#paper-events">paper events demo</a> with removing the components from the previous
                 example:</p>
 
-            <div class="paper" id="paper-custom-view-events-propagation"></div>
+            <div class="paper" id="paper-interaction-custom-view-events-propagation"></div>
 
             <pre><code>var paper = new joint.dia.Paper({
     el: document.getElementById('paper-custom-view-events'),
@@ -443,6 +453,8 @@ paper.on('cell:pointerdblclick', function(cellView) {
     info.attr('body/visibility', 'visible');
     info.attr('label/visibility', 'visible');
 });</code></pre>
+
+            <p>JointJS source code: <a href="js/interaction-custom-view-events-propagation.js">interaction-custom-view-events-propagation.js</a></p>
 
             <p><a href="serialization.html">In the next section of the intermediate tutorial, we will learn about data
                 serialization.</a></p>

@@ -163,7 +163,7 @@ export namespace dia {
         }
 
         interface Selectors {
-            [selector: string]: attributes.SVGAttributes;
+            [selector: string]: attributes.SVGAttributes | undefined;
         }
 
         interface Attributes extends GenericAttributes<Selectors> {
@@ -1969,7 +1969,7 @@ export namespace util {
 
     export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement; separator: string | any; eol: string }): string;
 
     export function sanitizeHTML(html: string): string;
 
@@ -2954,6 +2954,7 @@ export namespace linkTools {
         interface Options extends dia.ToolView.Options {
             distance?: number;
             offset?: number;
+            rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
         }
