@@ -77,7 +77,7 @@
     var Vertices = ToolView.extend({
         name: 'vertices',
         options: {
-            HandleClass: VertexHandle,
+            handleClass: VertexHandle,
             snapRadius: 20,
             redundancyRemoval: true,
             vertexAdding: true,
@@ -107,7 +107,7 @@
             var vertices = relatedView.model.vertices();
             for (var i = 0, n = vertices.length; i < n; i++) {
                 var vertex = vertices[i];
-                var handle = new (this.options.HandleClass)({ index: i, paper: this.paper });
+                var handle = new (this.options.handleClass)({ index: i, paper: this.paper });
                 handle.render();
                 handle.position(vertex.x, vertex.y);
                 this.simulateRelatedView(handle.el);
@@ -301,14 +301,14 @@
         name: 'segments',
         precision: .5,
         options: {
-            HandleClass: SegmentHandle,
-            segmentLenghtThreshold: 40,
+            handleClass: SegmentHandle,
+            segmentLengthThreshold: 40,
             redundancyRemoval: true,
             anchor: getAnchor,
             snapRadius: 10,
             snapHandle: true
         },
-        handels: null,
+        handles: null,
         onRender: function() {
             this.resetHandles();
             var relatedView = this.relatedView;
@@ -326,7 +326,7 @@
             return this;
         },
         renderHandle: function(vertex, nextVertex) {
-            var handle = new (this.options.HandleClass)({ paper: this.paper });
+            var handle = new (this.options.handleClass)({ paper: this.paper });
             handle.render();
             this.updateHandle(handle, vertex, nextVertex);
             handle.vel.appendTo(this.el);
@@ -522,7 +522,7 @@
             if (vertical || horizontal) {
                 var segmentLine = new g.Line(vertex, nextVertex);
                 var length = segmentLine.length();
-                if (length < this.options.segmentLenghtThreshold) {
+                if (length < this.options.segmentLengthThreshold) {
                     handle.hide();
                 } else {
                     var position = segmentLine.midpoint()
