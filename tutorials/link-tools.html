@@ -200,18 +200,61 @@ paper.on('blank:mouseover', function(linkView) {
 
             <h3 id="custom-button">Custom Buttons</h3>
 
-            <p>It is possible to create custom buttons to complement the pre-made <code>Remove</code> button tool.
+            <p>It is possible to create custom buttons to complement the pre-made <code>Remove</code> button tool;
                 JointJS exposes the <code>joint.linkTools.Button</code> class for you to extend.
-                The behavior of the button on pointerdown interaction is determined by the callback function in
+                The markup of the new button can be sent as <code>options.markup</code>, while the behavior of the
+                button on pointerdown interaction is determined by the callback function provided in
                 <code>options.action</code>.</p>
 
             <div class="paper" id="paper-link-tools-custom-button"></div>
 
-            <p>You can add your button to the <code>joint.linkTools</code> namespace and then just use that class in
-                the code:</p>
+            <p>You can add the extended button to your <code>joint.linkTools</code> namespace and then just use that
+                class in the code:</p>
 
             <pre><code>joint.linkTools.InfoButton = joint.linkTools.Button.extend({
-    children: [{
+    options: {
+        markup: [{
+            tagName: 'circle',
+            selector: 'button',
+            attributes: {
+                'r': 7,
+                'fill': '#001DFF',
+                'cursor': 'pointer'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'icon',
+            attributes: {
+                'd': 'M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4',
+                'fill': 'none',
+                'stroke': '#FFFFFF',
+                'stroke-width': 2,
+                'pointer-events': 'none'
+            }
+        }],
+        distance: 60,
+        offset: 0,
+        action: function(evt) {
+            alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
+        }
+    }
+});
+
+var infoTool = new joint.linkTools.InfoButton();
+var toolsView = new joint.dia.ToolsView({
+    tools: [infoTool]
+});
+
+var linkView = link.findView(paper);
+linkView.addTools(toolsView);</code></pre>
+
+            <p>JointJS source code: <a href="js/link-tools-custom-button.js" target="_blank">link-tools-custom-button.js</a></p>
+
+            <p>A single-use custom button can also be created by direct reference to the <code>Button</code> class,
+                without making an entry in <code>joint.linkTools</code>:</p>
+
+            <pre><code>var infoTool = new joint.linkTools.Button({
+    markup: [{
         tagName: 'circle',
         selector: 'button',
         attributes: {
@@ -230,24 +273,19 @@ paper.on('blank:mouseover', function(linkView) {
             'pointer-events': 'none'
         }
     }],
-    options: {
-        distance: 60,
-        offset: 0,
-        action: function(evt) {
-            alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
-        }
+    distance: 60,
+    offset: 0,
+    action: function(evt) {
+        alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
     }
 });
 
-var infoTool = new joint.linkTools.InfoButton();
 var toolsView = new joint.dia.ToolsView({
     tools: [infoTool]
 });
 
 var linkView = link.findView(paper);
 linkView.addTools(toolsView);</code></pre>
-
-            <p>JointJS source code: <a href="js/link-tools-custom-button.js" target="_blank">link-tools-custom-button.js</a></p>
 
             <p>This concludes the intermediate section of the JointJS tutorial.
                 Congratulations!
