@@ -380,13 +380,16 @@ export namespace dia {
 
     export namespace Link {
 
-        interface EndCellJSON {
-            id: number | string;
+        interface EndCellArgs {
             magnet?: string;
             selector?: string;
             port?: string;
             anchor?: anchors.AnchorJSON;
             connectionPoint?: connectionPoints.ConnectionPointJSON;
+        }
+
+        interface EndCellJSON extends EndCellArgs {
+            id: number | string;
         }
 
         interface EndPointJSON {
@@ -458,9 +461,11 @@ export namespace dia {
 
         source(): Link.EndCellJSON | Link.EndPointJSON;
         source(source: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        source(source: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
         target(): Link.EndCellJSON | Link.EndPointJSON;
         target(target: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        target(target: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
         router(): routers.Router | routers.RouterJSON | null;
         router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
@@ -840,6 +845,8 @@ export namespace dia {
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
             defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
+            // connecting
+            connectionStrategy?: connectionStrategies.ConnectionStrategy;
         }
 
         interface ScaleContentOptions {
@@ -2333,7 +2340,7 @@ export namespace connectors {
             targetPoint: dia.Point,
             routePoints: dia.Point[],
             args?: GenericConnectorArguments<K>,
-            linkView?: dia.LinkView
+            //linkView?: dia.LinkView
         ): string | g.Path;
     }
 
@@ -2375,6 +2382,10 @@ export namespace anchors {
 
     }
 
+    interface ModelCenterAnchorArguments {
+
+    }
+
     interface AnchorArgumentsMap {
         'center': BBoxAnchorArguments,
         'top': BBoxAnchorArguments,
@@ -2387,17 +2398,22 @@ export namespace anchors {
         'bottomRight': BBoxAnchorArguments,
         'perpendicular': PaddingAnchorArguments;
         'midSide': MidSideAnchorArguments;
+        'modelCenter': ModelCenterAnchorArguments;
         [key: string]: { [key: string]: any };
     }
 
     type AnchorType = keyof AnchorArgumentsMap;
 
+    type GenericAnchorArguments<K extends AnchorType> = AnchorArgumentsMap[K];
+
     interface GenericAnchor<K extends AnchorType> {
         (
-            view: dia.CellView,
-            magnet: SVGElement,
-            ref: g.Point | SVGElement,
-            opt: AnchorArgumentsMap[K]
+            endView: dia.CellView,
+            endMagnet: SVGElement,
+            anchorReference: g.Point | SVGElement,
+            opt: AnchorArgumentsMap[K],
+            //endType: string,
+            //linkView: dia.LinkView
         ): g.Point;
     }
 
@@ -2405,6 +2421,8 @@ export namespace anchors {
         name: K;
         args?: AnchorArgumentsMap[K];
     }
+
+    type AnchorArguments = GenericAnchorArguments<AnchorType>;
 
     type Anchor = GenericAnchor<AnchorType>;
 
@@ -2427,12 +2445,15 @@ export namespace anchors {
 
 export namespace connectionPoints {
 
-    interface ConnectionPointArguments {
+    interface DefaultConnectionPointArguments {
         offset?: number;
+    }
+
+    interface StrokeConnectionPointArguments extends DefaultConnectionPointArguments {
         stroke?: boolean;
     }
 
-    interface BoundaryConnectionPointArguments extends ConnectionPointArguments {
+    interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
         selector?: Array<string | number> | string;
         precision?: number;
         extrapolate?: boolean;
@@ -2441,23 +2462,25 @@ export namespace connectionPoints {
     }
 
     interface ConnectionPointArgumentsMap {
-        'anchor': ConnectionPointArguments,
-        'bbox': ConnectionPointArguments,
-        'rectangle': ConnectionPointArguments,
+        'anchor': DefaultConnectionPointArguments,
+        'bbox': StrokeConnectionPointArguments,
+        'rectangle': StrokeConnectionPointArguments,
         'boundary': BoundaryConnectionPointArguments,
         [key: string]: { [key: string]: any };
     }
 
     type ConnectionPointType = keyof ConnectionPointArgumentsMap;
 
+    type GenericConnectionPointArguments<K extends ConnectionPointType> = ConnectionPointArgumentsMap[K];
+
     interface GenericConnectionPoint<K extends ConnectionPointType> {
         (
-            line: g.Line,
-            view: dia.CellView,
-            magnet: SVGElement,
+            endPathSegmentLine: g.Line,
+            endView: dia.CellView,
+            endMagnet: SVGElement,
             opt: ConnectionPointArgumentsMap[K],
-            endType: string,
-            linkView: dia.LinkView
+            //endType: string,
+            //linkView: dia.LinkView
         ): g.Point;
     }
 
@@ -2465,6 +2488,8 @@ export namespace connectionPoints {
         name: K;
         args?: ConnectionPointArgumentsMap[K];
     }
+
+    type ConnectionPointArguments = GenericConnectionPointArguments<ConnectionPointType>;
 
     type ConnectionPoint = GenericConnectionPoint<ConnectionPointType>;
 
@@ -2526,6 +2551,24 @@ export namespace highlighters {
     export var addClass: GenericHighlighter<'addClass'>;
     export var opacity: GenericHighlighter<'opacity'>;
     export var stroke: GenericHighlighter<'stroke'>;
+}
+
+export namespace connectionStrategies {
+
+    interface ConnectionStrategy {
+        (
+            endDefinition: dia.Cell,
+            endView: dia.CellView,
+            endMagnet: SVGElement,
+            coords: dia.Point,
+            //link: dia.Link,
+            //endType: string
+        ): dia.Element;
+    }
+
+    export var useDefaults: ConnectionStrategy;
+    export var pinAbsolute: ConnectionStrategy;
+    export var pinRelative: ConnectionStrategy;
 }
 
 export namespace attributes {
@@ -2645,14 +2688,14 @@ export namespace attributes {
         lineHeight?: number | string;
         textPath?: any;
         annotations?: any;
-        port?: string;
+        port?: string | { [key: string]: any };
         style?: { [key: string]: any };
         html?: string;
         ref?: string;
         refX?: string | number;
-        refy?: string | number;
+        refY?: string | number;
         refX2?: string | number;
-        refy2?: string | number;
+        refY2?: string | number;
         refDx?: string | number;
         refDy?: string | number;
         refWidth?: string | number;
@@ -2660,8 +2703,16 @@ export namespace attributes {
         refRx?: string | number;
         refRy?: string | number;
         refR?: string | number;
+        refRInscribed?: string | number; // alias for refR
+        refRCircumscribed?: string | number;
         refCx?: string | number;
         refCy?: string | number;
+        refD?: string;
+        refDResetOffset?: string; // alias for refD
+        refDKeepOffset?: string;
+        refPoints?: string;
+        refPointsResetOffset?: string; // alias for refPoints
+        refPointsKeepOffset?: string;
         resetOffset?: boolean;
         xAlignment?: 'middle' | 'right' | number | string;
         yAlignment?: 'middle' | 'bottom' | number | string;
@@ -2670,8 +2721,12 @@ export namespace attributes {
         title?: string;
         textVerticalAnchor?: 'bottom' | 'top' | 'middle' | number | string;
         connection?: boolean;
-        atConnectionLenght?: number;
+        atConnectionLength?: number;
+        atConnectionLengthKeepGradient?: number; // alias for atConnectionLength
+        atConnectionLengthIgnoreGradient?: number;
         atConnectionRatio?: number;
+        atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
+        atConnectionRatioIgnoreGradient?: number;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;

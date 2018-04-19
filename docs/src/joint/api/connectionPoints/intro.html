@@ -1,0 +1,55 @@
+<p>A link connection point is an endpoint of the link route. This point is (usually) different from the <a href="#anchors">link anchor point</a>, as it takes into account the presence of the end element. Connection points are set via an <code>connectionPoint</code> property provided within link end definitions (i.e. the objects provided to <code>link.source()</code> and <code>link.target()</code> functions).</p>
+
+<p>The built-in functions work by finding an intersection between the link path (the path from the link's source anchor, through its vertices, to its target anchor). However, the functions always only have access to a single path segment; the source connectionPoint is found by investigating the first segment (i.e. source anchor - first vertex, or source anchor - target anchor if there are no vertices), while the target connectionPoint is found by investigating the last segment (i.e. last vertex - target anchor, or source anchor - target anchor). This has consequences if the investigated path segment is entirely contained within the end element.</p>
+
+<p>There are four built-in connection point functions in JointJS:</p>
+
+<ul>
+    <li><code>'anchor'</code> - <a href="#connectionPoints.anchor">connection point at anchor</a></li>
+    <li><code>'bbox'</code> - <a href="#connectionPoints.bbox">default connection point at bbox boundary</a></li>
+    <li><code>'boundary'</code> - <a href="#connectionPoints.boundary">connection point at actual shape boundary</a></li>
+    <li><code>'rectangle'</code> - <a href="#connectionPoints.rectangle">connection point at unrotated bbox boundary</a></li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    connectionPoint: {
+        name: 'boundary',
+        args: {
+            sticky: true
+        }
+    }
+});</code></pre>
+
+<p>The default connection point is <code>'bbox'</code>; this can be changed with the <code>defaultConnectionPoint</code> <a href="#dia.Paper.prototype.options.defaultConnectionPoint">paper option</a>. Example:</p>
+
+<pre><code>paper.options.defaultConnectionPoint = {
+    name: 'boundary',
+    args: {
+        sticky: true
+    }
+};</code></pre>
+
+<p>All four of the built-in connection point functions accept the following optional argument, in addition to their own arguments:</p>
+
+<table>
+    <tr>
+        <th>offset</th>
+        <td><i>number</i></td>
+        <td>Offset the connection point from the anchor by the specified distance along the end link path segment. Default is <code>0</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    connectionPoint: {
+        name: 'bbox',
+        args: {
+            offset: 10
+        }
+    }
+});</code></pre>
+
+<p>JointJS also contains mechanisms to define one's own <a href="#connectionPoints.custom">custom connection point functions</a>.</p>

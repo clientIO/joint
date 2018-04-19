@@ -1,0 +1,21 @@
+<p>The <code>'bbox'</code> connection point function is the default connection point function. It places the connection point at the intersection between the link path end segment and the end element bbox. It accepts one additional argument, which can be passed within the <code>connectionPoint.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>stroke</th>
+        <td><i>boolean</i></td>
+        <td>Should the stroke width be included when calculating the connection point? Default is <code>false</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    connectionPoint: {
+        name: 'bbox',
+        args: {
+            offset: 10,
+            stroke: true
+        }
+    }
+});</code></pre>

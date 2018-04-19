@@ -1,0 +1,12 @@
+<p>The <code>'anchor'</code> connection point function is the simplest connection point function. It places the connection point at the link end's anchor point (determined either by the <code>anchor</code> <a href="#anchors">function</a> or by the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a>).
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    connectionPoint: {
+        name: 'anchor',
+        args: {
+            offset: 10
+        }
+    }
+});</code></pre>

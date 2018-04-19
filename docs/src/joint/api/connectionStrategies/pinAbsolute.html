@@ -1,0 +1,18 @@
+<p>The <code>pinAbsolute</code> connection strategy records the coordinates of user pointer and assigns the end anchor absolutely, by reference to the top-left corner of the view bbox of the element above which the endpoint was dropped. Absolute positioning ensures that if the element is subsequently resized, the anchor stays at the same absolute distance from the edges (e.g. staying 10 pixels away from the left side and 20 pixels away from the top side).</p>
+
+<p>The end connection point is assigned according to <code>defaultConnectionPoint</code> <a href="#dia.Paper.prototype.options.defaultConnectionPoint">paper option</a>.</p>
+
+<p>Example:</p>
+
+<pre><code>paper.options.connectionStrategy = joint.connectionStrategies.pinAbsolute;</code></pre>
+
+<p>The end (source or target) that is being modified gets the <code>'topLeft'</code> anchor assigned by this connection strategy:</p>
+
+<pre><code>end.anchor = {
+    name: 'topLeft',
+    args: {
+    	rotate: true
+        dx: (coords.x - bbox.x),
+        dy: (coords.y - bbox.y)
+    }
+};</code></pre>

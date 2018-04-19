@@ -624,14 +624,18 @@ QUnit.module('linkView', function(hooks) {
         });
 
         QUnit.test('sanity', function(assert) {
-            // Sourcer Anchor
+            // Source Anchor
             var sourceAnchor = new g.Point(1, -1);
             var sourceAnchorSpy = joint.anchors.test1 = sinon.spy(function() {
                 return sourceAnchor;
             });
-            linkView.model.source({
-                id: r1.id,
-                anchor: { name: 'test1', args: { testArg1: true }}
+            linkView.model.source(r1, {
+                anchor: {
+                    name: 'test1',
+                    args: {
+                        testArg1: true
+                    }
+                }
             });
             assert.ok(sourceAnchorSpy.calledOnce);
             assert.ok(sourceAnchorSpy.calledWithExactly(
@@ -727,9 +731,13 @@ QUnit.module('linkView', function(hooks) {
             var sourceConnectionPointSpy = joint.connectionPoints.test1 = sinon.spy(function() {
                 return sourcePoint;
             });
-            linkView.model.source({
-                id: r1.id,
-                connectionPoint: { name: 'test1', args: { testArg1: true }}
+            linkView.model.source(r1, {
+                connectionPoint: {
+                    name: 'test1',
+                    args: {
+                        testArg1: true
+                    }
+                }
             });
             assert.ok(sourceConnectionPointSpy.calledOnce);
             assert.ok(sourceConnectionPointSpy.calledWithExactly(

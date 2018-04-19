@@ -1,0 +1,42 @@
+<p>A link anchor is a point on the paper that the link wants to reach as its endpoint. (In reality, the end element will probably be in the way - then, it will be the job of the <a href="#connectionPoints">connection point function</a> to determine the actual location of the route endpoint taking the respective end element into account.) Anchors are set via an <code>anchor</code> property provided within link end definitions (i.e. the objects provided to <code>link.source()</code> and <code>link.target()</code> functions).</p>
+
+<p>There are many built-in anchor functions in JointJS:</p>
+
+<ul>
+    <li><code>'center'</code> - <a href="#anchors.center">default anchor at center of view bbox</a></li>
+    <li><code>'modelCenter'</code> - <a href="#anchors.modelCenter">anchor at center of model bbox</a></li>
+    <li><code>'perpendicular'</code> - <a href="#anchors.perpendicular">anchor that ensures an orthogonal route to the other endpoint</a></li>
+    <li><code>'midSide'</code> - <a href="#anchors.midSide">anchor in the middle of the side of view bbox closest to the other endpoint</a></li>
+    <li><code>'bottom'</code> - <a href="#anchors.bottom">anchor in the middle of the bottom side of view bbox</a></li>
+    <li><code>'left'</code> - <a href="#anchors.left">anchor in the middle of the left side of view bbox</a></li>
+    <li><code>'right'</code> - <a href="#anchors.right">anchor in the middle of the right side of view bbox</a></li>
+    <li><code>'top'</code> - <a href="#anchors.top">anchor in the middle of the top side of view bbox</a></li>
+    <li><code>'bottomLeft'</code> - <a href="#anchors.bottomLeft">anchor at the bottom-left corner of view bbox</a></li>
+    <li><code>'bottomRight'</code> - <a href="#anchors.bottomRight">anchor at the bottom-right corner of view bbox</a></li>
+    <li><code>'topLeft'</code> - <a href="#anchors.topLeft">anchor at the top-left corner of view bbox</a></li>
+    <li><code>'topRight'</code> - <a href="#anchors.topRight">anchor at the top-right corner of view bbox</a></li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    anchor: {
+        name: 'midSide',
+        args: {
+            rotate: true,
+            padding: 20
+        }
+    }
+});</code></pre>
+
+<p>The default anchor function is <code>'center'</code>; this can be changed with the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a>. Example:</p>
+
+<pre><code>paper.options.defaultAnchor = {
+    name: 'midSide',
+    args: {
+        rotate: true,
+        padding: 20
+    }
+};</code></pre>
+
+<p>JointJS also contains mechanisms to define one's own <a href="#anchors.custom">custom anchor functions</a>.</p>

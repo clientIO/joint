@@ -1,0 +1,26 @@
+<p>The <code>'midSide'</code> anchor function places the anchor of the link in the middle of the side of view bbox closest to the other endpoint. It accepts two arguments, which can be passed within the <code>anchor.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>rotate</th>
+        <td><i>boolean</i></td>
+        <td>Should the anchor bbox rotate with the end view? Default is <code>false</code>, meaning that the unrotated bbox is used.</td>
+    </tr>
+    <tr>
+        <th>padding</th>
+        <td><i>number</i></td>
+        <td>Offset the anchor by <code>padding</code> away from view bbox. Default is <code>0</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(model, {
+    anchor: {
+        name: 'midSide',
+        args: {
+            rotate: true,
+            padding: 20
+        }
+    }
+});</code></pre>

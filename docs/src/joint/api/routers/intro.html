@@ -2,14 +2,41 @@
 
 <p>The difference between <code>vertices</code> and the route is that the vertices are user-defined while the route is computed. The route inserts additional private vertices to complement user vertices as necessary (e.g. to make sure the route is orthogonal).</p>
 
-<p>There are five built-in routers (<code>normal</code> (default), <code>orthogonal</code>, <code>oneSide</code>, <code>manhattan</code> and <code>metro</code>). The last two are our <q>smart routers</q>; they automatically avoid obstacles (elements) in their way.</p>
+<p>There are five built-in routers:</p>
 
-<p>The <code>orthogonal</code>, <code>manhattan</code> and <code>oneSide</code> routers generate routes consisting exclusively of vertical and horizontal segments. The <code>metro</code> router generates routes consisting of orthogonal and diagonal segments.</p>
+<ul>
+    <li><code>'manhattan'</code> - <a href="#routers.manhattan">smart orthogonal router</a></li>
+    <li><code>'metro'</code> - <a href="#routers.metro">smart octolinear router</a></li>
+    <li><code>'normal'</code> - <a href="#routers.normal">default simple router</a></li>
+    <li><code>'orthogonal'</code> - <a href="#routers.orthogonal">basic orthogonal router</a></li>
+    <li><code>'oneSide'</code> - <a href="#routers.oneSide">restricted orthogonal router</a></li>
+</ul>
 
-<p>Note that the modular architecture of JointJS allows mixing-and-matching routers with <a href="#connectors">connectors</a> as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
+<p>Example:</p>
+
+<pre><code>link.router('orthogonal', {
+    elementPadding: 10
+});</code></pre>
+
+<p>The default router is <code>'normal'</code>; this can be changed with the <code>defaultRouter</code> <a href="#dia.Paper.prototype.options.defaultRouter">paper option</a>. Example:</p>
+
+<pre><code>paper.options.defaultRouter = {
+    name: 'orthogonal',
+    args: {
+        elementPadding: 10
+    }
+});</code></pre>
+
+<p>The <code>'manhattan'</code> and <code>'metro'</code> routers are our <q>smart routers</q>; they automatically avoid obstacles (elements) in their way.</p>
+
+<p>The <code>'orthogonal'</code>, <code>'manhattan'</code> and <code>'oneSide'</code> routers generate routes consisting exclusively of vertical and horizontal segments. The <code>'metro'</code> router generates routes consisting of orthogonal and diagonal segments.</p>
+
+<p>JointJS also contains mechanisms to define one's own <a href="#routers.custom">custom routers</a>.</p>
+
+<p>Note that the modular architecture of JointJS allows mixing-and-matching routers with <a href="#connectors">connectors</a> as desired; for example, a link may be specified to use the <code>'jumpover'</code> connector on top of the <code>'manhattan'</code> router:</p>
 
 <pre><code>var link = new joint.shapes.standard.Link();
-link.source({ id: rect.id });
-link.target({ id: rect2.id });
+link.source(rect);
+link.target(rect2);
 link.router('manhattan');
 link.connector('jumpover');</code></pre>

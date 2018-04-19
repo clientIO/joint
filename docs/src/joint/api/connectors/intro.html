@@ -1,6 +1,30 @@
 <p>Connectors take an array of link route points and generate SVG path commands so that the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="#dia.Link.prototype.connector">function</a>.</p>
 
-<p>There are four built-in connectors in JointJS (<code>normal</code> (default), <code>rounded</code>, <code>smooth</code>, and <code>jumpover</code>). All four of these connectors accept the following optional argument, in addition to their own arguments:</p>
+<p>There are four built-in connectors in JointJS:</p>
+
+<ul>
+    <li><code>'jumpover'</code> - <a href="#connectors.jumpover">connector with bridges over link intersections</a></li>
+    <li><code>'normal'</code> - <a href="#connectors.normal">default simple connector</a></li>
+    <li><code>'rounded'</code> - <a href="#connectors.rounded">connector with rounded edges</a></li>
+    <li><code>'smooth'</code> - <a href="#connectors.smooth">connector interpolated as a bezier curve</a></li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>link.connector('rounded', {
+    radius: 20
+});</code></pre>
+
+<p>The default connector is <code>'normal'</code>; this can be changed with the <code>defaultConnector</code> <a href="#dia.Paper.prototype.options.defaultConnector">paper option</a>. Example:</p>
+
+<pre><code>paper.options.defaultConnector = {
+    name: 'rounded',
+    args: {
+        radius: 20
+    }
+}</code></pre>
+
+<p>All four of the built-in connectors accept the following optional argument, in addition to their own arguments:</p>
 
 <table>
     <tr>
@@ -16,10 +40,12 @@
     raw: true
 });</code></pre>
 
-<p>Note that the modular architecture of JointJS allows mixing-and-matching connectors with <a href="#dia.routers">routers</a> as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
+<p>JointJS also contains mechanisms to define one's own <a href="#connectors.custom">custom connectors</a>.</p>
+
+<p>Note that the modular architecture of JointJS allows mixing-and-matching connectors with <a href="#routers">routers</a> as desired; for example, a link may be specified to use the <code>'jumpover'</code> connector on top of the <code>'manhattan'</code> router:</p>
 
 <pre><code>var link = new joint.shapes.standard.Link();
-link.source({ id: rect.id });
-link.target({ id: rect2.id });
+link.source(rect);
+link.target(rect2);
 link.router('manhattan');
 link.connector('jumpover');</code></pre>

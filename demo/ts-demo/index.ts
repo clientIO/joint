@@ -17,7 +17,8 @@ const paper = new joint.dia.Paper({
     gridSize: 20,
     model: graph,
     markAvailable: true,
-    defaultLink: new joint.shapes.app.Link()
+    defaultLink: new joint.shapes.app.Link(),
+    connectionStrategy: joint.connectionStrategies.pinAbsolute
 });
 
 let rect = new joint.shapes.basic.Rect()
@@ -29,7 +30,9 @@ let rect = new joint.shapes.basic.Rect()
 // declare a new shape using the `define`
 var Circle = joint.shapes.basic.Circle.define('CustomCircle', {
     attrs: {
-        circle: {fill: 'purple'}
+        circle: {
+            fill: 'purple'
+        }
     }
 });
 
@@ -48,8 +51,28 @@ customRect.test();
 joint.shapes.app.CustomRect.staticTest()
 
 let link = new joint.shapes.standard.Link()
-    .source({ id: rect.id })
-    .target({ id: customRect. id })
+    .source(rect, {
+        anchor: {
+            name: 'bottomLeft'
+        },
+        connectionPoint: {
+            name: 'boundary',
+            args: {
+                offset: 5
+            }
+        }
+    })
+    .target(customRect, {
+        anchor: {
+            name: 'bottomLeft'
+        },
+        connectionPoint: {
+            name: 'boundary',
+            args: {
+                offset: 5
+            }
+        }
+    })
     .router('manhattan', { step: 20 })
     .connector('rounded', { radius: 20 })
     .addTo(graph);

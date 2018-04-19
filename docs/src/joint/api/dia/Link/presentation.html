@@ -1,15 +1,80 @@
-<p>The shape of the link is determined by the <b><code>vertices</code></b>, <b><code>connector</code></b> and <b><code>router</code></b> properties.</p>
+<p>The shape of a link is determined by five properties - <b><code>source</code></b>, <b><code>target</code></b>, <b><code>vertices</code></b>, <b><code>connector</code></b> and <b><code>router</code></b>.</p>
 
-<h4>Vertices</h4>
+<h4><span id="dia.Link.presentation.source">Source</span> and <span id="dia.Link.presentation.target">Target</span></h4>
 
-<p>The <code>vertices</code> array is an array of user-defined points for the link to pass through. The array can be accessed with the <code>link.vertices()</code> <a href="#dia.Link.prototype.vertices">function</a> and related functions.</p>
+<p>The <code>source</code> and <code>target</code> properties have to be provided when creating a Link. Either an Element can be provided (either directly or via an <code>id</code> property) or a Point (with <code>x</code> and <code>y</code> properties).</p>
+
+<pre><code>link.source(rect);
+link.source({ id: rect.id });
+
+link.source(new g.Point(100, 100));
+link.source({ x: 100, y: 100 });</code></pre>
+
+<p>If the end is specified as an Element, a specific subelement on that element may be identified for use as the link end. The <code>selector</code> property allows specifying the subelement with a selector string, while the <code>magnet</code> property uses magnet id, and the <code>port</code> property uses the port id.</p>
+
+<p>For the purposes of link geometry, however, the most important are the <code>anchor</code> and <code>connectionPoint</code> properties of link end elements. The <code>connectionStrategy</code> <a href="#dia.Paper.prototype.options.connectionStrategy">paper option</a> is also relevant to mention in this context.</p>
+
+<h4 id="dia.Link.presentation.anchor">Anchor</h4>
+
+<p>If the link end (<a href="#dia.Link.presentation.source">source</a>/<a href="#dia.Link.presentation.target">target</a>) is specified as an Element (whether or not one of the subelement specifications is in effect), the precise position of the link end's anchor may be specified by the <code>anchor</code> property. (If the link end is specified as a Point, its coordinates are used as its anchor directly.) Every link has two anchors; one at the source end and one at the target end.</p>
+
+<p>A link end anchor is a point inside a given (sub)element that the link path wants to connect to at that source/target end - if it were not obstructed by the body of the element itself (it is the role of <a href="#dia.Link.presentation.connectionPoint">connectionPoints</a> to take the end element into account). Alongside <a href="#dia.Link.presentation.vertices">link vertices</a>, source and target anchors determine the basic link path. Then, it is the job of <a href="dia.Link.presentation.connectionPoint">connectionPoints</a>, <a href="#dia.Link.presentation.router">routers</a>, and <a href="#dia.Link.presentation.connector">connectors</a> to modify that path to make it look good.</p>
+
+<p>The anchor functions reference the end element to find the anchor point - e.g. the center of the end element, or its top-right corner. Notably, anchor functions also allow you to offset found anchor points by a custom distance in both dimensions from the standard position (e.g. 10 pixels to the right and 20 pixels below the center of an end element). Several pre-made <a href="#anchors">anchors</a> are provided inside the JointJS library in the <code>joint.anchors</code> namespace.</p>
+
+<pre><code>link.source(rect, {
+    anchor: {
+        name: 'bottomLeft',
+        args: {
+            dx: 20,
+            dy: -10
+        }
+    }
+});</code></pre>
+
+<p>If an anchor function is not provided, the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a> is used instead. The <code>joint.anchors.center</code> <a href="#anchors.center">function</a> is used by default.</p>
+
+<h4 id="dia.Link.presentation.connectionPoint">Connection Point</h4>
+
+<p>The link end's connection point may be specified by the <code>connectionPoint</code> property. Every link has two connection points; one at the source end and one at the target end.</p>
+
+<p>A link connection point is the point the the link path actually ends at, taking the end element into account. This point will always lie on the link path (the line connecting link <a href="#dia.Link.presentation.anchor">anchors</a> and <a href="#dia.Link.presentation.vertices">vertices</a> together, in order).</p>
+
+<p>The connectionPoints are found by considering intersections between the link path and a desired feature of the end element (e.g. bounding box, shape boundary, anchor). Although connectionPoints are not capable of being offset off the link path (<a href="#dia.Link.presentation.anchor">anchors</a> should be used to modify the link path if this is required), they can be offset <i>along</i> the path - e.g. to form a gap between the element and the actual link. Several pre-made <a href="#connectionPoints">connectionPoints</a> are provided in the JointJS library in the <code>joint.connectionPoints</code> namespace.</p>
+
+<pre><code>link.source(rect, {
+    connectionPoint: {
+        name: 'boundary',
+        args: {
+            offset: 5
+        }
+    }
+});</code></pre>
+
+<p>If a connection point function is not provided, the <code>defaultConnectionPoint</code> <a href="#dia.Paper.prototype.options.defaultConnectionPoint">paper option</a> is used instead. The <code>joint.connectionPoints.bbox</code> <a href="#connectionPoints.bbox">function</a> is used by default.</p>
+
+<h4 id="dia.Link.presentation.connectionStrategy">Connection Strategy</h4>
+
+<p>Related to <a href="#dia.Link.presentation.anchor">anchors</a> and <a href="#dia.Link.presentation.connectionPoint">connectionPoints</a> is the <code>connectionStrategy</code> <a href="#dia.Paper.prototype.options.connectionStrategy">paper option</a>. It allows you to specify which <code>anchor</code> and <code>connectionPoint</code> properties should be assigned to end elements in response to user interaction (e.g. in response to dragging a link arrowhead onto a new element). This setting is necessary because assigned <code>anchor</code> and <code>connectionPoint</code> are not preserved when the end element is reassigned by the user - and the paper's <code>defaultAnchor</code> and <code>defaultConnectionPoint</code> are used instead.
+
+<p>Several pre-made <a href="#connectionStrategies">connectionStrategies</a> are provided inside the JointJS library in the <code>joint.connectionStrategies</code> namespace, but you may find it necessary to create your own <a href="#connectionStrategies.custom">custom connection strategies</a>. This is a <a href="#dia.Paper.prototype.options.connectionStrategy">paper-level setting</a>; connectionStrategies not assigned on a link-by-link basis.</p>
+
+<pre><code>paper.options.connectionStrategy = joint.connectionStrategies.pinAbsolute;</code></pre>
+
+<p>If a connection strategy is not provided, the <code>joint.connectionStrategies.useDefaults</code> <a href="#connectionStrategies.useDefaults">function</a> is used by default.</p>
+
+<h4 id="dia.Link.presentation.vertices">Vertices</h4>
+
+<p>The <code>vertices</code> array is an array of user-defined points for the link to pass through. Alongside the source and target <a href="#dia.Link.presentation.anchor">anchors</a>, the link vertices determine the basic link path. This skeleton path is then used for determining the <a href="#dia.Link.presentation.router">link route</a>. The vertices can be accessed with the <code>link.vertices()</code> <a href="#dia.Link.prototype.vertices">function</a> and related functions.</p>
 
 <pre><code>link.vertices();
 link.vertices([{ x: 100, y: 120 }, { x: 150, y: 60 }]);</code></pre>
 
-<h4>Router</h4>
+<h4 id="dia.Link.presentation.router">Router</h4>
 
-<p>Routers take an array of link vertices and transform them into an array of route points that the link should go through. The <code>router</code> property of a link can be accessed with the <code>link.router()</code> <a href="#dia.Link.prototype.router">function</a>. A collection of pre-made <a href="#routers">routers</a> is provided inside the JointJS library in the <code>joint.routers</code> namespace. This includes <q>smart routers</q> that are able to automatically avoid obstacles (elements) in their way.</p>
+<p>Routers take an array of <a href="#dia.Link.presentation.vertices">link vertices</a> and transform them into an array of route points that the link should go through. This route is then used for generating the <a href="#dia.Link.presentation.connector">connection SVG path commands</a>. The <code>router</code> property of a link can be accessed with the <code>link.router()</code> <a href="#dia.Link.prototype.router">function</a>.</p>
+
+<p>A collection of pre-made <a href="#routers">routers</a> is provided inside the JointJS library in the <code>joint.routers</code> namespace. This includes <q>smart routers</q> that are able to automatically avoid obstacles (elements) in their way.</p>
 
 <pre><code>link.router('manhattan', {
     excludeEnds: ['source'],
@@ -18,20 +83,26 @@ link.vertices([{ x: 100, y: 120 }, { x: 150, y: 60 }]);</code></pre>
     endDirections: ['bottom']
 });</code></pre>
 
-<h4>Connector</h4>
+<p>If a router is not provided, the <code>defaultRouter</code> <a href="#dia.Paper.prototype.options.defaultRouter">paper option</a> is used instead. The <code>joint.routers.normal</code> <a href="#routers.normal">function</a> is used by default.</p>
 
-<p>Connectors take an array of link route points and generate SVG path commands so that the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="#dia.Link.prototype.connector">function</a>. A collection of pre-made <a href="#connectors">connectors</a> is provided inside the JointJS library in the <code>joint.connectors</code> namespace.</p>
+<h4 id="dia.Link.presentation.connector">Connector</h4>
+
+<p>Connectors take an array of <a href="#dia.Link.presentation.router">link route points</a> and generate SVG path commands so that the link can be rendered. The <code>connector</code> property of a link can be accessed with the <code>link.connector()</code> <a href="#dia.Link.prototype.connector">function</a>.</p>
+
+<p>A collection of pre-made <a href="#connectors">connectors</a> is provided inside the JointJS library in the <code>joint.connectors</code> namespace.</p>
 
 <pre><code>link.connector('rounded', {
     raw: true,
     radius: 20
 });</code></pre>
 
+<p>If a connector is not provided, the <code>defaultConnector</code> <a href="#dia.Paper.prototype.options.defaultConnector">paper option</a> is used instead. The <code>joint.connectors.normal</code> <a href="#connectors.normal">function</a> is used by default.</p>
+
 <p>Note that the modular architecture of JointJS allows mixing-and-matching connectors with routers as desired; for example, a link may be specified to use the <code>jumpover</code> connector on top of the <code>manhattan</code> router:</p>
 
 <pre><code>var link = new joint.shapes.standard.Link();
-link.source({ id: rect.id });
-link.target({ id: rect2.id });
+link.source(rect);
+link.target(rect2);
 link.router('manhattan');
 link.connector('jumpover');</code></pre>
 

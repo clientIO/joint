@@ -37,8 +37,8 @@
     rect2.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
-    link.source({ id: rect.id });
-    link.target({ id: rect2.id });
+    link.source(rect);
+    link.target(rect2);
     link.attr({
         line: {
             stroke: 'black'
