@@ -46,28 +46,29 @@
 
             <div class="paper" id="paper-link-tools-example"></div>
 
-            <p>JointJS source code: <a href="js/link-tools-example.js">link-tools-example.js</a></p>
+            <p>JointJS source code: <a href="js/link-tools-example.js" target="_blank">link-tools-example.js</a></p>
 
             <p>The process of getting link tools up and running on your link view is relatively straightforward:</p>
 
             <ul>
-                <li>Create individual link tools.</li>
-                <li>Add the link tools to a toolsView.</li>
-                <li>Add the toolsView to a link view.</li>
-                <li>Make the tools interactive.</li>
+                <li><a href="#link-tools">Create individual link tools.</a></li>
+                <li><a href="#add-to-tools-view">Add the link tools to a toolsView.</a></li>
+                <li><a href="#add-to-link-view">Add the toolsView to a link view.</a></li>
+                <li><a href="#interaction">Make the tools interactive.</a></li>
             </ul>
 
             <p>We will explain every step in turn.
-                We will also touch on creating custom buttons.</p>
+                We will also touch on <a href="#custom-button">creating custom buttons</a>.</p>
 
             <h3 id="link-tools">Link Tools</h3>
 
-            <p>A link tool (type <code>joint.dia.ToolView</code>) is a view that renders a certain type of control
-                elements on top of the link view it is attached to; for example the <code>Vertices</code> tool creates
-                an interactive handle above every vertex (these handles then allow the user to move and/or delete each
-                vertex).
+            <p>A link tool (type
+                <a href="/docs/jointjs#dia.ToolView" target="_blank"><code>joint.dia.ToolView</code></a>) is a view that
+                renders a certain type of control elements on top of the link view it is attached to; for example the
+                <code>Vertices</code> tool creates an interactive handle above every vertex (these handles then allow
+                the user to move and/or delete each vertex).
                 The JointJS library comes with a collection of pre-made link tool definitions in the
-                <a href="/docs/jointjs#linkTools"><code>joint.linkTools</code></a> namespace.</p>
+                <a href="/docs/jointjs#linkTools" target="_blank"><code>joint.linkTools</code></a> namespace.</p>
 
             <p>The pre-made link tools include:</p>
 
@@ -95,7 +96,8 @@
 
             <h3 id="add-to-tools-view">Add to Tools View</h3>
 
-            <p>Link tools always need to come bundled in a tools view object (type <code>joint.dia.ToolsView</code>).
+            <p>Link tools always need to come bundled in a tools view object (type
+                <a href="/docs/jointjs#dia.ToolsView" target="_blank"><code>joint.dia.ToolsView</code></a>).
                 This allows them to be shown/hidden as a group above a link.
                 We create a new tools view and add our tools to it:</p>
 
@@ -151,7 +153,7 @@ var toolsView = new joint.dia.ToolsView({
             <pre><code>var linkView = link.findView(paper);
 linkView.addTools(toolsView);</code></pre>
 
-            <p>JointJS source code: <a href="js/link-tools-all.js">link-tools-all.js</a></p>
+            <p>JointJS source code: <a href="js/link-tools-all.js" target="_blank">link-tools-all.js</a></p>
 
             <p>Remember, it is necessary to create a new tools view object for every link view; tools view objects are
                 automatically reassigned to the last link view that uses them.</p>
@@ -170,7 +172,7 @@ paper.on('link:mouseleave', function(linkView) {
     linkView.hideTools();
 });</code></pre>
 
-            <p>JointJS source code: <a href="js/link-tools-interaction.js">link-tools-interaction.js</a></p>
+            <p>JointJS source code: <a href="js/link-tools-interaction.js" target="_blank">link-tools-interaction.js</a></p>
 
             <p>More complex interaction scenarios might require showing/hiding/removing all tools at once.
                 You can find relevant functions in the Paper class:</p>
@@ -196,7 +198,7 @@ paper.on('blank:mouseover', function(linkView) {
     paper.hideTools();
 });</code></pre>
 
-            <h3 id="custom-buttons">Custom Buttons</h3>
+            <h3 id="custom-button">Custom Buttons</h3>
 
             <p>It is possible to create custom buttons to complement the pre-made <code>Remove</code> button tool.
                 JointJS exposes the <code>joint.linkTools.Button</code> class for you to extend.
@@ -245,7 +247,7 @@ var toolsView = new joint.dia.ToolsView({
 var linkView = link.findView(paper);
 linkView.addTools(toolsView);</code></pre>
 
-            <p>JointJS source code: <a href="js/link-tools-custom-button.js">link-tools-custom-button.js</a></p>
+            <p>JointJS source code: <a href="js/link-tools-custom-button.js" target="_blank">link-tools-custom-button.js</a></p>
 
             <p>This concludes the intermediate section of the JointJS tutorial.
                 Congratulations!
