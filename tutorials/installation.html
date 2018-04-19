@@ -28,7 +28,7 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>
@@ -169,6 +169,8 @@
     &lt;/script&gt;
 &lt;/body&gt;
 &lt;/html&gt;</code></pre>
+
+            <p>JointJS source code: <a href="js/hello-world.js">hello-world.js</a></p>
 
             <p>Now that JointJS is included on our page, we can start building our diagram.</p>
 
