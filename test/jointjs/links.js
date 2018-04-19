@@ -279,7 +279,7 @@ QUnit.module('links', function(hooks) {
 
         source = link.source();
 
-        assert.deepEqual(source, { x: 40, y: 40 }, 'source is a point');
+        assert.deepEqual(source, { x: 40, y: 40 }, 'source is a correct point');
 
         var element = new joint.shapes.basic.Rect({
             position: { x: 20, y: 20 },
@@ -292,7 +292,7 @@ QUnit.module('links', function(hooks) {
 
         source = link.source();
 
-        assert.deepEqual(source, { id: element.id }, 'source is an element');
+        assert.deepEqual(source, { id: element.id }, 'source is a correct element');
         assert.equal(source.id, link.getSourceElement().id, 'source element ID is correct');
     });
 
@@ -311,7 +311,7 @@ QUnit.module('links', function(hooks) {
 
         target = link.target();
 
-        assert.deepEqual(target, { x: 100, y: 100 }, 'target is an element');
+        assert.deepEqual(target, { x: 100, y: 100 }, 'target is a correct point');
 
         var element = new joint.shapes.basic.Rect({
             position: { x: 20, y: 20 },
@@ -324,7 +324,7 @@ QUnit.module('links', function(hooks) {
 
         target = link.target();
 
-        assert.deepEqual(target, { id: element.id }, 'target is an element');
+        assert.deepEqual(target, { id: element.id }, 'target is a correct element');
         assert.equal(target.id, link.getTargetElement().id, 'target element ID is correct');
     });
 

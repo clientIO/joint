@@ -136,7 +136,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         var localOpt;
 
         // `source` is a cell
-        var isCellProvided = ((typeof source.isElement === 'function') && (typeof source.isLink === 'function'));
+        // take only its `id` and combine with `args`
+        var isCellProvided = source instanceof joint.dia.Cell;
         if (isCellProvided) { // three arguments
             localSource = joint.util.clone(args) || {};
             localSource.id = source.id;
@@ -144,15 +145,19 @@ joint.dia.Link = joint.dia.Cell.extend({
             return this.set('source', localSource, localOpt);
         }
 
-        // `source` is a g.Point or an object with `x` and `y`
-        var isPointProvided = ((source.x !== undefined) && (source.y !== undefined));
-        if (isPointProvided) { // two arguments
-            localSource = source;
-            localOpt = args;
+        // `source` is a g.Point
+        // take only its `x` and `y` and combine with `args`
+        var isPointProvided = source instanceof g.Point;
+        if (isPointProvided) { // three arguments
+            localSource = joint.util.clone(args) || {};
+            localSource.x = source.x;
+            localSource.y = source.y;
+            localOpt = opt;
             return this.set('source', localSource, localOpt);
         }
 
-        // `source` is an object with an `id` property
+        // `source` is an object
+        // no checking
         // two arguments
         localSource = source;
         localOpt = args;
@@ -171,7 +176,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         var localOpt;
 
         // `target` is a cell
-        var isCellProvided = ((typeof target.isElement === 'function') && (typeof target.isLink === 'function'));
+        // take only its `id` argument and combine with `args`
+        var isCellProvided = target instanceof joint.dia.Cell;
         if (isCellProvided) { // three arguments
             localTarget = joint.util.clone(args) || {};
             localTarget.id = target.id;
@@ -179,15 +185,19 @@ joint.dia.Link = joint.dia.Cell.extend({
             return this.set('target', localTarget, localOpt);
         }
 
-        // `target` is a g.Point or an object with `x` and `y`
-        var isPointProvided = ((target.x !== undefined) && (target.y !== undefined));
-        if (isPointProvided) { // two arguments
-            localTarget = target;
-            localOpt = args;
+        // `target` is a g.Point
+        // take only its `x` and `y` and combine with `args`
+        var isPointProvided = target instanceof g.Point;
+        if (isPointProvided) { // three arguments
+            localTarget = joint.util.clone(args) || {};
+            localTarget.x = target.x;
+            localTarget.y = target.y;
+            localOpt = opt;
             return this.set('target', localTarget, localOpt);
         }
 
-        // `target` is an object with an `id` property
+        // `target` is an object
+        // no checking
         // two arguments
         localTarget = target;
         localOpt = args;

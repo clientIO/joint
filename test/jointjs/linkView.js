@@ -624,7 +624,7 @@ QUnit.module('linkView', function(hooks) {
         });
 
         QUnit.test('sanity', function(assert) {
-            // Sourcer Anchor
+            // Source Anchor
             var sourceAnchor = new g.Point(1, -1);
             var sourceAnchorSpy = joint.anchors.test1 = sinon.spy(function() {
                 return sourceAnchor;
