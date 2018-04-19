@@ -49,11 +49,8 @@
     target.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
-    link.source(/*source,*/ {
-        id: source.id
-    });
-    link.target(/*target,*/ {
-        id: target.id,
+    link.source(source);
+    link.target(target, {
         connectionPoint: {
             name: 'boundary'
         }

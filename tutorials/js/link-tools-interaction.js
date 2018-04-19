@@ -49,8 +49,7 @@
     target.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
-    link.source(/*source,*/ {
-        id: source.id,
+    link.source(source, {
         anchor: {
             name: 'center',
             args: {
@@ -58,8 +57,7 @@
             }
         }
     });
-    link.target(/*target,*/ {
-        id: target.id,
+    link.target(target, {
         anchor: {
             name: 'center',
             args: {
