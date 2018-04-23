@@ -677,6 +677,27 @@ QUnit.module('basic', function(hooks) {
         r1.toBack();
 
         assert.notEqual(r2View.$el.prevAll(r1View.$el).length, 0, 'r1 element moved back before r2 element in the DOM after toBack()');
+
+        // Tests do not pass in Phantom JS
+        // r1.set('z', 10);
+        // r2.set('z', 10);
+        // r1.toFront();
+        // assert.equal(r1View.$el.index(), 1, 'r1 - front');
+
+        // r1.set('z', 10);
+        // r2.set('z', 10);
+        // r1.toBack();
+        // assert.equal(r1View.$el.index(), 0, 'r1 - back');
+
+        // r1.set('z', 10);
+        // r2.set('z', 10);
+        // r2.toFront();
+        // assert.equal(r2View.$el.index(), 1, 'r2 - front');
+
+        // r1.set('z', 10);
+        // r2.set('z', 10);
+        // r2.toBack();
+        // assert.equal(r2View.$el.index(), 0, 'r2 -    back');
     });
 
     QUnit.test('toBack(), toFront() ignorable', function(assert) {

@@ -170,11 +170,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toFront: function(opt) {
 
-        if (this.graph) {
+        var graph = this.graph;
+        if (graph) {
 
             opt = opt || {};
 
-            var z = this.graph.maxZIndex();
+            var z = graph.maxZIndex();
 
             var cells;
 
@@ -187,9 +188,13 @@ joint.dia.Cell = Backbone.Model.extend({
 
             z = z - cells.length + 1;
 
-            var shouldUpdate = cells.some(function(cell, index) {
-                return cell.get('z') !== z + index;
-            });
+            var collection = graph.get('cells');
+            var shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
+            if (!shouldUpdate) {
+                shouldUpdate = cells.some(function(cell, index) {
+                    return cell.get('z') !== z + index;
+                });
+            }
 
             if (shouldUpdate) {
                 this.startBatch('to-front');
@@ -209,11 +214,12 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toBack: function(opt) {
 
-        if (this.graph) {
+        var graph = this.graph;
+        if (graph) {
 
             opt = opt || {};
 
-            var z = this.graph.minZIndex();
+            var z = graph.minZIndex();
 
             var cells;
 
@@ -224,9 +230,13 @@ joint.dia.Cell = Backbone.Model.extend({
                 cells = [this];
             }
 
-            var shouldUpdate = cells.some(function(cell, index) {
-                return cell.get('z') !== z + index;
-            });
+            var collection = graph.get('cells');
+            var shouldUpdate = (collection.indexOf(this) !== 0);
+            if (!shouldUpdate) {
+                shouldUpdate = cells.some(function(cell, index) {
+                    return cell.get('z') !== z + index;
+                });
+            }
 
             if (shouldUpdate) {
                 this.startBatch('to-back');
