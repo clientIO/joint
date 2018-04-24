@@ -81,7 +81,7 @@
     var sourceAnchorTool = new joint.linkTools.SourceAnchor();
     var targetAnchorTool = new joint.linkTools.TargetAnchor();
     var boundaryTool = new joint.linkTools.Boundary();
-    var removeTool = new joint.linkTools.Remove({
+    var removeButton = new joint.linkTools.Remove({
         distance: 20
     });
 
@@ -90,7 +90,7 @@
             verticesTool, segmentsTool,
             sourceArrowheadTool, targetArrowheadTool,
             sourceAnchorTool, targetAnchorTool,
-            boundaryTool, removeTool
+            boundaryTool, removeButton
         ]
     });
 

@@ -63,6 +63,7 @@
     link.addTo(graph);
 
     joint.linkTools.InfoButton = joint.linkTools.Button.extend({
+        name: 'info-button',
         options: {
             markup: [{
                 tagName: 'circle',
@@ -91,9 +92,9 @@
         }
     });
 
-    var infoTool = new joint.linkTools.InfoButton();
+    var infoButton = new joint.linkTools.InfoButton();
     var toolsView = new joint.dia.ToolsView({
-        tools: [infoTool]
+        tools: [infoButton]
     });
 
     var linkView = link.findView(paper);

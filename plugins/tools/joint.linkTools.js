@@ -97,6 +97,7 @@
         events: {
             'mousedown .joint-vertices-path': 'onPathPointerDown'
         },
+        VertexHandle: VertexHandle,
         onRender: function() {
             this.resetHandles();
             if (this.options.vertexAdding) {
@@ -309,6 +310,7 @@
             snapHandle: true
         },
         handles: null,
+        SegmentHandle: SegmentHandle,
         onRender: function() {
             this.resetHandles();
             var relatedView = this.relatedView;
@@ -767,7 +769,7 @@
             touchend: 'onPointerUp'
         },
         options: {
-            snap: snapAnchor(10),
+            snap: snapAnchor,
             anchor: getAnchor,
             customAnchorAttributes: {
                 'stroke-width': 4,
@@ -876,7 +878,7 @@
             var magnet = relatedView.getEndMagnet(type);
 
             var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
-            var snapFn = this.options.snap;
+            var snapFn = this.options.snap(this.options.snapRadius);
             if (typeof snapFn === 'function') {
                 coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView);
                 coords = new g.Point(coords);

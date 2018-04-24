@@ -24,6 +24,10 @@
             if (el) el.setAttribute('model-id', this.relatedView.model.id);
         },
 
+        getName: function() {
+            return this.name;
+        },
+
         show: function() {
             this.el.style.display = '';
             this._visible = true;

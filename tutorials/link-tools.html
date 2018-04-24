@@ -39,7 +39,8 @@
                 <a href="link-labels.html">Go back to link labels.</a>
                 Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
 
-            <p>JointJS allows creating fully customizable user interaction tools for your links.
+            <p>JointJS allows creating fully customizable <a href="/docs/jointjs#linkTools" target="_blank">user
+                interaction tools for your links</a>.
                 These tools show up on user interaction (e.g. mouseover) with a link view and allow the user to interact
                 with the underlying <a href="links.html">link model</a>.
                 For example:</p>
@@ -62,25 +63,34 @@
 
             <h3 id="link-tools">Link Tools</h3>
 
-            <p>A link tool (type
+            <p>A <a href="/docs/jointjs#linkTools" target="_blank">link tool</a> (type
                 <a href="/docs/jointjs#dia.ToolView" target="_blank"><code>joint.dia.ToolView</code></a>) is a view that
                 renders a certain type of control elements on top of the link view it is attached to; for example the
-                <code>Vertices</code> tool creates an interactive handle above every vertex (these handles then allow
-                the user to move and/or delete each vertex).
+                <code>Vertices</code> <<a href="/docs/jointjs#linkTools.Vertices" target="_blank">tool</a> creates an
+                interactive handle above every vertex (these handles then allow the user to move and/or delete each
+                vertex).
                 The JointJS library comes with a collection of pre-made link tool definitions in the
                 <a href="/docs/jointjs#linkTools" target="_blank"><code>joint.linkTools</code></a> namespace.</p>
 
             <p>The pre-made link tools include:</p>
 
             <ul>
-                <li><code>Vertices</code> - adds handles above link vertices</li>
-                <li><code>Segments</code> - adds handles above link segments</li>
-                <li><code>SourceArrowhead</code> - adds a handle above link source</li>
-                <li><code>TargetArrowhead</code> - adds a handle above link target</li>
-                <li><code>SourceAnchor</code> - adds a handle above link source anchor</li>
-                <li><code>TargetAnchor</code> - adds a handle above link target anchor</li>
-                <li><code>Boundary</code> - shows link bbox</li>
-                <li><code>Remove</code> - adds an interactive remove button</li>
+                <li><a href="/docs/jointjs#linkTools.Vertices" target="_blank"><code>Vertices</code></a> - adds handles
+                    above link vertices</li>
+                <li><a href="/docs/jointjs#linkTools.Segments" target="_blank"><code>Segments</code></a> - adds handles
+                    above link segments</li>
+                <li><a href="/docs/jointjs#linkTools.SourceArrowhead" target="_blank"><code>SourceArrowhead</code></a>
+                    - adds a handle above link source connection point</li>
+                <li><a href="/docs/jointjs#linkTools.TargetArrowhead" target="_blank"><code>TargetArrowhead</code></a>
+                    - adds a handle above link target connection point</li>
+                <li><a href="/docs/jointjs#linkTools.SourceAnchor" target="_blank"><code>SourceAnchor</code></a> - adds
+                    a handle above link source anchor</li>
+                <li><a href="/docs/jointjs#linkTools.TargetAnchor" target="_blank"><code>TargetAnchor</code></a> - adds
+                    a handle above link target anchor</li>
+                <li><a href="/docs/jointjs#linkTools.Boundary" target="_blank"><code>Boundary</code></a> - shows the
+                    bounding box of the link</li>
+                <li><a href="/docs/jointjs#linkTools.Remove" target="_blank"><code>Remove</code></a> - adds an
+                    interactive remove button</li>
             </ul>
 
             <p>To create a new link tool, we call its constructor:</p>
@@ -91,7 +101,9 @@
                 created tools:</p>
 
             <pre><code>var verticesTool = new joint.linkTools.Vertices({
-    snapRadius: 10
+    redundancyRemoval: false,
+    snapRadius: 10,
+    vertexAdding: false,
 });</code></pre>
 
             <h3 id="add-to-tools-view">Add to Tools View</h3>
@@ -108,14 +120,14 @@ var targetArrowheadTool = new joint.linkTools.TargetArrowhead();
 var sourceAnchorTool = new joint.linkTools.SourceAnchor();
 var targetAnchorTool = new joint.linkTools.TargetAnchor();
 var boundaryTool = new joint.linkTools.Boundary();
-var removeTool = new joint.linkTools.Remove();
+var removeButton = new joint.linkTools.Remove();
 
 var toolsView = new joint.dia.ToolsView({
     tools: [
         verticesTool, segmentsTool,
         sourceArrowheadTool, targetArrowheadTool,
         sourceAnchorTool, targetAnchorTool,
-        boundaryTool, removeTool
+        boundaryTool, removeButton
     ]
 });</code></pre>
 
@@ -124,8 +136,9 @@ var toolsView = new joint.dia.ToolsView({
 
             <h3 id="add-to-link-view">Add to Link View</h3>
 
-            <p>Finally, we need to add our tools view to the link view.
-                JointJS comes with a suite of functions to do this:</p>
+            <p>Finally, we need to add our tools view to a link view.
+                The <a href="/docs/jointjs#dia.LinkView" target="_blank"><code>joint.dia.LinkView</code></a> class comes
+                with a suite of tools-related methods:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.LinkView.prototype.addTools" target="_blank"><code>linkView.addTools(toolsView)</code></a>
@@ -160,7 +173,8 @@ linkView.addTools(toolsView);</code></pre>
 
             <h3 id="interaction">Interaction</h3>
 
-            <p>You can easily toggle visibility of link tools with paper's link mouseenter/mouseleave events:</p>
+            <p>You can easily toggle visibility of link tools using the
+                <code>'link:mouseenter'</code>/<code>'link:mouseleave'</code> Paper events:</p>
 
             <div class="paper" id="paper-link-tools-interaction"></div>
 
@@ -174,7 +188,7 @@ paper.on('link:mouseleave', function(linkView) {
 
             <p>JointJS source code: <a href="js/link-tools-interaction.js" target="_blank">link-tools-interaction.js</a></p>
 
-            <p>More complex interaction scenarios might require showing/hiding/removing all tools at once.
+            <p>More complex interaction scenarios might require showing, hiding or removing all tools at once.
                 You can find relevant functions in the Paper class:</p>
 
             <ul>
@@ -200,18 +214,23 @@ paper.on('blank:mouseover', function(linkView) {
 
             <h3 id="custom-button">Custom Buttons</h3>
 
-            <p>It is possible to create custom buttons to complement the pre-made <code>Remove</code> button tool;
-                JointJS exposes the <code>joint.linkTools.Button</code> class for you to extend.
+            <p>It is possible to create <a href="/docs/jointjs#linkTools.Button" target="_blank">custom buttons</a> to
+                complement the pre-made <a href="/docs/jointjs#linkTools.Remove" target="_blank"><code>Remove</code></a>
+                button tool;
+                JointJS exposes the
+                <a href="/docs/jointjs#linkTools.Button" target="_blank"><code>joint.linkTools.Button</code></a> class
+                for you to extend.
                 The markup of the new button can be sent as <code>options.markup</code>, while the behavior of the
                 button on pointerdown interaction is determined by the callback function provided in
                 <code>options.action</code>.</p>
 
             <div class="paper" id="paper-link-tools-custom-button"></div>
 
-            <p>You can add the extended button to your <code>joint.linkTools</code> namespace and then just use that
+            <p>You can add the extended button to the <code>joint.linkTools</code> namespace and then just use that
                 class in the code:</p>
 
             <pre><code>joint.linkTools.InfoButton = joint.linkTools.Button.extend({
+    name: 'info-button',
     options: {
         markup: [{
             tagName: 'circle',
@@ -240,9 +259,9 @@ paper.on('blank:mouseover', function(linkView) {
     }
 });
 
-var infoTool = new joint.linkTools.InfoButton();
+var infoButton = new joint.linkTools.InfoButton();
 var toolsView = new joint.dia.ToolsView({
-    tools: [infoTool]
+    tools: [infoButton]
 });
 
 var linkView = link.findView(paper);
@@ -250,10 +269,11 @@ linkView.addTools(toolsView);</code></pre>
 
             <p>JointJS source code: <a href="js/link-tools-custom-button.js" target="_blank">link-tools-custom-button.js</a></p>
 
-            <p>A single-use custom button can also be created by direct reference to the <code>Button</code> class,
-                without making an entry in <code>joint.linkTools</code>:</p>
+            <p>A single-use custom button can also be created by direct reference to the
+                <a href="/docs/jointjs#linkTools.Button" target="_blank"><code>Button</code></a> class, without making
+                an entry in the <code>joint.linkTools</code> namespace:</p>
 
-            <pre><code>var infoTool = new joint.linkTools.Button({
+            <pre><code>var infoButton = new joint.linkTools.Button({
     markup: [{
         tagName: 'circle',
         selector: 'button',
@@ -281,7 +301,7 @@ linkView.addTools(toolsView);</code></pre>
 });
 
 var toolsView = new joint.dia.ToolsView({
-    tools: [infoTool]
+    tools: [infoButton]
 });
 
 var linkView = link.findView(paper);
