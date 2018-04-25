@@ -53,3 +53,19 @@
         alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
     }
 });</code></pre>
+
+<p>All of the built-in link tools accept the following optional argument, in addition to their own arguments:</p>
+
+<table>
+    <tr>
+        <th>focusOpacity</th>
+        <td><i>number</i></td>
+        <td>What should be the opacity of the tool when it is focused (e.g. with the <code>toolView.focus</code> <a href="#dia.ToolView.prototype.focus">function</a>)? Default is <code>undefined</code>, meaning that the tool's opacity is kept unchanged.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var verticesTool = new joint.linkTools.Vertices({
+    focusOpacity: 0.5
+});</code></pre>

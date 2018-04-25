@@ -1,4 +1,4 @@
-<p>The <code>Vertices</code> link tool renders handles above all <a href="#dia.Link.presentation.vertices">vertices of the link</a>. It accepts three arguments, which can be passed as an object to the link tool constructor:</p>
+<p>The <code>Vertices</code> link tool renders handles above all <a href="#dia.Link.presentation.vertices">vertices of the link</a>. It accepts three additional arguments, which can be passed as an object to the link tool constructor:</p>
 
 <table>
     <tr>
@@ -21,6 +21,7 @@
 <p>Example:</p>
 
 <pre><code>var verticesTool = new joint.linkTools.Vertices({
+    focusOpacity: 0.5,
     redundancyRemoval: false,
     snapRadius: 10,
     vertexAdding: false,

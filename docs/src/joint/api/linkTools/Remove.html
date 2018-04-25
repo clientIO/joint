@@ -1,4 +1,4 @@
-<p>The <code>Remove</code> link tool renders a remove button at a given position along the link. It accepts five arguments, which can be passed as an object to the link tool constructor:</p>
+<p>The <code>Remove</code> link tool renders a remove button at a given position along the link. It accepts five additional arguments, which can be passed as an object to the link tool constructor:</p>
 
 <table>
     <tr>
@@ -64,6 +64,7 @@
 <p>Example:</p>
 
 <pre><code>var removeButton = new joint.linkTools.Remove({
+    focusOpacity: 0.5,
     rotate: true,
     distance: -20,
     offset: 20

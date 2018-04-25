@@ -1,4 +1,4 @@
-<p>The <code>TargetAnchor</code> link tool renders a handle above the target anchor of the link (as determined by the <a href="#dia.Link.presentation.anchor">anchor function</a> applied on <a href="#dia.Link.presentation.target">link target</a>). It accepts five arguments, which can be passed as an object to the link tool constructor:</p>
+<p>The <code>TargetAnchor</code> link tool renders a handle above the target anchor of the link (as determined by the <a href="#dia.Link.presentation.anchor">anchor function</a> applied on <a href="#dia.Link.presentation.target">link target</a>). It accepts five additional arguments, which can be passed as an object to the link tool constructor:</p>
 
 <table>
     <tr>
@@ -52,6 +52,7 @@
 <p>Example:</p>
 
 <pre><code>var targetAnchorTool = new joint.linkTools.TargetAnchor({
+    focusOpacity: 0.5,
     redundancyRemoval: false,
     restrictArea: false,
     snapRadius: 20

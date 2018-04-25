@@ -1,4 +1,4 @@
-<p>The <code>Segments</code> link tool renders handles above all segments of the link (as determined by the <a href="#dia.Link.presentation.connector">link connector</a>). It accepts four arguments, which can be passed as an object to the link tool constructor:</p>
+<p>The <code>Segments</code> link tool renders handles above all segments of the link (as determined by the <a href="#dia.Link.presentation.connector">link connector</a>). It accepts four additional arguments, which can be passed as an object to the link tool constructor:</p>
 
 <table>
     <tr>
@@ -26,6 +26,7 @@
 <p>Example:</p>
 
 <pre><code>var segmentsTool = new joint.linkTools.Segments({
+    focusOpacity: 0.5,
     redundancyRemoval: false,
     segmentLengthThreshold: 50,
     snapHandle: false,

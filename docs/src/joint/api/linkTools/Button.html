@@ -1,4 +1,4 @@
-<p>The <code>Button</code> link tool allows you to have a custom button rendered at a given position along the link. It accepts five arguments, which can be passed as an object to the link tool constructor:</p>
+<p>The <code>Button</code> link tool allows you to have a custom button rendered at a given position along the link. It accepts five additional arguments, which can be passed as an object to the link tool constructor:</p>
 
 <table>
     <tr>
@@ -38,6 +38,7 @@
 <p>Example of a useful custom info button:</p>
 
 <pre><code>var infoButton = new joint.linkTools.Button({
+    focusOpacity: 0.5,
     distance: 60,
     action: function(evt) {
         alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
@@ -68,6 +69,7 @@
 <pre><code>joint.linkTools.InfoButton = joint.linkTools.Button.extend({
     name: 'info-button',
     options: {
+        focusOpacity: 0.5,
         distance: 60,
         action: function(evt) {
             alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
