@@ -1,0 +1,34 @@
+<pre class="docs-method-signature"><code>linkView.hasTools(name)</code></pre>
+<p>Add the provided <code>toolsView</code> (of the <code>joint.dia.ToolsView</code> <a href="#dia.ToolsView">type</a>) to the link view.</p>
+
+<p>Adding a tools view to a link view is the last (third) step in the process of setting up link tools on a link view:</p>
+
+<pre><code>// 1) creating link tools
+var verticesTool = new joint.linkTools.Vertices();
+var segmentsTool = new joint.linkTools.Segments();
+var boundaryTool = new joint.linkTools.Boundary();
+
+// 2) creating a tools view
+var toolsView = new joint.dia.ToolsView({
+    name: 'basic-tools',
+    tools: [verticesTool, segmentsTool, boundaryTool]
+});
+
+// 3) attaching to a link view
+var linkView = link.findView(paper);
+linkView.addTools(toolsView);</code></pre>
+
+<p>Every link view we want to attach to requires its own tools view object (<code>ToolsView</code> objects are automatically reassigned to the last link view they are added to). Similarly, every tools view we create requires its own set of tools (<code>ToolView</code> objects are automatically reassigned to the last <code>toolsView.tools</code> array they were made part of).</p>
+
+<p>The link tools are added in the visible state. Use the <code>linkView.hideTools</code> <a href="#dia.linkView.prototype.hideTools">function</a> if this behavior is not desirable (e.g. if you want the link tools to appear in response to user interaction). Example:</p>
+
+<pre><code>linkView.addTools(toolsView);
+linkView.hideTools();
+
+paper.on('link:mouseenter', function(linkView) {
+    linkView.showTools();
+});
+
+paper.on('link:mouseleave', function(linkView) {
+    linkView.hideTools();
+});</code></pre>
