@@ -1,0 +1,35 @@
+<p>The <code>joint.dia.ToolsView</code> class works as a container for one set of link tools (an array of <code>joint.dia.ToolView</code> <a href="#dia.ToolView">objects</a>). It is responsible for rendering the tools as a group when the tools view is attached to a <a href="joint.html#dia.LinkView">joint.dia.LinkView</a>.</p>
+
+<p>To create a new tools view object, we call its constructor. Two optional arguments are accepted:</p>
+
+<table>
+    <tr>
+        <th>name</th>
+        <td><i>string</i></td>
+        <td>The name of this tools view. Default is <code>null</code> (no name).</td>
+    </tr>
+    <tr>
+        <th>tools</th>
+        <td><i>Array&lt;dia.ToolView&gt;</i></td>
+        <td>An array of <a href="#dia.ToolView">tools</a> that should be a part of the tools view. Default is <code>[]</code> (no tools).</td>
+    </tr>
+</table>
+
+<p>Creating a tools view is the second step in the process of setting up link tools on a link view:</p>
+
+<pre><code>// 1) creating link tools
+var verticesTool = new joint.linkTools.Vertices();
+var segmentsTool = new joint.linkTools.Segments();
+var boundaryTool = new joint.linkTools.Boundary();
+
+// 2) creating a tools view
+var toolsView = new joint.dia.ToolsView({
+    name: 'basic-tools',
+    tools: [verticesTool, segmentsTool, boundaryTool]
+});
+
+// 3) attaching to a link view
+var linkView = link.findView(paper);
+linkView.addTools(toolsView);</code></pre>
+
+<p>Every link view we want to attach to requires its own tools view object (<code>ToolsView</code> objects are automatically reassigned to the last link view they are added to). Similarly, every tools view we create requires its own set of tools (<code>ToolView</code> objects are automatically reassigned to the last <code>toolsView.tools</code> array they were made part of).</p>
