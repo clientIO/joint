@@ -1,0 +1,4 @@
+<pre class="docs-method-signature"><code>linkView.removeRedundantLinearVertices([opt])</code></pre>
+<p>Remove any redundant vertices from the model's <code>vertices</code> array. Return the number of removed vertices.</p>
+
+<p>A vertex is considered <q>redundant</q> if it lies on the straight line formed by the vertex that immediately precedes it and the vertex that immediately follows it. (Intuitively speaking, a vertex is considered <q>redundant</q> if its removal from the link does not change the shape of the link.)</p>
