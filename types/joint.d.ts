@@ -615,6 +615,10 @@ export namespace dia {
 
         getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
+        getNodeBBox(magnet: SVGElement): g.Rect;
+
+        getNodeUnrotatedBBox(magnet: SVGElement): g.Rect;
+
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
