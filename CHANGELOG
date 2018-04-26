@@ -1,4 +1,4 @@
-TBD (v2.1.0)
+27-4-2018 (v2.1.0)
   * update Tutorials
   * shapes.Standard - add new set of high-performance elements and links
   * dia.LinkView - new flexible definitions based on geometric representation
@@ -33,6 +33,7 @@ TBD (v2.1.0)
   * dia.attributes - add connection, atConnectionLength, atConnectionRatio
   * routers.Manhattan - adaptive grid for pathfinding
   * routers - supports anchors (don't necessary start and end in the center of the magnet)
+  * layout.DirectedGraph - prevent undesired input cells sorting
   * Vectorizer - add toGeometryShape(), normalizePathData(), tagName() and id to prototype
   * Vectorizer - add transformLine() and transformPolyline()
   * Vectorizer - text() accepts textVerticalAnchor option
