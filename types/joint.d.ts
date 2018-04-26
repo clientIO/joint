@@ -2869,7 +2869,8 @@ export namespace linkTools {
         view: dia.CellView,
         magnet: SVGElement,
         type: string,
-        linkView: dia.LinkView
+        linkView: dia.LinkView,
+        toolView: dia.ToolView
     ) => T;
 
     namespace Vertices {
