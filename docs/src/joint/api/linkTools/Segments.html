@@ -1,0 +1,34 @@
+<p>The <code>Segments</code> link tool renders handles above all segments of the link (as determined by the <a href="#dia.Link.presentation.connector">link connector</a>). It accepts four additional arguments, which can be passed as an object to the link tool constructor:</p>
+
+<table>
+    <tr>
+        <th>redundancyRemoval</th>
+        <td><i>boolean</i></td>
+        <td>If the user arranges two (or more) segments so that they lie on a single line, should the middle one(s) be considered redundant and removed? Default is <code>true</code>. Note that this setting is not applied until the user actually moves one of the segments in question; this means that segments can still be arranged in this <q>redundant</q> fashion, using the <code>link.vertices</code> <a href="#dia.Link.prototype.vertices">function</a>, for example.</td>
+    </tr>
+    <tr>
+        <th>segmentLengthThreshold</th>
+        <td><i>number</i></td>
+        <td>The minimum segment length for which to display a segment handle (to prevent the handle from overflowing its segment). Default is <code>40</code>.</td>
+    </tr>
+    <tr>
+        <th>snapRadius</th>
+        <td><i>number</i></td>
+        <td>While the user is moving the segment, from how far away should the segment snap in order to arrange itself in line with another segment? Default is <code>10</code>.</td>
+    </tr>
+    <tr>
+        <th>snapHandle</th>
+        <td><i>number</i></td>
+        <td>If the <code>snapRadius</code> option is set to <code>true</code> and the segment is snapped in place while the user moves the segment handle, should the handle follow the user pointer or should the handle stay snapped with the segment until it un-snaps? Default is <code>true</code>, meaning that the handle snaps with the segment.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var segmentsTool = new joint.linkTools.Segments({
+    focusOpacity: 0.5,
+    redundancyRemoval: false,
+    segmentLengthThreshold: 50,
+    snapHandle: false,
+    snapRadius: 10
+});</code></pre>

@@ -14,17 +14,16 @@
         return end.anchor;
     }
 
-    function snapAnchor(snapRadius) {
-        return function(coords, view, magnet, type) {
-            var isSource = (type === 'source');
-            var refIndex = (isSource ? 0 : -1);
-            var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
-            if (ref) {
-                if (Math.abs(ref.x - coords.x) < snapRadius) coords.x = ref.x;
-                if (Math.abs(ref.y - coords.y) < snapRadius) coords.y = ref.y;
-            }
-            return coords;
+    function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
+        var snapRadius = toolView.options.snapRadius;
+        var isSource = (type === 'source');
+        var refIndex = (isSource ? 0 : -1);
+        var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
+        if (ref) {
+            if (Math.abs(ref.x - coords.x) < snapRadius) coords.x = ref.x;
+            if (Math.abs(ref.y - coords.y) < snapRadius) coords.y = ref.y;
         }
+        return coords;
     }
 
     var ToolView = joint.dia.ToolView;
@@ -218,6 +217,8 @@
         onRemove: function() {
             this.resetHandles();
         }
+    }, {
+        VertexHandle: VertexHandle // keep as class property
     });
 
     var SegmentHandle = joint.mvc.View.extend({
@@ -540,6 +541,8 @@
         onRemove: function() {
             this.resetHandles();
         }
+    }, {
+        SegmentHandle: SegmentHandle // keep as class property
     });
 
     // End Markers
@@ -767,7 +770,7 @@
             touchend: 'onPointerUp'
         },
         options: {
-            snap: snapAnchor(10),
+            snap: snapAnchor,
             anchor: getAnchor,
             customAnchorAttributes: {
                 'stroke-width': 4,
@@ -878,7 +881,7 @@
             var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
             var snapFn = this.options.snap;
             if (typeof snapFn === 'function') {
-                coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView);
+                coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView, this);
                 coords = new g.Point(coords);
             }
 

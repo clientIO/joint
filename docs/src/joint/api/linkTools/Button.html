@@ -1,0 +1,99 @@
+<p>The <code>Button</code> link tool allows you to have a custom button rendered at a given position along the link. It accepts five additional arguments, which can be passed as an object to the link tool constructor:</p>
+
+<table>
+    <tr>
+        <th rowspan="2">distance</th>
+        <td><i>number</i></td>
+        <td>Distance at which the button should be placed. Negative numbers are accepted; then the distance is counted from the end of the link. Default is <code>0</code>.</td>
+    </tr>
+    <tr>
+        <!-- distance -->
+        <td><i>string</i></td>
+        <td>Percentage strings (e.g. <code>'40%'</code>) are also accepted.</td>
+    </tr>
+    <tr>
+        <th>rotate</th>
+        <td><i>boolean</i></td>
+        <td>Should the button rotate according to the slope of the link at the position specified by <code>distance</code>? Default is <code>false</code>.</td>
+    </tr>
+    <tr>
+        <th>offset</th>
+        <td><i>number</i></td>
+        <td>Relative offset of the button from the link. Positive numbers mean that the button should be offset to the right of the link (relative to the direction from source to target); negative numbers mean that the button should be offset to the left of the link (relative to the direction from source to target). Default is <code>0</code>.</td>
+    </tr>
+    <tr>
+        <th>action</th>
+        <td><i>function</i></td>
+        <td>What should happen when the user clicks the remove button? Default is <code>undefined</code> (no interaction).<br><br>
+
+            The callback function is expected to have the signature <code>function(evt)</code> where <code>evt</code> is a <code>jQuery.Event</code> <a href="https://api.jquery.com/category/events/event-object/">object</a>. The button view is available inside the function as <code>this</code>; the button model is available as <code>this.model</code>.</td>
+    </tr>
+    <tr>
+        <th>markup</th>
+        <td><i><a href="#dia.Cell.markup.json">JSONMarkup</a></i></td>
+        <td>The markup of the button, provided in the <a href="#dia.Cell.markup.json">JointJS JSON format</a>. Default is <code>undefined</code> (no content).</td>
+    </tr>
+</table>
+
+<p>Example of a useful custom info button:</p>
+
+<pre><code>var infoButton = new joint.linkTools.Button({
+    focusOpacity: 0.5,
+    distance: 60,
+    action: function(evt) {
+        alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
+    },
+    markup: [{
+        tagName: 'circle',
+        selector: 'button',
+        attributes: {
+            'r': 7,
+            'fill': '#001DFF',
+            'cursor': 'pointer'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'icon',
+        attributes: {
+            'd': 'M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4',
+            'fill': 'none',
+            'stroke': '#FFFFFF',
+            'stroke-width': 2,
+            'pointer-events': 'none'
+        }
+    }]
+});</code></pre>
+
+<p>The <code>linkTools.Button</code> class can also be extended, to create a reusable custom button type within the <code>joint.linkTools</code> namespace. Then, a new instance of the custom button type can be obtained by calling its constructor:</p>
+
+<pre><code>joint.linkTools.InfoButton = joint.linkTools.Button.extend({
+    name: 'info-button',
+    options: {
+        focusOpacity: 0.5,
+        distance: 60,
+        action: function(evt) {
+            alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
+        },
+        markup: [{
+            tagName: 'circle',
+            selector: 'button',
+            attributes: {
+                'r': 7,
+                'fill': '#001DFF',
+                'cursor': 'pointer'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'icon',
+            attributes: {
+                'd': 'M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4',
+                'fill': 'none',
+                'stroke': '#FFFFFF',
+                'stroke-width': 2,
+                'pointer-events': 'none'
+            }
+        }]
+    }
+});
+
+var infoButton = new joint.linkTools.InfoButton();</code></pre>

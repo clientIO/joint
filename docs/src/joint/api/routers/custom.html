@@ -1,8 +1,6 @@
 <p>New routers can be defined in the <code>joint.routers</code> namespace (e.g. <code>joint.routers.myRouter</code>) or passed directly as a function to the <code>router</code> property of a link (or to the <code>defaultRouter</code> <a href="#dia.Paper.prototype.options.defaultRouter">option of a paper</a>).</p>
 
-<p>In either case, the router function must return an array of route points that the link should go through (not including the start/end connection points). The function is expected to have the form <code>function(vertices, args, linkView)</code> and</p>
-
-<p>In either case, the connector function must return a <a href="geometry.html#g.path">g.Path</a> representing the <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">SVG path data</a> that will be used to render the link. The function is expected to have the form <code>function(sourcePoint, targetPoint, vertices, args)</code>:</p>
+<p>In either case, the router function must return an array of route points that the link should go through (not including the start/end connection points). The function is expected to have the form <code>function(vertices, args, linkView)</code>:</p>
 
 <table>
     <tr>

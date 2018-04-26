@@ -1,0 +1,104 @@
+<p>The <code>TargetAnchor</code> link tool renders a handle above the target anchor of the link (as determined by the <a href="#dia.Link.presentation.anchor">anchor function</a> applied on <a href="#dia.Link.presentation.target">link target</a>). It accepts five additional arguments, which can be passed as an object to the link tool constructor:</p>
+
+<table>
+    <tr>
+        <th>redundancyRemoval</th>
+        <td><i>boolean</i></td>
+        <td>If the user moves the anchor so that it lies on a single line with two (or more) vertices, should the middle one(s) be considered redundant and removed? Default is <code>true</code>. Note that this setting is not applied until the user actually moves the anchor; this means that the anchor and vertices can still be arranged in this <q>redundant</q> fashion, using the <code>link.vertices</code> <a href="#dia.Link.prototype.vertices">function</a>, for example.</td>
+    </tr>
+    <tr>
+        <th>restrictArea</th>
+        <td><i>boolean</i></td>
+        <td>Should the user only be allowed to move the anchor in a restricted area (the area of the bounding box of the target magnet)? Default is <code>true</code>.</td>
+    </tr>
+    <tr>
+        <th>areaPadding</th>
+        <td><i>number</i></td>
+        <td>If the <code>restrictArea</code> option is set to <code>true</code>, the user can only move the anchor in a restricted area (the area of the bounding box of the target magnet). JointJS shows this restriction by drawing a boundary around that area. This option determines whether this boundary area should be visually inflated and if so, by how much. Default is <code>10</code>. Note that this is a purely cosmetic setting; regardless of the provided value, the movement stays restricted to the original uninflated bounding box.</td>
+    </tr>
+    <tr>
+        <th>snapRadius</th>
+        <td><i>number</i></td>
+        <td>While the user is moving the anchor, from how far away should the segment snap in order to arrange itself in line with the anchor reference? Default is <code>10</code>. (For link target, the anchor reference is the last vertex. If there are no vertices, it is the source anchor.)</td>
+    </tr>
+    <tr>
+        <th>snap</th>
+        <td><i>function</i></td>
+        <td>What snap function should be applied when the user moves the anchor? Default is a simple function that emulates the snapping behavior of <a href="#linkTools.Vertices">Vertices</a> and <a href="#linkTools.Segments">Segments</a> link tools: If the value of one of the user pointer coordinates is within <code>snapRadius</code> of the value of a coordinate of the anchor reference, snap to the reference value. (For link target, the anchor reference is the last vertex. If there are no vertices, it is the source anchor.)<br><br>
+
+            The callback function must return the anchor as a <code>g.Point</code> and have the signature <code>function(coords, endView, endMagnet)</code>:</p>
+
+            <table>
+                <tr>
+                    <th>coords</th>
+                    <td><i>g.Point</i></td>
+                    <td>A Point object recording the x-y coordinates of the user pointer when the snap function was invoked.</td>
+                </tr>
+                <tr>
+                    <th>endView</th>
+                    <td><i>dia.ElementView</i></td>
+                    <td>The ElementView which contains the restricted area. The Element model can be accessed as <code>endView.model</code>; this may be useful for writing conditional logic based on element attributes.</td>
+                </tr>
+                <tr>
+                    <th>endMagnet</th>
+                    <td><i>SVGElement</i></td>
+                    <td>The SVGElement in our page that contains the magnet (element/subelement/port) which serves as the restricted area.</td>
+                </tr>
+                <tr>
+                    <th>endType</th>
+                    <td><i>string</i></td>
+                    <td>Is the end view the source (<code>'source'</code>) or target (<code>'target'</code>) of the link?</td>
+                </tr>
+                <tr>
+                    <th>linkView</th>
+                    <td><i>dia.LinkView</i></td>
+                    <td>The LinkView to which the tool is attached. The Link model can be accessed as <code>linkView.model</code>; this may be useful for writing conditional logic based on link attributes.</td>
+                </tr>
+                <tr>
+                    <th>toolView</th>
+                    <td><i>dia.ToolView</i></td>
+                    <td>This tool. May be useful for writing conditional logic based on tool options (e.g. the default algorithm refers to <code>toolView.options.snapRadius</code>).</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var targetAnchorTool = new joint.linkTools.TargetAnchor({
+    focusOpacity: 0.5,
+    redundancyRemoval: false,
+    restrictArea: false,
+    snapRadius: 20
+});</code></pre>
+
+<p>An example of a useful custom <code>snap</code> function is provided below. It snaps the anchor to the center of the closest side of the restricted area.</p>
+
+<pre><code>var snapAnchor = function(coords, endView, endMagnet) {
+
+    // remove rotation of the restricted area
+    var bbox = endView.getNodeUnrotatedBBox(endMagnet);
+    var angle = endView.model.angle();
+    var origin = endView.model.getBBox().center();
+    coords.rotate(origin, angle);
+
+    // identify the side nearest to pointer coords
+    var anchor;
+    var side = bbox.sideNearestToPoint(coords);
+    switch (side) {
+        case 'left': anchor = bbox.leftMiddle(); break;
+        case 'right': anchor = bbox.rightMiddle(); break;
+        case 'top': anchor = bbox.topMiddle(); break;
+        case 'bottom': anchor = bbox.bottomMiddle(); break;
+    }
+
+    // rotate the anchor according to original rotation of restricted area
+    return anchor.rotate(origin, -angle);
+};
+
+var targetAnchorTool = new joint.linkTools.TargetAnchor({
+    snap: snapAnchor;
+});</code></pre>
+
+<p>If the user moves the anchor away from its original position, the anchor position may be reset by double-clicking the anchor handle.</p>

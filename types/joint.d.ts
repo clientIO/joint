@@ -615,6 +615,10 @@ export namespace dia {
 
         getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
+        getNodeBBox(magnet: SVGElement): g.Rect;
+
+        getNodeUnrotatedBBox(magnet: SVGElement): g.Rect;
+
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
@@ -2865,7 +2869,8 @@ export namespace linkTools {
         view: dia.CellView,
         magnet: SVGElement,
         type: string,
-        linkView: dia.LinkView
+        linkView: dia.LinkView,
+        toolView: dia.ToolView
     ) => T;
 
     namespace Vertices {
@@ -2920,13 +2925,14 @@ export namespace linkTools {
 
     namespace Anchor {
         interface Options extends dia.ToolView.Options {
-            snap?: AnchorCallback<g.PlainPoint>,
+            snap?: AnchorCallback<dia.Point>,
             anchor?: AnchorCallback<anchors.AnchorJSON>,
             customAnchorAttributes?: attributes.NativeSVGAttributes;
             defaultAnchorAttributes?: attributes.NativeSVGAttributes;
             areaPadding?: number;
+            snapRadius?: number;
             restrictArea?: boolean;
-            redundancyRemoval: boolean;
+            redundancyRemoval?: boolean;
         }
     }
 
@@ -2973,7 +2979,7 @@ export namespace linkTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
-            padding: number;
+            padding?: number;
         }
     }
 

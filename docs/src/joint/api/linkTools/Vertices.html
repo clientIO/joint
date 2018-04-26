@@ -1,0 +1,28 @@
+<p>The <code>Vertices</code> link tool renders handles above all <a href="#dia.Link.presentation.vertices">vertices of the link</a>. It accepts three additional arguments, which can be passed as an object to the link tool constructor:</p>
+
+<table>
+    <tr>
+        <th>redundancyRemoval</th>
+        <td><i>boolean</i></td>
+        <td>If the user arranges three (or more) vertices so that they lie on a single line, should the middle one(s) be considered redundant and removed? Default is <code>true</code>. Note that this setting is not applied until the user actually moves one of the vertices in question; this means that vertices can still be arranged in this <q>redundant</q> fashion, using of the <code>link.vertices</code> <a href="#dia.Link.prototype.vertices">function</a>, for example.</td>
+    </tr>
+    <tr>
+        <th>snapRadius</th>
+        <td><i>number</i></td>
+        <td>While the user is moving the vertex, from how far away should the vertex snap in order to arrange itself perpendicularly to another vertex? Default is <code>20</code>.</td>
+    </tr>
+    <tr>
+        <th>vertexAdding</th>
+        <td><i>boolean</i></td>
+        <td>Can the user add new vertices (by clicking a segment of the link)? Default is <code>true</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var verticesTool = new joint.linkTools.Vertices({
+    focusOpacity: 0.5,
+    redundancyRemoval: false,
+    snapRadius: 10,
+    vertexAdding: false,
+});</code></pre>

@@ -1,0 +1,20 @@
+<p>The <code>joint.dia.ToolView</code> class is the parent class of all link tool views included in the <code>joint.linkTools</code> <a href="#linkTools">namespace</a>. It is responsible for rendering the tool within a <a href="joint.html#dia.ToolsView">joint.dia.ToolsView</a>, when the tools view is attached to a <a href="joint.html#dia.LinkView">joint.dia.LinkView</a>.</p>
+
+<p>Creating link tools objects is the first step in the process of setting up link tools on a link view:</p>
+
+<pre><code>// 1) creating link tools
+var verticesTool = new joint.linkTools.Vertices();
+var segmentsTool = new joint.linkTools.Segments();
+var boundaryTool = new joint.linkTools.Boundary();
+
+// 2) creating a tools view
+var toolsView = new joint.dia.ToolsView({
+    name: 'basic-tools',
+    tools: [verticesTool, segmentsTool, boundaryTool]
+});
+
+// 3) attaching to a link view
+var linkView = link.findView(paper);
+linkView.addTools(toolsView);</code></pre>
+
+<p>Every link view we want to attach to requires its own tools view object (<code>ToolsView</code> objects are automatically reassigned to the last link view they are added to). Similarly, every tools view we create requires its own set of tools (<code>ToolView</code> objects are automatically reassigned to the last <code>toolsView.tools</code> array they were made part of).</p>

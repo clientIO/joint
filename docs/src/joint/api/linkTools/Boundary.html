@@ -1,0 +1,16 @@
+<p>The <code>Boundary</code> link tool renders a rectangular border to show the bounding box of the link. It accepts one additional argument, which can be passed as an object to the link tool constructor:</p>
+
+<table>
+    <tr>
+        <th>padding</th>
+        <td><i>number</i></td>
+        <td>This option determines whether the boundary area should be visually inflated and if so, by how much. Default is <code>10</code>.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var boundaryTool = new joint.linkTools.Boundary({
+    focusOpacity: 0.5,
+    padding: 20
+});</code></pre>

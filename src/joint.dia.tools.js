@@ -24,6 +24,10 @@
             if (el) el.setAttribute('model-id', this.relatedView.model.id);
         },
 
+        getName: function() {
+            return this.name;
+        },
+
         show: function() {
             this.el.style.display = '';
             this._visible = true;
@@ -117,12 +121,12 @@
             return this;
         },
 
-        blurTool: function(bluredTool) {
+        blurTool: function(blurredTool) {
             var tools = this.tools;
             if (!tools) return this;
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
-                if (tool !== bluredTool && !tool.isVisible()) {
+                if (tool !== blurredTool && !tool.isVisible()) {
                     tool.show();
                     tool.update();
                 }
