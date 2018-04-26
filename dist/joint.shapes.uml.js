@@ -1,4 +1,4 @@
-/*! JointJS v2.0.1 (2017-11-15) - JavaScript diagramming library
+/*! JointJS v2.1.0 (2018-04-26) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -90,7 +90,7 @@ joint.shapes.basic.Generic.define('uml.Class', {
 
 });
 
-joint.shapes.uml.ClassView = joint.dia.ElementView.extend({}, {
+joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
 
     initialize: function() {
 

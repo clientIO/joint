@@ -1,4 +1,4 @@
-/*! JointJS v2.0.1 (2017-11-15) - JavaScript diagramming library
+/*! JointJS v2.1.0 (2018-04-26) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -110,7 +110,8 @@ joint.layout.DirectedGraph = {
             graph = graphOrCells;
         } else {
             // Reset cells in dry mode so the graph reference is not stored on the cells.
-            graph = (new joint.dia.Graph()).resetCells(graphOrCells, { dry: true });
+            // `sort: false` to prevent elements to change their order based on the z-index
+            graph = (new joint.dia.Graph()).resetCells(graphOrCells, { dry: true, sort: false });
         }
 
         // This is not needed anymore.
