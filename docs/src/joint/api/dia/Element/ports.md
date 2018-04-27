@@ -17,35 +17,36 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 ##### <a name="portinterface"></a> Port configuration
 
 ```javascript
-
-    // Single port definition
-    var port = {
-        id: 'abc',
-        group: 'a',
-        args: {},
-        label: {
-            position: {
-                name: 'top',
-                args: {}
-            },
-            markup: '<text class="label-text" fill="blue"/>'
+// Single port definition
+var port = {
+    // id: 'abc', // generated if `id` value is not present
+    group: 'a',
+    args: {}, // extra arguments for the port layout function, see `layout.Port` section
+    label: {
+        position: {
+            name: 'right',
+            args: { y: 6 } // extra arguments for the label layout function, see `layout.PortLabel` section
         },
-        attrs: { text: { text: 'port1' } },
-        markup: '<rect width="10" height="10" stroke="red"/>'
-    };
+        markup: '<text class="label-text" fill="blue"/>'
+    },
+    attrs: { text: { text: 'port1' } },
+    markup: '<rect width="16" height="16" x="-8" strokegit ="red" fill="gray"/>'
+};
 
-    // a.) add a port in constructor.
-    var rect = new joint.shapes.basic.Rect({
-        position: { x: 50, y: 50 },
-        size: { width: 90, height: 90 },
-        ports: {
-            groups: {},
-            items: [ port ]
-        }
-    });
+// a.) add a port in constructor.
+var rect = new joint.shapes.standard.Rectangle({
+    position: { x: 50, y: 50 },
+    size: { width: 90, height: 90 },
+    ports: {
+        groups: {
+            'a': {}
+        },
+        items: [port]
+    }
+});
 
-    // b.) or add a single port using API
-    rect.addPort(port);
+// b.) or add a single port using API
+rect.addPort(port);
 
 ```
 
