@@ -208,7 +208,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (name === undefined) {
-            router = this.get('router');
+            var router = this.get('router');
             if (!router) {
                 if (this.get('manhattan')) return { name: 'orthogonal' }; // backwards compatibility
                 return null;
@@ -229,7 +229,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (name === undefined) {
-            connector = this.get('connector');
+            var connector = this.get('connector');
             if (!connector) {
                 if (this.get('smooth')) return { name: 'smooth' }; // backwards compatibility
                 return null;
@@ -266,7 +266,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (arguments.length === 0) {
-            labels = this.get('labels');
+            var labels = this.get('labels');
             if (!Array.isArray(labels)) return [];
             return labels.slice();
         }
@@ -323,7 +323,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (arguments.length === 0) {
-            vertices = this.get('vertices');
+            var vertices = this.get('vertices');
             if (!Array.isArray(vertices)) return [];
             return vertices.slice();
         }
