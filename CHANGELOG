@@ -2,7 +2,7 @@
   * update Tutorials
   * shapes.Standard - add new set of high-performance elements and links
   * dia.LinkView - new flexible definitions based on geometric representation
-  * dia.LinkView - refactor event handles
+  * dia.LinkView - refactor event handlers
   * dia.LinkView - introduce anchors, connectionPoints and connectionStrategy
   * dia.LinkView - add getConnection(), getSerializedConnection(), getConnectionSubdivisions(), getPointAtRatio(), getTangentAtLength(), getTangentAtRatio() getClosestPoint() and getClosestPointLength()
   * dia.LinkView - add getVertexIndex(), getLabelCoordinates()
