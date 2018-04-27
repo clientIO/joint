@@ -1,4 +1,4 @@
-/*! JointJS v2.0.1 (2017-11-15) - JavaScript diagramming library
+/*! JointJS v2.1.0 (2018-04-26) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -25,20 +25,117 @@ export as namespace joint;
 export namespace g {
 
     export interface PlainPoint {
+
         x: number;
         y: number;
     }
 
     export interface PlainRect {
+
         x: number;
         y: number;
         width: number;
         height: number;
     }
 
+    export interface Scale {
+
+        sx: number;
+        sy: number;
+    }
+
+    export interface PrecisionOpt {
+
+        precision?: number;
+    }
+
+    export interface SubdivisionsOpt extends PrecisionOpt {
+
+        subdivisions?: Curve[];
+    }
+
+    export interface SegmentSubdivisionsOpt extends PrecisionOpt {
+
+        segmentSubdivisions?: Curve[][];
+    }
+
+    export interface PathT {
+
+        segmentIndex: number;
+        value: number;
+    }
+
+    export interface Segment {
+
+        type: SegmentType;
+
+        isSegment: boolean;
+        isSubpathStart: boolean;
+        isVisible: boolean;
+
+        nextSegment: Segment | null;
+        previousSegment: Segment | null;
+        subpathStartSegment: Segment | null;
+
+        start: Point | null | never; // getter, `never` for Moveto
+        end: Point | null; // getter or directly assigned
+
+        bbox(): Rect | null;
+
+        clone(): Segment;
+
+        closestPoint(p: Point, opt?: SubdivisionsOpt): Point;
+
+        closestPointLength(p: Point, opt?: SubdivisionsOpt): number;
+
+        closestPointNormalizedLength(p: Point, opt?: SubdivisionsOpt): number;
+
+        closestPointT(p: Point): number;
+
+        closestPointTangent(p: Point): Line | null;
+
+        equals(segment: Segment): boolean;
+
+        getSubdivisions(): Curve[];
+
+        isDifferentiable(): boolean;
+
+        length(): number;
+
+        lengthAtT(t: number, opt?: PrecisionOpt): number;
+
+        pointAt(ratio: number): Point;
+
+        pointAtLength(length: number): Point;
+
+        pointAtT(t: number): Point;
+
+        scale(sx: number, sy: number, origin?: PlainPoint): this;
+
+        tangentAt(ratio: number): Line | null;
+
+        tangentAtLength(length: number): Line | null;
+
+        tangentAtT(t: number): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        serialize(): string;
+
+        toString(): string;
+    }
+
+    export interface SegmentTypes {
+
+        [key: string]: Segment;
+    }
+
     type CardinalDirection = 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW' | 'N';
 
-    type RectangleSides = 'left' | 'right' | 'top' | 'bottom';
+    type RectangleSide = 'left' | 'right' | 'top' | 'bottom';
+
+    type SegmentType = 'L' | 'C' | 'M' | 'Z';
 
     export function normalizeAngle(angle: number): number;
 
@@ -48,6 +145,76 @@ export namespace g {
 
     export function toRad(deg: number, over360?: boolean): number;
 
+    class Curve {
+
+        start: Point;
+        controlPoint1: Point;
+        controlPoint2: Point;
+        end: Point;
+
+        constructor(p1: PlainPoint | string, p2: PlainPoint | string, p3: PlainPoint | string, p4: PlainPoint | string);
+        constructor(curve: Curve);
+
+        bbox(): Rect;
+
+        clone(): Curve;
+
+        closestPoint(p: PlainPoint, opt?: SubdivisionsOpt): Point;
+
+        closestPointLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
+        closestPointNormalizedLength(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
+        closestPointT(p: PlainPoint, opt?: SubdivisionsOpt): number;
+
+        closestPointTangent(p: PlainPoint, opt?: SubdivisionsOpt): Line | null;
+
+        divide(t: number): [Curve, Curve];
+
+        endpointDistance(): number;
+
+        equals(c: Curve): boolean;
+
+        getSkeletonPoints(t: number): [Point, Point, Point, Point, Point];
+
+        getSubdivisions(opt?: PrecisionOpt): Curve[];
+
+        isDifferentiable(): boolean;
+
+        length(opt?: SubdivisionsOpt): number;
+
+        lengthAtT(t: number, opt?: PrecisionOpt): number;
+
+        pointAt(ratio: number, opt?: SubdivisionsOpt): Point;
+
+        pointAtLength(length: number, opt?: SubdivisionsOpt): Point;
+
+        pointAtT(t: number): Point;
+
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
+
+        tangentAt(ratio: number, opt?: SubdivisionsOpt): Line | null;
+
+        tangentAtLength(length: number, opt?: SubdivisionsOpt): Line | null;
+
+        tangentAtT(t: number): Line | null;
+
+        tAt(ratio: number, opt?: SubdivisionsOpt): number;
+
+        tAtLength(length: number, opt?: SubdivisionsOpt): number;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        toPoints(opt?: SubdivisionsOpt): Point[];
+
+        toPolyline(opt?: SubdivisionsOpt): Polyline;
+
+        toString(): string;
+
+        static throughPoints(points: PlainPoint[]): Curve[];
+    }
+
     class Ellipse {
 
         x: number;
@@ -55,7 +222,7 @@ export namespace g {
         a: number;
         b: number;
 
-        constructor(center: PlainPoint, a: number, b: number);
+        constructor(center: PlainPoint | string, a: number, b: number);
         constructor(ellipse: Ellipse);
 
         bbox(): Rect;
@@ -74,6 +241,8 @@ export namespace g {
 
         equals(ellipse: Ellipse): boolean;
 
+        intersectionWithLine(l: Line): Point[] | null;
+
         intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
 
         toString(): string;
@@ -88,15 +257,33 @@ export namespace g {
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string);
         constructor(line: Line);
+        constructor();
+
+        bbox(): Rect;
 
         bearing(): CardinalDirection;
 
         clone(): Line;
 
+        closestPoint(p: PlainPoint | string): Point;
+
+        closestPointLength(p: PlainPoint | string): number;
+
+        closestPointNormalizedLength(p: PlainPoint | string): number;
+
+        closestPointTangent(p: PlainPoint | string): Line | null;
+
         equals(line: Line): boolean;
 
-        intersect(line: Line): Point | null;
+        intersect(line: Line): Point | null; // Backwards compatibility, should return an array
         intersect(rect: Rect): Point[] | null;
+        intersect(ellipse: Ellipse): Point[] | null;
+        intersect(polyline: Polyline): Point[] | null;
+        intersect(path: Path, opt?: SegmentSubdivisionsOpt): Point[] | null;
+
+        intersectionWithLine(l: Line): Point[] | null;
+
+        isDifferentiable(): boolean;
 
         length(): number;
 
@@ -104,17 +291,133 @@ export namespace g {
 
         pointAt(t: number): Point;
 
-        pointOffset(p: PlainPoint): number;
+        pointAtLength(length: number): Point;
 
-        vector(): Point;
+        pointOffset(p: PlainPoint | string): number;
 
-        closestPoint(p: PlainPoint | string): Point;
+        rotate(origin: PlainPoint, angle: number): this;
 
-        closestPointNormalizedLength(p: PlainPoint | string): number;
+        round(precision?: number): this;
+
+        scale(sx: number, sy: number, origin?: PlainPoint): this;
+
+        setLength(length: number): this;
 
         squaredLength(): number;
 
+        tangentAt(t: number): Line | null;
+
+        tangentAtLength(length: number): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        vector(): Point;
+
         toString(): string;
+    }
+
+    class Path {
+
+        segments: Segment[];
+
+        start: Point | null; // getter
+        end: Point | null; // getter
+
+        constructor();
+        constructor(pathData: string);
+        constructor(segments: Segment[]);
+        constructor(objects: (Line | Curve)[]);
+        constructor(segment: Segment);
+        constructor(line: Line);
+        constructor(curve: Curve);
+        constructor(polyline: Polyline);
+
+        appendSegment(segment: Segment): void;
+        appendSegment(segments: Segment[]): void;
+
+        bbox(): Rect | null;
+
+        clone(): Path;
+
+        closestPoint(p: Point, opt?: SegmentSubdivisionsOpt): Point | null;
+
+        closestPointLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
+
+        closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
+
+        closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        equals(p: Path): boolean;
+
+        getSegment(index: number): Segment | null;
+
+        getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
+
+        insertSegment(index: number, segment: Segment): void;
+        insertSegment(index: number, segments: Segment[]): void;
+
+        intersectionWithLine(l: Line, opt?: SegmentSubdivisionsOpt): Point[] | null;
+
+        isDifferentiable(): boolean;
+
+        isValid(): boolean;
+
+        length(opt?: SegmentSubdivisionsOpt): number;
+
+        pointAt(ratio: number, opt?: SegmentSubdivisionsOpt): Point | null;
+
+        pointAtLength(length: number, opt?: SegmentSubdivisionsOpt): Point | null;
+
+        removeSegment(index: number): void;
+
+        replaceSegment(index: number, segment: Segment): void;
+        replaceSegment(index: number, segments: Segment[]): void;
+
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
+
+        segmentAt(ratio: number, opt?: SegmentSubdivisionsOpt): Segment | null;
+
+        segmentAtLength(length: number, opt?: SegmentSubdivisionsOpt): Segment | null;
+
+        segmentIndexAt(ratio: number, opt?: SegmentSubdivisionsOpt): number | null;
+
+        segmentIndexAtLength(length: number, opt?: SegmentSubdivisionsOpt): number | null;
+
+        tangentAt(ratio: number, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        tangentAtLength(length: number, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        toPoints(opt?: SegmentSubdivisionsOpt): Point[][] | null;
+
+        toPolylines(opt?: SegmentSubdivisionsOpt): Polyline[] | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        serialize(): string;
+
+        toString(): string;
+
+        private closestPointT(p: Point, opt?: SegmentSubdivisionsOpt): PathT | null;
+
+        private lengthAtT(t: PathT, opt?: SegmentSubdivisionsOpt): number;
+
+        private pointAtT(t: PathT): Point | null;
+
+        private tangentAtT(t: PathT): Line | null;
+
+        private prepareSegment(segment: Segment, previousSegment?: Segment | null, nextSegment?: Segment | null): Segment;
+
+        private updateSubpathStartSegment(segment: Segment): void;
+
+        static createSegment(type: SegmentType, ...args: any[]): Segment;
+
+        static parse(pathData: string): Path;
+
+        static segmentTypes: SegmentTypes;
+
+        static isDataSupported(pathData: string): boolean;
     }
 
     class Point implements PlainPoint {
@@ -122,7 +425,7 @@ export namespace g {
         x: number;
         y: number;
 
-        constructor(x: number, y: number);
+        constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
 
         adhereToRect(r: Rect): this;
@@ -133,7 +436,7 @@ export namespace g {
 
         clone(): Point;
 
-        difference(dx: number, dy?: number): Point;
+        difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
 
         distance(p: PlainPoint | string): number;
@@ -141,6 +444,8 @@ export namespace g {
         squaredDistance(p: PlainPoint | string): number;
 
         equals(p: Point): boolean;
+
+        lerp(p: Point, t: number): Point;
 
         magnitude(): number;
 
@@ -150,7 +455,7 @@ export namespace g {
 
         normalize(length: number): this;
 
-        offset(dx: number, dy?: number): this;
+        offset(dx?: number, dy?: number): this;
         offset(p: PlainPoint): this;
 
         reflection(ref: PlainPoint | string): Point;
@@ -165,17 +470,20 @@ export namespace g {
 
         theta(p: PlainPoint | string): number;
 
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
         angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
 
         vectorAngle(p: PlainPoint) : number;
 
         toJSON(): PlainPoint;
 
-        toPolar(origin: PlainPoint | string): this;
+        toPolar(origin?: PlainPoint | string): this;
 
         toString(): string;
 
-        update(x: number, y?: number): this;
+        update(x?: number, y?: number): this;
 
         dot(p: PlainPoint): number;
 
@@ -184,6 +492,59 @@ export namespace g {
         static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
+    }
+
+    class Polyline {
+
+        points: Point[];
+
+        start: Point | null; // getter
+        end: Point | null; // getter
+
+        constructor();
+        constructor(svgString: string);
+        constructor(points: Point[]);
+
+        bbox(): Rect | null;
+
+        clone(): Polyline;
+
+        closestPoint(p: PlainPoint | string): Point | null;
+
+        closestPointLength(p: PlainPoint | string): number;
+
+        closestPointNormalizedLength(p: PlainPoint | string): number;
+
+        closestPointTangent(p: PlainPoint | string): Line | null;
+
+        convexHull(): Polyline;
+
+        equals(p: Polyline): boolean;
+
+        isDifferentiable(): boolean;
+
+        intersectionWithLine(l: Line): Point[] | null;
+
+        length(): number;
+
+        pointAt(ratio: number): Point | null;
+
+        pointAtLength(length: number): Point | null;
+
+        scale(sx: number, sy: number, origin?: PlainPoint | string): this;
+
+        tangentAt(ratio: number): Line | null;
+
+        tangentAtLength(length: number): Line | null;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
+        serialize(): string;
+
+        toString(): string;
+
+        static parse(svgString: string): Polyline;
     }
 
     class Rect implements PlainRect {
@@ -204,6 +565,8 @@ export namespace g {
 
         bottomMiddle(): Point;
 
+        bottomRight(): Point;
+
         center(): Point;
 
         clone(): Rect;
@@ -218,6 +581,8 @@ export namespace g {
 
         intersect(r: Rect): Rect | null;
 
+        intersectionWithLine(l: Line): Point[] | null;
+
         intersectionWithLineFromCenterToPoint(p: PlainPoint | string, angle?: number): Point;
 
         leftLine(): Line;
@@ -226,7 +591,7 @@ export namespace g {
 
         moveAndExpand(r: PlainRect): this;
 
-        offset(dx: number, dy?: number): this;
+        offset(dx?: number, dy?: number): this;
         offset(p: PlainPoint): this;
 
         inflate(dx?: number, dy?: number): this;
@@ -245,15 +610,24 @@ export namespace g {
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
-        sideNearestToPoint(point: PlainPoint | string): RectangleSides;
+        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
+
+        maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
+
+        sideNearestToPoint(point: PlainPoint | string): RectangleSide;
 
         snapToGrid(gx: number, gy?: number): this;
+
+        topLeft(): Point;
 
         topLine(): Line;
 
         topMiddle(): Point;
 
         topRight(): Point;
+
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
 
         toJSON(): PlainRect;
 
@@ -317,9 +691,12 @@ export namespace Vectorizer {
         offset?: number;
     }
 
+    type TextVerticalAnchor = 'top' | 'bottom' | 'middle';
+
     interface TextOptions {
         eol?: string;
-        x?: number;
+        x?: number | string;
+        textVerticalAnchor?: TextVerticalAnchor | number | string;
         lineHeight?: number | string;
         textPath?: string | { [key: string]: any };
         annotations?: TextAnnotation[];
@@ -411,15 +788,16 @@ export namespace Vectorizer {
 
 export class Vectorizer {
 
+    id: string;
     node: SVGElement;
 
     constructor(
-        svg: string | SVGElement,
+        el: string | SVGElement,
         attrs?: { [key: string]: any },
         children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]
     );
 
-    getTransformToElement(elem: SVGGElement | Vectorizer): SVGMatrix;
+    getTransformToElement(toElem: SVGGElement | Vectorizer): SVGMatrix;
 
     transform(): SVGMatrix;
     transform(matrix: SVGMatrix | Vectorizer.Matrix, opt?: Vectorizer.TransformOptions): this;
@@ -431,7 +809,7 @@ export class Vectorizer {
     rotate(angle: number, cx?: number, cy?: number, opt?: Vectorizer.RotateOptions): this;
 
     scale(): Vectorizer.Scale;
-    scale(sx: number, sy: number): this;
+    scale(sx: number, sy?: number): this;
 
     bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
 
@@ -445,6 +823,8 @@ export class Vectorizer {
     attr(name: string): string | null;
     attr(name: string, value: any): this;
     attr(attrs: { [key: string]: any }): this;
+
+    normalizePath(): this;
 
     remove(): this;
 
@@ -460,6 +840,8 @@ export class Vectorizer {
 
     // returns either this or Vectorizer, no point in specifying this.
     svg(): Vectorizer;
+
+    tagName(): string;
 
     defs(): Vectorizer | undefined;
 
@@ -555,6 +937,10 @@ export class Vectorizer {
 
     static transformPoint(p: g.PlainPoint, matrix: SVGMatrix): g.Point;
 
+    static transformLine(p: g.Line, matrix: SVGMatrix): g.Line;
+
+    static transformPolyline(p: g.Polyline | g.PlainPoint[], matrix: SVGMatrix): g.Polyline;
+
     static styleToObject(styleString: string): { [key: string]: string };
 
     static createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;
@@ -587,6 +973,8 @@ export class Vectorizer {
 
     static rectToPath(r: Vectorizer.RoundedRect): string;
 
+    static normalizePathData(path: string): string;
+
     static toNode(el: SVGElement | Vectorizer | SVGElement[]): SVGElement;
 }
 
@@ -611,7 +999,23 @@ export namespace dia {
         'left' | 'right' | 'top' | 'bottom' | 'top-right' |
         'top-left' | 'bottom-left' | 'bottom-right';
 
+    type MarkupNodeJSON = {
+        tagName: string;
+        selector?: string;
+        namespaceUri?: string;
+        className?: string;
+        attributes?: attributes.NativeSVGAttributes;
+        style?: { [key: string]: any };
+        children?: MarkupJSON
+    }
+
+    type MarkupJSON = MarkupNodeJSON[];
+
     export namespace Graph {
+
+        interface Options {
+            [key: string]: any;
+        }
 
         interface ConnectionOptions extends Cell.EmbeddableOptions {
             inbound?: boolean;
@@ -707,9 +1111,11 @@ export namespace dia {
 
         getCellsBBox(cells: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
-        hasActiveBatch(name?: string): boolean;
+        hasActiveBatch(name?: string | string[]): boolean;
 
         maxZIndex(): number;
+
+        minZIndex(): number;
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
@@ -733,10 +1139,11 @@ export namespace dia {
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
+            [key: string]: any;
         }
 
         interface Selectors {
-            [selector: string]: attributes.SVGAttributes;
+            [selector: string]: attributes.SVGAttributes | undefined;
         }
 
         interface Attributes extends GenericAttributes<Selectors> {
@@ -744,10 +1151,14 @@ export namespace dia {
         }
 
         interface Constructor<T extends Backbone.Model> {
-            new (options?: { id: string }): T
+            new (opt?: { id: string }): T
         }
 
-        interface EmbeddableOptions {
+        interface Options {
+            [key: string]: any;
+        }
+
+        interface EmbeddableOptions extends Options {
             deep?: boolean;
         }
 
@@ -755,7 +1166,7 @@ export namespace dia {
             disconnectLinks?: boolean;
         }
 
-        interface TransitionOptions {
+        interface TransitionOptions extends Options {
             delay?: number;
             duration?: number;
             timingFunction?: util.timing.TimingFunction;
@@ -765,7 +1176,7 @@ export namespace dia {
 
     class Cell extends Backbone.Model {
 
-        constructor(attributes?: Cell.Attributes, opt?: { [key: string]: any });
+        constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
 
         id: string | number;
 
@@ -779,6 +1190,11 @@ export namespace dia {
 
         toBack(opt?: Cell.EmbeddableOptions): this;
 
+        parent(): string;
+        parent(parentId: string): this;
+
+        getParentCell(): Cell | null;
+
         getAncestors(): Cell[];
 
         getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
@@ -788,19 +1204,19 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: string | string[]): any;
-        prop(object: Cell.Attributes): this;
-        prop(key: string | string[], value: any, opt?: { [key: string]: any }): this;
+        prop(object: Cell.Attributes, opt?: Cell.Options): this;
+        prop(key: string | string[], value: any, opt?: Cell.Options): this;
 
-        removeProp(path: string | string[], opt?: { [key: string]: any }): this;
+        removeProp(path: string | string[], opt?: Cell.Options): this;
 
         attr(key?: string): any;
-        attr(object: Cell.Selectors): this;
-        attr(key: string, value: any): this;
+        attr(object: Cell.Selectors, opt?: Cell.Options): this;
+        attr(key: string, value: any, opt?: Cell.Options): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
 
-        removeAttr(path: string | string[], opt?: { [key: string]: any }): this;
+        removeAttr(path: string | string[], opt?: Cell.Options): this;
 
         transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
@@ -808,11 +1224,11 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        embed(cell: Cell, opt?: { [key: string]: any }): this;
+        embed(cell: Cell, opt?: Graph.Options): this;
 
-        unembed(cell: Cell, opt?: { [key: string]: any }): this;
+        unembed(cell: Cell, opt?: Graph.Options): this;
 
-        addTo(graph: Graph, opt?: { [key: string]: any }): this;
+        addTo(graph: Graph, opt?: Graph.Options): this;
 
         findView(paper: Paper): CellView;
 
@@ -820,9 +1236,9 @@ export namespace dia {
 
         isElement(): boolean;
 
-        startBatch(name: string, opt?: { [key: string]: any }): this;
+        startBatch(name: string, opt?: Graph.Options): this;
 
-        stopBatch(name: string, opt?: { [key: string]: any }): this;
+        stopBatch(name: string, opt?: Graph.Options): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
@@ -837,11 +1253,12 @@ export namespace dia {
     export namespace Element {
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
+            markup?: string | MarkupJSON;
             position?: Point;
             size?: Size;
             angle?: number;
             ports?: {
-                groups?: { [key: string]: Port },
+                groups?: { [key: string]: PortGroup},
                 items?: Port[]
             }
         }
@@ -850,18 +1267,30 @@ export namespace dia {
             [key: string]: any
         }
 
+        type PositionType = string | {
+            name?: string,
+            args?: { [key: string]: any }
+        }
+
+        interface PortGroup {
+            position?: PositionType,
+            markup?: string;
+            attrs?: Cell.Selectors;
+            label?: {
+                markup?: string;
+                position?: PositionType;
+            }
+        }
+
         interface Port {
             id?: string;
             markup?: string;
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
-            size?: Size;
             label?: {
-                size?: Size;
                 markup?: string;
-                position?: any;
-                args?: any;
+                position?: PositionType;
             }
             z?: number | 'auto';
         }
@@ -878,7 +1307,11 @@ export namespace dia {
 
     class Element extends Cell {
 
-        constructor(attributes?: Element.Attributes, opt?: { [key: string]: any });
+        constructor(attributes?: Element.Attributes, opt?: Graph.Options);
+
+        isElement(): boolean;
+
+        isLink(): boolean;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -892,17 +1325,19 @@ export namespace dia {
 
         rotate(deg: number, absolute?: boolean, origin?: Point, opt?: { [key: string]: any }): this;
 
+        angle(): number;
+
         scale(scaleX: number, scaleY: number, origin?: Point, opt?: { [key: string]: any }): this;
 
         fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
 
         getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
 
-        addPort(port: Element.Port, opt?: { [key: string]: any }): this;
+        addPort(port: Element.Port, opt?: Cell.Options): this;
 
-        addPorts(ports: Element.Port[], opt?: { [key: string]: any }): this;
+        addPorts(ports: Element.Port[], opt?: Cell.Options): this;
 
-        removePort(port: string | Element.Port, opt?: { [key: string]: any }): this;
+        removePort(port: string | Element.Port, opt?: Cell.Options): this;
 
         hasPorts(): boolean;
 
@@ -916,7 +1351,7 @@ export namespace dia {
 
         getPortIndex(port: string | Element.Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: { [key: string]: any }): Element;
+        portProp(portId: string, path: any, value?: any, opt?: Cell.Options): Element;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
     }
@@ -925,14 +1360,32 @@ export namespace dia {
 
     export namespace Link {
 
+        interface EndCellArgs {
+            magnet?: string;
+            selector?: string;
+            port?: string;
+            anchor?: anchors.AnchorJSON;
+            connectionPoint?: connectionPoints.ConnectionPointJSON;
+        }
+
+        interface EndCellJSON extends EndCellArgs {
+            id: number | string;
+        }
+
+        interface EndPointJSON {
+            x: number;
+            y: number;
+        }
+
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
-            source?: Point | { id: string, selector?: string, port?: string };
-            target?: Point | { id: string, selector?: string, port?: string };
+            source?: EndCellJSON | EndPointJSON;
+            target?: EndCellJSON | EndPointJSON;
             labels?: Label[];
             vertices?: Point[];
+            manhattan?: boolean;
+            router?: routers.Router | routers.RouterJSON;
             smooth?: boolean;
-            router?: routers.RouterJSON;
-            connector?: connectors.ConnectorJSON;
+            connector?: connectors.Connector | connectors.ConnectorJSON;
         }
 
         interface LinkSelectors extends Cell.Selectors {
@@ -951,33 +1404,80 @@ export namespace dia {
         }
 
         interface LabelPosition {
-            distance: number;
-            offset: number | { x: number; y: number; }
+            distance?: number; // optional for default labels
+            offset?: number | { x: number; y: number; };
+            args?: LinkView.LabelOptions;
         }
 
         interface Label {
-            position: LabelPosition | number;
+            markup?: string; // default labels
+            position?: LabelPosition | number; // optional for default labels
             attrs?: Cell.Selectors;
             size?: Size;
+        }
+
+        interface Vertex extends Point {
+            [key: string]: any;
         }
     }
 
     class Link extends Cell {
 
         markup: string;
-        labelMarkup: string;
         toolMarkup: string;
+        doubleToolMarkup?: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
+        labelMarkup?: string; // default label markup
+        labelProps?: Link.Label; // default label props
 
-        constructor(attributes?: Link.Attributes, opt?: { [key: string]: any });
+        constructor(attributes?: Link.Attributes, opt?: Graph.Options);
+
+        isElement(): boolean;
+
+        isLink(): boolean;
 
         disconnect(): this;
 
-        label(index?: number): any;
-        label(index: number, value: Link.Label, opt?: { [key: string]: any }): this;
+        source(): Link.EndCellJSON | Link.EndPointJSON;
+        source(source: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        source(source: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
-        reparent(opt?: { [key: string]: any }): Element;
+        target(): Link.EndCellJSON | Link.EndPointJSON;
+        target(target: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        target(target: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
+
+        router(): routers.Router | routers.RouterJSON | null;
+        router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
+        router(name: routers.RouterType, args?: routers.RouterArguments, opt?: Cell.Options): this;
+
+        connector(): connectors.Connector | connectors.ConnectorJSON | null;
+        connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: Cell.Options): this;
+        connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: Cell.Options): this;
+
+        label(index?: number): Link.Label;
+        label(index: number, label: Link.Label, opt?: Cell.Options): this;
+
+        labels(): Link.Label[];
+        labels(labels: Link.Label[]): this;
+
+        insertLabel(index: number, label: Link.Label, opt?: Cell.Options): Link.Label[];
+
+        appendLabel(label: Link.Label, opt?: Cell.Options): Link.Label[];
+
+        removeLabel(index?: number, opt?: Cell.Options): Link.Label[];
+
+        vertex(index?: number): Link.Vertex;
+        vertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
+
+        vertices(): Link.Vertex[];
+        vertices(vertices: Link.Vertex[]): this;
+
+        insertVertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): Link.Vertex[];
+
+        removeVertex(index?: number, opt?: Cell.Options): Link.Vertex[];
+
+        reparent(opt?: Cell.Options): Element;
 
         getSourceElement(): null | Element;
 
@@ -989,11 +1489,11 @@ export namespace dia {
 
         isRelationshipEmbeddedIn(cell: Cell): boolean;
 
-        applyToPoints(fn: (p: Point) => Point, opt?: { [key: string]: any }): this;
+        applyToPoints(fn: (p: Point) => Point, opt?: Cell.Options): this;
 
-        scale(sx: number, sy: number, origin?: Point, opt?: { [key: string]: any }): this;
+        scale(sx: number, sy: number, origin?: Point, opt?: Cell.Options): this;
 
-        translate(tx: number, ty: number, opt?: { [key: string]: any }): this;
+        translate(tx: number, ty: number, opt?: Cell.Options): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
     }
@@ -1025,25 +1525,55 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
+        findAttribute(attributeName: string, node: Element): string | null;
+
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         getStrokeBBox(el?: SVGElement): g.Rect;
 
         notify(eventName: string, ...eventArguments: any[]): void;
 
-        protected mouseover(evt: JQuery.Event): void;
+        addTools(tools: dia.ToolsView): this;
 
-        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void
+        hasTools(name?: string): boolean;
+
+        removeTools(): this;
+
+        showTools(): this;
+
+        hideTools(): this;
+
+        updateTools(opt?: { [key: string]: any }): this;
+
+        protected onToolEvent(eventName: string): void;
+
+        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerclick(evt: JQuery.Event, x: number, y: number): void;
 
-        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
+        protected contextmenu(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerdown(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointermove(evt: JQuery.Event, x: number, y: number): void;
 
         protected pointerup(evt: JQuery.Event, x: number, y: number): void;
+
+        protected mouseover(evt: JQuery.Event): void;
+
+        protected mouseout(evt: JQuery.Event): void;
+
+        protected mouseenter(evt: JQuery.Event): void;
+
+        protected mouseleave(evt: JQuery.Event): void;
+
+        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void;
+
+        protected onevent(evt: JQuery.Event, eventName: string, x: number, y: number): void;
+
+        protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
+
+        static dispatchToolsEvent(paper: dia.Paper, eventName: string): void;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -1065,11 +1595,31 @@ export namespace dia {
 
         getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
+        getNodeBBox(magnet: SVGElement): g.Rect;
+
+        getNodeUnrotatedBBox(magnet: SVGElement): g.Rect;
+
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
         protected renderMarkup(): void;
+
+        protected renderJSONMarkup(markup: MarkupJSON): void;
+
+        protected renderStringMarkup(markup: string): void;
+
+        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnetStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected drag(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnet(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragMagnetEnd(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.LinkView
@@ -1095,6 +1645,16 @@ export namespace dia {
                 end: 'source' | 'target'
             ): Point;
         }
+
+        interface LabelOptions extends Cell.Options {
+            absoluteDistance?: boolean;
+            reverseDistance?: boolean;
+            absoluteOffset?: boolean;
+        }
+
+        interface VertexOptions extends Cell.Options {
+
+        }
     }
 
     class LinkView extends CellViewGeneric<Link> {
@@ -1109,13 +1669,42 @@ export namespace dia {
         };
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
-        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; }, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
-        addVertex(vertex: Point): number;
+        addLabel(coordinates: Point, opt?: LinkView.LabelOptions): number;
+        addLabel(x: number, y: number, opt?: LinkView.LabelOptions): number;
+
+        addVertex(coordinates: Point, opt?: LinkView.VertexOptions): number;
+        addVertex(x: number, y: number, opt?: LinkView.VertexOptions): number;
+
+        getConnection(): g.Path;
+
+        getSerializedConnection(): string;
+
+        getConnectionSubdivisions(): g.Curve[][];
 
         getConnectionLength(): number;
 
         getPointAtLength(length: number): g.Point;
+
+        getPointAtRatio(ratio: number): g.Point;
+
+        getTangentAtLength(length: number): g.Line;
+
+        getTangentAtRatio(ratio: number): g.Line;
+
+        getClosestPoint(point: Point): g.Point;
+
+        getClosestPointLength(point: Point): number;
+
+        getClosestPointRatio(point: Point): number;
+
+        getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
+
+        getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
+
+        getVertexIndex(x: number, y: number): number;
+        getVertexIndex(point: Point): number;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
@@ -1130,6 +1719,38 @@ export namespace dia {
         protected onSourceChange(element: Element, sourceEnd: any, opt: { [key: string]: any }): void;
 
         protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
+
+        protected onlabel(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnectionStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabelStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertexStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowheadStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnection(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabel(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertex(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowhead(evt: JQuery.Event, x: number, y: number): void;
+
+        protected drag(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragConnectionEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLabelEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragVertexEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragArrowheadEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.Paper
@@ -1186,6 +1807,7 @@ export namespace dia {
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
             linkPinning?: boolean;
+            allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
             // events
             guard?: (evt: JQuery.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;
@@ -1205,6 +1827,10 @@ export namespace dia {
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
+            defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
+            // connecting
+            connectionStrategy?: connectionStrategies.ConnectionStrategy;
         }
 
         interface ScaleContentOptions {
@@ -1302,6 +1928,8 @@ export namespace dia {
 
         getRestrictedArea(): g.Rect | undefined;
 
+        getContentArea(): g.Rect;
+
         getContentBBox(): g.Rect;
 
         findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
@@ -1345,7 +1973,43 @@ export namespace dia {
 
         update(): this;
 
+        // tools
+
+        removeTools(): this;
+
+        hideTools(): this;
+
+        showTools(): this;
+
         // protected
+        protected pointerdblclick(evt: JQuery.Event): void;
+
+        protected pointerclick(evt: JQuery.Event): void;
+
+        protected contextmenu(evt: JQuery.Event): void;
+
+        protected pointerdown(evt: JQuery.Event): void;
+
+        protected pointermove(evt: JQuery.Event): void;
+
+        protected pointerup(evt: JQuery.Event): void;
+
+        protected mouseover(evt: JQuery.Event): void;
+
+        protected mouseout(evt: JQuery.Event): void;
+
+        protected mouseenter(evt: JQuery.Event): void;
+
+        protected mouseleave(evt: JQuery.Event): void;
+
+        protected mousewheel(evt: JQuery.Event): void;
+
+        protected onevent(evt: JQuery.Event): void;
+
+        protected onmagnet(evt: JQuery.Event): void;
+
+        protected onlabel(evt: JQuery.Event): void;
+
         protected guard(evt: JQuery.Event, view: CellView): boolean;
 
         protected sortViews(): void;
@@ -1362,23 +2026,7 @@ export namespace dia {
 
         protected beforeRenderViews(cells: Cell[]): Cell[];
 
-        protected cellMouseEnter(evt: JQuery.Event): void;
-
-        protected cellMouseleave(evt: JQuery.Event): void;
-
-        protected cellMouseout(evt: JQuery.Event): void;
-
-        protected cellMouseover(evt: JQuery.Event): void;
-
-        protected contextmenu(evt: JQuery.Event): void;
-
         protected init(): void;
-
-        protected mouseclick(evt: JQuery.Event): void;
-
-        protected mousedblclick(evt: JQuery.Event): void;
-
-        protected mousewheel(evt: JQuery.Event): void;
 
         protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
 
@@ -1387,12 +2035,6 @@ export namespace dia {
         protected onCellUnhighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
         protected onRemove(): void;
-
-        protected pointerdown(evt: JQuery.Event): void;
-
-        protected pointermove(evt: JQuery.Event): void;
-
-        protected pointerup(evt: JQuery.Event): void;
 
         protected removeView(cell: Cell): CellView;
 
@@ -1406,9 +2048,287 @@ export namespace dia {
 
         protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
     }
+
+    namespace ToolsView {
+
+        interface Options {
+            tools?: dia.ToolView[];
+            name?: string | null;
+            relatedView?: dia.CellView;
+            component?: boolean;
+        }
+    }
+
+    class ToolsView extends mvc.View<undefined> {
+
+        constructor(opt?: ToolsView.Options);
+
+        options: ToolsView.Options;
+
+        configure(opt?: ToolsView.Options): this;
+
+        getName(): string | null;
+
+        focusTool(tool: ToolView): this;
+
+        blurTool(tool: ToolView): this;
+
+        show(): this;
+
+        hide(): this;
+
+        mount(): this;
+
+        protected simulateRelatedView(el: SVGElement): void;
+    }
+
+    namespace ToolView {
+
+        interface Options {
+            focusOpacity?: number;
+        }
+    }
+
+    class ToolView extends mvc.View<undefined> {
+
+        name: string | null;
+        parentView: ToolsView;
+        relatedView: dia.CellView;
+        paper: Paper;
+
+        constructor(opt?: ToolView.Options);
+
+        configure(opt?: ToolView.Options): this;
+
+        show(): void;
+
+        hide(): void;
+
+        isVisible(): boolean;
+
+        focus(): void;
+
+        blur(): void;
+
+        update(): void;
+    }
+
 }
 
 export namespace shapes {
+
+    namespace standard {
+
+        interface RectangleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Rectangle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<RectangleSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface CircleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGCircleAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Circle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface EllipseSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGCircleAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Ellipse extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface PathSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPathAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Path extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PathSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface PolygonSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPolygonAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Polygon extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface PolylineSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGPolylineAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Polyline extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface ImageSelectors {
+            root?: attributes.SVGAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class Image extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface BorderedImageSelectors {
+            root?: attributes.SVGAttributes;
+            border?: attributes.SVGRectAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class BorderedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<BorderedImageSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface EmbeddedImageSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class EmbeddedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface HeaderedRectangleSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            header?: attributes.SVGRectAttributes;
+            headerText?: attributes.SVGTextAttributes;
+            bodyText?: attributes.SVGTextAttributes;
+        }
+
+        class HeaderedRectangle extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<HeaderedRectangleSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface CylinderBodyAttributes extends attributes.SVGPathAttributes {
+            lateralArea?: string | number;
+        }
+
+        interface CylinderSelectors {
+            root?: attributes.SVGAttributes;
+            body?: CylinderBodyAttributes;
+            top?: attributes.SVGEllipseAttributes;
+        }
+
+        class Cylinder extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<CylinderSelectors>,
+                opt?: dia.Graph.Options
+            )
+
+            topRy(): string | number;
+            topRy(t: string | number, opt?: dia.Cell.Options): this;
+        }
+
+        interface TextBlockSelectors {
+            root?: attributes.SVGAttributes;
+            body?: attributes.SVGRectAttributes;
+            label?: {
+                text?: string;
+                style?: { [key: string]: any };
+                [key: string]: any;
+            }
+        }
+
+        class TextBlock extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface LinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            wrapper?: attributes.SVGPathAttributes;
+        }
+
+        class Link extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<LinkSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface DoubleLinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            outline?: attributes.SVGPathAttributes;
+        }
+
+        class DoubleLink extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<DoubleLinkSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface ShadowLinkSelectors {
+            root?: attributes.SVGAttributes;
+            line?: attributes.SVGPathAttributes;
+            shadow?: attributes.SVGPathAttributes;
+        }
+
+        class ShadowLink extends dia.Link {
+            constructor(
+                attributes?: dia.Link.GenericAttributes<ShadowLinkSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+    }
 
     interface SVGTextSelector extends dia.Cell.Selectors {
         text?: attributes.SVGTextAttributes;
@@ -2029,11 +2949,21 @@ export namespace util {
 
     export var shapePerimeterConnectionPoint: dia.LinkView.GetConnectionPoint;
 
+    export function isPercentage(val: any): boolean;
+
     export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement; separator: string | any; eol: string }): string;
 
-    export function imageToDataUri(url: string, callback: (err: Error, dataUri: string) => void): void;
+    export function sanitizeHTML(html: string): string;
+
+    export function downloadBlob(blob: Blob, fileName: string): void;
+
+    export function downloadDataUri(dataUri: string, fileName: string): void;
+
+    export function dataUriToBlob(dataUri: string): Blob;
+
+    export function imageToDataUri(url: string, callback: (err: Error | null, dataUri: string) => void): void;
 
     export function getElementBBox(el: Element): dia.BBox;
 
@@ -2221,7 +3151,7 @@ export namespace layout {
             rankSep?: number;
             marginX?: number;
             marginY?: number;
-            resizeCluster?: boolean;
+            resizeClusters?: boolean;
             clusterPadding?: dia.Padding;
             setPosition?: (element: dia.Element, position: dia.BBox) => void;
             setVertices?: boolean | ((link: dia.Link, vertices: dia.Point[]) => void);
@@ -2245,6 +3175,10 @@ export namespace mvc {
         theme?: string;
     }
 
+    interface viewEventData {
+        [key: string]: any;
+    }
+
     class View<T extends Backbone.Model> extends Backbone.View<T> {
 
         constructor(opt?: ViewOptions<T>);
@@ -2257,9 +3191,22 @@ export namespace mvc {
 
         requireSetThemeOverride: boolean;
 
+        documentEvents?: Backbone.EventsHash;
+
+        children?: dia.MarkupJSON;
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
+
+        delegateDocumentEvents(events?: Backbone.EventsHash, data?: viewEventData): this;
+
+        undelegateDocumentEvents(): this;
+
+        eventData(evt: JQuery.Event): viewEventData;
+        eventData(evt: JQuery.Event, data: viewEventData): this;
+
+        renderChildren(children?: dia.MarkupJSON): this;
 
         protected init(): void;
 
@@ -2303,22 +3250,27 @@ export namespace routers {
         'metro': ManhattanRouterArguments;
         'orthogonal': OrthogonalRouterArguments;
         'oneSide': OneSideRouterArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type RouterType = string & keyof RouterArgumentsMap;
+    type RouterType = keyof RouterArgumentsMap;
+
+    type GenericRouterArguments<K extends RouterType> = RouterArgumentsMap[K];
 
     interface GenericRouter<K extends RouterType> {
         (
-            points: dia.Point[],
-            args?: RouterArgumentsMap[K],
+            vertices: dia.Point[],
+            args?: GenericRouterArguments<K>,
             linkView?: dia.LinkView
         ): dia.Point[];
     }
 
     interface GenericRouterJSON<K extends RouterType> {
         name: K;
-        args?: RouterArgumentsMap[K];
+        args?: GenericRouterArguments<K>;
     }
+
+    type RouterArguments = GenericRouterArguments<RouterType>;
 
     type Router = GenericRouter<RouterType>;
 
@@ -2336,20 +3288,22 @@ export namespace routers {
 export namespace connectors {
 
     interface NormalConnectorArguments {
-
+        raw?: boolean;
     }
 
     interface RoundedConnectorArguments {
-        radius?: number
+        raw?: boolean;
+        radius?: number;
     }
 
     interface SmoothConnectorArguments {
-
+        raw?: boolean;
     }
 
     interface JumpOverConnectorArguments {
+        raw?: boolean;
         size?: number;
-        jump?: 'arc' | 'gap' | 'cubic'
+        jump?: 'arc' | 'gap' | 'cubic';
     }
 
     interface ConnectorArgumentsMap {
@@ -2357,24 +3311,29 @@ export namespace connectors {
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type ConnectorType = string & keyof ConnectorArgumentsMap;
+    type ConnectorType = keyof ConnectorArgumentsMap;
+
+    type GenericConnectorArguments<K extends ConnectorType> = ConnectorArgumentsMap[K];
 
     interface GenericConnector<K extends ConnectorType> {
         (
             sourcePoint: dia.Point,
             targetPoint: dia.Point,
-            vertices: dia.Point[],
-            args?: ConnectorArgumentsMap[K],
-            linkView?: dia.LinkView
-        ): string;
+            routePoints: dia.Point[],
+            args?: GenericConnectorArguments<K>,
+            //linkView?: dia.LinkView
+        ): string | g.Path;
     }
 
     interface GenericConnectorJSON<K extends ConnectorType> {
         name: K;
-        args?: ConnectorArgumentsMap[K];
+        args?: GenericConnectorArguments<K>;
     }
+
+    type ConnectorArguments = GenericConnectorArguments<ConnectorType>;
 
     type Connector = GenericConnector<ConnectorType>;
 
@@ -2384,6 +3343,146 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+}
+
+// anchors
+
+export namespace anchors {
+
+    interface RotateAnchorArguments {
+        rotate?: boolean;
+    }
+
+    interface BBoxAnchorArguments extends RotateAnchorArguments {
+        dx?: number | string;
+        dy?: number | string;
+    }
+
+    interface PaddingAnchorArguments {
+        padding?: number;
+    }
+
+    interface MidSideAnchorArguments extends RotateAnchorArguments, PaddingAnchorArguments {
+
+    }
+
+    interface ModelCenterAnchorArguments {
+
+    }
+
+    interface AnchorArgumentsMap {
+        'center': BBoxAnchorArguments,
+        'top': BBoxAnchorArguments,
+        'bottom': BBoxAnchorArguments,
+        'left': BBoxAnchorArguments,
+        'right': BBoxAnchorArguments,
+        'topLeft': BBoxAnchorArguments,
+        'topRight': BBoxAnchorArguments,
+        'bottomLeft': BBoxAnchorArguments,
+        'bottomRight': BBoxAnchorArguments,
+        'perpendicular': PaddingAnchorArguments;
+        'midSide': MidSideAnchorArguments;
+        'modelCenter': ModelCenterAnchorArguments;
+        [key: string]: { [key: string]: any };
+    }
+
+    type AnchorType = keyof AnchorArgumentsMap;
+
+    type GenericAnchorArguments<K extends AnchorType> = AnchorArgumentsMap[K];
+
+    interface GenericAnchor<K extends AnchorType> {
+        (
+            endView: dia.CellView,
+            endMagnet: SVGElement,
+            anchorReference: g.Point | SVGElement,
+            opt: AnchorArgumentsMap[K],
+            //endType: string,
+            //linkView: dia.LinkView
+        ): g.Point;
+    }
+
+    interface GenericAnchorJSON<K extends AnchorType> {
+        name: K;
+        args?: AnchorArgumentsMap[K];
+    }
+
+    type AnchorArguments = GenericAnchorArguments<AnchorType>;
+
+    type Anchor = GenericAnchor<AnchorType>;
+
+    type AnchorJSON = GenericAnchorJSON<AnchorType>;
+
+    export var center: GenericAnchor<'center'>;
+    export var top: GenericAnchor<'top'>;
+    export var bottom: GenericAnchor<'bottom'>;
+    export var left: GenericAnchor<'left'>;
+    export var right: GenericAnchor<'right'>;
+    export var topLeft: GenericAnchor<'topLeft'>;
+    export var topRight: GenericAnchor<'topRight'>;
+    export var bottomLeft: GenericAnchor<'bottomLeft'>;
+    export var bottomRight: GenericAnchor<'bottomRight'>;
+    export var perpendicular: GenericAnchor<'perpendicular'>;
+    export var midSide: GenericAnchor<'midSide'>;
+}
+
+// connection points
+
+export namespace connectionPoints {
+
+    interface DefaultConnectionPointArguments {
+        offset?: number;
+    }
+
+    interface StrokeConnectionPointArguments extends DefaultConnectionPointArguments {
+        stroke?: boolean;
+    }
+
+    interface BoundaryConnectionPointArguments extends StrokeConnectionPointArguments {
+        selector?: Array<string | number> | string;
+        precision?: number;
+        extrapolate?: boolean;
+        sticky?: boolean;
+        insideout?: boolean;
+    }
+
+    interface ConnectionPointArgumentsMap {
+        'anchor': DefaultConnectionPointArguments,
+        'bbox': StrokeConnectionPointArguments,
+        'rectangle': StrokeConnectionPointArguments,
+        'boundary': BoundaryConnectionPointArguments,
+        [key: string]: { [key: string]: any };
+    }
+
+    type ConnectionPointType = keyof ConnectionPointArgumentsMap;
+
+    type GenericConnectionPointArguments<K extends ConnectionPointType> = ConnectionPointArgumentsMap[K];
+
+    interface GenericConnectionPoint<K extends ConnectionPointType> {
+        (
+            endPathSegmentLine: g.Line,
+            endView: dia.CellView,
+            endMagnet: SVGElement,
+            opt: ConnectionPointArgumentsMap[K],
+            //endType: string,
+            //linkView: dia.LinkView
+        ): g.Point;
+    }
+
+    interface GenericConnectionPointJSON<K extends ConnectionPointType> {
+        name: K;
+        args?: ConnectionPointArgumentsMap[K];
+    }
+
+    type ConnectionPointArguments = GenericConnectionPointArguments<ConnectionPointType>;
+
+    type ConnectionPoint = GenericConnectionPoint<ConnectionPointType>;
+
+    type ConnectionPointJSON = GenericConnectionPointJSON<ConnectionPointType>;
+
+    export var anchor: GenericConnectionPoint<'anchor'>;
+    export var bbox: GenericConnectionPoint<'bbox'>;
+    export var rectangle: GenericConnectionPoint<'rectangle'>;
+    export var boundary: GenericConnectionPoint<'boundary'>;
 }
 
 // highlighters
@@ -2409,20 +3508,25 @@ export namespace highlighters {
         'addClass': AddClassHighlighterArguments;
         'opacity': OpacityHighlighterArguments;
         'stroke': StrokeHighlighterArguments;
+        [key: string]: { [key: string]: any };
     }
 
-    type HighlighterType = string & keyof HighlighterArgumentsMap;
+    type HighlighterType = keyof HighlighterArgumentsMap;
+
+    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
+
+    interface GenericHighlighter<K extends HighlighterType> {
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
 
     interface GenericHighlighterJSON<K extends HighlighterType> {
         name: K;
-        opt?: HighlighterArgumentsMap[K];
+        options?: GenericHighlighterArguments<K>;
     }
 
-    interface GenericHighlighter<K extends HighlighterType> {
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: HighlighterArgumentsMap[K]): void;
-    }
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
 
     type Highlighter = GenericHighlighter<HighlighterType>;
 
@@ -2431,6 +3535,24 @@ export namespace highlighters {
     export var addClass: GenericHighlighter<'addClass'>;
     export var opacity: GenericHighlighter<'opacity'>;
     export var stroke: GenericHighlighter<'stroke'>;
+}
+
+export namespace connectionStrategies {
+
+    interface ConnectionStrategy {
+        (
+            endDefinition: dia.Cell,
+            endView: dia.CellView,
+            endMagnet: SVGElement,
+            coords: dia.Point,
+            //link: dia.Link,
+            //endType: string
+        ): dia.Element;
+    }
+
+    export var useDefaults: ConnectionStrategy;
+    export var pinAbsolute: ConnectionStrategy;
+    export var pinRelative: ConnectionStrategy;
 }
 
 export namespace attributes {
@@ -2523,11 +3645,18 @@ export namespace attributes {
 
     interface NativeSVGAttributes extends SVGCoreAttributes, SVGPresentationAttributes, SVGConditionalProcessingAttributes, SVGXLinkAttributes {
         'class'?: string;
-        'style'?: string;
+        'style'?: any;
         'transform'?: string;
         'externalResourcesRequired'?: boolean;
 
         [key: string]: any;
+    }
+
+    interface SVGAttributeTextWrap {
+        text?: string;
+        width?: string | number;
+        height?: string | number;
+        [key: string]: any
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
@@ -2539,31 +3668,49 @@ export namespace attributes {
         targetMarker?: { [key: string]: any };
         vertexMarker?: { [key: string]: any };
         text?: string;
-        textWrap?: { [key: string]: any };
+        textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;
         textPath?: any;
         annotations?: any;
-        port?: string;
-        style?: string;
+        port?: string | { [key: string]: any };
+        style?: { [key: string]: any };
         html?: string;
         ref?: string;
         refX?: string | number;
-        refy?: string | number;
+        refY?: string | number;
         refX2?: string | number;
-        refy2?: string | number;
+        refY2?: string | number;
         refDx?: string | number;
         refDy?: string | number;
         refWidth?: string | number;
         refHeight?: string | number;
         refRx?: string | number;
         refRy?: string | number;
+        refR?: string | number;
+        refRInscribed?: string | number; // alias for refR
+        refRCircumscribed?: string | number;
         refCx?: string | number;
         refCy?: string | number;
+        refD?: string;
+        refDResetOffset?: string; // alias for refD
+        refDKeepOffset?: string;
+        refPoints?: string;
+        refPointsResetOffset?: string; // alias for refPoints
+        refPointsKeepOffset?: string;
         resetOffset?: boolean;
         xAlignment?: 'middle' | 'right' | number | string;
         yAlignment?: 'middle' | 'bottom' | number | string;
         event?: string;
         magnet?: boolean | string;
+        title?: string;
+        textVerticalAnchor?: 'bottom' | 'top' | 'middle' | number | string;
+        connection?: boolean;
+        atConnectionLength?: number;
+        atConnectionLengthKeepGradient?: number; // alias for atConnectionLength
+        atConnectionLengthIgnoreGradient?: number;
+        atConnectionRatio?: number;
+        atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
+        atConnectionRatioIgnoreGradient?: number;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;
@@ -2693,3 +3840,131 @@ export namespace attributes {
 }
 
 export function setTheme(theme: string): void;
+
+
+export namespace linkTools {
+
+    type AnchorCallback<T> = (
+        coords: g.Point,
+        view: dia.CellView,
+        magnet: SVGElement,
+        type: string,
+        linkView: dia.LinkView,
+        toolView: dia.ToolView
+    ) => T;
+
+    namespace Vertices {
+        interface Options extends dia.ToolView.Options {
+            snapRadius?: number;
+            redundancyRemoval?: boolean;
+            vertexAdding?: boolean;
+        }
+    }
+
+    class Vertices extends dia.ToolView {
+
+        constructor(opt?: Vertices.Options);
+    }
+
+    namespace Segments {
+        interface Options extends dia.ToolView.Options {
+            snapRadius?: number;
+            snapHandle?: boolean;
+            redundancyRemoval?: boolean;
+            segmentLengthThreshold?: number;
+            anchor?: AnchorCallback<anchors.AnchorJSON>;
+        }
+    }
+
+    class Segments extends dia.ToolView {
+
+        constructor(opt?: Segments.Options);
+    }
+
+    abstract class Arrowhead extends dia.ToolView {
+
+        ratio: number;
+        arrowheadType: string;
+
+        protected onPointerDown(evt: JQuery.Event): void;
+
+        protected onPointerMove(evt: JQuery.Event): void;
+
+        protected onPointerUp(evt: JQuery.Event): void;
+    }
+
+    class SourceArrowhead extends Arrowhead {
+
+
+    }
+
+    class TargetArrowhead extends Arrowhead {
+
+
+    }
+
+    namespace Anchor {
+        interface Options extends dia.ToolView.Options {
+            snap?: AnchorCallback<dia.Point>,
+            anchor?: AnchorCallback<anchors.AnchorJSON>,
+            customAnchorAttributes?: attributes.NativeSVGAttributes;
+            defaultAnchorAttributes?: attributes.NativeSVGAttributes;
+            areaPadding?: number;
+            snapRadius?: number;
+            restrictArea?: boolean;
+            redundancyRemoval?: boolean;
+        }
+    }
+
+    abstract class Anchor extends dia.ToolView {
+
+        type: string;
+
+        constructor(opt?: Anchor.Options);
+    }
+
+    class SourceAnchor extends Anchor {
+
+
+    }
+
+    class TargetAnchor extends Anchor {
+
+
+    }
+
+    namespace Button {
+
+        type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
+
+        interface Options extends dia.ToolView.Options {
+            distance?: number;
+            offset?: number;
+            rotate?: boolean;
+            action?: ActionCallback;
+            markup?: dia.MarkupJSON;
+        }
+    }
+
+    class Button extends dia.ToolView {
+
+        constructor(opt?: Button.Options);
+
+        protected onPointerDown(evt: JQuery.Event): void;
+    }
+
+    class Remove extends dia.ToolView {
+
+    }
+
+    namespace Boundary {
+        interface Options extends dia.ToolView.Options {
+            padding?: number;
+        }
+    }
+
+    class Boundary extends dia.ToolView {
+
+        constructor(opt?: Boundary.Options);
+    }
+}

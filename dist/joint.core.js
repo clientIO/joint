@@ -1,4 +1,4 @@
-/*! JointJS v2.0.1 (2017-11-15) - JavaScript diagramming library
+/*! JointJS v2.1.0 (2018-04-26) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -435,8 +435,8 @@ Number.isNaN = Number.isNaN || function(value) {
 }
 
 
-
-//      Geometry library.
+// Geometry library.
+// -----------------
 
 var g = (function() {
 
@@ -448,8 +448,8 @@ var g = (function() {
     var cos = math.cos;
     var sin = math.sin;
     var sqrt = math.sqrt;
-    var mmin = math.min;
-    var mmax = math.max;
+    var min = math.min;
+    var max = math.max;
     var atan2 = math.atan2;
     var round = math.round;
     var floor = math.floor;
@@ -460,26 +460,24 @@ var g = (function() {
     g.bezier = {
 
         // Cubic Bezier curve path through points.
-        // Ported from C# implementation by Oleg V. Polikarpotchkin and Peter Lee (http://www.codeproject.com/KB/graphics/BezierSpline.aspx).
+        // @deprecated
         // @param {array} points Array of points through which the smooth line will go.
         // @return {array} SVG Path commands as an array
         curveThroughPoints: function(points) {
 
-            var controlPoints = this.getCurveControlPoints(points);
-            var path = ['M', points[0].x, points[0].y];
+            console.warn('deprecated');
 
-            for (var i = 0; i < controlPoints[0].length; i++) {
-                path.push('C', controlPoints[0][i].x, controlPoints[0][i].y, controlPoints[1][i].x, controlPoints[1][i].y, points[i + 1].x, points[i + 1].y);
-            }
-
-            return path;
+            return new Path(Curve.throughPoints(points)).serialize();
         },
 
         // Get open-ended Bezier Spline Control Points.
+        // @deprecated
         // @param knots Input Knot Bezier spline points (At least two points!).
         // @param firstControlPoints Output First Control points. Array of knots.length - 1 length.
         // @param secondControlPoints Output Second Control points. Array of knots.length - 1 length.
         getCurveControlPoints: function(knots) {
+
+            console.warn('deprecated');
 
             var firstControlPoints = [];
             var secondControlPoints = [];
@@ -489,11 +487,17 @@ var g = (function() {
             // Special case: Bezier curve should be a straight line.
             if (n == 1) {
                 // 3P1 = 2P0 + P3
-                firstControlPoints[0] = Point((2 * knots[0].x + knots[1].x) / 3,
-                                              (2 * knots[0].y + knots[1].y) / 3);
+                firstControlPoints[0] = new Point(
+                    (2 * knots[0].x + knots[1].x) / 3,
+                    (2 * knots[0].y + knots[1].y) / 3
+                );
+
                 // P2 = 2P1 – P0
-                secondControlPoints[0] = Point(2 * firstControlPoints[0].x - knots[0].x,
-                                               2 * firstControlPoints[0].y - knots[0].y);
+                secondControlPoints[0] = new Point(
+                    2 * firstControlPoints[0].x - knots[0].x,
+                    2 * firstControlPoints[0].y - knots[0].y
+                );
+
                 return [firstControlPoints, secondControlPoints];
             }
 
@@ -505,8 +509,10 @@ var g = (function() {
             for (i = 1; i < n - 1; i++) {
                 rhs[i] = 4 * knots[i].x + 2 * knots[i + 1].x;
             }
+
             rhs[0] = knots[0].x + 2 * knots[1].x;
             rhs[n - 1] = (8 * knots[n - 1].x + knots[n].x) / 2.0;
+
             // Get first control points X-values.
             var x = this.getFirstControlPoints(rhs);
 
@@ -514,49 +520,43 @@ var g = (function() {
             for (i = 1; i < n - 1; ++i) {
                 rhs[i] = 4 * knots[i].y + 2 * knots[i + 1].y;
             }
+
             rhs[0] = knots[0].y + 2 * knots[1].y;
             rhs[n - 1] = (8 * knots[n - 1].y + knots[n].y) / 2.0;
+
             // Get first control points Y-values.
             var y = this.getFirstControlPoints(rhs);
 
             // Fill output arrays.
             for (i = 0; i < n; i++) {
                 // First control point.
-                firstControlPoints.push(Point(x[i], y[i]));
+                firstControlPoints.push(new Point(x[i], y[i]));
+
                 // Second control point.
                 if (i < n - 1) {
-                    secondControlPoints.push(Point(2 * knots [i + 1].x - x[i + 1],
-                                                   2 * knots[i + 1].y - y[i + 1]));
+                    secondControlPoints.push(new Point(
+                        2 * knots [i + 1].x - x[i + 1],
+                        2 * knots[i + 1].y - y[i + 1]
+                    ));
+
                 } else {
-                    secondControlPoints.push(Point((knots[n].x + x[n - 1]) / 2,
-                                                   (knots[n].y + y[n - 1]) / 2));
+                    secondControlPoints.push(new Point(
+                        (knots[n].x + x[n - 1]) / 2,
+                        (knots[n].y + y[n - 1]) / 2)
+                    );
                 }
             }
+
             return [firstControlPoints, secondControlPoints];
         },
 
-        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
-        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
-        // @param control points (start, control start, control end, end)
-        // @return a function accepts t and returns 2 curves each defined by 4 control points.
-        getCurveDivider: function(p0, p1, p2, p3) {
-
-            return function divideCurve(t) {
-
-                var l = Line(p0, p1).pointAt(t);
-                var m = Line(p1, p2).pointAt(t);
-                var n = Line(p2, p3).pointAt(t);
-                var p = Line(l, m).pointAt(t);
-                var q = Line(m, n).pointAt(t);
-                var r = Line(p, q).pointAt(t);
-                return [{ p0: p0, p1: l, p2: p, p3: r }, { p0: r, p1: q, p2: n, p3: p3 }];
-            };
-        },
-
         // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
+        // @deprecated
         // @param rhs Right hand side vector.
         // @return Solution vector.
         getFirstControlPoints: function(rhs) {
+
+            console.warn('deprecated');
 
             var n = rhs.length;
             // `x` is a solution vector.
@@ -565,48 +565,926 @@ var g = (function() {
             var b = 2.0;
 
             x[0] = rhs[0] / b;
+
             // Decomposition and forward substitution.
             for (var i = 1; i < n; i++) {
                 tmp[i] = 1 / b;
                 b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
                 x[i] = (rhs[i] - x[i - 1]) / b;
             }
+
             for (i = 1; i < n; i++) {
                 // Backsubstitution.
                 x[n - i - 1] -= tmp[n - i] * x[n - i];
             }
+
             return x;
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @deprecated
+        // @param control points (start, control start, control end, end)
+        // @return a function that accepts t and returns 2 curves.
+        getCurveDivider: function(p0, p1, p2, p3) {
+
+            console.warn('deprecated');
+
+            var curve = new Curve(p0, p1, p2, p3);
+
+            return function divideCurve(t) {
+
+                var divided = curve.divide(t);
+
+                return [{
+                    p0: divided[0].start,
+                    p1: divided[0].controlPoint1,
+                    p2: divided[0].controlPoint2,
+                    p3: divided[0].end
+                }, {
+                    p0: divided[1].start,
+                    p1: divided[1].controlPoint1,
+                    p2: divided[1].controlPoint2,
+                    p3: divided[1].end
+                }];
+            };
         },
 
         // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
         // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
         // which corresponds to that point.
+        // @deprecated
         // @param control points (start, control start, control end, end)
-        // @return a function accepts a point and returns t.
+        // @return a function that accepts a point and returns t.
         getInversionSolver: function(p0, p1, p2, p3) {
 
-            var pts = arguments;
-            function l(i, j) {
-                // calculates a determinant 3x3
-                // [p.x  p.y  1]
-                // [pi.x pi.y 1]
-                // [pj.x pj.y 1]
-                var pi = pts[i];
-                var pj = pts[j];
-                return function(p) {
-                    var w = (i % 3 ? 3 : 1) * (j % 3 ? 3 : 1);
-                    var lij = p.x * (pi.y - pj.y) + p.y * (pj.x - pi.x) + pi.x * pj.y - pi.y * pj.x;
-                    return w * lij;
+            console.warn('deprecated');
+
+            var curve = new Curve(p0, p1, p2, p3);
+
+            return function solveInversion(p) {
+
+                return curve.closestPointT(p);
+            };
+        }
+    };
+
+    var Curve = g.Curve = function(p1, p2, p3, p4) {
+
+        if (!(this instanceof Curve)) {
+            return new Curve(p1, p2, p3, p4);
+        }
+
+        if (p1 instanceof Curve) {
+            return new Curve(p1.start, p1.controlPoint1, p1.controlPoint2, p1.end);
+        }
+
+        this.start = new Point(p1);
+        this.controlPoint1 = new Point(p2);
+        this.controlPoint2 = new Point(p3);
+        this.end = new Point(p4);
+    };
+
+    // Curve passing through points.
+    // Ported from C# implementation by Oleg V. Polikarpotchkin and Peter Lee (http://www.codeproject.com/KB/graphics/BezierSpline.aspx).
+    // @param {array} points Array of points through which the smooth line will go.
+    // @return {array} curves.
+    Curve.throughPoints = (function() {
+
+        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
+        // @param rhs Right hand side vector.
+        // @return Solution vector.
+        function getFirstControlPoints(rhs) {
+
+            var n = rhs.length;
+            // `x` is a solution vector.
+            var x = [];
+            var tmp = [];
+            var b = 2.0;
+
+            x[0] = rhs[0] / b;
+
+            // Decomposition and forward substitution.
+            for (var i = 1; i < n; i++) {
+                tmp[i] = 1 / b;
+                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
+                x[i] = (rhs[i] - x[i - 1]) / b;
+            }
+
+            for (i = 1; i < n; i++) {
+                // Backsubstitution.
+                x[n - i - 1] -= tmp[n - i] * x[n - i];
+            }
+
+            return x;
+        }
+
+        // Get open-ended Bezier Spline Control Points.
+        // @param knots Input Knot Bezier spline points (At least two points!).
+        // @param firstControlPoints Output First Control points. Array of knots.length - 1 length.
+        // @param secondControlPoints Output Second Control points. Array of knots.length - 1 length.
+        function getCurveControlPoints(knots) {
+
+            var firstControlPoints = [];
+            var secondControlPoints = [];
+            var n = knots.length - 1;
+            var i;
+
+            // Special case: Bezier curve should be a straight line.
+            if (n == 1) {
+                // 3P1 = 2P0 + P3
+                firstControlPoints[0] = new Point(
+                    (2 * knots[0].x + knots[1].x) / 3,
+                    (2 * knots[0].y + knots[1].y) / 3
+                );
+
+                // P2 = 2P1 – P0
+                secondControlPoints[0] = new Point(
+                    2 * firstControlPoints[0].x - knots[0].x,
+                    2 * firstControlPoints[0].y - knots[0].y
+                );
+
+                return [firstControlPoints, secondControlPoints];
+            }
+
+            // Calculate first Bezier control points.
+            // Right hand side vector.
+            var rhs = [];
+
+            // Set right hand side X values.
+            for (i = 1; i < n - 1; i++) {
+                rhs[i] = 4 * knots[i].x + 2 * knots[i + 1].x;
+            }
+
+            rhs[0] = knots[0].x + 2 * knots[1].x;
+            rhs[n - 1] = (8 * knots[n - 1].x + knots[n].x) / 2.0;
+
+            // Get first control points X-values.
+            var x = getFirstControlPoints(rhs);
+
+            // Set right hand side Y values.
+            for (i = 1; i < n - 1; ++i) {
+                rhs[i] = 4 * knots[i].y + 2 * knots[i + 1].y;
+            }
+
+            rhs[0] = knots[0].y + 2 * knots[1].y;
+            rhs[n - 1] = (8 * knots[n - 1].y + knots[n].y) / 2.0;
+
+            // Get first control points Y-values.
+            var y = getFirstControlPoints(rhs);
+
+            // Fill output arrays.
+            for (i = 0; i < n; i++) {
+                // First control point.
+                firstControlPoints.push(new Point(x[i], y[i]));
+
+                // Second control point.
+                if (i < n - 1) {
+                    secondControlPoints.push(new Point(
+                        2 * knots [i + 1].x - x[i + 1],
+                        2 * knots[i + 1].y - y[i + 1]
+                    ));
+
+                } else {
+                    secondControlPoints.push(new Point(
+                        (knots[n].x + x[n - 1]) / 2,
+                        (knots[n].y + y[n - 1]) / 2
+                    ));
+                }
+            }
+
+            return [firstControlPoints, secondControlPoints];
+        }
+
+        return function(points) {
+
+            if (!points || (Array.isArray(points) && points.length < 2)) {
+                throw new Error('At least 2 points are required');
+            }
+
+            var controlPoints = getCurveControlPoints(points);
+
+            var curves = [];
+            var n = controlPoints[0].length;
+            for (var i = 0; i < n; i++) {
+
+                var controlPoint1 = new Point(controlPoints[0][i].x, controlPoints[0][i].y);
+                var controlPoint2 = new Point(controlPoints[1][i].x, controlPoints[1][i].y);
+
+                curves.push(new Curve(points[i], controlPoint1, controlPoint2, points[i + 1]));
+            }
+
+            return curves;
+        };
+    })();
+
+    Curve.prototype = {
+
+        // Returns a bbox that tightly envelops the curve.
+        bbox: function() {
+
+            var start = this.start;
+            var controlPoint1 = this.controlPoint1;
+            var controlPoint2 = this.controlPoint2;
+            var end = this.end;
+
+            var x0 = start.x;
+            var y0 = start.y;
+            var x1 = controlPoint1.x;
+            var y1 = controlPoint1.y;
+            var x2 = controlPoint2.x;
+            var y2 = controlPoint2.y;
+            var x3 = end.x;
+            var y3 = end.y;
+
+            var points = new Array(); // local extremes
+            var tvalues = new Array(); // t values of local extremes
+            var bounds = [new Array(), new Array()];
+
+            var a, b, c, t;
+            var t1, t2;
+            var b2ac, sqrtb2ac;
+
+            for (var i = 0; i < 2; ++i) {
+
+                if (i === 0) {
+                    b = 6 * x0 - 12 * x1 + 6 * x2;
+                    a = -3 * x0 + 9 * x1 - 9 * x2 + 3 * x3;
+                    c = 3 * x1 - 3 * x0;
+
+                } else {
+                    b = 6 * y0 - 12 * y1 + 6 * y2;
+                    a = -3 * y0 + 9 * y1 - 9 * y2 + 3 * y3;
+                    c = 3 * y1 - 3 * y0;
+                }
+
+                if (abs(a) < 1e-12) { // Numerical robustness
+                    if (abs(b) < 1e-12) { // Numerical robustness
+                        continue;
+                    }
+
+                    t = -c / b;
+                    if ((0 < t) && (t < 1)) tvalues.push(t);
+
+                    continue;
+                }
+
+                b2ac = b * b - 4 * c * a;
+                sqrtb2ac = sqrt(b2ac);
+
+                if (b2ac < 0) continue;
+
+                t1 = (-b + sqrtb2ac) / (2 * a);
+                if ((0 < t1) && (t1 < 1)) tvalues.push(t1);
+
+                t2 = (-b - sqrtb2ac) / (2 * a);
+                if ((0 < t2) && (t2 < 1)) tvalues.push(t2);
+            }
+
+            var j = tvalues.length;
+            var jlen = j;
+            var mt;
+            var x, y;
+
+            while (j--) {
+                t = tvalues[j];
+                mt = 1 - t;
+
+                x = (mt * mt * mt * x0) + (3 * mt * mt * t * x1) + (3 * mt * t * t * x2) + (t * t * t * x3);
+                bounds[0][j] = x;
+
+                y = (mt * mt * mt * y0) + (3 * mt * mt * t * y1) + (3 * mt * t * t * y2) + (t * t * t * y3);
+                bounds[1][j] = y;
+
+                points[j] = { X: x, Y: y };
+            }
+
+            tvalues[jlen] = 0;
+            tvalues[jlen + 1] = 1;
+
+            points[jlen] = { X: x0, Y: y0 };
+            points[jlen + 1] = { X: x3, Y: y3 };
+
+            bounds[0][jlen] = x0;
+            bounds[1][jlen] = y0;
+
+            bounds[0][jlen + 1] = x3;
+            bounds[1][jlen + 1] = y3;
+
+            tvalues.length = jlen + 2;
+            bounds[0].length = jlen + 2;
+            bounds[1].length = jlen + 2;
+            points.length = jlen + 2;
+
+            var left = min.apply(null, bounds[0]);
+            var top = min.apply(null, bounds[1]);
+            var right = max.apply(null, bounds[0]);
+            var bottom = max.apply(null, bounds[1]);
+
+            return new Rect(left, top, (right - left), (bottom - top));
+        },
+
+        clone: function() {
+
+            return new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end);
+        },
+
+        // Returns the point on the curve closest to point `p`
+        closestPoint: function(p, opt) {
+
+            return this.pointAtT(this.closestPointT(p, opt));
+        },
+
+        closestPointLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
+
+            return this.lengthAtT(this.closestPointT(p, localOpt), localOpt);
+        },
+
+        closestPointNormalizedLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
+
+            var cpLength = this.closestPointLength(p, localOpt);
+            if (!cpLength) return 0;
+
+            var length = this.length(localOpt);
+            if (length === 0) return 0;
+
+            return cpLength / length;
+        },
+
+        // Returns `t` of the point on the curve closest to point `p`
+        closestPointT: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // does not use localOpt
+
+            // identify the subdivision that contains the point:
+            var investigatedSubdivision;
+            var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
+            var investigatedSubdivisionEndT;
+            var distFromStart; // distance of point from start of baseline
+            var distFromEnd; // distance of point from end of baseline
+            var minSumDist; // lowest observed sum of the two distances
+            var n = subdivisions.length;
+            var subdivisionSize = (n ? (1 / n) : 0);
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+
+                var startDist = currentSubdivision.start.distance(p);
+                var endDist = currentSubdivision.end.distance(p);
+                var sumDist = startDist + endDist;
+
+                // check that the point is closest to current subdivision and not any other
+                if (!minSumDist || (sumDist < minSumDist)) {
+                    investigatedSubdivision = currentSubdivision;
+
+                    investigatedSubdivisionStartT = i * subdivisionSize;
+                    investigatedSubdivisionEndT = (i + 1) * subdivisionSize;
+
+                    distFromStart = startDist;
+                    distFromEnd = endDist;
+
+                    minSumDist = sumDist;
+                }
+            }
+
+            var precisionRatio = pow(10, -precision);
+
+            // recursively divide investigated subdivision:
+            // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
+            // then return the closest endpoint of that final subdivision
+            while (true) {
+
+                // check if we have reached required observed precision
+                var startPrecisionRatio;
+                var endPrecisionRatio;
+
+                startPrecisionRatio = (distFromStart ? (abs(distFromStart - distFromEnd) / distFromStart) : 0);
+                endPrecisionRatio = (distFromEnd ? (abs(distFromStart - distFromEnd) / distFromEnd) : 0);
+                if ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio) < precisionRatio) {
+                    return ((distFromStart <= distFromEnd) ? investigatedSubdivisionStartT : investigatedSubdivisionEndT);
+                }
+
+                // otherwise, set up for next iteration
+                var divided = investigatedSubdivision.divide(0.5);
+                subdivisionSize /= 2;
+
+                var startDist1 = divided[0].start.distance(p);
+                var endDist1 = divided[0].end.distance(p);
+                var sumDist1 = startDist1 + endDist1;
+
+                var startDist2 = divided[1].start.distance(p);
+                var endDist2 = divided[1].end.distance(p);
+                var sumDist2 = startDist2 + endDist2;
+
+                if (sumDist1 <= sumDist2) {
+                    investigatedSubdivision = divided[0];
+
+                    investigatedSubdivisionEndT -= subdivisionSize; // subdivisionSize was already halved
+
+                    distFromStart = startDist1;
+                    distFromEnd = endDist1;
+
+                } else {
+                    investigatedSubdivision = divided[1];
+
+                    investigatedSubdivisionStartT += subdivisionSize; // subdivisionSize was already halved
+
+                    distFromStart = startDist2;
+                    distFromEnd = endDist2;
+                }
+            }
+        },
+
+        closestPointTangent: function(p, opt) {
+
+            return this.tangentAtT(this.closestPointT(p, opt));
+        },
+
+        // Divides the curve into two at point defined by `t` between 0 and 1.
+        // Using de Casteljau's algorithm (http://math.stackexchange.com/a/317867).
+        // Additional resource: https://pomax.github.io/bezierinfo/#decasteljau
+        divide: function(t) {
+
+            var start = this.start;
+            var controlPoint1 = this.controlPoint1;
+            var controlPoint2 = this.controlPoint2;
+            var end = this.end;
+
+            // shortcuts for `t` values that are out of range
+            if (t <= 0) {
+                return [
+                    new Curve(start, start, start, start),
+                    new Curve(start, controlPoint1, controlPoint2, end)
+                ];
+            }
+
+            if (t >= 1) {
+                return [
+                    new Curve(start, controlPoint1, controlPoint2, end),
+                    new Curve(end, end, end, end)
+                ];
+            }
+
+            var dividerPoints = this.getSkeletonPoints(t);
+
+            var startControl1 = dividerPoints.startControlPoint1;
+            var startControl2 = dividerPoints.startControlPoint2;
+            var divider = dividerPoints.divider;
+            var dividerControl1 = dividerPoints.dividerControlPoint1;
+            var dividerControl2 = dividerPoints.dividerControlPoint2;
+
+            // return array with two new curves
+            return [
+                new Curve(start, startControl1, startControl2, divider),
+                new Curve(divider, dividerControl1, dividerControl2, end)
+            ];
+        },
+
+        // Returns the distance between the curve's start and end points.
+        endpointDistance: function() {
+
+            return this.start.distance(this.end);
+        },
+
+        // Checks whether two curves are exactly the same.
+        equals: function(c) {
+
+            return !!c &&
+                    this.start.x === c.start.x &&
+                    this.start.y === c.start.y &&
+                    this.controlPoint1.x === c.controlPoint1.x &&
+                    this.controlPoint1.y === c.controlPoint1.y &&
+                    this.controlPoint2.x === c.controlPoint2.x &&
+                    this.controlPoint2.y === c.controlPoint2.y &&
+                    this.end.x === c.end.x &&
+                    this.end.y === c.end.y;
+        },
+
+        // Returns five helper points necessary for curve division.
+        getSkeletonPoints: function(t) {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            // shortcuts for `t` values that are out of range
+            if (t <= 0) {
+                return {
+                    startControlPoint1: start.clone(),
+                    startControlPoint2: start.clone(),
+                    divider: start.clone(),
+                    dividerControlPoint1: control1.clone(),
+                    dividerControlPoint2: control2.clone()
                 };
             }
-            return function solveInversion(p) {
-                var ct = 3 * l(2, 3)(p1);
-                var c1 = l(1, 3)(p0) / ct;
-                var c2 = -l(2, 3)(p0) / ct;
-                var la = c1 * l(3, 1)(p) + c2 * (l(3, 0)(p) + l(2, 1)(p)) + l(2, 0)(p);
-                var lb = c1 * l(3, 0)(p) + c2 * l(2, 0)(p) + l(1, 0)(p);
-                return lb / (lb - la);
+
+            if (t >= 1) {
+                return {
+                    startControlPoint1: control1.clone(),
+                    startControlPoint2: control2.clone(),
+                    divider: end.clone(),
+                    dividerControlPoint1: end.clone(),
+                    dividerControlPoint2: end.clone()
+                };
+            }
+
+            var midpoint1 = (new Line(start, control1)).pointAt(t);
+            var midpoint2 = (new Line(control1, control2)).pointAt(t);
+            var midpoint3 = (new Line(control2, end)).pointAt(t);
+
+            var subControl1 = (new Line(midpoint1, midpoint2)).pointAt(t);
+            var subControl2 = (new Line(midpoint2, midpoint3)).pointAt(t);
+
+            var divider = (new Line(subControl1, subControl2)).pointAt(t);
+
+            var output = {
+                startControlPoint1: midpoint1,
+                startControlPoint2: subControl1,
+                divider: divider,
+                dividerControlPoint1: subControl2,
+                dividerControlPoint2: midpoint3
             };
+
+            return output;
+        },
+
+        // Returns a list of curves whose flattened length is better than `opt.precision`.
+        // That is, observed difference in length between recursions is less than 10^(-3) = 0.001 = 0.1%
+        // (Observed difference is not real precision, but close enough as long as special cases are covered)
+        // (That is why skipping iteration 1 is important)
+        // As a rule of thumb, increasing `precision` by 1 requires two more division operations
+        // - Precision 0 (endpointDistance) - total of 2^0 - 1 = 0 operations (1 subdivision)
+        // - Precision 1 (<10% error) - total of 2^2 - 1 = 3 operations (4 subdivisions)
+        // - Precision 2 (<1% error) - total of 2^4 - 1 = 15 operations requires 4 division operations on all elements (15 operations total) (16 subdivisions)
+        // - Precision 3 (<0.1% error) - total of 2^6 - 1 = 63 operations - acceptable when drawing (64 subdivisions)
+        // - Precision 4 (<0.01% error) - total of 2^8 - 1 = 255 operations - high resolution, can be used to interpolate `t` (256 subdivisions)
+        // (Variation of 1 recursion worse or better is possible depending on the curve, doubling/halving the number of operations accordingly)
+        getSubdivisions: function(opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.subdivisions
+            // not using localOpt
+
+            var subdivisions = [new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end)];
+            if (precision === 0) return subdivisions;
+
+            var previousLength = this.endpointDistance();
+
+            var precisionRatio = pow(10, -precision);
+
+            // recursively divide curve at `t = 0.5`
+            // until the difference between observed length at subsequent iterations is lower than precision
+            var iteration = 0;
+            while (true) {
+                iteration += 1;
+
+                // divide all subdivisions
+                var newSubdivisions = [];
+                var numSubdivisions = subdivisions.length;
+                for (var i = 0; i < numSubdivisions; i++) {
+
+                    var currentSubdivision = subdivisions[i];
+                    var divided = currentSubdivision.divide(0.5); // dividing at t = 0.5 (not at middle length!)
+                    newSubdivisions.push(divided[0], divided[1]);
+                }
+
+                // measure new length
+                var length = 0;
+                var numNewSubdivisions = newSubdivisions.length;
+                for (var j = 0; j < numNewSubdivisions; j++) {
+
+                    var currentNewSubdivision = newSubdivisions[j];
+                    length += currentNewSubdivision.endpointDistance();
+                }
+
+                // check if we have reached required observed precision
+                // sine-like curves may have the same observed length in iteration 0 and 1 - skip iteration 1
+                // not a problem for further iterations because cubic curves cannot have more than two local extrema
+                // (i.e. cubic curves cannot intersect the baseline more than once)
+                // therefore two subsequent iterations cannot produce sampling with equal length
+                var observedPrecisionRatio = ((length !== 0) ? ((length - previousLength) / length) : 0);
+                if (iteration > 1 && observedPrecisionRatio < precisionRatio) {
+                    return newSubdivisions;
+                }
+
+                // otherwise, set up for next iteration
+                subdivisions = newSubdivisions;
+                previousLength = length;
+            }
+        },
+
+        isDifferentiable: function() {
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+        },
+
+        // Returns flattened length of the curve with precision better than `opt.precision`; or using `opt.subdivisions` provided.
+        length: function(opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSubdivisions() call
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // not using localOpt
+
+            var length = 0;
+            var n = subdivisions.length;
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+                length += currentSubdivision.endpointDistance();
+            }
+
+            return length;
+        },
+
+        // Returns distance along the curve up to `t` with precision better than requested `opt.precision`. (Not using `opt.subdivisions`.)
+        lengthAtT: function(t, opt) {
+
+            if (t <= 0) return 0;
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.subdivisions
+            // not using localOpt
+
+            var subCurve = this.divide(t)[0];
+            var subCurveLength = subCurve.length({ precision: precision });
+
+            return subCurveLength;
+        },
+
+        // Returns point at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
+        // Mirrors Line.pointAt() function.
+        // For a function that tracks `t`, use Curve.pointAtT().
+        pointAt: function(ratio, opt) {
+
+            if (ratio <= 0) return this.start.clone();
+            if (ratio >= 1) return this.end.clone();
+
+            var t = this.tAt(ratio, opt);
+
+            return this.pointAtT(t);
+        },
+
+        // Returns point at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        pointAtLength: function(length, opt) {
+
+            var t = this.tAtLength(length, opt);
+
+            return this.pointAtT(t);
+        },
+
+        // Returns the point at provided `t` between 0 and 1.
+        // `t` does not track distance along curve as it does in Line objects.
+        // Non-linear relationship, speeds up and slows down as curve warps!
+        // For linear length-based solution, use Curve.pointAt().
+        pointAtT: function(t) {
+
+            if (t <= 0) return this.start.clone();
+            if (t >= 1) return this.end.clone();
+
+            return this.getSkeletonPoints(t).divider;
+        },
+
+        // Default precision
+        PRECISION: 3,
+
+        scale: function(sx, sy, origin) {
+
+            this.start.scale(sx, sy, origin);
+            this.controlPoint1.scale(sx, sy, origin);
+            this.controlPoint2.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        // Returns a tangent line at requested `ratio` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
+        tangentAt: function(ratio, opt) {
+
+            if (!this.isDifferentiable()) return null;
+
+            if (ratio < 0) ratio = 0;
+            else if (ratio > 1) ratio = 1;
+
+            var t = this.tAt(ratio, opt);
+
+            return this.tangentAtT(t);
+        },
+
+        // Returns a tangent line at requested `length` with precision better than requested `opt.precision`; or using `opt.subdivisions` provided.
+        tangentAtLength: function(length, opt) {
+
+            if (!this.isDifferentiable()) return null;
+
+            var t = this.tAtLength(length, opt);
+
+            return this.tangentAtT(t);
+        },
+
+        // Returns a tangent line at requested `t`.
+        tangentAtT: function(t) {
+
+            if (!this.isDifferentiable()) return null;
+
+            if (t < 0) t = 0;
+            else if (t > 1) t = 1;
+
+            var skeletonPoints = this.getSkeletonPoints(t);
+
+            var p1 = skeletonPoints.startControlPoint2;
+            var p2 = skeletonPoints.dividerControlPoint1;
+
+            var tangentStart = skeletonPoints.divider;
+
+            var tangentLine = new Line(p1, p2);
+            tangentLine.translate(tangentStart.x - p1.x, tangentStart.y - p1.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        // Returns `t` at requested `ratio` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        tAt: function(ratio, opt) {
+
+            if (ratio <= 0) return 0;
+            if (ratio >= 1) return 1;
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
+
+            var curveLength = this.length(localOpt);
+            var length = curveLength * ratio;
+
+            return this.tAtLength(length, localOpt);
+        },
+
+        // Returns `t` at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+        // Uses `precision` to approximate length within `precision` (always underestimates)
+        // Then uses a binary search to find the `t` of a subdivision endpoint that is close (within `precision`) to the `length`, if the curve was as long as approximated
+        // As a rule of thumb, increasing `precision` by 1 causes the algorithm to go 2^(precision - 1) deeper
+        // - Precision 0 (chooses one of the two endpoints) - 0 levels
+        // - Precision 1 (chooses one of 5 points, <10% error) - 1 level
+        // - Precision 2 (<1% error) - 3 levels
+        // - Precision 3 (<0.1% error) - 7 levels
+        // - Precision 4 (<0.01% error) - 15 levels
+        tAtLength: function(length, opt) {
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            var localOpt = { precision: precision, subdivisions: subdivisions };
+
+            // identify the subdivision that contains the point at requested `length`:
+            var investigatedSubdivision;
+            var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
+            var investigatedSubdivisionEndT;
+            //var baseline; // straightened version of subdivision to investigate
+            //var baselinePoint; // point on the baseline that is the requested distance away from start
+            var baselinePointDistFromStart; // distance of baselinePoint from start of baseline
+            var baselinePointDistFromEnd; // distance of baselinePoint from end of baseline
+            var l = 0; // length so far
+            var n = subdivisions.length;
+            var subdivisionSize = 1 / n;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var currentSubdivision = subdivisions[i];
+                var d = currentSubdivision.endpointDistance(); // length of current subdivision
+
+                if (length <= (l + d)) {
+                    investigatedSubdivision = currentSubdivision;
+
+                    investigatedSubdivisionStartT = i * subdivisionSize;
+                    investigatedSubdivisionEndT = (i + 1) * subdivisionSize;
+
+                    baselinePointDistFromStart = (fromStart ? (length - l) : ((d + l) - length));
+                    baselinePointDistFromEnd = (fromStart ? ((d + l) - length) : (length - l));
+
+                    break;
+                }
+
+                l += d;
+            }
+
+            if (!investigatedSubdivision) return (fromStart ? 1 : 0); // length requested is out of range - return maximum t
+            // note that precision affects what length is recorded
+            // (imprecise measurements underestimate length by up to 10^(-precision) of the precise length)
+            // e.g. at precision 1, the length may be underestimated by up to 10% and cause this function to return 1
+
+            var curveLength = this.length(localOpt);
+
+            var precisionRatio = pow(10, -precision);
+
+            // recursively divide investigated subdivision:
+            // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
+            // then return the closest endpoint of that final subdivision
+            while (true) {
+
+                // check if we have reached required observed precision
+                var observedPrecisionRatio;
+
+                observedPrecisionRatio = ((curveLength !== 0) ? (baselinePointDistFromStart / curveLength) : 0);
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionStartT;
+                observedPrecisionRatio = ((curveLength !== 0) ? (baselinePointDistFromEnd / curveLength) : 0);
+                if (observedPrecisionRatio < precisionRatio) return investigatedSubdivisionEndT;
+
+                // otherwise, set up for next iteration
+                var newBaselinePointDistFromStart;
+                var newBaselinePointDistFromEnd;
+
+                var divided = investigatedSubdivision.divide(0.5);
+                subdivisionSize /= 2;
+
+                var baseline1Length = divided[0].endpointDistance();
+                var baseline2Length = divided[1].endpointDistance();
+
+                if (baselinePointDistFromStart <= baseline1Length) { // point at requested length is inside divided[0]
+                    investigatedSubdivision = divided[0];
+
+                    investigatedSubdivisionEndT -= subdivisionSize; // sudivisionSize was already halved
+
+                    newBaselinePointDistFromStart = baselinePointDistFromStart;
+                    newBaselinePointDistFromEnd = baseline1Length - newBaselinePointDistFromStart;
+
+                } else { // point at requested length is inside divided[1]
+                    investigatedSubdivision = divided[1];
+
+                    investigatedSubdivisionStartT += subdivisionSize; // subdivisionSize was already halved
+
+                    newBaselinePointDistFromStart = baselinePointDistFromStart - baseline1Length;
+                    newBaselinePointDistFromEnd = baseline2Length - newBaselinePointDistFromStart;
+                }
+
+                baselinePointDistFromStart = newBaselinePointDistFromStart;
+                baselinePointDistFromEnd = newBaselinePointDistFromEnd;
+            }
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.translate(tx, ty);
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        // Returns an array of points that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
+        // Flattened length is no more than 10^(-precision) away from real curve length.
+        toPoints: function(opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSubdivisions() call
+            var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
+            // not using localOpt
+
+            var points = [subdivisions[0].start.clone()];
+            var n = subdivisions.length;
+            for (var i = 0; i < n; i++) {
+
+                var currentSubdivision = subdivisions[i];
+                points.push(currentSubdivision.end.clone());
+            }
+
+            return points;
+        },
+
+        // Returns a polyline that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
+        // Flattened length is no more than 10^(-precision) away from real curve length.
+        toPolyline: function(opt) {
+
+            return new Polyline(this.toPoints(opt));
+        },
+
+        toString: function() {
+
+            return this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
         }
     };
 
@@ -617,32 +1495,32 @@ var g = (function() {
         }
 
         if (c instanceof Ellipse) {
-            return new Ellipse(Point(c), c.a, c.b);
+            return new Ellipse(new Point(c.x, c.y), c.a, c.b);
         }
 
-        c = Point(c);
+        c = new Point(c);
         this.x = c.x;
         this.y = c.y;
         this.a = a;
         this.b = b;
     };
 
-    g.Ellipse.fromRect = function(rect) {
+    Ellipse.fromRect = function(rect) {
 
-        rect = Rect(rect);
-        return Ellipse(rect.center(), rect.width / 2, rect.height / 2);
+        rect = new Rect(rect);
+        return new Ellipse(rect.center(), rect.width / 2, rect.height / 2);
     };
 
-    g.Ellipse.prototype = {
+    Ellipse.prototype = {
 
         bbox: function() {
 
-            return Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
+            return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
         },
 
         clone: function() {
 
-            return Ellipse(this);
+            return new Ellipse(this);
         },
 
         /**
@@ -695,7 +1573,7 @@ var g = (function() {
          */
         center: function() {
 
-            return Point(this.x, this.y);
+            return new Point(this.x, this.y);
         },
 
         /** Compute angle between tangent and x axis
@@ -720,12 +1598,13 @@ var g = (function() {
             if (q1 || q3) {
                 y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
                 x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
+
             } else {
                 x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
                 y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
             }
 
-            return g.point(x, y).theta(p);
+            return (new Point(x, y)).theta(p);
 
         },
 
@@ -738,37 +1617,87 @@ var g = (function() {
                     ellipse.b === this.b;
         },
 
+        intersectionWithLine: function(line) {
+
+            var intersections = [];
+            var a1 = line.start;
+            var a2 = line.end;
+            var rx = this.a;
+            var ry = this.b;
+            var dir = line.vector();
+            var diff = a1.difference(new Point(this));
+            var mDir = new Point(dir.x / (rx * rx), dir.y / (ry * ry));
+            var mDiff = new Point(diff.x / (rx * rx), diff.y / (ry * ry));
+
+            var a = dir.dot(mDir);
+            var b = dir.dot(mDiff);
+            var c = diff.dot(mDiff) - 1.0;
+            var d = b * b - a * c;
+
+            if (d < 0) {
+                return null;
+            } else if (d > 0) {
+                var root = sqrt(d);
+                var ta = (-b - root) / a;
+                var tb = (-b + root) / a;
+
+                if ((ta < 0 || 1 < ta) && (tb < 0 || 1 < tb)) {
+                    // if ((ta < 0 && tb < 0) || (ta > 1 && tb > 1)) outside else inside
+                    return null;
+                } else {
+                    if (0 <= ta && ta <= 1) intersections.push(a1.lerp(a2, ta));
+                    if (0 <= tb && tb <= 1) intersections.push(a1.lerp(a2, tb));
+                }
+            } else {
+                var t = -b / a;
+                if (0 <= t && t <= 1) {
+                    intersections.push(a1.lerp(a2, t));
+                } else {
+                    // outside
+                    return null;
+                }
+            }
+
+            return intersections;
+        },
+
         // Find point on me where line from my center to
         // point p intersects my boundary.
         // @param {number} angle If angle is specified, intersection with rotated ellipse is computed.
         intersectionWithLineFromCenterToPoint: function(p, angle) {
 
-            p = Point(p);
-            if (angle) p.rotate(Point(this.x, this.y), angle);
+            p = new Point(p);
+
+            if (angle) p.rotate(new Point(this.x, this.y), angle);
+
             var dx = p.x - this.x;
             var dy = p.y - this.y;
             var result;
+
             if (dx === 0) {
                 result = this.bbox().pointNearestToPoint(p);
-                if (angle) return result.rotate(Point(this.x, this.y), -angle);
+                if (angle) return result.rotate(new Point(this.x, this.y), -angle);
                 return result;
             }
+
             var m = dy / dx;
             var mSquared = m * m;
             var aSquared = this.a * this.a;
             var bSquared = this.b * this.b;
-            var x = sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
 
+            var x = sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
             x = dx < 0 ? -x : x;
+
             var y = m * x;
-            result = Point(this.x + x, this.y + y);
-            if (angle) return result.rotate(Point(this.x, this.y), -angle);
+            result = new Point(this.x + x, this.y + y);
+
+            if (angle) return result.rotate(new Point(this.x, this.y), -angle);
             return result;
         },
 
         toString: function() {
 
-            return Point(this.x, this.y).toString() + ' ' + this.a + ' ' + this.b;
+            return (new Point(this.x, this.y)).toString() + ' ' + this.a + ' ' + this.b;
         }
     };
 
@@ -779,14 +1708,24 @@ var g = (function() {
         }
 
         if (p1 instanceof Line) {
-            return Line(p1.start, p1.end);
+            return new Line(p1.start, p1.end);
         }
 
-        this.start = Point(p1);
-        this.end = Point(p2);
+        this.start = new Point(p1);
+        this.end = new Point(p2);
     };
 
-    g.Line.prototype = {
+    Line.prototype = {
+
+        bbox: function() {
+
+            var left = min(this.start.x, this.end.x);
+            var top = min(this.start.y, this.end.y);
+            var right = max(this.start.x, this.end.x);
+            var bottom = max(this.start.y, this.end.y);
+
+            return new Rect(left, top, (right - left), (bottom - top));
+        },
 
         // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
         // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
@@ -813,7 +1752,37 @@ var g = (function() {
 
         clone: function() {
 
-            return Line(this.start, this.end);
+            return new Line(this.start, this.end);
+        },
+
+        // @return {point} the closest point on the line to point `p`
+        closestPoint: function(p) {
+
+            return this.pointAt(this.closestPointNormalizedLength(p));
+        },
+
+        closestPointLength: function(p) {
+
+            return this.closestPointNormalizedLength(p) * this.length();
+        },
+
+        // @return {number} the normalized length of the closest point on the line to point `p`
+        closestPointNormalizedLength: function(p) {
+
+            var product = this.vector().dot((new Line(this.start, p)).vector());
+            var cpNormalizedLength = min(1, max(0, product / this.squaredLength()));
+
+            // cpNormalizedLength returns `NaN` if this line has zero length
+            // we can work with that - if `NaN`, return 0
+            if (cpNormalizedLength !== cpNormalizedLength) return 0; // condition evaluates to `true` if and only if cpNormalizedLength is `NaN`
+            // (`NaN` is the only value that is not equal to itself)
+
+            return cpNormalizedLength;
+        },
+
+        closestPointTangent: function(p) {
+
+            return this.tangentAt(this.closestPointNormalizedLength(p));
         },
 
         equals: function(l) {
@@ -825,73 +1794,76 @@ var g = (function() {
                     this.end.y === l.end.y;
         },
 
+        intersectionWithLine: function(line) {
+
+            var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
+            var pt2Dir = new Point(line.end.x - line.start.x, line.end.y - line.start.y);
+            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
+            var deltaPt = new Point(line.start.x - this.start.x, line.start.y - this.start.y);
+            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
+            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+
+            if (det === 0 || alpha * det < 0 || beta * det < 0) {
+                // No intersection found.
+                return null;
+            }
+
+            if (det > 0) {
+                if (alpha > det || beta > det) {
+                    return null;
+                }
+
+            } else {
+                if (alpha < det || beta < det) {
+                    return null;
+                }
+            }
+
+            return [new Point(
+                this.start.x + (alpha * pt1Dir.x / det),
+                this.start.y + (alpha * pt1Dir.y / det)
+            )];
+        },
+
         // @return {point} Point where I'm intersecting a line.
         // @return [point] Points where I'm intersecting a rectangle.
         // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersect: function(l) {
+        intersect: function(shape, opt) {
 
-            if (l instanceof Line) {
-                // Passed in parameter is a line.
+            if (shape instanceof Line ||
+                shape instanceof Rect ||
+                shape instanceof Polyline ||
+                shape instanceof Ellipse ||
+                shape instanceof Path
+            ) {
+                var intersection = shape.intersectionWithLine(this, opt);
 
-                var pt1Dir = Point(this.end.x - this.start.x, this.end.y - this.start.y);
-                var pt2Dir = Point(l.end.x - l.start.x, l.end.y - l.start.y);
-                var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-                var deltaPt = Point(l.start.x - this.start.x, l.start.y - this.start.y);
-                var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-                var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
-
-                if (det === 0 ||
-                    alpha * det < 0 ||
-                    beta * det < 0) {
-                    // No intersection found.
-                    return null;
-                }
-                if (det > 0) {
-                    if (alpha > det || beta > det) {
-                        return null;
-                    }
-                } else {
-                    if (alpha < det || beta < det) {
-                        return null;
-                    }
-                }
-                return Point(
-                    this.start.x + (alpha * pt1Dir.x / det),
-                    this.start.y + (alpha * pt1Dir.y / det)
-                );
-
-            } else if (l instanceof Rect) {
-                // Passed in parameter is a rectangle.
-
-                var r = l;
-                var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
-                var points = [];
-                var dedupeArr = [];
-                var pt, i;
-
-                for (i = 0; i < rectLines.length; i ++) {
-                    pt = this.intersect(rectLines[i]);
-                    if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
-                        points.push(pt);
-                        dedupeArr.push(pt.toString());
-                    }
+                // Backwards compatibility
+                if (intersection && (shape instanceof Line)) {
+                    intersection = intersection[0];
                 }
 
-                return points.length > 0 ? points : null;
+                return intersection;
             }
 
-            // Passed in parameter is neither a Line nor a Rectangle.
             return null;
+        },
+
+        isDifferentiable: function() {
+
+            return !this.start.equals(this.end);
         },
 
         // @return {double} length of the line
         length: function() {
+
             return sqrt(this.squaredLength());
         },
 
         // @return {point} my midpoint
         midpoint: function() {
-            return Point(
+
+            return new Point(
                 (this.start.x + this.end.x) / 2,
                 (this.start.y + this.end.y) / 2
             );
@@ -900,41 +1872,82 @@ var g = (function() {
         // @return {point} my point at 't' <0,1>
         pointAt: function(t) {
 
-            var x = (1 - t) * this.start.x + t * this.end.x;
-            var y = (1 - t) * this.start.y + t * this.end.y;
-            return Point(x, y);
+            var start = this.start;
+            var end = this.end;
+
+            if (t <= 0) return start.clone();
+            if (t >= 1) return end.clone();
+
+            return start.lerp(end, t);
+        },
+
+        pointAtLength: function(length) {
+
+            var start = this.start;
+            var end = this.end;
+
+            fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var lineLength = this.length();
+            if (length >= lineLength) return (fromStart ? end.clone() : start.clone());
+
+            return this.pointAt((fromStart ? (length) : (lineLength - length)) / lineLength);
         },
 
         // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
         pointOffset: function(p) {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
-            return ((this.end.x - this.start.x) * (p.y - this.start.y) - (this.end.y - this.start.y) * (p.x - this.start.x)) / 2;
+            p = new g.Point(p);
+            var start = this.start;
+            var end = this.end;
+            var determinant = ((end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x));
+
+            return determinant / this.length();
         },
 
-        // @return vector {point} of the line
-        vector: function() {
+        rotate: function(origin, angle) {
 
-            return Point(this.end.x - this.start.x, this.end.y - this.start.y);
+            this.start.rotate(origin, angle);
+            this.end.rotate(origin, angle);
+            return this;
         },
 
-        // @return {point} the closest point on the line to point `p`
-        closestPoint: function(p) {
+        round: function(precision) {
 
-            return this.pointAt(this.closestPointNormalizedLength(p));
+            var f = pow(10, precision || 0);
+            this.start.x = round(this.start.x * f) / f;
+            this.start.y = round(this.start.y * f) / f;
+            this.end.x = round(this.end.x * f) / f;
+            this.end.y = round(this.end.y * f) / f;
+            return this;
         },
 
-        // @return {number} the normalized length of the closest point on the line to point `p`
-        closestPointNormalizedLength: function(p) {
+        scale: function(sx, sy, origin) {
 
-            var product = this.vector().dot(Line(this.start, p).vector());
+            this.start.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
 
-            return Math.min(1, Math.max(0, product / this.squaredLength()));
+        // @return {number} scale the line so that it has the requested length
+        setLength: function(length) {
+
+            var currentLength = this.length();
+            if (!currentLength) return this;
+
+            var scaleFactor = length / currentLength;
+            return this.scale(scaleFactor, scaleFactor, this.start);
         },
 
         // @return {integer} length without sqrt
         // @note for applications where the exact length is not necessary (e.g. compare only)
         squaredLength: function() {
+
             var x0 = this.start.x;
             var y0 = this.start.y;
             var x1 = this.end.x;
@@ -942,13 +1955,1114 @@ var g = (function() {
             return (x0 -= x1) * x0 + (y0 -= y1) * y0;
         },
 
+        tangentAt: function(t) {
+
+            if (!this.isDifferentiable()) return null;
+
+            var start = this.start;
+            var end = this.end;
+
+            var tangentStart = this.pointAt(t); // constrains `t` between 0 and 1
+
+            var tangentLine = new Line(start, end);
+            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        tangentAtLength: function(length) {
+
+            if (!this.isDifferentiable()) return null;
+
+            var start = this.start;
+            var end = this.end;
+
+            var tangentStart = this.pointAtLength(length);
+
+            var tangentLine = new Line(start, end);
+            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        // @return vector {point} of the line
+        vector: function() {
+
+            return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
+        },
+
         toString: function() {
+
             return this.start.toString() + ' ' + this.end.toString();
         }
     };
 
     // For backwards compatibility:
-    g.Line.prototype.intersection = g.Line.prototype.intersect;
+    Line.prototype.intersection = Line.prototype.intersect;
+
+    // Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+    // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
+    var Path = g.Path = function(arg) {
+
+        if (!(this instanceof Path)) {
+            return new Path(arg);
+        }
+
+        if (typeof arg === 'string') { // create from a path data string
+            return new Path.parse(arg);
+        }
+
+        this.segments = [];
+
+        var i;
+        var n;
+
+        if (!arg) {
+            // don't do anything
+
+        } else if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
+            n = arg.length;
+            if (arg[0].isSegment) { // create from an array of segments
+                for (i = 0; i < n; i++) {
+
+                    var segment = arg[i];
+
+                    this.appendSegment(segment);
+                }
+
+            } else { // create from an array of Curves and/or Lines
+                var previousObj = null;
+                for (i = 0; i < n; i++) {
+
+                    var obj = arg[i];
+
+                    if (!((obj instanceof Line) || (obj instanceof Curve))) {
+                        throw new Error('Cannot construct a path segment from the provided object.');
+                    }
+
+                    if (i === 0) this.appendSegment(Path.createSegment('M', obj.start));
+
+                    // if objects do not link up, moveto segments are inserted to cover the gaps
+                    if (previousObj && !previousObj.end.equals(obj.start)) this.appendSegment(Path.createSegment('M', obj.start));
+
+                    if (obj instanceof Line) {
+                        this.appendSegment(Path.createSegment('L', obj.end));
+
+                    } else if (obj instanceof Curve) {
+                        this.appendSegment(Path.createSegment('C', obj.controlPoint1, obj.controlPoint2, obj.end));
+                    }
+
+                    previousObj = obj;
+                }
+            }
+
+        } else if (arg.isSegment) { // create from a single segment
+            this.appendSegment(arg);
+
+        } else if (arg instanceof Line) { // create from a single Line
+            this.appendSegment(Path.createSegment('M', arg.start));
+            this.appendSegment(Path.createSegment('L', arg.end));
+
+        } else if (arg instanceof Curve) { // create from a single Curve
+            this.appendSegment(Path.createSegment('M', arg.start));
+            this.appendSegment(Path.createSegment('C', arg.controlPoint1, arg.controlPoint2, arg.end));
+
+        } else if (arg instanceof Polyline && arg.points && arg.points.length !== 0) { // create from a Polyline
+            n = arg.points.length;
+            for (i = 0; i < n; i++) {
+
+                var point = arg.points[i];
+
+                if (i === 0) this.appendSegment(Path.createSegment('M', point));
+                else this.appendSegment(Path.createSegment('L', point));
+            }
+        }
+    };
+
+    // More permissive than V.normalizePathData and Path.prototype.serialize.
+    // Allows path data strings that do not start with a Moveto command (unlike SVG specification).
+    // Does not require spaces between elements; commas are allowed, separators may be omitted when unambiguous (e.g. 'ZM10,10', 'L1.6.8', 'M100-200').
+    // Allows for command argument chaining.
+    // Throws an error if wrong number of arguments is provided with a command.
+    // Throws an error if an unrecognized path command is provided (according to Path.segmentTypes). Only a subset of SVG commands is currently supported (L, C, M, Z).
+    Path.parse = function(pathData) {
+
+        if (!pathData) return new Path();
+
+        var path = new Path();
+
+        var commandRe = /(?:[a-zA-Z] *)(?:(?:-?\d+(?:\.\d+)? *,? *)|(?:-?\.\d+ *,? *))+|(?:[a-zA-Z] *)(?! |\d|-|\.)/g;
+        var commands = pathData.match(commandRe);
+
+        var numCommands = commands.length;
+        for (var i = 0; i < numCommands; i++) {
+
+            var command = commands[i];
+            var argRe = /(?:[a-zA-Z])|(?:(?:-?\d+(?:\.\d+)?))|(?:(?:-?\.\d+))/g;
+            var args = command.match(argRe);
+
+            var segment = Path.createSegment.apply(this, args); // args = [type, coordinate1, coordinate2...]
+            path.appendSegment(segment);
+        }
+
+        return path;
+    };
+
+    // Create a segment or an array of segments.
+    // Accepts unlimited points/coords arguments after `type`.
+    Path.createSegment = function(type) {
+
+        if (!type) throw new Error('Type must be provided.');
+
+        var segmentConstructor = Path.segmentTypes[type];
+        if (!segmentConstructor) throw new Error(type + ' is not a recognized path segment type.');
+
+        var args = [];
+        var n = arguments.length;
+        for (var i = 1; i < n; i++) { // do not add first element (`type`) to args array
+            args.push(arguments[i]);
+        }
+
+        return applyToNew(segmentConstructor, args);
+    },
+
+    Path.prototype = {
+
+        // Accepts one segment or an array of segments as argument.
+        // Throws an error if argument is not a segment or an array of segments.
+        appendSegment: function(arg) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            // works even if path has no segments
+
+            var currentSegment;
+
+            var previousSegment = ((numSegments !== 0) ? segments[numSegments - 1] : null); // if we are appending to an empty path, previousSegment is null
+            var nextSegment = null;
+
+            if (!Array.isArray(arg)) { // arg is a segment
+                if (!arg || !arg.isSegment) throw new Error('Segment required.');
+
+                currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
+                segments.push(currentSegment);
+
+            } else { // arg is an array of segments
+                if (!arg[0].isSegment) throw new Error('Segments required.');
+
+                var n = arg.length;
+                for (var i = 0; i < n; i++) {
+
+                    var currentArg = arg[i];
+                    currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
+                    segments.push(currentSegment);
+                    previousSegment = currentSegment;
+                }
+            }
+        },
+
+        // Returns the bbox of the path.
+        // If path has no segments, returns null.
+        // If path has only invisible segments, returns bbox of the end point of last segment.
+        bbox: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var bbox;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                if (segment.isVisible) {
+                    var segmentBBox = segment.bbox();
+                    bbox = bbox ? bbox.union(segmentBBox) : segmentBBox;
+                }
+            }
+
+            if (bbox) return bbox;
+
+            // if the path has only invisible elements, return end point of last segment
+            var lastSegment = segments[numSegments - 1];
+            return new Rect(lastSegment.end.x, lastSegment.end.y, 0, 0);
+        },
+
+        // Returns a new path that is a clone of this path.
+        clone: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            // works even if path has no segments
+
+            var path = new Path();
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i].clone();
+                path.appendSegment(segment);
+            }
+
+            return path;
+        },
+
+        closestPoint: function(p, opt) {
+
+            var t = this.closestPointT(p, opt);
+            if (!t) return null;
+
+            return this.pointAtT(t);
+        },
+
+        closestPointLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var t = this.closestPointT(p, localOpt);
+            if (!t) return 0;
+
+            return this.lengthAtT(t, localOpt);
+        },
+
+        closestPointNormalizedLength: function(p, opt) {
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var cpLength = this.closestPointLength(p, localOpt);
+            if (cpLength === 0) return 0; // shortcut
+
+            var length = this.length(localOpt);
+            if (length === 0) return 0; // prevents division by zero
+
+            return cpLength / length;
+        },
+
+        // Private function.
+        closestPointT: function(p, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var closestPointT;
+            var minSquaredDistance = Infinity;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+
+                if (segment.isVisible) {
+                    var segmentClosestPointT = segment.closestPointT(p, { precision: precision, subdivisions: subdivisions });
+                    var segmentClosestPoint = segment.pointAtT(segmentClosestPointT);
+                    var squaredDistance = (new Line(segmentClosestPoint, p)).squaredLength();
+
+                    if (squaredDistance < minSquaredDistance) {
+                        closestPointT = { segmentIndex: i, value: segmentClosestPointT };
+                        minSquaredDistance = squaredDistance;
+                    }
+                }
+            }
+
+            if (closestPointT) return closestPointT;
+
+            // if no visible segment, return end of last segment
+            return { segmentIndex: numSegments - 1, value: 1 };
+        },
+
+        closestPointTangent: function(p, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var closestPointTangent;
+            var minSquaredDistance = Infinity;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+
+                if (segment.isDifferentiable()) {
+                    var segmentClosestPointT = segment.closestPointT(p, { precision: precision, subdivisions: subdivisions });
+                    var segmentClosestPoint = segment.pointAtT(segmentClosestPointT);
+                    var squaredDistance = (new Line(segmentClosestPoint, p)).squaredLength();
+
+                    if (squaredDistance < minSquaredDistance) {
+                        closestPointTangent = segment.tangentAtT(segmentClosestPointT);
+                        minSquaredDistance = squaredDistance;
+                    }
+                }
+            }
+
+            if (closestPointTangent) return closestPointTangent;
+
+            // if no valid segment, return null
+            return null;
+        },
+
+        // Checks whether two paths are exactly the same.
+        // If `p` is undefined or null, returns false.
+        equals: function(p) {
+
+            if (!p) return false;
+
+            var segments = this.segments;
+            var otherSegments = p.segments;
+
+            var numSegments = segments.length;
+            if (otherSegments.length !== numSegments) return false; // if the two paths have different number of segments, they cannot be equal
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var otherSegment = otherSegments[i];
+
+                // as soon as an inequality is found in segments, return false
+                if ((segment.type !== otherSegment.type) || (!segment.equals(otherSegment))) return false;
+            }
+
+            // if no inequality found in segments, return true
+            return true;
+        },
+
+        // Accepts negative indices.
+        // Throws an error if path has no segments.
+        // Throws an error if index is out of range.
+        getSegment: function(index) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (!numSegments === 0) throw new Error('Path has no segments.');
+
+            if (index < 0) index = numSegments + index; // convert negative indices to positive
+            if (index >= numSegments || index < 0) throw new Error('Index out of range.');
+
+            return segments[index];
+        },
+
+        // Returns an array of segment subdivisions, with precision better than requested `opt.precision`.
+        getSegmentSubdivisions: function(opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            // works even if path has no segments
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            // not using opt.segmentSubdivisions
+            // not using localOpt
+
+            var segmentSubdivisions = [];
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segment.getSubdivisions({ precision: precision });
+                segmentSubdivisions.push(subdivisions);
+            }
+
+            return segmentSubdivisions;
+        },
+
+        // Insert `arg` at given `index`.
+        // `index = 0` means insert at the beginning.
+        // `index = segments.length` means insert at the end.
+        // Accepts negative indices, from `-1` to `-(segments.length + 1)`.
+        // Accepts one segment or an array of segments as argument.
+        // Throws an error if index is out of range.
+        // Throws an error if argument is not a segment or an array of segments.
+        insertSegment: function(index, arg) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            // works even if path has no segments
+
+            // note that these are incremented comapared to getSegments()
+            // we can insert after last element (note that this changes the meaning of index -1)
+            if (index < 0) index = numSegments + index + 1; // convert negative indices to positive
+            if (index > numSegments || index < 0) throw new Error('Index out of range.');
+
+            var currentSegment;
+
+            var previousSegment = null;
+            var nextSegment = null;
+
+            if (numSegments !== 0) {
+                if (index >= 1) {
+                    previousSegment = segments[index - 1];
+                    nextSegment = previousSegment.nextSegment; // if we are inserting at end, nextSegment is null
+
+                } else { // if index === 0
+                    // previousSegment is null
+                    nextSegment = segments[0];
+                }
+            }
+
+            if (!Array.isArray(arg)) {
+                if (!arg || !arg.isSegment) throw new Error('Segment required.');
+
+                currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
+                segments.splice(index, 0, currentSegment);
+
+            } else {
+                if (!arg[0].isSegment) throw new Error('Segments required.');
+
+                var n = arg.length;
+                for (var i = 0; i < n; i++) {
+
+                    var currentArg = arg[i];
+                    currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
+                    segments.splice((index + i), 0, currentSegment); // incrementing index to insert subsequent segments after inserted segments
+                    previousSegment = currentSegment;
+                }
+            }
+        },
+
+        isDifferentiable: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                // as soon as a differentiable segment is found in segments, return true
+                if (segment.isDifferentiable()) return true;
+            }
+
+            // if no differentiable segment is found in segments, return false
+            return false;
+        },
+
+        // Checks whether current path segments are valid.
+        // Note that d is allowed to be empty - should disable rendering of the path.
+        isValid: function() {
+
+            var segments = this.segments;
+            var isValid = (segments.length === 0) || (segments[0].type === 'M'); // either empty or first segment is a Moveto
+            return isValid;
+        },
+
+        // Returns length of the path, with precision better than requested `opt.precision`; or using `opt.segmentSubdivisions` provided.
+        // If path has no segments, returns 0.
+        length: function(opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return 0; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision; // opt.precision only used in getSegmentSubdivisions() call
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var length = 0;
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                length += segment.length({ subdivisions: subdivisions });
+            }
+
+            return length;
+        },
+
+        // Private function.
+        lengthAtT: function(t, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return 0; // if segments is an empty array
+
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return 0; // regardless of t.value
+
+            var tValue = t.value;
+            if (segmentIndex >= numSegments) {
+                segmentIndex = numSegments - 1;
+                tValue = 1;
+            }
+            else if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var subdivisions;
+            var length = 0;
+            for (var i = 0; i < segmentIndex; i++) {
+
+                var segment = segments[i];
+                subdivisions = segmentSubdivisions[i];
+                length += segment.length({ precisison: precision, subdivisions: subdivisions });
+            }
+
+            segment = segments[segmentIndex];
+            subdivisions = segmentSubdivisions[segmentIndex];
+            length += segment.lengthAtT(tValue, { precisison: precision, subdivisions: subdivisions });
+
+            return length;
+        },
+
+        // Returns point at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        pointAt: function(ratio, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            if (ratio <= 0) return this.start.clone();
+            if (ratio >= 1) return this.end.clone();
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var pathLength = this.length(localOpt);
+            var length = pathLength * ratio;
+
+            return this.pointAtLength(length, localOpt);
+        },
+
+        // Returns point at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        // Accepts negative length.
+        pointAtLength: function(length, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            if (length === 0) return this.start.clone();
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var lastVisibleSegment;
+            var l = 0; // length so far
+            for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = segment.length({ precision: precision, subdivisions: subdivisions });
+
+                if (segment.isVisible) {
+                    if (length <= (l + d)) {
+                        return segment.pointAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+                    }
+
+                    lastVisibleSegment = segment;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the path, return last visible segment endpoint
+            if (lastVisibleSegment) return (fromStart ? lastVisibleSegment.end : lastVisibleSegment.start);
+
+            // if no visible segment, return last segment end point (no matter if fromStart or no)
+            var lastSegment = segments[numSegments - 1];
+            return lastSegment.end.clone();
+        },
+
+        // Private function.
+        pointAtT: function(t) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return segments[0].pointAtT(0);
+            if (segmentIndex >= numSegments) return segments[numSegments - 1].pointAtT(1);
+
+            var tValue = t.value;
+            if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
+
+            return segments[segmentIndex].pointAtT(tValue);
+        },
+
+        // Helper method for adding segments.
+        prepareSegment: function(segment, previousSegment, nextSegment) {
+
+            // insert after previous segment and before previous segment's next segment
+            segment.previousSegment = previousSegment;
+            segment.nextSegment = nextSegment;
+            if (previousSegment) previousSegment.nextSegment = segment;
+            if (nextSegment) nextSegment.previousSegment = segment;
+
+            var updateSubpathStart = segment;
+            if (segment.isSubpathStart) {
+                segment.subpathStartSegment = segment; // assign self as subpath start segment
+                updateSubpathStart = nextSegment; // start updating from next segment
+            }
+
+            // assign previous segment's subpath start (or self if it is a subpath start) to subsequent segments
+            if (updateSubpathStart) this.updateSubpathStartSegment(updateSubpathStart);
+
+            return segment;
+        },
+
+        // Default precision
+        PRECISION: 3,
+
+        // Remove the segment at `index`.
+        // Accepts negative indices, from `-1` to `-segments.length`.
+        // Throws an error if path has no segments.
+        // Throws an error if index is out of range.
+        removeSegment: function(index) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) throw new Error('Path has no segments.');
+
+            if (index < 0) index = numSegments + index; // convert negative indices to positive
+            if (index >= numSegments || index < 0) throw new Error('Index out of range.');
+
+            var removedSegment = segments.splice(index, 1)[0];
+            var previousSegment = removedSegment.previousSegment;
+            var nextSegment = removedSegment.nextSegment;
+
+            // link the previous and next segments together (if present)
+            if (previousSegment) previousSegment.nextSegment = nextSegment; // may be null
+            if (nextSegment) nextSegment.previousSegment = previousSegment; // may be null
+
+            // if removed segment used to start a subpath, update all subsequent segments until another subpath start segment is reached
+            if (removedSegment.isSubpathStart && nextSegment) this.updateSubpathStartSegment(nextSegment);
+        },
+
+        // Replace the segment at `index` with `arg`.
+        // Accepts negative indices, from `-1` to `-segments.length`.
+        // Accepts one segment or an array of segments as argument.
+        // Throws an error if path has no segments.
+        // Throws an error if index is out of range.
+        // Throws an error if argument is not a segment or an array of segments.
+        replaceSegment: function(index, arg) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) throw new Error('Path has no segments.');
+
+            if (index < 0) index = numSegments + index; // convert negative indices to positive
+            if (index >= numSegments || index < 0) throw new Error('Index out of range.');
+
+            var currentSegment;
+
+            var replacedSegment = segments[index];
+            var previousSegment = replacedSegment.previousSegment;
+            var nextSegment = replacedSegment.nextSegment;
+
+            var updateSubpathStart = replacedSegment.isSubpathStart; // boolean: is an update of subpath starts necessary?
+
+            if (!Array.isArray(arg)) {
+                if (!arg || !arg.isSegment) throw new Error('Segment required.');
+
+                currentSegment = this.prepareSegment(arg, previousSegment, nextSegment);
+                segments.splice(index, 1, currentSegment); // directly replace
+
+                if (updateSubpathStart && currentSegment.isSubpathStart) updateSubpathStart = false; // already updated by `prepareSegment`
+
+            } else {
+                if (!arg[0].isSegment) throw new Error('Segments required.');
+
+                segments.splice(index, 1);
+
+                var n = arg.length;
+                for (var i = 0; i < n; i++) {
+
+                    var currentArg = arg[i];
+                    currentSegment = this.prepareSegment(currentArg, previousSegment, nextSegment);
+                    segments.splice((index + i), 0, currentSegment); // incrementing index to insert subsequent segments after inserted segments
+                    previousSegment = currentSegment;
+
+                    if (updateSubpathStart && currentSegment.isSubpathStart) updateSubpathStart = false; // already updated by `prepareSegment`
+                }
+            }
+
+            // if replaced segment used to start a subpath and no new subpath start was added, update all subsequent segments until another subpath start segment is reached
+            if (updateSubpathStart && nextSegment) this.updateSubpathStartSegment(nextSegment);
+        },
+
+        scale: function(sx, sy, origin) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                segment.scale(sx, sy, origin);
+            }
+
+            return this;
+        },
+
+        segmentAt: function(ratio, opt) {
+
+            var index = this.segmentIndexAt(ratio, opt);
+            if (!index) return null;
+
+            return this.getSegment(index);
+        },
+
+        // Accepts negative length.
+        segmentAtLength: function(length, opt) {
+
+            var index = this.segmentIndexAtLength(length, opt);
+            if (!index) return null;
+
+            return this.getSegment(index);
+        },
+
+        segmentIndexAt: function(ratio, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            if (ratio < 0) ratio = 0;
+            if (ratio > 1) ratio = 1;
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var pathLength = this.length(localOpt);
+            var length = pathLength * ratio;
+
+            return this.segmentIndexAtLength(length, localOpt);
+        },
+
+        toPoints: function(opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+
+            var points = [];
+            var partialPoints = [];
+            for (var i = 0; i < numSegments; i++) {
+                var segment = segments[i];
+                if (segment.isVisible) {
+                    var currentSegmentSubdivisions = segmentSubdivisions[i];
+                    if (currentSegmentSubdivisions.length > 0) {
+                        var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
+                            return curve.start;
+                        });
+                        Array.prototype.push.apply(partialPoints, subdivisionPoints);
+                    } else {
+                        partialPoints.push(segment.start);
+                    }
+                } else if (partialPoints.length > 0) {
+                    partialPoints.push(segments[i - 1].end);
+                    points.push(partialPoints);
+                    partialPoints = [];
+                }
+            }
+
+            if (partialPoints.length > 0) {
+                partialPoints.push(this.end);
+                points.push(partialPoints);
+            }
+            return points;
+        },
+
+        toPolylines: function(opt) {
+
+            var polylines = [];
+            var points = this.toPoints(opt);
+            if (!points) return null;
+            for (var i = 0, n = points.length; i < n; i++) {
+                polylines.push(new Polyline(points[i]));
+            }
+
+            return polylines;
+        },
+
+        intersectionWithLine: function(line, opt) {
+
+            var intersection = null;
+            var polylines = this.toPolylines(opt);
+            if (!polylines) return null;
+            for (var i = 0, n = polylines.length; i < n; i++) {
+                var polyline = polylines[i];
+                var polylineIntersection = line.intersect(polyline);
+                if (polylineIntersection) {
+                    intersection || (intersection = []);
+                    if (Array.isArray(polylineIntersection)) {
+                        Array.prototype.push.apply(intersection, polylineIntersection);
+                    } else {
+                        intersection.push(polylineIntersection);
+                    }
+                }
+            }
+
+            return intersection;
+        },
+
+        // Accepts negative length.
+        segmentIndexAtLength: function(length, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var lastVisibleSegmentIndex = null;
+            var l = 0; // length so far
+            for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = segment.length({ precision: precision, subdivisions: subdivisions });
+
+                if (segment.isVisible) {
+                    if (length <= (l + d)) return i;
+                    lastVisibleSegmentIndex = i;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the path, return last visible segment index
+            // if no visible segment, return null
+            return lastVisibleSegmentIndex;
+        },
+
+        // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        tangentAt: function(ratio, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            if (ratio < 0) ratio = 0;
+            if (ratio > 1) ratio = 1;
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+            var pathLength = this.length(localOpt);
+            var length = pathLength * ratio;
+
+            return this.tangentAtLength(length, localOpt);
+        },
+
+        // Returns tangent line at requested `length`, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
+        // Accepts negative length.
+        tangentAtLength: function(length, opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+            // not using localOpt
+
+            var lastValidSegment; // visible AND differentiable (with a tangent)
+            var l = 0; // length so far
+            for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var segment = segments[i];
+                var subdivisions = segmentSubdivisions[i];
+                var d = segment.length({ precision: precision, subdivisions: subdivisions });
+
+                if (segment.isDifferentiable()) {
+                    if (length <= (l + d)) {
+                        return segment.tangentAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
+                    }
+
+                    lastValidSegment = segment;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the path, return tangent of endpoint of last valid segment
+            if (lastValidSegment) {
+                var t = (fromStart ? 1 : 0);
+                return lastValidSegment.tangentAtT(t);
+            }
+
+            // if no valid segment, return null
+            return null;
+        },
+
+        // Private function.
+        tangentAtT: function(t) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            var segmentIndex = t.segmentIndex;
+            if (segmentIndex < 0) return segments[0].tangentAtT(0);
+            if (segmentIndex >= numSegments) return segments[numSegments - 1].tangentAtT(1);
+
+            var tValue = t.value;
+            if (tValue < 0) tValue = 0;
+            else if (tValue > 1) tValue = 1;
+
+            return segments[segmentIndex].tangentAtT(tValue);
+        },
+
+        translate: function(tx, ty) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                segment.translate(tx, ty);
+            }
+
+            return this;
+        },
+
+        // Helper method for updating subpath start of segments, starting with the one provided.
+        updateSubpathStartSegment: function(segment) {
+
+            var previousSegment = segment.previousSegment; // may be null
+            while (segment && !segment.isSubpathStart) {
+
+                // assign previous segment's subpath start segment to this segment
+                if (previousSegment) segment.subpathStartSegment = previousSegment.subpathStartSegment; // may be null
+                else segment.subpathStartSegment = null; // if segment had no previous segment, assign null - creates an invalid path!
+
+                previousSegment = segment;
+                segment = segment.nextSegment; // move on to the segment after etc.
+            }
+        },
+
+        // Returns a string that can be used to reconstruct the path.
+        // Additional error checking compared to toString (must start with M segment).
+        serialize: function() {
+
+            if (!this.isValid()) throw new Error('Invalid path segments.');
+
+            return this.toString();
+        },
+
+        toString: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            var pathData = '';
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                pathData += segment.serialize() + ' ';
+            }
+
+            return pathData.trim();
+        }
+    };
+
+    Object.defineProperty(Path.prototype, 'start', {
+        // Getter for the first visible endpoint of the path.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                if (segment.isVisible) return segment.start;
+            }
+
+            // if no visible segment, return last segment end point
+            return segments[numSegments - 1].end;
+        }
+    });
+
+    Object.defineProperty(Path.prototype, 'end', {
+        // Getter for the last visible endpoint of the path.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null;
+
+            for (var i = numSegments - 1; i >= 0; i--) {
+
+                var segment = segments[i];
+                if (segment.isVisible) return segment.end;
+            }
+
+            // if no visible segment, return last segment end point
+            return segments[numSegments - 1].end;
+        }
+    });
 
     /*
         Point is the most basic object consisting of x/y coordinate.
@@ -967,8 +3081,9 @@ var g = (function() {
 
         if (typeof x === 'string') {
             var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
-            x = parseInt(xy[0], 10);
-            y = parseInt(xy[1], 10);
+            x = parseFloat(xy[0]);
+            y = parseFloat(xy[1]);
+
         } else if (Object(x) === x) {
             y = x.y;
             x = x.x;
@@ -982,32 +3097,34 @@ var g = (function() {
     // @param {number} Distance.
     // @param {number} Angle in radians.
     // @param {point} [optional] Origin.
-    g.Point.fromPolar = function(distance, angle, origin) {
+    Point.fromPolar = function(distance, angle, origin) {
 
-        origin = (origin && Point(origin)) || Point(0, 0);
+        origin = (origin && new Point(origin)) || new Point(0, 0);
         var x = abs(distance * cos(angle));
         var y = abs(distance * sin(angle));
         var deg = normalizeAngle(toDeg(angle));
 
         if (deg < 90) {
             y = -y;
+
         } else if (deg < 180) {
             x = -x;
             y = -y;
+
         } else if (deg < 270) {
             x = -x;
         }
 
-        return Point(origin.x + x, origin.y + y);
+        return new Point(origin.x + x, origin.y + y);
     };
 
     // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
-    g.Point.random = function(x1, x2, y1, y2) {
+    Point.random = function(x1, x2, y1, y2) {
 
-        return Point(floor(random() * (x2 - x1 + 1) + x1), floor(random() * (y2 - y1 + 1) + y1));
+        return new Point(floor(random() * (x2 - x1 + 1) + x1), floor(random() * (y2 - y1 + 1) + y1));
     };
 
-    g.Point.prototype = {
+    Point.prototype = {
 
         // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
         // otherwise return point itself.
@@ -1018,15 +3135,15 @@ var g = (function() {
                 return this;
             }
 
-            this.x = mmin(mmax(this.x, r.x), r.x + r.width);
-            this.y = mmin(mmax(this.y, r.y), r.y + r.height);
+            this.x = min(max(this.x, r.x), r.x + r.width);
+            this.y = min(max(this.y, r.y), r.y + r.height);
             return this;
         },
 
         // Return the bearing between me and the given point.
         bearing: function(point) {
 
-            return Line(this, point).bearing();
+            return (new Line(this, point)).bearing();
         },
 
         // Returns change in angle from my previous position (-dx, -dy) to my new position
@@ -1034,12 +3151,12 @@ var g = (function() {
         changeInAngle: function(dx, dy, ref) {
 
             // Revert the translation and measure the change in angle around x-axis.
-            return Point(this).offset(-dx, -dy).theta(ref) - this.theta(ref);
+            return this.clone().offset(-dx, -dy).theta(ref) - this.theta(ref);
         },
 
         clone: function() {
 
-            return Point(this);
+            return new Point(this);
         },
 
         difference: function(dx, dy) {
@@ -1049,23 +3166,25 @@ var g = (function() {
                 dx = dx.x;
             }
 
-            return Point(this.x - (dx || 0), this.y - (dy || 0));
+            return new Point(this.x - (dx || 0), this.y - (dy || 0));
         },
 
         // Returns distance between me and point `p`.
         distance: function(p) {
 
-            return Line(this, p).length();
+            return (new Line(this, p)).length();
         },
 
         squaredDistance: function(p) {
 
-            return Line(this, p).squaredLength();
+            return (new Line(this, p)).squaredLength();
         },
 
         equals: function(p) {
 
-            return !!p && this.x === p.x && this.y === p.y;
+            return !!p &&
+                this.x === p.x &&
+                this.y === p.y;
         },
 
         magnitude: function() {
@@ -1083,8 +3202,9 @@ var g = (function() {
         // distance distance.
         move: function(ref, distance) {
 
-            var theta = toRad(Point(ref).theta(this));
-            return this.offset(cos(theta) * distance, -sin(theta) * distance);
+            var theta = toRad((new Point(ref)).theta(this));
+            var offset = this.offset(cos(theta) * distance, -sin(theta) * distance);
+            return offset;
         },
 
         // Scales x and y such that the distance between the point and the origin (0,0) is equal to the given length.
@@ -1111,18 +3231,24 @@ var g = (function() {
         // the center of inversion in ref point.
         reflection: function(ref) {
 
-            return Point(ref).move(this, this.distance(ref));
+            return (new Point(ref)).move(this, this.distance(ref));
         },
 
         // Rotate point by angle around origin.
+        // Angle is flipped because this is a left-handed coord system (y-axis points downward).
         rotate: function(origin, angle) {
 
-            angle = (angle + 360) % 360;
-            this.toPolar(origin);
-            this.y += toRad(angle);
-            var point = Point.fromPolar(this.x, this.y, origin);
-            this.x = point.x;
-            this.y = point.y;
+            origin = origin || new g.Point(0, 0);
+
+            angle = toRad(normalizeAngle(-angle));
+            var cosAngle = cos(angle);
+            var sinAngle = sin(angle);
+
+            var x = (cosAngle * (this.x - origin.x)) - (sinAngle * (this.y - origin.y)) + origin.x;
+            var y = (sinAngle * (this.x - origin.x)) + (cosAngle * (this.y - origin.y)) + origin.y;
+
+            this.x = x;
+            this.y = y;
             return this;
         },
 
@@ -1137,7 +3263,7 @@ var g = (function() {
         // Scale point with origin.
         scale: function(sx, sy, origin) {
 
-            origin = (origin && Point(origin)) || Point(0, 0);
+            origin = (origin && new Point(origin)) || new Point(0, 0);
             this.x = origin.x + sx * (this.x - origin.x);
             this.y = origin.y + sy * (this.y - origin.y);
             return this;
@@ -1155,16 +3281,18 @@ var g = (function() {
         // Return theta angle in degrees.
         theta: function(p) {
 
-            p = Point(p);
+            p = new Point(p);
+
             // Invert the y-axis.
             var y = -(p.y - this.y);
             var x = p.x - this.x;
             var rad = atan2(y, x); // defined for all 0 corner cases
-            
+
             // Correction for III. and IV. quadrant.
             if (rad < 0) {
                 rad = 2 * PI + rad;
             }
+
             return 180 * rad / PI;
         },
 
@@ -1175,19 +3303,21 @@ var g = (function() {
         // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
         // returns NaN if any of the points p1, p2 is coincident with this point
         angleBetween: function(p1, p2) {
-            
+
             var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
+
             if (angleBetween < 0) {
                 angleBetween += 360; // correction to keep angleBetween between 0 and 360
             }
+
             return angleBetween;
         },
 
         // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
         // Returns NaN if p is at 0,0.
         vectorAngle: function(p) {
-            
-            var zero = Point(0,0);
+
+            var zero = new Point(0,0);
             return zero.angleBetween(this, p);
         },
 
@@ -1200,11 +3330,11 @@ var g = (function() {
         // An origin can be specified, otherwise it's 0@0.
         toPolar: function(o) {
 
-            o = (o && Point(o)) || Point(0, 0);
+            o = (o && new Point(o)) || new Point(0, 0);
             var x = this.x;
             var y = this.y;
             this.x = sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y)); // r
-            this.y = toRad(o.theta(Point(x, y)));
+            this.y = toRad(o.theta(new Point(x, y)));
             return this;
         },
 
@@ -1237,8 +3367,19 @@ var g = (function() {
         cross: function(p1, p2) {
 
             return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
+        },
+
+
+        // Linear interpolation
+        lerp: function(p, t) {
+
+            var x = this.x;
+            var y = this.y;
+            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
         }
     };
+
+    Point.prototype.translate = Point.prototype.offset;
 
     var Rect = g.Rect = function(x, y, w, h) {
 
@@ -1259,63 +3400,65 @@ var g = (function() {
         this.height = h === undefined ? 0 : h;
     };
 
-    g.Rect.fromEllipse = function(e) {
+    Rect.fromEllipse = function(e) {
 
-        e = Ellipse(e);
-        return Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
+        e = new Ellipse(e);
+        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
     };
 
-    g.Rect.prototype = {
+    Rect.prototype = {
 
         // Find my bounding box when I'm rotated with the center of rotation in the center of me.
         // @return r {rectangle} representing a bounding box
         bbox: function(angle) {
+
+            if (!angle) return this.clone();
 
             var theta = toRad(angle || 0);
             var st = abs(sin(theta));
             var ct = abs(cos(theta));
             var w = this.width * ct + this.height * st;
             var h = this.width * st + this.height * ct;
-            return Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
         },
 
         bottomLeft: function() {
 
-            return Point(this.x, this.y + this.height);
+            return new Point(this.x, this.y + this.height);
         },
 
         bottomLine: function() {
 
-            return Line(this.bottomLeft(), this.corner());
+            return new Line(this.bottomLeft(), this.bottomRight());
         },
 
         bottomMiddle: function() {
 
-            return Point(this.x + this.width / 2, this.y + this.height);
+            return new Point(this.x + this.width / 2, this.y + this.height);
         },
 
         center: function() {
 
-            return Point(this.x + this.width / 2, this.y + this.height / 2);
+            return new Point(this.x + this.width / 2, this.y + this.height / 2);
         },
 
         clone: function() {
 
-            return Rect(this);
+            return new Rect(this);
         },
 
         // @return {bool} true if point p is insight me
         containsPoint: function(p) {
 
-            p = Point(p);
+            p = new Point(p);
             return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
         },
 
         // @return {bool} true if rectangle `r` is inside me.
         containsRect: function(r) {
 
-            var r0 = Rect(this).normalize();
-            var r1 = Rect(r).normalize();
+            var r0 = new Rect(this).normalize();
+            var r1 = new Rect(r).normalize();
             var w0 = r0.width;
             var h0 = r0.height;
             var w1 = r1.width;
@@ -1341,14 +3484,14 @@ var g = (function() {
 
         corner: function() {
 
-            return Point(this.x + this.width, this.y + this.height);
+            return new Point(this.x + this.width, this.y + this.height);
         },
 
         // @return {boolean} true if rectangles are equal.
         equals: function(r) {
 
-            var mr = Rect(this).normalize();
-            var nr = Rect(r).normalize();
+            var mr = (new Rect(this)).normalize();
+            var nr = (new Rect(r)).normalize();
             return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
         },
 
@@ -1366,10 +3509,31 @@ var g = (function() {
                 rOrigin.x >= myCorner.x ||
                 rOrigin.y >= myCorner.y) return null;
 
-            var x = Math.max(myOrigin.x, rOrigin.x);
-            var y = Math.max(myOrigin.y, rOrigin.y);
+            var x = max(myOrigin.x, rOrigin.x);
+            var y = max(myOrigin.y, rOrigin.y);
 
-            return Rect(x, y, Math.min(myCorner.x, rCorner.x) - x, Math.min(myCorner.y, rCorner.y) - y);
+            return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
+        },
+
+        intersectionWithLine: function(line) {
+
+            var r = this;
+            var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
+            var points = [];
+            var dedupeArr = [];
+            var pt, i;
+
+            var n = rectLines.length;
+            for (i = 0; i < n; i ++) {
+
+                pt = line.intersect(rectLines[i]);
+                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                    points.push(pt);
+                    dedupeArr.push(pt.toString());
+                }
+            }
+
+            return points.length > 0 ? points : null;
         },
 
         // Find point on my boundary where line starting
@@ -1377,19 +3541,20 @@ var g = (function() {
         // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
         intersectionWithLineFromCenterToPoint: function(p, angle) {
 
-            p = Point(p);
-            var center = Point(this.x + this.width / 2, this.y + this.height / 2);
+            p = new Point(p);
+            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
             var result;
+
             if (angle) p.rotate(center, angle);
 
             // (clockwise, starting from the top side)
             var sides = [
-                Line(this.origin(), this.topRight()),
-                Line(this.topRight(), this.corner()),
-                Line(this.corner(), this.bottomLeft()),
-                Line(this.bottomLeft(), this.origin())
+                this.topLine(),
+                this.rightLine(),
+                this.bottomLine(),
+                this.leftLine()
             ];
-            var connector = Line(center, p);
+            var connector = new Line(center, p);
 
             for (var i = sides.length - 1; i >= 0; --i) {
                 var intersection = sides[i].intersection(connector);
@@ -1404,12 +3569,12 @@ var g = (function() {
 
         leftLine: function() {
 
-            return Line(this.origin(), this.bottomLeft());
+            return new Line(this.topLeft(), this.bottomLeft());
         },
 
         leftMiddle: function() {
 
-            return Point(this.x , this.y + this.height / 2);
+            return new Point(this.x , this.y + this.height / 2);
         },
 
         // Move and expand me.
@@ -1425,6 +3590,9 @@ var g = (function() {
 
         // Offset me by the specified amount.
         offset: function(dx, dy) {
+
+            // pretend that this is a point and call offset()
+            // rewrites x and y according to dx and dy
             return Point.prototype.offset.call(this, dx, dy);
         },
 
@@ -1433,6 +3601,7 @@ var g = (function() {
         // @param dy {delta_y} representing additional size to y -
         // dy param is not required -> in that case y is sized by dx
         inflate: function(dx, dy) {
+
             if (dx === undefined) {
                 dx = 0;
             }
@@ -1476,21 +3645,21 @@ var g = (function() {
 
         origin: function() {
 
-            return Point(this.x, this.y);
+            return new Point(this.x, this.y);
         },
 
         // @return {point} a point on my boundary nearest to the given point.
         // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
         pointNearestToPoint: function(point) {
 
-            point = Point(point);
+            point = new Point(point);
             if (this.containsPoint(point)) {
                 var side = this.sideNearestToPoint(point);
                 switch (side){
-                    case 'right': return Point(this.x + this.width, point.y);
-                    case 'left': return Point(this.x, point.y);
-                    case 'bottom': return Point(point.x, this.y + this.height);
-                    case 'top': return Point(point.x, this.y);
+                    case 'right': return new Point(this.x + this.width, point.y);
+                    case 'left': return new Point(this.x, point.y);
+                    case 'bottom': return new Point(point.x, this.y + this.height);
+                    case 'top': return new Point(point.x, this.y);
                 }
             }
             return point.adhereToRect(this);
@@ -1498,12 +3667,12 @@ var g = (function() {
 
         rightLine: function() {
 
-            return Line(this.topRight(), this.corner());
+            return new Line(this.topRight(), this.bottomRight());
         },
 
         rightMiddle: function() {
 
-            return Point(this.x + this.width, this.y + this.height / 2);
+            return new Point(this.x + this.width, this.y + this.height / 2);
         },
 
         round: function(precision) {
@@ -1529,7 +3698,7 @@ var g = (function() {
 
         maxRectScaleToFit: function(rect, origin) {
 
-            rect = g.Rect(rect);
+            rect = new Rect(rect);
             origin || (origin = rect.center());
 
             var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
@@ -1542,7 +3711,7 @@ var g = (function() {
             sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
 
             // Top Left
-            var p1 = rect.origin();
+            var p1 = rect.topLeft();
             if (p1.x < ox) {
                 sx1 = (this.x - ox) / (p1.x - ox);
             }
@@ -1550,7 +3719,7 @@ var g = (function() {
                 sy1 = (this.y - oy) / (p1.y - oy);
             }
             // Bottom Right
-            var p2 = rect.corner();
+            var p2 = rect.bottomRight();
             if (p2.x > ox) {
                 sx2 = (this.x + this.width - ox) / (p2.x - ox);
             }
@@ -1575,22 +3744,22 @@ var g = (function() {
             }
 
             return {
-                sx: Math.min(sx1, sx2, sx3, sx4),
-                sy: Math.min(sy1, sy2, sy3, sy4)
+                sx: min(sx1, sx2, sx3, sx4),
+                sy: min(sy1, sy2, sy3, sy4)
             };
         },
 
         maxRectUniformScaleToFit: function(rect, origin) {
 
             var scale = this.maxRectScaleToFit(rect, origin);
-            return Math.min(scale.sx, scale.sy);
+            return min(scale.sx, scale.sy);
         },
 
         // @return {string} (left|right|top|bottom) side which is nearest to point
         // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
         sideNearestToPoint: function(point) {
 
-            point = Point(point);
+            point = new Point(point);
             var distToLeft = point.x - this.x;
             var distToRight = (this.x + this.width) - point.x;
             var distToTop = point.y - this.y;
@@ -1626,17 +3795,17 @@ var g = (function() {
 
         topLine: function() {
 
-            return Line(this.origin(), this.topRight());
+            return new Line(this.topLeft(), this.topRight());
         },
 
         topMiddle: function() {
 
-            return Point(this.x + this.width / 2, this.y);
+            return new Point(this.x + this.width / 2, this.y);
         },
 
         topRight: function() {
 
-            return Point(this.x + this.width, this.y);
+            return new Point(this.x + this.width, this.y);
         },
 
         toJSON: function() {
@@ -1652,20 +3821,26 @@ var g = (function() {
         // @return {rect} representing the union of both rectangles.
         union: function(rect) {
 
-            rect = Rect(rect);
+            rect = new Rect(rect);
             var myOrigin = this.origin();
             var myCorner = this.corner();
             var rOrigin = rect.origin();
             var rCorner = rect.corner();
 
-            var originX = Math.min(myOrigin.x, rOrigin.x);
-            var originY = Math.min(myOrigin.y, rOrigin.y);
-            var cornerX = Math.max(myCorner.x, rCorner.x);
-            var cornerY = Math.max(myCorner.y, rCorner.y);
+            var originX = min(myOrigin.x, rOrigin.x);
+            var originY = min(myOrigin.y, rOrigin.y);
+            var cornerX = max(myCorner.x, rCorner.x);
+            var cornerY = max(myCorner.y, rCorner.y);
 
-            return Rect(originX, originY, cornerX - originX, cornerY - originY);
+            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
         }
     };
+
+    Rect.prototype.bottomRight = Rect.prototype.corner;
+
+    Rect.prototype.topLeft = Rect.prototype.origin;
+
+    Rect.prototype.translate = Rect.prototype.offset;
 
     var Polyline = g.Polyline = function(points) {
 
@@ -1673,85 +3848,152 @@ var g = (function() {
             return new Polyline(points);
         }
 
-        this.points = (Array.isArray(points)) ? points.map(Point) : [];
+        if (typeof points === 'string') {
+            return new Polyline.parse(points);
+        }
+
+        this.points = (Array.isArray(points) ? points.map(Point) : []);
+    };
+
+    Polyline.parse = function(svgString) {
+
+        if (svgString === '') return new Polyline();
+
+        var points = [];
+
+        var coords = svgString.split(/\s|,/);
+        var n = coords.length;
+        for (var i = 0; i < n; i += 2) {
+            points.push({ x: +coords[i], y: +coords[i + 1] });
+        }
+
+        return new Polyline(points);
     };
 
     Polyline.prototype = {
 
-        pointAtLength: function(length) {
+        bbox: function() {
+
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
+
             var points = this.points;
-            var l = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i+1];
-                var d = a.distance(b);
-                l += d;
-                if (length <= l) {
-                    return Line(b, a).pointAt(d ? (l - length) / d : 0);
-                }
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
+
+                if (x < x1) x1 = x;
+                if (x > x2) x2 = x;
+                if (y < y1) y1 = y;
+                if (y > y2) y2 = y;
             }
-            return null;
+
+            return new Rect(x1, y1, x2 - x1, y2 - y1);
         },
 
-        length: function() {
+        clone: function() {
+
             var points = this.points;
-            var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                length += points[i].distance(points[i+1]);
+            var numPoints = points.length;
+            if (numPoints === 0) return new Polyline(); // if points array is empty
+
+            var newPoints = [];
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i].clone();
+                newPoints.push(point);
             }
-            return length;
+
+            return new Polyline(newPoints);
         },
 
         closestPoint: function(p) {
-            return this.pointAtLength(this.closestPointLength(p));
+
+            var cpLength = this.closestPointLength(p);
+
+            return this.pointAtLength(cpLength);
         },
 
         closestPointLength: function(p) {
+
             var points = this.points;
-            var pointLength;
+            var numPoints = points.length;
+            if (numPoints === 0) return 0; // if points array is empty
+            if (numPoints === 1) return 0; // if there is only one point
+
+            var cpLength;
             var minSqrDistance = Infinity;
             var length = 0;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var line = Line(points[i], points[i+1]);
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+
+                var line = new Line(points[i], points[i + 1]);
                 var lineLength = line.length();
+
                 var cpNormalizedLength = line.closestPointNormalizedLength(p);
                 var cp = line.pointAt(cpNormalizedLength);
+
                 var sqrDistance = cp.squaredDistance(p);
                 if (sqrDistance < minSqrDistance) {
                     minSqrDistance = sqrDistance;
-                    pointLength = length + cpNormalizedLength * lineLength;
+                    cpLength = length + (cpNormalizedLength * lineLength);
                 }
+
                 length += lineLength;
             }
-            return pointLength;
+
+            return cpLength;
         },
 
-        toString: function() {
+        closestPointNormalizedLength: function(p) {
 
-            return this.points + '';
+            var cpLength = this.closestPointLength(p);
+            if (cpLength === 0) return 0; // shortcut
+
+            var length = this.length();
+            if (length === 0) return 0; // prevents division by zero
+
+            return cpLength / length;
+        },
+
+        closestPointTangent: function(p) {
+
+            var cpLength = this.closestPointLength(p);
+
+            return this.tangentAtLength(cpLength);
         },
 
         // Returns a convex-hull polyline from this polyline.
-        // this function implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan)
-        // output polyline starts at the first element of the original polyline that is on the hull
-        // output polyline then continues clockwise from that point
+        // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
+        // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
+        // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
         convexHull: function() {
 
             var i;
             var n;
 
             var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return new Polyline(); // if points array is empty
 
             // step 1: find the starting point - point with the lowest y (if equality, highest x)
             var startPoint;
-            n = points.length;
-            for (i = 0; i < n; i++) {
+            for (i = 0; i < numPoints; i++) {
                 if (startPoint === undefined) {
                     // if this is the first point we see, set it as start point
                     startPoint = points[i];
+
                 } else if (points[i].y < startPoint.y) {
                     // start point should have lowest y from all points
                     startPoint = points[i];
+
                 } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
                     // if two points have the lowest y, choose the one that has highest x
                     // there are no points to the right of startPoint - no ambiguity about theta 0
@@ -1762,18 +4004,18 @@ var g = (function() {
 
             // step 2: sort the list of points
             // sorting by angle between line from startPoint to point and the x-axis (theta)
-            
+
             // step 2a: create the point records = [point, originalIndex, angle]
             var sortedPointRecords = [];
-            n = points.length;
-            for (i = 0; i < n; i++) {
+            for (i = 0; i < numPoints; i++) {
+
                 var angle = startPoint.theta(points[i]);
                 if (angle === 0) {
                     angle = 360; // give highest angle to start point
                     // the start point will end up at end of sorted list
                     // the start point will end up at beginning of hull points list
                 }
-                
+
                 var entry = [points[i], i, angle];
                 sortedPointRecords.push(entry);
             }
@@ -1782,6 +4024,7 @@ var g = (function() {
             sortedPointRecords.sort(function(record1, record2) {
                 // returning a negative number here sorts record1 before record2
                 // if first angle is smaller than second, first angle should come before second
+
                 var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
                 if (sortOutput === 0) {
                     // if the two angles are equal, sort by originalIndex
@@ -1789,6 +4032,7 @@ var g = (function() {
                     // coincident points will be sorted in reverse-numerical order
                     // so the coincident points with lower original index will be considered first
                 }
+
                 return sortOutput;
             });
 
@@ -1810,6 +4054,7 @@ var g = (function() {
             var secondLastHullPointRecord;
             var secondLastHullPoint;
             while (sortedPointRecords.length !== 0) {
+
                 currentPointRecord = sortedPointRecords.pop();
                 currentPoint = currentPointRecord[0];
 
@@ -1823,11 +4068,12 @@ var g = (function() {
 
                 var correctTurnFound = false;
                 while (!correctTurnFound) {
+
                     if (hullPointRecords.length < 2) {
                         // not enough points for comparison, just add current point
                         hullPointRecords.push(currentPointRecord);
                         correctTurnFound = true;
-                    
+
                     } else {
                         lastHullPointRecord = hullPointRecords.pop();
                         lastHullPoint = lastHullPointRecord[0];
@@ -1850,7 +4096,7 @@ var g = (function() {
                             // or two of the three points are coincident
                             var THRESHOLD = 1e-10; // we have to take rounding errors into account
                             var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
-                            if (Math.abs(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
+                            if (abs(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
                                 // if the cross product is 0 because the angle is 180 degrees
                                 // discard last hull point (add to insidePoints)
                                 //insidePoints.unshift(lastHullPoint);
@@ -1859,7 +4105,7 @@ var g = (function() {
                                 hullPointRecords.push(secondLastHullPointRecord);
                                 // do not do anything with current point
                                 // correct turn not found
-                            
+
                             } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
                                 // if the cross product is 0 because two points are the same
                                 // discard last hull point (add to insidePoints)
@@ -1869,8 +4115,8 @@ var g = (function() {
                                 hullPointRecords.push(secondLastHullPointRecord);
                                 // do not do anything with current point
                                 // correct turn not found
-                                                        
-                            } else if (Math.abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
+
+                            } else if (abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
                                 // if the cross product is 0 because the angle is 0 degrees
                                 // remove last hull point from hull BUT do not discard it
                                 // reenter second-to-last hull point (will be last at next iter)
@@ -1907,6 +4153,7 @@ var g = (function() {
             var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
             n = hullPointRecords.length;
             for (i = 0; i < n; i++) {
+
                 var currentHullIndex = hullPointRecords[i][1];
 
                 if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
@@ -1920,6 +4167,7 @@ var g = (function() {
                 var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
                 var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
                 hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+
             } else {
                 hullPointRecordsReordered = hullPointRecords;
             }
@@ -1930,10 +4178,276 @@ var g = (function() {
                 hullPoints.push(hullPointRecordsReordered[i][0]);
             }
 
-            return Polyline(hullPoints);
+            return new Polyline(hullPoints);
+        },
+
+        // Checks whether two polylines are exactly the same.
+        // If `p` is undefined or null, returns false.
+        equals: function(p) {
+
+            if (!p) return false;
+
+            var points = this.points;
+            var otherPoints = p.points;
+
+            var numPoints = points.length;
+            if (otherPoints.length !== numPoints) return false; // if the two polylines have different number of points, they cannot be equal
+
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i];
+                var otherPoint = p.points[i];
+
+                // as soon as an inequality is found in points, return false
+                if (!point.equals(otherPoint)) return false;
+            }
+
+            // if no inequality found in points, return true
+            return true;
+        },
+
+        isDifferentiable: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return false;
+
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+
+                // as soon as a differentiable line is found between two points, return true
+                if (line.isDifferentiable()) return true;
+            }
+
+            // if no differentiable line is found between pairs of points, return false
+            return false;
+        },
+
+        length: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return 0; // if points array is empty
+
+            var length = 0;
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+                length += points[i].distance(points[i + 1]);
+            }
+
+            return length;
+        },
+
+        pointAt: function(ratio) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            if (numPoints === 1) return points[0].clone(); // if there is only one point
+
+            if (ratio <= 0) return points[0].clone();
+            if (ratio >= 1) return points[numPoints - 1].clone();
+
+            var polylineLength = this.length();
+            var length = polylineLength * ratio;
+
+            return this.pointAtLength(length);
+        },
+
+        pointAtLength: function(length) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            if (numPoints === 1) return points[0].clone(); // if there is only one point
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var l = 0;
+            var n = numPoints - 1;
+            for (var i = (fromStart ? 0 : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+                var d = a.distance(b);
+
+                if (length <= (l + d)) {
+                    return line.pointAtLength((fromStart ? 1 : -1) * (length - l));
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the polyline, return last endpoint
+            var lastPoint = (fromStart ? points[numPoints - 1] : points[0]);
+            return lastPoint.clone();
+        },
+
+        scale: function(sx, sy, origin) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return this; // if points array is empty
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].scale(sx, sy, origin);
+            }
+
+            return this;
+        },
+
+        tangentAt: function(ratio) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            if (numPoints === 1) return null; // if there is only one point
+
+            if (ratio < 0) ratio = 0;
+            if (ratio > 1) ratio = 1;
+
+            var polylineLength = this.length();
+            var length = polylineLength * ratio;
+
+            return this.tangentAtLength(length);
+        },
+
+        tangentAtLength: function(length) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+            if (numPoints === 1) return null; // if there is only one point
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var lastValidLine; // differentiable (with a tangent)
+            var l = 0; // length so far
+            var n = numPoints - 1;
+            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+                var d = a.distance(b);
+
+                if (line.isDifferentiable()) { // has a tangent line (line length is not 0)
+                    if (length <= (l + d)) {
+                        return line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                    }
+
+                    lastValidLine = line;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the polyline, return last valid endpoint
+            if (lastValidLine) {
+                var ratio = (fromStart ? 1 : 0);
+                return lastValidLine.tangentAt(ratio);
+            }
+
+            // if no valid line, return null
+            return null;
+        },
+
+        intersectionWithLine: function(l) {
+            var line = new Line(l);
+            var intersections = [];
+            var points = this.points;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var l2 = new Line(a, b);
+                var int = line.intersectionWithLine(l2);
+                if (int) intersections.push(int[0]);
+            }
+            return (intersections.length > 0) ? intersections : null;
+        },
+
+        translate: function(tx, ty) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return this; // if points array is empty
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].translate(tx, ty);
+            }
+
+            return this;
+        },
+
+        // Return svgString that can be used to recreate this line.
+        serialize: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return ''; // if points array is empty
+
+            var output = '';
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i];
+                output += point.x + ',' + point.y + ' ';
+            }
+
+            return output.trim();
+        },
+
+        toString: function() {
+
+            return this.points + '';
         }
     };
 
+    Object.defineProperty(Polyline.prototype, 'start', {
+        // Getter for the first point of the polyline.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            return this.points[0];
+        },
+    });
+
+    Object.defineProperty(Polyline.prototype, 'end', {
+        // Getter for the last point of the polyline.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return null; // if points array is empty
+
+            return this.points[numPoints - 1];
+        },
+    });
 
     g.scale = {
 
@@ -1953,7 +4467,7 @@ var g = (function() {
 
     var snapToGrid = g.snapToGrid = function(value, gridSize) {
 
-        return gridSize * Math.round(value / gridSize);
+        return gridSize * round(value / gridSize);
     };
 
     var toDeg = g.toDeg = function(rad) {
@@ -1974,6 +4488,799 @@ var g = (function() {
     g.point = g.Point;
     g.rect = g.Rect;
 
+    // Local helper function.
+    // Use an array of arguments to call a constructor (function called with `new`).
+    // Adapted from https://stackoverflow.com/a/8843181/2263595
+    // It is not necessary to use this function if the arguments can be passed separately (i.e. if the number of arguments is limited).
+    // - If that is the case, use `new constructor(arg1, arg2)`, for example.
+    // It is not necessary to use this function if the function that needs an array of arguments is not supposed to be used as a constructor.
+    // - If that is the case, use `f.apply(thisArg, [arg1, arg2...])`, for example.
+    function applyToNew(constructor, argsArray) {
+        // The `new` keyword can only be applied to functions that take a limited number of arguments.
+        // - We can fake that with .bind().
+        // - It calls a function (`constructor`, here) with the arguments that were provided to it - effectively transforming an unlimited number of arguments into limited.
+        // - So `new (constructor.bind(thisArg, arg1, arg2...))`
+        // - `thisArg` can be anything (e.g. null) because `new` keyword resets context to the constructor object.
+        // We need to pass in a variable number of arguments to the bind() call.
+        // - We can use .apply().
+        // - So `new (constructor.bind.apply(constructor, [thisArg, arg1, arg2...]))`
+        // - `thisArg` can still be anything because `new` overwrites it.
+        // Finally, to make sure that constructor.bind overwriting is not a problem, we switch to `Function.prototype.bind`.
+        // - So, the final version is `new (Function.prototype.bind.apply(constructor, [thisArg, arg1, arg2...]))`
+
+        // The function expects `argsArray[0]` to be `thisArg`.
+        // - This means that whatever is sent as the first element will be ignored.
+        // - The constructor will only see arguments starting from argsArray[1].
+        // - So, a new dummy element is inserted at the start of the array.
+        argsArray.unshift(null);
+
+        return new (Function.prototype.bind.apply(constructor, argsArray));
+    }
+
+    // Local helper function.
+    // Add properties from arguments on top of properties from `obj`.
+    // This allows for rudimentary inheritance.
+    // - The `obj` argument acts as parent.
+    // - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
+    // - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
+    function extend(obj) {
+        // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
+        // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
+        // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
+        // - First, realize that both of those quasiclasses would still have their own separate constructor function.
+        // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
+        // - This method provides a way to do exactly that.
+        // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
+        // - Therefore, to continue with the example above:
+        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
+        //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
+        //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overriden methods from `g.GeometryObject.prototype`.
+        //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
+        // - Multiple inheritance is also possible, if multiple arguments are provided.
+        // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
+        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
+        //   - The ancestors are applied in order of appearance.
+        //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
+        //   - Any number of ancestors may be provided.
+        // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
+        // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
+        //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
+        //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
+        // - Therefore, both of the following are valid:
+        //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
+        //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
+
+        var i;
+        var n;
+
+        var args = [];
+        n = arguments.length;
+        for (i = 1; i < n; i++) { // skip over obj
+            args.push(arguments[i]);
+        }
+
+        if (!obj) throw new Error('Missing a parent object.');
+        var child = Object.create(obj);
+
+        n = args.length;
+        for (i = 0; i < n; i++) {
+
+            var src = args[i];
+
+            var inheritedProperty;
+            var key;
+            for (key in src) {
+
+                if (src.hasOwnProperty(key)) {
+                    delete child[key]; // delete property inherited from parent
+                    inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
+                    Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
+                }
+            }
+        }
+
+        return child;
+    }
+
+    // Path segment interface:
+    var segmentPrototype = {
+
+        // Redirect calls to closestPointNormalizedLength() function if closestPointT() is not defined for segment.
+        closestPointT: function(p) {
+
+            if (this.closestPointNormalizedLength) return this.closestPointNormalizedLength(p);
+
+            throw new Error('Neither closestPointT() nor closestPointNormalizedLength() function is implemented.');
+        },
+
+        isSegment: true,
+
+        isSubpathStart: false, // true for Moveto segments
+
+        isVisible: true, // false for Moveto segments
+
+        nextSegment: null, // needed for subpath start segment updating
+
+        // Return a fraction of result of length() function if lengthAtT() is not defined for segment.
+        lengthAtT: function(t) {
+
+            if (t <= 0) return 0;
+
+            var length = this.length();
+
+            if (t >= 1) return length;
+
+            return length * t;
+        },
+
+        // Redirect calls to pointAt() function if pointAtT() is not defined for segment.
+        pointAtT: function(t) {
+
+            if (this.pointAt) return this.pointAt(t);
+
+            throw new Error('Neither pointAtT() nor pointAt() function is implemented.');
+        },
+
+        previousSegment: null, // needed to get segment start property
+
+        subpathStartSegment: null, // needed to get closepath segment end property
+
+        // Redirect calls to tangentAt() function if tangentAtT() is not defined for segment.
+        tangentAtT: function(t) {
+
+            if (this.tangentAt) return this.tangentAt(t);
+
+            throw new Error('Neither tangentAtT() nor tangentAt() function is implemented.');
+        },
+
+        // VIRTUAL PROPERTIES (must be overriden by actual Segment implementations):
+
+        // type
+
+        // start // getter, always throws error for Moveto
+
+        // end // usually directly assigned, getter for Closepath
+
+        bbox: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        clone: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPoint: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPointLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPointNormalizedLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        closestPointTangent: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        equals: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        getSubdivisions: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        isDifferentiable: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        length: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        pointAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        pointAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        scale: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        tangentAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        tangentAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        translate: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        serialize: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        toString: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        }
+    };
+
+    // Path segment implementations:
+    var Lineto = function() {
+
+        var args = [];
+        var n = arguments.length;
+        for (var i = 0; i < n; i++) {
+            args.push(arguments[i]);
+        }
+
+        if (!(this instanceof Lineto)) { // switching context of `this` to Lineto when called without `new`
+            return applyToNew(Lineto, args);
+        }
+
+        if (n === 0) {
+            throw new Error('Lineto constructor expects 1 point or 2 coordinates (none provided).');
+        }
+
+        var outputArray;
+
+        if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
+            if (n === 2) {
+                this.end = new Point(+args[0], +args[1]);
+                return this;
+
+            } else if (n < 2) {
+                throw new Error('Lineto constructor expects 1 point or 2 coordinates (' + n + ' coordinates provided).');
+
+            } else { // this is a poly-line segment
+                var segmentCoords;
+                outputArray = [];
+                for (i = 0; i < n; i += 2) { // coords come in groups of two
+
+                    segmentCoords = args.slice(i, i + 2); // will send one coord if args.length not divisible by 2
+                    outputArray.push(applyToNew(Lineto, segmentCoords));
+                }
+                return outputArray;
+            }
+
+        } else { // points provided
+            if (n === 1) {
+                this.end = new Point(args[0]);
+                return this;
+
+            } else { // this is a poly-line segment
+                var segmentPoint;
+                outputArray = [];
+                for (i = 0; i < n; i += 1) {
+
+                    segmentPoint = args[i];
+                    outputArray.push(new Lineto(segmentPoint));
+                }
+                return outputArray;
+            }
+        }
+    };
+
+    var linetoPrototype = {
+
+        clone: function() {
+
+            return new Lineto(this.end);
+        },
+
+        getSubdivisions: function() {
+
+            return [];
+        },
+
+        isDifferentiable: function() {
+
+            if (!this.previousSegment) return false;
+
+            return !this.start.equals(this.end);
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        type: 'L',
+
+        serialize: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.end;
+        }
+    };
+
+    Object.defineProperty(linetoPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    Lineto.prototype = extend(segmentPrototype, Line.prototype, linetoPrototype);
+
+    var Curveto = function() {
+
+        var args = [];
+        var n = arguments.length;
+        for (var i = 0; i < n; i++) {
+            args.push(arguments[i]);
+        }
+
+        if (!(this instanceof Curveto)) { // switching context of `this` to Curveto when called without `new`
+            return applyToNew(Curveto, args);
+        }
+
+        if (n === 0) {
+            throw new Error('Curveto constructor expects 3 points or 6 coordinates (none provided).');
+        }
+
+        var outputArray;
+
+        if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
+            if (n === 6) {
+                this.controlPoint1 = new Point(+args[0], +args[1]);
+                this.controlPoint2 = new Point(+args[2], +args[3]);
+                this.end = new Point(+args[4], +args[5]);
+                return this;
+
+            } else if (n < 6) {
+                throw new Error('Curveto constructor expects 3 points or 6 coordinates (' + n + ' coordinates provided).');
+
+            } else { // this is a poly-bezier segment
+                var segmentCoords;
+                outputArray = [];
+                for (i = 0; i < n; i += 6) { // coords come in groups of six
+
+                    segmentCoords = args.slice(i, i + 6); // will send fewer than six coords if args.length not divisible by 6
+                    outputArray.push(applyToNew(Curveto, segmentCoords));
+                }
+                return outputArray;
+            }
+
+        } else { // points provided
+            if (n === 3) {
+                this.controlPoint1 = new Point(args[0]);
+                this.controlPoint2 = new Point(args[1]);
+                this.end = new Point(args[2]);
+                return this;
+
+            } else if (n < 3) {
+                throw new Error('Curveto constructor expects 3 points or 6 coordinates (' + n + ' points provided).');
+
+            } else { // this is a poly-bezier segment
+                var segmentPoints;
+                outputArray = [];
+                for (i = 0; i < n; i += 3) { // points come in groups of three
+
+                    segmentPoints = args.slice(i, i + 3); // will send fewer than three points if args.length is not divisible by 3
+                    outputArray.push(applyToNew(Curveto, segmentPoints));
+                }
+                return outputArray;
+            }
+        }
+    };
+
+    var curvetoPrototype = {
+
+        clone: function() {
+
+            return new Curveto(this.controlPoint1, this.controlPoint2, this.end);
+        },
+
+        isDifferentiable: function() {
+
+            if (!this.previousSegment) return false;
+
+            var start = this.start;
+            var control1 = this.controlPoint1;
+            var control2 = this.controlPoint2;
+            var end = this.end;
+
+            return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.controlPoint1.scale(sx, sy, origin);
+            this.controlPoint2.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        translate: function(tx, ty) {
+
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        type: 'C',
+
+        serialize: function() {
+
+            var c1 = this.controlPoint1;
+            var c2 = this.controlPoint2;
+            var end = this.end;
+            return this.type + ' ' + c1.x + ' ' + c1.y + ' ' + c2.x + ' ' + c2.y + ' ' + end.x + ' ' + end.y;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        }
+    };
+
+    Object.defineProperty(curvetoPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    Curveto.prototype = extend(segmentPrototype, Curve.prototype, curvetoPrototype);
+
+    var Moveto = function() {
+
+        var args = [];
+        var n = arguments.length;
+        for (var i = 0; i < n; i++) {
+            args.push(arguments[i]);
+        }
+
+        if (!(this instanceof Moveto)) { // switching context of `this` to Moveto when called without `new`
+            return applyToNew(Moveto, args);
+        }
+
+        if (n === 0) {
+            throw new Error('Moveto constructor expects 1 point or 2 coordinates (none provided).');
+        }
+
+        var outputArray;
+
+        if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
+            if (n === 2) {
+                this.end = new Point(+args[0], +args[1]);
+                return this;
+
+            } else if (n < 2) {
+                throw new Error('Moveto constructor expects 1 point or 2 coordinates (' + n + ' coordinates provided).');
+
+            } else { // this is a moveto-with-subsequent-poly-line segment
+                var segmentCoords;
+                outputArray = [];
+                for (i = 0; i < n; i += 2) { // coords come in groups of two
+
+                    segmentCoords = args.slice(i, i + 2); // will send one coord if args.length not divisible by 2
+                    if (i === 0) outputArray.push(applyToNew(Moveto, segmentCoords));
+                    else outputArray.push(applyToNew(Lineto, segmentCoords));
+                }
+                return outputArray;
+            }
+
+        } else { // points provided
+            if (n === 1) {
+                this.end = new Point(args[0]);
+                return this;
+
+            } else { // this is a moveto-with-subsequent-poly-line segment
+                var segmentPoint;
+                outputArray = [];
+                for (i = 0; i < n; i += 1) { // points come one by one
+
+                    segmentPoint = args[i];
+                    if (i === 0) outputArray.push(new Moveto(segmentPoint));
+                    else outputArray.push(new Lineto(segmentPoint));
+                }
+                return outputArray;
+            }
+        }
+    };
+
+    var movetoPrototype = {
+
+        bbox: function() {
+
+            return null;
+        },
+
+        clone: function() {
+
+            return new Moveto(this.end);
+        },
+
+        closestPoint: function() {
+
+            return this.end.clone();
+        },
+
+        closestPointNormalizedLength: function() {
+
+            return 0;
+        },
+
+        closestPointLength: function() {
+
+            return 0;
+        },
+
+        closestPointT: function() {
+
+            return 1;
+        },
+
+        closestPointTangent: function() {
+
+            return null;
+        },
+
+        equals: function(m) {
+
+            return this.end.equals(m.end);
+        },
+
+        getSubdivisions: function() {
+
+            return [];
+        },
+
+        isDifferentiable: function() {
+
+            return false;
+        },
+
+        isSubpathStart: true,
+
+        isVisible: false,
+
+        length: function() {
+
+            return 0;
+        },
+
+        lengthAtT: function() {
+
+            return 0;
+        },
+
+        pointAt: function() {
+
+            return this.end.clone();
+        },
+
+        pointAtLength: function() {
+
+            return this.end.clone();
+        },
+
+        pointAtT: function() {
+
+            return this.end.clone();
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        tangentAt: function() {
+
+            return null;
+        },
+
+        tangentAtLength: function() {
+
+            return null;
+        },
+
+        tangentAtT: function() {
+
+            return null;
+        },
+
+        translate: function(tx, ty) {
+
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        type: 'M',
+
+        serialize: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.end;
+        }
+    };
+
+    Object.defineProperty(movetoPrototype, 'start', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            throw new Error('Illegal access. Moveto segments should not need a start property.');
+        }
+    })
+
+    Moveto.prototype = extend(segmentPrototype, movetoPrototype); // does not inherit from any other geometry object
+
+    var Closepath = function() {
+
+        var args = [];
+        var n = arguments.length;
+        for (var i = 0; i < n; i++) {
+            args.push(arguments[i]);
+        }
+
+        if (!(this instanceof Closepath)) { // switching context of `this` to Closepath when called without `new`
+            return applyToNew(Closepath, args);
+        }
+
+        if (n > 0) {
+            throw new Error('Closepath constructor expects no arguments.');
+        }
+
+        return this;
+    };
+
+    var closepathPrototype = {
+
+        clone: function() {
+
+            return new Closepath();
+        },
+
+        getSubdivisions: function() {
+
+            return [];
+        },
+
+        isDifferentiable: function() {
+
+            if (!this.previousSegment || !this.subpathStartSegment) return false;
+
+            return !this.start.equals(this.end);
+        },
+
+        scale: function() {
+
+            return this;
+        },
+
+        translate: function() {
+
+            return this;
+        },
+
+        type: 'Z',
+
+        serialize: function() {
+
+            return this.type;
+        },
+
+        toString: function() {
+
+            return this.type + ' ' + this.start + ' ' + this.end;
+        }
+    };
+
+    Object.defineProperty(closepathPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    Object.defineProperty(closepathPrototype, 'end', {
+        // get a reference to the end point of subpath start segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.subpathStartSegment) throw new Error('Missing subpath start segment. (This segment needs a subpath start segment (e.g. Moveto); OR segment has not yet been added to a path.)');
+
+            return this.subpathStartSegment.end;
+        }
+    })
+
+    Closepath.prototype = extend(segmentPrototype, Line.prototype, closepathPrototype);
+
+    var segmentTypes = Path.segmentTypes = {
+        L: Lineto,
+        C: Curveto,
+        M: Moveto,
+        Z: Closepath,
+        z: Closepath
+    };
+
+    Path.regexSupportedData = new RegExp('^[\\s\\d' + Object.keys(segmentTypes).join('') + ',.]*$');
+
+    Path.isDataSupported = function(d) {
+        if (typeof d !== 'string') return false;
+        return this.regexSupportedData.test(d);
+    }
+
     return g;
 
 })();
@@ -1983,7 +5290,6 @@ var g = (function() {
 
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
-
 
 var V;
 var Vectorizer;
@@ -2011,10 +5317,21 @@ V = Vectorizer = (function() {
     var ns = {
         xmlns: 'http://www.w3.org/2000/svg',
         xml: 'http://www.w3.org/XML/1998/namespace',
-        xlink: 'http://www.w3.org/1999/xlink'
+        xlink: 'http://www.w3.org/1999/xlink',
+        xhtml: 'http://www.w3.org/1999/xhtml'
     };
 
     var SVGversion = '1.1';
+
+    // Declare shorthands to the most used math functions.
+    var math = Math;
+    var PI = math.PI;
+    var atan2 = math.atan2;
+    var sqrt = math.sqrt;
+    var min = math.min;
+    var max = math.max;
+    var cos = math.cos;
+    var sin = math.sin;
 
     var V = function(el, attrs, children) {
 
@@ -2083,11 +5400,23 @@ V = Vectorizer = (function() {
         return this;
     };
 
+    var VPrototype = V.prototype;
+
+    Object.defineProperty(VPrototype, 'id', {
+        enumerable: true,
+        get: function() {
+            return this.node.id;
+        },
+        set: function(id) {
+            this.node.id = id;
+        }
+    });
+
     /**
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    V.prototype.getTransformToElement = function(toElem) {
+    VPrototype.getTransformToElement = function(toElem) {
         toElem = V.toNode(toElem);
         return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
     };
@@ -2097,7 +5426,7 @@ V = Vectorizer = (function() {
      * @param {Object=} opt
      * @returns {Vectorizer|SVGMatrix} Setter / Getter
      */
-    V.prototype.transform = function(matrix, opt) {
+    VPrototype.transform = function(matrix, opt) {
 
         var node = this.node;
         if (V.isUndefined(matrix)) {
@@ -2113,7 +5442,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.translate = function(tx, ty, opt) {
+    VPrototype.translate = function(tx, ty, opt) {
 
         opt = opt || {};
         ty = ty || 0;
@@ -2138,7 +5467,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.rotate = function(angle, cx, cy, opt) {
+    VPrototype.rotate = function(angle, cx, cy, opt) {
 
         opt = opt || {};
 
@@ -2164,7 +5493,7 @@ V = Vectorizer = (function() {
     };
 
     // Note that `scale` as the only transformation does not combine with previous values.
-    V.prototype.scale = function(sx, sy) {
+    VPrototype.scale = function(sx, sy) {
 
         sy = V.isUndefined(sy) ? sx : sy;
 
@@ -2188,7 +5517,7 @@ V = Vectorizer = (function() {
     // Get SVGRect that contains coordinates and dimension of the real bounding box,
     // i.e. after transformations are applied.
     // If `target` is specified, bounding box will be computed relatively to `target` element.
-    V.prototype.bbox = function(withoutTransformations, target) {
+    VPrototype.bbox = function(withoutTransformations, target) {
 
         var box;
         var node = this.node;
@@ -2197,7 +5526,7 @@ V = Vectorizer = (function() {
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
         if (!ownerSVGElement) {
-            return g.Rect(0, 0, 0, 0);
+            return new g.Rect(0, 0, 0, 0);
         }
 
         try {
@@ -2216,21 +5545,21 @@ V = Vectorizer = (function() {
         }
 
         if (withoutTransformations) {
-            return g.Rect(box);
+            return new g.Rect(box);
         }
 
         var matrix = this.getTransformToElement(target || ownerSVGElement);
 
         return V.transformRect(box, matrix);
     };
-    
+
     // Returns an SVGRect that contains coordinates and dimensions of the real bounding box,
     // i.e. after transformations are applied.
     // Fixes a browser implementation bug that returns incorrect bounding boxes for groups of svg elements.
     // Takes an (Object) `opt` argument (optional) with the following attributes:
     // (Object) `target` (optional): if not undefined, transform bounding boxes relative to `target`; if undefined, transform relative to this
     // (Boolean) `recursive` (optional): if true, recursively enter all groups and get a union of element bounding boxes (svg bbox fix); if false or undefined, return result of native function this.node.getBBox();
-    V.prototype.getBBox = function(opt) {
+    VPrototype.getBBox = function(opt) {
 
         var options = {};
 
@@ -2241,7 +5570,7 @@ V = Vectorizer = (function() {
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
         if (!ownerSVGElement) {
-            return g.Rect(0, 0, 0, 0);
+            return new g.Rect(0, 0, 0, 0);
         }
 
         if (opt) {
@@ -2268,7 +5597,7 @@ V = Vectorizer = (function() {
 
             if (!options.target) {
                 // transform like this (that is, not at all)
-                return g.Rect(outputBBox);
+                return new g.Rect(outputBBox);
             } else {
                 // transform like target
                 var matrix = this.getTransformToElement(options.target);
@@ -2282,7 +5611,7 @@ V = Vectorizer = (function() {
 
             var children = this.children();
             var n = children.length;
-            
+
             if (n === 0) {
                 return this.getBBox({ target: options.target, recursive: false });
             }
@@ -2321,187 +5650,265 @@ V = Vectorizer = (function() {
         }
     };
 
-    V.prototype.text = function(content, opt) {
+    // Text() helpers
 
-        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
-        // IE would otherwise collapse all spaces into one.
-        content = V.sanitizeText(content);
-        opt = opt || {};
-        var eol = opt.eol;
-        var lines = content.split('\n');
-        var tspan;
-
-        // An empty text gets rendered into the DOM in webkit-based browsers.
-        // In order to unify this behaviour across all browsers
-        // we rather hide the text element when it's empty.
-        if (content) {
-            this.removeAttr('display');
-        } else {
-            this.attr('display', 'none');
-        }
-
-        // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
-        this.attr('xml:space', 'preserve');
-
-        // Easy way to erase all `<tspan>` children;
-        this.node.textContent = '';
-
-        var textNode = this.node;
-
-        if (opt.textPath) {
-
-            // Wrap the text in the SVG <textPath> element that points
-            // to a path defined by `opt.textPath` inside the internal `<defs>` element.
-            var defs = this.find('defs');
-            if (defs.length === 0) {
-                defs = V('defs');
-                this.append(defs);
-            }
-
-            // If `opt.textPath` is a plain string, consider it to be directly the
+    function createTextPathNode(attrs, vel) {
+        attrs || (attrs = {});
+        var textPathElement = V('textPath');
+        var d = attrs.d;
+        if (d && attrs['xlink:href'] === undefined) {
+            // If `opt.attrs` is a plain string, consider it to be directly the
             // SVG path data for the text to go along (this is a shortcut).
             // Otherwise if it is an object and contains the `d` property, then this is our path.
-            var d = Object(opt.textPath) === opt.textPath ? opt.textPath.d : opt.textPath;
-            if (d) {
-                var path = V('path', { d: d });
-                defs.append(path);
-            }
-
-            var textPath = V('textPath');
+            // Wrap the text in the SVG <textPath> element that points
+            // to a path defined by `opt.attrs` inside the `<defs>` element.
+            var linkedPath = V('path').attr('d', d).appendTo(vel.defs());
+            textPathElement.attr('xlink:href', '#' + linkedPath.id);
+        }
+        if (V.isObject(attrs)) {
             // Set attributes on the `<textPath>`. The most important one
             // is the `xlink:href` that points to our newly created `<path/>` element in `<defs/>`.
             // Note that we also allow the following construct:
             // `t.text('my text', { textPath: { 'xlink:href': '#my-other-path' } })`.
             // In other words, one can completely skip the auto-creation of the path
             // and use any other arbitrary path that is in the document.
-            if (!opt.textPath['xlink:href'] && path) {
-                textPath.attr('xlink:href', '#' + path.node.id);
-            }
+            textPathElement.attr(attrs);
+        }
+        return textPathElement.node;
+    }
 
-            if (Object(opt.textPath) === opt.textPath) {
-                textPath.attr(opt.textPath);
+    function annotateTextLine(lineNode, lineAnnotations, opt) {
+        opt || (opt = {});
+        var includeAnnotationIndices = opt.includeAnnotationIndices;
+        var eol = opt.eol;
+        var lineHeight = opt.lineHeight;
+        var baseSize = opt.baseSize;
+        var maxFontSize = 0;
+        var fontMetrics = {};
+        var lastJ = lineAnnotations.length - 1;
+        for (var j = 0; j <= lastJ; j++) {
+            var annotation = lineAnnotations[j];
+            var fontSize = null;
+            if (V.isObject(annotation)) {
+                var annotationAttrs = annotation.attrs;
+                var vTSpan = V('tspan', annotationAttrs);
+                var tspanNode = vTSpan.node;
+                var t = annotation.t;
+                if (eol && j === lastJ) t += eol;
+                tspanNode.textContent = t;
+                // Per annotation className
+                var annotationClass = annotationAttrs['class'];
+                if (annotationClass) vTSpan.addClass(annotationClass);
+                // If `opt.includeAnnotationIndices` is `true`,
+                // set the list of indices of all the applied annotations
+                // in the `annotations` attribute. This list is a comma
+                // separated list of indices.
+                if (includeAnnotationIndices) vTSpan.attr('annotations', annotation.annotations);
+                // Check for max font size
+                fontSize = parseFloat(annotationAttrs['font-size']);
+                if (fontSize === undefined) fontSize = baseSize;
+                if (fontSize && fontSize > maxFontSize) maxFontSize = fontSize;
+            } else {
+                if (eol && j === lastJ) annotation += eol;
+                tspanNode = document.createTextNode(annotation || ' ');
+                if (baseSize && baseSize > maxFontSize) maxFontSize = baseSize;
             }
-            this.append(textPath);
-            // Now all the `<tspan>`s will be inside the `<textPath>`.
-            textNode = textPath.node;
+            lineNode.appendChild(tspanNode);
         }
 
-        var offset = 0;
-        var x = ((opt.x !== undefined) ? opt.x : this.attr('x')) || 0;
+        if (maxFontSize) fontMetrics.maxFontSize = maxFontSize;
+        if (lineHeight) {
+            fontMetrics.lineHeight = lineHeight;
+        } else if (maxFontSize) {
+            fontMetrics.lineHeight = (maxFontSize * 1.2);
+        }
+        return fontMetrics;
+    }
 
+    var emRegex = /em$/;
+
+    function convertEmToPx(em, fontSize) {
+        var numerical = parseFloat(em);
+        if (emRegex.test(em)) return numerical * fontSize;
+        return numerical;
+    }
+
+    function calculateDY(alignment, linesMetrics, baseSizePx, lineHeight) {
+        if (!Array.isArray(linesMetrics)) return 0;
+        var n = linesMetrics.length;
+        if (!n) return 0;
+        var lineMetrics = linesMetrics[0];
+        var flMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
+        var rLineHeights = 0;
+        var lineHeightPx = convertEmToPx(lineHeight, baseSizePx);
+        for (var i = 1; i < n; i++) {
+            lineMetrics = linesMetrics[i];
+            var iLineHeight = convertEmToPx(lineMetrics.lineHeight, baseSizePx) || lineHeightPx;
+            rLineHeights += iLineHeight;
+        }
+        var llMaxFont = convertEmToPx(lineMetrics.maxFontSize, baseSizePx) || baseSizePx;
+        var dy;
+        switch (alignment) {
+            case 'middle':
+                dy = (flMaxFont / 2) - (0.15 * llMaxFont) - (rLineHeights / 2);
+                break;
+            case 'bottom':
+                dy = -(0.25 * llMaxFont) - rLineHeights;
+                break;
+            default:
+            case 'top':
+                dy = (0.8 * flMaxFont)
+                break;
+        }
+        return dy;
+    }
+
+    VPrototype.text = function(content, opt) {
+
+        if (content && typeof content !== 'string') throw new Error('Vectorizer: text() expects the first argument to be a string.');
+
+        // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
+        // IE would otherwise collapse all spaces into one.
+        content = V.sanitizeText(content);
+        opt || (opt = {});
+
+        // End of Line character
+        var eol = opt.eol;
+        // Text along path
+        var textPath = opt.textPath
+        // Vertical shift
+        var verticalAnchor = opt.textVerticalAnchor;
+        var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
+        // Horizontal shift applied to all the lines but the first.
+        var x = opt.x;
+        if (x === undefined) x = this.attr('x') || 0;
+        // Annotations
+        var iai = opt.includeAnnotationIndices;
+        var annotations = opt.annotations;
+        if (annotations && !V.isArray(annotations)) annotations = [annotations];
         // Shift all the <tspan> but first by one line (`1em`)
-        var lineHeight = opt.lineHeight || '1em';
-        if (opt.lineHeight === 'auto') {
-            lineHeight = '1.5em';
+        var defaultLineHeight = opt.lineHeight;
+        var autoLineHeight = (defaultLineHeight === 'auto');
+        var lineHeight = (autoLineHeight) ? '1.5em' : (defaultLineHeight || '1em');
+        // Clearing the element
+        this.empty();
+        this.attr({
+            // Preserve spaces. In other words, we do not want consecutive spaces to get collapsed to one.
+            'xml:space': 'preserve',
+            // An empty text gets rendered into the DOM in webkit-based browsers.
+            // In order to unify this behaviour across all browsers
+            // we rather hide the text element when it's empty.
+            'display': (content) ? null : 'none'
+        });
+        // Set default font-size if none
+        var fontSize = parseFloat(this.attr('font-size'));
+        if (!fontSize) {
+            fontSize = 16;
+            if (namedVerticalAnchor || annotations) this.attr('font-size', fontSize);
         }
 
-        var firstLineHeight = 0;
-        for (var i = 0; i < lines.length; i++) {
-
-            var vLineAttributes = { 'class': 'v-line' };
-            if (i === 0) {
-                vLineAttributes.dy = '0em';
-            } else {
-                vLineAttributes.dy = lineHeight;
-                vLineAttributes.x = x;
-            }
-            var vLine = V('tspan', vLineAttributes);
-
-            var lastI = lines.length - 1;
+        var doc = document;
+        var containerNode;
+        if (textPath) {
+            // Now all the `<tspan>`s will be inside the `<textPath>`.
+            if (typeof textPath === 'string') textPath = { d: textPath };
+            containerNode = createTextPathNode(textPath, this);
+        } else {
+            containerNode = doc.createDocumentFragment();
+        }
+        var offset = 0;
+        var lines = content.split('\n');
+        var linesMetrics = [];
+        var annotatedY;
+        for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
+            var dy = lineHeight;
+            var lineClassName = 'v-line';
+            var lineNode = doc.createElementNS(V.namespace.xmlns, 'tspan');
             var line = lines[i];
+            var lineMetrics;
             if (line) {
-
-                // Get the line height based on the biggest font size in the annotations for this line.
-                var maxFontSize = 0;
-                if (opt.annotations) {
-
+                if (annotations) {
                     // Find the *compacted* annotations for this line.
-                    var lineAnnotations = V.annotateString(lines[i], V.isArray(opt.annotations) ? opt.annotations : [opt.annotations], { offset: -offset, includeAnnotationIndices: opt.includeAnnotationIndices });
-
-                    var lastJ = lineAnnotations.length - 1;
-                    for (var j = 0; j < lineAnnotations.length; j++) {
-
-                        var annotation = lineAnnotations[j];
-                        if (V.isObject(annotation)) {
-
-                            var fontSize = parseFloat(annotation.attrs['font-size']);
-                            if (fontSize && fontSize > maxFontSize) {
-                                maxFontSize = fontSize;
-                            }
-
-                            tspan = V('tspan', annotation.attrs);
-                            if (opt.includeAnnotationIndices) {
-                                // If `opt.includeAnnotationIndices` is `true`,
-                                // set the list of indices of all the applied annotations
-                                // in the `annotations` attribute. This list is a comma
-                                // separated list of indices.
-                                tspan.attr('annotations', annotation.annotations);
-                            }
-                            if (annotation.attrs['class']) {
-                                tspan.addClass(annotation.attrs['class']);
-                            }
-
-                            if (eol && j === lastJ && i !== lastI) {
-                                annotation.t += eol;
-                            }
-                            tspan.node.textContent = annotation.t;
-
-                        } else {
-
-                            if (eol && j === lastJ && i !== lastI) {
-                                annotation += eol;
-                            }
-                            tspan = document.createTextNode(annotation || ' ');
-                        }
-                        vLine.append(tspan);
-                    }
-
-                    if (opt.lineHeight === 'auto' && maxFontSize && i !== 0) {
-
-                        vLine.attr('dy', (maxFontSize * 1.2) + 'px');
-                    }
-
+                    var lineAnnotations = V.annotateString(line, annotations, {
+                        offset: -offset,
+                        includeAnnotationIndices: iai
+                    });
+                    lineMetrics = annotateTextLine(lineNode, lineAnnotations, {
+                        includeAnnotationIndices: iai,
+                        eol: (i !== lastI && eol),
+                        lineHeight: (autoLineHeight) ? null : lineHeight,
+                        baseSize: fontSize
+                    });
+                    // Get the line height based on the biggest font size in the annotations for this line.
+                    var iLineHeight = lineMetrics.lineHeight;
+                    if (iLineHeight && autoLineHeight && i !== 0) dy = iLineHeight;
+                    if (i === 0) annotatedY = lineMetrics.maxFontSize * 0.8;
                 } else {
-
-                    if (eol && i !== lastI) {
-                        line += eol;
-                    }
-
-                    vLine.node.textContent = line;
-                }
-
-                if (i === 0) {
-                    firstLineHeight = maxFontSize;
+                    if (eol && i !== lastI) line += eol;
+                    lineNode.textContent = line;
                 }
             } else {
-
                 // Make sure the textContent is never empty. If it is, add a dummy
                 // character and make it invisible, making the following lines correctly
                 // relatively positioned. `dy=1em` won't work with empty lines otherwise.
-                vLine.addClass('v-empty-line');
+                lineNode.textContent = '-';
+                lineClassName += ' v-empty-line';
                 // 'opacity' needs to be specified with fill, stroke. Opacity without specification
                 // is not applied in Firefox
-                vLine.node.style.fillOpacity = 0;
-                vLine.node.style.strokeOpacity = 0;
-                vLine.node.textContent = '-';
+                var lineNodeStyle = lineNode.style;
+                lineNodeStyle.fillOpacity = 0;
+                lineNodeStyle.strokeOpacity = 0;
+                if (annotations) lineMetrics = {};
             }
-
-            V(textNode).append(vLine);
-
+            if (lineMetrics) linesMetrics.push(lineMetrics);
+            if (i > 0) lineNode.setAttribute('dy', dy);
+            // Firefox requires 'x' to be set on the first line when inside a text path
+            if (i > 0 || textPath) lineNode.setAttribute('x', x);
+            lineNode.className.baseVal = lineClassName;
+            containerNode.appendChild(lineNode);
             offset += line.length + 1;      // + 1 = newline character.
         }
-
-        // `alignment-baseline` does not work in Firefox.
-        // Setting `dominant-baseline` on the `<text>` element doesn't work in IE9.
-        // In order to have the 0,0 coordinate of the `<text>` element (or the first `<tspan>`)
-        // in the top left corner we translate the `<text>` element by `0.8em`.
-        // See `http://www.w3.org/Graphics/SVG/WG/wiki/How_to_determine_dominant_baseline`.
-        // See also `http://apike.ca/prog_svg_text_style.html`.
-        var y = this.attr('y');
-        if (y === null) {
-            this.attr('y', firstLineHeight || '0.8em');
+        // Y Alignment calculation
+        if (namedVerticalAnchor) {
+            if (annotations) {
+                dy = calculateDY(verticalAnchor, linesMetrics, fontSize, lineHeight);
+            } else if (verticalAnchor === 'top') {
+                // A shortcut for top alignment. It does not depend on font-size nor line-height
+                dy = '0.8em';
+            } else {
+                var rh; // remaining height
+                if (lastI > 0) {
+                    rh = parseFloat(lineHeight) || 1;
+                    rh *= lastI;
+                    if (!emRegex.test(lineHeight)) rh /= fontSize;
+                } else {
+                    // Single-line text
+                    rh = 0;
+                }
+                switch (verticalAnchor) {
+                    case 'middle':
+                        dy = (0.3 - (rh / 2)) + 'em'
+                        break;
+                    case 'bottom':
+                        dy = (-rh - 0.3) + 'em'
+                        break;
+                }
+            }
+        } else {
+            if (verticalAnchor === 0) {
+                dy = '0em';
+            } else if (verticalAnchor) {
+                dy = verticalAnchor;
+            } else {
+                // No vertical anchor is defined
+                dy = 0;
+                // Backwards compatibility - we change the `y` attribute instead of `dy`.
+                if (this.attr('y') === null) this.attr('y', annotatedY || '0.8em');
+            }
         }
-
+        containerNode.firstChild.setAttribute('dy', dy);
+        // Appending lines to the element.
+        this.append(containerNode);
         return this;
     };
 
@@ -2510,7 +5917,7 @@ V = Vectorizer = (function() {
      * @param {string} name
      * @returns {Vectorizer}
      */
-    V.prototype.removeAttr = function(name) {
+    VPrototype.removeAttr = function(name) {
 
         var qualifiedName = V.qualifyAttr(name);
         var el = this.node;
@@ -2525,7 +5932,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.attr = function(name, value) {
+    VPrototype.attr = function(name, value) {
 
         if (V.isUndefined(name)) {
 
@@ -2560,7 +5967,17 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.remove = function() {
+    VPrototype.normalizePath = function() {
+
+        var tagName = this.tagName();
+        if (tagName === 'PATH') {
+            this.attr('d', V.normalizePathData(this.attr('d')));
+        }
+
+        return this;
+    }
+
+    VPrototype.remove = function() {
 
         if (this.node.parentNode) {
             this.node.parentNode.removeChild(this.node);
@@ -2569,7 +5986,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.empty = function() {
+    VPrototype.empty = function() {
 
         while (this.node.firstChild) {
             this.node.removeChild(this.node.firstChild);
@@ -2583,7 +6000,7 @@ V = Vectorizer = (function() {
      * @param {object} attrs
      * @returns {Vectorizer}
      */
-    V.prototype.setAttributes = function(attrs) {
+    VPrototype.setAttributes = function(attrs) {
 
         for (var key in attrs) {
             if (attrs.hasOwnProperty(key)) {
@@ -2594,7 +6011,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.append = function(els) {
+    VPrototype.append = function(els) {
 
         if (!V.isArray(els)) {
             els = [els];
@@ -2607,13 +6024,13 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.prepend = function(els) {
+    VPrototype.prepend = function(els) {
 
         var child = this.node.firstChild;
         return child ? V(child).before(els) : this.append(els);
     };
 
-    V.prototype.before = function(els) {
+    VPrototype.before = function(els) {
 
         var node = this.node;
         var parent = node.parentNode;
@@ -2632,24 +6049,29 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.appendTo = function(node) {
+    VPrototype.appendTo = function(node) {
         V.toNode(node).appendChild(this.node);
         return this;
     },
 
-    V.prototype.svg = function() {
+    VPrototype.svg = function() {
 
         return this.node instanceof window.SVGSVGElement ? this : V(this.node.ownerSVGElement);
     };
 
-    V.prototype.defs = function() {
+    VPrototype.tagName = function() {
 
-        var defs = this.svg().node.getElementsByTagName('defs');
-
-        return (defs && defs.length) ? V(defs[0]) : undefined;
+        return this.node.tagName.toUpperCase();
     };
 
-    V.prototype.clone = function() {
+    VPrototype.defs = function() {
+        var context = this.svg() || this;
+        var defsNode = context.node.getElementsByTagName('defs')[0];
+        if (defsNode) return V(defsNode);
+        return V('defs').appendTo(context);
+    };
+
+    VPrototype.clone = function() {
 
         var clone = V(this.node.cloneNode(true/* deep */));
         // Note that clone inherits also ID. Therefore, we need to change it here.
@@ -2657,13 +6079,13 @@ V = Vectorizer = (function() {
         return clone;
     };
 
-    V.prototype.findOne = function(selector) {
+    VPrototype.findOne = function(selector) {
 
         var found = this.node.querySelector(selector);
         return found ? V(found) : undefined;
     };
 
-    V.prototype.find = function(selector) {
+    VPrototype.find = function(selector) {
 
         var vels = [];
         var nodes = this.node.querySelectorAll(selector);
@@ -2680,22 +6102,22 @@ V = Vectorizer = (function() {
     };
 
     // Returns an array of V elements made from children of this.node.
-    V.prototype.children = function() {
+    VPrototype.children = function() {
 
         var children = this.node.childNodes;
-        
+
         var outputArray = [];
         for (var i = 0; i < children.length; i++) {
             var currentChild = children[i];
             if (currentChild.nodeType === 1) {
-                outputArray.push(V(children[i])); 
+                outputArray.push(V(children[i]));
             }
         }
         return outputArray;
     };
 
     // Find an index of an element inside its container.
-    V.prototype.index = function() {
+    VPrototype.index = function() {
 
         var index = 0;
         var node = this.node.previousSibling;
@@ -2709,7 +6131,7 @@ V = Vectorizer = (function() {
         return index;
     };
 
-    V.prototype.findParentByClass = function(className, terminator) {
+    VPrototype.findParentByClass = function(className, terminator) {
 
         var ownerSVGElement = this.node.ownerSVGElement;
         var node = this.node.parentNode;
@@ -2728,7 +6150,7 @@ V = Vectorizer = (function() {
     };
 
     // https://jsperf.com/get-common-parent
-    V.prototype.contains = function(el) {
+    VPrototype.contains = function(el) {
 
         var a = this.node;
         var b = V.toNode(el);
@@ -2738,7 +6160,7 @@ V = Vectorizer = (function() {
     };
 
     // Convert global point into the coordinate space of this element.
-    V.prototype.toLocalPoint = function(x, y) {
+    VPrototype.toLocalPoint = function(x, y) {
 
         var svg = this.svg().node;
 
@@ -2760,7 +6182,7 @@ V = Vectorizer = (function() {
         return globalPoint.matrixTransform(globalToLocalMatrix);
     };
 
-    V.prototype.translateCenterToPoint = function(p) {
+    VPrototype.translateCenterToPoint = function(p) {
 
         var bbox = this.getBBox({ target: this.svg() });
         var center = bbox.center();
@@ -2774,7 +6196,7 @@ V = Vectorizer = (function() {
     // arrowhead. Calling this method on the arrowhead makes it point to the `position` point while
     // being auto-oriented (properly rotated) towards the `reference` point.
     // `target` is the element relative to which the transformations are applied. Usually a viewport.
-    V.prototype.translateAndAutoOrient = function(position, reference, target) {
+    VPrototype.translateAndAutoOrient = function(position, reference, target) {
 
         // Clean-up previously set transformations except the scale. If we didn't clean up the
         // previous transformations then they'd add up with the old ones. Scale is an exception as
@@ -2794,12 +6216,12 @@ V = Vectorizer = (function() {
 
         // 2. Rotate around origin.
         var rotateAroundOrigin = svg.createSVGTransform();
-        var angle = g.point(position).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
+        var angle = (new g.Point(position)).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
         rotateAroundOrigin.setRotate(angle, 0, 0);
 
         // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
         var translateFinal = svg.createSVGTransform();
-        var finalPosition = g.point(position).move(reference, bbox.width / 2);
+        var finalPosition = (new g.Point(position)).move(reference, bbox.width / 2);
         translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
 
         // 4. Apply transformations.
@@ -2827,7 +6249,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.animateAlongPath = function(attrs, path) {
+    VPrototype.animateAlongPath = function(attrs, path) {
 
         path = V.toNode(path);
 
@@ -2865,12 +6287,12 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.hasClass = function(className) {
+    VPrototype.hasClass = function(className) {
 
         return new RegExp('(\\s|^)' + className + '(\\s|$)').test(this.node.getAttribute('class'));
     };
 
-    V.prototype.addClass = function(className) {
+    VPrototype.addClass = function(className) {
 
         if (!this.hasClass(className)) {
             var prevClasses = this.node.getAttribute('class') || '';
@@ -2880,7 +6302,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.removeClass = function(className) {
+    VPrototype.removeClass = function(className) {
 
         if (this.hasClass(className)) {
             var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
@@ -2890,7 +6312,7 @@ V = Vectorizer = (function() {
         return this;
     };
 
-    V.prototype.toggleClass = function(className, toAdd) {
+    VPrototype.toggleClass = function(className, toAdd) {
 
         var toRemove = V.isUndefined(toAdd) ? this.hasClass(className) : !toAdd;
 
@@ -2909,7 +6331,7 @@ V = Vectorizer = (function() {
     // every `interval` pixels.
     // The sampler can be very useful for e.g. finding intersection between two
     // paths (finding the two closest points from two samples).
-    V.prototype.sample = function(interval) {
+    VPrototype.sample = function(interval) {
 
         interval = interval || 1;
         var node = this.node;
@@ -2925,7 +6347,7 @@ V = Vectorizer = (function() {
         return samples;
     };
 
-    V.prototype.convertToPath = function() {
+    VPrototype.convertToPath = function() {
 
         var path = V('path');
         path.attr(this.attr());
@@ -2936,9 +6358,9 @@ V = Vectorizer = (function() {
         return path;
     };
 
-    V.prototype.convertToPathData = function() {
+    VPrototype.convertToPathData = function() {
 
-        var tagName = this.node.tagName.toUpperCase();
+        var tagName = this.tagName();
 
         switch (tagName) {
             case 'PATH':
@@ -2960,6 +6382,56 @@ V = Vectorizer = (function() {
         throw new Error(tagName + ' cannot be converted to PATH.');
     };
 
+    V.prototype.toGeometryShape = function() {
+        var x, y, width, height, cx, cy, r, rx, ry, points, d;
+        switch (this.tagName()) {
+
+            case 'RECT':
+                x = parseFloat(this.attr('x')) || 0;
+                y = parseFloat(this.attr('y')) || 0;
+                width = parseFloat(this.attr('width')) || 0;
+                height = parseFloat(this.attr('height')) || 0;
+                return new g.Rect(x, y, width, height);
+
+            case 'CIRCLE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy = parseFloat(this.attr('cy')) || 0;
+                r = parseFloat(this.attr('r')) || 0;
+                return new g.Ellipse({ x: cx, y: cy }, r, r);
+
+            case 'ELLIPSE':
+                cx = parseFloat(this.attr('cx')) || 0;
+                cy = parseFloat(this.attr('cy')) || 0;
+                rx = parseFloat(this.attr('rx')) || 0;
+                ry = parseFloat(this.attr('ry')) || 0;
+                return new g.Ellipse({ x: cx, y: cy }, rx, ry);
+
+            case 'POLYLINE':
+                points = V.getPointsFromSvgNode(this);
+                return new g.Polyline(points);
+
+            case 'POLYGON':
+                points = V.getPointsFromSvgNode(this);
+                if (points.length > 1) points.push(points[0]);
+                return new g.Polyline(points);
+
+            case 'PATH':
+                d = this.attr('d');
+                if (!g.Path.isDataSupported(d)) d = V.normalizePathData(d);
+                return new g.Path(d);
+
+            case 'LINE':
+                x1 = parseFloat(this.attr('x1')) || 0;
+                y1 = parseFloat(this.attr('y1')) || 0;
+                x2 = parseFloat(this.attr('x2')) || 0;
+                y2 = parseFloat(this.attr('y2')) || 0;
+                return new g.Line({ x: x1, y: y1 }, { x: x2, y: y2 });
+        }
+
+        // Anything else is a rectangle
+        return this.getBBox();
+    },
+
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
     // `target` is an SVG element to which `node`s transformations are relative to.
@@ -2967,7 +6439,7 @@ V = Vectorizer = (function() {
     // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
     // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
     // an intersection is found. Returns `undefined` otherwise.
-    V.prototype.findIntersection = function(ref, target) {
+    VPrototype.findIntersection = function(ref, target) {
 
         var svg = this.svg().node;
         target = target || svg;
@@ -2977,14 +6449,14 @@ V = Vectorizer = (function() {
         if (!bbox.intersectionWithLineFromCenterToPoint(ref)) return undefined;
 
         var spot;
-        var tagName = this.node.localName.toUpperCase();
+        var tagName = this.tagName();
 
         // Little speed up optimalization for `<rect>` element. We do not do conversion
         // to path element and sampling but directly calculate the intersection through
         // a transformed geometrical rectangle.
         if (tagName === 'RECT') {
 
-            var gRect = g.rect(
+            var gRect = new g.Rect(
                 parseFloat(this.attr('x') || 0),
                 parseFloat(this.attr('y') || 0),
                 parseFloat(this.attr('width')),
@@ -2999,7 +6471,7 @@ V = Vectorizer = (function() {
             var resetRotation = svg.createSVGTransform();
             resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
             var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-            spot = g.rect(rect).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+            spot = (new g.Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
 
         } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
 
@@ -3016,7 +6488,7 @@ V = Vectorizer = (function() {
                 // Convert the sample point in the local coordinate system to the global coordinate system.
                 gp = V.createSVGPoint(sample.x, sample.y);
                 gp = gp.matrixTransform(this.getTransformToElement(target));
-                sample = g.point(gp);
+                sample = new g.Point(gp);
                 centerDistance = sample.distance(center);
                 // Penalize a higher distance to the reference point by 10%.
                 // This gives better results. This is due to
@@ -3050,7 +6522,7 @@ V = Vectorizer = (function() {
      * @param {string} value
      * @returns {Vectorizer}
      */
-    V.prototype.setAttribute = function(name, value) {
+    VPrototype.setAttribute = function(name, value) {
 
         var el = this.node;
 
@@ -3092,13 +6564,16 @@ V = Vectorizer = (function() {
     };
 
     V.toNode = function(el) {
+
         return V.isV(el) ? el.node : (el.nodeName && el || el[0]);
     };
 
     V.ensureId = function(node) {
+
         node = V.toNode(node);
         return node.id || (node.id = V.uniqueId());
     };
+
     // Replace all spaces with the Unicode No-break space (http://www.fileformat.info/info/unicode/char/a0/index.htm).
     // IE would otherwise collapse all spaces into one. This is used in the text() method but it is
     // also exposed so that the programmer can use it in case he needs to. This is useful e.g. in tests
@@ -3335,15 +6810,15 @@ V = Vectorizer = (function() {
         var py = V.deltaTransformPoint(matrix, { x: 1, y: 0 });
 
         // calculate skew
-        var skewX = ((180 / Math.PI) * Math.atan2(px.y, px.x) - 90);
-        var skewY = ((180 / Math.PI) * Math.atan2(py.y, py.x));
+        var skewX = ((180 / PI) * atan2(px.y, px.x) - 90);
+        var skewY = ((180 / PI) * atan2(py.y, py.x));
 
         return {
 
             translateX: matrix.e,
             translateY: matrix.f,
-            scaleX: Math.sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
-            scaleY: Math.sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
+            scaleX: sqrt(matrix.a * matrix.a + matrix.b * matrix.b),
+            scaleY: sqrt(matrix.c * matrix.c + matrix.d * matrix.d),
             skewX: skewX,
             skewY: skewY,
             rotation: skewX // rotation is the same as skew x
@@ -3364,8 +6839,8 @@ V = Vectorizer = (function() {
             a = d = 1;
         }
         return {
-            sx: b ? Math.sqrt(a * a + b * b) : a,
-            sy: c ? Math.sqrt(c * c + d * d) : d
+            sx: b ? sqrt(a * a + b * b) : a,
+            sy: c ? sqrt(c * c + d * d) : d
         };
     },
 
@@ -3379,7 +6854,7 @@ V = Vectorizer = (function() {
         }
 
         return {
-            angle: g.normalizeAngle(g.toDeg(Math.atan2(p.y, p.x)) - 90)
+            angle: g.normalizeAngle(g.toDeg(atan2(p.y, p.x)) - 90)
         };
     },
 
@@ -3455,18 +6930,35 @@ V = Vectorizer = (function() {
         p.y = r.y + r.height;
         var corner4 = p.matrixTransform(matrix);
 
-        var minX = Math.min(corner1.x, corner2.x, corner3.x, corner4.x);
-        var maxX = Math.max(corner1.x, corner2.x, corner3.x, corner4.x);
-        var minY = Math.min(corner1.y, corner2.y, corner3.y, corner4.y);
-        var maxY = Math.max(corner1.y, corner2.y, corner3.y, corner4.y);
+        var minX = min(corner1.x, corner2.x, corner3.x, corner4.x);
+        var maxX = max(corner1.x, corner2.x, corner3.x, corner4.x);
+        var minY = min(corner1.y, corner2.y, corner3.y, corner4.y);
+        var maxY = max(corner1.y, corner2.y, corner3.y, corner4.y);
 
-        return g.Rect(minX, minY, maxX - minX, maxY - minY);
+        return new g.Rect(minX, minY, maxX - minX, maxY - minY);
     };
 
     V.transformPoint = function(p, matrix) {
 
-        return g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
+        return new g.Point(V.createSVGPoint(p.x, p.y).matrixTransform(matrix));
     };
+
+    V.transformLine = function(l, matrix) {
+
+        return new g.Line(
+            V.transformPoint(l.start, matrix),
+            V.transformPoint(l.end, matrix)
+        );
+    };
+
+    V.transformPolyline = function(p, matrix) {
+
+        var inPoints = (p instanceof g.Polyline) ? p.points : p;
+        if (!V.isArray(inPoints)) inPoints = [];
+        var outPoints = [];
+        for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i], matrix);
+        return new g.Polyline(outPoints);
+    },
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).
@@ -3484,17 +6976,17 @@ V = Vectorizer = (function() {
     // Inspired by d3.js https://github.com/mbostock/d3/blob/master/src/svg/arc.js
     V.createSlicePathData = function(innerRadius, outerRadius, startAngle, endAngle) {
 
-        var svgArcMax = 2 * Math.PI - 1e-6;
+        var svgArcMax = 2 * PI - 1e-6;
         var r0 = innerRadius;
         var r1 = outerRadius;
         var a0 = startAngle;
         var a1 = endAngle;
         var da = (a1 < a0 && (da = a0, a0 = a1, a1 = da), a1 - a0);
-        var df = da < Math.PI ? '0' : '1';
-        var c0 = Math.cos(a0);
-        var s0 = Math.sin(a0);
-        var c1 = Math.cos(a1);
-        var s1 = Math.sin(a1);
+        var df = da < PI ? '0' : '1';
+        var c0 = cos(a0);
+        var s0 = sin(a0);
+        var c1 = cos(a1);
+        var s1 = sin(a1);
 
         return (da >= svgArcMax)
             ? (r0
@@ -3695,27 +7187,23 @@ V = Vectorizer = (function() {
 
     V.convertPolygonToPathData = function(polygon) {
 
-        var points = V.getPointsFromSvgNode(V(polygon).node);
-
-        if (!(points.length > 0)) return null;
+        var points = V.getPointsFromSvgNode(polygon);
+        if (points.length === 0) return null;
 
         return V.svgPointsToPath(points) + ' Z';
     };
 
     V.convertPolylineToPathData = function(polyline) {
 
-        var points = V.getPointsFromSvgNode(V(polyline).node);
-
-        if (!(points.length > 0)) return null;
+        var points = V.getPointsFromSvgNode(polyline);
+        if (points.length === 0) return null;
 
         return V.svgPointsToPath(points);
     };
 
     V.svgPointsToPath = function(points) {
 
-        var i;
-
-        for (i = 0; i < points.length; i++) {
+        for (var i = 0, n = points.length; i < n; i++) {
             points[i] = points[i].x + ' ' + points[i].y;
         }
 
@@ -3728,7 +7216,7 @@ V = Vectorizer = (function() {
         var points = [];
         var nodePoints = node.points;
         if (nodePoints) {
-            for (var i = 0; i < nodePoints.numberOfItems; i++) {
+            for (var i = 0, n = nodePoints.numberOfItems; i < n; i++) {
                 points.push(nodePoints.getItem(i));
             }
         }
@@ -3736,7 +7224,7 @@ V = Vectorizer = (function() {
         return points;
     };
 
-    V.KAPPA = 0.5522847498307935;
+    V.KAPPA = 0.551784;
 
     V.convertCircleToPathData = function(circle) {
 
@@ -3804,10 +7292,10 @@ V = Vectorizer = (function() {
         var y = r.y;
         var width = r.width;
         var height = r.height;
-        var topRx = Math.min(r.rx || r['top-rx'] || 0, width / 2);
-        var bottomRx = Math.min(r.rx || r['bottom-rx'] || 0, width / 2);
-        var topRy = Math.min(r.ry || r['top-ry'] || 0, height / 2);
-        var bottomRy = Math.min(r.ry || r['bottom-ry'] || 0, height / 2);
+        var topRx = min(r.rx || r['top-rx'] || 0, width / 2);
+        var bottomRx = min(r.rx || r['bottom-rx'] || 0, width / 2);
+        var topRy = min(r.ry || r['top-ry'] || 0, height / 2);
+        var bottomRy = min(r.ry || r['bottom-ry'] || 0, height / 2);
 
         if (topRx || bottomRx || topRy || bottomRy) {
             d = [
@@ -3836,18 +7324,428 @@ V = Vectorizer = (function() {
         return d.join(' ');
     };
 
+    // Take a path data string
+    // Return a normalized path data string
+    // If data cannot be parsed, return 'M 0 0'
+    // Adapted from Rappid normalizePath polyfill
+    // Highly inspired by Raphael Library (www.raphael.com)
+    V.normalizePathData = (function() {
+
+        var spaces = '\x09\x0a\x0b\x0c\x0d\x20\xa0\u1680\u180e\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029';
+        var pathCommand = new RegExp('([a-z])[' + spaces + ',]*((-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?[' + spaces + ']*,?[' + spaces + ']*)+)', 'ig');
+        var pathValues = new RegExp('(-?\\d*\\.?\\d*(?:e[\\-+]?\\d+)?)[' + spaces + ']*,?[' + spaces + ']*', 'ig');
+
+        var math = Math;
+        var PI = math.PI;
+        var sin = math.sin;
+        var cos = math.cos;
+        var tan = math.tan;
+        var asin = math.asin;
+        var sqrt = math.sqrt;
+        var abs = math.abs;
+
+        function q2c(x1, y1, ax, ay, x2, y2) {
+
+            var _13 = 1 / 3;
+            var _23 = 2 / 3;
+            return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
+        }
+
+        function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
+            // for more information of where this math came from visit:
+            // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
+
+            var _120 = (PI * 120) / 180;
+            var rad = (PI / 180) * (+angle || 0);
+            var res = [];
+            var xy;
+
+            var rotate = function(x, y, rad) {
+
+                var X = (x * cos(rad)) - (y * sin(rad));
+                var Y = (x * sin(rad)) + (y * cos(rad));
+                return { x: X, y: Y };
+            };
+
+            if (!recursive) {
+                xy = rotate(x1, y1, -rad);
+                x1 = xy.x;
+                y1 = xy.y;
+
+                xy = rotate(x2, y2, -rad);
+                x2 = xy.x;
+                y2 = xy.y;
+
+                var x = (x1 - x2) / 2;
+                var y = (y1 - y2) / 2;
+                var h = ((x * x) / (rx * rx)) + ((y * y) / (ry * ry));
+
+                if (h > 1) {
+                    h = sqrt(h);
+                    rx = h * rx;
+                    ry = h * ry;
+                }
+
+                var rx2 = rx * rx;
+                var ry2 = ry * ry;
+
+                var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
+
+                var cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
+                var cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
+
+                var f1 = asin(((y1 - cy) / ry).toFixed(9));
+                var f2 = asin(((y2 - cy) / ry).toFixed(9));
+
+                f1 = ((x1 < cx) ? (PI - f1) : f1);
+                f2 = ((x2 < cx) ? (PI - f2) : f2);
+
+                if (f1 < 0) f1 = (PI * 2) + f1;
+                if (f2 < 0) f2 = (PI * 2) + f2;
+
+                if ((sweep_flag && f1) > f2) f1 = f1 - (PI * 2);
+                if ((!sweep_flag && f2) > f1) f2 = f2 - (PI * 2);
+
+            } else {
+                f1 = recursive[0];
+                f2 = recursive[1];
+                cx = recursive[2];
+                cy = recursive[3];
+            }
+
+            var df = f2 - f1;
+
+            if (abs(df) > _120) {
+                var f2old = f2;
+                var x2old = x2;
+                var y2old = y2;
+
+                f2 = f1 + (_120 * (((sweep_flag && f2) > f1) ? 1 : -1));
+                x2 = cx + (rx * cos(f2));
+                y2 = cy + (ry * sin(f2));
+
+                res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
+            }
+
+            df = f2 - f1;
+
+            var c1 = cos(f1);
+            var s1 = sin(f1);
+            var c2 = cos(f2);
+            var s2 = sin(f2);
+
+            var t = tan(df / 4);
+
+            var hx = (4 / 3) * (rx * t);
+            var hy = (4 / 3) * (ry * t);
+
+            var m1 = [x1, y1];
+            var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
+            var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
+            var m4 = [x2, y2];
+
+            m2[0] = (2 * m1[0]) - m2[0];
+            m2[1] = (2 * m1[1]) - m2[1];
+
+            if (recursive) {
+                return [m2, m3, m4].concat(res);
+
+            } else {
+                res = [m2, m3, m4].concat(res).join().split(',');
+
+                var newres = [];
+                var ii = res.length;
+                for (var i = 0; i < ii; i++) {
+                    newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+                }
+
+                return newres;
+            }
+        }
+
+        function parsePathString(pathString) {
+
+            if (!pathString) return null;
+
+            var paramCounts = { a: 7, c: 6, h: 1, l: 2, m: 2, q: 4, s: 4, t: 2, v: 1, z: 0 };
+            var data = [];
+
+            String(pathString).replace(pathCommand, function(a, b, c) {
+
+                var params = [];
+                var name = b.toLowerCase();
+                c.replace(pathValues, function(a, b) {
+                    if (b) params.push(+b);
+                });
+
+                if ((name === 'm') && (params.length > 2)) {
+                    data.push([b].concat(params.splice(0, 2)));
+                    name = 'l';
+                    b = ((b === 'm') ? 'l' : 'L');
+                }
+
+                while (params.length >= paramCounts[name]) {
+                    data.push([b].concat(params.splice(0, paramCounts[name])));
+                    if (!paramCounts[name]) break;
+                }
+            });
+
+            return data;
+        }
+
+        function pathToAbsolute(pathArray) {
+
+            if (!Array.isArray(pathArray) || !Array.isArray(pathArray && pathArray[0])) { // rough assumption
+                pathArray = parsePathString(pathArray);
+            }
+
+            // if invalid string, return 'M 0 0'
+            if (!pathArray || !pathArray.length) return [['M', 0, 0]];
+
+            var res = [];
+            var x = 0;
+            var y = 0;
+            var mx = 0;
+            var my = 0;
+            var start = 0;
+            var pa0;
+
+            var ii = pathArray.length;
+            for (var i = start; i < ii; i++) {
+
+                var r = [];
+                res.push(r);
+
+                var pa = pathArray[i];
+                pa0 = pa[0];
+
+                if (pa0 != pa0.toUpperCase()) {
+                    r[0] = pa0.toUpperCase();
+
+                    var jj;
+                    var j;
+                    switch (r[0]) {
+                        case 'A':
+                            r[1] = pa[1];
+                            r[2] = pa[2];
+                            r[3] = pa[3];
+                            r[4] = pa[4];
+                            r[5] = pa[5];
+                            r[6] = +pa[6] + x;
+                            r[7] = +pa[7] + y;
+                            break;
+
+                        case 'V':
+                            r[1] = +pa[1] + y;
+                            break;
+
+                        case 'H':
+                            r[1] = +pa[1] + x;
+                            break;
+
+                        case 'M':
+                            mx = +pa[1] + x;
+                            my = +pa[2] + y;
+
+                            jj = pa.length;
+                            for (j = 1; j < jj; j++) {
+                                r[j] = +pa[j] + ((j % 2) ? x : y);
+                            }
+                            break;
+
+                        default:
+                            jj = pa.length;
+                            for (j = 1; j < jj; j++) {
+                                r[j] = +pa[j] + ((j % 2) ? x : y);
+                            }
+                            break;
+                    }
+                } else {
+                    var kk = pa.length;
+                    for (var k = 0; k < kk; k++) {
+                        r[k] = pa[k];
+                    }
+                }
+
+                switch (r[0]) {
+                    case 'Z':
+                        x = +mx;
+                        y = +my;
+                        break;
+
+                    case 'H':
+                        x = r[1];
+                        break;
+
+                    case 'V':
+                        y = r[1];
+                        break;
+
+                    case 'M':
+                        mx = r[r.length - 2];
+                        my = r[r.length - 1];
+                        x = r[r.length - 2];
+                        y = r[r.length - 1];
+                        break;
+
+                    default:
+                        x = r[r.length - 2];
+                        y = r[r.length - 1];
+                        break;
+                }
+            }
+
+            return res;
+        }
+
+        function normalize(path) {
+
+            var p = pathToAbsolute(path);
+            var attrs = { x: 0, y: 0, bx: 0, by: 0, X: 0, Y: 0, qx: null, qy: null };
+
+            function processPath(path, d, pcom) {
+
+                var nx, ny;
+
+                if (!path) return ['C', d.x, d.y, d.x, d.y, d.x, d.y];
+
+                if (!(path[0] in { T: 1, Q: 1 })) {
+                    d.qx = null;
+                    d.qy = null;
+                }
+
+                switch (path[0]) {
+                    case 'M':
+                        d.X = path[1];
+                        d.Y = path[2];
+                        break;
+
+                    case 'A':
+                        path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+                        break;
+
+                    case 'S':
+                        if (pcom === 'C' || pcom === 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
+                            nx = (d.x * 2) - d.bx;          // And reflect the previous
+                            ny = (d.y * 2) - d.by;          // command's control point relative to the current point.
+                        }
+                        else {                            // or some else or nothing
+                            nx = d.x;
+                            ny = d.y;
+                        }
+                        path = ['C', nx, ny].concat(path.slice(1));
+                        break;
+
+                    case 'T':
+                        if (pcom === 'Q' || pcom === 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
+                            d.qx = (d.x * 2) - d.qx;        // And make a reflection similar
+                            d.qy = (d.y * 2) - d.qy;        // to case 'S'.
+                        }
+                        else {                            // or something else or nothing
+                            d.qx = d.x;
+                            d.qy = d.y;
+                        }
+                        path = ['C'].concat(q2c(d.x, d.y, d.qx, d.qy, path[1], path[2]));
+                        break;
+
+                    case 'Q':
+                        d.qx = path[1];
+                        d.qy = path[2];
+                        path = ['C'].concat(q2c(d.x, d.y, path[1], path[2], path[3], path[4]));
+                        break;
+
+                    case 'H':
+                        path = ['L'].concat(path[1], d.y);
+                        break;
+
+                    case 'V':
+                        path = ['L'].concat(d.x, path[1]);
+                        break;
+
+                    // leave 'L' & 'Z' commands as they were:
+
+                    case 'L':
+                        break;
+
+                    case 'Z':
+                        break;
+                }
+
+                return path;
+            }
+
+            function fixArc(pp, i) {
+
+                if (pp[i].length > 7) {
+
+                    pp[i].shift();
+                    var pi = pp[i];
+
+                    while (pi.length) {
+                        pcoms[i] = 'A'; // if created multiple 'C's, their original seg is saved
+                        pp.splice(i++, 0, ['C'].concat(pi.splice(0, 6)));
+                    }
+
+                    pp.splice(i, 1);
+                    ii = p.length;
+                }
+            }
+
+            var pcoms = []; // path commands of original path p
+            var pfirst = ''; // temporary holder for original path command
+            var pcom = ''; // holder for previous path command of original path
+
+            var ii = p.length;
+            for (var i = 0; i < ii; i++) {
+                if (p[i]) pfirst = p[i][0]; // save current path command
+
+                if (pfirst !== 'C') { // C is not saved yet, because it may be result of conversion
+                    pcoms[i] = pfirst; // Save current path command
+                    if (i > 0) pcom = pcoms[i - 1]; // Get previous path command pcom
+                }
+
+                p[i] = processPath(p[i], attrs, pcom); // Previous path command is inputted to processPath
+
+                if (pcoms[i] !== 'A' && pfirst === 'C') pcoms[i] = 'C'; // 'A' is the only command
+                // which may produce multiple 'C's
+                // so we have to make sure that 'C' is also 'C' in original path
+
+                fixArc(p, i); // fixArc adds also the right amount of 'A's to pcoms
+
+                var seg = p[i];
+                var seglen = seg.length;
+
+                attrs.x = seg[seglen - 2];
+                attrs.y = seg[seglen - 1];
+
+                attrs.bx = parseFloat(seg[seglen - 4]) || attrs.x;
+                attrs.by = parseFloat(seg[seglen - 3]) || attrs.y;
+            }
+
+            // make sure normalized path data string starts with an M segment
+            if (!p[0][0] || p[0][0] !== 'M') {
+                p.unshift(['M', 0, 0]);
+            }
+
+            return p;
+        }
+
+        return function(pathData) {
+            return normalize(pathData).join(',').split(',').join(' ');
+        };
+    })();
+
     V.namespace = ns;
 
     return V;
 
 })();
 
-
 // Global namespace.
 
 var joint = {
 
-    version: '2.0.1',
+    version: '2.1.0',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -3879,6 +7777,18 @@ var joint = {
 
     // `joint.routers` namespace.
     routers: {},
+
+    // `joint.anchors` namespace.
+    anchors: {},
+
+    // `joint.connectionPoints` namespace.
+    connectionPoints: {},
+
+    // `joint.connectionStrategies` namespace.
+    connectionStrategies: {},
+
+    // `joint.linkTools` namespace.
+    linkTools: {},
 
     // `joint.mvc` namespace.
     mvc: {
@@ -4165,6 +8075,7 @@ var joint = {
 
         })(),
 
+        // ** Deprecated **
         shapePerimeterConnectionPoint: function(linkView, view, magnet, reference) {
 
             var bbox;
@@ -4212,6 +8123,11 @@ var joint = {
             return spot || bbox.center();
         },
 
+        isPercentage: function(val) {
+
+            return joint.util.isString(val) && val.slice(-1) === '%';
+        },
+
         parseCssNumeric: function(strValue, restrictUnits) {
 
             restrictUnits = restrictUnits || [];
@@ -4238,13 +8154,14 @@ var joint = {
         breakText: function(text, size, styles, opt) {
 
             opt = opt || {};
+            styles = styles || {};
 
             var width = size.width;
             var height = size.height;
 
             var svgDocument = opt.svgDocument || V('svg').node;
-            var textElement = V('<text><tspan></tspan></text>').attr(styles || {}).node;
-            var textSpan = textElement.firstChild;
+            var textSpan = V('tspan').node;
+            var textElement = V('text').attr(styles).append(textSpan).node;
             var textNode = document.createTextNode('');
 
             // Prevent flickering
@@ -4266,7 +8183,10 @@ var joint = {
                 document.body.appendChild(svgDocument);
             }
 
-            var words = text.split(' ');
+            var separator = opt.separator || ' ';
+            var eol = opt.eol || '\n';
+
+            var words = text.split(separator);
             var full = [];
             var lines = [];
             var p;
@@ -4275,6 +8195,27 @@ var joint = {
             for (var i = 0, l = 0, len = words.length; i < len; i++) {
 
                 var word = words[i];
+
+                if (!word) continue;
+
+                if (eol && word.indexOf(eol) >= 0) {
+                    // word cotains end-of-line character
+                    if (word.length > 1) {
+                        // separate word and continue cycle
+                        var eolWords = word.split(eol);
+                        for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
+                            eolWords.splice(2 * j + 1, 0, eol);
+                        }
+                        Array.prototype.splice.apply(words, [i, 1].concat(eolWords));
+                        i--;
+                        len += eolWords.length - 1;
+                    } else {
+                        // creates new line
+                        l++;
+                    }
+                    continue;
+                }
+
 
                 textNode.data = lines[l] ? lines[l] + ' ' + word : word;
 
@@ -4398,9 +8339,114 @@ var joint = {
                 document.body.removeChild(svgDocument);
             }
 
-            return lines.join('\n');
+            return lines.join(eol);
         },
 
+        // Sanitize HTML
+        // Based on https://gist.github.com/ufologist/5a0da51b2b9ef1b861c30254172ac3c9
+        // Parses a string into an array of DOM nodes.
+        // Then outputs it back as a string.
+        sanitizeHTML: function(html) {
+
+            // Ignores tags that are invalid inside a <div> tag (e.g. <body>, <head>)
+
+            // If documentContext (second parameter) is not specified or given as `null` or `undefined`, a new document is used.
+            // Inline events will not execute when the HTML is parsed; this includes, for example, sending GET requests for images.
+
+            // If keepScripts (last parameter) is `false`, scripts are not executed.
+            var output = $($.parseHTML('<div>' + html + '</div>', null, false));
+
+            output.find('*').each(function() { // for all nodes
+                var currentNode = this;
+
+                $.each(currentNode.attributes, function() { // for all attributes in each node
+                    var currentAttribute = this;
+
+                    var attrName = currentAttribute.name;
+                    var attrValue = currentAttribute.value;
+
+                    // Remove attribute names that start with "on" (e.g. onload, onerror...).
+                    // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
+                    if (attrName.indexOf('on') === 0 || attrValue.indexOf('javascript:') === 0) {
+                        $(currentNode).removeAttr(attrName);
+                    }
+                });
+            });
+
+            return output.html();
+        },
+
+        // Download `blob` as file with `fileName`.
+        // Does not work in IE9.
+        downloadBlob: function(blob, fileName) {
+
+            if (window.navigator.msSaveBlob) { // requires IE 10+
+                // pulls up a save dialog
+                window.navigator.msSaveBlob(blob, fileName);
+
+            } else { // other browsers
+                // downloads directly in Chrome and Safari
+
+                // presents a save/open dialog in Firefox
+                // Firefox bug: `from` field in save dialog always shows `from:blob:`
+                // https://bugzilla.mozilla.org/show_bug.cgi?id=1053327
+
+                var url = window.URL.createObjectURL(blob);
+                var link = document.createElement('a');
+
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+
+                link.click();
+
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url); // mark the url for garbage collection
+            }
+        },
+
+        // Download `dataUri` as file with `fileName`.
+        // Does not work in IE9.
+        downloadDataUri: function(dataUri, fileName) {
+
+            var blob = joint.util.dataUriToBlob(dataUri);
+            joint.util.downloadBlob(blob, fileName);
+        },
+
+        // Convert an uri-encoded data component (possibly also base64-encoded) to a blob.
+        dataUriToBlob: function(dataUri) {
+
+            // first, make sure there are no newlines in the data uri
+            dataUri = dataUri.replace(/\s/g, '');
+            dataUri = decodeURIComponent(dataUri);
+
+            var firstCommaIndex = dataUri.indexOf(','); // split dataUri as `dataTypeString`,`data`
+
+            var dataTypeString = dataUri.slice(0, firstCommaIndex); // e.g. 'data:image/jpeg;base64'
+            var mimeString = dataTypeString.split(':')[1].split(';')[0]; // e.g. 'image/jpeg'
+
+            var data = dataUri.slice(firstCommaIndex + 1);
+            var decodedString;
+            if (dataTypeString.indexOf('base64') >= 0) { // data may be encoded in base64
+                decodedString = atob(data); // decode data
+            } else {
+                // convert the decoded string to UTF-8
+                decodedString = unescape(encodeURIComponent(data));
+            }
+            // write the bytes of the string to a typed array
+            var ia = new window.Uint8Array(decodedString.length);
+            for (var i = 0; i < decodedString.length; i++) {
+                ia[i] = decodedString.charCodeAt(i);
+            }
+
+            return new Blob([ia], { type: mimeString }); // return the typed array as Blob
+        },
+
+        // Read an image at `url` and return it as base64-encoded data uri.
+        // The mime type of the image is inferred from the `url` file extension.
+        // If data uri is provided as `url`, it is returned back unchanged.
+        // `callback` is a method with `err` as first argument and `dataUri` as second argument.
+        // Works with IE9.
         imageToDataUri: function(url, callback) {
 
             if (!url || url.substr(0, 'data:'.length) === 'data:') {
@@ -4418,7 +8464,7 @@ var joint = {
                 }, 0);
             }
 
-            // chrome IE10 IE11
+            // chrome, IE10+
             var modernHandler = function(xhr, callback) {
 
                 if (xhr.status === 200) {
@@ -4438,7 +8484,6 @@ var joint = {
                 } else {
                     callback(new Error('Failed to load image ' + url));
                 }
-
             };
 
             var legacyHandler = function(xhr, callback) {
@@ -4451,7 +8496,6 @@ var joint = {
                     }
                     return c.join('');
                 };
-
 
                 if (xhr.status === 200) {
 
@@ -4574,25 +8618,37 @@ var joint = {
             });
         },
 
-        // Return a new object with all for sides (top, bottom, left and right) in it.
+        // Return a new object with all four sides (top, right, bottom, left) in it.
         // Value of each side is taken from the given argument (either number or object).
         // Default value for a side is 0.
         // Examples:
-        // joint.util.normalizeSides(5) --> { top: 5, left: 5, right: 5, bottom: 5 }
-        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, left: 5, right: 0, bottom: 0 }
+        // joint.util.normalizeSides(5) --> { top: 5, right: 5, bottom: 5, left: 5 }
+        // joint.util.normalizeSides({ horizontal: 5 }) --> { top: 0, right: 5, bottom: 0, left: 5 }
+        // joint.util.normalizeSides({ left: 5 }) --> { top: 0, right: 0, bottom: 0, left: 5 }
+        // joint.util.normalizeSides({ horizontal: 10, left: 5 }) --> { top: 0, right: 10, bottom: 0, left: 5 }
+        // joint.util.normalizeSides({ horizontal: 0, left: 5 }) --> { top: 0, right: 0, bottom: 0, left: 5 }
         normalizeSides: function(box) {
 
-            if (Object(box) !== box) {
-                box = box || 0;
-                return { top: box, bottom: box, left: box, right: box };
+            if (Object(box) !== box) { // `box` is not an object
+                var val = 0; // `val` left as 0 if `box` cannot be understood as finite number
+                if (isFinite(box)) val = +box; // actually also accepts string numbers (e.g. '100')
+
+                return { top: val, right: val, bottom: val, left: val };
             }
 
-            return {
-                top: box.top || 0,
-                bottom: box.bottom || 0,
-                left: box.left || 0,
-                right: box.right || 0
-            };
+            // `box` is an object
+            var top, right, bottom, left;
+            top = right = bottom = left = 0;
+
+            if (isFinite(box.vertical)) top = bottom = +box.vertical;
+            if (isFinite(box.horizontal)) right = left = +box.horizontal;
+
+            if (isFinite(box.top)) top = +box.top; // overwrite vertical
+            if (isFinite(box.right)) right = +box.right; // overwrite horizontal
+            if (isFinite(box.bottom)) bottom = +box.bottom; // overwrite vertical
+            if (isFinite(box.left)) left = +box.left; // overwrite horizontal
+
+            return { top: top, right: right, bottom: bottom, left: left };
         },
 
         timing: {
@@ -5262,6 +9318,62 @@ var joint = {
                 };
             }
         },
+
+        parseDOMJSON: function(json, namespace) {
+
+            var selectors = {};
+            var svgNamespace = V.namespace.xmlns;
+            var ns = namespace || svgNamespace;
+            var fragment = document.createDocumentFragment();
+            var queue = [json, fragment, ns];
+            while (queue.length > 0) {
+                ns = queue.pop();
+                var parentNode = queue.pop();
+                var siblingsDef = queue.pop();
+                for (var i = 0, n = siblingsDef.length; i < n; i++) {
+                    var nodeDef = siblingsDef[i];
+                    // TagName
+                    if (!nodeDef.hasOwnProperty('tagName')) throw new Error('json-dom-parser: missing tagName');
+                    var tagName = nodeDef.tagName;
+                    // Namespace URI
+                    if (nodeDef.hasOwnProperty('namespaceURI')) ns = nodeDef.namespaceURI;
+                    var node = document.createElementNS(ns, tagName);
+                    var svg = (ns === svgNamespace);
+                    var wrapper = (svg) ? V : $;
+                    // Attributes
+                    var attributes = nodeDef.attributes;
+                    if (attributes) wrapper(node).attr(attributes);
+                    // Style
+                    var style = nodeDef.style;
+                    if (style) $(node).css(style);
+                    // ClassName
+                    if (nodeDef.hasOwnProperty('className')) {
+                        var className = nodeDef.className;
+                        if (svg) {
+                            node.className.baseVal = className;
+                        } else {
+                            node.className = className;
+                        }
+                    }
+                    // Selector
+                    if (nodeDef.hasOwnProperty('selector')) {
+                        var nodeSelector = nodeDef.selector;
+                        if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
+                        selectors[nodeSelector] = node;
+                        wrapper(node).attr('joint-selector', nodeSelector);
+                    }
+                    parentNode.appendChild(node);
+                    // Children
+                    var childrenDef = nodeDef.children;
+                    if (Array.isArray(childrenDef)) queue.push(childrenDef, node, ns);
+                }
+            }
+            return {
+                fragment: fragment,
+                selectors: selectors
+            }
+        },
+
         // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
         uniq: _.uniqBy || _.uniq,
@@ -5345,6 +9457,8 @@ joint.mvc.View = Backbone.View.extend({
     themeClassNamePrefix: joint.util.addClassNamePrefix('theme-'),
     requireSetThemeOverride: false,
     defaultTheme: joint.config.defaultTheme,
+    children: null,
+    childNodes: null,
 
     constructor: function(options) {
 
@@ -5362,6 +9476,17 @@ joint.mvc.View = Backbone.View.extend({
 
         this.setTheme(this.options.theme || this.defaultTheme);
         this.init();
+    },
+
+    renderChildren: function(children) {
+        children || (children = this.children);
+        if (children) {
+            var namespace = V.namespace[this.svgElement ? 'xmlns' : 'xhtml'];
+            var doc = joint.util.parseDOMJSON(children, namespace);
+            this.vel.empty().append(doc.fragment);
+            this.childNodes = doc.selectors;
+        }
+        return this;
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an
@@ -5449,7 +9574,11 @@ joint.mvc.View = Backbone.View.extend({
 
         var className = this.themeClassNamePrefix + theme;
 
-        this.$el.addClass(className);
+        if (this.svgElement) {
+            this.vel.addClass(className);
+        } else {
+            this.$el.addClass(className);
+        }
 
         return this;
     },
@@ -5460,7 +9589,11 @@ joint.mvc.View = Backbone.View.extend({
 
         var className = this.themeClassNamePrefix + theme;
 
-        this.$el.removeClass(className);
+        if (this.svgElement) {
+            this.vel.removeClass(className);
+        } else {
+            this.$el.removeClass(className);
+        }
 
         return this;
     },
@@ -5473,6 +9606,7 @@ joint.mvc.View = Backbone.View.extend({
     remove: function() {
 
         this.onRemove();
+        this.undelegateDocumentEvents();
 
         joint.mvc.views[this.cid] = null;
 
@@ -5489,6 +9623,47 @@ joint.mvc.View = Backbone.View.extend({
     getEventNamespace: function() {
         // Returns a per-session unique namespace
         return '.joint-event-ns-' + this.cid;
+    },
+
+    delegateElementEvents: function(element, events, data) {
+        if (!events) return this;
+        data || (data = {});
+        var eventNS = this.getEventNamespace();
+        for (var eventName in events) {
+            var method = events[eventName];
+            if (typeof method !== 'function') method = this[method];
+            if (!method) continue;
+            $(element).on(eventName + eventNS, data, method.bind(this));
+        }
+        return this;
+    },
+
+    undelegateElementEvents: function(element) {
+        $(element).off(this.getEventNamespace());
+        return this;
+    },
+
+    delegateDocumentEvents: function(events, data) {
+        events || (events = joint.util.result(this, 'documentEvents'));
+        return this.delegateElementEvents(document, events, data);
+    },
+
+    undelegateDocumentEvents: function() {
+        return this.undelegateElementEvents(document);
+    },
+
+    eventData: function(evt, data) {
+        if (!evt) throw new Error('eventData(): event object required.');
+        var currentData = evt.data;
+        var key = '__' + this.cid + '__';
+        if (data === undefined) {
+            if (!currentData) return {};
+            return currentData[key] || {};
+        }
+        currentData || (currentData = evt.data = {});
+        currentData[key] || (currentData[key] = {});
+        joint.util.assign(currentData[key], data);
+        return this;
     }
 
 }, {
@@ -5544,9 +9719,9 @@ joint.dia.GraphCells = Backbone.Collection.extend({
         this.graph = opt.graph;
     },
 
-    model: function(attrs, options) {
+    model: function(attrs, opt) {
 
-        var collection = options.collection;
+        var collection = opt.collection;
         var namespace = collection.cellNamespace;
 
         // Find the model class in the namespace or use the default one.
@@ -5554,10 +9729,12 @@ joint.dia.GraphCells = Backbone.Collection.extend({
             ? joint.dia.Link
             : joint.util.getByPath(namespace, attrs.type, '.') || joint.dia.Element;
 
-        var cell = new ModelClass(attrs, options);
+        var cell = new ModelClass(attrs, opt);
         // Add a reference to the graph. It is necessary to do this here because this is the earliest place
         // where a new model is created from a plain JS object. For other objects, see `joint.dia.Graph>>_prepareCell()`.
-        cell.graph = collection.graph;
+        if (!opt.dry) {
+            cell.graph = collection.graph;
+        }
 
         return cell;
     },
@@ -5595,7 +9772,6 @@ joint.dia.Graph = Backbone.Model.extend({
         // Backbone automatically doesn't trigger re-sort if models attributes are changed later when
         // they're already in the collection. Therefore, we're triggering sort manually here.
         this.on('change:z', this._sortOnChangeZ, this);
-        this.on('batch:stop', this._onBatchStop, this);
 
         // `joint.dia.Graph` keeps an internal data structure (an adjacency list)
         // for fast graph queries. All changes that affect the structure of the graph
@@ -5629,17 +9805,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     _sortOnChangeZ: function() {
 
-        if (!this.hasActiveBatch('to-front') && !this.hasActiveBatch('to-back')) {
-            this.get('cells').sort();
-        }
-    },
-
-    _onBatchStop: function(data) {
-
-        var batchName = data && data.batchName;
-        if ((batchName === 'to-front' || batchName === 'to-back') && !this.hasActiveBatch(batchName)) {
-            this.get('cells').sort();
-        }
+        this.get('cells').sort();
     },
 
     _restructureOnAdd: function(cell) {
@@ -5820,6 +9986,12 @@ joint.dia.Graph = Backbone.Model.extend({
         }
 
         return cell;
+    },
+
+    minZIndex: function() {
+
+        var firstCell = this.get('cells').first();
+        return firstCell ? (firstCell.get('z') || 0) : 0;
     },
 
     maxZIndex: function() {
@@ -6569,27 +10741,70 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     hasActiveBatch: function(name) {
-        if (name) {
-            return !!this._batches[name];
-        } else {
+        if (arguments.length === 0) {
             return joint.util.toArray(this._batches).some(function(batches) {
                 return batches > 0;
             });
         }
+        if (Array.isArray(name)) {
+            return name.some(function(name) {
+                return !!this._batches[name];
+            }, this);
+        }
+        return !!this._batches[name];
     }
+
+}, {
+
+    validations: {
+
+        multiLinks: function(graph, link) {
+
+            // Do not allow multiple links to have the same source and target.
+            var source = link.get('source');
+            var target = link.get('target');
+
+            if (source.id && target.id) {
+
+                var sourceModel = link.getSourceElement();
+                if (sourceModel) {
+
+                    var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });
+                    var sameLinks = connectedLinks.filter(function(_link) {
+
+                        var _source = _link.get('source');
+                        var _target = _link.get('target');
+
+                        return _source && _source.id === source.id &&
+                            (!_source.port || (_source.port === source.port)) &&
+                            _target && _target.id === target.id &&
+                            (!_target.port || (_target.port === target.port));
+
+                    });
+
+                    if (sameLinks.length > 1) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        },
+
+        linkPinning: function(graph, link) {
+            return link.source().id && link.target().id;
+        }
+    }
+
 });
 
 joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
 
-(function(joint, _, g, $, util) {
-
-    function isPercentage(val) {
-        return util.isString(val) && val.slice(-1) === '%';
-    }
+(function(joint, V, g, $, util) {
 
     function setWrapper(attrName, dimension) {
         return function(value, refBBox) {
-            var isValuePercentage = isPercentage(value);
+            var isValuePercentage = util.isPercentage(value);
             value = parseFloat(value);
             if (isValuePercentage) {
                 value /= 100;
@@ -6609,7 +10824,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
 
     function positionWrapper(axis, dimension, origin) {
         return function(value, refBBox) {
-            var valuePercentage = isPercentage(value);
+            var valuePercentage = util.isPercentage(value);
             value = parseFloat(value);
             if (valuePercentage) {
                 value /= 100;
@@ -6641,7 +10856,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             } else if (isFinite(value)) {
                 // TODO: or not to do a breaking change?
                 delta = (value > -1 && value < 1) ? (-nodeBBox[dimension] * value) : -value;
-            } else if (isPercentage(value)) {
+            } else if (util.isPercentage(value)) {
                 delta = nodeBBox[dimension] * parseFloat(value) / 100;
             } else {
                 delta = 0;
@@ -6651,6 +10866,117 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             point[axis] = -(nodeBBox[axis] + delta);
             return point;
         };
+    }
+
+    function shapeWrapper(shapeConstructor, opt) {
+        var cacheName = 'joint-shape';
+        var resetOffset = opt && opt.resetOffset;
+        return function(value, refBBox, node) {
+            var $node = $(node);
+            var cache = $node.data(cacheName);
+            if (!cache || cache.value !== value) {
+                // only recalculate if value has changed
+                var cachedShape = shapeConstructor(value);
+                cache = {
+                    value: value,
+                    shape: cachedShape,
+                    shapeBBox: cachedShape.bbox()
+                };
+                $node.data(cacheName, cache);
+            }
+
+            var shape = cache.shape.clone();
+            var shapeBBox = cache.shapeBBox.clone();
+            var shapeOrigin = shapeBBox.origin();
+            var refOrigin = refBBox.origin();
+
+            shapeBBox.x = refOrigin.x;
+            shapeBBox.y = refOrigin.y;
+
+            var fitScale = refBBox.maxRectScaleToFit(shapeBBox, refOrigin);
+            // `maxRectScaleToFit` can give Infinity if width or height is 0
+            var sx = (shapeBBox.width === 0 || refBBox.width === 0) ? 1 : fitScale.sx;
+            var sy = (shapeBBox.height === 0 || refBBox.height === 0) ? 1 : fitScale.sy;
+
+            shape.scale(sx, sy, shapeOrigin);
+            if (resetOffset) {
+                shape.translate(-shapeOrigin.x, -shapeOrigin.y);
+            }
+
+            return shape;
+        };
+    }
+
+    // `d` attribute for SVGPaths
+    function dWrapper(opt) {
+        function pathConstructor(value) {
+            return new g.Path(V.normalizePathData(value));
+        }
+        var shape = shapeWrapper(pathConstructor, opt);
+        return function(value, refBBox, node) {
+            var path = shape(value, refBBox, node);
+            return {
+                d: path.serialize()
+            };
+        };
+    }
+
+    // `points` attribute for SVGPolylines and SVGPolygons
+    function pointsWrapper(opt) {
+        var shape = shapeWrapper(g.Polyline, opt);
+        return function(value, refBBox, node) {
+            var polyline = shape(value, refBBox, node);
+            return {
+                points: polyline.serialize()
+            };
+        };
+    }
+
+    function atConnectionWrapper(method, opt) {
+        var zeroVector = new g.Point(1, 0);
+        return function(value) {
+            var p, angle;
+            var tangent = this[method](value);
+            if (tangent) {
+                angle = (opt.rotate) ? tangent.vector().vectorAngle(zeroVector) : 0;
+                p = tangent.start;
+            } else {
+                p = this.path.start;
+                angle = 0;
+            }
+            if (angle === 0) return { transform: 'translate(' + p.x + ',' + p.y + ')' };
+            return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
+        }
+    }
+
+    function isTextInUse(lineHeight, node, attrs) {
+        return (attrs.text !== undefined);
+    }
+
+    function isLinkView() {
+        return this instanceof joint.dia.LinkView;
+    }
+
+    function contextMarker(context) {
+        var marker = {};
+        // Stroke
+        // The context 'fill' is disregared here. The usual case is to use the marker with a connection
+        // (for which 'fill' attribute is set to 'none').
+        var stroke = context.stroke;
+        if (typeof stroke === 'string') {
+            marker['stroke'] = stroke;
+            marker['fill'] = stroke;
+        }
+        // Opacity
+        // Again the context 'fill-opacity' is ignored.
+        var strokeOpacity = context.strokeOpacity;
+        if (strokeOpacity === undefined) strokeOpacity = context['stroke-opacity'];
+        if (strokeOpacity === undefined) strokeOpacity = context.opacity
+        if (strokeOpacity !== undefined) {
+            marker['stroke-opacity'] = strokeOpacity;
+            marker['fill-opacity'] = strokeOpacity;
+        }
+        return marker;
     }
 
     var attributesNS = joint.dia.attributes = {
@@ -6738,32 +11064,37 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
 
         sourceMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), marker);
                 return { 'marker-start': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         targetMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
-                marker = util.assign({ transform: 'rotate(180)' }, marker);
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), { 'transform': 'rotate(180)' }, marker);
                 return { 'marker-end': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         vertexMarker: {
             qualify: util.isPlainObject,
-            set: function(marker) {
+            set: function(marker, refBBox, node, attrs) {
+                marker = util.assign(contextMarker(attrs), marker);
                 return { 'marker-mid': 'url(#' + this.paper.defineMarker(marker) + ')' };
             }
         },
 
         text: {
+            qualify: function(text, node, attrs) {
+                return !attrs.textWrap || !util.isPlainObject(attrs.textWrap);
+            },
             set: function(text, refBBox, node, attrs) {
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'eol');
+                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -6772,8 +11103,17 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                     // Chrome bug:
                     // Tspans positions defined as `em` are not updated
                     // when container `font-size` change.
-                    if (fontSize) {
-                        node.setAttribute('font-size', fontSize);
+                    if (fontSize) node.setAttribute('font-size', fontSize);
+                    // Text Along Path Selector
+                    var textPath = textAttrs.textPath;
+                    if (util.isObject(textPath)) {
+                        var pathSelector = textPath.selector;
+                        if (typeof pathSelector === 'string') {
+                            var pathNode = this.findBySelector(pathSelector)[0];
+                            if (pathNode instanceof SVGPathElement) {
+                                textAttrs.textPath = util.assign({ 'xlink:href': '#' + pathNode.id }, textPath);
+                            }
+                        }
                     }
                     V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
@@ -6786,7 +11126,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             set: function(value, refBBox, node, attrs) {
                 // option `width`
                 var width = value.width || 0;
-                if (isPercentage(width)) {
+                if (util.isPercentage(width)) {
                     refBBox.width *= parseFloat(width) / 100;
                 } else if (width <= 0) {
                     refBBox.width += width;
@@ -6795,7 +11135,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                 }
                 // option `height`
                 var height = value.height || 0;
-                if (isPercentage(height)) {
+                if (util.isPercentage(height)) {
                     refBBox.height *= parseFloat(height) / 100;
                 } else if (height <= 0) {
                     refBBox.height += height;
@@ -6803,36 +11143,64 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                     refBBox.height = height;
                 }
                 // option `text`
-                var wrappedText = joint.util.breakText('' + value.text, refBBox, {
-                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
-                    'font-size': attrs['font-size'] || attrs.fontSize,
-                    'font-family': attrs['font-family'] || attrs.fontFamily
-                }, {
-                    // Provide an existing SVG Document here
-                    // instead of creating a temporary one over again.
-                    svgDocument: this.paper.svg
-                });
+                var text = value.text;
+                if (text === undefined) text = attr.text;
+                if (text !== undefined) {
+                    var wrappedText = joint.util.breakText('' + text, refBBox, {
+                        'font-weight': attrs['font-weight'] || attrs.fontWeight,
+                        'font-size': attrs['font-size'] || attrs.fontSize,
+                        'font-family': attrs['font-family'] || attrs.fontFamily,
+                        'lineHeight': attrs.lineHeight
+                    }, {
+                        // Provide an existing SVG Document here
+                        // instead of creating a temporary one over again.
+                        svgDocument: this.paper.svg
+                    });
+                }
+                joint.dia.attributes.text.set.call(this, wrappedText, refBBox, node, attrs);
+            }
+        },
 
-                V(node).text(wrappedText);
+        title: {
+            qualify: function(title, node) {
+                // HTMLElement title is specified via an attribute (i.e. not an element)
+                return node instanceof SVGElement;
+            },
+            set: function(title, refBBox, node) {
+                var $node = $(node);
+                var cacheName = 'joint-title';
+                var cache = $node.data(cacheName);
+                if (cache === undefined || cache !== title) {
+                    $node.data(cacheName, title);
+                    // Generally <title> element should be the first child element of its parent.
+                    var firstChild = node.firstChild;
+                    if (firstChild && firstChild.tagName.toUpperCase() === 'TITLE') {
+                        // Update an existing title
+                        firstChild.textContent = title;
+                    } else {
+                        // Create a new title
+                        var titleNode = document.createElementNS(node.namespaceURI, 'title');
+                        titleNode.textContent = title;
+                        node.insertBefore(titleNode, firstChild);
+                    }
+                }
             }
         },
 
         lineHeight: {
-            qualify: function(lineHeight, node, attrs) {
-                return (attrs.text !== undefined);
-            }
+            qualify: isTextInUse
+        },
+
+        textVerticalAnchor: {
+            qualify: isTextInUse
         },
 
         textPath: {
-            qualify: function(textPath, node, attrs) {
-                return (attrs.text !== undefined);
-            }
+            qualify: isTextInUse
         },
 
         annotations: {
-            qualify: function(annotations, node, attrs) {
-                return (attrs.text !== undefined);
-            }
+            qualify: isTextInUse
         },
 
         // `port` attribute contains the `id` of the port that the underlying magnet represents.
@@ -6905,6 +11273,37 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             set: setWrapper('ry', 'height')
         },
 
+        refRInscribed: {
+            set: (function(attrName) {
+                var widthFn = setWrapper(attrName, 'width');
+                var heightFn = setWrapper(attrName, 'height');
+                return function(value, refBBox) {
+                    var fn = (refBBox.height > refBBox.width) ? widthFn : heightFn;
+                    return fn(value, refBBox);
+                }
+            })('r')
+        },
+
+        refRCircumscribed: {
+            set: function(value, refBBox) {
+                var isValuePercentage = util.isPercentage(value);
+                value = parseFloat(value);
+                if (isValuePercentage) {
+                    value /= 100;
+                }
+
+                var diagonalLength = Math.sqrt((refBBox.height * refBBox.height) + (refBBox.width * refBBox.width));
+
+                var rValue;
+                if (isFinite(value)) {
+                    if (isValuePercentage || value >= 0 && value <= 1) rValue = value * diagonalLength;
+                    else rValue = Math.max(value + diagonalLength, 0);
+                }
+
+                return { r: rValue };
+            }
+        },
+
         refCx: {
             set: setWrapper('cx', 'width')
         },
@@ -6934,8 +11333,60 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                     : { x: 0, y: 0 };
             }
 
+        },
+
+        refDResetOffset: {
+            set: dWrapper({ resetOffset: true })
+        },
+
+        refDKeepOffset: {
+            set: dWrapper({ resetOffset: false })
+        },
+
+        refPointsResetOffset: {
+            set: pointsWrapper({ resetOffset: true })
+        },
+
+        refPointsKeepOffset: {
+            set: pointsWrapper({ resetOffset: false })
+        },
+
+        // LinkView Attributes
+
+        connection: {
+            qualify: isLinkView,
+            set: function() {
+                return { d: this.getSerializedConnection() };
+            }
+        },
+
+        atConnectionLengthKeepGradient: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtLength', { rotate: true })
+        },
+
+        atConnectionLengthIgnoreGradient: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtLength', { rotate: false })
+        },
+
+        atConnectionRatioKeepGradient: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtRatio', { rotate: true })
+        },
+
+        atConnectionRatioIgnoreGradient: {
+            qualify: isLinkView,
+            set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
         }
     };
+
+    // Aliases
+    attributesNS.refR = attributesNS.refRInscribed;
+    attributesNS.refD = attributesNS.refDResetOffset;
+    attributesNS.refPoints = attributesNS.refPointsResetOffset;
+    attributesNS.atConnectionLength = attributesNS.atConnectionLengthKeepGradient;
+    attributesNS.atConnectionRatio = attributesNS.atConnectionRatioKeepGradient;
 
     // This allows to combine both absolute and relative positioning
     // refX: 50%, refX2: 20
@@ -6952,7 +11403,178 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
     attributesNS['x-alignment'] = attributesNS.xAlignment;
     attributesNS['y-alignment'] = attributesNS.yAlignment;
 
-})(joint, _, g, $, joint.util);
+})(joint, V, g, $, joint.util);
+
+(function(joint, util) {
+
+    var ToolView = joint.mvc.View.extend({
+        name: null,
+        tagName: 'g',
+        className: 'tool',
+        svgElement: true,
+        _visible: true,
+
+        init: function() {
+            var name = this.name;
+            if (name) this.vel.attr('data-tool-name', name);
+        },
+
+        configure: function(view, toolsView) {
+            this.relatedView = view;
+            this.paper = view.paper;
+            this.parentView = toolsView;
+            this.simulateRelatedView(this.el);
+            return this;
+        },
+
+        simulateRelatedView: function(el) {
+            if (el) el.setAttribute('model-id', this.relatedView.model.id);
+        },
+
+        getName: function() {
+            return this.name;
+        },
+
+        show: function() {
+            this.el.style.display = '';
+            this._visible = true;
+        },
+
+        hide: function() {
+            this.el.style.display = 'none';
+            this._visible = false;
+        },
+
+        isVisible: function() {
+            return !!this._visible;
+        },
+
+        focus: function() {
+            var opacity = this.options.focusOpacity;
+            if (isFinite(opacity)) this.el.style.opacity = opacity;
+            this.parentView.focusTool(this);
+        },
+
+        blur: function() {
+            this.el.style.opacity = '';
+            this.parentView.blurTool(this);
+        },
+
+        update: function() {
+            // to be overriden
+        }
+    });
+
+    var ToolsView = joint.mvc.View.extend({
+        tagName: 'g',
+        className: 'tools',
+        svgElement: true,
+        tools: null,
+        options: {
+            tools: null,
+            relatedView: null,
+            name: null,
+            component: false
+        },
+
+        configure: function(options) {
+            options = util.assign(this.options, options);
+            var tools = options.tools;
+            if (!Array.isArray(tools)) return this;
+            var relatedView = options.relatedView;
+            if (!(relatedView instanceof joint.dia.CellView)) return this;
+            var views = this.tools = [];
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                if (!(tool instanceof ToolView)) continue;
+                tool.configure(relatedView, this);
+                tool.render();
+                this.vel.append(tool.el);
+                views.push(tool);
+            }
+            return this;
+        },
+
+        getName: function() {
+            return this.options.name;
+        },
+
+        update: function(opt) {
+
+            opt || (opt = {});
+            var tools = this.tools;
+            if (!tools) return;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                if (opt.tool !== tool.cid && tool.isVisible()) {
+                    tool.update();
+                }
+            }
+            return this;
+        },
+
+        focusTool: function(focusedTool) {
+
+            var tools = this.tools;
+            if (!tools) return this;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                if (focusedTool === tool) {
+                    tool.show();
+                } else {
+                    tool.hide();
+                }
+            }
+            return this;
+        },
+
+        blurTool: function(blurredTool) {
+            var tools = this.tools;
+            if (!tools) return this;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                var tool = tools[i];
+                if (tool !== blurredTool && !tool.isVisible()) {
+                    tool.show();
+                    tool.update();
+                }
+            }
+            return this;
+        },
+
+        hide: function() {
+            return this.focusTool(null);
+        },
+
+        show: function() {
+            return this.blurTool(null);
+        },
+
+        onRemove: function() {
+
+            var tools = this.tools;
+            if (!tools) return this;
+            for (var i = 0, n = tools.length; i < n; i++) {
+                tools[i].remove();
+            }
+            this.tools = null;
+        },
+
+        mount: function() {
+            var options = this.options;
+            var relatedView = options.relatedView;
+            if (relatedView) {
+                var container = (options.component) ? relatedView.el : relatedView.paper.tools;
+                container.appendChild(this.el);
+            }
+            return this;
+        }
+
+    });
+
+    joint.dia.ToolsView = ToolsView;
+    joint.dia.ToolView = ToolView;
+
+})(joint, joint.util);
 
 
 // joint.dia.Cell base model.
@@ -7110,12 +11732,8 @@ joint.dia.Cell = Backbone.Model.extend({
         }
 
         // First, unembed this cell from its parent cell if there is one.
-        var parentCellId = this.get('parent');
-        if (parentCellId) {
-
-            var parentCell = graph && graph.getCell(parentCellId);
-            parentCell.unembed(this);
-        }
+        var parentCell = this.getParentCell();
+        if (parentCell) parentCell.unembed(this);
 
         joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
 
@@ -7130,22 +11748,43 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toFront: function(opt) {
 
-        if (this.graph) {
+        var graph = this.graph;
+        if (graph) {
 
             opt = opt || {};
 
-            var z = (this.graph.getLastCell().get('z') || 0) + 1;
+            var z = graph.maxZIndex();
 
-            this.startBatch('to-front').set('z', z, opt);
+            var cells;
 
             if (opt.deep) {
-
-                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                cells.forEach(function(cell) { cell.set('z', ++z, opt); });
-
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                cells.unshift(this);
+            } else {
+                cells = [this];
             }
 
-            this.stopBatch('to-front');
+            z = z - cells.length + 1;
+
+            var collection = graph.get('cells');
+            var shouldUpdate = (collection.indexOf(this) !== (collection.length - cells.length));
+            if (!shouldUpdate) {
+                shouldUpdate = cells.some(function(cell, index) {
+                    return cell.get('z') !== z + index;
+                });
+            }
+
+            if (shouldUpdate) {
+                this.startBatch('to-front');
+
+                z = z + cells.length;
+
+                cells.forEach(function(cell, index) {
+                    cell.set('z', z + index, opt);
+                });
+
+                this.stopBatch('to-front');
+            }
         }
 
         return this;
@@ -7153,24 +11792,52 @@ joint.dia.Cell = Backbone.Model.extend({
 
     toBack: function(opt) {
 
-        if (this.graph) {
+        var graph = this.graph;
+        if (graph) {
 
             opt = opt || {};
 
-            var z = (this.graph.getFirstCell().get('z') || 0) - 1;
+            var z = graph.minZIndex();
 
-            this.startBatch('to-back');
+            var cells;
 
             if (opt.deep) {
-
-                var cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
-                cells.reverse().forEach(function(cell) { cell.set('z', z--, opt); });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                cells.unshift(this);
+            } else {
+                cells = [this];
             }
 
-            this.set('z', z, opt).stopBatch('to-back');
+            var collection = graph.get('cells');
+            var shouldUpdate = (collection.indexOf(this) !== 0);
+            if (!shouldUpdate) {
+                shouldUpdate = cells.some(function(cell, index) {
+                    return cell.get('z') !== z + index;
+                });
+            }
+
+            if (shouldUpdate) {
+                this.startBatch('to-back');
+
+                z -= cells.length;
+
+                cells.forEach(function(cell, index) {
+                    cell.set('z', z + index, opt);
+                });
+
+                this.stopBatch('to-back');
+            }
         }
 
         return this;
+    },
+
+    parent: function(parent, opt) {
+
+        // getter
+        if (parent === undefined) return this.get('parent');
+        // setter
+        return this.set('parent', parent, opt);
     },
 
     embed: function(cell, opt) {
@@ -7188,7 +11855,7 @@ joint.dia.Cell = Backbone.Model.extend({
             // We keep all element ids after link ids.
             embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
 
-            cell.set('parent', this.id, opt);
+            cell.parent(this.id, opt);
             this.set('embeds', joint.util.uniq(embeds), opt);
 
             this.stopBatch('embed');
@@ -7209,26 +11876,30 @@ joint.dia.Cell = Backbone.Model.extend({
         return this;
     },
 
+    getParentCell: function() {
+
+        // unlike link.source/target, cell.parent stores id directly as a string
+        var parentId = this.parent();
+        var graph = this.graph;
+
+        return (parentId && graph && graph.getCell(parentId)) || null;
+    },
+
     // Return an array of ancestor cells.
     // The array is ordered from the parent of the cell
     // to the most distant ancestor.
     getAncestors: function() {
 
         var ancestors = [];
-        var parentId = this.get('parent');
 
         if (!this.graph) {
             return ancestors;
         }
 
-        while (parentId !== undefined) {
-            var parent = this.graph.getCell(parentId);
-            if (parent !== undefined) {
-                ancestors.push(parent);
-                parentId = parent.get('parent');
-            } else {
-                break;
-            }
+        var parentCell = this.getParentCell();
+        while (parentCell) {
+            ancestors.push(parentCell);
+            parentCell = parentCell.getParentCell();
         }
 
         return ancestors;
@@ -7283,7 +11954,7 @@ joint.dia.Cell = Backbone.Model.extend({
     isEmbeddedIn: function(cell, opt) {
 
         var cellId = joint.util.isString(cell) ? cell : cell.id;
-        var parentId = this.get('parent');
+        var parentId = this.parent();
 
         opt = joint.util.defaults({ deep: true }, opt);
 
@@ -7294,7 +11965,7 @@ joint.dia.Cell = Backbone.Model.extend({
                 if (parentId === cellId) {
                     return true;
                 }
-                parentId = this.graph.getCell(parentId).get('parent');
+                parentId = this.graph.getCell(parentId).parent();
             }
 
             return false;
@@ -7310,7 +11981,7 @@ joint.dia.Cell = Backbone.Model.extend({
     // Whether or not the cell is embedded in any other cell.
     isEmbedded: function() {
 
-        return !!this.get('parent');
+        return !!this.parent();
     },
 
     // Isolated cloning. Isolated cloning has two versions: shallow and deep (pass `{ deep: true }` in `opt`).
@@ -7542,6 +12213,7 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     getTransitions: function() {
+
         return Object.keys(this._transitionIds);
     },
 
@@ -7595,11 +12267,13 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     startBatch: function(name, opt) {
+
         if (this.graph) { this.graph.startBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     },
 
     stopBatch: function(name, opt) {
+
         if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
     }
@@ -7635,6 +12309,8 @@ joint.dia.CellView = joint.mvc.View.extend({
     tagName: 'g',
 
     svgElement: true,
+
+    selector: 'root',
 
     className: function() {
 
@@ -7704,12 +12380,18 @@ joint.dia.CellView = joint.mvc.View.extend({
                 (joint.util.isBoolean(interactive) && interactive !== false);
     },
 
-    findBySelector: function(selector, root) {
+    findBySelector: function(selector, root, selectors) {
 
-        var $root = $(root || this.el);
+        root || (root = this.el);
+        selectors || (selectors = this.selectors);
+
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
-        return (selector === '.') ? $root : $root.find(selector);
+        if (!selector || selector === '.') return [root];
+        if (selectors && selectors[selector]) return [selectors[selector]];
+        // Maintaining backwards compatibility
+        // e.g. `circle:first` would fail with querySelector() call
+        return $(root).find(selector).toArray();
     },
 
     notify: function(eventName) {
@@ -7726,6 +12408,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
+    // ** Deprecated **
     getStrokeBBox: function(el) {
         // Return a bounding box rectangle that takes into account stroke.
         // Note that this is a naive and ad-hoc implementation that does not
@@ -7737,7 +12420,6 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         el = el || this.el;
         var bbox = V(el).getBBox({ target: this.paper.viewport });
-
         var strokeWidth;
         if (isMagnet) {
 
@@ -7834,6 +12516,68 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return selector;
+    },
+
+    getLinkEnd: function(magnet, x, y, link, endType) {
+
+        var model = this.model;
+        var id = model.id;
+        var port = this.findAttribute('port', magnet);
+        // Find a unique `selector` of the element under pointer that is a magnet.
+        var selector = magnet.getAttribute('joint-selector');
+
+        var end = { id: id };
+        if (selector != null) end.magnet = selector;
+        if (port != null) {
+            end.port = port;
+            if (!model.hasPort(port) && !selector) {
+                // port created via the `port` attribute (not API)
+                end.selector = this.getSelector(magnet);
+            }
+        } else if (selector == null && this.el !== magnet) {
+            end.selector = this.getSelector(magnet);
+        }
+
+        var paper = this.paper;
+        var connectionStrategy = paper.options.connectionStrategy;
+        if (typeof connectionStrategy === 'function') {
+            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
+            if (strategy) end = strategy;
+        }
+
+        return end;
+    },
+
+    getMagnetFromLinkEnd: function(end) {
+
+        var root = this.el;
+        var port = end.port;
+        var selector = end.magnet;
+        var magnet;
+        if (port != null && this.model.hasPort(port)) {
+            magnet = this.findPortNode(port, selector) || root;
+        } else {
+            magnet = this.findBySelector(selector || end.selector, root, this.selectors)[0];
+        }
+
+        return magnet;
+    },
+
+    findAttribute: function(attributeName, node) {
+
+        if (!node) return null;
+
+        var attributeValue = node.getAttribute(attributeName);
+        if (attributeValue === null) {
+            if (node === this.el) return null;
+            var currentNode = node.parentNode;
+            while (currentNode && currentNode !== this.el && currentNode.nodeType === 1) {
+                attributeValue = currentNode.getAttribute(attributeName)
+                if (attributeValue !== null) break;
+                currentNode = currentNode.parentNode;
+            }
+        }
+        return attributeValue;
     },
 
     getAttributeDefinition: function(attrName) {
@@ -8003,6 +12747,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             nodeMatrix.e = nodePosition.x;
             nodeMatrix.f = nodePosition.y;
             node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
+            // TODO: store nodeMatrix metrics?
         }
     },
 
@@ -8022,26 +12767,33 @@ joint.dia.CellView = joint.mvc.View.extend({
         return { sx: sx, sy: sy };
     },
 
-    findNodesAttributes: function(attrs, root, selectorCache) {
+    findNodesAttributes: function(attrs, root, selectorCache, selectors) {
 
         // TODO: merge attributes in order defined by `index` property
+
+        // most browsers sort elements in attrs by order of addition
+        // which is useful but not required
+
+        // link.updateLabels() relies on that assumption for merging label attrs over default label attrs
 
         var nodesAttrs = {};
 
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
-            var $selected = selectorCache[selector] = this.findBySelector(selector, root);
-
-            for (var i = 0, n = $selected.length; i < n; i++) {
-                var node = $selected[i];
+            var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
+            for (var i = 0, n = selected.length; i < n; i++) {
+                var node = selected[i];
                 var nodeId = V.ensureId(node);
                 var nodeAttrs = attrs[selector];
                 var prevNodeAttrs = nodesAttrs[nodeId];
                 if (prevNodeAttrs) {
                     if (!prevNodeAttrs.merged) {
                         prevNodeAttrs.merged = true;
-                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes);
+                        // if prevNode attrs is `null`, replace with `{}`
+                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes) || {};
                     }
+                    // if prevNode attrs not set (or `null` or`{}`), use node attrs
+                    // if node attrs not set (or `null` or `{}`), use prevNode attrs
                     joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
                 } else {
                     nodesAttrs[nodeId] = {
@@ -8062,6 +12814,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         opt || (opt = {});
         opt.rootBBox || (opt.rootBBox = g.Rect());
+        opt.selectors || (opt.selectors = this.selectors); // selector collection to use
 
         // Cache table for query results and bounding box calculation.
         // Note that `selectorCache` needs to be invalidated for all
@@ -8074,11 +12827,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         var item, node, nodeAttrs, nodeData, processedAttrs;
 
         var roAttrs = opt.roAttributes;
-        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache);
+        var nodesAttrs = this.findNodesAttributes(roAttrs || attrs, rootNode, selectorCache, opt.selectors);
         // `nodesAttrs` are different from all attributes, when
         // rendering only  attributes sent to this method.
         var nodesAllAttrs = (roAttrs)
-            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache)
+            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
             : nodesAttrs;
 
         for (var nodeId in nodesAttrs) {
@@ -8100,9 +12853,9 @@ joint.dia.CellView = joint.mvc.View.extend({
 
                 var refNode;
                 if (refSelector) {
-                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode))[0];
+                    refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode, opt.selectors))[0];
                     if (!refNode) {
-                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exists.');
+                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exist.');
                     }
                 } else {
                     refNode = null;
@@ -8180,6 +12933,77 @@ joint.dia.CellView = joint.mvc.View.extend({
         processedAttrs.normal = roProcessedAttrs.normal;
     },
 
+    onRemove: function() {
+        this.removeTools();
+    },
+
+    _toolsView: null,
+
+    hasTools: function(name) {
+        var toolsView = this._toolsView;
+        if (!toolsView) return false;
+        if (!name) return true;
+        return (toolsView.getName() === name);
+    },
+
+    addTools: function(toolsView) {
+
+        this.removeTools();
+
+        if (toolsView instanceof joint.dia.ToolsView) {
+            this._toolsView = toolsView;
+            toolsView.configure({ relatedView: this });
+            toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
+            toolsView.mount();
+        }
+        return this;
+    },
+
+    updateTools: function(opt) {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.update(opt);
+        return this;
+    },
+
+    removeTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) {
+            toolsView.remove();
+            this._toolsView = null;
+        }
+        return this;
+    },
+
+    hideTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.hide();
+        return this;
+    },
+
+    showTools: function() {
+
+        var toolsView = this._toolsView;
+        if (toolsView) toolsView.show();
+        return this;
+    },
+
+    onToolEvent: function(event) {
+        switch (event) {
+            case 'remove':
+                this.removeTools();
+                break;
+            case 'hide':
+                this.hideTools();
+                break;
+            case 'show':
+                this.showTools();
+                break;
+        }
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -8198,6 +13022,11 @@ joint.dia.CellView = joint.mvc.View.extend({
     pointerclick: function(evt, x, y) {
 
         this.notify('cell:pointerclick', evt, x, y);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        this.notify('cell:contextmenu', evt, x, y);
     },
 
     pointerdown: function(evt, x, y) {
@@ -8252,21 +13081,29 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.notify('cell:mousewheel', evt, x, y, delta);
     },
 
-    contextmenu: function(evt, x, y) {
-
-        this.notify('cell:contextmenu', evt, x, y);
-    },
-
-    event: function(evt, eventName, x, y) {
+    onevent: function(evt, eventName, x, y) {
 
         this.notify(eventName, evt, x, y);
+    },
+
+    onmagnet: function() {
+
+        // noop
     },
 
     setInteractivity: function(value) {
 
         this.options.interactive = value;
     }
+}, {
+
+    dispatchToolsEvent: function(paper, event) {
+        if ((typeof event === 'string') && (paper instanceof joint.dia.Paper)) {
+            paper.trigger('tools:event', event);
+        }
+    }
 });
+
 
 // joint.dia.Element base model.
 // -----------------------------
@@ -8307,10 +13144,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         if (opt.parentRelative) {
 
             // Getting the parent's position requires the collection.
-            // Cell.get('parent') helds cell id only.
+            // Cell.parent() holds cell id only.
             if (!this.graph) throw new Error('Element must be part of a graph.');
 
-            var parent = this.graph.getCell(this.get('parent'));
+            var parent = this.getParentCell();
             var parentPosition = parent && !parent.isLink()
                 ? parent.get('position')
                 : { x: 0, y: 0 };
@@ -8629,6 +13466,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         return this;
     },
 
+    angle: function() {
+        return g.normalizeAngle(this.get('angle') || 0);
+    },
+
     getBBox: function(opt) {
 
         opt = opt || {};
@@ -8647,13 +13488,12 @@ joint.dia.Element = joint.dia.Cell.extend({
         var position = this.get('position');
         var size = this.get('size');
 
-        return g.rect(position.x, position.y, size.width, size.height);
+        return new g.Rect(position.x, position.y, size.width, size.height);
     }
 });
 
 // joint.dia.Element base view and controller.
 // -------------------------------------------
-
 
 joint.dia.ElementView = joint.dia.CellView.extend({
 
@@ -8681,6 +13521,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         return classNames.join(' ');
     },
 
+    metrics: null,
+
     initialize: function() {
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
@@ -8693,6 +13535,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.listenTo(model, 'change:markup', this.render);
 
         this._initializePorts();
+
+        this.metrics = {};
     },
 
     /**
@@ -8704,12 +13548,15 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     update: function(cell, renderingOnlyAttrs) {
 
+        this.metrics = {};
+
         this._removePorts();
 
         var model = this.model;
         var modelAttrs = model.attr();
         this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
-            rootBBox: g.Rect(model.size()),
+            rootBBox: new g.Rect(model.size()),
+            selectors: this.selectors,
             scalableNode: this.scalableNode,
             rotatableNode: this.rotatableNode,
             // Use rendering only attributes if they differs from the model attributes
@@ -8719,63 +13566,222 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._renderPorts();
     },
 
+    rotatableSelector: 'rotatable',
+    scalableSelector: 'scalable',
+    scalableNode: null,
+    rotatableNode: null,
+
     // `prototype.markup` is rendered by default. Set the `markup` attribute on the model if the
     // default markup is not desirable.
     renderMarkup: function() {
 
-        var markup = this.model.get('markup') || this.model.markup;
+        var element = this.model;
+        var markup = element.get('markup') || element.markup;
+        if (!markup) throw new Error('dia.ElementView: markup required');
+        if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
+        if (typeof markup === 'string') return this.renderStringMarkup(markup);
+        throw new Error('dia.ElementView: invalid markup');
+    },
 
-        if (markup) {
+    renderJSONMarkup: function(markup) {
 
-            var svg = joint.util.template(markup)();
-            var nodes = V(svg);
+        var doc = joint.util.parseDOMJSON(markup);
+        // Selectors
+        var selectors = this.selectors = doc.selectors;
+        var rootSelector = this.selector;
+        if (selectors[rootSelector]) throw new Error('dia.ElementView: ambiguous root selector.');
+        selectors[rootSelector] = this.el;
+        // Cache transformation groups
+        this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
+        this.scalableNode = V(selectors[this.scalableSelector]) || null;
+        // Fragment
+        this.vel.append(doc.fragment);
+    },
 
-            this.vel.append(nodes);
+    renderStringMarkup: function(markup) {
 
-        } else {
+        var vel = this.vel;
+        vel.append(V(markup));
+        // Cache transformation groups
+        this.rotatableNode = vel.findOne('.rotatable');
+        this.scalableNode = vel.findOne('.scalable');
 
-            throw new Error('properties.markup is missing while the default render() implementation is used.');
-        }
+        var selectors = this.selectors = {};
+        selectors[this.selector] = this.el;
     },
 
     render: function() {
 
-        this.$el.empty();
-
+        this.vel.empty();
         this.renderMarkup();
-        this.rotatableNode = this.vel.findOne('.rotatable');
-        var scalable = this.scalableNode = this.vel.findOne('.scalable');
-        if (scalable) {
+        if (this.scalableNode) {
             // Double update is necessary for elements with the scalable group only
             // Note the resize() triggers the other `update`.
             this.update();
         }
         this.resize();
-        this.rotate();
-        this.translate();
-
+        if (this.rotatableNode) {
+            // Translate transformation is applied on `this.el` while the rotation transformation
+            // on `this.rotatableNode`
+            this.rotate();
+            this.translate();
+            return this;
+        }
+        this.updateTransformation();
         return this;
     },
 
-    resize: function(cell, changed, opt) {
+    resize: function() {
+
+        if (this.scalableNode) return this.sgResize.apply(this, arguments);
+        if (this.model.attributes.angle) this.rotate();
+        this.update();
+    },
+
+    translate: function() {
+
+        if (this.rotatableNode) return this.rgTranslate();
+        this.updateTransformation();
+    },
+
+    rotate: function() {
+
+        if (this.rotatableNode) return this.rgRotate();
+        this.updateTransformation();
+    },
+
+    updateTransformation: function() {
+
+        var transformation = this.getTranslateString();
+        var rotateString = this.getRotateString();
+        if (rotateString) transformation += ' ' + rotateString;
+        this.vel.attr('transform', transformation);
+    },
+
+    getTranslateString: function() {
+
+        var position = this.model.attributes.position;
+        return 'translate(' + position.x + ',' + position.y + ')';
+    },
+
+    getRotateString: function() {
+        var attributes = this.model.attributes;
+        var angle = attributes.angle;
+        if (!angle) return null;
+        var size = attributes.size;
+        return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
+    },
+
+    getBBox: function(opt) {
+
+        var bbox;
+        if (opt && opt.useModelGeometry) {
+            var model = this.model;
+            bbox = model.getBBox().bbox(model.angle());
+        } else {
+            bbox = this.getNodeBBox(this.el);
+        }
+
+        return this.paper.localToPaperRect(bbox);
+    },
+
+    nodeCache: function(magnet) {
+
+        var id = V.ensureId(magnet);
+        var metrics = this.metrics[id];
+        if (!metrics) metrics = this.metrics[id] = {};
+        return metrics;
+    },
+
+    getNodeData: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (!metrics.data) metrics.data = {};
+        return metrics.data;
+    },
+
+    getNodeBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        var rotateMatrix = this.getRootRotateMatrix();
+        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+    },
+
+    getNodeBoundingRect: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
+        return new g.Rect(metrics.boundingRect);
+    },
+
+    getNodeUnrotatedBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
+    },
+
+    getNodeShape: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
+        return metrics.geometryShape.clone();
+    },
+
+    getNodeMatrix: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.magnetMatrix === undefined) {
+            var target = this.rotatableNode || this.el;
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
+        }
+        return V.createSVGMatrix(metrics.magnetMatrix);
+    },
+
+    getRootTranslateMatrix: function() {
 
         var model = this.model;
-        var size = model.get('size') || { width: 1, height: 1 };
-        var angle = model.get('angle') || 0;
+        var position = model.position();
+        var mt = V.createSVGMatrix().translate(position.x, position.y);
+        return mt;
+    },
 
-        var scalable = this.scalableNode;
-        if (!scalable) {
+    getRootRotateMatrix: function() {
 
-            if (angle !== 0) {
-                // update the origin of the rotation
-                this.rotate();
-            }
-            // update the ref attributes
-            this.update();
-
-            // If there is no scalable elements, than there is nothing to scale.
-            return;
+        var mr = V.createSVGMatrix();
+        var model = this.model;
+        var angle = model.angle();
+        if (angle) {
+            var bbox = model.getBBox();
+            var cx = bbox.width / 2;
+            var cy = bbox.height / 2;
+            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
         }
+        return mr;
+    },
+
+    // Rotatable & Scalable Group
+    // always slower, kept mainly for backwards compatibility
+
+    rgRotate: function() {
+
+        this.rotatableNode.attr('transform', this.getRotateString());
+    },
+
+    rgTranslate: function() {
+
+        this.vel.attr('transform', this.getTranslateString());
+    },
+
+    sgResize: function(cell, changed, opt) {
+
+        var model = this.model;
+        var angle = model.get('angle') || 0;
+        var size = model.get('size') || { width: 1, height: 1 };
+        var scalable = this.scalableNode;
 
         // Getting scalable group's bbox.
         // Due to a bug in webkit's native SVG .getBBox implementation, the bbox of groups with path children includes the paths' control points.
@@ -8805,7 +13811,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
         var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
-        if (rotation && rotation !== 'null') {
+        if (rotation && rotation !== null) {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
             var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
@@ -8820,56 +13826,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.update();
     },
 
-    translate: function(model, changes, opt) {
+    // Embedding mode methods.
+    // -----------------------
 
-        var position = this.model.get('position') || { x: 0, y: 0 };
+    prepareEmbedding: function(data) {
 
-        this.vel.attr('transform', 'translate(' + position.x + ',' + position.y + ')');
-    },
+        data || (data = {});
 
-    rotate: function() {
-
-        var rotatable = this.rotatableNode;
-        if (!rotatable) {
-            // If there is no rotatable elements, then there is nothing to rotate.
-            return;
-        }
-
-        var angle = this.model.get('angle') || 0;
-        var size = this.model.get('size') || { width: 1, height: 1 };
-
-        var ox = size.width / 2;
-        var oy = size.height / 2;
-
-        if (angle !== 0) {
-            rotatable.attr('transform', 'rotate(' + angle + ',' + ox + ',' + oy + ')');
-        } else {
-            rotatable.removeAttr('transform');
-        }
-    },
-
-    getBBox: function(opt) {
-
-        if (opt && opt.useModelGeometry) {
-            var bbox = this.model.getBBox().bbox(this.model.get('angle'));
-            return this.paper.localToPaperRect(bbox);
-        }
-
-        return joint.dia.CellView.prototype.getBBox.apply(this, arguments);
-    },
-
-    // Embedding mode methods
-    // ----------------------
-
-    prepareEmbedding: function(opt) {
-
-        opt = opt || {};
-
-        var model = opt.model || this.model;
-        var paper = opt.paper || this.paper;
+        var model = data.model || this.model;
+        var paper = data.paper || this.paper;
         var graph = paper.model;
 
-        model.startBatch('to-front', opt);
+        model.startBatch('to-front');
 
         // Bring the model to the front with all his embeds.
         model.toFront({ deep: true, ui: true });
@@ -8887,19 +13855,27 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
-        var parentId = model.get('parent');
+        var parentId = model.parent();
         parentId && graph.getCell(parentId).unembed(model, { ui: true });
     },
 
-    processEmbedding: function(opt) {
+    processEmbedding: function(data) {
 
-        opt = opt || {};
+        data || (data = {});
 
-        var model = opt.model || this.model;
-        var paper = opt.paper || this.paper;
-
+        var model = data.model || this.model;
+        var paper = data.paper || this.paper;
         var paperOptions = paper.options;
-        var candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+
+        var candidates = [];
+        if (joint.util.isFunction(paperOptions.findParentBy)) {
+            var parents = joint.util.toArray(paperOptions.findParentBy.call(paper.model, this));
+            candidates = parents.filter(function(el) {
+                return el instanceof joint.dia.Cell && this.model.id !== el.id && !el.isEmbeddedIn(this.model);
+            }.bind(this));
+        } else {
+            candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+        }
 
         if (paperOptions.frontParentOnly) {
             // pick the element with the highest `z` index
@@ -8907,7 +13883,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         }
 
         var newCandidateView = null;
-        var prevCandidateView = this._candidateEmbedView;
+        var prevCandidateView = data.candidateEmbedView;
 
         // iterate over all candidates starting from the last one (has the highest z-index).
         for (var i = candidates.length - 1; i >= 0; i--) {
@@ -8934,33 +13910,35 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (newCandidateView && newCandidateView != prevCandidateView) {
             // A new candidate view found. Highlight the new one.
-            this.clearEmbedding();
-            this._candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
+            this.clearEmbedding(data);
+            data.candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
         }
 
         if (!newCandidateView && prevCandidateView) {
             // No candidate view found. Unhighlight the previous candidate.
-            this.clearEmbedding();
+            this.clearEmbedding(data);
         }
     },
 
-    clearEmbedding: function() {
+    clearEmbedding: function(data) {
 
-        var candidateView = this._candidateEmbedView;
+        data || (data = {});
+
+        var candidateView = data.candidateEmbedView;
         if (candidateView) {
             // No candidate view found. Unhighlight the previous candidate.
             candidateView.unhighlight(null, { embedding: true });
-            this._candidateEmbedView = null;
+            data.candidateEmbedView = null;
         }
     },
 
-    finalizeEmbedding: function(opt) {
+    finalizeEmbedding: function(data) {
 
-        opt = opt || {};
+        data || (data = {});
 
-        var candidateView = this._candidateEmbedView;
-        var model = opt.model || this.model;
-        var paper = opt.paper || this.paper;
+        var candidateView = data.candidateEmbedView;
+        var model = data.model || this.model;
+        var paper = data.paper || this.paper;
 
         if (candidateView) {
 
@@ -8968,7 +13946,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             candidateView.model.embed(model, { ui: true });
             candidateView.unhighlight(null, { embedding: true });
 
-            delete this._candidateEmbedView;
+            data.candidateEmbedView = null;
         }
 
         joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
@@ -8977,111 +13955,82 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
+    pointerdblclick: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+        this.notify('element:pointerdblclick', evt, x, y);
+    },
+
+    pointerclick: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.pointerclick.apply(this, arguments);
+        this.notify('element:pointerclick', evt, x, y);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.contextmenu.apply(this, arguments);
+        this.notify('element:contextmenu', evt, x, y);
+    },
+
     pointerdown: function(evt, x, y) {
 
-        var paper = this.paper;
+        joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+        this.notify('element:pointerdown', evt, x, y);
 
-        if (
-            evt.target.getAttribute('magnet') &&
-            this.can('addLinkFromMagnet') &&
-            paper.options.validateMagnet.call(paper, this, evt.target)
-        ) {
-
-            this.model.startBatch('add-link');
-
-            var link = paper.getDefaultLink(this, evt.target);
-
-            link.set({
-                source: {
-                    id: this.model.id,
-                    selector: this.getSelector(evt.target),
-                    port: evt.target.getAttribute('port')
-                },
-                target: { x: x, y: y }
-            });
-
-            paper.model.addCell(link);
-
-            var linkView = this._linkView = paper.findViewByModel(link);
-
-            linkView.pointerdown(evt, x, y);
-            linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
-
-        } else {
-
-            this._dx = x;
-            this._dy = y;
-
-            this.restrictedArea = paper.getRestrictedArea(this);
-
-            joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
-            this.notify('element:pointerdown', evt, x, y);
-        }
+        this.dragStart(evt, x, y);
     },
 
     pointermove: function(evt, x, y) {
 
-        if (this._linkView) {
+        var data = this.eventData(evt);
+        switch (data.action) {
+            case 'move':
+                this.drag(evt, x, y);
+                break;
+            case 'magnet':
+                this.dragMagnet(evt, x, y);
+                break;
+        }
 
-            // let the linkview deal with this event
-            this._linkView.pointermove(evt, x, y);
-
-        } else {
-
-            var grid = this.paper.options.gridSize;
-
-            if (this.can('elementMove')) {
-
-                var position = this.model.get('position');
-
-                // Make sure the new element's position always snaps to the current grid after
-                // translate as the previous one could be calculated with a different grid size.
-                var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - this._dx, grid);
-                var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - this._dy, grid);
-
-                this.model.translate(tx, ty, { restrictedArea: this.restrictedArea, ui: true });
-
-                if (this.paper.options.embeddingMode) {
-
-                    if (!this._inProcessOfEmbedding) {
-                        // Prepare the element for embedding only if the pointer moves.
-                        // We don't want to do unnecessary action with the element
-                        // if an user only clicks/dblclicks on it.
-                        this.prepareEmbedding();
-                        this._inProcessOfEmbedding = true;
-                    }
-
-                    this.processEmbedding();
-                }
-            }
-
-            this._dx = g.snapToGrid(x, grid);
-            this._dy = g.snapToGrid(y, grid);
-
+        if (!data.stopPropagation) {
             joint.dia.CellView.prototype.pointermove.apply(this, arguments);
             this.notify('element:pointermove', evt, x, y);
         }
+
+        // Make sure the element view data is passed along.
+        // It could have been wiped out in the handlers above.
+        this.eventData(evt, data);
     },
 
     pointerup: function(evt, x, y) {
 
-        if (this._linkView) {
+        var data = this.eventData(evt);
+        switch (data.action) {
+            case 'move':
+                this.dragEnd(evt, x, y);
+                break;
+            case 'magnet':
+                this.dragMagnetEnd(evt, x, y);
+                return;
+        }
 
-            // Let the linkview deal with this event.
-            this._linkView.pointerup(evt, x, y);
-            this._linkView = null;
-            this.model.stopBatch('add-link');
-
-        } else {
-
-            if (this._inProcessOfEmbedding) {
-                this.finalizeEmbedding();
-                this._inProcessOfEmbedding = false;
-            }
-
+        if (!data.stopPropagation) {
             this.notify('element:pointerup', evt, x, y);
             joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
+    },
+
+    mouseover: function(evt) {
+
+        joint.dia.CellView.prototype.mouseover.apply(this, arguments);
+        this.notify('element:mouseover', evt);
+    },
+
+    mouseout: function(evt) {
+
+        joint.dia.CellView.prototype.mouseout.apply(this, arguments);
+        this.notify('element:mouseout', evt);
     },
 
     mouseenter: function(evt) {
@@ -9094,7 +14043,127 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
         this.notify('element:mouseleave', evt);
+    },
+
+    mousewheel: function(evt, x, y, delta) {
+
+        joint.dia.CellView.prototype.mousewheel.apply(this, arguments);
+        this.notify('element:mousewheel', evt, x, y, delta);
+    },
+
+    onmagnet: function(evt, x, y) {
+
+        this.dragMagnetStart(evt, x, y);
+
+        var stopPropagation = this.eventData(evt).stopPropagation;
+        if (stopPropagation) evt.stopPropagation();
+    },
+
+    // Drag Start Handlers
+
+    dragStart: function(evt, x, y) {
+
+        if (!this.can('elementMove')) return;
+
+        this.eventData(evt, {
+            action: 'move',
+            x: x,
+            y: y,
+            restrictedArea: this.paper.getRestrictedArea(this)
+        });
+    },
+
+    dragMagnetStart: function(evt, x, y) {
+
+        if (!this.can('addLinkFromMagnet')) return;
+
+        this.model.startBatch('add-link');
+
+        var paper = this.paper;
+        var graph = paper.model;
+        var magnet = evt.target;
+        var link = paper.getDefaultLink(this, magnet);
+        var sourceEnd = this.getLinkEnd(magnet, x, y, link, 'source');
+        var targetEnd = { x: x, y: y };
+
+        link.set({ source: sourceEnd, target: targetEnd });
+        link.addTo(graph, { async: false, ui: true });
+
+        var linkView = link.findView(paper);
+        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        linkView.notify('link:pointerdown', evt, x, y);
+        var data = linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
+        linkView.eventData(evt, data);
+
+        this.eventData(evt, {
+            action: 'magnet',
+            linkView: linkView,
+            stopPropagation: true
+        });
+
+        this.paper.delegateDragEvents(this, evt.data);
+    },
+
+    // Drag Handlers
+
+    drag: function(evt, x, y) {
+
+        var paper = this.paper;
+        var grid = paper.options.gridSize;
+        var element = this.model;
+        var position = element.position();
+        var data = this.eventData(evt);
+
+        // Make sure the new element's position always snaps to the current grid after
+        // translate as the previous one could be calculated with a different grid size.
+        var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.x, grid);
+        var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.y, grid);
+
+        element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
+
+        var embedding = !!data.embedding;
+        if (paper.options.embeddingMode) {
+            if (!embedding) {
+                // Prepare the element for embedding only if the pointer moves.
+                // We don't want to do unnecessary action with the element
+                // if an user only clicks/dblclicks on it.
+                this.prepareEmbedding(data);
+                embedding = true;
+            }
+            this.processEmbedding(data);
+        }
+
+        this.eventData(evt, {
+            x: g.snapToGrid(x, grid),
+            y: g.snapToGrid(y, grid),
+            embedding: embedding
+        });
+    },
+
+    dragMagnet: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var linkView = data.linkView;
+        if (linkView) linkView.pointermove(evt, x, y);
+    },
+
+    // Drag End Handlers
+
+    dragEnd: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        if (data.embedding) this.finalizeEmbedding(data);
+    },
+
+    dragMagnetEnd: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var linkView = data.linkView;
+        if (linkView) linkView.pointerup(evt, x, y);
+
+        this.model.stopBatch('add-link');
     }
+
 });
 
 
@@ -9115,13 +14184,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         '<g class="link-tools"/>'
     ].join(''),
 
-    labelMarkup: [
-        '<g class="label">',
-        '<rect />',
-        '<text />',
-        '</g>'
-    ].join(''),
-
     toolMarkup: [
         '<g class="link-tool">',
         '<g class="tool-remove" event="remove">',
@@ -9136,6 +14198,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>',
         '</g>'
     ].join(''),
+
+    doubleToolMarkup: undefined,
 
     // The default markup for showing/removing vertices. These elements are the children of the .marker-vertices element (see `this.markup`).
     // Only .marker-vertex and .marker-vertex-remove element have special meaning. The former is used for
@@ -9156,8 +14220,60 @@ joint.dia.Link = joint.dia.Cell.extend({
         '</g>'
     ].join(''),
 
-    defaults: {
+    // may be overwritten by user to change default label (its markup, attrs, position)
+    defaultLabel: undefined,
 
+    // deprecated
+    // may be overwritten by user to change default label markup
+    // lower priority than defaultLabel.markup
+    labelMarkup: undefined,
+
+    // private
+    _builtins: {
+        defaultLabel: {
+            // builtin default markup:
+            // used if neither defaultLabel.markup
+            // nor label.markup is set
+            markup: [
+                {
+                    tagName: 'rect',
+                    selector: 'rect' // faster than tagName CSS selector
+                }, {
+                    tagName: 'text',
+                    selector: 'text' // faster than tagName CSS selector
+                }
+            ],
+            // builtin default attributes:
+            // applied only if builtin default markup is used
+            attrs: {
+                text: {
+                    fill: '#000000',
+                    fontSize: 14,
+                    textAnchor: 'middle',
+                    yAlignment: 'middle',
+                    pointerEvents: 'none'
+                },
+                rect: {
+                    ref: 'text',
+                    fill: '#ffffff',
+                    rx: 3,
+                    ry: 3,
+                    refWidth: 1,
+                    refHeight: 1,
+                    refX: 0,
+                    refY: 0
+                }
+            },
+            // builtin default position:
+            // used if neither defaultLabel.position
+            // nor label.position is set
+            position: {
+                distance: 0.5
+            }
+        }
+    },
+
+    defaults: {
         type: 'link',
         source: {},
         target: {}
@@ -9168,23 +14284,245 @@ joint.dia.Link = joint.dia.Cell.extend({
         return true;
     },
 
-    disconnect: function() {
+    disconnect: function(opt) {
 
-        return this.set({ source: g.point(0, 0), target: g.point(0, 0) });
+        return this.set({
+            source: { x: 0, y: 0 },
+            target: { x: 0, y: 0 }
+        }, opt);
     },
 
-    // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
-    label: function(idx, value, opt) {
+    source: function(source, args, opt) {
 
-        idx = idx || 0;
-
-        // Is it a getter?
-        if (arguments.length <= 1) {
-            return this.prop(['labels', idx]);
+        // getter
+        if (source === undefined) {
+            return joint.util.clone(this.get('source'));
         }
 
-        return this.prop(['labels', idx], value, opt);
+        // setter
+        var localSource;
+        var localOpt;
+
+        // `source` is a cell
+        // take only its `id` and combine with `args`
+        var isCellProvided = source instanceof joint.dia.Cell;
+        if (isCellProvided) { // three arguments
+            localSource = joint.util.clone(args) || {};
+            localSource.id = source.id;
+            localOpt = opt;
+            return this.set('source', localSource, localOpt);
+        }
+
+        // `source` is a g.Point
+        // take only its `x` and `y` and combine with `args`
+        var isPointProvided = source instanceof g.Point;
+        if (isPointProvided) { // three arguments
+            localSource = joint.util.clone(args) || {};
+            localSource.x = source.x;
+            localSource.y = source.y;
+            localOpt = opt;
+            return this.set('source', localSource, localOpt);
+        }
+
+        // `source` is an object
+        // no checking
+        // two arguments
+        localSource = source;
+        localOpt = args;
+        return this.set('source', localSource, localOpt);
     },
+
+    target: function(target, args, opt) {
+
+        // getter
+        if (target === undefined) {
+            return joint.util.clone(this.get('target'));
+        }
+
+        // setter
+        var localTarget;
+        var localOpt;
+
+        // `target` is a cell
+        // take only its `id` argument and combine with `args`
+        var isCellProvided = target instanceof joint.dia.Cell;
+        if (isCellProvided) { // three arguments
+            localTarget = joint.util.clone(args) || {};
+            localTarget.id = target.id;
+            localOpt = opt;
+            return this.set('target', localTarget, localOpt);
+        }
+
+        // `target` is a g.Point
+        // take only its `x` and `y` and combine with `args`
+        var isPointProvided = target instanceof g.Point;
+        if (isPointProvided) { // three arguments
+            localTarget = joint.util.clone(args) || {};
+            localTarget.x = target.x;
+            localTarget.y = target.y;
+            localOpt = opt;
+            return this.set('target', localTarget, localOpt);
+        }
+
+        // `target` is an object
+        // no checking
+        // two arguments
+        localTarget = target;
+        localOpt = args;
+        return this.set('target', localTarget, localOpt);
+    },
+
+    router: function(name, args, opt) {
+
+        // getter
+        if (name === undefined) {
+            router = this.get('router');
+            if (!router) {
+                if (this.get('manhattan')) return { name: 'orthogonal' }; // backwards compatibility
+                return null;
+            }
+            if (typeof router === 'object') return joint.util.clone(router);
+            return router; // e.g. a function
+        }
+
+        // setter
+        var isRouterProvided = ((typeof name === 'object') || (typeof name === 'function'));
+        var localRouter = isRouterProvided ? name : { name: name, args: args };
+        var localOpt = isRouterProvided ? args : opt;
+
+        return this.set('router', localRouter, localOpt);
+    },
+
+    connector: function(name, args, opt) {
+
+        // getter
+        if (name === undefined) {
+            connector = this.get('connector');
+            if (!connector) {
+                if (this.get('smooth')) return { name: 'smooth' }; // backwards compatibility
+                return null;
+            }
+            if (typeof connector === 'object') return joint.util.clone(connector);
+            return connector; // e.g. a function
+        }
+
+        // setter
+        var isConnectorProvided = ((typeof name === 'object' || typeof name === 'function'));
+        var localConnector = isConnectorProvided ? name : { name: name, args: args };
+        var localOpt = isConnectorProvided ? args : opt;
+
+        return this.set('connector', localConnector, localOpt);
+    },
+
+    // Labels API
+
+    // A convenient way to set labels. Currently set values will be mixined with `value` if used as a setter.
+    label: function(idx, label, opt) {
+
+        var labels = this.labels();
+
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (idx < 0) idx = labels.length + idx;
+
+        // getter
+        if (arguments.length <= 1) return this.prop(['labels', idx]);
+        // setter
+        return this.prop(['labels', idx], label, opt);
+    },
+
+    labels: function(labels, opt) {
+
+        // getter
+        if (arguments.length === 0) {
+            labels = this.get('labels');
+            if (!Array.isArray(labels)) return [];
+            return labels.slice();
+        }
+        // setter
+        if (!Array.isArray(labels)) labels = [];
+        return this.set('labels', labels, opt);
+    },
+
+    insertLabel: function(idx, label, opt) {
+
+        if (!label) throw new Error('dia.Link: no label provided');
+
+        var labels = this.labels();
+        var n = labels.length;
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+        if (idx < 0) idx = n + idx + 1;
+
+        labels.splice(idx, 0, label);
+        return this.labels(labels, opt);
+    },
+
+    // convenience function
+    // add label to end of labels array
+    appendLabel: function(label, opt) {
+
+        return this.insertLabel(-1, label, opt);
+    },
+
+    removeLabel: function(idx, opt) {
+
+        var labels = this.labels();
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
+        labels.splice(idx, 1);
+        return this.labels(labels, opt);
+    },
+
+    // Vertices API
+
+    vertex: function(idx, vertex, opt) {
+
+        var vertices = this.vertices();
+
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : 0;
+        if (idx < 0) idx = vertices.length + idx;
+
+        // getter
+        if (arguments.length <= 1) return this.prop(['vertices', idx]);
+        // setter
+        return this.prop(['vertices', idx], vertex, opt);
+    },
+
+    vertices: function(vertices, opt) {
+
+        // getter
+        if (arguments.length === 0) {
+            vertices = this.get('vertices');
+            if (!Array.isArray(vertices)) return [];
+            return vertices.slice();
+        }
+        // setter
+        if (!Array.isArray(vertices)) vertices = [];
+        return this.set('vertices', vertices, opt);
+    },
+
+    insertVertex: function(idx, vertex, opt) {
+
+        if (!vertex) throw new Error('dia.Link: no vertex provided');
+
+        var vertices = this.vertices();
+        var n = vertices.length;
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
+        if (idx < 0) idx = n + idx + 1;
+
+        vertices.splice(idx, 0, vertex);
+        return this.vertices(vertices, opt);
+    },
+
+    removeVertex: function(idx, opt) {
+
+        var vertices = this.vertices();
+        idx = (isFinite(idx) && idx !== null) ? (idx | 0) : -1;
+
+        vertices.splice(idx, 1);
+        return this.vertices(vertices, opt);
+    },
+
+    // Transformations
 
     translate: function(tx, ty, opt) {
 
@@ -9214,18 +14552,18 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         var attrs = {};
 
-        var source = this.get('source');
+        var source = this.source();
         if (!source.id) {
             attrs.source = fn(source);
         }
 
-        var target = this.get('target');
+        var target = this.target();
         if (!target.id) {
             attrs.target = fn(target);
         }
 
-        var vertices = this.get('vertices');
-        if (vertices && vertices.length > 0) {
+        var vertices = this.vertices();
+        if (vertices.length > 0) {
             attrs.vertices = vertices.map(fn);
         }
 
@@ -9238,9 +14576,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         if (this.graph) {
 
-            var source = this.graph.getCell(this.get('source').id);
-            var target = this.graph.getCell(this.get('target').id);
-            var prevParent = this.graph.getCell(this.get('parent'));
+            var source = this.getSourceElement();
+            var target = this.getTargetElement();
+            var prevParent = this.getParentCell();
 
             if (source && target) {
                 newParent = this.graph.getCommonAncestor(source, target);
@@ -9264,8 +14602,8 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         opt = opt || {};
 
-        var sourceId = this.get('source').id;
-        var targetId = this.get('target').id;
+        var sourceId = this.source().id;
+        var targetId = this.target().id;
 
         if (!sourceId || !targetId) {
             // Link "pinned" to the paper does not have a loop.
@@ -9279,8 +14617,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         // A loop "target equals source" is valid in both shallow and deep mode.
         if (!loop && opt.deep && this.graph) {
 
-            var sourceElement = this.graph.getCell(sourceId);
-            var targetElement = this.graph.getCell(targetId);
+            var sourceElement = this.getSourceElement();
+            var targetElement = this.getTargetElement();
 
             loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
         }
@@ -9288,18 +14626,22 @@ joint.dia.Link = joint.dia.Cell.extend({
         return loop;
     },
 
+    // unlike source(), this method returns null if source is a point
     getSourceElement: function() {
 
-        var source = this.get('source');
+        var source = this.source();
+        var graph = this.graph;
 
-        return (source && source.id && this.graph && this.graph.getCell(source.id)) || null;
+        return (source && source.id && graph && graph.getCell(source.id)) || null;
     },
 
+    // unlike target(), this method returns null if target is a point
     getTargetElement: function() {
 
-        var target = this.get('target');
+        var target = this.target();
+        var graph = this.graph;
 
-        return (target && target.id && this.graph && this.graph.getCell(target.id)) || null;
+        return (target && target.id && graph && graph.getCell(target.id)) || null;
     },
 
     // Returns the common ancestor for the source element,
@@ -9331,6 +14673,20 @@ joint.dia.Link = joint.dia.Cell.extend({
         var ancestor = this.getRelationshipAncestor();
 
         return !!ancestor && (ancestor.id === cellId || ancestor.isEmbeddedIn(cellId));
+    },
+
+    // Get resolved default label.
+    _getDefaultLabel: function() {
+
+        var defaultLabel = this.get('defaultLabel') || this.defaultLabel || {};
+
+        var label = {};
+        label.markup = defaultLabel.markup || this.get('labelMarkup') || this.labelMarkup;
+        label.position = defaultLabel.position;
+        label.attrs = defaultLabel.attrs;
+        label.size = defaultLabel.size;
+
+        return label;
     }
 },
     {
@@ -9358,15 +14714,22 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     options: {
 
-        shortLinkLength: 100,
+        shortLinkLength: 105,
         doubleLinkTools: false,
-        longLinkLength: 160,
+        longLinkLength: 155,
         linkToolsOffset: 40,
-        doubleLinkToolsOffset: 60,
-        sampleInterval: 50
+        doubleLinkToolsOffset: 65,
+        sampleInterval: 50,
     },
 
-    _z: null,
+    _labelCache: null,
+    _labelSelectors: null,
+    _markerCache: null,
+    _V: null,
+    _dragData: null, // deprecated
+
+    metrics: null,
+    decimalsRounding: 2,
 
     initialize: function(options) {
 
@@ -9384,8 +14747,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // nodes in `updateLabelPosition()` in order to update the label positions.
         this._labelCache = {};
 
+        // a cache of label selectors
+        this._labelSelectors = {};
+
         // keeps markers bboxes and positions again for quicker access
         this._markerCache = {};
+
+        // cache of default markup nodes
+        this._V = {},
+
+        // connection path metrics
+        this.metrics = {},
 
         // bind events
         this.startListening();
@@ -9413,9 +14785,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // or when an embedded link is translated by its ancestor.
         // 1. Always do update.
         // 2. Do update only if the opposite end ('target') is also a point.
-        if (!opt.translateBy || !this.model.get('target').id) {
-            opt.updateConnectionOnly = true;
-            this.update(this.model, null, opt);
+        var model = this.model;
+        if (!opt.translateBy || !model.get('target').id || !source.id) {
+            this.update(model, null, opt);
         }
     },
 
@@ -9424,9 +14796,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Start watching the new target model.
         this.watchTarget(cell, target);
         // See `onSourceChange` method.
-        if (!opt.translateBy) {
-            opt.updateConnectionOnly = true;
-            this.update(this.model, null, opt);
+        var model = this.model;
+        if (!opt.translateBy || (model.get('source').id && !target.id && joint.util.isEmpty(model.get('vertices')))) {
+            this.update(model, null, opt);
         }
     },
 
@@ -9441,7 +14813,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!opt.translateBy || opt.translateBy === this.model.id) {
             // Vertices were changed (not as a reaction on translate)
             // or link.translate() was called or
-            opt.updateConnectionOnly = true;
             this.update(cell, null, opt);
         }
     },
@@ -9490,97 +14861,187 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.updateLabelPositions();
     },
 
-    // Rendering
-    //----------
+    // Rendering.
+    // ----------
 
     render: function() {
 
-        this.$el.empty();
+        this.vel.empty();
+        this._V = {};
+        this.renderMarkup();
+        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
+        // returns zero values)
+        this.renderLabels();
+        // start watching the ends of the link for changes
+        var model = this.model;
+        this.watchSource(model, model.source())
+            .watchTarget(model, model.target())
+            .update();
+
+        return this;
+    },
+
+    renderMarkup: function() {
+
+        var link = this.model;
+        var markup = link.get('markup') || link.markup;
+        if (!markup) throw new Error('dia.LinkView: markup required');
+        if (Array.isArray(markup)) return this.renderJSONMarkup(markup);
+        if (typeof markup === 'string') return this.renderStringMarkup(markup);
+        throw new Error('dia.LinkView: invalid markup');
+    },
+
+    renderJSONMarkup: function(markup) {
+
+        var doc = joint.util.parseDOMJSON(markup);
+        // Selectors
+        var selectors = this.selectors = doc.selectors;
+        var rootSelector = this.selector;
+        if (selectors[rootSelector]) throw new Error('dia.LinkView: ambiguous root selector.');
+        selectors[rootSelector] = this.el;
+        // Fragment
+        this.vel.append(doc.fragment);
+    },
+
+    renderStringMarkup: function(markup) {
 
         // A special markup can be given in the `properties.markup` property. This might be handy
         // if e.g. arrowhead markers should be `<image>` elements or any other element than `<path>`s.
         // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors
         // of elements with special meaning though. Therefore, those classes should be preserved in any
         // special markup passed in `properties.markup`.
-        var model = this.model;
-        var markup = model.get('markup') || model.markup;
         var children = V(markup);
-
         // custom markup may contain only one children
         if (!Array.isArray(children)) children = [children];
-
         // Cache all children elements for quicker access.
-        this._V = {}; // vectorized markup;
-        children.forEach(function(child) {
-
+        var cache = this._V; // vectorized markup;
+        for (var i = 0, n = children.length; i < n; i++) {
+            var child = children[i];
             var className = child.attr('class');
-
             if (className) {
                 // Strip the joint class name prefix, if there is one.
                 className = joint.util.removeClassNamePrefix(className);
-                this._V[$.camelCase(className)] = child;
+                cache[$.camelCase(className)] = child;
             }
-
-        }, this);
-
-        // Only the connection path is mandatory
-        if (!this._V.connection) throw new Error('link: no connection path in the markup');
-
+        }
         // partial rendering
         this.renderTools();
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
-
         this.vel.append(children);
+    },
 
-        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
-        // returns zero values)
-        this.renderLabels();
+    _getLabelMarkup: function(labelMarkup) {
 
-        // start watching the ends of the link for changes
-        this.watchSource(model, model.get('source'))
-            .watchTarget(model, model.get('target'))
-            .update();
+        if (!labelMarkup) return undefined;
 
-        return this;
+        if (Array.isArray(labelMarkup)) return this._getLabelJSONMarkup(labelMarkup);
+        if (typeof labelMarkup === 'string') return this._getLabelStringMarkup(labelMarkup);
+        throw new Error('dia.linkView: invalid label markup');
+    },
+
+    _getLabelJSONMarkup: function(labelMarkup) {
+
+        return joint.util.parseDOMJSON(labelMarkup); // fragment and selectors
+    },
+
+    _getLabelStringMarkup: function(labelMarkup) {
+
+        var children = V(labelMarkup);
+        var fragment = document.createDocumentFragment();
+
+        if (!Array.isArray(children)) {
+            fragment.append(children.node);
+
+        } else {
+            for (var i = 0, n = children.length; i < n; i++) {
+                var currentChild = children[i].node;
+                fragment.appendChild(currentChild);
+            }
+        }
+
+        return { fragment: fragment, selectors: {} }; // no selectors
+    },
+
+    // Label markup fragment may come wrapped in <g class="label" />, or not.
+    // If it doesn't, add the <g /> container here.
+    _normalizeLabelMarkup: function(markup) {
+
+        if (!markup) return undefined;
+
+        var fragment = markup.fragment;
+        if (!(markup.fragment instanceof DocumentFragment) || !markup.fragment.hasChildNodes()) throw new Error('dia.LinkView: invalid label markup.');
+
+        var vNode;
+        var childNodes = fragment.childNodes;
+
+        if ((childNodes.length > 1) || childNodes[0].nodeName.toUpperCase() !== 'G') {
+            // default markup fragment is not wrapped in <g />
+            // add a <g /> container
+
+            vNode = V('g');
+            vNode.append(fragment);
+            vNode.addClass('label');
+
+        } else {
+            vNode = V(childNodes[0]);
+            vNode.addClass('label');
+        }
+
+        return { node: vNode.node, selectors: markup.selectors };
     },
 
     renderLabels: function() {
 
-        var vLabels = this._V.labels;
-        if (!vLabels) {
-            return this;
-        }
+        var cache = this._V;
+        var vLabels = cache.labels;
+        var labelCache = this._labelCache = {};
+        var labelSelectors = this._labelSelectors = {};
 
-        vLabels.empty();
+        if (vLabels) vLabels.empty();
 
         var model = this.model;
         var labels = model.get('labels') || [];
-        var labelCache = this._labelCache = {};
         var labelsCount = labels.length;
-        if (labelsCount === 0) {
-            return this;
-        }
+        if (labelsCount === 0) return this;
 
-        var labelTemplate = joint.util.template(model.get('labelMarkup') || model.labelMarkup);
-        // This is a prepared instance of a vectorized SVGDOM node for the label element resulting from
-        // compilation of the labelTemplate. The purpose is that all labels will just `clone()` this
-        // node to create a duplicate.
-        var labelNodeInstance = V(labelTemplate());
+        if (!vLabels) {
+            // there is no label container in the markup but some labels are defined
+            // add a <g class="labels" /> container
+            vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
+        }
 
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
-            var labelMarkup = label.markup;
-            // Cache label nodes so that the `updateLabels()` can just update the label node positions.
-            var vLabelNode = labelCache[i] = (labelMarkup)
-                ? V('g').append(V(labelMarkup))
-                : labelNodeInstance.clone();
+            var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
 
-            vLabelNode
-                .addClass('label')
-                .attr('label-idx', i)
-                .appendTo(vLabels);
+            var node;
+            var selectors;
+            if (labelMarkup) {
+                node = labelMarkup.node;
+                selectors = labelMarkup.selectors;
+
+            } else {
+                var builtinDefaultLabel =  model._builtins.defaultLabel;
+                var builtinDefaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(builtinDefaultLabel.markup));
+
+                var defaultLabel = model._getDefaultLabel();
+                var defaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(defaultLabel.markup));
+
+                var defaultMarkup = defaultLabelMarkup || builtinDefaultLabelMarkup;
+
+                node = defaultMarkup.node;
+                selectors = defaultMarkup.selectors;
+            }
+
+            var vLabel = V(node);
+            vLabel.attr('label-idx', i); // assign label-idx
+            vLabel.appendTo(vLabels);
+            labelCache[i] = vLabel; // cache node for `updateLabels()` so it can just update label node positions
+
+            selectors[this.selector] = vLabel.node;
+            labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
         }
 
         this.updateLabels();
@@ -9588,48 +15049,64 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
-    updateLabels: function() {
+    // merge default label attrs into label attrs
+    // keep `undefined` or `null` because `{}` means something else
+    _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
 
-        if (!this._V.labels) {
-            return this;
+        if (labelAttrs === null) return null;
+        if (labelAttrs === undefined) {
+
+            if (defaultLabelAttrs === null) return null;
+            if (defaultLabelAttrs === undefined) {
+
+                if (hasCustomMarkup) return undefined;
+                return builtinDefaultLabelAttrs;
+            }
+
+            if (hasCustomMarkup) return defaultLabelAttrs;
+            return joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs);
         }
 
-        var labels = this.model.get('labels') || [];
+        if (hasCustomMarkup) return joint.util.merge({}, defaultLabelAttrs, labelAttrs);
+        return joint.util.merge({}, builtinDefaultLabelAttrs, defaultLabelAttrs, labelAttrs);
+    },
+
+    updateLabels: function() {
+
+        if (!this._V.labels) return this;
+
+        var model = this.model;
+        var labels = model.get('labels') || [];
         var canLabelMove = this.can('labelMove');
+
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+        var builtinDefaultLabelAttrs = builtinDefaultLabel.attrs;
+
+        var defaultLabel = model._getDefaultLabel();
+        var defaultLabelMarkup = defaultLabel.markup;
+        var defaultLabelAttrs = defaultLabel.attrs;
 
         for (var i = 0, n = labels.length; i < n; i++) {
 
             var vLabel = this._labelCache[i];
-            var label = labels[i];
-
             vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
 
-            var labelAttrs = label.attrs;
-            if (!label.markup) {
-                // Default attributes to maintain backwards compatibility
-                labelAttrs = joint.util.merge({
-                    text: {
-                        textAnchor: 'middle',
-                        fontSize: 14,
-                        fill: '#000000',
-                        pointerEvents: 'none',
-                        yAlignment: 'middle'
-                    },
-                    rect: {
-                        ref: 'text',
-                        fill: '#ffffff',
-                        rx: 3,
-                        ry: 3,
-                        refWidth: 1,
-                        refHeight: 1,
-                        refX: 0,
-                        refY: 0
-                    }
-                }, labelAttrs);
-            }
+            var selectors = this._labelSelectors[i];
 
-            this.updateDOMSubtreeAttributes(vLabel.node, labelAttrs, {
-                rootBBox: g.Rect(label.size)
+            var label = labels[i];
+            var labelMarkup = label.markup;
+            var labelAttrs = label.attrs;
+
+            var attrs = this._mergeLabelAttrs(
+                (labelMarkup || defaultLabelMarkup),
+                labelAttrs,
+                defaultLabelAttrs,
+                builtinDefaultLabelAttrs
+            );
+
+            this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
+                rootBBox: new g.Rect(label.size),
+                selectors: selectors
             });
         }
 
@@ -9684,7 +15161,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // SVG elements for .marker-vertex and .marker-vertex-remove tools.
         var markupTemplate = joint.util.template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
-        joint.util.toArray(this.model.get('vertices')).forEach(function(vertex, idx) {
+        this.model.vertices().forEach(function(vertex, idx) {
 
             $markerVertices.append(V(markupTemplate(joint.util.assign({ idx: idx }, vertex))).node);
         });
@@ -9714,25 +15191,28 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
-    // Updating
-    //---------
+    // Updating.
+    // ---------
 
     // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
     update: function(model, attributes, opt) {
 
-        opt = opt || {};
+        opt || (opt = {});
 
-        if (!opt.updateConnectionOnly) {
-            // update SVG attributes defined by 'attrs/'.
-            this.updateDOMSubtreeAttributes(this.el, this.model.attr());
-        }
-
-        // update the link path, label position etc.
+        // update the link path
         this.updateConnection(opt);
+
+        // update SVG attributes defined by 'attrs/'.
+        this.updateDOMSubtreeAttributes(this.el, this.model.attr(), { selectors: this.selectors });
+
+        this.updateDefaultConnectionPath();
+
+        // update the label position etc.
         this.updateLabelPositions();
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
+        this.updateTools(opt);
         // Local perpendicular flag (as opposed to one defined on paper).
         // Could be enabled inside a connector/router. It's valid only
         // during the update execution.
@@ -9743,12 +15223,89 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return this;
     },
 
+    removeRedundantLinearVertices: function(opt) {
+        var link = this.model;
+        var vertices = link.vertices();
+        var conciseVertices = [];
+        var n = vertices.length;
+        var m = 0;
+        for (var i = 0; i < n; i++) {
+            var current = new g.Point(vertices[i]).round();
+            var prev = new g.Point(conciseVertices[m - 1] || this.sourceAnchor).round();
+            if (prev.equals(current)) continue;
+            var next = new g.Point(vertices[i + 1] || this.targetAnchor).round();
+            if (prev.equals(next)) continue;
+            var line = new g.Line(prev, next);
+            if (line.pointOffset(current) === 0) continue;
+            conciseVertices.push(vertices[i]);
+            m++;
+        }
+        if (n === m) return 0;
+        link.vertices(conciseVertices, opt);
+        return (n - m);
+    },
+
+    updateDefaultConnectionPath: function() {
+
+        var cache = this._V;
+
+        if (cache.connection) {
+            cache.connection.attr('d', this.getSerializedConnection());
+        }
+
+        if (cache.connectionWrap) {
+            cache.connectionWrap.attr('d', this.getSerializedConnection());
+        }
+
+        if (cache.markerSource && cache.markerTarget) {
+            this._translateAndAutoOrientArrows(cache.markerSource, cache.markerTarget);
+        }
+    },
+
+    getEndView: function(type) {
+        switch (type) {
+            case 'source':
+                return this.sourceView || null;
+            case 'target':
+                return this.targetView || null;
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
+    getEndAnchor: function(type) {
+        switch (type) {
+            case 'source':
+                return new g.Point(this.sourceAnchor);
+            case 'target':
+                return new g.Point(this.targetAnchor);
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
+    getEndMagnet: function(type) {
+        switch (type) {
+            case 'source':
+                var sourceView = this.sourceView;
+                if (!sourceView) break;
+                return this.sourceMagnet || sourceView.el;
+            case 'target':
+                var targetView = this.targetView;
+                if (!targetView) break;
+                return this.targetMagnet || targetView.el;
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+        return null;
+    },
+
     updateConnection: function(opt) {
 
         opt = opt || {};
 
         var model = this.model;
-        var route;
+        var route, path;
 
         if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
             // The link is being translated by an ancestor that will
@@ -9757,47 +15314,48 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var tx = opt.tx || 0;
             var ty = opt.ty || 0;
 
-            route = this.route = joint.util.toArray(this.route).map(function(point) {
-                // translate point by point by delta translation
-                return g.point(point).offset(tx, ty);
-            });
+            route = (new g.Polyline(this.route)).translate(tx, ty).points;
 
             // translate source and target connection and marker points.
             this._translateConnectionPoints(tx, ty);
 
+            // translate the path itself
+            path = this.path;
+            path.translate(tx, ty);
+
         } else {
-            // Necessary path finding
-            route = this.route = this.findRoute(model.get('vertices') || [], opt);
-            // finds all the connection points taking new vertices into account
-            this._findConnectionPoints(route);
+
+            var vertices = model.vertices();
+            // 1. Find Anchors
+
+            var anchors = this.findAnchors(vertices);
+            var sourceAnchor = this.sourceAnchor = anchors.source;
+            var targetAnchor = this.targetAnchor = anchors.target;
+
+            // 2. Find Route
+            route = this.findRoute(vertices, opt);
+
+            // 3. Find Connection Points
+            var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
+            var sourcePoint = this.sourcePoint = connectionPoints.source;
+            var targetPoint = this.targetPoint = connectionPoints.target;
+
+            // 3b. Find Marker Connection Point - Backwards Compatibility
+            var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
+
+            // 4. Find Connection
+            path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
         }
 
-        var pathData = this.getPathData(route);
-
-        // The markup needs to contain a `.connection`
-        this._V.connection.attr('d', pathData);
-        this._V.connectionWrap && this._V.connectionWrap.attr('d', pathData);
-
-        this._translateAndAutoOrientArrows(this._V.markerSource, this._V.markerTarget);
+        this.route = route;
+        this.path = path;
+        this.metrics = {};
     },
 
-    _findConnectionPoints: function(vertices) {
+    findMarkerPoints: function(route, sourcePoint, targetPoint) {
 
-        // cache source and target points
-        var sourcePoint, targetPoint, sourceMarkerPoint, targetMarkerPoint;
-        var verticesArr = joint.util.toArray(vertices);
-
-        var firstVertex = verticesArr[0];
-
-        sourcePoint = this.getConnectionPoint(
-            'source', this.model.get('source'), firstVertex || this.model.get('target')
-        ).round();
-
-        var lastVertex = verticesArr[verticesArr.length - 1];
-
-        targetPoint = this.getConnectionPoint(
-            'target', this.model.get('target'), lastVertex || sourcePoint
-        ).round();
+        var firstWaypoint = route[0];
+        var lastWaypoint = route[route.length - 1];
 
         // Move the source point by the width of the marker taking into account
         // its scale around x-axis. Note that scale is the only transform that
@@ -9805,13 +15363,14 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // as all other transforms (translate/rotate) will be replaced
         // by the `translateAndAutoOrient()` function.
         var cache = this._markerCache;
+        // cache source and target points
+        var sourceMarkerPoint, targetMarkerPoint;
 
         if (this._V.markerSource) {
 
             cache.sourceBBox = cache.sourceBBox || this._V.markerSource.getBBox();
-
             sourceMarkerPoint = g.point(sourcePoint).move(
-                firstVertex || targetPoint,
+                firstWaypoint || targetPoint,
                 cache.sourceBBox.width * this._V.markerSource.scale().sx * -1
             ).round();
         }
@@ -9819,9 +15378,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (this._V.markerTarget) {
 
             cache.targetBBox = cache.targetBBox || this._V.markerTarget.getBBox();
-
             targetMarkerPoint = g.point(targetPoint).move(
-                lastVertex || sourcePoint,
+                lastWaypoint || sourcePoint,
                 cache.targetBBox.width * this._V.markerTarget.scale().sx * -1
             ).round();
         }
@@ -9830,9 +15388,152 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         cache.sourcePoint = sourceMarkerPoint || sourcePoint.clone();
         cache.targetPoint = targetMarkerPoint || targetPoint.clone();
 
-        // make connection points public
-        this.sourcePoint = sourcePoint;
-        this.targetPoint = targetPoint;
+        return {
+            source: sourceMarkerPoint,
+            target: targetMarkerPoint
+        }
+    },
+
+    findAnchors: function(vertices) {
+
+        var model = this.model;
+        var firstVertex = vertices[0];
+        var lastVertex = vertices[vertices.length - 1];
+        var sourceDef = model.get('source');
+        var targetDef = model.get('target');
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        var sourceMagnet, targetMagnet;
+
+        // Anchor Source
+        var sourceAnchor;
+        if (sourceView) {
+            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceAnchorRef;
+            if (firstVertex) {
+                sourceAnchorRef = new g.Point(firstVertex);
+            } else if (targetView) {
+                // TODO: the source anchor reference is not a point, how to deal with this?
+                sourceAnchorRef = this.targetMagnet || targetView.el;
+            } else {
+                sourceAnchorRef = new g.Point(targetDef);
+            }
+            sourceAnchor = this.getAnchor(sourceDef.anchor, sourceView, sourceMagnet, sourceAnchorRef, 'source');
+        } else {
+            sourceAnchor = new g.Point(sourceDef);
+        }
+
+        // Anchor Target
+        var targetAnchor;
+        if (targetView) {
+            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
+            targetAnchor = this.getAnchor(targetDef.anchor, targetView, targetMagnet, targetAnchorRef, 'target');
+        } else {
+            targetAnchor = new g.Point(targetDef);
+        }
+
+        // Con
+        return {
+            source: sourceAnchor,
+            target: targetAnchor
+        }
+    },
+
+    findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
+
+        var firstWaypoint = route[0];
+        var lastWaypoint = route[route.length - 1];
+        var model = this.model;
+        var sourceDef = model.get('source');
+        var targetDef = model.get('target');
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        var paperOptions = this.paper.options;
+        var sourceMagnet, targetMagnet;
+
+        // Connection Point Source
+        var sourcePoint;
+        if (sourceView) {
+            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
+            var sourcePointRef = firstWaypoint || targetAnchor;
+            var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
+            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
+        } else {
+            sourcePoint = sourceAnchor;
+        }
+        // Connection Point Target
+        var targetPoint;
+        if (targetView) {
+            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
+            var targetPointRef = lastWaypoint || sourceAnchor;
+            var targetLine = new g.Line(targetPointRef, targetAnchor);
+            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
+        } else {
+            targetPoint = targetAnchor;
+        }
+
+        return {
+            source: sourcePoint,
+            target: targetPoint
+        }
+    },
+
+    getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
+
+        if (!anchorDef) {
+            var paperOptions = this.paper.options;
+            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+                // Backwards compatibility
+                // If `perpendicularLinks` flag is set on the paper and there are vertices
+                // on the link, then try to find a connection point that makes the link perpendicular
+                // even though the link won't point to the center of the targeted object.
+                anchorDef = { name: 'perpendicular' };
+            } else {
+                anchorDef = paperOptions.defaultAnchor;
+            }
+        }
+
+        if (!anchorDef) throw new Error('Anchor required.');
+        var anchorFn;
+        if (typeof anchorDef === 'function') {
+            anchorFn = anchorDef;
+        } else {
+            var anchorName = anchorDef.name;
+            anchorFn = joint.anchors[anchorName];
+            if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
+        }
+        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
+        if (anchor) return anchor.round(this.decimalsRounding);
+        return new g.Point()
+    },
+
+
+    getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
+
+        var connectionPoint;
+        var anchor = line.end;
+        // Backwards compatibility
+        var paperOptions = this.paper.options;
+        if (typeof paperOptions.linkConnectionPoint === 'function') {
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, endType);
+            if (connectionPoint) return connectionPoint;
+        }
+
+        if (!connectionPointDef) return anchor;
+        var connectionPointFn;
+        if (typeof connectionPointDef === 'function') {
+            connectionPointFn = connectionPointDef;
+        } else {
+            var connectionPointName = connectionPointDef.name;
+            connectionPointFn = joint.connectionPoints[connectionPointName];
+            if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
+        }
+        connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
+        if (connectionPoint) return connectionPoint.round(this.decimalsRounding);
+        return anchor;
     },
 
     _translateConnectionPoints: function(tx, ty) {
@@ -9843,94 +15544,53 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         cache.targetPoint.offset(tx, ty);
         this.sourcePoint.offset(tx, ty);
         this.targetPoint.offset(tx, ty);
+        this.sourceAnchor.offset(tx, ty);
+        this.targetAnchor.offset(tx, ty);
+    },
+
+     // if label position is a number, normalize it to a position object
+     // this makes sure that label positions can be merged properly
+    _normalizeLabelPosition: function(labelPosition) {
+
+        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
+        return labelPosition;
     },
 
     updateLabelPositions: function() {
 
         if (!this._V.labels) return this;
 
-        // This method assumes all the label nodes are stored in the `this._labelCache` hash table
-        // by their indexes in the `this.get('labels')` array. This is done in the `renderLabels()` method.
+        var path = this.path;
+        if (!path) return this;
 
-        var labels = this.model.get('labels') || [];
+        // This method assumes all the label nodes are stored in the `this._labelCache` hash table
+        // by their indices in the `this.get('labels')` array. This is done in the `renderLabels()` method.
+
+        var model = this.model;
+        var labels = model.get('labels') || [];
         if (!labels.length) return this;
 
-        var samples;
-        var connectionElement = this._V.connection.node;
-        var connectionLength = connectionElement.getTotalLength();
+        var builtinDefaultLabel = model._builtins.defaultLabel;
+        var builtinDefaultLabelPosition = builtinDefaultLabel.position;
 
-        // Firefox returns connectionLength=NaN in odd cases (for bezier curves).
-        // In that case we won't update labels at all.
-        if (Number.isNaN(connectionLength)) {
-            return this;
-        }
+        var defaultLabel = model._getDefaultLabel();
+        var defaultLabelPosition = this._normalizeLabelPosition(defaultLabel.position);
+
+        var defaultPosition = joint.util.merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
 
             var label = labels[idx];
-            var position = label.position;
-            var isPositionObject = joint.util.isObject(position);
-            var labelCoordinates;
+            var labelPosition = this._normalizeLabelPosition(label.position);
 
-            var distance = isPositionObject ? position.distance : position;
-            var offset = isPositionObject ? position.offset : { x: 0, y: 0 };
+            var position = joint.util.merge({}, defaultPosition, labelPosition);
 
-            if (Number.isFinite(distance)) {
-                distance = (distance > connectionLength) ? connectionLength : distance; // sanity check
-                distance = (distance < 0) ? connectionLength + distance : distance;
-                distance = (distance > 1) ? distance : connectionLength * distance;
-            } else {
-                distance = connectionLength / 2;
-            }
-
-            labelCoordinates = connectionElement.getPointAtLength(distance);
-
-            if (joint.util.isObject(offset)) {
-
-                // Just offset the label by the x,y provided in the offset object.
-                labelCoordinates = g.point(labelCoordinates).offset(offset);
-
-            } else if (Number.isFinite(offset)) {
-
-                if (!samples) {
-                    samples = this._samples || this._V.connection.sample(this.options.sampleInterval);
-                }
-
-                // Offset the label by the amount provided in `offset` to an either
-                // side of the link.
-
-                // 1. Find the closest sample & its left and right neighbours.
-                var minSqDistance = Infinity;
-                var closestSampleIndex, sample, sqDistance;
-                for (var i = 0, m = samples.length; i < m; i++) {
-                    sample = samples[i];
-                    sqDistance = g.line(sample, labelCoordinates).squaredLength();
-                    if (sqDistance < minSqDistance) {
-                        minSqDistance = sqDistance;
-                        closestSampleIndex = i;
-                    }
-                }
-                var prevSample = samples[closestSampleIndex - 1];
-                var nextSample = samples[closestSampleIndex + 1];
-
-                // 2. Offset the label on the perpendicular line between
-                // the current label coordinate ("at `distance`") and
-                // the next sample.
-                var angle = 0;
-                if (nextSample) {
-                    angle = g.point(labelCoordinates).theta(nextSample);
-                } else if (prevSample) {
-                    angle = g.point(prevSample).theta(labelCoordinates);
-                }
-                labelCoordinates = g.point(labelCoordinates).offset(offset).rotate(labelCoordinates, angle - 90);
-            }
-
-            this._labelCache[idx].attr('transform', 'translate(' + labelCoordinates.x + ', ' + labelCoordinates.y + ')');
+            var labelPoint = this.getLabelCoordinates(position);
+            this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
         return this;
     },
-
 
     updateToolsPosition: function() {
 
@@ -9975,7 +15635,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         return this;
     },
-
 
     updateArrowheadMarkers: function() {
 
@@ -10038,41 +15697,44 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var selector = this.constructor.makeSelector(end);
             var oppositeEndType = endType == 'source' ? 'target' : 'source';
             var oppositeEnd = model.get(oppositeEndType) || {};
-            var oppositeSelector = oppositeEnd.id && this.constructor.makeSelector(oppositeEnd);
+            var endId = end.id;
+            var oppositeEndId = oppositeEnd.id;
+            var oppositeSelector = oppositeEndId && this.constructor.makeSelector(oppositeEnd);
 
             // Caching end models bounding boxes.
             // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
             // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
             // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
-            if (opt.handleBy === this.cid && selector == oppositeSelector) {
+            if (opt.handleBy === this.cid && (endId === oppositeEndId) && selector == oppositeSelector) {
 
                 // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
                 // second time now. There is no need to calculate bbox and find magnet element again.
                 // It was calculated already for opposite link end.
-                this[endType + 'BBox'] = this[oppositeEndType + 'BBox'];
                 this[endType + 'View'] = this[oppositeEndType + 'View'];
                 this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
 
             } else if (opt.translateBy) {
                 // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
-                // If `opt.translateBy` is an ID of the element that was originally translated. This allows us
-                // to just offset the cached bounding box by the translation instead of calculating the bounding
-                // box from scratch on every translate.
+                // If `opt.translateBy` is an ID of the element that was originally translated.
 
-                var bbox = this[endType + 'BBox'];
-                bbox.x += opt.tx;
-                bbox.y += opt.ty;
+                // Noop
 
             } else {
                 // The slowest path, source/target could have been rotated or resized or any attribute
                 // that affects the bounding box of the view might have been changed.
 
-                var view = this.paper.findViewByModel(end.id);
-                var magnetElement = view.el.querySelector(selector);
-
-                this[endType + 'BBox'] = view.getStrokeBBox(magnetElement);
-                this[endType + 'View'] = view;
-                this[endType + 'Magnet'] = magnetElement;
+                var connectedModel = this.paper.model.getCell(endId);
+                if (!connectedModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
+                var connectedView = connectedModel.findView(this.paper);
+                if (connectedView) {
+                    var connectedMagnet = connectedView.getMagnetFromLinkEnd(end);
+                    if (connectedMagnet === connectedView.el) connectedMagnet = null;
+                    this[endType + 'View'] = connectedView;
+                    this[endType + 'Magnet'] = connectedMagnet;
+                } else {
+                    // the view is not rendered yet
+                    this[endType + 'View'] = this[endType + 'Magnet'] = null;
+                }
             }
 
             if (opt.handleBy === this.cid && opt.translateBy &&
@@ -10086,12 +15748,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 doUpdate = false;
             }
 
-            if (!this.updatePostponed && oppositeEnd.id) {
+            if (!this.updatePostponed && oppositeEndId) {
                 // The update was not postponed (that can happen e.g. on the first change event) and the opposite
                 // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
                 // we're reacting on change:source event, the oppositeEnd is the target model).
 
-                var oppositeEndModel = this.paper.getModelById(oppositeEnd.id);
+                var oppositeEndModel = this.paper.getModelById(oppositeEndId);
 
                 // Passing `handleBy` flag via event option.
                 // Note that if we are listening to the same model for event 'change' twice.
@@ -10120,12 +15782,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         } else {
 
             // the link end is a point ~ rect 1x1
-            this[endType + 'BBox'] = g.rect(end.x || 0, end.y || 0, 1, 1);
             this[endType + 'View'] = this[endType + 'Magnet'] = null;
         }
 
         if (doUpdate) {
-            opt.updateConnectionOnly = true;
             this.update(model, null, opt);
         }
     },
@@ -10152,79 +15812,68 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    removeVertex: function(idx) {
+    _getDefaultLabelPositionArgs: function() {
 
-        var vertices = joint.util.assign([], this.model.get('vertices'));
-
-        if (vertices && vertices.length) {
-
-            vertices.splice(idx, 1);
-            this.model.set('vertices', vertices, { ui: true });
-        }
-
-        return this;
+        var defaultLabel = this.model._getDefaultLabel();
+        var defaultLabelPosition = defaultLabel.position || {};
+        return defaultLabelPosition.args;
     },
 
-    // This method ads a new vertex to the `vertices` array of `.connection`. This method
-    // uses a heuristic to find the index at which the new `vertex` should be placed at assuming
-    // the new vertex is somewhere on the path.
-    addVertex: function(vertex) {
+    _getLabelPositionArgs: function(idx) {
 
-        // As it is very hard to find a correct index of the newly created vertex,
-        // a little heuristics is taking place here.
-        // The heuristics checks if length of the newly created
-        // path is lot more than length of the old path. If this is the case,
-        // new vertex was probably put into a wrong index.
-        // Try to put it into another index and repeat the heuristics again.
+        var labelPosition = this.model.label(idx).position || {};
+        return labelPosition.args;
+    },
 
-        var vertices = (this.model.get('vertices') || []).slice();
-        // Store the original vertices for a later revert if needed.
-        var originalVertices = vertices.slice();
+    // merge default label position args into label position args
+    // keep `undefined` or `null` because `{}` means something else
+    _mergeLabelPositionArgs: function(labelPositionArgs, defaultLabelPositionArgs) {
 
-        // A `<path>` element used to compute the length of the path during heuristics.
-        var path = this._V.connection.node.cloneNode(false);
+        if (labelPositionArgs === null) return null;
+        if (labelPositionArgs === undefined) {
 
-        // Length of the original path.
-        var originalPathLength = path.getTotalLength();
-        // Current path length.
-        var pathLength;
-        // Tolerance determines the highest possible difference between the length
-        // of the old and new path. The number has been chosen heuristically.
-        var pathLengthTolerance = 20;
-        // Total number of vertices including source and target points.
-        var idx = vertices.length + 1;
-
-        // Loop through all possible indexes and check if the difference between
-        // path lengths changes significantly. If not, the found index is
-        // most probably the right one.
-        while (idx--) {
-
-            vertices.splice(idx, 0, vertex);
-            V(path).attr('d', this.getPathData(this.findRoute(vertices)));
-
-            pathLength = path.getTotalLength();
-
-            // Check if the path lengths changed significantly.
-            if (pathLength - originalPathLength > pathLengthTolerance) {
-
-                // Revert vertices to the original array. The path length has changed too much
-                // so that the index was not found yet.
-                vertices = originalVertices.slice();
-
-            } else {
-
-                break;
-            }
+            if (defaultLabelPositionArgs === null) return null;
+            return defaultLabelPositionArgs;
         }
 
-        if (idx === -1) {
-            // If no suitable index was found for such a vertex, make the vertex the first one.
-            idx = 0;
-            vertices.splice(idx, 0, vertex);
-        }
+        return joint.util.merge({}, defaultLabelPositionArgs, labelPositionArgs);
+    },
 
-        this.model.set('vertices', vertices, { ui: true });
+    // Add default label at given position at end of `labels` array.
+    // Assigns relative coordinates by default.
+    // `opt.absoluteDistance` forces absolute coordinates.
+    // `opt.reverseDistance` forces reverse absolute coordinates (if absoluteDistance = true).
+    // `opt.absoluteOffset` forces absolute coordinates for offset.
+    addLabel: function(x, y, opt) {
 
+        // accept input in form `{ x, y }, opt` or `x, y, opt`
+        var isPointProvided = (typeof x !== 'number');
+        var localX = isPointProvided ? x.x : x;
+        var localY = isPointProvided ? x.y : y;
+        var localOpt = isPointProvided ? y : opt;
+
+        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+        var labelPositionArgs = localOpt;
+        var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
+
+        var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
+        var idx = -1;
+        this.model.insertLabel(idx, label, localOpt);
+        return idx;
+    },
+
+    // Add a new vertex at calculated index to the `vertices` array.
+    addVertex: function(x, y, opt) {
+
+        // accept input in form `{ x, y }, opt` or `x, y, opt`
+        var isPointProvided = (typeof x !== 'number');
+        var localX = isPointProvided ? x.x : x;
+        var localY = isPointProvided ? x.y : y;
+        var localOpt = isPointProvided ? y : opt;
+
+        var vertex = { x: localX, y: localY };
+        var idx = this.getVertexIndex(localX, localY);
+        this.model.insertVertex(idx, vertex, localOpt);
         return idx;
     },
 
@@ -10232,6 +15881,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // Example: `link.findView(paper).sendToken(V('circle', { r: 7, fill: 'green' }).node)`
     // `opt.duration` is optional and is a time in milliseconds that the token travels from the source to the target of the link. Default is `1000`.
     // `opt.directon` is optional and it determines whether the token goes from source to target or other way round (`reverse`)
+    // `opt.connection` is an optional selector to the connection path.
     // `callback` is optional and is a function to be called once the token reaches the target.
     sendToken: function(token, opt, callback) {
 
@@ -10244,14 +15894,16 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             };
         }
 
-        var duration, isReversed;
+        var duration, isReversed, selector;
         if (joint.util.isObject(opt)) {
             duration = opt.duration;
             isReversed = (opt.direction === 'reverse');
+            selector = opt.connection;
         } else {
             // Backwards compatibility
             duration = opt;
             isReversed = false;
+            selector = null;
         }
 
         duration = duration || 1000;
@@ -10269,215 +15921,865 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var vToken = V(token);
-        var vPath = this._V.connection;
+        var connection;
+        if (typeof selector === 'string') {
+            // Use custom connection path.
+            connection = this.findBySelector(selector, this.el, this.selectors)[0];
+        } else {
+            // Select connection path automatically.
+            var cache = this._V;
+            connection = (cache.connection) ? cache.connection.node : this.el.querySelector('path');
+        }
+
+        if (!(connection instanceof SVGPathElement)) {
+            throw new Error('dia.LinkView: token animation requires a valid connection path.');
+        }
 
         vToken
             .appendTo(this.paper.viewport)
-            .animateAlongPath(animationAttributes, vPath);
+            .animateAlongPath(animationAttributes, connection);
 
         setTimeout(onAnimationEnd(vToken, callback), duration);
     },
 
-    findRoute: function(oldVertices) {
+    findRoute: function(vertices) {
+
+        vertices || (vertices = []);
 
         var namespace = joint.routers;
-        var router = this.model.get('router');
+        var router = this.model.router();
         var defaultRouter = this.paper.options.defaultRouter;
 
         if (!router) {
+            if (defaultRouter) router = defaultRouter;
+            else return vertices.map(g.Point, g); // no router specified
+        }
 
-            if (this.model.get('manhattan')) {
-                // backwards compability
-                router = { name: 'orthogonal' };
-            } else if (defaultRouter) {
-                router = defaultRouter;
-            } else {
-                return oldVertices;
-            }
+        var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
+        if (!joint.util.isFunction(routerFn)) {
+            throw new Error('dia.LinkView: unknown router: "' + router.name + '".');
         }
 
         var args = router.args || {};
-        var routerFn = joint.util.isFunction(router) ? router : namespace[router.name];
 
-        if (!joint.util.isFunction(routerFn)) {
-            throw new Error('unknown router: "' + router.name + '"');
-        }
+        var route = routerFn.call(
+            this, // context
+            vertices, // vertices
+            args, // options
+            this // linkView
+        );
 
-        var newVertices = routerFn.call(this, oldVertices || [], args, this);
-
-        return newVertices;
+        if (!route) return vertices.map(g.Point, g);
+        return route;
     },
 
     // Return the `d` attribute value of the `<path>` element representing the link
     // between `source` and `target`.
-    getPathData: function(vertices) {
+    findPath: function(route, sourcePoint, targetPoint) {
 
         var namespace = joint.connectors;
-        var connector = this.model.get('connector');
+        var connector = this.model.connector();
         var defaultConnector = this.paper.options.defaultConnector;
 
         if (!connector) {
-
-            // backwards compability
-            if (this.model.get('smooth')) {
-                connector = { name: 'smooth' };
-            } else {
-                connector = defaultConnector || {};
-            }
+            connector = defaultConnector || {};
         }
 
         var connectorFn = joint.util.isFunction(connector) ? connector : namespace[connector.name];
-        var args = connector.args || {};
-
         if (!joint.util.isFunction(connectorFn)) {
-            throw new Error('unknown connector: "' + connector.name + '"');
+            throw new Error('dia.LinkView: unknown connector: "' + connector.name + '".');
         }
 
-        var pathData = connectorFn.call(
-            this,
-            this._markerCache.sourcePoint, // Note that the value is translated by the size
-            this._markerCache.targetPoint, // of the marker. (We'r not using this.sourcePoint)
-            vertices || (this.model.get('vertices') || {}),
+        var args = joint.util.clone(connector.args || {});
+        args.raw = true; // Request raw g.Path as the result.
+
+        var path = connectorFn.call(
+            this, // context
+            sourcePoint, // start point
+            targetPoint, // end point
+            route, // vertices
             args, // options
-            this
+            this // linkView
         );
 
-        return pathData;
-    },
-
-    // Find a point that is the start of the connection.
-    // If `selectorOrPoint` is a point, then we're done and that point is the start of the connection.
-    // If the `selectorOrPoint` is an element however, we need to know a reference point (or element)
-    // that the link leads to in order to determine the start of the connection on the original element.
-    getConnectionPoint: function(end, selectorOrPoint, referenceSelectorOrPoint) {
-
-        var spot;
-
-        // If the `selectorOrPoint` (or `referenceSelectorOrPoint`) is `undefined`, the `source`/`target` of the link model is `undefined`.
-        // We want to allow this however so that one can create links such as `var link = new joint.dia.Link` and
-        // set the `source`/`target` later.
-        joint.util.isEmpty(selectorOrPoint) && (selectorOrPoint = { x: 0, y: 0 });
-        joint.util.isEmpty(referenceSelectorOrPoint) && (referenceSelectorOrPoint = { x: 0, y: 0 });
-
-        if (!selectorOrPoint.id) {
-
-            // If the source is a point, we don't need a reference point to find the sticky point of connection.
-            spot = g.Point(selectorOrPoint);
-
-        } else {
-
-            // If the source is an element, we need to find a point on the element boundary that is closest
-            // to the reference point (or reference element).
-            // Get the bounding box of the spot relative to the paper viewport. This is necessary
-            // in order to follow paper viewport transformations (scale/rotate).
-            // `_sourceBbox` (`_targetBbox`) comes from `_sourceBboxUpdate` (`_sourceBboxUpdate`)
-            // method, it exists since first render and are automatically updated
-            var spotBBox = g.Rect(end === 'source' ? this.sourceBBox : this.targetBBox);
-
-            var reference;
-
-            if (!referenceSelectorOrPoint.id) {
-
-                // Reference was passed as a point, therefore, we're ready to find the sticky point of connection on the source element.
-                reference = g.Point(referenceSelectorOrPoint);
-
-            } else {
-
-                // Reference was passed as an element, therefore we need to find a point on the reference
-                // element boundary closest to the source element.
-                // Get the bounding box of the spot relative to the paper viewport. This is necessary
-                // in order to follow paper viewport transformations (scale/rotate).
-                var referenceBBox = g.Rect(end === 'source' ? this.targetBBox : this.sourceBBox);
-
-                reference = referenceBBox.intersectionWithLineFromCenterToPoint(spotBBox.center());
-                reference = reference || referenceBBox.center();
-            }
-
-            var paperOptions = this.paper.options;
-            // If `perpendicularLinks` flag is set on the paper and there are vertices
-            // on the link, then try to find a connection point that makes the link perpendicular
-            // even though the link won't point to the center of the targeted object.
-            if (paperOptions.perpendicularLinks || this.options.perpendicular) {
-
-                var nearestSide;
-                var spotOrigin = spotBBox.origin();
-                var spotCorner = spotBBox.corner();
-
-                if (spotOrigin.y <= reference.y && reference.y <= spotCorner.y) {
-
-                    nearestSide = spotBBox.sideNearestToPoint(reference);
-                    switch (nearestSide) {
-                        case 'left':
-                            spot = g.Point(spotOrigin.x, reference.y);
-                            break;
-                        case 'right':
-                            spot = g.Point(spotCorner.x, reference.y);
-                            break;
-                        default:
-                            spot = spotBBox.center();
-                            break;
-                    }
-
-                } else if (spotOrigin.x <= reference.x && reference.x <= spotCorner.x) {
-
-                    nearestSide = spotBBox.sideNearestToPoint(reference);
-                    switch (nearestSide) {
-                        case 'top':
-                            spot = g.Point(reference.x, spotOrigin.y);
-                            break;
-                        case 'bottom':
-                            spot = g.Point(reference.x, spotCorner.y);
-                            break;
-                        default:
-                            spot = spotBBox.center();
-                            break;
-                    }
-
-                } else {
-
-                    // If there is no intersection horizontally or vertically with the object bounding box,
-                    // then we fall back to the regular situation finding straight line (not perpendicular)
-                    // between the object and the reference point.
-                    spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
-                    spot = spot || spotBBox.center();
-                }
-
-            } else if (paperOptions.linkConnectionPoint) {
-
-                var view = (end === 'target') ? this.targetView : this.sourceView;
-                var magnet = (end === 'target') ? this.targetMagnet : this.sourceMagnet;
-
-                spot = paperOptions.linkConnectionPoint(this, view, magnet, reference, end);
-
-            } else {
-
-                spot = spotBBox.intersectionWithLineFromCenterToPoint(reference);
-                spot = spot || spotBBox.center();
-            }
+        if (typeof path === 'string') {
+            // Backwards compatibility for connectors not supporting `raw` option.
+            path = new g.Path(V.normalizePathData(path));
         }
 
-        return spot;
+        return path;
     },
 
-    // Public API
-    // ----------
+    // Public API.
+    // -----------
+
+    getConnection: function() {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.clone();
+    },
+
+    getSerializedConnection: function() {
+
+        var path = this.path;
+        if (!path) return null;
+
+        var metrics = this.metrics;
+        if (metrics.hasOwnProperty('data')) return metrics.data;
+        var data = path.serialize();
+        metrics.data = data;
+        return data;
+    },
+
+    getConnectionSubdivisions: function() {
+
+        var path = this.path;
+        if (!path) return null;
+
+        var metrics = this.metrics;
+        if (metrics.hasOwnProperty('segmentSubdivisions')) return metrics.segmentSubdivisions;
+        var subdivisions = path.getSegmentSubdivisions();
+        metrics.segmentSubdivisions = subdivisions;
+        return subdivisions;
+    },
 
     getConnectionLength: function() {
 
-        return this._V.connection.node.getTotalLength();
+        var path = this.path;
+        if (!path) return 0;
+
+        var metrics = this.metrics;
+        if (metrics.hasOwnProperty('length')) return metrics.length;
+        var length = path.length({ segmentSubdivisions: this.getConnectionSubdivisions() });
+        metrics.length = length;
+        return length;
     },
 
     getPointAtLength: function(length) {
 
-        return this._V.connection.node.getPointAtLength(length);
+        var path = this.path;
+        if (!path) return null;
+
+        return path.pointAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getPointAtRatio: function(ratio) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.pointAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getTangentAtLength: function(length) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.tangentAtLength(length, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getTangentAtRatio: function(ratio) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.tangentAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getClosestPoint: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getClosestPointLength: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    getClosestPointRatio: function(point) {
+
+        var path = this.path;
+        if (!path) return null;
+
+        return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
+    },
+
+    // accepts options `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`
+    // to move beyond connection endpoints, absoluteOffset has to be set
+    getLabelPosition: function(x, y, opt) {
+
+        var position = {};
+
+        var localOpt = opt || {};
+        if (opt) position.args = opt;
+
+        var isDistanceRelative = !localOpt.absoluteDistance; // relative by default
+        var isDistanceAbsoluteReverse = (localOpt.absoluteDistance && localOpt.reverseDistance); // non-reverse by default
+        var isOffsetAbsolute = localOpt.absoluteOffset; // offset is non-absolute by default
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var labelPoint = new g.Point(x, y);
+        var t = path.closestPointT(labelPoint, pathOpt);
+
+        // GET DISTANCE:
+
+        var labelDistance = path.lengthAtT(t, pathOpt);
+        if (isDistanceRelative) labelDistance = (labelDistance / this.getConnectionLength()) || 0; // fix to prevent NaN for 0 length
+        if (isDistanceAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point (-0 => 1)
+
+        position.distance = labelDistance;
+
+        // GET OFFSET:
+        // use absolute offset if:
+        // - opt.absoluteOffset is true,
+        // - opt.absoluteOffset is not true but there is no tangent
+
+        var tangent;
+        if (!isOffsetAbsolute) tangent = path.tangentAtT(t);
+
+        var labelOffset;
+        if (tangent) {
+            labelOffset = tangent.pointOffset(labelPoint);
+
+        } else {
+            var closestPoint = path.pointAtT(t);
+            var labelOffsetDiff = labelPoint.difference(closestPoint);
+            labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
+        }
+
+        position.offset = labelOffset;
+
+        return position;
+    },
+
+    getLabelCoordinates: function(labelPosition) {
+
+        var labelDistance;
+        if (typeof labelPosition === 'number') labelDistance = labelPosition;
+        else if (typeof labelPosition.distance === 'number') labelDistance = labelPosition.distance;
+        else throw new Error('dia.LinkView: invalid label position distance.');
+
+        var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
+
+        var labelOffset = 0;
+        var labelOffsetCoordinates = { x: 0, y: 0 };
+        if (labelPosition.offset) {
+            var positionOffset = labelPosition.offset;
+            if (typeof positionOffset === 'number') labelOffset = positionOffset;
+            if (positionOffset.x) labelOffsetCoordinates.x = positionOffset.x;
+            if (positionOffset.y) labelOffsetCoordinates.y = positionOffset.y;
+        }
+
+        var isOffsetAbsolute = ((labelOffsetCoordinates.x !== 0) || (labelOffsetCoordinates.y !== 0) || labelOffset === 0);
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var distance = isDistanceRelative ? (labelDistance * this.getConnectionLength()) : labelDistance;
+
+        var point;
+
+        if (isOffsetAbsolute) {
+            point = path.pointAtLength(distance, pathOpt);
+            point.offset(labelOffsetCoordinates);
+
+        } else {
+            var tangent = path.tangentAtLength(distance, pathOpt);
+
+            if (tangent) {
+                tangent.rotate(tangent.start, -90);
+                tangent.setLength(labelOffset);
+                point = tangent.end;
+
+            } else {
+                // fallback - the connection has zero length
+                point = path.start;
+            }
+        }
+
+        return point;
+    },
+
+    getVertexIndex: function(x, y) {
+
+        var model = this.model;
+        var vertices = model.vertices();
+
+        var vertexLength = this.getClosestPointLength(new g.Point(x, y));
+
+        var idx = 0;
+        for (var n = vertices.length; idx < n; idx++) {
+            var currentVertex = vertices[idx];
+            var currentVertexLength = this.getClosestPointLength(currentVertex);
+            if (vertexLength < currentVertexLength) break;
+        }
+
+        return idx;
     },
 
     // Interaction. The controller part.
     // ---------------------------------
 
-    _beforeArrowheadMove: function() {
+    pointerdblclick: function(evt, x, y) {
 
-        this._z = this.model.get('z');
+        joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+        this.notify('link:pointerdblclick', evt, x, y);
+    },
+
+    pointerclick: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.pointerclick.apply(this, arguments);
+        this.notify('link:pointerclick', evt, x, y);
+    },
+
+    contextmenu: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.contextmenu.apply(this, arguments);
+        this.notify('link:contextmenu', evt, x, y);
+    },
+
+    pointerdown: function(evt, x, y) {
+
+        joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+        this.notify('link:pointerdown', evt, x, y);
+
+        // Backwards compatibility for the default markup
+        var className = evt.target.getAttribute('class');
+        switch (className) {
+
+            case 'marker-vertex':
+                this.dragVertexStart(evt, x, y);
+                return;
+
+            case 'marker-vertex-remove':
+            case 'marker-vertex-remove-area':
+                this.dragVertexRemoveStart(evt, x, y);
+                return;
+
+            case 'marker-arrowhead':
+                this.dragArrowheadStart(evt, x, y);
+                return;
+
+            case 'connection':
+            case 'connection-wrap':
+                this.dragConnectionStart(evt, x, y);
+                return;
+
+            case 'marker-source':
+            case 'marker-target':
+                return;
+        }
+
+        this.dragStart(evt, x, y);
+    },
+
+    pointermove: function(evt, x, y) {
+
+        // Backwards compatibility
+        var dragData = this._dragData;
+        if (dragData) this.eventData(evt, dragData);
+
+        var data = this.eventData(evt);
+        switch (data.action) {
+
+            case 'vertex-move':
+                this.dragVertex(evt, x, y);
+                break;
+
+            case 'label-move':
+                this.dragLabel(evt, x, y);
+                break;
+
+            case 'arrowhead-move':
+                this.dragArrowhead(evt, x, y);
+                break;
+
+            case 'move':
+                this.drag(evt, x, y);
+                break;
+        }
+
+        // Backwards compatibility
+        if (dragData) joint.util.assign(dragData, this.eventData(evt));
+
+        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+        this.notify('link:pointermove', evt, x, y);
+    },
+
+    pointerup: function(evt, x, y) {
+
+        // Backwards compatibility
+        var dragData = this._dragData;
+        if (dragData) {
+            this.eventData(evt, dragData);
+            this._dragData = null;
+        }
+
+        var data = this.eventData(evt);
+        switch (data.action) {
+
+            case 'vertex-move':
+                this.dragVertexEnd(evt, x, y);
+                break;
+
+            case 'label-move':
+                this.dragLabelEnd(evt, x, y);
+                break;
+
+            case 'arrowhead-move':
+                this.dragArrowheadEnd(evt, x, y);
+                break;
+
+            case 'move':
+                this.dragEnd(evt, x, y);
+        }
+
+        this.notify('link:pointerup', evt, x, y);
+        joint.dia.CellView.prototype.pointerup.apply(this, arguments);
+    },
+
+    mouseover: function(evt) {
+
+        joint.dia.CellView.prototype.mouseover.apply(this, arguments);
+        this.notify('link:mouseover', evt);
+    },
+
+    mouseout: function(evt) {
+
+        joint.dia.CellView.prototype.mouseout.apply(this, arguments);
+        this.notify('link:mouseout', evt);
+    },
+
+    mouseenter: function(evt) {
+
+        joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
+        this.notify('link:mouseenter', evt);
+    },
+
+    mouseleave: function(evt) {
+
+        joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
+        this.notify('link:mouseleave', evt);
+    },
+
+    mousewheel: function(evt, x, y, delta) {
+
+        joint.dia.CellView.prototype.mousewheel.apply(this, arguments);
+        this.notify('link:mousewheel', evt, x, y, delta);
+    },
+
+    onevent: function(evt, eventName, x, y) {
+
+        // Backwards compatibility
+        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
+        if (linkTool) {
+            // No further action to be executed
+            evt.stopPropagation();
+
+            // Allow `interactive.useLinkTools=false`
+            if (this.can('useLinkTools')) {
+                if (eventName === 'remove') {
+                    // Built-in remove event
+                    this.model.remove({ ui: true });
+
+                } else {
+                    // link:options and other custom events inside the link tools
+                    this.notify(eventName, evt, x, y);
+                }
+            }
+
+        } else {
+            joint.dia.CellView.prototype.onevent.apply(this, arguments);
+        }
+    },
+
+    onlabel: function(evt, x, y) {
+
+        this.dragLabelStart(evt, x, y);
+
+        var stopPropagation = this.eventData(evt).stopPropagation;
+        if (stopPropagation) evt.stopPropagation();
+    },
+
+    // Drag Start Handlers
+
+    dragConnectionStart: function(evt, x, y) {
+
+        if (!this.can('vertexAdd')) return;
+
+        // Store the index at which the new vertex has just been placed.
+        // We'll be update the very same vertex position in `pointermove()`.
+        var vertexIdx = this.addVertex({ x: x, y: y }, { ui: true });
+        this.eventData(evt, {
+            action: 'vertex-move',
+            vertexIdx: vertexIdx
+        });
+    },
+
+    dragLabelStart: function(evt, x, y) {
+
+        if (!this.can('labelMove')) {
+            // Backwards compatibility:
+            // If labels can't be dragged no default action is triggered.
+            this.eventData(evt, { stopPropagation: true });
+            return;
+        }
+
+        var labelNode = evt.currentTarget;
+        var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
+
+        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+        var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
+        var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
+
+        this.eventData(evt, {
+            action: 'label-move',
+            labelIdx: labelIdx,
+            positionArgs: positionArgs,
+            stopPropagation: true
+        });
+
+        this.paper.delegateDragEvents(this, evt.data);
+    },
+
+    dragVertexStart: function(evt, x, y) {
+
+        if (!this.can('vertexMove')) return;
+
+        var vertexNode = evt.target;
+        var vertexIdx = parseInt(vertexNode.getAttribute('idx'), 10);
+        this.eventData(evt, {
+            action: 'vertex-move',
+            vertexIdx: vertexIdx
+        });
+    },
+
+    dragVertexRemoveStart: function(evt, x, y) {
+
+        if (!this.can('vertexRemove')) return;
+
+        var removeNode = evt.target;
+        var vertexIdx = parseInt(removeNode.getAttribute('idx'), 10);
+        this.model.removeVertex(vertexIdx);
+    },
+
+    dragArrowheadStart: function(evt, x, y) {
+
+        if (!this.can('arrowheadMove')) return;
+
+        var arrowheadNode = evt.target;
+        var arrowheadType = arrowheadNode.getAttribute('end');
+        var data = this.startArrowheadMove(arrowheadType, { ignoreBackwardsCompatibility: true });
+
+        this.eventData(evt, data);
+    },
+
+    dragStart: function(evt, x, y) {
+
+        if (!this.can('linkMove')) return;
+
+        this.eventData(evt, {
+            action: 'move',
+            dx: x,
+            dy: y
+        });
+    },
+
+    // Drag Handlers
+
+    dragLabel: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var label = { position: this.getLabelPosition(x, y, data.positionArgs) };
+        this.model.label(data.labelIdx, label);
+    },
+
+    dragVertex: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        this.model.vertex(data.vertexIdx, { x: x, y: y }, { ui: true });
+    },
+
+    dragArrowhead: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+
+        if (this.paper.options.snapLinks) {
+
+            this._snapArrowhead(x, y, data);
+
+        } else {
+            // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
+            // It holds the element when a touchstart triggered.
+            var target = (evt.type === 'mousemove')
+                ? evt.target
+                : document.elementFromPoint(evt.clientX, evt.clientY);
+
+            this._connectArrowhead(target, x, y, data);
+        }
+    },
+
+    drag: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        this.model.translate(x - data.dx, y - data.dy, { ui: true });
+        this.eventData(evt, {
+            dx: x,
+            dy: y
+        });
+    },
+
+    // Drag End Handlers
+
+    dragLabelEnd: function() {
+        // noop
+    },
+
+    dragVertexEnd: function() {
+        // noop
+    },
+
+    dragArrowheadEnd: function(evt, x, y) {
+
+        var data = this.eventData(evt);
+        var paper = this.paper;
+
+        if (paper.options.snapLinks) {
+            this._snapArrowheadEnd(data);
+        } else {
+            this._connectArrowheadEnd(data, x, y);
+        }
+
+        if (!paper.linkAllowed(this)) {
+            // If the changed link is not allowed, revert to its previous state.
+            this._disallow(data);
+        } else {
+            this._finishEmbedding(data);
+            this._notifyConnectEvent(data, evt);
+        }
+
+        this._afterArrowheadMove(data);
+
+        // mouseleave event is not triggered due to changing pointer-events to `none`.
+        if (!this.vel.contains(evt.target)) {
+            this.mouseleave(evt);
+        }
+    },
+
+    dragEnd: function() {
+        // noop
+    },
+
+    _disallow: function(data) {
+
+        switch (data.whenNotAllowed) {
+
+            case 'remove':
+                this.model.remove({ ui: true });
+                break;
+
+            case 'revert':
+            default:
+                this.model.set(data.arrowhead, data.initialEnd, { ui: true });
+                break;
+        }
+    },
+
+    _finishEmbedding: function(data) {
+
+        // Reparent the link if embedding is enabled
+        if (this.paper.options.embeddingMode && this.model.reparent()) {
+            // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
+            data.z = null;
+        }
+    },
+
+    _notifyConnectEvent: function(data, evt) {
+
+        var arrowhead = data.arrowhead;
+        var initialEnd = data.initialEnd;
+        var currentEnd = this.model.prop(arrowhead);
+        var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
+        if (endChanged) {
+            var paper = this.paper;
+            if (initialEnd.id) {
+                this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), data.initialMagnet, arrowhead);
+            }
+            if (currentEnd.id) {
+                this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), data.magnetUnderPointer, arrowhead);
+            }
+        }
+    },
+
+    _snapArrowhead: function(x, y, data) {
+
+        // checking view in close area of the pointer
+
+        var r = this.paper.options.snapLinks.radius || 50;
+        var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+
+        if (data.closestView) {
+            data.closestView.unhighlight(data.closestMagnet, {
+                connecting: true,
+                snapping: true
+            });
+        }
+        data.closestView = data.closestMagnet = null;
+
+        var distance;
+        var minDistance = Number.MAX_VALUE;
+        var pointer = g.point(x, y);
+        var paper = this.paper;
+
+        viewsInArea.forEach(function(view) {
+
+            // skip connecting to the element in case '.': { magnet: false } attribute present
+            if (view.el.getAttribute('magnet') !== 'false') {
+
+                // find distance from the center of the model to pointer coordinates
+                distance = view.model.getBBox().center().distance(pointer);
+
+                // the connection is looked up in a circle area by `distance < r`
+                if (distance < r && distance < minDistance) {
+
+                    if (paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, null)
+                    )) {
+                        minDistance = distance;
+                        data.closestView = view;
+                        data.closestMagnet = view.el;
+                    }
+                }
+            }
+
+            view.$('[magnet]').each(function(index, magnet) {
+
+                var bbox = view.getNodeBBox(magnet);
+
+                distance = pointer.distance({
+                    x: bbox.x + bbox.width / 2,
+                    y: bbox.y + bbox.height / 2
+                });
+
+                if (distance < r && distance < minDistance) {
+
+                    if (paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, magnet)
+                    )) {
+                        minDistance = distance;
+                        data.closestView = view;
+                        data.closestMagnet = magnet;
+                    }
+                }
+
+            }.bind(this));
+
+        }, this);
+
+        var end;
+        var closestView = data.closestView;
+        var closestMagnet = data.closestMagnet;
+        var endType = data.arrowhead;
+        if (closestView) {
+            closestView.highlight(closestMagnet, {
+                connecting: true,
+                snapping: true
+            });
+            end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+        } else {
+            end = { x: x, y: y };
+        }
+
+        this.model.set(endType, end || { x: x, y: y }, { ui: true });
+    },
+
+    _snapArrowheadEnd: function(data) {
+
+        // Finish off link snapping.
+        // Everything except view unhighlighting was already done on pointermove.
+        var closestView = data.closestView;
+        var closestMagnet = data.closestMagnet;
+        if (closestView && closestMagnet) {
+
+            closestView.unhighlight(closestMagnet, { connecting: true, snapping: true });
+            data.magnetUnderPointer = closestView.findMagnet(closestMagnet);
+        }
+
+        data.closestView = data.closestMagnet = null;
+    },
+
+    _connectArrowhead: function(target, x, y, data) {
+
+        // checking views right under the pointer
+
+        if (data.eventTarget !== target) {
+            // Unhighlight the previous view under pointer if there was one.
+            if (data.magnetUnderPointer) {
+                data.viewUnderPointer.unhighlight(data.magnetUnderPointer, {
+                    connecting: true
+                });
+            }
+
+            data.viewUnderPointer = this.paper.findView(target);
+            if (data.viewUnderPointer) {
+                // If we found a view that is under the pointer, we need to find the closest
+                // magnet based on the real target element of the event.
+                data.magnetUnderPointer = data.viewUnderPointer.findMagnet(target);
+
+                if (data.magnetUnderPointer && this.paper.options.validateConnection.apply(
+                    this.paper,
+                    data.validateConnectionArgs(data.viewUnderPointer, data.magnetUnderPointer)
+                )) {
+                    // If there was no magnet found, do not highlight anything and assume there
+                    // is no view under pointer we're interested in reconnecting to.
+                    // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
+                    if (data.magnetUnderPointer) {
+                        data.viewUnderPointer.highlight(data.magnetUnderPointer, {
+                            connecting: true
+                        });
+                    }
+                } else {
+                    // This type of connection is not valid. Disregard this magnet.
+                    data.magnetUnderPointer = null;
+                }
+            } else {
+                // Make sure we'll unset previous magnet.
+                data.magnetUnderPointer = null;
+            }
+        }
+
+        data.eventTarget = target;
+
+        this.model.set(data.arrowhead, { x: x, y: y }, { ui: true });
+    },
+
+    _connectArrowheadEnd: function(data, x, y) {
+
+        var view = data.viewUnderPointer;
+        var magnet = data.magnetUnderPointer;
+        if (!magnet || !view) return;
+
+        view.unhighlight(magnet, { connecting: true });
+
+        var endType = data.arrowhead;
+        var end = view.getLinkEnd(magnet, x, y, this.model, endType);
+        this.model.set(endType, end, { ui: true });
+    },
+
+    _beforeArrowheadMove: function(data) {
+
+        data.z = this.model.get('z');
         this.model.toFront();
 
         // Let the pointer propagate throught the link view elements so that
@@ -10485,15 +16787,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.el.style.pointerEvents = 'none';
 
         if (this.paper.options.markAvailable) {
-            this._markAvailableMagnets();
+            this._markAvailableMagnets(data);
         }
     },
 
-    _afterArrowheadMove: function() {
+    _afterArrowheadMove: function(data) {
 
-        if (this._z !== null) {
-            this.model.set('z', this._z, { ui: true });
-            this._z = null;
+        if (data.z !== null) {
+            this.model.set('z', data.z, { ui: true });
+            data.z = null;
         }
 
         // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
@@ -10502,7 +16804,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.el.style.pointerEvents = 'visiblePainted';
 
         if (this.paper.options.markAvailable) {
-            this._unmarkAvailableMagnets();
+            this._unmarkAvailableMagnets(data);
         }
     },
 
@@ -10542,17 +16844,17 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return validateConnectionArgs;
     },
 
-    _markAvailableMagnets: function() {
+    _markAvailableMagnets: function(data) {
 
         function isMagnetAvailable(view, magnet) {
             var paper = view.paper;
             var validate = paper.options.validateConnection;
-            return validate.apply(paper, this._validateConnectionArgs(view, magnet));
+            return validate.apply(paper, this.validateConnectionArgs(view, magnet));
         }
 
         var paper = this.paper;
         var elements = paper.model.getElements();
-        this._marked = {};
+        data.marked = {};
 
         for (var i = 0, n = elements.length; i < n; i++) {
             var view = elements[i].findView(paper);
@@ -10567,7 +16869,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 magnets.push(view.el);
             }
 
-            var availableMagnets = magnets.filter(isMagnetAvailable.bind(this, view));
+            var availableMagnets = magnets.filter(isMagnetAvailable.bind(data, view));
 
             if (availableMagnets.length > 0) {
                 // highlight all available magnets
@@ -10577,20 +16879,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // highlight the entire view
                 view.highlight(null, { elementAvailability: true });
 
-                this._marked[view.model.id] = availableMagnets;
+                data.marked[view.model.id] = availableMagnets;
             }
         }
     },
 
-    _unmarkAvailableMagnets: function() {
+    _unmarkAvailableMagnets: function(data) {
 
-        var markedKeys = Object.keys(this._marked);
+        var markedKeys = Object.keys(data.marked);
         var id;
         var markedMagnets;
 
         for (var i = 0, n = markedKeys.length; i < n; i++) {
             id = markedKeys[i];
-            markedMagnets = this._marked[id];
+            markedMagnets = data.marked[id];
 
             var view = this.paper.findViewByModel(id);
             if (view) {
@@ -10601,432 +16903,82 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        this._marked = null;
+        data.marked = null;
     },
 
     startArrowheadMove: function(end, opt) {
 
-        opt = joint.util.defaults(opt || {}, { whenNotAllowed: 'revert' });
+        opt || (opt = {});
+
         // Allow to delegate events from an another view to this linkView in order to trigger arrowhead
         // move without need to click on the actual arrowhead dom element.
-        this._action = 'arrowhead-move';
-        this._whenNotAllowed = opt.whenNotAllowed;
-        this._arrowhead = end;
-        this._initialMagnet = this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null);
-        this._initialEnd = joint.util.assign({}, this.model.get(end)) || { x: 0, y: 0 };
-        this._validateConnectionArgs = this._createValidateConnectionArgs(this._arrowhead);
-        this._beforeArrowheadMove();
-    },
+        var data = {
+            action: 'arrowhead-move',
+            arrowhead: end,
+            whenNotAllowed: opt.whenNotAllowed || 'revert',
+            initialMagnet: this[end + 'Magnet'] || (this[end + 'View'] ? this[end + 'View'].el : null),
+            initialEnd: joint.util.clone(this.model.get(end)),
+            validateConnectionArgs: this._createValidateConnectionArgs(end)
+        };
 
-    pointerdown: function(evt, x, y) {
+        this._beforeArrowheadMove(data);
 
-        joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
-        this.notify('link:pointerdown', evt, x, y);
-
-        this._dx = x;
-        this._dy = y;
-
-        // if are simulating pointerdown on a link during a magnet click, skip link interactions
-        if (evt.target.getAttribute('magnet') != null) return;
-
-        var className = joint.util.removeClassNamePrefix(evt.target.getAttribute('class'));
-        var parentClassName = joint.util.removeClassNamePrefix(evt.target.parentNode.getAttribute('class'));
-        var labelNode;
-        if (parentClassName === 'label') {
-            className = parentClassName;
-            labelNode = evt.target.parentNode;
-        } else {
-            labelNode = evt.target;
+        if (opt.ignoreBackwardsCompatibility !== true) {
+            this._dragData = data;
         }
 
-        switch (className) {
-
-            case 'marker-vertex':
-                if (this.can('vertexMove')) {
-                    this._action = 'vertex-move';
-                    this._vertexIdx = evt.target.getAttribute('idx');
-                }
-                break;
-
-            case 'marker-vertex-remove':
-            case 'marker-vertex-remove-area':
-                if (this.can('vertexRemove')) {
-                    this.removeVertex(evt.target.getAttribute('idx'));
-                }
-                break;
-
-            case 'marker-arrowhead':
-                if (this.can('arrowheadMove')) {
-                    this.startArrowheadMove(evt.target.getAttribute('end'));
-                }
-                break;
-
-            case 'label':
-                if (this.can('labelMove')) {
-                    this._action = 'label-move';
-                    this._labelIdx = parseInt(V(labelNode).attr('label-idx'), 10);
-                    // Precalculate samples so that we don't have to do that
-                    // over and over again while dragging the label.
-                    this._samples = this._V.connection.sample(1);
-                    this._linkLength = this._V.connection.node.getTotalLength();
-                }
-                break;
-
-            default:
-
-                if (this.can('vertexAdd')) {
-
-                    // Store the index at which the new vertex has just been placed.
-                    // We'll be update the very same vertex position in `pointermove()`.
-                    this._vertexIdx = this.addVertex({ x: x, y: y });
-                    this._action = 'vertex-move';
-                }
-        }
-    },
-
-    pointermove: function(evt, x, y) {
-
-        switch (this._action) {
-
-            case 'vertex-move':
-
-                var vertices = joint.util.assign([], this.model.get('vertices'));
-                vertices[this._vertexIdx] = { x: x, y: y };
-                this.model.set('vertices', vertices, { ui: true });
-                break;
-
-            case 'label-move':
-
-                var dragPoint = { x: x, y: y };
-                var samples = this._samples;
-                var minSqDistance = Infinity;
-                var closestSample;
-                var closestSampleIndex;
-                var p;
-                var sqDistance;
-                for (var i = 0, n = samples.length; i < n; i++) {
-                    p = samples[i];
-                    sqDistance = g.line(p, dragPoint).squaredLength();
-                    if (sqDistance < minSqDistance) {
-                        minSqDistance = sqDistance;
-                        closestSample = p;
-                        closestSampleIndex = i;
-                    }
-                }
-                var prevSample = samples[closestSampleIndex - 1];
-                var nextSample = samples[closestSampleIndex + 1];
-                var offset = 0;
-                if (prevSample && nextSample) {
-                    offset = g.line(prevSample, nextSample).pointOffset(dragPoint);
-                } else if (prevSample) {
-                    offset = g.line(prevSample, closestSample).pointOffset(dragPoint);
-                } else if (nextSample) {
-                    offset = g.line(closestSample, nextSample).pointOffset(dragPoint);
-                }
-
-                this.model.label(this._labelIdx, {
-                    position: {
-                        distance: closestSample.distance / this._linkLength,
-                        offset: offset
-                    }
-                });
-                break;
-
-            case 'arrowhead-move':
-
-                if (this.paper.options.snapLinks) {
-
-                    // checking view in close area of the pointer
-
-                    var r = this.paper.options.snapLinks.radius || 50;
-                    var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
-
-                    if (this._closestView) {
-                        this._closestView.unhighlight(this._closestEnd.selector, {
-                            connecting: true,
-                            snapping: true
-                        });
-                    }
-                    this._closestView = this._closestEnd = null;
-
-                    var distance;
-                    var minDistance = Number.MAX_VALUE;
-                    var pointer = g.point(x, y);
-
-                    viewsInArea.forEach(function(view) {
-
-                        // skip connecting to the element in case '.': { magnet: false } attribute present
-                        if (view.el.getAttribute('magnet') !== 'false') {
-
-                            // find distance from the center of the model to pointer coordinates
-                            distance = view.model.getBBox().center().distance(pointer);
-
-                            // the connection is looked up in a circle area by `distance < r`
-                            if (distance < r && distance < minDistance) {
-
-                                if (this.paper.options.validateConnection.apply(
-                                    this.paper, this._validateConnectionArgs(view, null)
-                                )) {
-                                    minDistance = distance;
-                                    this._closestView = view;
-                                    this._closestEnd = { id: view.model.id };
-                                }
-                            }
-                        }
-
-                        view.$('[magnet]').each(function(index, magnet) {
-
-                            var bbox = V(magnet).getBBox({ target: this.paper.viewport });
-
-                            distance = pointer.distance({
-                                x: bbox.x + bbox.width / 2,
-                                y: bbox.y + bbox.height / 2
-                            });
-
-                            if (distance < r && distance < minDistance) {
-
-                                if (this.paper.options.validateConnection.apply(
-                                    this.paper, this._validateConnectionArgs(view, magnet)
-                                )) {
-                                    minDistance = distance;
-                                    this._closestView = view;
-                                    this._closestEnd = {
-                                        id: view.model.id,
-                                        selector: view.getSelector(magnet),
-                                        port: magnet.getAttribute('port')
-                                    };
-                                }
-                            }
-
-                        }.bind(this));
-
-                    }, this);
-
-                    if (this._closestView) {
-                        this._closestView.highlight(this._closestEnd.selector, {
-                            connecting: true,
-                            snapping: true
-                        });
-                    }
-
-                    this.model.set(this._arrowhead, this._closestEnd || { x: x, y: y }, { ui: true });
-
-                } else {
-
-                    // checking views right under the pointer
-
-                    // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
-                    // It holds the element when a touchstart triggered.
-                    var target = (evt.type === 'mousemove')
-                        ? evt.target
-                        : document.elementFromPoint(evt.clientX, evt.clientY);
-
-                    if (this._eventTarget !== target) {
-                        // Unhighlight the previous view under pointer if there was one.
-                        if (this._magnetUnderPointer) {
-                            this._viewUnderPointer.unhighlight(this._magnetUnderPointer, {
-                                connecting: true
-                            });
-                        }
-
-                        this._viewUnderPointer = this.paper.findView(target);
-                        if (this._viewUnderPointer) {
-                            // If we found a view that is under the pointer, we need to find the closest
-                            // magnet based on the real target element of the event.
-                            this._magnetUnderPointer = this._viewUnderPointer.findMagnet(target);
-
-                            if (this._magnetUnderPointer && this.paper.options.validateConnection.apply(
-                                this.paper,
-                                this._validateConnectionArgs(this._viewUnderPointer, this._magnetUnderPointer)
-                            )) {
-                                // If there was no magnet found, do not highlight anything and assume there
-                                // is no view under pointer we're interested in reconnecting to.
-                                // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                                if (this._magnetUnderPointer) {
-                                    this._viewUnderPointer.highlight(this._magnetUnderPointer, {
-                                        connecting: true
-                                    });
-                                }
-                            } else {
-                                // This type of connection is not valid. Disregard this magnet.
-                                this._magnetUnderPointer = null;
-                            }
-                        } else {
-                            // Make sure we'll unset previous magnet.
-                            this._magnetUnderPointer = null;
-                        }
-                    }
-
-                    this._eventTarget = target;
-
-                    this.model.set(this._arrowhead, { x: x, y: y }, { ui: true });
-                }
-                break;
-        }
-
-        this._dx = x;
-        this._dy = y;
-
-        joint.dia.CellView.prototype.pointermove.apply(this, arguments);
-        this.notify('link:pointermove', evt, x, y);
-    },
-
-    pointerup: function(evt, x, y) {
-
-        if (this._action === 'label-move') {
-
-            this._samples = null;
-
-        } else if (this._action === 'arrowhead-move') {
-
-            var model = this.model;
-            var paper = this.paper;
-            var paperOptions = paper.options;
-            var arrowhead = this._arrowhead;
-            var initialEnd = this._initialEnd;
-            var magnetUnderPointer;
-
-            if (paperOptions.snapLinks) {
-
-                // Finish off link snapping.
-                // Everything except view unhighlighting was already done on pointermove.
-                if (this._closestView) {
-                    this._closestView.unhighlight(this._closestEnd.selector, {
-                        connecting: true,
-                        snapping: true
-                    });
-
-                    magnetUnderPointer = this._closestView.findMagnet(this._closestEnd.selector);
-                }
-
-                this._closestView = this._closestEnd = null;
-
-            } else {
-
-                var viewUnderPointer = this._viewUnderPointer;
-                magnetUnderPointer = this._magnetUnderPointer;
-
-                this._viewUnderPointer = null;
-                this._magnetUnderPointer = null;
-
-                if (magnetUnderPointer) {
-
-                    viewUnderPointer.unhighlight(magnetUnderPointer, { connecting: true });
-                    // Find a unique `selector` of the element under pointer that is a magnet. If the
-                    // `this._magnetUnderPointer` is the root element of the `this._viewUnderPointer` itself,
-                    // the returned `selector` will be `undefined`. That means we can directly pass it to the
-                    // `source`/`target` attribute of the link model below.
-                    var selector = viewUnderPointer.getSelector(magnetUnderPointer);
-                    var port = magnetUnderPointer.getAttribute('port');
-                    var arrowheadValue = { id: viewUnderPointer.model.id };
-                    if (port != null) arrowheadValue.port = port;
-                    if (selector != null) arrowheadValue.selector = selector;
-                    model.set(arrowhead, arrowheadValue, { ui: true });
-                }
-            }
-
-            // If the changed link is not allowed, revert to its previous state.
-            if (!paper.linkAllowed(this)) {
-
-                switch (this._whenNotAllowed) {
-
-                    case 'remove':
-                        model.remove({ ui: true });
-                        break;
-
-                    case 'revert':
-                    default:
-                        model.set(arrowhead, initialEnd, { ui: true });
-                        break;
-                }
-
-            } else {
-
-                // Reparent the link if embedding is enabled
-                if (paperOptions.embeddingMode && model.reparent()) {
-                    // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
-                    this._z = null;
-                }
-
-                var currentEnd = model.prop(arrowhead);
-                var endChanged = currentEnd && !joint.dia.Link.endsEqual(initialEnd, currentEnd);
-                if (endChanged) {
-
-                    if (initialEnd.id) {
-                        this.notify('link:disconnect', evt, paper.findViewByModel(initialEnd.id), this._initialMagnet, arrowhead);
-                    }
-                    if (currentEnd.id) {
-                        this.notify('link:connect', evt, paper.findViewByModel(currentEnd.id), magnetUnderPointer, arrowhead);
-                    }
-                }
-            }
-
-            this._afterArrowheadMove();
-        }
-
-        this._action = null;
-        this._whenNotAllowed = null;
-        this._initialMagnet = null;
-        this._initialEnd = null;
-        this._validateConnectionArgs = null;
-        this._eventTarget = null;
-
-        this.notify('link:pointerup', evt, x, y);
-        joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-    },
-
-    mouseenter: function(evt) {
-
-        joint.dia.CellView.prototype.mouseenter.apply(this, arguments);
-        this.notify('link:mouseenter', evt);
-    },
-
-    mouseleave: function(evt) {
-
-        joint.dia.CellView.prototype.mouseleave.apply(this, arguments);
-        this.notify('link:mouseleave', evt);
-    },
-
-    event: function(evt, eventName, x, y) {
-
-        // Backwards compatibility
-        var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
-        if (linkTool) {
-            // No further action to be executed
-            evt.stopPropagation();
-            // Allow `interactive.useLinkTools=false`
-            if (this.can('useLinkTools')) {
-                if (eventName === 'remove') {
-                    // Built-in remove event
-                    this.model.remove({ ui: true });
-                } else {
-                    // link:options and other custom events inside the link tools
-                    this.notify(eventName, evt, x, y);
-                }
-            }
-
-        } else {
-
-            joint.dia.CellView.prototype.event.apply(this, arguments);
-        }
+        return data;
     }
-
 }, {
 
     makeSelector: function(end) {
 
-        var selector = '[model-id="' + end.id + '"]';
+        var selector = '';
         // `port` has a higher precendence over `selector`. This is because the selector to the magnet
         // might change while the name of the port can stay the same.
         if (end.port) {
-            selector += ' [port="' + end.port + '"]';
+            selector += '[port="' + end.port + '"]';
         } else if (end.selector) {
-            selector += ' ' + end.selector;
+            selector +=  end.selector;
         }
 
         return selector;
     }
 
+});
+
+
+Object.defineProperty(joint.dia.LinkView.prototype, 'sourceBBox', {
+
+    enumerable: true,
+
+    get: function() {
+        var sourceView = this.sourceView;
+        var sourceMagnet = this.sourceMagnet;
+        if (sourceView) {
+            if (!sourceMagnet) sourceMagnet = sourceView.el;
+            return sourceView.getNodeBBox(sourceMagnet);
+        }
+        var sourceDef = this.model.source();
+        return new g.Rect(sourceDef.x, sourceDef.y, 1, 1);
+    }
+
+});
+
+Object.defineProperty(joint.dia.LinkView.prototype, 'targetBBox', {
+
+    enumerable: true,
+
+    get: function() {
+        var targetView = this.targetView;
+        var targetMagnet = this.targetMagnet;
+        if (targetView) {
+            if (!targetMagnet) targetMagnet = targetView.el;
+            return targetView.getNodeBBox(targetMagnet);
+        }
+        var targetDef = this.model.target();
+        return new g.Rect(targetDef.x, targetDef.y, 1, 1);
+    }
 });
 
 
@@ -11087,8 +17039,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,
+
         // Prevent the default action for blank:pointer<action>.
         preventDefaultBlankAction: true,
+
         // Restrict the translation of elements by given bounding box.
         // Option accepts a boolean:
         //  true - the translation is restricted to the paper area
@@ -11101,6 +17055,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Or a bounding box:
         // restrictTranslate: { x: 10, y: 10, width: 790, height: 590 }
         restrictTranslate: false,
+
         // Marks all available magnets with 'available-magnet' class name and all available cells with
         // 'available-cell' class name. Marks them when dragging a link is started and unmark
         // when the dragging is stopped.
@@ -11119,7 +17074,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         // e.g. { name: 'oneSide', args: { padding: 10 }} or a function
         defaultRouter: { name: 'normal' },
 
+        defaultAnchor: { name: 'center' },
+
+        defaultConnectionPoint: { name: 'bbox' },
+
         /* CONNECTING */
+
+        connectionStrategy: null,
 
         // Check whether to add a new link to the graph when user clicks on an a magnet.
         validateMagnet: function(cellView, magnet) {
@@ -11145,7 +17106,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         },
 
         // Determines the way how a cell finds a suitable parent when it's dragged over the paper.
-        // The cell with the highest z-index (visually on the top) will be choosen.
+        // The cell with the highest z-index (visually on the top) will be chosen.
         findParentBy: 'bbox', // 'bbox'|'center'|'origin'|'corner'|'topRight'|'bottomLeft'
 
         // If enabled only the element on the very front is taken into account for the embedding.
@@ -11162,6 +17123,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         // i.e. link source/target can be a point e.g. link.get('source') ==> { x: 100, y: 100 };
         linkPinning: true,
 
+        // Custom validation after an interaction with a link ends.
+        // Recognizes a function. If `false` is returned, the link is disallowed (removed or reverted)
+        // (linkView, paper) => boolean
+        allowLink: null,
+
         // Allowed number of mousemove events after which the pointerclick event will be still triggered.
         clickThreshold: 0,
 
@@ -11176,23 +17142,37 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     events: {
-
-        'mousedown': 'pointerdown',
-        'dblclick': 'mousedblclick',
-        'click': 'mouseclick',
-        'touchstart': 'pointerdown',
-        'touchend': 'mouseclick',
-        'touchmove': 'pointermove',
-        'mousemove': 'pointermove',
-        'mouseover .joint-cell': 'cellMouseover',
-        'mouseout .joint-cell': 'cellMouseout',
+        'dblclick': 'pointerdblclick',
+        'click': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
+        'touchend': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
         'contextmenu': 'contextmenu',
+        'mousedown': 'pointerdown',
+        'touchstart': 'pointerdown',
+        'mouseover': 'mouseover',
+        'mouseout': 'mouseout',
+        'mouseenter': 'mouseenter',
+        'mouseleave': 'mouseleave',
         'mousewheel': 'mousewheel',
         'DOMMouseScroll': 'mousewheel',
-        'mouseenter .joint-cell': 'cellMouseenter',
-        'mouseleave .joint-cell': 'cellMouseleave',
-        'mousedown .joint-cell [event]': 'cellEvent',
-        'touchstart .joint-cell [event]': 'cellEvent'
+        'mouseenter .joint-cell': 'mouseenter',
+        'mouseleave .joint-cell': 'mouseleave',
+        'mouseenter .joint-tools': 'mouseenter',
+        'mouseleave .joint-tools': 'mouseleave',
+        'mousedown .joint-cell [event]': 'onevent', // interaction with cell with `event` attribute set
+        'touchstart .joint-cell [event]': 'onevent',
+        'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
+        'touchstart .joint-cell [magnet]': 'onmagnet',
+        'mousedown .joint-link .label': 'onlabel', // interaction with link label
+        'touchstart .joint-link .label': 'onlabel',
+        'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
+    },
+
+    documentEvents: {
+        'mousemove': 'pointermove',
+        'touchmove': 'pointermove',
+        'mouseup': 'pointerup',
+        'touchend': 'pointerup',
+        'touchcancel': 'pointerup'
     },
 
     _highlights: {},
@@ -11243,15 +17223,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         );
     },
 
-    bindDocumentEvents: function() {
-        var eventNS = this.getEventNamespace();
-        this.$document.on('mouseup' + eventNS + ' touchend' + eventNS, this.pointerup);
-    },
-
-    unbindDocumentEvents: function() {
-        this.$document.off(this.getEventNamespace());
-    },
-
     render: function() {
 
         this.$el.empty();
@@ -11259,9 +17230,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.svg = V('svg').attr({ width: '100%', height: '100%' }).node;
         this.viewport = V('g').addClass(joint.util.addClassNamePrefix('viewport')).node;
         this.defs = V('defs').node;
-
+        this.tools = V('g').addClass(joint.util.addClassNamePrefix('tools-container')).node;
         // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        V(this.svg).append([this.viewport, this.defs]);
+        // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
+        V(this.svg).append([this.defs, this.viewport, this.tools]);
 
         this.$background = $('<div/>').addClass(joint.util.addClassNamePrefix('paper-background'));
         if (this.options.background) {
@@ -11293,6 +17265,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
+
     // For verifying whether the CTM is up-to-date. The viewport transform attribute
     // could have been manipulated directly.
     _viewportTransformString: null,
@@ -11324,7 +17297,10 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Setter:
         ctm = V.createSVGMatrix(ctm);
-        V(viewport).transform(ctm, { absolute: true });
+        ctmString = V.matrixToTransformString(ctm);
+        viewport.setAttribute('transform', ctmString);
+        this.tools.setAttribute('transform', ctmString);
+
         this._viewportMatrix = ctm;
         this._viewportTransformString = viewport.getAttribute('transform');
 
@@ -11336,15 +17312,18 @@ joint.dia.Paper = joint.mvc.View.extend({
         return V.createSVGMatrix(this.viewport.getScreenCTM());
     },
 
+    _sortDelayingBatches: ['add', 'to-front', 'to-back'],
+
     _onSort: function() {
-        if (!this.model.hasActiveBatch('add')) {
+        if (!this.model.hasActiveBatch(this._sortDelayingBatches)) {
             this.sortViews();
         }
     },
 
     _onBatchStop: function(data) {
         var name = data && data.batchName;
-        if (name === 'add' && !this.model.hasActiveBatch('add')) {
+        if (this._sortDelayingBatches.includes(name) &&
+            !this.model.hasActiveBatch(this._sortDelayingBatches)) {
             this.sortViews();
         }
     },
@@ -11353,7 +17332,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
-        this.unbindDocumentEvents();
     },
 
     setDimensions: function(width, height) {
@@ -11529,6 +17507,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.translate(newOx, newOy);
     },
 
+    // Return the dimensions of the content area in local units (without transformations).
+    getContentArea: function() {
+
+        return V(this.viewport).getBBox();
+    },
+
+    // Return the dimensions of the content bbox in client units (as it appears on screen).
     getContentBBox: function() {
 
         var crect = this.viewport.getBoundingClientRect();
@@ -11659,11 +17644,14 @@ joint.dia.Paper = joint.mvc.View.extend({
         view.paper = this;
         view.render();
 
+        return view;
+    },
+
+    onImageDragStart: function() {
         // This is the only way to prevent image dragging in Firefox that works.
         // Setting -moz-user-select: none, draggable="false" attribute or user-drag: none didn't help.
-        $(view.el).find('image').on('dragstart', function() { return false; });
 
-        return view;
+        return false;
     },
 
     beforeRenderViews: function(cells) {
@@ -11919,6 +17907,21 @@ joint.dia.Paper = joint.mvc.View.extend({
         }, this);
     },
 
+    removeTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'remove');
+        return this;
+    },
+
+    hideTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'hide');
+        return this;
+    },
+
+    showTools: function() {
+        joint.dia.CellView.dispatchToolsEvent(this, 'show');
+        return this;
+    },
+
     getModelById: function(id) {
 
         return this.model.getCell(id);
@@ -11992,20 +17995,24 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     localToPagePoint: function(x, y) {
+
         return this.localToPaperPoint(x, y).offset(this.pageOffset());
     },
 
     localToPageRect: function(x, y, width, height) {
+
         return this.localToPaperRect(x, y, width, height).moveAndExpand(this.pageOffset());
     },
 
     pageToLocalPoint: function(x, y) {
+
         var pagePoint = g.Point(x, y);
         var paperPoint = pagePoint.difference(this.pageOffset());
         return this.paperToLocalPoint(paperPoint);
     },
 
     pageToLocalRect: function(x, y, width, height) {
+
         var pageOffset = this.pageOffset();
         var paperRect = g.Rect(x, y, width, height);
         paperRect.x -= pageOffset.x;
@@ -12014,72 +18021,38 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     clientOffset: function() {
+
         var clientRect = this.svg.getBoundingClientRect();
         return g.Point(clientRect.left, clientRect.top);
     },
 
     pageOffset: function() {
+
         return this.clientOffset().offset(window.scrollX, window.scrollY);
     },
 
-    linkAllowed: function(linkViewOrModel) {
+    linkAllowed: function(linkView) {
 
-        var link;
-
-        if (linkViewOrModel instanceof joint.dia.Link) {
-            link = linkViewOrModel;
-        } else if (linkViewOrModel instanceof joint.dia.LinkView) {
-            link = linkViewOrModel.model;
-        } else {
-            throw new Error('Must provide link model or view.');
+        if (!(linkView instanceof joint.dia.LinkView)) {
+            throw new Error('Must provide a linkView.');
         }
 
-        if (!this.options.multiLinks) {
+        var link = linkView.model;
+        var paperOptions = this.options;
+        var graph = this.model;
+        var ns = graph.constructor.validations;
 
-            // Do not allow multiple links to have the same source and target.
-
-            var source = link.get('source');
-            var target = link.get('target');
-
-            if (source.id && target.id) {
-
-                var sourceModel = link.getSourceElement();
-
-                if (sourceModel) {
-
-                    var connectedLinks = this.model.getConnectedLinks(sourceModel, {
-                        outbound: true,
-                        inbound: false
-                    });
-
-                    var numSameLinks = connectedLinks.filter(function(_link) {
-
-                        var _source = _link.get('source');
-                        var _target = _link.get('target');
-
-                        return _source && _source.id === source.id &&
-                                (!_source.port || (_source.port === source.port)) &&
-                                _target && _target.id === target.id &&
-                                (!_target.port || (_target.port === target.port));
-
-                    }).length;
-
-                    if (numSameLinks > 1) {
-                        return false;
-                    }
-                }
-            }
+        if (!paperOptions.multiLinks) {
+            if (!ns.multiLinks.call(this, graph, link)) return false;
         }
 
-        if (
-            !this.options.linkPinning &&
-            (
-                !joint.util.has(link.get('source'), 'id') ||
-                !joint.util.has(link.get('target'), 'id')
-            )
-        ) {
+        if (!paperOptions.linkPinning) {
             // Link pinning is not allowed and the link is not connected to the target.
-            return false;
+            if (!ns.linkPinning.call(this, graph, link)) return false;
+        }
+
+        if (typeof paperOptions.allowLink === 'function') {
+            if (!paperOptions.allowLink.call(this, linkView, this)) return false;
         }
 
         return true;
@@ -12094,8 +18067,9 @@ joint.dia.Paper = joint.mvc.View.extend({
             : this.options.defaultLink.clone();
     },
 
-    // Cell highlighting
-    // -----------------
+    // Cell highlighting.
+    // ------------------
+
     resolveHighlighter: function(opt) {
 
         opt = opt || {};
@@ -12196,9 +18170,10 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Interaction.
     // ------------
 
-    mousedblclick: function(evt) {
+    pointerdblclick: function(evt) {
 
         evt.preventDefault();
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -12207,18 +18182,16 @@ joint.dia.Paper = joint.mvc.View.extend({
         var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
         if (view) {
-
             view.pointerdblclick(evt, localPoint.x, localPoint.y);
 
         } else {
-
             this.trigger('blank:pointerdblclick', evt, localPoint.x, localPoint.y);
         }
     },
 
-    mouseclick: function(evt) {
+    pointerclick: function(evt) {
 
-        // Trigger event when mouse not moved.
+        // Trigger event only if mouse has not moved.
         if (this._mousemoved <= this.options.clickThreshold) {
 
             evt = joint.util.normalizeEvent(evt);
@@ -12229,18 +18202,245 @@ joint.dia.Paper = joint.mvc.View.extend({
             var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
 
             if (view) {
-
                 view.pointerclick(evt, localPoint.x, localPoint.y);
 
             } else {
-
                 this.trigger('blank:pointerclick', evt, localPoint.x, localPoint.y);
             }
         }
     },
 
-    // Guard guards the event received. If the event is not interesting, guard returns `true`.
-    // Otherwise, it return `false`.
+    contextmenu: function(evt) {
+
+        if (this.options.preventContextMenu) evt.preventDefault();
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+            view.contextmenu(evt, localPoint.x, localPoint.y);
+
+        } else {
+            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    pointerdown: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        if (view) {
+
+            evt.preventDefault();
+            view.pointerdown(evt, localPoint.x, localPoint.y);
+
+        } else {
+
+            if (this.options.preventDefaultBlankAction) evt.preventDefault();
+
+            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
+        }
+
+        this.delegateDragEvents(view, evt.data);
+    },
+
+    pointermove: function(evt) {
+
+        evt.preventDefault();
+
+        // mouse moved counter
+        var data = this.eventData(evt);
+        data.mousemoved || (data.mousemoved = 0);
+        var mousemoved = ++data.mousemoved;
+        if (mousemoved <= this.options.moveThreshold) return;
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        var view = data.sourceView;
+        if (view) {
+            view.pointermove(evt, localPoint.x, localPoint.y);
+        } else {
+            this.trigger('blank:pointermove', evt, localPoint.x, localPoint.y);
+        }
+
+        this.eventData(evt, data);
+    },
+
+    pointerup: function(evt) {
+
+        this.undelegateDocumentEvents();
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+
+        var view = this.eventData(evt).sourceView;
+        if (view) {
+            view.pointerup(evt, localPoint.x, localPoint.y);
+        } else {
+            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+        }
+
+        this.delegateEvents();
+    },
+
+    mouseover: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) {
+            view.mouseover(evt);
+
+        } else {
+            if (this.el === evt.target) return; // prevent border of paper from triggering this
+            this.trigger('blank:mouseover', evt);
+        }
+    },
+
+    mouseout: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        if (view) {
+            view.mouseout(evt);
+
+        } else {
+            if (this.el === evt.target) return; // prevent border of paper from triggering this
+            this.trigger('blank:mouseout', evt);
+        }
+    },
+
+    mouseenter: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+        var relatedView = this.findView(evt.relatedTarget);
+        if (view) {
+            // mouse moved from tool over view?
+            if (relatedView === view) return;
+            view.mouseenter(evt);
+        } else {
+            if (relatedView) return;
+            // `paper` (more descriptive), not `blank`
+            this.trigger('paper:mouseenter', evt);
+        }
+    },
+
+    mouseleave: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+        var relatedView = this.findView(evt.relatedTarget);
+        if (view) {
+            // mouse moved from view over tool?
+            if (relatedView === view) return;
+            view.mouseleave(evt);
+        } else {
+            if (relatedView) return;
+            // `paper` (more descriptive), not `blank`
+            this.trigger('paper:mouseleave', evt);
+        }
+    },
+
+    mousewheel: function(evt) {
+
+        evt = joint.util.normalizeEvent(evt);
+
+        var view = this.findView(evt.target);
+        if (this.guard(evt, view)) return;
+
+        var originalEvent = evt.originalEvent;
+        var localPoint = this.snapToGrid({ x: originalEvent.clientX, y: originalEvent.clientY });
+        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
+
+        if (view) {
+            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
+
+        } else {
+            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
+        }
+    },
+
+    onevent: function(evt) {
+
+        var eventNode = evt.currentTarget;
+        var eventName = eventNode.getAttribute('event');
+        if (eventName) {
+            var view = this.findView(eventNode);
+            if (view) {
+
+                evt = joint.util.normalizeEvent(evt);
+                if (this.guard(evt, view)) return;
+
+                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                view.onevent(evt, eventName, localPoint.x, localPoint.y);
+            }
+        }
+    },
+
+    onmagnet: function(evt) {
+
+        var magnetNode = evt.currentTarget;
+        var magnetValue = magnetNode.getAttribute('magnet');
+        if (magnetValue) {
+            var view = this.findView(magnetNode);
+            if (view) {
+
+                evt = joint.util.normalizeEvent(evt);
+                if (this.guard(evt, view)) return;
+                if (!this.options.validateMagnet(view, magnetNode)) return;
+
+                var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+                view.onmagnet(evt, localPoint.x, localPoint.y);
+            }
+        }
+    },
+
+    onlabel: function(evt) {
+
+        var labelNode = evt.currentTarget;
+        var view = this.findView(labelNode);
+        if (view) {
+
+            evt = joint.util.normalizeEvent(evt);
+            if (this.guard(evt, view)) return;
+
+            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+            view.onlabel(evt, localPoint.x, localPoint.y);
+        }
+    },
+
+    delegateDragEvents: function(view, data) {
+
+        data || (data = {});
+        this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
+        this.delegateDocumentEvents(null, data);
+        this.undelegateEvents();
+    },
+
+    // Guard the specified event. If the event is not interesting, guard returns `true`.
+    // Otherwise, it returns `false`.
     guard: function(evt, view) {
 
         if (this.options.guard && this.options.guard(evt, view)) {
@@ -12262,173 +18462,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         return true;    // Event guarded. Paper should not react on it in any way.
     },
 
-    contextmenu: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        if (this.options.preventContextMenu) {
-            evt.preventDefault();
-        }
-
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-        if (view) {
-
-            view.contextmenu(evt, localPoint.x, localPoint.y);
-
-        } else {
-
-            this.trigger('blank:contextmenu', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointerdown: function(evt) {
-
-        this.bindDocumentEvents();
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
-        this._mousemoved = 0;
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-        if (view) {
-
-            evt.preventDefault();
-
-            this.sourceView = view;
-
-            view.pointerdown(evt, localPoint.x, localPoint.y);
-
-        } else {
-
-            if (this.options.preventDefaultBlankAction) {
-                evt.preventDefault();
-            }
-
-            this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    pointermove: function(evt) {
-
-        var view = this.sourceView;
-        if (view) {
-
-            evt.preventDefault();
-
-            // Mouse moved counter.
-            var mousemoved = ++this._mousemoved;
-            if (mousemoved > this.options.moveThreshold) {
-
-                evt = joint.util.normalizeEvent(evt);
-
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.pointermove(evt, localPoint.x, localPoint.y);
-            }
-        }
-    },
-
-    pointerup: function(evt) {
-
-        this.unbindDocumentEvents();
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-
-        if (this.sourceView) {
-
-            this.sourceView.pointerup(evt, localPoint.x, localPoint.y);
-
-            //"delete sourceView" occasionally throws an error in chrome (illegal access exception)
-            this.sourceView = null;
-
-        } else {
-
-            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
-        }
-    },
-
-    mousewheel: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (this.guard(evt, view)) return;
-
-        var originalEvent = evt.originalEvent;
-        var localPoint = this.snapToGrid({ x: originalEvent.clientX, y: originalEvent.clientY });
-        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
-
-        if (view) {
-
-            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
-
-        } else {
-
-            this.trigger('blank:mousewheel', evt, localPoint.x, localPoint.y, delta);
-        }
-    },
-
-    cellMouseover: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view) {
-            if (this.guard(evt, view)) return;
-            view.mouseover(evt);
-        }
-    },
-
-    cellMouseout: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view) {
-            if (this.guard(evt, view)) return;
-            view.mouseout(evt);
-        }
-    },
-
-    cellMouseenter: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view && !this.guard(evt, view)) {
-            view.mouseenter(evt);
-        }
-    },
-
-    cellMouseleave: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-        var view = this.findView(evt.target);
-        if (view && !this.guard(evt, view)) {
-            view.mouseleave(evt);
-        }
-    },
-
-    cellEvent: function(evt) {
-
-        evt = joint.util.normalizeEvent(evt);
-
-        var currentTarget = evt.currentTarget;
-        var eventName = currentTarget.getAttribute('event');
-        if (eventName) {
-            var view = this.findView(currentTarget);
-            if (view && !this.guard(evt, view)) {
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
-                view.event(evt, eventName, localPoint.x, localPoint.y);
-            }
-        }
-    },
-
     setGridSize: function(gridSize) {
 
         this.options.gridSize = gridSize;
@@ -12448,22 +18481,22 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this;
     },
 
-    _getGriRefs: function () {
+    _getGriRefs: function() {
 
         if (!this._gridCache) {
 
             this._gridCache = {
                 root: V('svg', { width: '100%', height: '100%' }, V('defs')),
                 patterns: {},
-                add: function (id, vel) {
+                add: function(id, vel) {
                     V(this.root.node.childNodes[0]).append(vel);
                     this.patterns[id] = vel;
                     this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
                 },
-                get: function (id) {
+                get: function(id) {
                     return  this.patterns[id]
                 },
-                exist: function (id) {
+                exist: function(id) {
                     return this.patterns[id] !== undefined;
                 }
             }
@@ -12472,7 +18505,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         return this._gridCache;
     },
 
-    setGrid:function (drawGrid) {
+    setGrid: function(drawGrid) {
 
         this.clearGrid();
 
@@ -12480,13 +18513,13 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._gridSettings = [];
 
         var optionsList = Array.isArray(drawGrid) ? drawGrid : [drawGrid || {}];
-        optionsList.forEach(function (item) {
+        optionsList.forEach(function(item) {
             this._gridSettings.push.apply(this._gridSettings, this._resolveDrawGridOption(item));
         }, this);
         return this;
     },
 
-    _resolveDrawGridOption: function (opt) {
+    _resolveDrawGridOption: function(opt) {
 
         var namespace = this.constructor.gridPatterns;
         if (joint.util.isString(opt) && Array.isArray(namespace[opt])) {
@@ -12534,7 +18567,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var ctm = this.matrix();
         var refs = this._getGriRefs();
 
-        this._gridSettings.forEach(function (gridLayerSetting, index) {
+        this._gridSettings.forEach(function(gridLayerSetting, index) {
 
             var id = 'pattern_'  + index;
             var options = joint.util.merge(gridLayerSetting, localOptions[index], {
@@ -12700,9 +18733,11 @@ joint.dia.Paper = joint.mvc.View.extend({
         joint.util.invoke(this._views, 'setInteractivity', value);
     },
 
-    // Paper Defs
+    // Paper definitions.
+    // ------------------
 
     isDefined: function(defId) {
+
         return !!this.svg.getElementById(defId);
     },
 
@@ -12821,7 +18856,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         return markerId;
     }
-
 }, {
 
     backgroundPatterns: {
@@ -13486,9 +19520,23 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     util.assign(joint.dia.ElementView.prototype, {
 
-        portContainerMarkup: '<g class="joint-port"/>',
-        portMarkup: '<circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/>',
-        portLabelMarkup: '<text class="joint-port-label" fill="#000000"/>',
+        portContainerMarkup: 'g',
+        portMarkup: [{
+            tagName: 'circle',
+            selector: 'circle',
+            attributes: {
+                'r': 10,
+                'fill': '#FFFFFF',
+                'stroke': '#000000'
+            }
+        }],
+        portLabelMarkup: [{
+            tagName: 'text',
+            selector: 'text',
+            attributes: {
+                'fill': '#000000'
+            }
+        }],
         /** @type {Object<string, {portElement: Vectorizer, portLabelElement: Vectorizer}>} */
         _portElementsCache: null,
 
@@ -13603,6 +19651,14 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this._createPortElement(port);
         },
 
+        findPortNode: function(portId, selector) {
+            var portCache = this._portElementsCache[portId];
+            if (!portCache) return null;
+            var portRoot = portCache.portContentElement.node;
+            var portSelectors = portCache.portContentSelectors;
+            return this.findBySelector(selector, portRoot, portSelectors)[0];
+        },
+
         /**
          * @private
          */
@@ -13629,28 +19685,86 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         _createPortElement: function(port) {
 
-            var portContentElement = V(this._getPortMarkup(port));
-            var portLabelContentElement = V(this._getPortLabelMarkup(port.label));
 
-            if (portContentElement && portContentElement.length > 1) {
-                throw new Error('ElementView: Invalid port markup - multiple roots.');
+            var portElement;
+            var labelElement;
+
+            var portMarkup = this._getPortMarkup(port);
+            var portSelectors;
+            if (Array.isArray(portMarkup)) {
+                var portDoc = util.parseDOMJSON(portMarkup);
+                var portFragment = portDoc.fragment;
+                if (portFragment.childNodes.length > 1) {
+                    portElement = V('g').append(portFragment);
+                } else {
+                    portElement = V(portFragment.firstChild);
+                }
+                portSelectors = portDoc.selectors;
+            } else {
+                portElement = V(portMarkup);
+                if (Array.isArray(portElement)) {
+                    portElement = V('g').append(portElement);
+                }
             }
 
-            portContentElement.attr({
+            if (!portElement) {
+                throw new Error('ElementView: Invalid port markup.');
+            }
+
+            portElement.attr({
                 'port': port.id,
                 'port-group': port.group
             });
 
-            var portElement = V(this.portContainerMarkup)
-                .append(portContentElement)
-                .append(portLabelContentElement);
+            var labelMarkup = this._getPortLabelMarkup(port.label);
+            var labelSelectors;
+            if (Array.isArray(labelMarkup)) {
+                var labelDoc = util.parseDOMJSON(labelMarkup);
+                var labelFragment = labelDoc.fragment;
+                if (labelFragment.childNodes.length > 1) {
+                    labelElement = V('g').append(labelFragment);
+                } else {
+                    labelElement = V(labelFragment.firstChild);
+                }
+                labelSelectors = labelDoc.selectors;
+            } else {
+                labelElement = V(labelMarkup);
+                if (Array.isArray(labelElement)) {
+                    labelElement = V('g').append(labelElement);
+                }
+            }
+
+            if (!labelElement) {
+                throw new Error('ElementView: Invalid port label markup.');
+            }
+
+            var portContainerSelectors;
+            if (portSelectors && labelSelectors) {
+                for (var key in labelSelectors) {
+                    if (portSelectors[key]) throw new Error('ElementView: selectors within port must be unique.');
+                }
+                portContainerSelectors = util.assign({}, portSelectors, labelSelectors);
+            } else {
+                portContainerSelectors = portSelectors || labelSelectors;
+            }
+
+            var portContainerElement = V(this.portContainerMarkup)
+                .addClass('joint-port')
+                .append([
+                    portElement.addClass('joint-port-body'),
+                    labelElement.addClass('joint-port-label')
+                ]);
 
             this._portElementsCache[port.id] = {
-                portElement: portElement,
-                portLabelElement: portLabelContentElement
+                portElement: portContainerElement,
+                portLabelElement: labelElement,
+                portSelectors: portContainerSelectors,
+                portLabelSelectors: labelSelectors,
+                portContentElement: portElement,
+                portContentSelectors: portSelectors
             };
 
-            return portElement;
+            return portContainerElement;
         },
 
         /**
@@ -13669,14 +19783,16 @@ joint.dia.Paper = joint.mvc.View.extend({
                 var portTransformation = metrics.portTransformation;
                 this.applyPortTransform(cached.portElement, portTransformation);
                 this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-                    rootBBox: g.Rect(metrics.portSize)
+                    rootBBox: new g.Rect(metrics.portSize),
+                    selectors: cached.portSelectors
                 });
 
                 var labelTransformation = metrics.labelTransformation;
                 if (labelTransformation) {
                     this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
                     this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
-                        rootBBox: g.Rect(metrics.labelSize)
+                        rootBBox: new g.Rect(metrics.labelSize),
+                        selectors: cached.portLabelSelectors
                     });
                 }
             }
@@ -13979,7 +20095,7 @@ joint.shapes.basic.PortsModelInterface = {
             joint.util.assign(attrs, portAttributes);
         }, this);
 
-        joint.util.toArray(('outPorts')).forEach(function(portName, index, ports) {
+        joint.util.toArray(this.get('outPorts')).forEach(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
             joint.util.assign(attrs, portAttributes);
@@ -14096,7 +20212,7 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
 
     updateSize: function(cell, size) {
 
-        // Selector `foreignObject' doesn't work accross all browsers, we'r using class selector instead.
+        // Selector `foreignObject' doesn't work across all browsers, we're using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
             '.fobj': joint.util.assign({}, size),
@@ -14113,7 +20229,7 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
             // Content element is a <div> element.
             this.attr({
                 '.content': {
-                    html: content
+                    html: joint.util.sanitizeHTML(content)
                 }
             });
 
@@ -14208,44 +20324,734 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
     }
 });
 
+(function(dia, util, env, V) {
+
+    'use strict';
+
+    // ELEMENTS
+
+    var Element = dia.Element;
+
+    Element.define('standard.Rectangle', {
+        attrs: {
+            body: {
+                refWidth: '100%',
+                refHeight: '100%',
+                strokeWidth: 2,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body',
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.Circle', {
+        attrs: {
+            body: {
+                refCx: '50%',
+                refCy: '50%',
+                refR: '50%',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'circle',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.Ellipse', {
+        attrs: {
+            body: {
+                refCx: '50%',
+                refCy: '50%',
+                refRx: '50%',
+                refRy: '50%',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'ellipse',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.Path', {
+        attrs: {
+            body: {
+                refD: 'M 0 0 L 10 0 10 10 0 10 Z',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.Polygon', {
+        attrs: {
+            body: {
+                refPoints: '0 0 10 0 10 10 0 10',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'polygon',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.Polyline', {
+        attrs: {
+            body: {
+                refPoints: '0 0 10 0 10 10 0 10 0 0',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'polyline',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.Image', {
+        attrs: {
+            image: {
+                refWidth: '100%',
+                refHeight: '100%',
+                // xlinkHref: '[URL]'
+            },
+            label: {
+                textVerticalAnchor: 'top',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '100%',
+                refY2: 10,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'image',
+            selector: 'image'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.BorderedImage', {
+        attrs: {
+            border: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: '#333333',
+                strokeWidth: 2
+            },
+            image: {
+                // xlinkHref: '[URL]'
+                refWidth: -1,
+                refHeight: -1,
+                x: 0.5,
+                y: 0.5
+            },
+            label: {
+                textVerticalAnchor: 'top',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '100%',
+                refY2: 10,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'image',
+            selector: 'image'
+        }, {
+            tagName: 'rect',
+            selector: 'border',
+            attributes: {
+                'fill': 'none'
+            }
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.EmbeddedImage', {
+        attrs: {
+            body: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: '#333333',
+                fill: '#FFFFFF',
+                strokeWidth: 2
+            },
+            image: {
+                // xlinkHref: '[URL]'
+                refWidth: '30%',
+                refHeight: -20,
+                x: 10,
+                y: 10,
+                preserveAspectRatio: 'xMidYMin'
+            },
+            label: {
+                textVerticalAnchor: 'top',
+                textAnchor: 'left',
+                refX: '30%',
+                refX2: 20, // 10 + 10
+                refY: 10,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body'
+        }, {
+            tagName: 'image',
+            selector: 'image'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
+    Element.define('standard.HeaderedRectangle', {
+        attrs: {
+            body: {
+                refWidth: '100%',
+                refHeight: '100%',
+                strokeWidth: 2,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            header: {
+                refWidth: '100%',
+                height: 30,
+                strokeWidth: 2,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            headerText: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: 15,
+                fontSize: 16,
+                fill: '#333333'
+            },
+            bodyText: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                refY2: 15,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body'
+        }, {
+            tagName: 'rect',
+            selector: 'header'
+        }, {
+            tagName: 'text',
+            selector: 'headerText'
+        }, {
+            tagName: 'text',
+            selector: 'bodyText'
+        }]
+    });
+
+    var CYLINDER_TILT = 10;
+
+    joint.dia.Element.define('standard.Cylinder', {
+        attrs: {
+            body: {
+                lateralArea: CYLINDER_TILT,
+                fill: '#FFFFFF',
+                stroke: '#333333',
+                strokeWidth: 2
+            },
+            top: {
+                refCx: '50%',
+                cy: CYLINDER_TILT,
+                refRx: '50%',
+                ry: CYLINDER_TILT,
+                fill: '#FFFFFF',
+                stroke: '#333333',
+                strokeWidth: 2
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '100%',
+                refY2: 15,
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'body'
+        }, {
+            tagName: 'ellipse',
+            selector: 'top'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }],
+
+        topRy: function(t, opt) {
+            // getter
+            if (t === undefined) return this.attr('body/lateralArea');
+
+            // setter
+            var isPercentage = util.isPercentage(t);
+
+            var bodyAttrs = { lateralArea: t };
+            var topAttrs = isPercentage
+                ? { refCy: t, refRy: t, cy: null, ry: null }
+                : { refCy: null, refRy: null, cy: t, ry: t };
+
+            return this.attr({ body: bodyAttrs, top: topAttrs }, opt);
+        }
+
+    }, {
+        attributes: {
+            lateralArea: {
+                set: function(t, refBBox) {
+                    var isPercentage = util.isPercentage(t);
+                    if (isPercentage) t = parseFloat(t) / 100;
+
+                    var x = refBBox.x;
+                    var y = refBBox.y;
+                    var w = refBBox.width;
+                    var h = refBBox.height;
+
+                    // curve control point variables
+                    var rx = w / 2;
+                    var ry = isPercentage ? (h * t) : t;
+
+                    var kappa = V.KAPPA;
+                    var cx = kappa * rx;
+                    var cy = kappa * (isPercentage ? (h * t) : t);
+
+                    // shape variables
+                    var xLeft = x;
+                    var xCenter = x + (w / 2);
+                    var xRight = x + w;
+
+                    var ySideTop = y + ry;
+                    var yCurveTop = ySideTop - ry;
+                    var ySideBottom = y + h - ry;
+                    var yCurveBottom = y + h;
+
+                    // return calculated shape
+                    var data = [
+                        'M', xLeft, ySideTop,
+                        'L', xLeft, ySideBottom,
+                        'C', x, (ySideBottom + cy), (xCenter - cx), yCurveBottom, xCenter, yCurveBottom,
+                        'C', (xCenter + cx), yCurveBottom, xRight, (ySideBottom + cy), xRight, ySideBottom,
+                        'L', xRight, ySideTop,
+                        'C', xRight, (ySideTop - cy), (xCenter + cx), yCurveTop, xCenter, yCurveTop,
+                        'C', (xCenter - cx), yCurveTop, xLeft, (ySideTop - cy), xLeft, ySideTop,
+                        'Z'
+                    ];
+                    return { d: data.join(' ') };
+                }
+            }
+        }
+    });
+
+    var foLabelMarkup = {
+        tagName: 'foreignObject',
+        selector: 'foreignObject',
+        attributes: {
+            'overflow': 'hidden'
+        },
+        children: [{
+            tagName: 'div',
+            namespaceURI: 'http://www.w3.org/1999/xhtml',
+            selector: 'label',
+            style: {
+                width: '100%',
+                height: '100%',
+                position: 'static',
+                backgroundColor: 'transparent',
+                textAlign: 'center',
+                margin: 0,
+                padding: '0px 5px',
+                boxSizing: 'border-box',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }
+        }]
+    };
+
+    var svgLabelMarkup = {
+        tagName: 'text',
+        selector: 'label',
+        attributes: {
+            'text-anchor': 'middle'
+        }
+    };
+
+    Element.define('standard.TextBlock', {
+        attrs: {
+            body: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: '#333333',
+                fill: '#ffffff',
+                strokeWidth: 2
+            },
+            foreignObject: {
+                refWidth: '100%',
+                refHeight: '100%'
+            },
+            label: {
+                style: {
+                    fontSize: 14
+                }
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body'
+        },
+            (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup
+        ]
+    }, {
+        attributes: {
+            text: {
+                set: function(text, refBBox, node, attrs) {
+                    if (node instanceof HTMLElement) {
+                        node.textContent = text;
+                    } else {
+                        // No foreign object
+                        var style = attrs.style || {};
+                        var wrapValue = { text: text, width: -5, height: '100%' };
+                        var wrapAttrs = util.assign({ textVerticalAnchor: 'middle' }, style);
+                        dia.attributes.textWrap.set.call(this, wrapValue, refBBox, node, wrapAttrs);
+                        return { fill: style.color || null };
+                    }
+                },
+                position: function(text, refBBox, node) {
+                    // No foreign object
+                    if (node instanceof SVGElement) return refBBox.center();
+                }
+            }
+        }
+    });
+
+    // LINKS
+
+    var Link = dia.Link;
+
+    Link.define('standard.Link', {
+        attrs: {
+            line: {
+                connection: true,
+                stroke: '#333333',
+                strokeWidth: 2,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    type: 'path',
+                    d: 'M 10 -5 0 0 10 5 z'
+                }
+            },
+            wrapper: {
+                connection: true,
+                strokeWidth: 10,
+                strokeLinejoin: 'round'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'wrapper',
+            attributes: {
+                'fill': 'none',
+                'cursor': 'pointer',
+                'stroke': 'transparent'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none',
+                'pointer-events': 'none'
+            }
+        }]
+    });
+
+    Link.define('standard.DoubleLink', {
+        attrs: {
+            line: {
+                connection: true,
+                stroke: '#DDDDDD',
+                strokeWidth: 4,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    type: 'path',
+                    stroke: '#000000',
+                    d: 'M 10 -3 10 -10 -2 0 10 10 10 3'
+                }
+            },
+            outline: {
+                connection: true,
+                stroke: '#000000',
+                strokeWidth: 6,
+                strokeLinejoin: 'round'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'outline',
+            attributes: {
+                'fill': 'none'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none'
+            }
+        }]
+    });
+
+    Link.define('standard.ShadowLink', {
+        attrs: {
+            line: {
+                connection: true,
+                stroke: '#FF0000',
+                strokeWidth: 20,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    'type': 'path',
+                    'stroke': 'none',
+                    'd': 'M 0 -10 -10 0 0 10 z'
+                },
+                sourceMarker: {
+                    'type': 'path',
+                    'stroke': 'none',
+                    'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+                }
+            },
+            shadow: {
+                connection: true,
+                refX: 3,
+                refY: 6,
+                stroke: '#000000',
+                strokeOpacity: 0.2,
+                strokeWidth: 20,
+                strokeLinejoin: 'round',
+                targetMarker: {
+                    'type': 'path',
+                    'd': 'M 0 -10 -10 0 0 10 z',
+                    'stroke': 'none'
+                },
+                sourceMarker: {
+                    'type': 'path',
+                    'stroke': 'none',
+                    'd': 'M -10 -10 0 0 -10 10 0 10 0 -10 z'
+                }
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'shadow',
+            attributes: {
+                'fill': 'none'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none'
+            }
+        }]
+    });
+
+
+})(joint.dia, joint.util, joint.env, V);
+
 joint.routers.manhattan = (function(g, _, joint, util) {
 
     'use strict';
 
     var config = {
 
-        // size of the step to find a route
+        // size of the step to find a route (the grid of the manhattan pathfinder)
         step: 10,
 
-        // use of the perpendicular linkView option to connect center of element with first vertex
-        perpendicular: true,
-
-        // should be source or target not to be consider as an obstacle
-        excludeEnds: [], // 'source', 'target'
-
-        // should be any element with a certain type not to be consider as an obstacle
-        excludeTypes: ['basic.Text'],
-
-        // if number of route finding loops exceed the maximum, stops searching and returns
-        // fallback route
+        // the number of route finding loops that cause the router to abort
+        // returns fallback route instead
         maximumLoops: 2000,
 
+        // the number of decimal places to round floating point coordinates
+        precision: 10,
+
+        // maximum change of direction
+        maxAllowedDirectionChange: 90,
+
+        // should the router use perpendicular linkView option?
+        // does not connect anchor of element but rather a point close-by that is orthogonal
+        // this looks much better
+        perpendicular: true,
+
+        // should the source and/or target not be considered as obstacles?
+        excludeEnds: [], // 'source', 'target'
+
+        // should certain types of elements not be considered as obstacles?
+        excludeTypes: ['basic.Text'],
+
         // possible starting directions from an element
-        startDirections: ['left', 'right', 'top', 'bottom'],
+        startDirections: ['top', 'right', 'bottom', 'left'],
 
         // possible ending directions to an element
-        endDirections: ['left', 'right', 'top', 'bottom'],
+        endDirections: ['top', 'right', 'bottom', 'left'],
 
-        // specify directions above
+        // specify the directions used above and what they mean
         directionMap: {
+            top: { x: 0, y: -1 },
             right: { x: 1, y: 0 },
             bottom: { x: 0, y: 1 },
-            left: { x: -1, y: 0 },
-            top: { x: 0, y: -1 }
+            left: { x: -1, y: 0 }
         },
 
-        // maximum change of the direction
-        maxAllowedDirectionChange: 90,
+        // cost of an orthogonal step
+        cost: function() {
+
+            return this.step;
+        },
+
+        // an array of directions to find next points on the route
+        // different from start/end directions
+        directions: function() {
+
+            var step = this.step;
+            var cost = this.cost();
+
+            return [
+                { offsetX: step  , offsetY: 0     , cost: cost },
+                { offsetX: 0     , offsetY: step  , cost: cost },
+                { offsetX: -step , offsetY: 0     , cost: cost },
+                { offsetX: 0     , offsetY: -step , cost: cost }
+            ];
+        },
+
+        // a penalty received for direction change
+        penalties: function() {
+
+            return {
+                0: 0,
+                45: this.step / 2,
+                90: this.step / 2
+            };
+        },
 
         // padding applied on the element bounding boxes
         paddingBox: function() {
@@ -14260,52 +21066,43 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             };
         },
 
-        // an array of directions to find next points on the route
-        directions: function() {
+        // a router to use when the manhattan router fails
+        // (one of the partial routes returns null)
+        fallbackRouter: function(vertices, opt, linkView) {
 
-            var step = this.step;
+            if (!util.isFunction(joint.routers.orthogonal)) {
+                throw new Error('Manhattan requires the orthogonal router as default fallback.');
+            }
 
-            return [
-                { offsetX: step  , offsetY: 0     , cost: step },
-                { offsetX: 0     , offsetY: step  , cost: step },
-                { offsetX: -step , offsetY: 0     , cost: step },
-                { offsetX: 0     , offsetY: -step , cost: step }
-            ];
+            return joint.routers.orthogonal(vertices, util.assign({}, config, opt), linkView);
         },
 
-        // a penalty received for direction change
-        penalties: function() {
+        /* Deprecated */
+        // a simple route used in situations when main routing method fails
+        // (exceed max number of loop iterations, inaccessible)
+        fallbackRoute: function(from, to, opt) {
 
-            return {
-                0: 0,
-                45: this.step / 2,
-                90: this.step / 2
-            };
-        },
+            return null; // null result will trigger the fallbackRouter
 
-        // * Deprecated *
-        // a simple route used in situations, when main routing method fails
-        // (exceed loops, inaccessible).
-        /* i.e.
-          function(from, to, opts) {
-            // Find an orthogonal route ignoring obstacles.
-            var point = ((opts.previousDirAngle || 0) % 180 === 0)
-                    ? g.point(from.x, to.y)
-                    : g.point(to.x, from.y);
-            return [point, to];
-          },
-        */
-        fallbackRoute: function() {
-            return null;
+            // left for reference:
+            /*// Find an orthogonal route ignoring obstacles.
+
+            var point = ((opt.previousDirAngle || 0) % 180 === 0)
+                    ? new g.Point(from.x, to.y)
+                    : new g.Point(to.x, from.y);
+
+            return [point];*/
         },
 
         // if a function is provided, it's used to route the link while dragging an end
-        // i.e. function(from, to, opts) { return []; }
+        // i.e. function(from, to, opt) { return []; }
         draggingRoute: null
     };
 
+    // HELPER CLASSES //
+
     // Map of obstacles
-    // Helper structure to identify whether a point lies in an obstacle.
+    // Helper structure to identify whether a point lies inside an obstacle.
     function ObstacleMap(opt) {
 
         this.map = {};
@@ -14318,9 +21115,9 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         var opt = this.options;
 
-
         // source or target element could be excluded from set of obstacles
         var excludedEnds = util.toArray(opt.excludeEnds).reduce(function(res, item) {
+
             var end = link.get(item);
             if (end) {
                 var cell = graph.getCell(end.id);
@@ -14328,6 +21125,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
                     res.push(cell);
                 }
             }
+
             return res;
         }, []);
 
@@ -14344,11 +21142,11 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
         }
 
-        // builds a map of all elements for quicker obstacle queries (i.e. is a point contained
-        // in any obstacle?) (a simplified grid search)
-        // The paper is divided to smaller cells, where each of them holds an information which
-        // elements belong to it. When we query whether a point is in an obstacle we don't need
-        // to go through all obstacles, we check only those in a particular cell.
+        // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
+        // in any obstacle?) (a simplified grid search).
+        // The paper is divided into smaller cells, where each holds information about which
+        // elements belong to it. When we query whether a point lies inside an obstacle we
+        // don't need to go through all obstacles, we check only those in a particular cell.
         var mapGridSize = this.mapGridSize;
 
         graph.getElements().reduce(function(map, element) {
@@ -14359,19 +21157,20 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
             var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
             if (!isExcluded) {
-                var bBox = element.getBBox().moveAndExpand(opt.paddingBox);
+                var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
 
-                var origin = bBox.origin().snapToGrid(mapGridSize);
-                var corner = bBox.corner().snapToGrid(mapGridSize);
+                var origin = bbox.origin().snapToGrid(mapGridSize);
+                var corner = bbox.corner().snapToGrid(mapGridSize);
 
                 for (var x = origin.x; x <= corner.x; x += mapGridSize) {
                     for (var y = origin.y; y <= corner.y; y += mapGridSize) {
                         var gridKey = x + '@' + y;
                         map[gridKey] = map[gridKey] || [];
-                        map[gridKey].push(bBox);
+                        map[gridKey].push(bbox);
                     }
                 }
             }
+
             return map;
         }, this.map);
 
@@ -14416,107 +21215,226 @@ joint.routers.manhattan = (function(g, _, joint, util) {
     };
 
     SortedSet.prototype.remove = function(item) {
+
         this.hash[item] = this.CLOSE;
     };
 
     SortedSet.prototype.isOpen = function(item) {
+
         return this.hash[item] === this.OPEN;
     };
 
     SortedSet.prototype.isClose = function(item) {
+
         return this.hash[item] === this.CLOSE;
     };
 
     SortedSet.prototype.isEmpty = function() {
+
         return this.items.length === 0;
     };
 
     SortedSet.prototype.pop = function() {
+
         var item =  this.items.shift();
         this.remove(item);
         return item;
     };
 
+    // HELPERS //
+
+    // return source bbox
+    function getSourceBBox(linkView, opt) {
+
+        // expand by padding box
+        if (opt && opt.paddingBox) return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox);
+
+        return linkView.sourceBBox.clone();
+    }
+
+    // return target bbox
+    function getTargetBBox(linkView, opt) {
+
+        // expand by padding box
+        if (opt && opt.paddingBox) return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox);
+
+        return linkView.targetBBox.clone();
+    }
+
+    // return source anchor
+    function getSourceAnchor(linkView, opt) {
+
+        if (linkView.sourceAnchor) return linkView.sourceAnchor;
+
+        // fallback: center of bbox
+        var sourceBBox = getSourceBBox(linkView, opt);
+        return sourceBBox.center();
+    }
+
+    // return target anchor
+    function getTargetAnchor(linkView, opt) {
+
+        if (linkView.targetAnchor) return linkView.targetAnchor;
+
+        // fallback: center of bbox
+        var targetBBox = getTargetBBox(linkView, opt);
+        return targetBBox.center(); // default
+    }
+
+    // returns a direction index from start point to end point
+    // corrects for grid deformation between start and end
+    function getDirectionAngle(start, end, numDirections, grid, opt) {
+
+        var quadrant = 360 / numDirections;
+        var angleTheta = start.theta(fixAngleEnd(start, end, grid, opt));
+        var normalizedAngle = g.normalizeAngle(angleTheta + (quadrant / 2));
+        return quadrant * Math.floor(normalizedAngle / quadrant);
+    }
+
+    // helper function for getDirectionAngle()
+    // corrects for grid deformation
+    // (if a point is one grid steps away from another in both dimensions,
+    // it is considered to be 45 degrees away, even if the real angle is different)
+    // this causes visible angle discrepancies if `opt.step` is much larger than `paper.gridSize`
+    function fixAngleEnd(start, end, grid, opt) {
+
+        var step = opt.step;
+
+        var diffX = end.x - start.x;
+        var diffY = end.y - start.y;
+
+        var gridStepsX = diffX / grid.x;
+        var gridStepsY = diffY / grid.y
+
+        var distanceX = gridStepsX * step;
+        var distanceY = gridStepsY * step;
+
+        return new g.Point(start.x + distanceX, start.y + distanceY);
+    }
+
+    // return the change in direction between two direction angles
+    function getDirectionChange(angle1, angle2) {
+
+        var directionChange = Math.abs(angle1 - angle2);
+        return (directionChange > 180) ? (360 - directionChange) : directionChange;
+    }
+
+    // fix direction offsets according to current grid
+    function getGridOffsets(directions, grid, opt) {
+
+        var step = opt.step;
+
+        util.toArray(opt.directions).forEach(function(direction) {
+
+            direction.gridOffsetX = (direction.offsetX / step) * grid.x;
+            direction.gridOffsetY = (direction.offsetY / step) * grid.y;
+        });
+    }
+
+    // get grid size in x and y dimensions, adapted to source and target positions
+    function getGrid(step, source, target) {
+
+        return {
+            source: source.clone(),
+            x: getGridDimension(target.x - source.x, step),
+            y: getGridDimension(target.y - source.y, step)
+        }
+    }
+
+    // helper function for getGrid()
+    function getGridDimension(diff, step) {
+
+        // return step if diff = 0
+        if (!diff) return step;
+
+        var absDiff = Math.abs(diff);
+        var numSteps = Math.round(absDiff / step);
+
+        // return absDiff if less than one step apart
+        if (!numSteps) return absDiff;
+
+        // otherwise, return corrected step
+        var roundedDiff = numSteps * step;
+        var remainder = absDiff - roundedDiff;
+        var stepCorrection = remainder / numSteps;
+
+        return step + stepCorrection;
+    }
+
+    // return a clone of point snapped to grid
+    function snapToGrid(point, grid) {
+
+        var source = grid.source;
+
+        var snappedX = g.snapToGrid(point.x - source.x, grid.x) + source.x;
+        var snappedY = g.snapToGrid(point.y - source.y, grid.y) + source.y;
+
+        return new g.Point(snappedX, snappedY);
+    }
+
+    // round the point to opt.precision
+    function round(point, opt) {
+
+        if (!point) return point;
+
+        return point.round(opt.precision);
+    }
+
+    // return a string representing the point
+    // string is rounded to nearest int in both dimensions
+    function getKey(point) {
+
+        return point.clone().round().toString();
+    }
+
+    // return a normalized vector from given point
+    // used to determine the direction of a difference of two points
     function normalizePoint(point) {
-        return g.point(
+
+        return new g.Point(
             point.x === 0 ? 0 : Math.abs(point.x) / point.x,
             point.y === 0 ? 0 : Math.abs(point.y) / point.y
         );
     }
 
-    // reconstructs a route by concating points with their parents
-    function reconstructRoute(parents, point, startCenter, endCenter) {
+    // PATHFINDING //
+
+    // reconstructs a route by concatenating points with their parents
+    function reconstructRoute(parents, points, tailPoint, from, to, opt) {
 
         var route = [];
-        var prevDiff = normalizePoint(endCenter.difference(point));
-        var current = point;
-        var parent;
 
-        while ((parent = parents[current])) {
+        var prevDiff = normalizePoint(to.difference(tailPoint));
 
-            var diff = normalizePoint(current.difference(parent));
+        var currentKey = getKey(tailPoint);
+        var parent = parents[currentKey];
 
+        var point;
+        while (parent) {
+
+            point = round(points[currentKey], opt);
+
+            var diff = normalizePoint(point.difference(round(parent.clone(), opt)));
             if (!diff.equals(prevDiff)) {
-
-                route.unshift(current);
+                route.unshift(point);
                 prevDiff = diff;
             }
 
-            current = parent;
+            currentKey = getKey(parent);
+            parent = parents[currentKey];
         }
 
-        var startDiff = normalizePoint(g.point(current).difference(startCenter));
-        if (!startDiff.equals(prevDiff)) {
-            route.unshift(current);
+        var leadPoint = round(points[currentKey], opt);
+
+        var fromDiff = normalizePoint(leadPoint.difference(from));
+        if (!fromDiff.equals(prevDiff)) {
+            route.unshift(leadPoint);
         }
 
         return route;
     }
 
-    // find points around the rectangle taking given directions in the account
-    function getRectPoints(bbox, directionList, opt) {
-
-        var step = opt.step;
-        var center = bbox.center();
-        var keys = util.isObject(opt.directionMap) ? Object.keys(opt.directionMap) : [];
-        var dirLis = util.toArray(directionList);
-        return keys.reduce(function(res, key) {
-
-            if (dirLis.includes(key)) {
-
-                var direction = opt.directionMap[key];
-
-                var x = direction.x * bbox.width / 2;
-                var y = direction.y * bbox.height / 2;
-
-                var point = center.clone().offset(x, y);
-
-                if (bbox.containsPoint(point)) {
-
-                    point.offset(direction.x * step, direction.y * step);
-                }
-
-                res.push(point.snapToGrid(step));
-            }
-            return res;
-
-        }, []);
-    }
-
-    // returns a direction index from start point to end point
-    function getDirectionAngle(start, end, dirLen) {
-
-        var q = 360 / dirLen;
-        return Math.floor(g.normalizeAngle(start.theta(end) + q / 2) / q) * q;
-    }
-
-    function getDirectionChange(angle1, angle2) {
-
-        var dirChange = Math.abs(angle1 - angle2);
-        return dirChange > 180 ? 360 - dirChange : dirChange;
-    }
-
-    // heurestic method to determine the distance between two points
+    // heuristic method to determine the distance between two points
     function estimateCost(from, endPoints) {
 
         var min = Infinity;
@@ -14529,41 +21447,131 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         return min;
     }
 
-    // finds the route between to points/rectangles implementing A* alghoritm
-    function findRoute(start, end, map, opt) {
+    // find points around the bbox taking given directions into account
+    // lines are drawn from anchor in given directions, intersections recorded
+    // if anchor is outside bbox, only those directions that intersect get a rect point
+    // the anchor itself is returned as rect point (representing some directions)
+    // (since those directions are unobstructed by the bbox)
+    function getRectPoints(anchor, bbox, directionList, grid, opt) {
 
-        var step = opt.step;
+        var directionMap = opt.directionMap;
+
+        var snappedAnchor = round(snapToGrid(anchor, grid), opt);
+        var snappedCenter = round(snapToGrid(bbox.center(), grid), opt);
+        var anchorCenterVector = snappedAnchor.difference(snappedCenter);
+
+        var keys = util.isObject(directionMap) ? Object.keys(directionMap) : [];
+        var dirList = util.toArray(directionList);
+        var rectPoints = keys.reduce(function(res, key) {
+
+            if (dirList.includes(key)) {
+                var direction = directionMap[key];
+
+                // create a line that is guaranteed to intersect the bbox if bbox is in the direction
+                // even if anchor lies outside of bbox
+                var endpoint = new g.Point(
+                    snappedAnchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
+                    snappedAnchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
+                );
+                var intersectionLine = new g.Line(anchor, endpoint);
+
+                // get the farther intersection, in case there are two
+                // (that happens if anchor lies next to bbox)
+                var intersections = intersectionLine.intersect(bbox) || [];
+                var numIntersections = intersections.length;
+                var farthestIntersectionDistance;
+                var farthestIntersection = null;
+                for (var i = 0; i < numIntersections; i++) {
+                    var currentIntersection = intersections[i];
+                    var distance = snappedAnchor.squaredDistance(currentIntersection);
+                    if (farthestIntersectionDistance === undefined || (distance > farthestIntersectionDistance)) {
+                        farthestIntersectionDistance = distance;
+                        farthestIntersection = snapToGrid(currentIntersection, grid);
+                    }
+                }
+                var point = round(farthestIntersection, opt);
+
+                // if an intersection was found in this direction, it is our rectPoint
+                if (point) {
+                    // if the rectPoint lies inside the bbox, offset it by one more step
+                    if (bbox.containsPoint(point)) {
+                        round(point.offset(direction.x * grid.x, direction.y * grid.y), opt);
+                    }
+
+                    // then add the point to the result array
+                    res.push(point);
+                }
+            }
+
+            return res;
+        }, []);
+
+        // if anchor lies outside of bbox, add it to the array of points
+        if (!bbox.containsPoint(snappedAnchor)) rectPoints.push(snappedAnchor);
+
+        return rectPoints;
+    }
+
+    // finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
+    // rectangles get rect points assigned by getRectPoints()
+    function findRoute(from, to, map, opt) {
+
+        // Get grid for this route.
+
+        var sourceAnchor, targetAnchor;
+
+        if (from instanceof g.Rect) { // `from` is sourceBBox
+            sourceAnchor = getSourceAnchor(this, opt).clone();
+        } else {
+            sourceAnchor = from.clone();
+        }
+
+        if (to instanceof g.Rect) { // `to` is targetBBox
+            targetAnchor = getTargetAnchor(this, opt).clone();
+        } else {
+            targetAnchor = to.clone();
+        }
+
+        var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
+
+        // Get pathfinding points.
+
+        var start, end;
         var startPoints, endPoints;
-        var startCenter, endCenter;
 
         // set of points we start pathfinding from
-        if (start instanceof g.rect) {
-            startPoints = getRectPoints(start, opt.startDirections, opt);
-            startCenter = start.center().snapToGrid(step);
+        if (from instanceof g.Rect) { // `from` is sourceBBox
+            start = round(snapToGrid(sourceAnchor, grid), opt);
+            startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
+
         } else {
-            startCenter = start.clone().snapToGrid(step);
-            startPoints = [startCenter];
+            start = round(snapToGrid(sourceAnchor, grid), opt);
+            startPoints = [start];
         }
 
         // set of points we want the pathfinding to finish at
-        if (end instanceof g.rect) {
-            endPoints = getRectPoints(end, opt.endDirections, opt);
-            endCenter = end.center().snapToGrid(step);
+        if (to instanceof g.Rect) { // `to` is targetBBox
+            end = round(snapToGrid(targetAnchor, grid), opt);
+            endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
+
         } else {
-            endCenter = end.clone().snapToGrid(step);
-            endPoints = [endCenter];
+            end = round(snapToGrid(targetAnchor, grid), opt);
+            endPoints = [end];
         }
 
-        // take into account only accessible end points
+        // take into account only accessible rect points (those not under obstacles)
         startPoints = startPoints.filter(map.isPointAccessible, map);
         endPoints = endPoints.filter(map.isPointAccessible, map);
 
-        // Check if there is a accessible end point.
-        // We would have to use a fallback route otherwise.
-        if (startPoints.length > 0 && endPoints.length >  0) {
+        // Check that there is an accessible route point on both sides.
+        // Otherwise, use fallbackRoute().
+        if (startPoints.length > 0 && endPoints.length > 0) {
 
             // The set of tentative points to be evaluated, initially containing the start points.
+            // Rounded to nearest integer for simplicity.
             var openSet = new SortedSet();
+            // Keeps reference to actual points for given elements of the open set.
+            var points = {};
             // Keeps reference to a point that is immediate predecessor of given element.
             var parents = {};
             // Cost from start to a point along best known path.
@@ -14572,78 +21580,109 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             for (var i = 0, n = startPoints.length; i < n; i++) {
                 var point = startPoints[i];
 
-                var key = point.toString();
+                var key = getKey(point);
                 openSet.add(key, estimateCost(point, endPoints));
+                points[key] = point;
                 costs[key] = 0;
             }
 
+            var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
+            var isPathBeginning = (previousRouteDirectionAngle === undefined);
+
             // directions
-            var dir, dirChange;
-            var dirs = opt.directions;
-            var dirLen = dirs.length;
-            var loopsRemain = opt.maximumLoops;
-            var endPointsKeys = util.invoke(endPoints, 'toString');
+            var direction, directionChange;
+            var directions = opt.directions;
+            getGridOffsets(directions, grid, opt);
+
+            var numDirections = directions.length;
+
+            var endPointsKeys = util.toArray(endPoints).reduce(function(res, endPoint) {
+
+                var key = getKey(endPoint);
+                res.push(key);
+                return res;
+            }, []);
 
             // main route finding loop
-            while (!openSet.isEmpty() && loopsRemain > 0) {
+            var loopsRemaining = opt.maximumLoops;
+            while (!openSet.isEmpty() && loopsRemaining > 0) {
 
                 // remove current from the open list
                 var currentKey = openSet.pop();
-                var currentPoint = g.point(currentKey);
-                var currentDist = costs[currentKey];
-                var previousDirAngle = currentDirAngle;
-                var currentDirAngle = parents[currentKey]
-                    ? getDirectionAngle(parents[currentKey], currentPoint, dirLen)
-                    : opt.previousDirAngle != null ? opt.previousDirAngle : getDirectionAngle(startCenter, currentPoint, dirLen);
+                var currentPoint = points[currentKey];
+                var currentParent = parents[currentKey];
+                var currentCost = costs[currentKey];
 
-                // Check if we reached any endpoint
+                var isRouteBeginning = (currentParent === undefined); // undefined for route starts
+                var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
+
+                var previousDirectionAngle;
+                if (!isRouteBeginning) previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections, grid, opt); // a vertex on the route
+                else if (!isPathBeginning) previousDirectionAngle = previousRouteDirectionAngle; // beginning of route on the path
+                else if (!isStart) previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections, grid, opt); // beginning of path, start rect point
+                else previousDirectionAngle = null; // beginning of path, source anchor or `from` point
+
+                // check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
-                    // We don't want to allow route to enter the end point in opposite direction.
-                    dirChange = getDirectionChange(currentDirAngle, getDirectionAngle(currentPoint, endCenter, dirLen));
-                    if (currentPoint.equals(endCenter) || dirChange < 180) {
-                        opt.previousDirAngle = currentDirAngle;
-                        return reconstructRoute(parents, currentPoint, startCenter, endCenter);
-                    }
+                    opt.previousDirectionAngle = previousDirectionAngle;
+                    return reconstructRoute(parents, points, currentPoint, start, end, opt);
                 }
 
-                // Go over all possible directions and find neighbors.
-                for (i = 0; i < dirLen; i++) {
+                // go over all possible directions and find neighbors
+                for (i = 0; i < numDirections; i++) {
+                    direction = directions[i];
 
-                    dir = dirs[i];
-                    dirChange = getDirectionChange(currentDirAngle, dir.angle);
-                    // if the direction changed rapidly don't use this point
-                    // Note that check is relevant only for points with previousDirAngle i.e.
+                    var directionAngle = direction.angle;
+                    directionChange = getDirectionChange(previousDirectionAngle, directionAngle);
+
+                    // if the direction changed rapidly, don't use this point
                     // any direction is allowed for starting points
-                    if (previousDirAngle && dirChange > opt.maxAllowedDirectionChange) {
-                        continue;
-                    }
+                    if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) continue;
 
-                    var neighborPoint = currentPoint.clone().offset(dir.offsetX, dir.offsetY);
-                    var neighborKey = neighborPoint.toString();
+                    var neighborPoint = currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY);
+                    var neighborKey = getKey(neighborPoint);
+
                     // Closed points from the openSet were already evaluated.
-                    if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) {
-                        continue;
+                    if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) continue;
+
+                    // We can only enter end points at an acceptable angle.
+                    if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
+                        round(neighborPoint, opt); // remove rounding errors
+
+                        var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
+
+                        if (!isNeighborEnd) {
+                            var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections, grid, opt);
+                            var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
+
+                            if (endDirectionChange > opt.maxAllowedDirectionChange) continue;
+                        }
                     }
 
-                    // The current direction is ok to proccess.
-                    var costFromStart = currentDist + dir.cost + opt.penalties[dirChange];
+                    // The current direction is ok.
 
-                    if (!openSet.isOpen(neighborKey) || costFromStart < costs[neighborKey]) {
-                        // neighbor point has not been processed yet or the cost of the path
-                        // from start is lesser than previously calcluated.
+                    var neighborCost = direction.cost;
+                    var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
+                    var costFromStart = currentCost + neighborCost + neighborPenalty;
+
+                    if (!openSet.isOpen(neighborKey) || (costFromStart < costs[neighborKey])) {
+                        // neighbor point has not been processed yet
+                        // or the cost of the path from start is lower than previously calculated
+
+                        points[neighborKey] = neighborPoint;
                         parents[neighborKey] = currentPoint;
                         costs[neighborKey] = costFromStart;
                         openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
                     }
                 }
 
-                loopsRemain--;
+                loopsRemaining--;
             }
         }
 
-        // no route found ('to' point wasn't either accessible or finding route took
-        // way to much calculations)
-        return opt.fallbackRoute(startCenter, endCenter, opt);
+        // no route found (`to` point either wasn't accessible or finding route took
+        // way too much calculation)
+        return opt.fallbackRoute.call(this, start, end, opt);
     }
 
     // resolve some of the options
@@ -14655,33 +21694,35 @@ joint.routers.manhattan = (function(g, _, joint, util) {
 
         util.toArray(opt.directions).forEach(function(direction) {
 
-            var point1 = g.point(0, 0);
-            var point2 = g.point(direction.offsetX, direction.offsetY);
+            var point1 = new g.Point(0, 0);
+            var point2 = new g.Point(direction.offsetX, direction.offsetY);
 
             direction.angle = g.normalizeAngle(point1.theta(point2));
         });
     }
 
-    // initiation of the route finding
-    function router(vertices, opt) {
+    // initialization of the route finding
+    function router(vertices, opt, linkView) {
 
         resolveOptions(opt);
 
         // enable/disable linkView perpendicular option
-        this.options.perpendicular = !!opt.perpendicular;
+        linkView.options.perpendicular = !!opt.perpendicular;
 
-        // expand boxes by specific padding
-        var sourceBBox = g.rect(this.sourceBBox).moveAndExpand(opt.paddingBox);
-        var targetBBox = g.rect(this.targetBBox).moveAndExpand(opt.paddingBox);
+        var sourceBBox = getSourceBBox(linkView, opt);
+        var targetBBox = getTargetBBox(linkView, opt);
+
+        var sourceAnchor = getSourceAnchor(linkView, opt);
+        //var targetAnchor = getTargetAnchor(linkView, opt);
 
         // pathfinding
-        var map = (new ObstacleMap(opt)).build(this.paper.model, this.model);
-        var oldVertices = util.toArray(vertices).map(g.point);
+        var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
+        var oldVertices = util.toArray(vertices).map(g.Point);
         var newVertices = [];
-        var tailPoint = sourceBBox.center().snapToGrid(opt.step);
+        var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
 
-        // find a route by concating all partial routes (routes need to go through the vertices)
-        // startElement -> vertex[1] -> ... -> vertex[n] -> endElement
+        // find a route by concatenating all partial routes (routes need to pass through vertices)
+        // source -> vertex[1] -> ... -> vertex[n] -> target
         for (var i = 0, len = oldVertices.length; i <= len; i++) {
 
             var partialRoute = null;
@@ -14690,39 +21731,38 @@ joint.routers.manhattan = (function(g, _, joint, util) {
             var to = oldVertices[i];
 
             if (!to) {
+                // this is the last iteration
+                // we ran through all vertices in oldVertices
+                // 'to' is not a vertex.
 
                 to = targetBBox;
 
-                // 'to' is not a vertex. If the target is a point (i.e. it's not an element), we
-                // might use dragging route instead of main routing method if that is enabled.
-                var endingAtPoint = !this.model.get('source').id || !this.model.get('target').id;
+                // If the target is a point (i.e. it's not an element), we
+                // should use dragging route instead of main routing method if it has been provided.
+                var isEndingAtPoint = !linkView.model.get('source').id || !linkView.model.get('target').id;
 
-                if (endingAtPoint && util.isFunction(opt.draggingRoute)) {
-                    // Make sure we passing points only (not rects).
-                    var dragFrom = from instanceof g.rect ? from.center() : from;
-                    partialRoute = opt.draggingRoute(dragFrom, to.origin(), opt);
+                if (isEndingAtPoint && util.isFunction(opt.draggingRoute)) {
+                    // Make sure we are passing points only (not rects).
+                    var dragFrom = (from === sourceBBox) ? sourceAnchor : from;
+                    var dragTo = to.origin();
+
+                    partialRoute = opt.draggingRoute.call(linkView, dragFrom, dragTo, opt);
                 }
             }
 
             // if partial route has not been calculated yet use the main routing method to find one
-            partialRoute = partialRoute || findRoute(from, to, map, opt);
+            partialRoute = partialRoute || findRoute.call(linkView, from, to, map, opt);
 
-            if (partialRoute === null) {
-                // The partial route could not be found.
-                // use orthogonal (do not avoid elements) route instead.
-                if (!util.isFunction(joint.routers.orthogonal)) {
-                    throw new Error('Manhattan requires the orthogonal router.');
-                }
-                return joint.routers.orthogonal(vertices, opt, this);
+            if (partialRoute === null) { // the partial route cannot be found
+                return opt.fallbackRouter(vertices, opt, linkView);
             }
 
             var leadPoint = partialRoute[0];
 
-            if (leadPoint && leadPoint.equals(tailPoint)) {
-                // remove the first point if the previous partial route had the same point as last
-                partialRoute.shift();
-            }
+            // remove the first point if the previous partial route had the same point as last
+            if (leadPoint && leadPoint.equals(tailPoint)) partialRoute.shift();
 
+            // save tailPoint for next iteration
             tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
 
             Array.prototype.push.apply(newVertices, partialRoute);
@@ -14734,48 +21774,53 @@ joint.routers.manhattan = (function(g, _, joint, util) {
     // public function
     return function(vertices, opt, linkView) {
 
-        return router.call(linkView, vertices, util.assign({}, config, opt));
+        return router(vertices, util.assign({}, config, opt), linkView);
     };
 
 })(g, _, joint, joint.util);
 
 joint.routers.metro = (function(util) {
 
-    if (!util.isFunction(joint.routers.manhattan)) {
-
-        throw new Error('Metro requires the manhattan router.');
-    }
-
     var config = {
 
-        // cost of a diagonal step (calculated if not defined).
-        diagonalCost: null,
+        maxAllowedDirectionChange: 45,
+
+        // cost of a diagonal step
+        diagonalCost: function() {
+
+            var step = this.step;
+            return Math.ceil(Math.sqrt(step * step << 1));
+        },
 
         // an array of directions to find next points on the route
+        // different from start/end directions
         directions: function() {
 
             var step = this.step;
-            var diagonalCost = this.diagonalCost || Math.ceil(Math.sqrt(step * step << 1));
+            var cost = this.cost();
+            var diagonalCost = this.diagonalCost();
 
             return [
-                { offsetX: step  , offsetY: 0     , cost: step },
+                { offsetX: step  , offsetY: 0     , cost: cost },
                 { offsetX: step  , offsetY: step  , cost: diagonalCost },
-                { offsetX: 0     , offsetY: step  , cost: step },
+                { offsetX: 0     , offsetY: step  , cost: cost },
                 { offsetX: -step , offsetY: step  , cost: diagonalCost },
-                { offsetX: -step , offsetY: 0     , cost: step },
+                { offsetX: -step , offsetY: 0     , cost: cost },
                 { offsetX: -step , offsetY: -step , cost: diagonalCost },
-                { offsetX: 0     , offsetY: -step , cost: step },
+                { offsetX: 0     , offsetY: -step , cost: cost },
                 { offsetX: step  , offsetY: -step , cost: diagonalCost }
             ];
         },
-        maxAllowedDirectionChange: 45,
-        // a simple route used in situations, when main routing method fails
-        // (exceed loops, inaccessible).
-        fallbackRoute: function(from, to, opts) {
+
+        // a simple route used in situations when main routing method fails
+        // (exceed max number of loop iterations, inaccessible)
+        fallbackRoute: function(from, to, opt) {
 
             // Find a route which breaks by 45 degrees ignoring all obstacles.
 
             var theta = from.theta(to);
+
+            var route = [];
 
             var a = { x: to.x, y: from.y };
             var b = { x: from.x, y: to.y };
@@ -14787,25 +21832,40 @@ joint.routers.metro = (function(util) {
             }
 
             var p1 = (theta % 90) < 45 ? a : b;
-
-            var l1 = g.line(from, p1);
+            var l1 = new g.Line(from, p1);
 
             var alpha = 90 * Math.ceil(theta / 90);
 
-            var p2 = g.point.fromPolar(l1.squaredLength(), g.toRad(alpha + 135), p1);
+            var p2 = g.Point.fromPolar(l1.squaredLength(), g.toRad(alpha + 135), p1);
+            var l2 = new g.Line(to, p2);
 
-            var l2 = g.line(to, p2);
+            var intersectionPoint = l1.intersection(l2);
+            var point = intersectionPoint ? intersectionPoint : to;
 
-            var point = l1.intersection(l2);
+            var directionFrom = intersectionPoint ? point : from;
 
-            return point ? [point.round(), to] : [to];
+            var quadrant = 360 / opt.directions.length;
+            var angleTheta = directionFrom.theta(to);
+            var normalizedAngle = g.normalizeAngle(angleTheta + (quadrant / 2));
+            var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
+
+            opt.previousDirectionAngle = directionAngle;
+
+            if (point) route.push(point.round());
+            route.push(to);
+
+            return route;
         }
     };
 
     // public function
-    return function(vertices, opts, linkView) {
+    return function(vertices, opt, linkView) {
 
-        return joint.routers.manhattan(vertices, util.assign({}, config, opts), linkView);
+        if (!util.isFunction(joint.routers.manhattan)) {
+            throw new Error('Metro requires the manhattan router.');
+        }
+
+        return joint.routers.manhattan(vertices, util.assign({}, config, opt), linkView);
     };
 
 })(joint.util);
@@ -14879,7 +21939,7 @@ joint.routers.oneSide = function(vertices, opt, linkView) {
 joint.routers.orthogonal = (function(util) {
 
     // bearing -> opposite bearing
-    var opposite = {
+    var opposites = {
         N: 'S',
         S: 'N',
         E: 'W',
@@ -14896,105 +21956,126 @@ joint.routers.orthogonal = (function(util) {
 
     // HELPERS //
 
-    // simple bearing method (calculates only orthogonal cardinals)
-    function bearing(from, to) {
-        if (from.x == to.x) return from.y > to.y ? 'N' : 'S';
-        if (from.y == to.y) return from.x > to.x ? 'W' : 'E';
-        return null;
-    }
-
-    // returns either width or height of a bbox based on the given bearing
-    function boxSize(bbox, brng) {
-        return bbox[brng == 'W' || brng == 'E' ? 'width' : 'height'];
-    }
-
-    // expands a box by specific value
-    function expand(bbox, val) {
-        return g.rect(bbox).moveAndExpand({ x: -val, y: -val, width: 2 * val, height: 2 * val });
-    }
-
-    // transform point to a rect
-    function pointBox(p) {
-        return g.rect(p.x, p.y, 0, 0);
-    }
-
-    // returns a minimal rect which covers the given boxes
-    function boundary(bbox1, bbox2) {
-
-        var x1 = Math.min(bbox1.x, bbox2.x);
-        var y1 = Math.min(bbox1.y, bbox2.y);
-        var x2 = Math.max(bbox1.x + bbox1.width, bbox2.x + bbox2.width);
-        var y2 = Math.max(bbox1.y + bbox1.height, bbox2.y + bbox2.height);
-
-        return g.rect(x1, y1, x2 - x1, y2 - y1);
-    }
-
     // returns a point `p` where lines p,p1 and p,p2 are perpendicular and p is not contained
     // in the given box
     function freeJoin(p1, p2, bbox) {
 
-        var p = g.point(p1.x, p2.y);
-        if (bbox.containsPoint(p)) p = g.point(p2.x, p1.y);
+        var p = new g.Point(p1.x, p2.y);
+        if (bbox.containsPoint(p)) p = new g.Point(p2.x, p1.y);
         // kept for reference
         // if (bbox.containsPoint(p)) p = null;
+
         return p;
+    }
+
+    // returns either width or height of a bbox based on the given bearing
+    function getBBoxSize(bbox, bearing) {
+
+        return bbox[(bearing === 'W' || bearing === 'E') ? 'width' : 'height'];
+    }
+
+    // simple bearing method (calculates only orthogonal cardinals)
+    function getBearing(from, to) {
+
+        if (from.x === to.x) return (from.y > to.y) ? 'N' : 'S';
+        if (from.y === to.y) return (from.x > to.x) ? 'W' : 'E';
+        return null;
+    }
+
+    // transform point to a rect
+    function getPointBox(p) {
+
+        return new g.Rect(p.x, p.y, 0, 0);
+    }
+
+    // return source bbox
+    function getSourceBBox(linkView, opt) {
+
+        var padding = (opt && opt.elementPadding) || 20;
+        return linkView.sourceBBox.clone().inflate(padding);
+    }
+
+    // return target bbox
+    function getTargetBBox(linkView, opt) {
+
+        var padding = (opt && opt.elementPadding) || 20;
+        return linkView.targetBBox.clone().inflate(padding);
+    }
+
+    // return source anchor
+    function getSourceAnchor(linkView, opt) {
+
+        if (linkView.sourceAnchor) return linkView.sourceAnchor;
+
+        // fallback: center of bbox
+        var sourceBBox = getSourceBBox(linkView, opt);
+        return sourceBBox.center();
+    }
+
+    // return target anchor
+    function getTargetAnchor(linkView, opt) {
+
+        if (linkView.targetAnchor) return linkView.targetAnchor;
+
+        // fallback: center of bbox
+        var targetBBox = getTargetBBox(linkView, opt);
+        return targetBBox.center(); // default
     }
 
     // PARTIAL ROUTERS //
 
-    function vertexVertex(from, to, brng) {
+    function vertexVertex(from, to, bearing) {
 
-        var p1 = g.point(from.x, to.y);
-        var p2 = g.point(to.x, from.y);
-        var d1 = bearing(from, p1);
-        var d2 = bearing(from, p2);
-        var xBrng = opposite[brng];
+        var p1 = new g.Point(from.x, to.y);
+        var p2 = new g.Point(to.x, from.y);
+        var d1 = getBearing(from, p1);
+        var d2 = getBearing(from, p2);
+        var opposite = opposites[bearing];
 
-        var p = (d1 == brng || (d1 != xBrng && (d2 == xBrng || d2 != brng))) ? p1 : p2;
+        var p = (d1 === bearing || (d1 !== opposite && (d2 === opposite || d2 !== bearing))) ? p1 : p2;
 
-        return { points: [p], direction: bearing(p, to) };
+        return { points: [p], direction: getBearing(p, to) };
     }
 
     function elementVertex(from, to, fromBBox) {
 
         var p = freeJoin(from, to, fromBBox);
 
-        return { points: [p], direction: bearing(p, to) };
+        return { points: [p], direction: getBearing(p, to) };
     }
 
-    function vertexElement(from, to, toBBox, brng) {
+    function vertexElement(from, to, toBBox, bearing) {
 
         var route = {};
 
-        var pts = [g.point(from.x, to.y), g.point(to.x, from.y)];
-        var freePts = pts.filter(function(pt) { return !toBBox.containsPoint(pt); });
-        var freeBrngPts = freePts.filter(function(pt) { return bearing(pt, from) != brng; });
+        var points = [new g.Point(from.x, to.y), new g.Point(to.x, from.y)];
+        var freePoints = points.filter(function(pt) { return !toBBox.containsPoint(pt); });
+        var freeBearingPoints = freePoints.filter(function(pt) { return getBearing(pt, from) !== bearing; });
 
         var p;
 
-        if (freeBrngPts.length > 0) {
+        if (freeBearingPoints.length > 0) {
+            // Try to pick a point which bears the same direction as the previous segment.
 
-            // try to pick a point which bears the same direction as the previous segment
-            p = freeBrngPts.filter(function(pt) { return bearing(from, pt) == brng; }).pop();
-            p = p || freeBrngPts[0];
+            p = freeBearingPoints.filter(function(pt) { return getBearing(from, pt) === bearing; }).pop();
+            p = p || freeBearingPoints[0];
 
             route.points = [p];
-            route.direction = bearing(p, to);
+            route.direction = getBearing(p, to);
 
         } else {
-
             // Here we found only points which are either contained in the element or they would create
             // a link segment going in opposite direction from the previous one.
             // We take the point inside element and move it outside the element in the direction the
             // route is going. Now we can join this point with the current end (using freeJoin).
 
-            p = util.difference(pts, freePts)[0];
+            p = util.difference(points, freePoints)[0];
 
-            var p2 = g.point(to).move(p, -boxSize(toBBox, brng) / 2);
+            var p2 = (new g.Point(to)).move(p, -getBBoxSize(toBBox, bearing) / 2);
             var p1 = freeJoin(p2, from, toBBox);
 
             route.points = [p1, p2];
-            route.direction = bearing(p2, to);
+            route.direction = getBearing(p2, to);
         }
 
         return route;
@@ -15012,9 +22093,9 @@ joint.routers.orthogonal = (function(util) {
 
             if (toBBox.containsPoint(p2)) {
 
-                var fromBorder = g.point(from).move(p2, -boxSize(fromBBox, bearing(from, p2)) / 2);
-                var toBorder = g.point(to).move(p1, -boxSize(toBBox, bearing(to, p1)) / 2);
-                var mid = g.line(fromBorder, toBorder).midpoint();
+                var fromBorder = (new g.Point(from)).move(p2, -getBBoxSize(fromBBox, getBearing(from, p2)) / 2);
+                var toBorder = (new g.Point(to)).move(p1, -getBBoxSize(toBBox, getBearing(to, p1)) / 2);
+                var mid = (new g.Line(fromBorder, toBorder)).midpoint();
 
                 var startRoute = elementVertex(from, mid, fromBBox);
                 var endRoute = vertexVertex(mid, to, startRoute.direction);
@@ -15027,79 +22108,91 @@ joint.routers.orthogonal = (function(util) {
         return route;
     }
 
-    // Finds route for situations where one of end is inside the other.
-    // Typically the route is conduct outside the outer element first and
-    // let go back to the inner element.
-    function insideElement(from, to, fromBBox, toBBox, brng) {
+    // Finds route for situations where one element is inside the other.
+    // Typically the route is directed outside the outer element first and
+    // then back towards the inner element.
+    function insideElement(from, to, fromBBox, toBBox, bearing) {
 
         var route = {};
-        var bndry = expand(boundary(fromBBox, toBBox), 1);
+        var boundary = fromBBox.union(toBBox).inflate(1);
 
         // start from the point which is closer to the boundary
-        var reversed = bndry.center().distance(to) > bndry.center().distance(from);
+        var reversed = boundary.center().distance(to) > boundary.center().distance(from);
         var start = reversed ? to : from;
         var end = reversed ? from : to;
 
         var p1, p2, p3;
 
-        if (brng) {
+        if (bearing) {
             // Points on circle with radius equals 'W + H` are always outside the rectangle
             // with width W and height H if the center of that circle is the center of that rectangle.
-            p1 = g.point.fromPolar(bndry.width + bndry.height, radians[brng], start);
-            p1 = bndry.pointNearestToPoint(p1).move(p1, -1);
+            p1 = g.Point.fromPolar(boundary.width + boundary.height, radians[bearing], start);
+            p1 = boundary.pointNearestToPoint(p1).move(p1, -1);
+
         } else {
-            p1 = bndry.pointNearestToPoint(start).move(start, 1);
+            p1 = boundary.pointNearestToPoint(start).move(start, 1);
         }
 
-        p2 = freeJoin(p1, end, bndry);
+        p2 = freeJoin(p1, end, boundary);
 
         if (p1.round().equals(p2.round())) {
-            p2 = g.point.fromPolar(bndry.width + bndry.height, g.toRad(p1.theta(start)) + Math.PI / 2, end);
-            p2 = bndry.pointNearestToPoint(p2).move(end, 1).round();
-            p3 = freeJoin(p1, p2, bndry);
+            p2 = g.Point.fromPolar(boundary.width + boundary.height, g.toRad(p1.theta(start)) + Math.PI / 2, end);
+            p2 = boundary.pointNearestToPoint(p2).move(end, 1).round();
+            p3 = freeJoin(p1, p2, boundary);
             route.points = reversed ? [p2, p3, p1] : [p1, p3, p2];
+
         } else {
             route.points = reversed ? [p2, p1] : [p1, p2];
         }
 
-        route.direction = reversed ? bearing(p1, to) : bearing(p2, to);
+        route.direction = reversed ? getBearing(p1, to) : getBearing(p2, to);
 
         return route;
     }
 
     // MAIN ROUTER //
 
-    // Return points that one needs to draw a connection through in order to have a orthogonal link
+    // Return points through which a connection needs to be drawn in order to obtain an orthogonal link
     // routing from source to target going through `vertices`.
-    function findOrthogonalRoute(vertices, opt, linkView) {
+    function router(vertices, opt, linkView) {
 
         var padding = opt.elementPadding || 20;
 
-        var orthogonalVertices = [];
-        var sourceBBox = expand(linkView.sourceBBox, padding);
-        var targetBBox = expand(linkView.targetBBox, padding);
+        var sourceBBox = getSourceBBox(linkView, opt);
+        var targetBBox = getTargetBBox(linkView, opt);
 
-        vertices = util.toArray(vertices).map(g.point);
-        vertices.unshift(sourceBBox.center());
-        vertices.push(targetBBox.center());
+        var sourceAnchor = getSourceAnchor(linkView, opt);
+        var targetAnchor = getTargetAnchor(linkView, opt);
 
-        var brng;
+        // if anchor lies outside of bbox, the bbox expands to include it
+        sourceBBox = sourceBBox.union(getPointBox(sourceAnchor));
+        targetBBox = targetBBox.union(getPointBox(targetAnchor));
 
+        vertices = util.toArray(vertices).map(g.Point);
+        vertices.unshift(sourceAnchor);
+        vertices.push(targetAnchor);
+
+        var bearing; // bearing of previous route segment
+
+        var orthogonalVertices = []; // the array of found orthogonal vertices to be returned
         for (var i = 0, max = vertices.length - 1; i < max; i++) {
 
             var route = null;
+
             var from = vertices[i];
             var to = vertices[i + 1];
-            var isOrthogonal = !!bearing(from, to);
 
-            if (i == 0) {
+            var isOrthogonal = !!getBearing(from, to);
 
-                if (i + 1 == max) { // route source -> target
+            if (i === 0) { // source
 
-                    // Expand one of elements by 1px so we detect also situations when they
-                    // are positioned one next other with no gap between.
-                    if (sourceBBox.intersect(expand(targetBBox, 1))) {
+                if (i + 1 === max) { // route source -> target
+
+                    // Expand one of the elements by 1px to detect situations when the two
+                    // elements are positioned next to each other with no gap in between.
+                    if (sourceBBox.intersect(targetBBox.clone().inflate(1))) {
                         route = insideElement(from, to, sourceBBox, targetBBox);
+
                     } else if (!isOrthogonal) {
                         route = elementElement(from, to, sourceBBox, targetBBox);
                     }
@@ -15107,34 +22200,42 @@ joint.routers.orthogonal = (function(util) {
                 } else { // route source -> vertex
 
                     if (sourceBBox.containsPoint(to)) {
-                        route = insideElement(from, to, sourceBBox, expand(pointBox(to), padding));
+                        route = insideElement(from, to, sourceBBox, getPointBox(to).inflate(padding));
+
                     } else if (!isOrthogonal) {
                         route = elementVertex(from, to, sourceBBox);
                     }
                 }
 
-            } else if (i + 1 == max) { // route vertex -> target
+            } else if (i + 1 === max) { // route vertex -> target
 
-                var orthogonalLoop = isOrthogonal && bearing(to, from) == brng;
+                // prevent overlaps with previous line segment
+                var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
 
-                if (targetBBox.containsPoint(from) || orthogonalLoop) {
-                    route = insideElement(from, to, expand(pointBox(from), padding), targetBBox, brng);
+                if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
+                    route = insideElement(from, to, getPointBox(from).inflate(padding), targetBBox, bearing);
+
                 } else if (!isOrthogonal) {
-                    route = vertexElement(from, to, targetBBox, brng);
+                    route = vertexElement(from, to, targetBBox, bearing);
                 }
 
             } else if (!isOrthogonal) { // route vertex -> vertex
-                route = vertexVertex(from, to, brng);
+                route = vertexVertex(from, to, bearing);
             }
 
+            // applicable to all routes:
+
+            // set bearing for next iteration
             if (route) {
                 Array.prototype.push.apply(orthogonalVertices, route.points);
-                brng = route.direction;
+                bearing = route.direction;
+
             } else {
                 // orthogonal route and not looped
-                brng = bearing(from, to);
+                bearing = getBearing(from, to);
             }
 
+            // push `to` point to identified orthogonal vertices array
             if (i + 1 < max) {
                 orthogonalVertices.push(to);
             }
@@ -15143,81 +22244,116 @@ joint.routers.orthogonal = (function(util) {
         return orthogonalVertices;
     }
 
-    return findOrthogonalRoute;
+    return router;
 
 })(joint.util);
 
-joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
+joint.connectors.normal = function(sourcePoint, targetPoint, route, opt) {
 
-    // Construct the `d` attribute of the `<path>` element.
-    var d = ['M', sourcePoint.x, sourcePoint.y];
+    var raw = opt && opt.raw;
+    var points = [sourcePoint].concat(route).concat([targetPoint]);
 
-    joint.util.toArray(vertices).forEach(function(vertex) {
+    var polyline = new g.Polyline(points);
+    var path = new g.Path(polyline);
 
-        d.push(vertex.x, vertex.y);
-    });
-
-    d.push(targetPoint.x, targetPoint.y);
-
-    return d.join(' ');
+    return (raw) ? path : path.serialize();
 };
 
-joint.connectors.rounded = function(sourcePoint, targetPoint, vertices, opts) {
+joint.connectors.rounded = function(sourcePoint, targetPoint, route, opt) {
 
-    opts = opts || {};
+    opt || (opt = {});
 
-    var offset = opts.radius || 10;
+    var offset = opt.radius || 10;
+    var raw = opt.raw;
+    var path = new g.Path();
+    var segment;
 
-    var c1, c2, d1, d2, prev, next;
+    segment = g.Path.createSegment('M', sourcePoint);
+    path.appendSegment(segment);
 
-    // Construct the `d` attribute of the `<path>` element.
-    var d = ['M', sourcePoint.x, sourcePoint.y];
+    var _13 = 1 / 3;
+    var _23 = 2 / 3;
 
-    joint.util.toArray(vertices).forEach(function(vertex, index) {
+    var curr;
+    var prev, next;
+    var prevDistance, nextDistance;
+    var startMove, endMove;
+    var roundedStart, roundedEnd;
+    var control1, control2;
 
-        // the closest vertices
-        prev = vertices[index - 1] || sourcePoint;
-        next = vertices[index + 1] || targetPoint;
+    for (var index = 0, n = route.length; index < n; index++) {
 
-        // a half distance to the closest vertex
-        d1 = d2 || g.point(vertex).distance(prev) / 2;
-        d2 = g.point(vertex).distance(next) / 2;
+        curr = new g.Point(route[index]);
 
-        // control points
-        c1 = g.point(vertex).move(prev, -Math.min(offset, d1)).round();
-        c2 = g.point(vertex).move(next, -Math.min(offset, d2)).round();
+        prev = route[index - 1] || sourcePoint;
+        next = route[index + 1] || targetPoint;
 
-        d.push(c1.x, c1.y, 'S', vertex.x, vertex.y, c2.x, c2.y, 'L');
-    });
+        prevDistance = nextDistance || (curr.distance(prev) / 2);
+        nextDistance = curr.distance(next) / 2;
 
-    d.push(targetPoint.x, targetPoint.y);
+        startMove = -Math.min(offset, prevDistance);
+        endMove = -Math.min(offset, nextDistance);
 
-    return d.join(' ');
-};
+        roundedStart = curr.clone().move(prev, startMove).round();
+        roundedEnd = curr.clone().move(next, endMove).round();
 
-joint.connectors.smooth = function(sourcePoint, targetPoint, vertices) {
+        control1 = new g.Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+        control2 = new g.Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
 
-    var d;
+        segment = g.Path.createSegment('L', roundedStart);
+        path.appendSegment(segment);
 
-    if (vertices.length) {
-
-        d = g.bezier.curveThroughPoints([sourcePoint].concat(vertices).concat([targetPoint]));
-
-    } else {
-        // if we have no vertices use a default cubic bezier curve, cubic bezier requires
-        // two control points. The two control points are both defined with X as mid way
-        // between the source and target points. SourceControlPoint Y is equal to sourcePoint Y
-        // and targetControlPointY being equal to targetPointY.
-        var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
-
-        d = [
-            'M', sourcePoint.x, sourcePoint.y,
-            'C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y,
-            targetPoint.x, targetPoint.y
-        ];
+        segment = g.Path.createSegment('C', control1, control2, roundedEnd);
+        path.appendSegment(segment);
     }
 
-    return d.join(' ');
+    segment = g.Path.createSegment('L', targetPoint);
+    path.appendSegment(segment);
+
+    return (raw) ? path : path.serialize();
+};
+
+joint.connectors.smooth = function(sourcePoint, targetPoint, route, opt) {
+
+    var raw = opt && opt.raw;
+    var path;
+
+    if (route && route.length !== 0) {
+
+        var points = [sourcePoint].concat(route).concat([targetPoint]);
+        var curves = g.Curve.throughPoints(points);
+
+        path = new g.Path(curves);
+
+    } else {
+        // if we have no route, use a default cubic bezier curve
+        // cubic bezier requires two control points
+        // the control points have `x` midway between source and target
+        // this produces an S-like curve
+
+        path = new g.Path();
+
+        var segment;
+
+        segment = g.Path.createSegment('M', sourcePoint);
+        path.appendSegment(segment);
+
+        if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
+            var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
+
+            segment = g.Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
+            path.appendSegment(segment);
+
+        } else {
+            var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
+
+            segment = g.Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
+            path.appendSegment(segment);
+
+        }
+    }
+
+    return (raw) ? path : path.serialize();
 };
 
 joint.connectors.jumpover = (function(_, g, util) {
@@ -15226,6 +22362,7 @@ joint.connectors.jumpover = (function(_, g, util) {
     var JUMP_SIZE = 5;
 
     // available jump types
+    // first one taken as default
     var JUMP_TYPES = ['arc', 'gap', 'cubic'];
 
     // takes care of math. error for case when jump is too close to end of line
@@ -15235,15 +22372,15 @@ joint.connectors.jumpover = (function(_, g, util) {
     var IGNORED_CONNECTORS = ['smooth'];
 
     /**
-     * Transform start/end and vertices into series of lines
+     * Transform start/end and route into series of lines
      * @param {g.point} sourcePoint start point
      * @param {g.point} targetPoint end point
-     * @param {g.point[]} vertices optional list of vertices
+     * @param {g.point[]} route optional list of route
      * @return {g.line[]} [description]
      */
-    function createLines(sourcePoint, targetPoint, vertices) {
+    function createLines(sourcePoint, targetPoint, route) {
         // make a flattened array of all points
-        var points = [].concat(sourcePoint, vertices, targetPoint);
+        var points = [].concat(sourcePoint, route, targetPoint);
         return points.reduce(function(resultLines, point, idx) {
             // if there is a next point, make a line with it
             var nextPoint = points[idx + 1];
@@ -15388,60 +22525,102 @@ joint.connectors.jumpover = (function(_, g, util) {
      * @return {string}
      */
     function buildPath(lines, jumpSize, jumpType) {
+
+        var path = new g.Path();
+        var segment;
+
         // first move to the start of a first line
-        var start = ['M', lines[0].start.x, lines[0].start.y];
+        segment = g.Path.createSegment('M', lines[0].start);
+        path.appendSegment(segment);
 
         // make a paths from lines
-        var paths = util.toArray(lines).reduce(function(res, line) {
+        joint.util.toArray(lines).forEach(function(line, index) {
+
             if (line.isJump) {
-                var diff;
-                if (jumpType === 'arc') {
-                    diff = line.start.difference(line.end);
+                var angle, diff;
+
+                var control1, control2;
+
+                if (jumpType === 'arc') { // approximates semicircle with 2 curves
+                    angle = -90;
                     // determine rotation of arc based on difference between points
-                    var xAxisRotate = Number(diff.x < 0 && diff.y < 0);
-                    // for a jump line we create an arc instead
-                    res.push('A', jumpSize, jumpSize, 0, 0, xAxisRotate, line.end.x, line.end.y);
-                } else if (jumpType === 'gap') {
-                    res = res.concat(['M', line.end.x, line.end.y]);
-                } else if (jumpType === 'cubic') {
                     diff = line.start.difference(line.end);
-                    var angle = line.start.theta(line.end);
+                    // make sure the arc always points up (or right)
+                    var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+                    if (xAxisRotate) angle += 180;
+
+                    var midpoint = line.midpoint();
+                    var centerLine = new g.Line(midpoint, line.end).rotate(midpoint, angle);
+
+                    var halfLine;
+
+                    // first half
+                    halfLine = new g.Line(line.start, midpoint);
+
+                    control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
+                    control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
+
+                    segment = g.Path.createSegment('C', control1, control2, centerLine.end);
+                    path.appendSegment(segment);
+
+                    // second half
+                    halfLine = new g.Line(midpoint, line.end);
+
+                    control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
+                    control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
+
+                    segment = g.Path.createSegment('C', control1, control2, line.end);
+                    path.appendSegment(segment);
+
+                } else if (jumpType === 'gap') {
+                    segment = g.Path.createSegment('M', line.end);
+                    path.appendSegment(segment);
+
+                } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
+                    angle = line.start.theta(line.end);
+
                     var xOffset = jumpSize * 0.6;
                     var yOffset = jumpSize * 1.35;
-                    // determine rotation of curve based on difference between points
-                    if (diff.x < 0 && diff.y < 0) {
-                        yOffset *= -1;
-                    }
-                    var controlStartPoint = g.point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
-                    var controlEndPoint = g.point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
-                    // create a cubic bezier curve
-                    res.push('C', controlStartPoint.x, controlStartPoint.y, controlEndPoint.x, controlEndPoint.y, line.end.x, line.end.y);
-                }
-            } else {
-                res.push('L', line.end.x, line.end.y);
-            }
-            return res;
-        }, start);
 
-        return paths.join(' ');
+                    // determine rotation of arc based on difference between points
+                    diff = line.start.difference(line.end);
+                    // make sure the arc always points up (or right)
+                    xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+                    if (xAxisRotate) yOffset *= -1;
+
+                    control1 = g.Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+                    control2 = g.Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
+
+                    segment = g.Path.createSegment('C', control1, control2, line.end);
+                    path.appendSegment(segment);
+                }
+
+            } else {
+                segment = g.Path.createSegment('L', line.end);
+                path.appendSegment(segment);
+            }
+        });
+
+        return path;
     }
 
     /**
      * Actual connector function that will be run on every update.
      * @param {g.point} sourcePoint start point of this link
      * @param {g.point} targetPoint end point of this link
-     * @param {g.point[]} vertices of this link
-     * @param {object} opts options
+     * @param {g.point[]} route of this link
+     * @param {object} opt options
      * @property {number} size optional size of a jump arc
      * @return {string} created `D` attribute of SVG path
      */
-    return function(sourcePoint, targetPoint, vertices, opts) { // eslint-disable-line max-params
+    return function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
 
         setupUpdating(this);
 
-        var jumpSize = opts.size || JUMP_SIZE;
-        var jumpType = opts.jump && ('' + opts.jump).toLowerCase();
-        var ignoreConnectors = opts.ignoreConnectors || IGNORED_CONNECTORS;
+        var raw = opt.raw;
+        var jumpSize = opt.size || JUMP_SIZE;
+        var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
+        var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
 
         // grab the first jump type as a default if specified one is invalid
         if (JUMP_TYPES.indexOf(jumpType) === -1) {
@@ -15455,7 +22634,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         // there is just one link, draw it directly
         if (allLinks.length === 1) {
             return buildPath(
-                createLines(sourcePoint, targetPoint, vertices),
+                createLines(sourcePoint, targetPoint, route),
                 jumpSize, jumpType
             );
         }
@@ -15490,7 +22669,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         var thisLines = createLines(
             sourcePoint,
             targetPoint,
-            vertices
+            route
         );
 
         // create lines for all other links
@@ -15536,8 +22715,8 @@ joint.connectors.jumpover = (function(_, g, util) {
             return resultLines;
         }, []);
 
-
-        return buildPath(jumpingLines, jumpSize, jumpType);
+        var path = buildPath(jumpingLines, jumpSize, jumpType);
+        return (raw) ? path : path.serialize();
     };
 }(_, g, joint.util));
 
@@ -16126,6 +23305,1294 @@ joint.highlighters.stroke = {
         this.removeHighlighter(this.getHighlighterId(magnetEl, opt));
     }
 };
+
+(function(joint, util) {
+
+    function bboxWrapper(method) {
+
+        return function(view, magnet, ref, opt) {
+
+            var rotate = !!opt.rotate;
+            var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
+            var anchor = bbox[method]();
+
+            var dx = opt.dx;
+            if (dx) {
+                var dxPercentage = util.isPercentage(dx);
+                dx = parseFloat(dx);
+                if (isFinite(dx)) {
+                    if (dxPercentage) {
+                        dx /= 100;
+                        dx *= bbox.width;
+                    }
+                    anchor.x += dx;
+                }
+            }
+
+            var dy = opt.dy;
+            if (dy) {
+                var dyPercentage = util.isPercentage(dy);
+                dy = parseFloat(dy);
+                if (isFinite(dy)) {
+                    if (dyPercentage) {
+                        dy /= 100;
+                        dy *= bbox.height;
+                    }
+                    anchor.y += dy;
+                }
+            }
+
+            return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
+        }
+    }
+
+    function resolveRefAsBBoxCenter(fn) {
+
+        return function(view, magnet, ref, opt) {
+
+            if (ref instanceof Element) {
+                var refView = this.paper.findView(ref);
+                var refPoint = refView.getNodeBBox(ref).center();
+
+                return fn.call(this, view, magnet, refPoint, opt)
+            }
+
+            return fn.apply(this, arguments);
+        }
+    }
+
+    function perpendicular(view, magnet, refPoint, opt) {
+
+        var angle = view.model.angle();
+        var bbox = view.getNodeBBox(magnet);
+        var anchor = bbox.center();
+        var topLeft = bbox.origin();
+        var bottomRight = bbox.corner();
+
+        var padding = opt.padding
+        if (!isFinite(padding)) padding = 0;
+
+        if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
+            var dy = (refPoint.y - anchor.y);
+            anchor.x += (angle === 0 || angle === 180) ? 0 : dy * 1 / Math.tan(g.toRad(angle));
+            anchor.y += dy;
+        } else if ((topLeft.x + padding) <= refPoint.x && refPoint.x <= (bottomRight.x - padding)) {
+            var dx = (refPoint.x - anchor.x);
+            anchor.y += (angle === 90 || angle === 270) ? 0 : dx * Math.tan(g.toRad(angle));
+            anchor.x += dx;
+        }
+
+        return anchor;
+    }
+
+    function midSide(view, magnet, refPoint, opt) {
+
+        var rotate = !!opt.rotate;
+        var bbox, angle, center;
+        if (rotate) {
+            bbox = view.getNodeUnrotatedBBox(magnet);
+            center = view.model.getBBox().center();
+            angle = view.model.angle();
+        } else {
+            bbox = view.getNodeBBox(magnet);
+        }
+
+        var padding = opt.padding;
+        if (isFinite(padding)) bbox.inflate(padding);
+
+        if (rotate) refPoint.rotate(center, angle);
+
+        var side = bbox.sideNearestToPoint(refPoint);
+        var anchor;
+        switch (side) {
+            case 'left': anchor = bbox.leftMiddle(); break;
+            case 'right': anchor = bbox.rightMiddle(); break;
+            case 'top': anchor = bbox.topMiddle(); break;
+            case 'bottom': anchor = bbox.bottomMiddle(); break;
+        }
+
+        return (rotate) ? anchor.rotate(center, -angle) : anchor;
+    }
+
+    // Can find anchor from model, when there is no selector or the link end
+    // is connected to a port
+    function modelCenter(view, magnet) {
+
+        var model = view.model;
+        var bbox = model.getBBox();
+        var center = bbox.center();
+        var angle = model.angle();
+
+        var portId = view.findAttribute('port', magnet);
+        if (portId) {
+            portGroup = model.portProp(portId, 'group');
+            var portsPositions = model.getPortsPositions(portGroup);
+            var anchor = new g.Point(portsPositions[portId]).offset(bbox.origin());
+            anchor.rotate(center, -angle);
+            return anchor;
+        }
+
+        return center;
+    }
+
+    joint.anchors = {
+        center: bboxWrapper('center'),
+        top: bboxWrapper('topMiddle'),
+        bottom: bboxWrapper('bottomMiddle'),
+        left: bboxWrapper('leftMiddle'),
+        right: bboxWrapper('rightMiddle'),
+        topLeft: bboxWrapper('origin'),
+        topRight: bboxWrapper('topRight'),
+        bottomLeft: bboxWrapper('bottomLeft'),
+        bottomRight: bboxWrapper('corner'),
+        perpendicular: resolveRefAsBBoxCenter(perpendicular),
+        midSide: resolveRefAsBBoxCenter(midSide),
+        modelCenter: modelCenter
+    }
+
+})(joint, joint.util);
+
+(function(joint, util, g, V) {
+
+    function closestIntersection(intersections, refPoint) {
+
+        if (intersections.length === 1) return intersections[0];
+        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint) })[0];
+    }
+
+    function offset(p1, p2, offset) {
+
+        if (!isFinite(offset)) return p1;
+        var length = p1.distance(p2);
+        if (offset === 0 && length > 0) return p1;
+        return p1.move(p2, -Math.min(offset, length - 1));
+    }
+
+    function stroke(magnet) {
+
+        var stroke = magnet.getAttribute('stroke-width');
+        if (stroke === null) return 0;
+        return parseFloat(stroke) || 0;
+    }
+
+    // Connection Points
+
+    function anchor(line, view, magnet, opt) {
+
+        return offset(line.end, line.start, opt.offset);
+    }
+
+    function bboxIntersection(line, view, magnet, opt) {
+
+        var bbox = view.getNodeBBox(magnet);
+        if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
+        var intersections = line.intersect(bbox);
+        var cp = (intersections)
+            ? closestIntersection(intersections, line.start)
+            : line.end;
+        return offset(cp, line.start, opt.offset);
+    }
+
+    function rectangleIntersection(line, view, magnet, opt) {
+
+        var angle = view.model.angle();
+        if (angle === 0) {
+            return bboxIntersection(line, view, magnet, opt);
+        }
+
+        var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
+        if (opt.stroke) bboxWORotation.inflate(stroke(magnet) / 2);
+        var center = bboxWORotation.center();
+        var lineWORotation = line.clone().rotate(center, angle);
+        var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
+        var cp = (intersections)
+            ? closestIntersection(intersections, lineWORotation.start).rotate(center, -angle)
+            : line.end;
+        return offset(cp, line.start, opt.offset);
+    }
+
+    var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
+    var BNDR_SHAPE_BBOX = 'shapeBBox';
+
+    function boundaryIntersection(line, view, magnet, opt) {
+
+        var node, intersection;
+        var selector = opt.selector;
+        var anchor = line.end;
+
+        if (typeof selector === 'string') {
+            node = view.findBySelector(selector)[0];
+        } else if (Array.isArray(selector)) {
+            node = util.getByPath(magnet, selector);
+        } else {
+            // Find the closest non-group descendant
+            node = magnet;
+            do {
+                var tagName = node.tagName.toUpperCase();
+                if (tagName === 'G') {
+                    node = node.firstChild;
+                } else if (tagName === 'TITLE') {
+                    node = node.nextSibling;
+                } else break;
+            } while (node)
+        }
+
+        if (!(node instanceof Element)) return anchor;
+
+        var localShape = view.getNodeShape(node);
+        var magnetMatrix = view.getNodeMatrix(node);
+        var translateMatrix = view.getRootTranslateMatrix();
+        var rotateMatrix = view.getRootRotateMatrix();
+        var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
+        var localMatrix = targetMatrix.inverse();
+        var localLine = V.transformLine(line, localMatrix);
+        var localRef = localLine.start.clone();
+        var data = view.getNodeData(node);
+
+        if (opt.insideout === false) {
+            if (!data[BNDR_SHAPE_BBOX]) data[BNDR_SHAPE_BBOX] = localShape.bbox();
+            var localBBox = data[BNDR_SHAPE_BBOX];
+            if (localBBox.containsPoint(localRef)) return anchor;
+        }
+
+        // Caching segment subdivisions for paths
+        var pathOpt
+        if (localShape instanceof g.Path) {
+            var precision = opt.precision || 2;
+            if (!data[BNDR_SUBDIVISIONS]) data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision });
+            segmentSubdivisions = data[BNDR_SUBDIVISIONS];
+            pathOpt = {
+                precision: precision,
+                segmentSubdivisions: data[BNDR_SUBDIVISIONS]
+            }
+        }
+
+        if (opt.extrapolate === true) localLine.setLength(1e6);
+
+        intersection = localLine.intersect(localShape, pathOpt);
+        if (intersection) {
+            // More than one intersection
+            if (V.isArray(intersection)) intersection = closestIntersection(intersection, localRef);
+        } else if (opt.sticky === true) {
+            // No intersection, find the closest point instead
+            if (localShape instanceof g.Rect) {
+                intersection = localShape.pointNearestToPoint(localRef);
+            } else if (localShape instanceof g.Ellipse) {
+                intersection = localShape.intersectionWithLineFromCenterToPoint(localRef);
+            } else {
+                intersection = localShape.closestPoint(localRef, pathOpt);
+            }
+        }
+
+        var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
+        var cpOffset = opt.offset || 0;
+        if (opt.stroke) cpOffset += stroke(node) / 2;
+
+        return offset(cp, line.start, cpOffset);
+    }
+
+    joint.connectionPoints = {
+        anchor: anchor,
+        bbox: bboxIntersection,
+        rectangle: rectangleIntersection,
+        boundary: boundaryIntersection
+    }
+
+})(joint, joint.util, g, V);
+
+(function(joint, util) {
+
+    function abs2rel(value, max) {
+
+        if (max === 0) return '0%';
+        return Math.round(value / max * 100) + '%';
+    }
+
+    function pin(relative) {
+
+        return function(end, view, magnet, coords) {
+
+            var angle = view.model.angle();
+            var bbox = view.getNodeUnrotatedBBox(magnet);
+            var origin = view.model.getBBox().center();
+            coords.rotate(origin, angle);
+            var dx = coords.x - bbox.x;
+            var dy = coords.y - bbox.y;
+
+            if (relative) {
+                dx = abs2rel(dx, bbox.width);
+                dy = abs2rel(dy, bbox.height);
+            }
+
+            end.anchor = {
+                name: 'topLeft',
+                args: {
+                    dx: dx,
+                    dy: dy,
+                    rotate: true
+                }
+            };
+
+            return end;
+        }
+    }
+
+    joint.connectionStrategies = {
+        useDefaults: util.noop,
+        pinAbsolute: pin(false),
+        pinRelative: pin(true)
+    }
+
+})(joint, joint.util);
+
+(function(joint, util, V, g) {
+
+    function getAnchor(coords, view, magnet) {
+        // take advantage of an existing logic inside of the
+        // pin relative connection strategy
+        var end = joint.connectionStrategies.pinRelative.call(
+            this.paper,
+            {},
+            view,
+            magnet,
+            coords,
+            this.model
+        );
+        return end.anchor;
+    }
+
+    function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
+        var snapRadius = toolView.options.snapRadius;
+        var isSource = (type === 'source');
+        var refIndex = (isSource ? 0 : -1);
+        var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
+        if (ref) {
+            if (Math.abs(ref.x - coords.x) < snapRadius) coords.x = ref.x;
+            if (Math.abs(ref.y - coords.y) < snapRadius) coords.y = ref.y;
+        }
+        return coords;
+    }
+
+    var ToolView = joint.dia.ToolView;
+
+    // Vertex Handles
+    var VertexHandle = joint.mvc.View.extend({
+        tagName: 'circle',
+        svgElement: true,
+        className: 'marker-vertex',
+        events: {
+            mousedown: 'onPointerDown',
+            touchstart: 'onPointerDown',
+            dblclick: 'onDoubleClick'
+        },
+        documentEvents: {
+            mousemove: 'onPointerMove',
+            touchmove: 'onPointerMove',
+            mouseup: 'onPointerUp',
+            touchend: 'onPointerUp'
+        },
+        attributes: {
+            'r': 6,
+            'fill': '#33334F',
+            'stroke': '#FFFFFF',
+            'stroke-width': 2,
+            'cursor': 'move'
+        },
+        position: function(x, y) {
+            this.vel.attr({ cx: x, cy: y });
+        },
+        onPointerDown: function(evt) {
+            evt.stopPropagation();
+            this.options.paper.undelegateEvents();
+            this.delegateDocumentEvents(null, evt.data);
+            this.trigger('will-change');
+        },
+        onPointerMove: function(evt) {
+            this.trigger('changing', this, evt);
+        },
+        onDoubleClick: function(evt) {
+            this.trigger('remove', this, evt);
+        },
+        onPointerUp: function(evt) {
+            this.trigger('changed', this, evt);
+            this.undelegateDocumentEvents();
+            this.options.paper.delegateEvents();
+        }
+    });
+
+    var Vertices = ToolView.extend({
+        name: 'vertices',
+        options: {
+            handleClass: VertexHandle,
+            snapRadius: 20,
+            redundancyRemoval: true,
+            vertexAdding: true,
+        },
+        children: [{
+            tagName: 'path',
+            selector: 'connection',
+            className: 'joint-vertices-path',
+            attributes: {
+                'fill': 'none',
+                'stroke': 'transparent',
+                'stroke-width': 10,
+                'cursor': 'cell'
+            }
+        }],
+        handles: null,
+        events: {
+            'mousedown .joint-vertices-path': 'onPathPointerDown'
+        },
+        onRender: function() {
+            this.resetHandles();
+            if (this.options.vertexAdding) {
+                this.renderChildren();
+                this.updatePath();
+            }
+            var relatedView = this.relatedView;
+            var vertices = relatedView.model.vertices();
+            for (var i = 0, n = vertices.length; i < n; i++) {
+                var vertex = vertices[i];
+                var handle = new (this.options.handleClass)({ index: i, paper: this.paper });
+                handle.render();
+                handle.position(vertex.x, vertex.y);
+                this.simulateRelatedView(handle.el);
+                handle.vel.appendTo(this.el);
+                this.handles.push(handle);
+                this.startHandleListening(handle);
+            }
+            return this;
+        },
+        update: function() {
+            this.render();
+            return this;
+        },
+        updatePath: function() {
+            var connection = this.childNodes.connection;
+            if (connection) connection.setAttribute('d', this.relatedView.getConnection().serialize());
+        },
+        startHandleListening: function(handle) {
+            var relatedView = this.relatedView;
+            if (relatedView.can('vertexMove')) {
+                this.listenTo(handle, 'will-change', this.onHandleWillChange);
+                this.listenTo(handle, 'changing', this.onHandleChanging);
+                this.listenTo(handle, 'changed', this.onHandleChanged);
+            }
+            if (relatedView.can('vertexRemove')) {
+                this.listenTo(handle, 'remove', this.onHandleRemove);
+            }
+        },
+        resetHandles: function() {
+            var handles = this.handles;
+            this.handles = [];
+            this.stopListening();
+            if (!Array.isArray(handles)) return;
+            for (var i = 0, n = handles.length; i < n; i++) {
+                handles[i].remove();
+            }
+        },
+        getNeighborPoints: function(index) {
+            var linkView = this.relatedView;
+            var vertices = linkView.model.vertices();
+            var prev = (index > 0) ? vertices[index - 1] : linkView.sourceAnchor;
+            var next = (index < vertices.length - 1) ? vertices[index + 1] : linkView.targetAnchor;
+            return {
+                prev: new g.Point(prev),
+                next: new g.Point(next)
+            }
+        },
+        onHandleWillChange: function(handle, evt) {
+            this.focus();
+            this.relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
+        },
+        onHandleChanging: function(handle, evt) {
+            var relatedView = this.relatedView;
+            var paper = relatedView.paper;
+            var index = handle.options.index;
+            var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            this.snapVertex(vertex, index);
+            relatedView.model.vertex(index, vertex, { ui: true, tool: this.cid });
+            handle.position(vertex.x, vertex.y);
+        },
+        snapVertex: function(vertex, index) {
+            var snapRadius = this.options.snapRadius;
+            if (snapRadius > 0) {
+                var neighbors = this.getNeighborPoints(index);
+                var prev = neighbors.prev;
+                var next = neighbors.next;
+                if (Math.abs(vertex.x - prev.x) < snapRadius) {
+                    vertex.x = prev.x;
+                } else if (Math.abs(vertex.x - next.x) < snapRadius) {
+                    vertex.x = next.x;
+                }
+                if (Math.abs(vertex.y - prev.y) < snapRadius) {
+                    vertex.y = neighbors.prev.y;
+                } else if (Math.abs(vertex.y - next.y) < snapRadius) {
+                    vertex.y = next.y;
+                }
+            }
+        },
+        onHandleChanged: function(handle, evt) {
+            if (this.options.vertexAdding) this.updatePath();
+            if (!this.options.redundancyRemoval) return;
+            var linkView = this.relatedView;
+            var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+            if (verticesRemoved) this.render();
+            this.blur();
+            linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
+            if (this.eventData(evt).vertexAdded) {
+                linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
+            }
+        },
+        onHandleRemove: function(handle) {
+            var index = handle.options.index;
+            this.relatedView.model.removeVertex(index, { ui: true });
+        },
+        onPathPointerDown: function(evt) {
+            evt.stopPropagation();
+            var vertex = this.paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            var relatedView = this.relatedView;
+            relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
+            var index = relatedView.getVertexIndex(vertex.x, vertex.y);
+            this.snapVertex(vertex, index);
+            relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
+            this.render();
+            var handle = this.handles[index];
+            this.eventData(evt, { vertexAdded: true });
+            handle.onPointerDown(evt);
+        },
+        onRemove: function() {
+            this.resetHandles();
+        }
+    }, {
+        VertexHandle: VertexHandle // keep as class property
+    });
+
+    var SegmentHandle = joint.mvc.View.extend({
+        tagName: 'g',
+        svgElement: true,
+        className: 'marker-segment',
+        events: {
+            mousedown: 'onPointerDown',
+            touchstart: 'onPointerDown'
+        },
+        documentEvents: {
+            mousemove: 'onPointerMove',
+            touchmove: 'onPointerMove',
+            mouseup: 'onPointerUp',
+            touchend: 'onPointerUp'
+        },
+        children: [{
+            tagName: 'line',
+            selector: 'line',
+            attributes: {
+                'stroke': '#33334F',
+                'stroke-width': 2,
+                'fill': 'none',
+                'pointer-events': 'none'
+            }
+        }, {
+            tagName: 'rect',
+            selector: 'handle',
+            attributes: {
+                'width': 20,
+                'height': 8,
+                'x': -10,
+                'y': -4,
+                'rx': 4,
+                'ry': 4,
+                'fill': '#33334F',
+                'stroke': '#FFFFFF',
+                'stroke-width': 2
+            }
+        }],
+        onRender: function() {
+            this.renderChildren();
+        },
+        position: function(x, y, angle, view) {
+
+            var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
+            var handle = this.childNodes.handle;
+            handle.setAttribute('transform', V.matrixToTransformString(matrix));
+            handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
+
+            var viewPoint = view.getClosestPoint(new g.Point(x, y));
+            var line = this.childNodes.line;
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', viewPoint.x);
+            line.setAttribute('y2', viewPoint.y);
+        },
+        onPointerDown: function(evt) {
+            this.trigger('change:start', this, evt);
+            evt.stopPropagation();
+            this.options.paper.undelegateEvents();
+            this.delegateDocumentEvents(null, evt.data);
+        },
+        onPointerMove: function(evt) {
+            this.trigger('changing', this, evt);
+        },
+        onPointerUp: function(evt) {
+            this.undelegateDocumentEvents();
+            this.options.paper.delegateEvents();
+            this.trigger('change:end', this, evt);
+        },
+        show: function() {
+            this.el.style.display = '';
+        },
+        hide: function() {
+            this.el.style.display = 'none';
+        }
+    });
+
+    var Segments = ToolView.extend({
+        name: 'segments',
+        precision: .5,
+        options: {
+            handleClass: SegmentHandle,
+            segmentLengthThreshold: 40,
+            redundancyRemoval: true,
+            anchor: getAnchor,
+            snapRadius: 10,
+            snapHandle: true
+        },
+        handles: null,
+        onRender: function() {
+            this.resetHandles();
+            var relatedView = this.relatedView;
+            var vertices = relatedView.model.vertices();
+            vertices.unshift(relatedView.sourcePoint);
+            vertices.push(relatedView.targetPoint);
+            for (var i = 0, n = vertices.length; i < n - 1; i++) {
+                var vertex = vertices[i];
+                var nextVertex = vertices[i + 1];
+                var handle = this.renderHandle(vertex, nextVertex);
+                this.simulateRelatedView(handle.el);
+                this.handles.push(handle);
+                handle.options.index = i;
+            }
+            return this;
+        },
+        renderHandle: function(vertex, nextVertex) {
+            var handle = new (this.options.handleClass)({ paper: this.paper });
+            handle.render();
+            this.updateHandle(handle, vertex, nextVertex);
+            handle.vel.appendTo(this.el);
+            this.startHandleListening(handle);
+            return handle;
+        },
+        update: function() {
+            this.render();
+            return this;
+        },
+        startHandleListening: function(handle) {
+            this.listenTo(handle, 'change:start', this.onHandleChangeStart);
+            this.listenTo(handle, 'changing', this.onHandleChanging);
+            this.listenTo(handle, 'change:end', this.onHandleChangeEnd);
+        },
+        resetHandles: function() {
+            var handles = this.handles;
+            this.handles = [];
+            this.stopListening();
+            if (!Array.isArray(handles)) return;
+            for (var i = 0, n = handles.length; i < n; i++) {
+                handles[i].remove();
+            }
+        },
+        shiftHandleIndexes: function(value) {
+            var handles = this.handles;
+            for (var i = 0, n = handles.length; i < n; i++) handles[i].options.index += value;
+        },
+        resetAnchor: function(type, anchor) {
+            var relatedModel = this.relatedView.model;
+            if (anchor) {
+                relatedModel.prop([type, 'anchor'], anchor, {
+                    rewrite: true,
+                    ui: true,
+                    tool: this.cid
+                });
+            } else {
+                relatedModel.removeProp([type, 'anchor'], {
+                    ui: true,
+                    tool: this.cid
+                });
+            }
+        },
+        snapHandle: function(handle, position, data) {
+
+            var index = handle.options.index;
+            var linkView = this.relatedView;
+            var link = linkView.model;
+            var vertices = link.vertices();
+            var axis = handle.options.axis;
+            var prev = vertices[index - 2] || data.sourceAnchor;
+            var next = vertices[index + 1] || data.targetAnchor;
+            var snapRadius = this.options.snapRadius;
+            if (Math.abs(position[axis] - prev[axis]) < snapRadius) {
+                position[axis] = prev[axis];
+            } else if (Math.abs(position[axis] - next[axis]) < snapRadius) {
+                position[axis] = next[axis];
+            }
+            return position;
+        },
+
+        onHandleChanging: function(handle, evt) {
+
+            var data = this.eventData(evt);
+            var relatedView = this.relatedView;
+            var paper = relatedView.paper;
+            var index = handle.options.index - 1;
+            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
+            var position = this.snapHandle(handle, coords.clone(), data);
+            var axis = handle.options.axis;
+            var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
+            var link = relatedView.model;
+            var vertices = util.cloneDeep(link.vertices());
+            var vertex = vertices[index];
+            var nextVertex = vertices[index + 1];
+            var anchorFn = this.options.anchor;
+            if (typeof anchorFn !== 'function') anchorFn = null;
+
+            // First Segment
+            var sourceView = relatedView.sourceView;
+            var sourceBBox = relatedView.sourceBBox;
+            var changeSourceAnchor = false;
+            var deleteSourceAnchor = false;
+            if (!vertex) {
+                vertex = relatedView.sourceAnchor.toJSON();
+                vertex[axis] = position[axis];
+                if (sourceBBox.containsPoint(vertex)) {
+                    vertex[axis] = position[axis];
+                    changeSourceAnchor = true;
+                } else {
+                    // we left the area of the source magnet for the first time
+                    vertices.unshift(vertex);
+                    this.shiftHandleIndexes(1);
+                    delateSourceAnchor = true;
+                }
+            } else if (index === 0) {
+                if (sourceBBox.containsPoint(vertex)) {
+                    vertices.shift();
+                    this.shiftHandleIndexes(-1);
+                    changeSourceAnchor = true;
+                } else {
+                    vertex[axis] = position[axis];
+                    deleteSourceAnchor = true;
+                }
+            } else {
+                vertex[axis] = position[axis];
+            }
+
+            if (anchorFn && sourceView) {
+                if (changeSourceAnchor) {
+                    var sourceAnchorPosition = data.sourceAnchor.clone();
+                    sourceAnchorPosition[axis] = position[axis];
+                    var sourceAnchor = anchorFn.call(relatedView, sourceAnchorPosition, sourceView, relatedView.sourceMagnet || sourceView.el, 'source', relatedView);
+                    this.resetAnchor('source', sourceAnchor);
+                }
+                if (deleteSourceAnchor) {
+                    this.resetAnchor('source', data.sourceAnchorDef);
+                }
+            }
+
+            // Last segment
+            var targetView = relatedView.targetView;
+            var targetBBox = relatedView.targetBBox;
+            var changeTargetAnchor = false;
+            var deleteTargetAnchor = false;
+            if (!nextVertex) {
+                nextVertex = relatedView.targetAnchor.toJSON();
+                nextVertex[axis] = position[axis];
+                if (targetBBox.containsPoint(nextVertex)) {
+                    changeTargetAnchor = true;
+                } else {
+                    // we left the area of the target magnet for the first time
+                    vertices.push(nextVertex);
+                    deleteTargetAnchor = true;
+                }
+            } else if (index === vertices.length - 2) {
+                if (targetBBox.containsPoint(nextVertex)) {
+                    vertices.pop();
+                    changeTargetAnchor = true;
+                } else {
+                    nextVertex[axis] = position[axis];
+                    deleteTargetAnchor = true;
+                }
+            } else {
+                nextVertex[axis] = position[axis];
+            }
+
+            if (anchorFn && targetView) {
+                if (changeTargetAnchor) {
+                    var targetAnchorPosition = data.targetAnchor.clone();
+                    targetAnchorPosition[axis] = position[axis];
+                    var targetAnchor = anchorFn.call(relatedView, targetAnchorPosition, targetView, relatedView.targetMagnet || targetView.el, 'target', relatedView);
+                    this.resetAnchor('target', targetAnchor);
+                }
+                if (deleteTargetAnchor) {
+                    this.resetAnchor('target', data.targetAnchorDef);
+                }
+            }
+
+            link.vertices(vertices, { ui: true, tool: this.cid });
+            this.updateHandle(handle, vertex, nextVertex, offset);
+        },
+        onHandleChangeStart: function(handle, evt) {
+            var index = handle.options.index;
+            var handles = this.handles;
+            if (!Array.isArray(handles)) return;
+            for (var i = 0, n = handles.length; i < n; i++) {
+                if (i !== index) handles[i].hide()
+            }
+            this.focus();
+            var relatedView = this.relatedView;
+            var relatedModel = relatedView.model;
+            this.eventData(evt, {
+                sourceAnchor: relatedView.sourceAnchor.clone(),
+                targetAnchor: relatedView.targetAnchor.clone(),
+                sourceAnchorDef: util.clone(relatedModel.prop(['source', 'anchor'])),
+                targetAnchorDef: util.clone(relatedModel.prop(['target', 'anchor']))
+            });
+            relatedView.model.startBatch('segment-move', { ui: true, tool: this.cid });
+        },
+        onHandleChangeEnd: function(handle) {
+            var linkView = this.relatedView;
+            if (this.options.redundancyRemoval) {
+                linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+            }
+            this.render();
+            this.blur();
+            linkView.model.stopBatch('segment-move', { ui: true, tool: this.cid });
+        },
+        updateHandle: function(handle, vertex, nextVertex, offset) {
+            var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
+            var horizontal = Math.abs(vertex.y - nextVertex.y) < this.precision;
+            if (vertical || horizontal) {
+                var segmentLine = new g.Line(vertex, nextVertex);
+                var length = segmentLine.length();
+                if (length < this.options.segmentLengthThreshold) {
+                    handle.hide();
+                } else {
+                    var position = segmentLine.midpoint()
+                    var axis = (vertical) ? 'x' : 'y';
+                    position[axis] += offset || 0;
+                    var angle = segmentLine.vector().vectorAngle(new g.Point(1, 0));
+                    handle.position(position.x, position.y, angle, this.relatedView);
+                    handle.show();
+                    handle.options.axis = axis;
+                }
+            } else {
+                handle.hide();
+            }
+        },
+        onRemove: function() {
+            this.resetHandles();
+        }
+    }, {
+        SegmentHandle: SegmentHandle // keep as class property
+    });
+
+    // End Markers
+    var Arrowhead = ToolView.extend({
+        tagName: 'path',
+        xAxisVector: new g.Point(1, 0),
+        events: {
+            mousedown: 'onPointerDown',
+            touchstart: 'onPointerDown'
+        },
+        documentEvents: {
+            mousemove: 'onPointerMove',
+            touchmove: 'onPointerMove',
+            mouseup: 'onPointerUp',
+            touchend: 'onPointerUp'
+        },
+        onRender: function() {
+            this.update()
+        },
+        update: function() {
+            var ratio = this.ratio;
+            var view = this.relatedView;
+            var tangent = view.getTangentAtRatio(ratio);
+            var position, angle;
+            if (tangent) {
+                position = tangent.start;
+                angle = tangent.vector().vectorAngle(this.xAxisVector) || 0;
+            } else {
+                position = view.getPointAtRatio(ratio);
+                angle = 0;
+            }
+            var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
+            this.vel.transform(matrix, { absolute: true });
+            return this;
+        },
+        onPointerDown: function(evt) {
+            evt.stopPropagation();
+            var relatedView = this.relatedView;
+            relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
+            if (relatedView.can('arrowheadMove')) {
+                relatedView.startArrowheadMove(this.arrowheadType);
+                this.delegateDocumentEvents();
+                relatedView.paper.undelegateEvents();
+            }
+            this.focus();
+            this.el.style.pointerEvents = 'none';
+        },
+        onPointerMove: function(evt) {
+            var coords = this.paper.snapToGrid(evt.clientX, evt.clientY);
+            this.relatedView.pointermove(evt, coords.x, coords.y);
+        },
+        onPointerUp: function(evt) {
+            this.undelegateDocumentEvents();
+            var relatedView = this.relatedView;
+            var paper = relatedView.paper;
+            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
+            relatedView.pointerup(evt, coords.x, coords.y);
+            paper.delegateEvents();
+            this.blur();
+            this.el.style.pointerEvents = '';
+            relatedView.model.stopBatch('arrowhead-move', { ui: true, tool: this.cid });
+        }
+    });
+
+    var TargetArrowhead = Arrowhead.extend({
+        name: 'target-arrowhead',
+        ratio: 1,
+        arrowheadType: 'target',
+        attributes: {
+            'd': 'M -10 -8 10 0 -10 8 Z',
+            'fill': '#33334F',
+            'stroke': '#FFFFFF',
+            'stroke-width': 2,
+            'cursor': 'move',
+            'class': 'target-arrowhead'
+        }
+    });
+
+    var SourceArrowhead = Arrowhead.extend({
+        name: 'source-arrowhead',
+        ratio: 0,
+        arrowheadType: 'source',
+        attributes: {
+            'd': 'M 10 -8 -10 0 10 8 Z',
+            'fill': '#33334F',
+            'stroke': '#FFFFFF',
+            'stroke-width': 2,
+            'cursor': 'move',
+            'class': 'source-arrowhead'
+        }
+    });
+
+    var Button = ToolView.extend({
+        name: 'button',
+        events: {
+            'mousedown': 'onPointerDown',
+            'touchstart': 'onPointerDown'
+        },
+        options: {
+            distance: 0,
+            offset: 0,
+            rotate: false
+        },
+        onRender: function() {
+            this.renderChildren(this.options.markup);
+            this.update()
+        },
+        update: function() {
+            var tangent, position, angle;
+            var distance = this.options.distance || 0;
+            if (util.isPercentage(distance)) {
+                tangent = this.relatedView.getTangentAtRatio(parseFloat(distance) / 100);
+            } else {
+                tangent = this.relatedView.getTangentAtLength(distance)
+            }
+            if (tangent) {
+                position = tangent.start;
+                angle = tangent.vector().vectorAngle(new g.Point(1,0)) || 0;
+            } else {
+                position = this.relatedView.getConnection().start;
+                angle = 0;
+            }
+            var matrix = V.createSVGMatrix()
+                .translate(position.x, position.y)
+                .rotate(angle)
+                .translate(0, this.options.offset || 0);
+            if (!this.options.rotate) matrix = matrix.rotate(-angle);
+            this.vel.transform(matrix, { absolute: true });
+            return this;
+        },
+        onPointerDown: function(evt) {
+            evt.stopPropagation();
+            var actionFn = this.options.action;
+            if (typeof actionFn === 'function') {
+                actionFn.call(this.relatedView, evt, this.relatedView);
+            }
+        }
+    });
+
+
+    var Remove = Button.extend({
+        children: [{
+            tagName: 'circle',
+            selector: 'button',
+            attributes: {
+                'r': 7,
+                'fill': '#FF1D00',
+                'cursor': 'pointer'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'icon',
+            attributes: {
+                'd': 'M -3 -3 3 3 M -3 3 3 -3',
+                'fill': 'none',
+                'stroke': '#FFFFFF',
+                'stroke-width': 2,
+                'pointer-events': 'none'
+            }
+        }],
+        options: {
+            distance: 60,
+            offset: 0,
+            action: function(evt) {
+                this.model.remove({ ui: true, tool: this.cid });
+            }
+        }
+    });
+
+    var Boundary = ToolView.extend({
+        name: 'boundary',
+        tagName: 'rect',
+        options: {
+            padding: 10
+        },
+        attributes: {
+            'fill': 'none',
+            'stroke': '#33334F',
+            'stroke-width': .5,
+            'stroke-dasharray': '5, 5',
+            'pointer-events': 'none'
+        },
+        onRender: function() {
+            this.update();
+        },
+        update: function() {
+            var padding = this.options.padding;
+            if (!isFinite(padding)) padding = 0;
+            var bbox = this.relatedView.getConnection().bbox().inflate(padding);
+            this.vel.attr(bbox.toJSON());
+            return this;
+        }
+    });
+
+    var Anchor = ToolView.extend({
+        tagName: 'g',
+        type: null,
+        children: [{
+            tagName: 'circle',
+            selector: 'anchor',
+            attributes: {
+                'cursor': 'pointer'
+            }
+        }, {
+            tagName: 'rect',
+            selector: 'area',
+            attributes: {
+                'pointer-events': 'none',
+                'fill': 'none',
+                'stroke': '#33334F',
+                'stroke-dasharray': '2,4',
+                'rx': 5,
+                'ry': 5
+            }
+        }],
+        events: {
+            mousedown: 'onPointerDown',
+            touchstart: 'onPointerDown',
+            dblclick: 'onPointerDblClick'
+        },
+        documentEvents: {
+            mousemove: 'onPointerMove',
+            touchmove: 'onPointerMove',
+            mouseup: 'onPointerUp',
+            touchend: 'onPointerUp'
+        },
+        options: {
+            snap: snapAnchor,
+            anchor: getAnchor,
+            customAnchorAttributes: {
+                'stroke-width': 4,
+                'stroke': '#33334F',
+                'fill': '#FFFFFF',
+                'r': 5
+            },
+            defaultAnchorAttributes: {
+                'stroke-width': 2,
+                'stroke': '#FFFFFF',
+                'fill': '#33334F',
+                'r': 6
+            },
+            areaPadding: 6,
+            snapRadius: 10,
+            restrictArea: true,
+            redundancyRemoval: true
+        },
+        onRender: function() {
+            this.renderChildren();
+            this.toggleArea(false);
+            this.update();
+        },
+        update: function() {
+            var type = this.type;
+            var relatedView = this.relatedView;
+            var view = relatedView.getEndView(type);
+            if (view) {
+                this.updateAnchor();
+                this.updateArea();
+                this.el.style.display = '';
+            } else {
+                this.el.style.display = 'none';
+            }
+            return this;
+        },
+        updateAnchor: function() {
+            var childNodes = this.childNodes;
+            if (!childNodes) return;
+            var anchorNode = childNodes.anchor;
+            if (!anchorNode) return;
+            var relatedView = this.relatedView;
+            var type = this.type;
+            var position = relatedView.getEndAnchor(type);
+            var options = this.options;
+            var customAnchor = relatedView.model.prop([type, 'anchor']);
+            anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
+            var anchorAttributes = (customAnchor) ? options.customAnchorAttributes : options.defaultAnchorAttributes;
+            for (var attrName in anchorAttributes) {
+                anchorNode.setAttribute(attrName, anchorAttributes[attrName]);
+            }
+        },
+        updateArea: function() {
+            var childNodes = this.childNodes;
+            if (!childNodes) return;
+            var areaNode = childNodes.area;
+            if (!areaNode) return;
+            var relatedView = this.relatedView;
+            var type = this.type;
+            var view = relatedView.getEndView(type);
+            var magnet = relatedView.getEndMagnet(type);
+            var padding = this.options.areaPadding;
+            if (!isFinite(padding)) padding = 0;
+            var bbox = view.getNodeUnrotatedBBox(magnet).inflate(padding);
+            var angle = view.model.angle();
+            areaNode.setAttribute('x', -bbox.width / 2);
+            areaNode.setAttribute('y', -bbox.height / 2);
+            areaNode.setAttribute('width', bbox.width);
+            areaNode.setAttribute('height', bbox.height);
+            var origin = view.model.getBBox().center();
+            var center = bbox.center().rotate(origin, -angle)
+            areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle +')');
+        },
+        toggleArea: function(visible) {
+            this.childNodes.area.style.display = (visible) ? '' : 'none';
+        },
+        onPointerDown: function(evt) {
+            evt.stopPropagation();
+            this.paper.undelegateEvents();
+            this.delegateDocumentEvents();
+            this.focus();
+            this.toggleArea(this.options.restrictArea);
+            this.relatedView.model.startBatch('anchor-move', { ui: true, tool: this.cid });
+        },
+        resetAnchor: function(anchor) {
+            var type = this.type;
+            var relatedModel = this.relatedView.model;
+            if (anchor) {
+                relatedModel.prop([type, 'anchor'], anchor, {
+                    rewrite: true,
+                    ui: true,
+                    tool: this.cid
+                });
+            } else {
+                relatedModel.removeProp([type, 'anchor'], {
+                    ui: true,
+                    tool: this.cid
+                });
+            }
+        },
+        onPointerMove: function(evt) {
+
+            var relatedView = this.relatedView;
+            var type = this.type;
+            var view = relatedView.getEndView(type);
+            var magnet = relatedView.getEndMagnet(type);
+
+            var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
+            var snapFn = this.options.snap;
+            if (typeof snapFn === 'function') {
+                coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView, this);
+                coords = new g.Point(coords);
+            }
+
+            if (this.options.restrictArea) {
+                // snap coords within node bbox
+                var bbox = view.getNodeUnrotatedBBox(magnet);
+                var angle = view.model.angle();
+                var origin = view.model.getBBox().center();
+                var rotatedCoords = coords.clone().rotate(origin, angle);
+                if (!bbox.containsPoint(rotatedCoords)) {
+                    coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+                }
+            }
+
+            var anchor;
+            var anchorFn = this.options.anchor;
+            if (typeof anchorFn === 'function') {
+                anchor = anchorFn.call(relatedView, coords, view, magnet, type, relatedView);
+            }
+
+            this.resetAnchor(anchor);
+            this.update();
+        },
+
+        onPointerUp: function(evt) {
+            this.paper.delegateEvents();
+            this.undelegateDocumentEvents();
+            this.blur();
+            this.toggleArea(false);
+            var linkView = this.relatedView;
+            if (this.options.redundancyRemoval) linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+            linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
+        },
+
+        onPointerDblClick: function() {
+            this.resetAnchor();
+            this.update();
+        }
+    });
+
+    var SourceAnchor = Anchor.extend({
+        name: 'source-anchor',
+        type: 'source'
+    });
+
+    var TargetAnchor = Anchor.extend({
+        name: 'target-anchor',
+        type: 'target'
+    });
+
+    // Export
+    joint.linkTools = {
+        Vertices: Vertices,
+        Segments: Segments,
+        SourceArrowhead: SourceArrowhead,
+        TargetArrowhead: TargetArrowhead,
+        SourceAnchor: SourceAnchor,
+        TargetAnchor: TargetAnchor,
+        Button: Button,
+        Remove: Remove,
+        Boundary: Boundary
+    };
+
+})(joint, joint.util, V, g);
 
 
     joint.g = g;

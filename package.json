@@ -11,7 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "version": "2.0.1",
+  "version": "2.1.0",
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
@@ -21,11 +21,10 @@
     "url": "http://client.io"
   },
   "contributors": [
-    "David Durman <daviddurman@gmail.com> (https://github.com/DavidDurman)",
-    "Roman Bruckner <bruckner.roman@gmail.com> (https://github.com/kumilingus)",
-    "Charles Hill <chill@degreesofzero.com> (https://github.com/chill117)",
-    "Vladimir Talas (https://github.com/vtalas)",
-    "Zbynek Stara (https://github.com/zbynekstara)"
+    "David Durman <david@client.io> (https://github.com/DavidDurman)",
+    "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
+    "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
+    "Zbynek Stara <zbynek@client.io> (https://github.com/zbynekstara)"
   ],
   "repository": {
     "type": "git",
