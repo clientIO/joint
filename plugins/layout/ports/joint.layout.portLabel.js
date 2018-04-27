@@ -185,7 +185,7 @@
     joint.layout.PortLabel = {
 
         manual: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, portPosition)
+            return labelAttributes(opt, elBBox);
         },
 
         left: function(portPosition, elBBox, opt) {
