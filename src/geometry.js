@@ -1449,7 +1449,7 @@ var g = (function() {
             var start = this.start;
             var end = this.end;
 
-            fromStart = true;
+            var fromStart = true;
             if (length < 0) {
                 fromStart = false; // negative lengths mean start calculation from end point
                 length = -length; // absolute value
