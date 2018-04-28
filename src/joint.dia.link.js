@@ -266,7 +266,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (arguments.length === 0) {
-            var labels = this.get('labels');
+            labels = this.get('labels');
             if (!Array.isArray(labels)) return [];
             return labels.slice();
         }
@@ -323,7 +323,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (arguments.length === 0) {
-            var vertices = this.get('vertices');
+            vertices = this.get('vertices');
             if (!Array.isArray(vertices)) return [];
             return vertices.slice();
         }
