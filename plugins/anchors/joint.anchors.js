@@ -44,7 +44,9 @@
 
             if (ref instanceof Element) {
                 var refView = this.paper.findView(ref);
-                var refPoint = refView.getNodeBBox(ref).center();
+                var refPoint = (refView)
+                    ? refView.getNodeBBox(ref).center()
+                    : new g.Point()
 
                 return fn.call(this, view, magnet, refPoint, opt)
             }
