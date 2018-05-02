@@ -359,6 +359,8 @@ export namespace dia {
 
         removePort(port: string | Element.Port, opt?: Cell.Options): this;
 
+        removePorts(ports: Array<Element.Port|string>, opt?: Cell.Options): this;
+
         hasPorts(): boolean;
 
         hasPort(id: string): boolean;

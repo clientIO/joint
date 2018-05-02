@@ -105,6 +105,45 @@ QUnit.module('element ports', function() {
             assert.equal(shape.getPorts().length, 2);
         });
 
+        QUnit.test('removePorts', function(assert) {
+
+            var shape = create({ items: [
+                { id: 'aaa', 'group_id': 'in' },
+                { id: 'bbb', 'group_id': 'in' },
+                { id: 'xxx', 'group_id': 'in' }
+            ] });
+
+            var eventOrder = ['ports:remove', 'change:ports', 'change'];
+
+            shape.on('all', function(eventName) {
+                assert.equal(eventName, eventOrder.shift())
+            });
+
+            shape.removePorts([{ id: 'aaa' }, { id: 'bbb' }]);
+            assert.equal(shape.getPorts().length, 1);
+            assert.equal(shape.getPorts()[0].id, 'xxx');
+        });
+
+        QUnit.test('removePorts - invalid reference - should not remove them', function(assert) {
+
+            var shape = create({ items: [
+                { id: 'aaa', 'group_id': 'in' },
+                { id: 'bbb', 'group_id': 'in' },
+                { id: 'xxx', 'group_id': 'in' }
+            ] });
+
+            var eventOrder = ['ports:remove', 'change:ports', 'change'];
+
+            shape.on('all', function(eventName) {
+                assert.equal(eventName, eventOrder.shift())
+            });
+
+            shape.removePorts([{ id: 'aaa' }, { id: 'ddd' }]);
+            assert.equal(shape.getPorts().length, 2);
+            assert.equal(shape.getPorts()[0].id, 'bbb');
+            assert.equal(shape.getPorts()[1].id, 'xxx');
+        });
+
         QUnit.test('getPortIndex', function(assert) {
 
             var idObject = {};

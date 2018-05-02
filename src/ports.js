@@ -418,6 +418,25 @@
             return this;
         },
 
+        removePorts: function(ports, opt) {
+
+            var options = opt || {};
+
+            if (ports.length) {
+                options.rewrite = true;
+                var remainingPorts = util.assign([], this.prop('ports/items'));
+                ports.forEach(function(port) {
+                    var id = util.isObject(port) ? port.id : port;
+                    remainingPorts = remainingPorts.filter(function(rPort) {
+                        return rPort.id !== id
+                    });
+                })
+                this.prop('ports/items', remainingPorts, options);
+            }
+
+            return this
+        },
+
         /**
          * @private
          */
