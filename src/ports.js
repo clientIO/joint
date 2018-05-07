@@ -418,19 +418,19 @@
             return this;
         },
 
-        removePorts: function(ports, opt) {
+        removePorts: function(portsForRemoval, opt) {
 
             var options = opt || {};
 
-            if (ports.length) {
+            if (portsForRemoval.length) {
                 options.rewrite = true;
-                var remainingPorts = util.assign([], this.prop('ports/items'));
-                ports.forEach(function(port) {
-                    var id = util.isObject(port) ? port.id : port;
-                    remainingPorts = remainingPorts.filter(function(rPort) {
-                        return rPort.id !== id
-                    });
-                })
+                var currentPorts = util.assign([], this.prop('ports/items'));
+                var remainingPorts = currentPorts.filter(function(cp) {
+                    return !portsForRemoval.some(function(rp) {
+                        var rpId = util.isObject(rp) ? rp.id : rp;
+                        return cp.id === rpId;
+                    })
+                });
                 this.prop('ports/items', remainingPorts, options);
             }
 
