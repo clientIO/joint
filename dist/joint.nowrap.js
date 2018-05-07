@@ -1,4 +1,4 @@
-/*! JointJS v2.1.0 (2018-04-26) - JavaScript diagramming library
+/*! JointJS v2.1.1 (2018-05-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1848,7 +1848,7 @@ var g = (function() {
             var start = this.start;
             var end = this.end;
 
-            fromStart = true;
+            var fromStart = true;
             if (length < 0) {
                 fromStart = false; // negative lengths mean start calculation from end point
                 length = -length; // absolute value
@@ -7707,7 +7707,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '2.1.0',
+    version: '2.1.1',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -14338,7 +14338,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (name === undefined) {
-            router = this.get('router');
+            var router = this.get('router');
             if (!router) {
                 if (this.get('manhattan')) return { name: 'orthogonal' }; // backwards compatibility
                 return null;
@@ -14359,7 +14359,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (name === undefined) {
-            connector = this.get('connector');
+            var connector = this.get('connector');
             if (!connector) {
                 if (this.get('smooth')) return { name: 'smooth' }; // backwards compatibility
                 return null;
@@ -23051,7 +23051,7 @@ joint.connectors.jumpover = (function(_, g, util) {
     joint.layout.PortLabel = {
 
         manual: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, portPosition)
+            return labelAttributes(opt, elBBox);
         },
 
         left: function(portPosition, elBBox, opt) {
@@ -23314,7 +23314,9 @@ joint.highlighters.stroke = {
 
             if (ref instanceof Element) {
                 var refView = this.paper.findView(ref);
-                var refPoint = refView.getNodeBBox(ref).center();
+                var refPoint = (refView)
+                    ? refView.getNodeBBox(ref).center()
+                    : new g.Point()
 
                 return fn.call(this, view, magnet, refPoint, opt)
             }
