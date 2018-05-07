@@ -1,4 +1,4 @@
-/*! JointJS v2.1.0 (2018-04-26) - JavaScript diagramming library
+/*! JointJS v2.1.1 (2018-05-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1478,7 +1478,7 @@ var g = (function() {
             var start = this.start;
             var end = this.end;
 
-            fromStart = true;
+            var fromStart = true;
             if (length < 0) {
                 fromStart = false; // negative lengths mean start calculation from end point
                 length = -length; // absolute value
