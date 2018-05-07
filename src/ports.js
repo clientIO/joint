@@ -420,18 +420,24 @@
 
         removePorts: function(portsForRemoval, opt) {
 
-            var options = opt || {};
+            if (Array.isArray(portsForRemoval)) {
+                var options = opt || {};
 
-            if (portsForRemoval.length) {
+                if (portsForRemoval.length) {
+                    options.rewrite = true;
+                    var currentPorts = util.assign([], this.prop('ports/items'));
+                    var remainingPorts = currentPorts.filter(function(cp) {
+                        return !portsForRemoval.some(function(rp) {
+                            var rpId = util.isObject(rp) ? rp.id : rp;
+                            return cp.id === rpId;
+                        })
+                    });
+                    this.prop('ports/items', remainingPorts, options);
+                }
+            } else {
+                var options = portsForRemoval || {};
                 options.rewrite = true;
-                var currentPorts = util.assign([], this.prop('ports/items'));
-                var remainingPorts = currentPorts.filter(function(cp) {
-                    return !portsForRemoval.some(function(rp) {
-                        var rpId = util.isObject(rp) ? rp.id : rp;
-                        return cp.id === rpId;
-                    })
-                });
-                this.prop('ports/items', remainingPorts, options);
+                this.prop('ports/items', [], options);
             }
 
             return this
