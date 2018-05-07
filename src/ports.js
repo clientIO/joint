@@ -420,8 +420,10 @@
 
         removePorts: function(portsForRemoval, opt) {
 
+            var options;
+
             if (Array.isArray(portsForRemoval)) {
-                var options = opt || {};
+                options = opt || {};
 
                 if (portsForRemoval.length) {
                     options.rewrite = true;
@@ -435,7 +437,7 @@
                     this.prop('ports/items', remainingPorts, options);
                 }
             } else {
-                var options = portsForRemoval || {};
+                options = portsForRemoval || {};
                 options.rewrite = true;
                 this.prop('ports/items', [], options);
             }
