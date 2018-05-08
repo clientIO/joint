@@ -979,7 +979,13 @@ joint.dia.CellView = joint.mvc.View.extend({
         if (port != null && this.model.hasPort(port)) {
             magnet = this.findPortNode(port, selector) || root;
         } else {
-            magnet = this.findBySelector(selector || end.selector, root, this.selectors)[0];
+            if (!selector) selector = end.selector;
+            if (!selector && port != null) {
+                // link end has only `id` and `port` property referencing
+                // a port created via the `port` attribute (not API).
+                selector = '[port="' + port + '"]';
+            }
+            magnet = this.findBySelector(selector, root, this.selectors)[0];
         }
 
         return magnet;

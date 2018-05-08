@@ -199,7 +199,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('defaultLink', function(assert) {
 
-        assert.expect(9);
+        assert.expect(10);
 
         this.paper.options.defaultLink = new joint.dia.Link();
 
@@ -250,7 +250,10 @@ QUnit.module('links', function(hooks) {
         simulate.mousedown({ el: rect });
         simulate.mouseup({ el: rect });
 
-        this.graph.getLinks()[0].remove();
+        link = this.graph.getLinks()[0];
+        var linkView = link.findView(this.paper);
+        assert.equal(linkView.sourceMagnet, rect);
+        link.remove();
 
         this.paper.options.defaultLink = function(cellView, magnet) {
 
