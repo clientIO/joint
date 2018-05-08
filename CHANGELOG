@@ -1,6 +1,10 @@
+8-5-2018 (v2.1.2)
+  * dia.CellView - fix magnet lookup based on the port property
+  * docs - fix broken links
+
 7-5-2018 (v2.1.1)
-  * layout.PortLabel: fix manual position
-  * anchors: prevent exception when reference node not in the DOM
+  * layout.PortLabel - fix manual position
+  * anchors - prevent exception when reference node not in the DOM
 
 27-4-2018 (v2.1.0)
   * update Tutorials
