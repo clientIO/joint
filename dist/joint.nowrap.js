@@ -1,4 +1,4 @@
-/*! JointJS v2.1.1 (2018-05-07) - JavaScript diagramming library
+/*! JointJS v2.1.2 (2018-05-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7707,7 +7707,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '2.1.1',
+    version: '2.1.2',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -12519,7 +12519,13 @@ joint.dia.CellView = joint.mvc.View.extend({
         if (port != null && this.model.hasPort(port)) {
             magnet = this.findPortNode(port, selector) || root;
         } else {
-            magnet = this.findBySelector(selector || end.selector, root, this.selectors)[0];
+            if (!selector) selector = end.selector;
+            if (!selector && port != null) {
+                // link end has only `id` and `port` property referencing
+                // a port created via the `port` attribute (not API).
+                selector = '[port="' + port + '"]';
+            }
+            magnet = this.findBySelector(selector, root, this.selectors)[0];
         }
 
         return magnet;
