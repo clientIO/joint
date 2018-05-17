@@ -96,34 +96,42 @@ export const Element = Cell.extend({
         opt.translateBy = opt.translateBy || this.id;
 
         var position = this.get('position') || { x: 0, y: 0 };
+        var ra = opt.restrictedArea;
+        if (ra && opt.translateBy === this.id) {
 
-        if (opt.restrictedArea && opt.translateBy === this.id) {
+            if (typeof ra === 'function') {
 
-            // We are restricting the translation for the element itself only. We get
-            // the bounding box of the element including all its embeds.
-            // All embeds have to be translated the exact same way as the element.
-            var bbox = this.getBBox({ deep: true });
-            var ra = opt.restrictedArea;
-            //- - - - - - - - - - - - -> ra.x + ra.width
-            // - - - -> position.x      |
-            // -> bbox.x
-            //                ▓▓▓▓▓▓▓   |
-            //         ░░░░░░░▓▓▓▓▓▓▓
-            //         ░░░░░░░░░        |
-            //   ▓▓▓▓▓▓▓▓░░░░░░░
-            //   ▓▓▓▓▓▓▓▓               |
-            //   <-dx->                     | restricted area right border
-            //         <-width->        |   ░ translated element
-            //   <- - bbox.width - ->       ▓ embedded element
-            var dx = position.x - bbox.x;
-            var dy = position.y - bbox.y;
-            // Find the maximal/minimal coordinates that the element can be translated
-            // while complies the restrictions.
-            var x = Math.max(ra.x + dx, Math.min(ra.x + ra.width + dx - bbox.width, position.x + tx));
-            var y = Math.max(ra.y + dy, Math.min(ra.y + ra.height + dy - bbox.height, position.y + ty));
-            // recalculate the translation taking the restrictions into account.
-            tx = x - position.x;
-            ty = y - position.y;
+                var newPosition = ra.call(this, position.x + tx, position.y + ty);
+
+                tx = newPosition.x - position.x;
+                ty = newPosition.y - position.y;
+
+            } else  {
+                // We are restricting the translation for the element itself only. We get
+                // the bounding box of the element including all its embeds.
+                // All embeds have to be translated the exact same way as the element.
+                var bbox = this.getBBox({ deep: true });
+                //- - - - - - - - - - - - -> ra.x + ra.width
+                // - - - -> position.x      |
+                // -> bbox.x
+                //                ▓▓▓▓▓▓▓   |
+                //         ░░░░░░░▓▓▓▓▓▓▓
+                //         ░░░░░░░░░        |
+                //   ▓▓▓▓▓▓▓▓░░░░░░░
+                //   ▓▓▓▓▓▓▓▓               |
+                //   <-dx->                     | restricted area right border
+                //         <-width->        |   ░ translated element
+                //   <- - bbox.width - ->       ▓ embedded element
+                var dx = position.x - bbox.x;
+                var dy = position.y - bbox.y;
+                // Find the maximal/minimal coordinates that the element can be translated
+                // while complies the restrictions.
+                var x = Math.max(ra.x + dx, Math.min(ra.x + ra.width + dx - bbox.width, position.x + tx));
+                var y = Math.max(ra.y + dy, Math.min(ra.y + ra.height + dy - bbox.height, position.y + ty));
+                // recalculate the translation taking the restrictions into account.
+                tx = x - position.x;
+                ty = y - position.y;
+            }
         }
 
         var translatedPosition = {
