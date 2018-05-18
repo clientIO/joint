@@ -462,11 +462,13 @@ joint.dia.Graph = Backbone.Model.extend({
             // In the first round, we collect all the embedded edges so that we can exclude
             // them from the final result.
             var embeddedEdges = {};
-            embeddedCells.forEach(function(cell) {
-                if (cell.isLink()) {
-                    embeddedEdges[cell.id] = true;
-                }
-            });
+            if (!opt.includeEmbeddedLinks) {
+                embeddedCells.forEach(function(cell) {
+                    if (cell.isLink()) {
+                        embeddedEdges[cell.id] = true;
+                    }
+                });
+            }
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
