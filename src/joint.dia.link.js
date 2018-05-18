@@ -413,7 +413,16 @@ joint.dia.Link = joint.dia.Cell.extend({
             var prevParent = this.getParentCell();
 
             if (source && target) {
-                newParent = this.graph.getCommonAncestor(source, target);
+                if (opt && opt.inclusive) {
+                    if (source.isEmbeddedIn(target)) {
+                        newParent = target;
+                    } else if (target.isEmbeddedIn(source)) {
+                        newParent = source;
+                    }
+                }
+                if (!newParent) {
+                    newParent = this.graph.getCommonAncestor(source, target);
+                }
             }
 
             if (prevParent && (!newParent || newParent.id !== prevParent.id)) {
@@ -2430,8 +2439,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     _finishEmbedding: function(data) {
 
+        var embeddingMode = this.paper.options.embeddingMode;
         // Reparent the link if embedding is enabled
-        if (this.paper.options.embeddingMode && this.model.reparent()) {
+        if (embeddingMode && this.model.reparent({ ui: true, inclusive: embeddingMode.inclusive })) {
             // Make sure we don't reverse to the original 'z' index (see afterArrowheadMove()).
             data.z = null;
         }
