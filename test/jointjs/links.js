@@ -114,6 +114,82 @@ QUnit.module('links', function(hooks) {
         assert.equal(lEmpty.get('target').id, r2Empty.id, 'target was set correctly on a blank link');
     });
 
+    QUnit.module('validation', function() {
+
+        QUnit.test('sanity', function(assert) {
+
+            var paper = this.paper;
+            var graph = this.graph;
+
+            var r1, r2, l0;
+            r1 = new joint.shapes.standard.Rectangle;
+            r1.position(0, 0);
+            r1.size(100, 100);
+            r1.addPort({ id: 'port', attrs: { circle: { magnet: true }}})
+            r2 = r1.clone();
+            r2.translate(200);
+            l0 = new joint.shapes.standard.Link;
+            l0.source(r1);
+            l0.target(r2);
+
+            graph.addCells([r1, r2, l0]);
+
+            var lv0 = l0.findView(paper);
+            var rv1 = r1.findView(paper);
+            var rv2 = r2.findView(paper);
+            var r1port = rv1.el.querySelector('circle');
+            var r2port = rv2.el.querySelector('circle');
+
+            var spy = paper.options.validateConnection = sinon.spy(function() { return true; });
+
+            evt = { type: 'mousemove' };
+            lv0.startArrowheadMove('source');
+            evt.target = paper.el;
+            lv0.pointermove(evt, 1000, 1000);
+            evt.target = rv1.el;
+            lv0.pointermove(evt, 50, 50);
+            lv0.pointerup(evt, 50, 50);
+
+            assert.ok(spy.calledOnce);
+            assert.ok(spy.calledWithExactly(rv1, undefined, rv2, undefined, 'source', lv0));
+            spy.reset();
+
+            lv0.startArrowheadMove('source');
+            evt.target = paper.el;
+            lv0.pointermove(evt, 1000, 1000);
+            evt.target = r1port;
+            lv0.pointermove(evt, 5, 5);
+            lv0.pointerup(evt, 50, 50);
+
+            assert.ok(spy.calledOnce);
+            assert.ok(spy.calledWithExactly(rv1, r1port, rv2, undefined, 'source', lv0));
+            spy.reset();
+
+            lv0.startArrowheadMove('target');
+            evt.target = paper.el;
+            lv0.pointermove(evt, 1000, 1000);
+            evt.target = rv2.el;
+            lv0.pointermove(evt, 5, 5);
+            lv0.pointerup(evt, 50, 50);
+
+            assert.ok(spy.calledOnce);
+            assert.ok(spy.calledWithExactly(rv1, r1port, rv2, undefined, 'target', lv0));
+            spy.reset();
+
+            lv0.startArrowheadMove('target');
+            evt.target = paper.el;
+            lv0.pointermove(evt, 1000, 1000);
+            evt.target = r2port;
+            lv0.pointermove(evt, 5, 5);
+            lv0.pointerup(evt, 50, 50);
+
+            assert.ok(spy.calledOnce);
+            assert.ok(spy.calledWithExactly(rv1, r1port, rv2, r2port, 'target', lv0));
+            spy.reset();
+
+        });
+    });
+
     QUnit.test('interaction', function(assert) {
 
         assert.expect(6);
