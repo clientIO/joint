@@ -1460,6 +1460,11 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Otherwise, it returns `false`.
     guard: function(evt, view) {
 
+        if (evt.type === 'mousedown' && evt.button === 2) {
+            // handled as `contextmenu` type
+            return true;
+        }
+
         if (this.options.guard && this.options.guard(evt, view)) {
             return true;
         }
