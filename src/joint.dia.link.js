@@ -413,7 +413,13 @@ joint.dia.Link = joint.dia.Cell.extend({
             var prevParent = this.getParentCell();
 
             if (source && target) {
-                newParent = this.graph.getCommonAncestor(source, target);
+                if (source === target || source.isEmbeddedIn(target)) {
+                    newParent = target;
+                } else if (target.isEmbeddedIn(source)) {
+                    newParent = source;
+                } else {
+                    newParent = this.graph.getCommonAncestor(source, target);
+                }
             }
 
             if (prevParent && (!newParent || newParent.id !== prevParent.id)) {
