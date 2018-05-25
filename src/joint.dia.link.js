@@ -2663,8 +2663,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var end = this.model.get(oppositeArrowhead);
 
         if (end.id) {
-            args[i] = this.paper.findViewByModel(end.id);
-            args[i + 1] = end.selector && args[i].el.querySelector(end.selector);
+            var view = args[i] = this.paper.findViewByModel(end.id);
+            var magnet = view.getMagnetFromLinkEnd(end);
+            if (magnet === view.el) magnet = undefined;
+            args[i + 1] = magnet;
         }
 
         function validateConnectionArgs(cellView, magnet) {
