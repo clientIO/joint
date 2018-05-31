@@ -1304,6 +1304,14 @@ QUnit.module('links', function(hooks) {
         assert.equal(lv.update.callCount, 1, 'update: loop link with vertices, source translated.');
 
         // embeds
+
+        // loop + vertices + embedded
+        a.embed(l);
+        lv.update.reset();
+        a.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, source translated.');
+
+        a.unembed(l);
         c.embed(a).embed(b).embed(l);
         l.set('target', { id: 'b' });
 
