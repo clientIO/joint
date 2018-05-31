@@ -413,7 +413,13 @@ joint.dia.Link = joint.dia.Cell.extend({
             var prevParent = this.getParentCell();
 
             if (source && target) {
-                newParent = this.graph.getCommonAncestor(source, target);
+                if (source === target || source.isEmbeddedIn(target)) {
+                    newParent = target;
+                } else if (target.isEmbeddedIn(source)) {
+                    newParent = source;
+                } else {
+                    newParent = this.graph.getCommonAncestor(source, target);
+                }
             }
 
             if (prevParent && (!newParent || newParent.id !== prevParent.id)) {
@@ -642,7 +648,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // the only link that was translated. If the link was translated via another element which the link
         // is embedded in, this element will be translated as well and that triggers an update.
         // Note that all embeds in a model are sorted - first comes links, then elements.
-        if (!opt.translateBy || opt.translateBy === this.model.id) {
+        if (!opt.translateBy || opt.translateBy === this.model.id || this.model.hasLoop()) {
             // Vertices were changed (not as a reaction on translate)
             // or link.translate() was called or
             this.update(cell, null, opt);
@@ -1595,7 +1601,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     // the link instead of me. (We know for sure there will be a next turn because
                     // loop links react on at least two events: change on the source model followed by a change on
                     // the target model).
-                    opt.handleBy = this.cid;
+                    if (joint.util.isEmpty(model.get('vertices')) || (opt.translateBy && !model.isEmbeddedIn(opt.translateBy))) {
+                        opt.handleBy = this.cid;
+                    } else {
+                        doUpdate = false;
+                    }
                 }
 
                 if (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {

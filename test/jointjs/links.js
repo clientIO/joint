@@ -1304,6 +1304,14 @@ QUnit.module('links', function(hooks) {
         assert.equal(lv.update.callCount, 1, 'update: loop link with vertices, source translated.');
 
         // embeds
+
+        // loop + vertices + embedded
+        a.embed(l);
+        lv.update.reset();
+        a.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, source translated.');
+
+        a.unembed(l);
         c.embed(a).embed(b).embed(l);
         l.set('target', { id: 'b' });
 
@@ -1620,5 +1628,77 @@ QUnit.module('links', function(hooks) {
                 assert.deepEqual(link.vertices(), [{ x: 1, y: 1 }, { x: 2, y: 2 }]);
             });
         });
+    });
+
+    QUnit.test('reparent()', function(assert) {
+
+        var Rectangle = joint.shapes.standard.Rectangle;
+        var Link = joint.shapes.standard.Link;
+
+        var a = new Rectangle;
+        var aa = new Rectangle;
+        var ab = new Rectangle;
+        var aaa = new Rectangle;
+        var aab = new Rectangle;
+        var b = new Rectangle;
+        var l = new Link;
+
+        this.graph.resetCells([a, aa, ab, aaa, aab, b, l]);
+        a.embed(aa).embed(ab);
+        aa.embed(aaa).embed(aab);
+
+        l.reparent();
+        assert.equal(l.getParentCell(), null);
+
+        l.source(a);
+        l.target({ x: 0, y: 0 });
+        l.reparent();
+        assert.equal(l.getParentCell(), null, 'only source');
+
+        l.source({ x: 0, y: 0 });
+        l.target(a);
+        l.reparent();
+        assert.equal(l.getParentCell(), null, 'only target');
+
+        l.source(a);
+        l.target(b);
+        l.reparent();
+        assert.equal(l.getParentCell(), null, 'both lvl 1');
+
+        l.source({ x: 0, y: 0 });
+        l.target(aa);
+        l.reparent();
+        assert.equal(l.getParentCell(), null, 'only target lvl 2');
+
+        l.source(ab);
+        l.target(aa);
+        l.reparent();
+        assert.equal(l.getParentCell(), a, 'both lvl 2');
+
+        l.source(ab);
+        l.target(aaa);
+        l.reparent();
+        assert.equal(l.getParentCell(), a, 'lvl 2 & lvl 3');
+
+        l.source(aab);
+        l.target(aaa);
+        l.reparent();
+        assert.equal(l.getParentCell(), aa, 'both lvl 3');
+
+        l.source(aa);
+        l.target(aab);
+        l.reparent();
+        assert.equal(l.getParentCell(), aa, 'lvl 2 & lvl 3 embedded');
+
+        l.source(aab);
+        l.target(aa);
+        l.reparent();
+        assert.equal(l.getParentCell(), aa, 'lvl 3 & lvl 2 embedded');
+
+        l.source(a);
+        l.target(a);
+        l.reparent();
+        assert.equal(l.getParentCell(), a, 'loop');
+
     });
 });
