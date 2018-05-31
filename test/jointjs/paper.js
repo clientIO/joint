@@ -438,7 +438,7 @@ QUnit.module('paper', function(hooks) {
                 assert.equal(allowLinkSpy.thisValues[0], connectedLinkView.paper);
             });
 
-            QUnit.test('enabled - disconnect when return false', function (assert) {
+            QUnit.test('enabled - disconnect when return false', function(assert) {
 
                 this.paper.options.allowLink = function() { return false };
 
@@ -452,7 +452,7 @@ QUnit.module('paper', function(hooks) {
                 assert.notOk(disconnectSpy.called);
             });
 
-            QUnit.test('enabled - disconnect when return true', function (assert) {
+            QUnit.test('enabled - disconnect when return true', function(assert) {
 
                 this.paper.options.allowLink = function() { return true };
 
@@ -466,7 +466,7 @@ QUnit.module('paper', function(hooks) {
                 assert.ok(disconnectSpy.called);
             });
 
-            QUnit.test('disconnect when disabled', function (assert) {
+            QUnit.test('disconnect when disabled', function(assert) {
 
                 this.paper.options.allowLink = null;
 
@@ -640,6 +640,8 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('paper.options: guard', function(assert) {
 
+        assert.expect(4);
+
         var element = new joint.shapes.basic.Rect({
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 }
@@ -656,17 +658,24 @@ QUnit.module('paper', function(hooks) {
         var diffY;
 
         simulate.mousedown({
-            el: elementView.$el[0],
+            el: elementView.el,
             clientX: paperOffsetX + bboxBefore.x + 10,
             clientY: paperOffsetY + bboxBefore.y + 10,
-            button: 2
+            button: 1
         });
 
         simulate.mousemove({
-            el: elementView.$el[0],
+            el: elementView.el,
             clientX: paperOffsetX + bboxBefore.x + 50,
             clientY: paperOffsetY + bboxBefore.y + 50,
-            button: 2
+            button: 1
+        });
+
+        simulate.mouseup({
+            el: elementView.el,
+            clientX: paperOffsetX + bboxBefore.x + 50,
+            clientY: paperOffsetY + bboxBefore.y + 50,
+            button: 1
         });
 
         bboxAfter = element.getBBox();
@@ -677,6 +686,9 @@ QUnit.module('paper', function(hooks) {
 
         // Use guard option to only allow mouse events for left mouse button.
         this.paper.options.guard = function(evt, view) {
+
+            assert.ok(evt instanceof jQuery.Event);
+            assert.equal(view, elementView);
 
             var isMouseEvent = evt.type.substr(0, 'mouse'.length) === 'mouse';
 
@@ -689,17 +701,24 @@ QUnit.module('paper', function(hooks) {
         };
 
         simulate.mousedown({
-            el: elementView.$el[0],
+            el: elementView.el,
             clientX: paperOffsetX + bboxBefore.x + 10,
             clientY: paperOffsetY + bboxBefore.y + 10,
-            button: 2
+            button: 1
         });
 
         simulate.mousemove({
-            el: elementView.$el[0],
+            el: elementView.el,
             clientX: paperOffsetX + bboxBefore.x + 50,
             clientY: paperOffsetY + bboxBefore.y + 50,
-            button: 2
+            button: 1
+        });
+
+        simulate.mouseup({
+            el: elementView.el,
+            clientX: paperOffsetX + bboxBefore.x + 50,
+            clientY: paperOffsetY + bboxBefore.y + 50,
+            button: 1
         });
 
         bboxBefore = bboxAfter;
