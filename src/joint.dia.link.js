@@ -2248,6 +2248,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     onlabel: function(evt, x, y) {
 
+        joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+        this.notify('link:pointerdown', evt, x, y);
+
         this.dragLabelStart(evt, x, y);
 
         var stopPropagation = this.eventData(evt).stopPropagation;
