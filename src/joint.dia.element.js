@@ -843,7 +843,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             data.candidateEmbedView = null;
         }
 
-        joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
+        joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', {
+            ui: true,
+            inclusive: paper.options.embeddingMode.inclusive
+        });
     },
 
     // Interaction. The controller part.

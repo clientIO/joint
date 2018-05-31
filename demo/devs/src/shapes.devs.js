@@ -9,7 +9,7 @@ var paper = new joint.dia.Paper({
     model: graph,
     snapLinks: true,
     linkPinning: false,
-    embeddingMode: true,
+    embeddingMode: { inclusive: true },
     highlighting: {
         'default': {
             name: 'stroke',
@@ -49,7 +49,7 @@ var connect = function(source, sourcePort, target, targetPort) {
         }
     });
 
-    link.addTo(graph).reparent();
+    link.addTo(graph).reparent({ inclusive: true });
 };
 
 var c1 = new joint.shapes.devs.Coupled({

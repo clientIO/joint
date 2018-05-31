@@ -114,6 +114,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Enables embedding. Reparents the dragged element with elements under it and makes sure that
         // all links and elements are visible taken the level of embedding into account.
+        // { inclusive: true } if enabled, the link can be embedded into its source or target element.
         embeddingMode: false,
 
         // Check whether to allow or disallow the element embedding while an element being translated.
