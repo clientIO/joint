@@ -1,35 +1,46 @@
 (function multiplePapers() {
 
     var graph = new joint.dia.Graph;
+
     var paper = new joint.dia.Paper({
-        el: $('#paper-multiple-papers'),
+        el: document.getElementById('paper-multiple-papers'),
+        model: graph,
         width: 600,
         height: 100,
-        model: graph,
         gridSize: 1
     });
 
     var paperSmall = new joint.dia.Paper({
-        el: $('#paper-multiple-papers-small'),
-        width: 600,
-        height: 100,
-        model: graph
+        el: document.getElementById('paper-multiple-papers-small'),
+        model: graph,
+        width: 150,
+        height: 25,
+        gridSize: 1,
+        interactive: false
     });
-    paperSmall.scale(.5);
-    paperSmall.$el.css('pointer-events', 'none');
-    
-    var rect = new joint.shapes.basic.Rect({
-        position: { x: 100, y: 30 },
-        size: { width: 100, height: 30 },
-        attrs: { rect: { fill: 'blue' }, text: { text: 'my box', fill: 'white' } }
-    });
-    var rect2 = rect.clone();
-    rect2.translate(300);
-    
-    var link = new joint.dia.Link({
-        source: { id: rect.id },
-        target: { id: rect2.id }
-    });
-    graph.addCell(rect).addCell(rect2).addCell(link);
+    paperSmall.scale(0.25);
 
+    var rect = new joint.shapes.standard.Rectangle();
+    rect.position(100, 30);
+    rect.resize(100, 40);
+    rect.attr({
+        body: {
+            fill: 'blue'
+        },
+        label: {
+            text: 'Hello',
+            fill: 'white'
+        }
+    });
+    rect.addTo(graph);
+
+    var rect2 = rect.clone();
+    rect2.translate(300, 0);
+    rect2.attr('label/text', 'World!');
+    rect2.addTo(graph);
+
+    var link = new joint.shapes.standard.Link();
+    link.source(rect);
+    link.target(rect2);
+    link.addTo(graph);
 }());
