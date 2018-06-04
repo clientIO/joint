@@ -1,7 +1,9 @@
 (function multiplePapers() {
 
+    // shared graph model
     var graph = new joint.dia.Graph;
 
+    // main paper view
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper-multiple-papers'),
         model: graph,
@@ -10,6 +12,7 @@
         gridSize: 1
     });
 
+    // minimap paper view
     var paperSmall = new joint.dia.Paper({
         el: document.getElementById('paper-multiple-papers-small'),
         model: graph,
@@ -20,6 +23,7 @@
     });
     paperSmall.scale(0.25);
 
+    // graph contents
     var rect = new joint.shapes.standard.Rectangle();
     rect.position(100, 30);
     rect.resize(100, 40);

@@ -1,83 +1,250 @@
-(function() {
+(function filters() {
 
-var graph = new joint.dia.Graph;
-var paper = new joint.dia.Paper({ el: $('#paper-filters'), width: 650, height: 280, gridSize: 1, model: graph });
+    var graph = new joint.dia.Graph;
 
-var el = new joint.shapes.basic.Rect({
-    position: { x: 0, y: 0 },
-    size: { width: 100, height: 40 },
-    attrs: {
-        rect: { rx: 2, ry: 2, fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 2 },
-        text: { 'font-size': 10, fill: '#333' }
-    }
-});
+    var paper = new joint.dia.Paper({
+        el: document.getElementById('paper-filters'),
+        model: graph,
+        width: 660,
+        height: 240,
+        gridSize: 1
+    });
 
-var dropShadow = el.clone();
-dropShadow.translate(20, 20);
-dropShadow.attr('text/text', 'dropShadow(2,2,3)');
-dropShadow.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
-graph.addCell(dropShadow);
-
-var blur = el.clone();
-blur.translate(150, 20);
-blur.attr('text/text', 'blur(5)');
-blur.attr('rect/filter', { name: 'blur', args: { x: 5 } });
-graph.addCell(blur);
-
-var grayscale = el.clone();
-grayscale.translate(280, 20);
-grayscale.attr('text/text', 'grayscale(1)');
-grayscale.attr('rect/filter', { name: 'grayscale' });
-graph.addCell(grayscale);
-
-var sepia = el.clone();
-sepia.translate(410, 20);
-sepia.attr('text/text', 'sepia(1)');
-sepia.attr('rect/filter', { name: 'sepia' });
-graph.addCell(sepia);
-
-var saturate = el.clone();
-saturate.translate(20, 100);
-saturate.attr('text/text', 'saturate(.7)');
-saturate.attr('rect/filter', { name: 'saturate', args: { amount: .7 } });
-graph.addCell(saturate);
-
-var hueRotate = el.clone();
-hueRotate.translate(150, 100);
-hueRotate.attr('text/text', 'hueRotate(50)');
-hueRotate.attr('rect/filter', { name: 'hueRotate', args: { angle: 50 } });
-graph.addCell(hueRotate);
-
-var invert = el.clone();
-invert.translate(280, 100);
-invert.attr('text/text', 'invert(1)');
-invert.attr('rect/filter', { name: 'invert' });
-graph.addCell(invert);
-
-var brightness = el.clone();
-brightness.translate(410, 100);
-brightness.attr('text/text', 'brightness(.7)');
-brightness.attr('rect/filter', { name: 'brightness', args: { amount: .7 } });
-graph.addCell(brightness);
-
-var contrast = el.clone();
-contrast.translate(20, 180);
-contrast.attr('text/text', 'contrast(.5)');
-contrast.attr('rect/filter', { name: 'contrast', args: { amount: .5 } });
-graph.addCell(contrast);
-
-var link = new joint.dia.Link({
-    source: { x: 170, y: 200 }, target: { x: 480, y: 200 },
-    attrs: {
-        // Define a filter for the whole link (special selector '.' means the root element )
-        '.': { filter: { name: 'dropShadow', args: { dx: 1, dy: 1, blur: 2 } } },
-        '.connection': {
-            'stroke-width': 5, stroke: '#34495E'
+    var el = new joint.shapes.standard.Rectangle();
+    el.position(0, 0);
+    el.resize(100, 40);
+    el.attr({
+        body: {
+            rx: 2,
+            ry: 2,
+            fill: '#2ecc71',
+            stroke: '#27ae60',
+            strokeWidth: 2
         },
-        '.marker-source': { stroke: '#E74C3C', fill: '#E74C3C', d: 'M 10 0 L 0 5 L 10 10 z' },
-        '.marker-target': { stroke: '#E74C3C', fill: '#E74C3C', d: 'M 10 0 L 0 5 L 10 10 z' }
-    }
-});
-graph.addCell(link);
+        label: {
+            fontSize: 10,
+            fill: '#333333'
+        }
+    });
 
+    var dropShadow = el.clone();
+    dropShadow.translate(20, 20);
+    dropShadow.attr({
+        body: {
+            filter: {
+                name: 'dropShadow',
+                args: {
+                    dx: 2,
+                    dy: 2,
+                    blur: 3
+                }
+            }
+        },
+        label: {
+            text: 'dropShadow(2,2,3)'
+        }
+    });
+    dropShadow.addTo(graph);
+
+    var blur = el.clone();
+    blur.translate(150, 20);
+    blur.attr({
+        body: {
+            filter: {
+                name: 'blur',
+                args: {
+                    x: 5
+                }
+            }
+        },
+        label: {
+            text: 'blur(5)'
+        }
+    });
+    blur.addTo(graph);
+
+    var grayscale = el.clone();
+    grayscale.translate(280, 20);
+    grayscale.attr({
+        body: {
+            filter: {
+                name: 'grayscale'
+            }
+        },
+        label: {
+            text: 'grayscale(1)'
+        }
+    });
+    grayscale.addTo(graph);
+
+    var sepia = el.clone();
+    sepia.translate(410, 20);
+    sepia.attr({
+        body: {
+            filter: {
+                name: 'sepia'
+            }
+        },
+        label: {
+            text: 'sepia(1)'
+        }
+    });
+    sepia.addTo(graph);
+
+    var invert = el.clone();
+    invert.translate(540, 20);
+    invert.attr({
+        body: {
+            filter: {
+                name: 'invert'
+            }
+        },
+        label: {
+            text: 'invert(1)'
+        }
+    });
+    invert.addTo(graph);
+
+    var saturate = el.clone();
+    saturate.translate(20, 100);
+    saturate.attr({
+        body: {
+            filter: {
+                name: 'saturate',
+                args: {
+                    amount: 0.5
+                }
+            }
+        },
+        label: {
+            text: 'saturate(0.5)'
+        }
+    });
+    saturate.addTo(graph);
+
+    var brightness = el.clone();
+    brightness.translate(150, 100);
+    brightness.attr({
+        body: {
+            filter: {
+                name: 'brightness',
+                args: {
+                    amount: 0.5
+                }
+            }
+        },
+        label: {
+            text: 'brightness(0.5)'
+        }
+    });
+    brightness.addTo(graph);
+
+    var contrast = el.clone();
+    contrast.translate(280, 100);
+    contrast.attr({
+        body: {
+            filter: {
+                name: 'contrast',
+                args: {
+                    amount: 0.5
+                }
+            }
+        },
+        label: {
+            text: 'contrast(0.5)'
+        }
+    });
+    contrast.addTo(graph);
+
+    var outline = el.clone();
+    outline.translate(410, 100);
+    outline.attr({
+        body: {
+            filter: {
+                name: 'outline',
+                args: {
+                    color: 'red',
+                    width: 2,
+                    opacity: 1,
+                    margin: 5
+                }
+            }
+        },
+        label: {
+            text: 'outline(\'red\',2,1,5)'
+        }
+    });
+    outline.addTo(graph);
+
+    var highlight = el.clone();
+    highlight.translate(540, 100);
+    highlight.attr({
+        body: {
+            filter: {
+                name: 'highlight',
+                args: {
+                    color: 'red',
+                    width: 2,
+                    opacity: 0.5,
+                    blur: 5
+                }
+            }
+        },
+        label: {
+            text: 'highlight(\'red\',2,0.5,5)'
+        }
+    });
+    highlight.addTo(graph);
+
+    var hueRotate = el.clone();
+    hueRotate.translate(20, 180);
+    hueRotate.attr({
+        body: {
+            filter: {
+                name: 'hueRotate',
+                args: {
+                    angle: 50
+                }
+            }
+        },
+        label: {
+            text: 'hueRotate(50)'
+        }
+    });
+    hueRotate.addTo(graph);
+
+    var link = new joint.shapes.standard.Link();
+    link.source(new g.Point(150, 180));
+    link.target(new g.Point(640, 220));
+    link.attr({
+        line: {
+            sourceMarker: {
+                'type': 'path',
+                'd': 'M 10 -5 0 0 10 5 z',
+                'fill': 'red'
+            },
+            targetMarker: {
+                // inherits `type` from default standard link
+                // inherits `d` from default standard link
+                'fill': 'red'
+            },
+            filter: {
+                name: 'dropShadow',
+                args: {
+                    dx: 2,
+                    dy: 2,
+                    blur: 3
+                }
+            }
+        }
+    });
+    link.appendLabel({
+        attrs: {
+            filter: 'unset',
+            text: {
+                text: 'dropShadow(2,2,3)'
+            },
+        }
+    })
+    graph.addCell(link);
 }())

@@ -12,10 +12,12 @@
         <link rel="stylesheet" href="css/tutorial.css" />
         <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
 
+
         <!-- Dependencies: -->
         <script src="../node_modules/jquery/dist/jquery.js"></script>
         <script src="../node_modules/lodash/index.js"></script>
         <script src="../node_modules/backbone/backbone.js"></script>
+
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
         <script type="text/javascript" src="../build/joint.min.js"></script>
@@ -55,25 +57,16 @@
                 <div class="paper" id="paper-multiple-papers-small" style="position: absolute; top: 75px; left: 450px;"></div>
             </div>
 
-            <pre><code>var graph = new joint.dia.Graph;
+            <p>We use a simple HTML to make the papers overlap...</p>
 
-var paper = new joint.dia.Paper({
-    el: document.getElementById('paper-multiple-papers'),
-    model: graph,
-    width: 600,
-    height: 100,
-    gridSize: 1
-});
+            <pre><code>&lt;div style="position: relative; padding-bottom: 100px;"&gt;
+    &lt;div class="paper" id="paper-multiple-papers" style="position: absolute;"&gt;&lt;/div&gt;
+    &lt;div class="paper" id="paper-multiple-papers-small" style="position: absolute; top: 75px; left: 450px;"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
 
-var paperSmall = new joint.dia.Paper({
-    el: document.getElementById('paper-multiple-papers-small'),
-    model: graph,
-    width: 150,
-    height: 25,
-    gridSize: 1,
-    interactive: false
-});
-paperSmall.scale(0.25);</code></pre>
+            <p>...and the following JavaScript to populate the two papers:</p>
+
+            <pre data-src="js/multiple-papers.js"></pre>
 
             <p>JointJS source code: <a href="js/multiple-papers.js" target="_blank">multiple-papers.js</a></p>
 

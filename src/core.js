@@ -1038,12 +1038,13 @@ var joint = {
         },
 
         // SVG filters.
+        // (values in parentheses are default values)
         filter: {
 
-            // `color` ... outline color
-            // `width`... outline width
-            // `opacity` ... outline opacity
-            // `margin` ... gap between outline and the element
+            // `color` ... outline color ('blue')
+            // `width`... outline width (1)
+            // `opacity` ... outline opacity (1)
+            // `margin` ... gap between outline and the element (2)
             outline: function(args) {
 
                 var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology in="SourceAlpha" result="morphedOuter" operator="dilate" radius="${outerRadius}" /><feMorphology in="SourceAlpha" result="morphedInner" operator="dilate" radius="${innerRadius}" /><feComposite result="morphedOuterColored" in="colored" in2="morphedOuter" operator="in"/><feComposite operator="xor" in="morphedOuterColored" in2="morphedInner" result="outline"/><feMerge><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
@@ -1059,10 +1060,10 @@ var joint = {
                 });
             },
 
-            // `color` ... color
-            // `width`... width
-            // `blur` ... blur
-            // `opacity` ... opacity
+            // `color` ... color ('red')
+            // `width`... width (1)
+            // `blur` ... blur (0)
+            // `opacity` ... opacity (1)
             highlight: function(args) {
 
                 var tpl = '<filter><feFlood flood-color="${color}" flood-opacity="${opacity}" result="colored"/><feMorphology result="morphed" in="SourceGraphic" operator="dilate" radius="${width}"/><feComposite result="composed" in="colored" in2="morphed" operator="in"/><feGaussianBlur result="blured" in="composed" stdDeviation="${blur}"/><feBlend in="SourceGraphic" in2="blured" mode="normal"/></filter>';
@@ -1075,7 +1076,7 @@ var joint = {
                 });
             },
 
-            // `x` ... horizontal blur
+            // `x` ... horizontal blur (2)
             // `y` ... vertical blur (optional)
             blur: function(args) {
 
@@ -1086,11 +1087,11 @@ var joint = {
                 });
             },
 
-            // `dx` ... horizontal shift
-            // `dy` ... vertical shift
-            // `blur` ... blur
-            // `color` ... color
-            // `opacity` ... opacity
+            // `dx` ... horizontal shift (0)
+            // `dy` ... vertical shift (0)
+            // `blur` ... blur (4)
+            // `color` ... color ('black')
+            // `opacity` ... opacity (1)
             dropShadow: function(args) {
 
                 var tpl = 'SVGFEDropShadowElement' in window
@@ -1106,7 +1107,7 @@ var joint = {
                 });
             },
 
-            // `amount` ... the proportion of the conversion. A value of 1 is completely grayscale. A value of 0 leaves the input unchanged.
+            // `amount` ... the proportion of the conversion (1). A value of 1 (default) is completely grayscale. A value of 0 leaves the input unchanged.
             grayscale: function(args) {
 
                 var amount = Number.isFinite(args.amount) ? args.amount : 1;
@@ -1123,7 +1124,7 @@ var joint = {
                 });
             },
 
-            // `amount` ... the proportion of the conversion. A value of 1 is completely sepia. A value of 0 leaves the input unchanged.
+            // `amount` ... the proportion of the conversion (1). A value of 1 (default) is completely sepia. A value of 0 leaves the input unchanged.
             sepia: function(args) {
 
                 var amount = Number.isFinite(args.amount) ? args.amount : 1;
@@ -1141,7 +1142,7 @@ var joint = {
                 });
             },
 
-            // `amount` ... the proportion of the conversion. A value of 0 is completely un-saturated. A value of 1 leaves the input unchanged.
+            // `amount` ... the proportion of the conversion (1). A value of 0 is completely un-saturated. A value of 1 (default) leaves the input unchanged.
             saturate: function(args) {
 
                 var amount = Number.isFinite(args.amount) ? args.amount : 1;
@@ -1151,7 +1152,7 @@ var joint = {
                 });
             },
 
-            // `angle` ...  the number of degrees around the color circle the input samples will be adjusted.
+            // `angle` ...  the number of degrees around the color circle the input samples will be adjusted (0).
             hueRotate: function(args) {
 
                 return joint.util.template('<filter><feColorMatrix type="hueRotate" values="${angle}"/></filter>')({
@@ -1159,7 +1160,7 @@ var joint = {
                 });
             },
 
-            // `amount` ... the proportion of the conversion. A value of 1 is completely inverted. A value of 0 leaves the input unchanged.
+            // `amount` ... the proportion of the conversion (1). A value of 1 (default) is completely inverted. A value of 0 leaves the input unchanged.
             invert: function(args) {
 
                 var amount = Number.isFinite(args.amount) ? args.amount : 1;
@@ -1170,7 +1171,7 @@ var joint = {
                 });
             },
 
-            // `amount` ... proportion of the conversion. A value of 0 will create an image that is completely black. A value of 1 leaves the input unchanged.
+            // `amount` ... proportion of the conversion (1). A value of 0 will create an image that is completely black. A value of 1 (default) leaves the input unchanged.
             brightness: function(args) {
 
                 return joint.util.template('<filter><feComponentTransfer><feFuncR type="linear" slope="${amount}"/><feFuncG type="linear" slope="${amount}"/><feFuncB type="linear" slope="${amount}"/></feComponentTransfer></filter>')({
@@ -1178,7 +1179,7 @@ var joint = {
                 });
             },
 
-            // `amount` ... proportion of the conversion. A value of 0 will create an image that is completely black. A value of 1 leaves the input unchanged.
+            // `amount` ... proportion of the conversion (1). A value of 0 will create an image that is completely black. A value of 1 (default) leaves the input unchanged.
             contrast: function(args) {
 
                 var amount = Number.isFinite(args.amount) ? args.amount : 1;
