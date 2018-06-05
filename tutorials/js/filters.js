@@ -247,4 +247,4 @@
         }
     })
     graph.addCell(link);
-}())
+}());

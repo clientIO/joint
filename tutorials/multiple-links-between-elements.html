@@ -37,43 +37,169 @@
 
             <h2>Multiple links between elements</h2>
 
-            <p>You've been asking how to deal with a situation when two or more links connect the same elements, they are
-                covering each other and therefore it's quite hard to interact with them. The solution introduced in this
-                tutorial shows a function that automatically creates vertices so that they cross control points in a way
-                that makes the links shape a cluster with gaps between them. JointJS has a built-in 
-                <a href="http://www.daviddurman.com/hidden-gold-of-jointjs-the-geometry-library.html" target="_blank">geometry
-                library</a> that we can use to find those control points.</p>
+            <p>We have been asked how to accommodate two or more links connecting to the same two elements.
+                By default, multiple links that connect the same two elements simply overlap one another, which makes
+                interaction cumbersome.
+                This tutorial introduces a solution - a function that automatically creates and adjusts link vertices to
+                offset the overlapping links away from each other.
+                We will be using the built-in <a href="/docs/geometry" target="_blank">JointJS geometry library</a>.</p>
 
-            <p>The core of the solution is wrapped in one function named <code>adjustVertices</code>. It accepts a <code>graph</code>
-                and a <code>cell</code> (either link or element). If the <code>cell</code> is a link, it will find all links
-                with the same source and target and then set vertices on them. We'll be calling those links 'siblings'. If
-                the <code>cell</code> is an element, we execute our function for each distinct (in terms of its source and
-                target) connected link to the element.</p> To make the usage even more comfortable, we allow passing model
-            views as well. Ok, this is the function.
+            <p>In the following demo, try moving an element around to see how the links adjust.
+                Then try to reconnect a link (by dragging its source/target arrowhead onto the pink element) and see how
+                the other links regroup.</p>
 
-            <pre data-src="js/adjust-vertices.js" style="height: 1650px"></pre>
+            <div id="paper-multiple-links"></div>
 
-            <p>Now we have to figure out when to call our function. Vertices need to be adjusted any time user changes the
-                source or target of a link or he adds/removes one. Additionally we might want to recalculate the vertices
-                when user translates an element.</p>
+            <p>JointJS source code: <a href="js/multiple-links.js" target="_blank">multiple-links.js</a></p>
 
-            <pre data-src="js/bind-adjust-vertices.js" style="height: 200px"></pre>
+            <p>The core of the solution lies in the <code>adjustVertices</code> function presented below.
+                It accepts a <code>graph</code> and a <code>cell</code> (link or element).
+                For added convenience, the function accepts cell views as well as models.</p>
 
-            <p>Well, that's it. We can take a look at the result.</p>
+            <ul>
+                <li>If <code>cell</code> is a link, it will find all links with the same source and target and then set
+                vertices on them; we will be calling those related links 'siblings'.</li>
+                <li>If <code>cell</code> is an element, we execute our function for each distinct (different source and
+                target) link connected to the element.</li>
+            </ul>
 
+            <pre><code>function adjustVertices(graph, cell) {
 
-            <p>
-                <small>Try to move an element to see how the links follow. Then try to reconnect a link by dragging its
-                    arrowhead to see how the links shape a cluster.
-                </small>
-            </p>
+    // if `cell` is a view, find its model
+    cell = cell.model || cell;
 
-            <div id="paper-vertices"></div>
-            <script src="js/multiple-links.js"></script>
+    if (cell instanceof joint.dia.Element) {
+        // `cell` is an element
 
-        </div>
+        _.chain(graph.getConnectedLinks(cell))
+            .groupBy(function(link) {
+
+                // the key of the group is the model id of the link's source or target
+                // cell id is omitted
+                return _.omit([link.source().id, link.target().id], cell.id)[0];
+            })
+            .each(function(group, key) {
+
+                // if the member of the group has both source and target model
+                // then adjust vertices
+                if (key !== 'undefined') adjustVertices(graph, _.first(group));
+            })
+            .value();
+
+        return;
+    }
+
+    // `cell` is a link
+    // get its source and target model IDs
+    var sourceId = cell.get('source').id || cell.previous('source').id;
+    var targetId = cell.get('target').id || cell.previous('target').id;
+
+    // if one of the ends is not a model
+    // (if the link is pinned to paper at a point)
+    // the link is interpreted as having no siblings
+    if (!sourceId || !targetId) return;
+
+    // identify link siblings
+    var siblings = _.filter(graph.getLinks(), function(sibling) {
+
+        var siblingSourceId = sibling.source().id;
+        var siblingTargetId = sibling.target().id;
+
+        // if source and target are the same
+        // or if source and target are reversed
+        return ((siblingSourceId === sourceId) && (siblingTargetId === targetId))
+            || ((siblingSourceId === targetId) && (siblingTargetId === sourceId));
+    });
+
+    var numSiblings = siblings.length;
+    switch (numSiblings) {
+
+        case 0: {
+            // the link has no siblings
+            break;
+
+        } case 1: {
+            // there is only one link
+            // no vertices needed
+            cell.unset('vertices');
+            break;
+
+        } default: {
+            // there are multiple siblings
+            // we need to create vertices
+
+            // find the middle point of the link
+            var sourceCenter = graph.getCell(sourceId).getBBox().center();
+            var targetCenter = graph.getCell(targetId).getBBox().center();
+            var midPoint = g.Line(sourceCenter, targetCenter).midpoint();
+
+            // find the angle of the link
+            var theta = sourceCenter.theta(targetCenter);
+
+            // constant
+            // the maximum distance between two sibling links
+            var GAP = 20;
+
+            _.each(siblings, function(sibling, index) {
+
+                // we want offset values to be calculated as 0, 20, 20, 40, 40, 60, 60 ...
+                var offset = GAP * Math.ceil(index / 2);
+
+                // place the vertices at points which are `offset` pixels perpendicularly away
+                // from the first link
+                //
+                // as index goes up, alternate left and right
+                //
+                //  ^  odd indices
+                //  |
+                //  |---->  index 0 sibling - centerline (between source and target centers)
+                //  |
+                //  v  even indices
+                var sign = ((index % 2) ? 1 : -1);
+
+                // to assure symmetry, if there is an even number of siblings
+                // shift all vertices leftward perpendicularly away from the centerline
+                if ((numSiblings % 2) === 0) {
+                    offset -= ((GAP / 2) * sign);
+                }
+
+                // make reverse links count the same as non-reverse
+                var reverse = ((theta < 180) ? 1 : -1);
+
+                // we found the vertex
+                var angle = g.toRad(theta + (sign * reverse * 90));
+                var vertex = g.Point.fromPolar(offset, angle, midPoint);
+
+                // replace vertices array with `vertex`
+                sibling.vertices([vertex]);
+            });
+        }
+    }
+}</code></pre>
+
+            <p>JointJS source code: <a href="js/multiple-links.js" target="_blank">multiple-links.js</a> (lines
+                3-115)</p>
+
+            <p>We then attach the necessary event listeners (function <code>bindInteractionEvents</code>).
+                The vertices are recalculated anytime the user translates an element - as well as anytime a link is
+                added/removed or has its source or target changed.</p>
+
+            <pre><code>// bind `graph` to the `adjustVertices` function
+var adjustGraphVertices = _.partial(adjustVertices, graph);
+
+// adjust vertices when a cell is removed or its source/target was changed
+graph.on('add remove change:source change:target', adjustGraphVertices);
+
+// adjust vertices when the user stops interacting with an element
+paper.on('cell:pointerup', adjustGraphVertices);</code></pre>
+
+            <p>JointJS source code: <a href="js/multiple-links.js" target="_blank">multiple-links.js</a> (lines
+                117-127)</p>
+
+        </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
+        <script src="js/multiple-links.js"></script>
     </body>
 </html>
