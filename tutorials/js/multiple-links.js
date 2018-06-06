@@ -34,7 +34,11 @@
         // if one of the ends is not a model
         // (if the link is pinned to paper at a point)
         // the link is interpreted as having no siblings
-        if (!sourceId || !targetId) return;
+        if (!sourceId || !targetId) {
+            // no vertices needed
+            cell.unset('vertices');
+            return;
+        }
 
         // identify link siblings
         var siblings = _.filter(graph.getLinks(), function(sibling) {
@@ -59,7 +63,7 @@
                 // there is only one link
                 // no vertices needed
                 cell.unset('vertices');
-                break;
+                // fall through
 
             } default: {
                 // there are multiple siblings

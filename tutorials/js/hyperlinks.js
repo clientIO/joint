@@ -36,8 +36,7 @@
             label: {
                 fill: '#ffa500'
             }
-        },
-        interactive: true
+        }
     }, {
         markup: [{
             tagName: 'rect',
@@ -81,8 +80,7 @@
             label: {
                 fill: '#ffa500'
             }
-        },
-        interactive: false
+        }
     }, {
         markup: [{
             // `link` envelops both `body` and `label`
