@@ -28,40 +28,52 @@
     <body class="language-javascript tutorial-page">
 
         <script>
-            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function (toElement) {
+            SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
                 return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
             };
         </script>
 
-        <div id="multiple-papers" class="tutorial">
+        <div class="tutorial">
 
-            <h2>More papers for the same graph</h2>
-            <p>Now when you learned that a <code>joint.dia.Paper</code> is a view for the <code>joint.dia.Graph</code>
-                model, you can imagine that the same model can have
-                multiple views. That's right. Let's use the same application as the Hello World! above and let's add another
-                paper, scaled and non-interactive, that serves as a small
-                overview of the graph.
-            </p>
-            <pre><code>var paperSmall = new joint.dia.Paper({
-    el: $('#myholder-small'),
-    width: 600,
-    height: 100,
-    model: graph,
-    gridSize: 1
-});
-paperSmall.scale(.5);
-paperSmall.$el.css('pointer-events', 'none');</code></pre>
+            <h2>Multiple papers for the same graph</h2>
 
-            <div class="paper" id="paper-multiple-papers"></div>
-            <div class="paper" id="paper-multiple-papers-small"></div>
-            <p>
-                Try to interact with the first, bigger, paper. You should see all the changes reflected in the other,
-                smaller, paper.
-            </p>
+            <p>We mentioned in the <a href="introduction.html">tutorial introduction</a> that JointJS has an MVC
+                structure.
+                Importantly, this also applies to the <a href="graph-and-paper.html">two main JointJS components</a> -
+                the <code>joint.dia.Graph</code> model and its view - <code>joint.dia.Paper</code>.
+                Therefore, nothing prevents us from associating more than one paper to a single graph!</p>
+
+            <p>When several papers are connected to the same graph, they all present the same data and communicate user
+                interaction to the same underlying model.
+                Each of those papers can apply their own transformations to the presented information, which allows us
+                to create diagram minimaps and previews.</p>
+
+            <p>Let us adapt our basic Hello, World! <a href="hello-world">application</a> and overlay it with a smaller,
+                non-interactive minimap.
+                Notice that as you interact with the bigger paper, all modifications are reflected in the preview.</p>
+
+            <div style="position: relative; padding-bottom: 100px;">
+                <div class="paper" id="paper-multiple-papers" style="position: absolute;"></div>
+                <div class="paper" id="paper-multiple-papers-small" style="position: absolute; top: 75px; left: 450px;"></div>
+            </div>
+
+            <p>We use a simple HTML to make the papers overlap...</p>
+
+            <pre><code>&lt;div style="position: relative; padding-bottom: 100px;"&gt;
+    &lt;div class="paper" id="paper-multiple-papers" style="position: absolute;"&gt;&lt;/div&gt;
+    &lt;div class="paper" id="paper-multiple-papers-small" style="position: absolute; top: 75px; left: 450px;"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+
+            <p>...and the following JavaScript to populate the two papers:</p>
+
+            <pre data-src="js/multiple-papers.js"></pre>
+
+            <p>JointJS source code: <a href="js/multiple-papers.js" target="_blank">multiple-papers.js</a></p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
+
         <script src="js/multiple-papers.js"></script>
     </body>
 </html>

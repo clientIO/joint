@@ -34,27 +34,36 @@
         </script>
 
         <div id="hyperlinks" class="tutorial">
-            <h2>Using Hyperlinks in JointJS elements</h2>
 
-            <p>This tutorial shows you how to create JointJS elements that contains links pointing to external sites.
-                The only thing you have to do is to create a shape that contains the SVG <a
-                    href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a" target="_blank">a</a>
-                element in the markup. Then you can just use the <code>xlink:href</code> attribute to set the target
-                resource URL.
-                Also note that you can use the <code>xlink:show</code> attribute to tell whether the content the link points
-                to should be
-                displayed in a new window, or replace the content of the existing window. Possible values for the <code>xlink:show</code>
-                attribute are <code>"new"</code> and <code>"replace"</code>.
-            </p>
+            <h2>Custom elements with hyperlinks</h2>
+
+            <p>It is possible to define <a href="custom-elements.html">custom JointJS elements</a> with hyperlinks
+                pointing to external sites - by including the <code>&lt;a&gt;</code>
+                <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/a" target="_blank">SVG element</a>
+                in the <a href="custom-elements.html#markup">markup</a> of a custom element.
+                The navigation path is then specified in individual elements' attributes of the custom type.</p>
+
+            <p>The two most important
+                <a href="https://www.w3schools.com/xml/xml_xlink.asp" target="_blank">XLink</a> attributes in this
+                context are the following:</p>
+
+            <ul>
+                <li><code>xlink:href</code> - set the target resource URL.</li>
+                <li><code>xlink:show</code> - how should the linked content be presented?
+                    Possible values are <code>'replace'</code> (show in current window; default) and <code>'new'</code>
+                    (show in new window).</li>
+            </ul>
 
             <div id="paper-hyperlinks"></div>
 
-            <script type="text/javascript" src="js/hyperlinks.js"></script>
+            <pre data-src="js/hyperlinks.js"></pre>
 
-            <pre data-src="js/hyperlinks.js" style="height: 1100px"></pre>
-        </div>
+            <p>JointJS source code: <a href="js/hyperlinks.js" target="_blank">hyperlinks.js</a></p>
+
+        </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
+        <script src="js/hyperlinks.js"></script>
     </body>
 </html>
