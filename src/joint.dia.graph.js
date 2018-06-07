@@ -106,8 +106,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cell.isLink()) {
             this._edges[cell.id] = true;
-            var source = cell.get('source');
-            var target = cell.get('target');
+            var source = cell.source();
+            var target = cell.target();
             if (source.id) {
                 (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
             }
@@ -123,8 +123,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cell.isLink()) {
             delete this._edges[cell.id];
-            var source = cell.get('source');
-            var target = cell.get('target');
+            var source = cell.source();
+            var target = cell.target();
             if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
                 delete this._out[source.id][cell.id];
             }
@@ -631,8 +631,8 @@ joint.dia.Graph = Backbone.Model.extend({
             // assert(clone exists)
 
             if (clone.isLink()) {
-                var source = clone.get('source');
-                var target = clone.get('target');
+                var source = clone.source();
+                var target = clone.target();
                 if (source.id && cloneMap[source.id]) {
                     // Source points to an element and the element is among the clones.
                     // => Update the source of the cloned link.
