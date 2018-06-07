@@ -1,3 +1,6 @@
-<pre class="docs-method-signature"><code>graph.getConnectedLinks(element, opt)</code></pre><p>Get all the associated links to the <code>element</code>. If <code>opt.inbound === true</code>, only inbound links will be returned. Similarly,
-                if <code>opt.outbound === true</code>, only outbound links will be returned. If <code>opt.deep</code> is <code>true</code>,
-                all the links that are connected to any of the descendant elements (embedded and deeply embedded) are returned.</p>
+<pre class="docs-method-signature"><code>graph.getConnectedLinks(element, opt)</code></pre>
+<p>Get all the associated links to the <code>element</code>.
+
+<p>If <code>opt.inbound === true</code>, only inbound links will be returned. Similarly, if <code>opt.outbound === true</code>, only outbound links will be returned.</p>
+
+<p>If <code>opt.deep === true</code>, all outside links that connect to any of the element's descendants (embedded and deeply embedded elements) are returned, as well. Additionally, if <code>opt.includeEnclosed === true</code>, also all the links completely enclosed within <code>element</code> (i.e. links connecting two embedded descendants) will be returned.</p>
