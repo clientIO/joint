@@ -1311,8 +1311,15 @@ QUnit.module('links', function(hooks) {
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, source translated.');
 
+        // loop + vertices + embedded (moving container)
+        c.embed(a);
+        lv.update.reset();
+        c.translate(10, 10);
+        assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, container translated.');
+
+
         a.unembed(l);
-        c.embed(a).embed(b).embed(l);
+        c.embed(b).embed(l);
         l.set('target', { id: 'b' });
 
         // source, target and link with vertices are embedded,
