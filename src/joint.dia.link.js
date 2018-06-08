@@ -1601,7 +1601,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     // the link instead of me. (We know for sure there will be a next turn because
                     // loop links react on at least two events: change on the source model followed by a change on
                     // the target model).
-                    if (joint.util.isEmpty(model.get('vertices')) || (opt.translateBy && !model.isEmbeddedIn(opt.translateBy))) {
+                    if (!opt.translateBy || joint.util.isEmpty(model.get('vertices')) || !model.isEmbeddedIn(opt.translateBy)) {
                         opt.handleBy = this.cid;
                     } else {
                         doUpdate = false;
