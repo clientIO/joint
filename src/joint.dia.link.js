@@ -1608,7 +1608,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                     }
                 }
 
-                if (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy))) {
+                if (doUpdate && (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy)))) {
 
                     // Here are two options:
                     // - Source and target are connected to the same model (not necessarily the same port).
