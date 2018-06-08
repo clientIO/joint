@@ -944,7 +944,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         this.getConnectedLinks(model).forEach(function(link) {
 
-            link.set((link.source().id === model.id ? 'source' : 'target'), new g.Point(), opt);
+            link.set((link.source().id === model.id ? 'source' : 'target'), { x: 0, y: 0 }, opt);
         });
     },
 
