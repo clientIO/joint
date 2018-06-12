@@ -12,36 +12,36 @@ QUnit.module('graph', function(hooks) {
 
     this.setupTestMixtureGraph = function(graph) {
         // An example graph with many sources, sinks, embedded elements and pinned links.
-        var a = new joint.shapes.basic.Rect({ id: 'a' }).addTo(graph);
-        var b = new joint.shapes.basic.Rect({ id: 'b' }).addTo(graph);
-        var c = new joint.shapes.basic.Rect({ id: 'c' }).addTo(graph);
-        var d = new joint.shapes.basic.Rect({ id: 'd' }).addTo(graph);
-        var e = new joint.shapes.basic.Rect({ id: 'e' }).addTo(graph);
-        var f = new joint.shapes.basic.Rect({ id: 'f' }).addTo(graph);
-        var g = new joint.shapes.basic.Rect({ id: 'g' }).addTo(graph);
+        var a = new joint.shapes.basic.Rect({ id: 'a' }).addTo(graph); // e -> a -> b, c, d; parent of aa(aaa)
+        var b = new joint.shapes.basic.Rect({ id: 'b' }).addTo(graph); // e -> b
+        var c = new joint.shapes.basic.Rect({ id: 'c' }).addTo(graph); // a -> c
+        var d = new joint.shapes.basic.Rect({ id: 'd' }).addTo(graph); // d -> e
+        var e = new joint.shapes.basic.Rect({ id: 'e' }).addTo(graph); // d -> e -> a, b
+        var f = new joint.shapes.basic.Rect({ id: 'f' }).addTo(graph); // f ->
+        var g = new joint.shapes.basic.Rect({ id: 'g' }).addTo(graph); // -> g
         new joint.shapes.basic.Rect({ id: 'h' }).addTo(graph);
 
-        new joint.dia.Link({ id: 'l1', source: { id: a.id }, target: { id: b.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l2', source: { id: a.id }, target: { id: c.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l3', source: { id: a.id }, target: { id: d.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l4', source: { id: d.id }, target: { id: e.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l5', source: { id: e.id }, target: { id: b.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l6', source: { id: e.id }, target: { id: a.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l7', source: { id: f.id }, target: { x: 50, y: 50 } }).addTo(graph);
-        new joint.dia.Link({ id: 'l8', source: { x: 100, y: 100 }, target: { id: g.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l8', source: { x: 200, y: 200 }, target: { x: 300, y: 300 } }).addTo(graph);
+        new joint.dia.Link({ id: 'l1', source: { id: a.id }, target: { id: b.id } }).addTo(graph); // a -> b
+        new joint.dia.Link({ id: 'l2', source: { id: a.id }, target: { id: c.id } }).addTo(graph); // a -> c
+        new joint.dia.Link({ id: 'l3', source: { id: a.id }, target: { id: d.id } }).addTo(graph); // a -> d
+        new joint.dia.Link({ id: 'l4', source: { id: d.id }, target: { id: e.id } }).addTo(graph); // d -> e
+        new joint.dia.Link({ id: 'l5', source: { id: e.id }, target: { id: b.id } }).addTo(graph); // e -> b
+        new joint.dia.Link({ id: 'l6', source: { id: e.id }, target: { id: a.id } }).addTo(graph); // e -> a
+        new joint.dia.Link({ id: 'l7', source: { id: f.id }, target: { x: 50, y: 50 } }).addTo(graph); // f ->
+        new joint.dia.Link({ id: 'l8', source: { x: 100, y: 100 }, target: { id: g.id } }).addTo(graph); // -> g
+        new joint.dia.Link({ id: 'l9', source: { x: 200, y: 200 }, target: { x: 300, y: 300 } }).addTo(graph); // ->
 
         // Add hierarchy.
-        var aa = new joint.shapes.basic.Rect({ id: 'aa' }).addTo(graph);
+        var aa = new joint.shapes.basic.Rect({ id: 'aa' }).addTo(graph); // top -> aa; child of a, parent of aaa
         a.embed(aa);
-        var aaa = new joint.shapes.basic.Rect({ id: 'aaa' }).addTo(graph);
+        var aaa = new joint.shapes.basic.Rect({ id: 'aaa' }).addTo(graph); // top, aa -> aaa -> top; aaa -> aaa (loop); child of a(aa)
         aa.embed(aaa);
-        var top = new joint.shapes.basic.Rect({ id: 'top' }).addTo(graph);
-        new joint.dia.Link({ id: 'l10', source: { id: top.id }, target: { id: aa.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l11', source: { id: top.id }, target: { id: aaa.id } }).addTo(graph);
-        new joint.dia.Link({ id: 'l12', source: { id: aaa.id }, target: { id: top.id } }).addTo(graph);
-        var l13 = new joint.dia.Link({ id: 'l13', source: { id: aaa.id }, target: { id: aaa.id } }).addTo(graph);
-        aaa.embed(l13);
+        var top = new joint.shapes.basic.Rect({ id: 'top' }).addTo(graph); // aaa -> top -> aaa
+        new joint.dia.Link({ id: 'l10', source: { id: top.id }, target: { id: aa.id } }).addTo(graph); // top -> aa
+        new joint.dia.Link({ id: 'l11', source: { id: top.id }, target: { id: aaa.id } }).addTo(graph); // top -> aaa
+        new joint.dia.Link({ id: 'l12', source: { id: aaa.id }, target: { id: top.id } }).addTo(graph); // aaa -> top
+        new joint.dia.Link({ id: 'l13', source: { id: aaa.id }, target: { id: aaa.id } }).addTo(graph); // aaa -> aaa
+        new joint.dia.Link({ id: 'l14', source: { id: aa.id }, target: { id: aaa.id } }).addTo(graph); // aa -> aaa
     };
 
     this.setupTestTreeGraph = function(graph) {
@@ -465,26 +465,115 @@ QUnit.module('graph', function(hooks) {
         var graph = this.graph;
         this.setupTestMixtureGraph(graph);
 
-        // Shallow.
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a')), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3']), 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('a'), { inbound: true }), 'id'), ['l6'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('h')), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('g')), 'id'), ['l8'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('g'), { inbound: true }), 'id'), ['l8'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('g'), { outbound: true }), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('f')), 'id'), ['l7'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('f'), { outbound: true }), 'id'), ['l7'], 'getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.map(graph.getConnectedLinks(graph.getCell('f'), { inbound: true }), 'id'), [], 'getConnectedLinks() returns all the connected links to an element.');
+        // SHALLOW LINKS:
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a')), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { inbound: true }), 'id')), _.sortBy(['l6']), 'getConnectedLinks() returns all the connected links to an element.');
 
-        // Deep.
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, inbound: true }), 'id')), _.sortBy(['l6', 'l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true }), 'id')), _.sortBy(['l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, inbound: true }), 'id')), _.sortBy(['l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element.');
-        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa')), 'id')), _.sortBy(['l11', 'l12', 'l13']), 'deep getConnectedLinks() returns all the connected links to an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('b')), 'id')), _.sortBy(['l1', 'l5']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('b'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l5']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('b'), { outbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('b'), { inbound: true }), 'id')), _.sortBy(['l1', 'l5']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('c')), 'id')), _.sortBy(['l2']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('c'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l2']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('c'), { outbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('c'), { inbound: true }), 'id')), _.sortBy(['l2']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('d')), 'id')), _.sortBy(['l3', 'l4']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('d'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l3', 'l4']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('d'), { outbound: true }), 'id')), _.sortBy(['l4']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('d'), { inbound: true }), 'id')), _.sortBy(['l3']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('e')), 'id')), _.sortBy(['l4', 'l5', 'l6']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('e'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l4', 'l5', 'l6']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('e'), { outbound: true }), 'id')), _.sortBy(['l5', 'l6']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('e'), { inbound: true }), 'id')), _.sortBy(['l4']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('f')), 'id')), _.sortBy(['l7']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('f'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l7']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('f'), { outbound: true }), 'id')), _.sortBy(['l7']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('f'), { inbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('g')), 'id')), _.sortBy(['l8']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('g'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l8']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('g'), { outbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('g'), { inbound: true }), 'id')), _.sortBy(['l8']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('h')), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('h'), { inbound: true, outbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('h'), { outbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('h'), { inbound: true }), 'id')), _.sortBy([]), 'getConnectedLinks() returns all the connected links to an element.');
+
+        // (include connection to child)
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa')), 'id')), _.sortBy(['l10', 'l14']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l10', 'l14']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { outbound: true }), 'id')), _.sortBy(['l14']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { inbound: true }), 'id')), _.sortBy(['l10']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        // (include shallow loop)
+        // (include connection from parent)
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa')), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { outbound: true }), 'id')), _.sortBy(['l12', 'l13']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { inbound: true }), 'id')), _.sortBy(['l11', 'l13', 'l14']), 'getConnectedLinks() returns all the connected links to an element.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('top')), 'id')), _.sortBy(['l10', 'l11', 'l12']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('top'), { inbound: true, outbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l12']), 'getConnectedLinks() returns all the connected links to/from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('top'), { outbound: true }), 'id')), _.sortBy(['l10', 'l11']), 'getConnectedLinks() returns all the connected links from an element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('top'), { inbound: true }), 'id')), _.sortBy(['l12']), 'getConnectedLinks() returns all the connected links to an element.');
+
+
+        // DEEP LINKS, EXCEPT COMPLETELY ENCLOSED LINKS:
+        // (do not include enclosed parent-child connection)
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l12']), 'deep getConnectedLinks() returns all the connected links from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, inbound: true }), 'id')), _.sortBy(['l6', 'l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: false }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: false, inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: false, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l12']), 'deep getConnectedLinks() returns all the connected links from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: false, inbound: true }), 'id')), _.sortBy(['l6', 'l10', 'l11']), 'deep getConnectedLinks() returns all the connected links to an element, except enclosed links.');
+
+        // (include connection to child)
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true }), 'id')), _.sortBy(['l10', 'l11', 'l12', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, inbound: true, outbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l12', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, outbound: true }), 'id')), _.sortBy(['l12', 'l14']), 'deep getConnectedLinks() returns all the connected links from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, inbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: false }), 'id')), _.sortBy(['l10', 'l11', 'l12', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: false, inbound: true, outbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l12', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: false, outbound: true }), 'id')), _.sortBy(['l12', 'l14']), 'deep getConnectedLinks() returns all the connected links from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: false, inbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, except enclosed links.');
+
+        // (include shallow loop)
+        // (include connection from parent)
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, inbound: true, outbound: true }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, outbound: true }), 'id')), _.sortBy(['l12', 'l13']), 'deep getConnectedLinks() returns all the connected links from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, inbound: true }), 'id')), _.sortBy(['l11', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: false }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: false, inbound: true, outbound: true }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: false, outbound: true }), 'id')), _.sortBy(['l12', 'l13']), 'deep getConnectedLinks() returns all the connected links from an element, except enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: false, inbound: true }), 'id')), _.sortBy(['l11', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, except enclosed links.');
+
+
+        // DEEP LINKS, INCLUDING COMPLETELY ENCLOSED LINKS:
+        // (include enclosed parent-child connection)
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: true, inbound: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l6', 'l10', 'l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: true, outbound: true }), 'id')), _.sortBy(['l1', 'l2', 'l3', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('a'), { deep: true, includeEnclosed: true, inbound: true }), 'id')), _.sortBy(['l6', 'l10', 'l11', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, including enclosed links.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: true }), 'id')), _.sortBy(['l10', 'l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: true, inbound: true, outbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: true, outbound: true }), 'id')), _.sortBy(['l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aa'), { deep: true, includeEnclosed: true, inbound: true }), 'id')), _.sortBy(['l10', 'l11', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, including enclosed links.');
+
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: true }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: true, inbound: true, outbound: true }), 'id')), _.sortBy(['l11', 'l12', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to/from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: true, outbound: true }), 'id')), _.sortBy(['l12', 'l13']), 'deep getConnectedLinks() returns all the connected links from an element, including enclosed links.');
+        assert.deepEqual(_.sortBy(_.map(graph.getConnectedLinks(graph.getCell('aaa'), { deep: true, includeEnclosed: true, inbound: true }), 'id')), _.sortBy(['l11', 'l13', 'l14']), 'deep getConnectedLinks() returns all the connected links to an element, including enclosed links.');
     });
 
     QUnit.test('graph.getSources(), graph.getSinks(), isSource(), isSink()', function(assert) {
@@ -493,8 +582,8 @@ QUnit.module('graph', function(hooks) {
         this.setupTestMixtureGraph(graph);
 
         assert.deepEqual(_.sortBy(_.map(graph.getSources(), 'id')), _.sortBy(['f', 'h']), 'getSources() returns all the root elements of the graph.');
-        assert.deepEqual(_.sortBy(_.map(graph.getSinks(), 'id')), _.sortBy(['aa', 'b', 'c', 'g', 'h']), 'getSinks() returns all the leaf elements of the graph.');
-        assert.equal(graph.isSink(graph.getCell('aa')), true, 'isSink() returns true for a root element.');
+        assert.deepEqual(_.sortBy(_.map(graph.getSinks(), 'id')), _.sortBy(['b', 'c', 'g', 'h']), 'getSinks() returns all the leaf elements of the graph.');
+        assert.equal(graph.isSink(graph.getCell('c')), true, 'isSink() returns true for a root element.');
         assert.equal(graph.isSink(graph.getCell('a')), false, 'isSink() returns false for a non-root element.');
         assert.equal(graph.isSource(graph.getCell('f')), true, 'isSource() returns true for a leaf element.');
         assert.equal(graph.isSource(graph.getCell('a')), false, 'isSource() returns false for a non-leaf element.');
