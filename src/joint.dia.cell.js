@@ -919,11 +919,12 @@ joint.dia.CellView = joint.mvc.View.extend({
     // No value for `prevSelector` is expected when using this method.
     getSelector: function(el, prevSelector) {
 
-        if (el === this.el) {
-            return prevSelector;
-        }
-
         var selector;
+
+        if (el === this.el) {
+            if (typeof prevSelector === 'string') selector = '> ' + prevSelector;
+            return selector;
+        }
 
         if (el) {
 
