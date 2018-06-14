@@ -1020,19 +1020,19 @@ QUnit.module('basic', function(hooks) {
         var selector;
 
         selector = view.getSelector(svgText);
-        assert.equal(view.el.querySelector(selector), svgText, 'Applying the selector returned from getSelector() should point to the selected element. It finds the exact same text node.');
+        assert.equal(view.$el.find(selector)[0], svgText, 'Applying the selector returned from getSelector() should point to the selected element. It finds the exact same text node.');
 
         selector = view.getSelector(svgPort1);
-        assert.equal(view.el.querySelector(selector), svgPort1, 'It finds the exact same port no. 1.');
+        assert.equal(view.$el.find(selector)[0], svgPort1, 'It finds the exact same port no. 1.');
 
         selector = view.getSelector(svgPort2);
-        assert.equal(view.el.querySelector(selector), svgPort2, 'It finds the exact same port no. 2.');
+        assert.equal(view.$el.find(selector)[0], svgPort2, 'It finds the exact same port no. 2.');
 
         selector = view.getSelector(svgPort3);
-        assert.equal(view.el.querySelector(selector), svgPort3, 'It finds the exact same port no. 3.');
+        assert.equal(view.$el.find(selector)[0], svgPort3, 'It finds the exact same port no. 3.');
 
         selector = view.getSelector(svgPort4);
-        assert.equal(view.el.querySelector(selector), svgPort4, 'It finds the exact same port no. 4.');
+        assert.equal(view.$el.find(selector)[0], svgPort4, 'It finds the exact same port no. 4.');
     });
 
     QUnit.test('ports', function(assert) {
