@@ -75,10 +75,10 @@ joint.dia.Graph = Backbone.Model.extend({
 
         // Outgoing edges per node. Note that we use a hash-table for the list
         // of outgoing edges for a faster lookup.
-        // [node ID] -> Object [edge] -> true
+        // [nodeId] -> Object [edgeId] -> true
         this._out = {};
         // Ingoing edges per node.
-        // [node ID] -> Object [edge] -> true
+        // [nodeId] -> Object [edgeId] -> true
         this._in = {};
         // `_nodes` is useful for quick lookup of all the elements in the graph, without
         // having to go through the whole cells array.
@@ -86,7 +86,7 @@ joint.dia.Graph = Backbone.Model.extend({
         this._nodes = {};
         // `_edges` is useful for quick lookup of all the links in the graph, without
         // having to go through the whole cells array.
-        // [edge ID] -> true
+        // [edgeId] -> true
         this._edges = {};
 
         cells.on('add', this._restructureOnAdd, this);
@@ -106,8 +106,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cell.isLink()) {
             this._edges[cell.id] = true;
-            var source = cell.get('source');
-            var target = cell.get('target');
+            var source = cell.source();
+            var target = cell.target();
             if (source.id) {
                 (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
             }
@@ -123,8 +123,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cell.isLink()) {
             delete this._edges[cell.id];
-            var source = cell.get('source');
-            var target = cell.get('target');
+            var source = cell.source();
+            var target = cell.target();
             if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
                 delete this._out[source.id][cell.id];
             }
@@ -155,7 +155,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (prevSource.id && this._out[prevSource.id]) {
             delete this._out[prevSource.id][link.id];
         }
-        var source = link.get('source');
+        var source = link.source();
         if (source.id) {
             (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
         }
@@ -174,14 +174,14 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     // Return all outbound edges for the node. Return value is an object
-    // of the form: [edge] -> true
+    // of the form: [edgeId] -> true
     getOutboundEdges: function(node) {
 
         return (this._out && this._out[node]) || {};
     },
 
     // Return all inbound edges for the node. Return value is an object
-    // of the form: [edge] -> true
+    // of the form: [edgeId] -> true
     getInboundEdges: function(node) {
 
         return (this._in && this._in[node]) || {};
@@ -265,7 +265,7 @@ joint.dia.Graph = Backbone.Model.extend({
             attrs = cell.attributes;
             if (!cell.graph && (!opt || !opt.dry)) {
                 // An element can not be member of more than one graph.
-                // A cell stops being the member of the graph after it's explicitely removed.
+                // A cell stops being the member of the graph after it's explicitly removed.
                 cell.graph = this;
             }
         } else {
@@ -401,10 +401,12 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     getElements: function() {
+
         return Object.keys(this._nodes).map(this.getCell, this);
     },
 
     getLinks: function() {
+
         return Object.keys(this._edges).map(this.getCell, this);
     },
 
@@ -425,14 +427,14 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (inbound === undefined && outbound === undefined) {
+        if ((inbound === undefined) && (outbound === undefined)) {
             inbound = outbound = true;
         }
 
-        // The final array of connected link models.
+        // the final array of connected link models
         var links = [];
-        // Connected edges. This hash table ([edge] -> true) serves only
-        // for a quick lookup to check if we already added a link.
+        // a hash table of connected edges of the form: [edgeId] -> true
+        // used for quick lookups to check if we already added a link
         var edges = {};
 
         if (outbound) {
@@ -445,8 +447,9 @@ joint.dia.Graph = Backbone.Model.extend({
         }
         if (inbound) {
             joint.util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
-                // Skip links that were already added. Those must be self-loop links
-                // because they are both inbound and outbond edges of the same element.
+                // skip links that were already added
+                // (those must be self-loop links)
+                // (because they are inbound and outbound edges of the same two elements)
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
@@ -454,24 +457,35 @@ joint.dia.Graph = Backbone.Model.extend({
             }.bind(this));
         }
 
-        // If 'deep' option is 'true', return all the links that are connected to any of the descendent cells
-        // and are not descendents themselves.
+        // if `deep` option is `true`, check also all the links that are connected to any of the descendant cells
         if (opt.deep) {
 
             var embeddedCells = model.getEmbeddedCells({ deep: true });
-            // In the first round, we collect all the embedded edges so that we can exclude
-            // them from the final result.
-            var embeddedEdges = {};
+
+            // in the first round, we collect all the embedded elements
+            var embeddedElements = {};
             embeddedCells.forEach(function(cell) {
-                if (cell.isLink()) {
-                    embeddedEdges[cell.id] = true;
+                if (cell.isElement()) {
+                    embeddedElements[cell.id] = true;
                 }
             });
+
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
                     joint.util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
-                        if (!edges[edge] && !embeddedEdges[edge]) {
+                        if (!edges[edge]) {
+                            var edgeCell = this.getCell(edge);
+                            var sourceId = edgeCell.source().id;
+                            var targetId = edgeCell.target().id;
+
+                            // if `includeEnclosed` option is falsy, skip enclosed links
+                            if (!opt.includeEnclosed
+                                && (sourceId && embeddedElements[sourceId])
+                                && (targetId && embeddedElements[targetId])) {
+                                return;
+                            }
+
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
@@ -479,7 +493,18 @@ joint.dia.Graph = Backbone.Model.extend({
                 }
                 if (inbound) {
                     joint.util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
-                        if (!edges[edge] && !embeddedEdges[edge]) {
+                        if (!edges[edge]) {
+                            var edgeCell = this.getCell(edge);
+                            var sourceId = edgeCell.source().id;
+                            var targetId = edgeCell.target().id;
+
+                            // if `includeEnclosed` option is falsy, skip enclosed links
+                            if (!opt.includeEnclosed
+                                && (sourceId && embeddedElements[sourceId])
+                                && (targetId && embeddedElements[targetId])) {
+                                return;
+                            }
+
                             links.push(this.getCell(edge));
                             edges[edge] = true;
                         }
@@ -503,8 +528,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
 
-            var source = link.get('source');
-            var target = link.get('target');
+            var source = link.source();
+            var target = link.target();
             var loop = link.hasLoop(opt);
 
             // Discard if it is a point, or if the neighbor was already added.
@@ -606,8 +631,8 @@ joint.dia.Graph = Backbone.Model.extend({
             // assert(clone exists)
 
             if (clone.isLink()) {
-                var source = clone.get('source');
-                var target = clone.get('target');
+                var source = clone.source();
+                var target = clone.target();
                 if (source.id && cloneMap[source.id]) {
                     // Source points to an element and the element is among the clones.
                     // => Update the source of the cloned link.
@@ -698,8 +723,8 @@ joint.dia.Graph = Backbone.Model.extend({
 
         links.forEach(function(link) {
             // For links, return their source & target (if they are elements - not points).
-            var source = link.get('source');
-            var target = link.get('target');
+            var source = link.source();
+            var target = link.target();
             if (source.id && !cellMap[source.id]) {
                 var sourceElement = this.getCell(source.id);
                 subgraph.push(sourceElement);
@@ -718,8 +743,8 @@ joint.dia.Graph = Backbone.Model.extend({
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
             links.forEach(function(link) {
-                var source = link.get('source');
-                var target = link.get('target');
+                var source = link.source();
+                var target = link.target();
                 if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
                     subgraph.push(link);
                     cellMap[link.id] = link;
@@ -887,7 +912,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
-        if (inbound === undefined && outbound === undefined) {
+        if ((inbound === undefined) && (outbound === undefined)) {
             inbound = outbound = true;
         }
 
@@ -895,17 +920,17 @@ joint.dia.Graph = Backbone.Model.extend({
 
         this.getConnectedLinks(elementA, opt).forEach(function(link) {
 
-            var source = link.get('source');
-            var target = link.get('target');
+            var source = link.source();
+            var target = link.target();
 
             // Discard if it is a point.
-            if (inbound && joint.util.has(source, 'id') && source.id === elementB.id) {
+            if (inbound && joint.util.has(source, 'id') && (source.id === elementB.id)) {
                 isNeighbor = true;
                 return false;
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && joint.util.has(target, 'id') && target.id === elementB.id) {
+            if (outbound && joint.util.has(target, 'id') && (target.id === elementB.id)) {
                 isNeighbor = true;
                 return false;
             }
@@ -919,7 +944,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         this.getConnectedLinks(model).forEach(function(link) {
 
-            link.set(link.get('source').id === model.id ? 'source' : 'target', { x: 0, y: 0 }, opt);
+            link.set((link.source().id === model.id ? 'source' : 'target'), { x: 0, y: 0 }, opt);
         });
     },
 
@@ -1035,6 +1060,7 @@ joint.dia.Graph = Backbone.Model.extend({
     },
 
     hasActiveBatch: function(name) {
+
         if (arguments.length === 0) {
             return joint.util.toArray(this._batches).some(function(batches) {
                 return batches > 0;
@@ -1055,8 +1081,8 @@ joint.dia.Graph = Backbone.Model.extend({
         multiLinks: function(graph, link) {
 
             // Do not allow multiple links to have the same source and target.
-            var source = link.get('source');
-            var target = link.get('target');
+            var source = link.source();
+            var target = link.target();
 
             if (source.id && target.id) {
 
@@ -1066,8 +1092,8 @@ joint.dia.Graph = Backbone.Model.extend({
                     var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });
                     var sameLinks = connectedLinks.filter(function(_link) {
 
-                        var _source = _link.get('source');
-                        var _target = _link.get('target');
+                        var _source = _link.source();
+                        var _target = _link.target();
 
                         return _source && _source.id === source.id &&
                             (!_source.port || (_source.port === source.port)) &&
