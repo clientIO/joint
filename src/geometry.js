@@ -3419,12 +3419,12 @@ var g = (function() {
     };
 
     Polyline.parse = function(svgString) {
-
+        svgString = svgString.trim();
         if (svgString === '') return new Polyline();
 
         var points = [];
 
-        var coords = svgString.split(/\s|,/);
+        var coords = svgString.split(/\s*,\s*|\s+/);
         var n = coords.length;
         for (var i = 0; i < n; i += 2) {
             points.push({ x: +coords[i], y: +coords[i + 1] });
