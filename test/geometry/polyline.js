@@ -105,10 +105,10 @@ QUnit.module('polyline', function() {
             assert.equal(polyline.points[1].toString(), '20@20');
 
             // spaces and commas
-	        polyline = new g.Polyline('  10, 10 , 20 , 20  ');
-	        assert.equal(polyline.points.length, 2);
-	        assert.equal(polyline.points[0].toString(), '10@10');
-	        assert.equal(polyline.points[1].toString(), '20@20');
+            polyline = new g.Polyline('  10, 10 , 20 , 20  ');
+            assert.equal(polyline.points.length, 2);
+            assert.equal(polyline.points[0].toString(), '10@10');
+            assert.equal(polyline.points[1].toString(), '20@20');
         });
     });
 

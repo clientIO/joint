@@ -3419,7 +3419,7 @@ var g = (function() {
     };
 
     Polyline.parse = function(svgString) {
-	    svgString = svgString.trim();
+        svgString = svgString.trim();
         if (svgString === '') return new Polyline();
 
         var points = [];
