@@ -73,6 +73,10 @@ QUnit.module('polyline', function() {
             assert.ok(Array.isArray(polyline.points));
             assert.equal(polyline.points.length, 0);
 
+            // empty string with whitespaces
+            polyline = new g.Polyline('  ');
+            assert.equal(polyline.points.length, 0);
+
             // svg string
             polyline = new g.Polyline('10,10 20,20');
             assert.ok(polyline instanceof g.Polyline, 'returns instance of g.Polyline');
@@ -81,6 +85,30 @@ QUnit.module('polyline', function() {
             assert.equal(polyline.points.length, 2);
             assert.equal(polyline.points[0].toString(), '10@10');
             assert.equal(polyline.points[1].toString(), '20@20');
+
+            // no commas (single spaces)
+            polyline = new g.Polyline('10 10 20 20');
+            assert.equal(polyline.points.length, 2);
+            assert.equal(polyline.points[0].toString(), '10@10');
+            assert.equal(polyline.points[1].toString(), '20@20');
+
+            // spaces around
+            polyline = new g.Polyline('  10,10 20,20  ');
+            assert.equal(polyline.points.length, 2);
+            assert.equal(polyline.points[0].toString(), '10@10');
+            assert.equal(polyline.points[1].toString(), '20@20');
+
+            // multi spaces between
+            polyline = new g.Polyline('10  10  20  20');
+            assert.equal(polyline.points.length, 2);
+            assert.equal(polyline.points[0].toString(), '10@10');
+            assert.equal(polyline.points[1].toString(), '20@20');
+
+            // spaces and commas
+	        polyline = new g.Polyline('  10, 10 , 20 , 20  ');
+	        assert.equal(polyline.points.length, 2);
+	        assert.equal(polyline.points[0].toString(), '10@10');
+	        assert.equal(polyline.points[1].toString(), '20@20');
         });
     });
 
