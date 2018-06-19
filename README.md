@@ -46,7 +46,6 @@ If you want to work on JointJS locally, use the following guidelines to get star
 
 Make sure you have the following dependencies installed on your system:
 * [Node.js](https://nodejs.org/)
-* [grunt-cli](http://gruntjs.com/using-the-cli)
 * [bower](http://bower.io/)
 * git
 
