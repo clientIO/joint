@@ -1,9 +1,9 @@
-(function interactionEventAttribute() {
+(function eventsEventAttribute() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-interaction-event-attribute'),
+        el: document.getElementById('paper-events-event-attribute'),
         model: graph,
         width: 600,
         height: 100,

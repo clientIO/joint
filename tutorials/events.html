@@ -62,7 +62,7 @@
                 Finally, the blank event listener hides the message element and changes the color of the Paper
                 background:</p>
 
-            <div class="paper" id="paper-interaction-paper-events"></div>
+            <div class="paper" id="paper-events-paper-events"></div>
 
             <pre><code>paper.on('blank:pointerdblclick', function() {
     resetAll(this);
@@ -97,6 +97,10 @@ paper.on('link:pointerdblclick', function(linkView) {
 });
 
 paper.on('cell:pointerdblclick', function(cellView) {
+    var isElement = cellView.model.isElement();
+    var message = (isElement ? 'Element' : 'Link') + ' clicked';
+    info.attr('label/text', message);
+
     info.attr('body/visibility', 'visible');
     info.attr('label/visibility', 'visible');
 });
@@ -126,7 +130,7 @@ function resetAll(paper) {
     }
 }</code></pre>
 
-            <p>JointJS source code: <a href="js/interaction-paper-events.js">interaction-paper-events.js</a></p>
+            <p>JointJS source code: <a href="js/events-paper-events.js" target="_blank">events-paper-events.js</a></p>
 
             <p>The event listener callback functions have the signature
                 <code>callback([cellView,] eventObject, eventX, eventY)</code> (<code>cellView</code> is not provided
@@ -162,7 +166,7 @@ function resetAll(paper) {
                 The event <code>'change:target'</code> is triggered on the link when its target is moved; we use that
                 event to write the new target position into the link label.</p>
 
-            <div class="paper" id="paper-interaction-graph-events"></div>
+            <div class="paper" id="paper-events-graph-events"></div>
 
             <pre><code>graph.on('change:position', function(cell) {
     var center = cell.getBBox().center();
@@ -182,7 +186,7 @@ graph.on('change:target', function(cell) {
     });
 });</code></pre>
 
-            <p>JointJS source code: <a href="js/interaction-graph-events.js">interaction-graph-events.js</a></p>
+            <p>JointJS source code: <a href="js/events-graph-events.js" target="_blank">events-graph-events.js</a></p>
 
             <p>The callback functions of the cell graph change events have the signature
                 <code>callback(cell, newValue)</code>.
@@ -258,7 +262,7 @@ graph.on('change:target', function(cell) {
                 (<q>minimized</q>), and the symbol in the button is changed to indicate that the element can be now be
                 unminimized:</p>
 
-            <div class="paper" id="paper-interaction-event-attribute"></div>
+            <div class="paper" id="paper-events-event-attribute"></div>
 
             <pre><code>var CustomElement = joint.dia.Element.define('examples.CustomElement', {
     attrs: {
@@ -354,7 +358,7 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
     }
 });</code></pre>
 
-            <p>JointJS source code: <a href="js/interaction-event-attribute.js">interaction-event-attribute.js</a></p>
+            <p>JointJS source code: <a href="js/events-event-attribute.js" target="_blank">events-event-attribute.js</a></p>
 
             <h3 id="custom-view-events">Custom View Events</h3>
 
@@ -377,7 +381,7 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
             <p>We will use these two options to provide extended versions of the default ElementView and LinkView.
                 The example removes double-clicked components:</p>
 
-            <div class="paper" id="paper-interaction-custom-view-events"></div>
+            <div class="paper" id="paper-events-custom-view-events"></div>
 
             <pre><code>var paper = new joint.dia.Paper({
     el: document.getElementById('paper-custom-view-events'),
@@ -401,7 +405,7 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
     })
 });</code></pre>
 
-            <p>JointJS source code: <a href="js/interaction-custom-view-events.js">interaction-custom-view-events.js</a></p>
+            <p>JointJS source code: <a href="js/events-custom-view-events.js" target="_blank">events-custom-view-events.js</a></p>
 
             <h3 id="custom-view-events-propagation">Custom View Event Propagation</h3>
 
@@ -417,7 +421,7 @@ this.notify('element:pointerdblclick', evt, x, y);</code></pre>
                 <a href="#paper-events">paper events demo</a> with removing the components from the previous
                 example:</p>
 
-            <div class="paper" id="paper-interaction-custom-view-events-propagation"></div>
+            <div class="paper" id="paper-events-custom-view-events-propagation"></div>
 
             <pre><code>var paper = new joint.dia.Paper({
     el: document.getElementById('paper-custom-view-events'),
@@ -454,7 +458,7 @@ paper.on('cell:pointerdblclick', function(cellView) {
     info.attr('label/visibility', 'visible');
 });</code></pre>
 
-            <p>JointJS source code: <a href="js/interaction-custom-view-events-propagation.js">interaction-custom-view-events-propagation.js</a></p>
+            <p>JointJS source code: <a href="js/events-custom-view-events-propagation.js" target="_blank">events-custom-view-events-propagation.js</a></p>
 
             <p><a href="serialization.html">In the next section of the intermediate tutorial, we will learn about data
                 serialization.</a></p>
@@ -463,10 +467,10 @@ paper.on('cell:pointerdblclick', function(cellView) {
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
-        <script src="js/interaction-paper-events.js"></script>
-        <script src="js/interaction-graph-events.js"></script>
-        <script src="js/interaction-event-attribute.js"></script>
-        <script src="js/interaction-custom-view-events.js"></script>
-        <script src="js/interaction-custom-view-events-propagation.js"></script>
+        <script src="js/events-paper-events.js"></script>
+        <script src="js/events-graph-events.js"></script>
+        <script src="js/events-event-attribute.js"></script>
+        <script src="js/events-custom-view-events.js"></script>
+        <script src="js/events-custom-view-events-propagation.js"></script>
     </body>
 </html>

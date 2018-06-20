@@ -1,9 +1,9 @@
-(function interactionPaperEvents() {
+(function eventsCustomViewEventsPropagation() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-interaction-paper-events'),
+        el: document.getElementById('paper-events-custom-view-events-propagation'),
         model: graph,
         width: 600,
         height: 100,
@@ -11,7 +11,21 @@
         background: {
             color: 'white'
         },
-        interactive: false
+        interactive: false,
+        elementView: joint.dia.ElementView.extend({
+            pointerdblclick: function(evt, x, y) {
+                joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+                this.notify('element:pointerdblclick', evt, x, y);
+                this.model.remove();
+            }
+        }),
+        linkView: joint.dia.LinkView.extend({
+            pointerdblclick: function(evt, x, y) {
+                joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
+                this.notify('link:pointerdblclick', evt, x, y);
+                this.model.remove();
+            }
+        })
     });
 
     var rect = new joint.shapes.standard.Rectangle();
@@ -37,8 +51,8 @@
     rect2.addTo(graph);
 
     var link = new joint.shapes.standard.Link();
-    link.source(rect);
-    link.target(rect2);
+    link.source(new g.Point(210, 50));
+    link.target(new g.Point(390, 50));
     link.attr({
         line: {
             stroke: 'black'
@@ -90,7 +104,7 @@
         },
         label: {
             visibility: 'hidden',
-            text: 'Link clicked',
+            text: 'Link removed',
             cursor: 'default',
             fill: 'black',
             fontSize: 12
@@ -98,69 +112,12 @@
     });
     info.addTo(graph);
 
-    paper.on('blank:pointerdblclick', function() {
-        resetAll(this);
-
-        info.attr('body/visibility', 'hidden');
-        info.attr('label/visibility', 'hidden');
-
-        this.drawBackground({
-            color: 'orange'
-        })
-    });
-
-    paper.on('element:pointerdblclick', function(elementView) {
-        resetAll(this);
-
-        var currentElement = elementView.model;
-        currentElement.attr('body/stroke', 'orange')
-    });
-
-    paper.on('link:pointerdblclick', function(linkView) {
-        resetAll(this);
-
-        var currentLink = linkView.model;
-        currentLink.attr('line/stroke', 'orange')
-        currentLink.label(0, {
-            attrs: {
-                body: {
-                    stroke: 'orange'
-                }
-            }
-        })
-    });
-
     paper.on('cell:pointerdblclick', function(cellView) {
         var isElement = cellView.model.isElement();
-        var message = (isElement ? 'Element' : 'Link') + ' clicked';
+        var message = (isElement ? 'Element' : 'Link') + ' removed';
         info.attr('label/text', message);
 
         info.attr('body/visibility', 'visible');
         info.attr('label/visibility', 'visible');
     });
-
-    function resetAll(paper) {
-        paper.drawBackground({
-            color: 'white'
-        })
-
-        var elements = paper.model.getElements();
-        for (var i = 0, ii = elements.length; i < ii; i++) {
-            var currentElement = elements[i];
-            currentElement.attr('body/stroke', 'black');
-        }
-
-        var links = paper.model.getLinks();
-        for (var j = 0, jj = links.length; j < jj; j++) {
-            var currentLink = links[j];
-            currentLink.attr('line/stroke', 'black');
-            currentLink.label(0, {
-                attrs: {
-                    body: {
-                        stroke: 'black'
-                    }
-                }
-            })
-        }
-    }
 }());
