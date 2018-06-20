@@ -55,12 +55,11 @@
             <div id="paper-connection-by-dropping" class="paper"></div>
             <script src="js/connecting-by-dropping.js"></script>
 
-            <p>The trick is to listen on the <code>cell:pointerup</code> event on the paper and search for
-                an element who's area contains the point of the mouser cursor. If such an element was found,
-                we just create a link connecting both elements and move the dropped element a little bit
-                to the side to give the user a clue of what just happend.</p>
+            <p>The trick is to listen on the <code>element:pointerup</code> event on the paper and search for
+                an element whose area contains the point of the mouse cursor. If such an element was found,
+                we just create a link connecting both elements and move the dropped element to the position before dragging (we stored this information on the <code>element:pointerdown</code> event) to give the user a clue of what just happend.</p>
 
-            <pre data-src="js/connecting-by-dropping.js" style="height: 1000px"></pre>
+            <pre data-src="js/connecting-by-dropping.js"></pre>
 
         </div>
 
