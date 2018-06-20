@@ -1,9 +1,9 @@
-(function interactionCustomViewEventsPropagation() {
+(function eventsCustomViewEvents() {
 
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
-        el: document.getElementById('paper-interaction-custom-view-events-propagation'),
+        el: document.getElementById('paper-events-custom-view-events'),
         model: graph,
         width: 600,
         height: 100,
@@ -14,15 +14,11 @@
         interactive: false,
         elementView: joint.dia.ElementView.extend({
             pointerdblclick: function(evt, x, y) {
-                joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
-                this.notify('element:pointerdblclick', evt, x, y);
                 this.model.remove();
             }
         }),
         linkView: joint.dia.LinkView.extend({
             pointerdblclick: function(evt, x, y) {
-                joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);
-                this.notify('link:pointerdblclick', evt, x, y);
                 this.model.remove();
             }
         })
@@ -91,33 +87,4 @@
         }
     ]);
     link.addTo(graph);
-
-    var info = new joint.shapes.standard.Rectangle();
-    info.position(250, 70);
-    info.resize(100, 20);
-    info.attr({
-        body: {
-            visibility: 'hidden',
-            cursor: 'default',
-            fill: 'white',
-            stoke: 'black'
-        },
-        label: {
-            visibility: 'hidden',
-            text: 'Link removed',
-            cursor: 'default',
-            fill: 'black',
-            fontSize: 12
-        }
-    });
-    info.addTo(graph);
-
-    paper.on('cell:pointerdblclick', function(cellView) {
-        var isElement = cellView.model.isElement();
-        var message = (isElement ? 'Element' : 'Link') + ' removed';
-        info.attr('label/text', message);
-
-        info.attr('body/visibility', 'visible');
-        info.attr('label/visibility', 'visible');
-    });
 }());
