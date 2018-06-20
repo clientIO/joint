@@ -49,23 +49,24 @@
             });
 
             // If the two elements are connected already, don't
-            // connect them again (this is application specific though).
+            // connect them again (this is application-specific though).
             if (elementBelow && graph.getNeighbors(elementBelow).indexOf(elementAbove) === -1) {
+
                 // Move the element to the position before dragging.
                 elementAbove.position(evt.data.x, evt.data.y);
-                // Create a connection between elements
+
+                // Create a connection between elements.
                 var link = new joint.shapes.standard.Link();
                 link.source(elementAbove);
                 link.target(elementBelow);
                 link.addTo(graph);
-                // add remove button to the link
+
+                // Add remove button to the link.
                 var tools = new joint.dia.ToolsView({
                     tools: [new joint.linkTools.Remove()]
                 });
                 link.findView(this).addTools(tools);
             }
         }
-
     });
-
 }());
