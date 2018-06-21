@@ -342,7 +342,7 @@
                 }
                 // option `text`
                 var text = value.text;
-                if (text === undefined) text = attr.text;
+                if (text === undefined) text = attrs.text;
                 if (text !== undefined) {
                     var wrappedText = joint.util.breakText('' + text, refBBox, {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
