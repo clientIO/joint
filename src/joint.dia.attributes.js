@@ -341,10 +341,11 @@
                     refBBox.height = height;
                 }
                 // option `text`
+                var wrappedText;
                 var text = value.text;
-                if (text === undefined) text = attr.text;
+                if (text === undefined) text = attrs.text;
                 if (text !== undefined) {
-                    var wrappedText = joint.util.breakText('' + text, refBBox, {
+                    wrappedText = joint.util.breakText('' + text, refBBox, {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
                         'font-size': attrs['font-size'] || attrs.fontSize,
                         'font-family': attrs['font-family'] || attrs.fontFamily,
@@ -354,6 +355,8 @@
                         // instead of creating a temporary one over again.
                         svgDocument: this.paper.svg
                     });
+                } else {
+                    wrappedText = '';
                 }
                 joint.dia.attributes.text.set.call(this, wrappedText, refBBox, node, attrs);
             }
