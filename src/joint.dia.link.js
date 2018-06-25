@@ -1356,7 +1356,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Backwards compatibility
         var paperOptions = this.paper.options;
         if (typeof paperOptions.linkConnectionPoint === 'function') {
-            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, endType);
+            var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
             if (connectionPoint) return connectionPoint;
         }
 
