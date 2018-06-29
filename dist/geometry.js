@@ -1,4 +1,4 @@
-/*! JointJS v2.1.2 (2018-05-08) - JavaScript diagramming library
+/*! JointJS v2.1.2 (2018-06-29) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3448,12 +3448,12 @@ var g = (function() {
     };
 
     Polyline.parse = function(svgString) {
-
+        svgString = svgString.trim();
         if (svgString === '') return new Polyline();
 
         var points = [];
 
-        var coords = svgString.split(/\s|,/);
+        var coords = svgString.split(/\s*,\s*|\s+/);
         var n = coords.length;
         for (var i = 0; i < n; i += 2) {
             points.push({ x: +coords[i], y: +coords[i + 1] });

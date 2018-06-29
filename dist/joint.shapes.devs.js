@@ -1,4 +1,4 @@
-/*! JointJS v2.1.2 (2018-05-08) - JavaScript diagramming library
+/*! JointJS v2.1.2 (2018-06-29) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
