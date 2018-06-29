@@ -1,4 +1,4 @@
-/*! JointJS v2.1.2 (2018-06-19) - JavaScript diagramming library
+/*! JointJS v2.1.2 (2018-06-29) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -11170,10 +11170,11 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                     refBBox.height = height;
                 }
                 // option `text`
+                var wrappedText;
                 var text = value.text;
-                if (text === undefined) text = attr.text;
+                if (text === undefined) text = attrs.text;
                 if (text !== undefined) {
-                    var wrappedText = joint.util.breakText('' + text, refBBox, {
+                    wrappedText = joint.util.breakText('' + text, refBBox, {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
                         'font-size': attrs['font-size'] || attrs.fontSize,
                         'font-family': attrs['font-family'] || attrs.fontFamily,
@@ -11183,6 +11184,8 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                         // instead of creating a temporary one over again.
                         svgDocument: this.paper.svg
                     });
+                } else {
+                    wrappedText = '';
                 }
                 joint.dia.attributes.text.set.call(this, wrappedText, refBBox, node, attrs);
             }
@@ -15558,7 +15561,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Backwards compatibility
         var paperOptions = this.paper.options;
         if (typeof paperOptions.linkConnectionPoint === 'function') {
-            connectionPoint = paperOptions.linkConnectionPoint(this, view, magnet, line.start, endType);
+            var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
+            connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
             if (connectionPoint) return connectionPoint;
         }
 
