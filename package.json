@@ -11,7 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
-  "version": "2.1.2",
+  "version": "2.1.3",
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
