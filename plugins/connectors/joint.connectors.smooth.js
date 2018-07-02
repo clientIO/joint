@@ -74,5 +74,5 @@
 
     joint.connectors.smooth = smoothConnector;
 
-})(joint, g)
+})(joint, g);
 
