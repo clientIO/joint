@@ -1280,22 +1280,18 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
 
-        var firstWaypoint = route[0];
-        var lastWaypoint = route[route.length - 1];
         var model = this.model;
-        var sourceDef = model.get('source');
-        var targetDef = model.get('target');
         var sourceView = this.sourceView;
         var targetView = this.targetView;
         var paperOptions = this.paper.options;
-        var sourceMagnet, targetMagnet;
 
         // Connection Point Source
         var sourcePoint;
         if (sourceView) {
-            sourceMagnet = (this.sourceMagnet || sourceView.el);
+            var sourceDef = model.attributes.source;
+            var sourceMagnet = (this.sourceMagnet || sourceView.el);
             var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            var sourcePointRef = firstWaypoint || targetAnchor;
+            var sourcePointRef = this.getConnectionReference(sourceAnchor, targetAnchor, route, 'source');
             var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
             sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
         } else {
@@ -1304,9 +1300,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Connection Point Target
         var targetPoint;
         if (targetView) {
-            targetMagnet = (this.targetMagnet || targetView.el);
+            var targetDef = model.attributes.target;
+            var targetMagnet = (this.targetMagnet || targetView.el);
             var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            var targetPointRef = lastWaypoint || sourceAnchor;
+            var targetPointRef = this.getConnectionReference(sourceAnchor, targetAnchor, route, 'target');
             var targetLine = new g.Line(targetPointRef, targetAnchor);
             targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
         } else {
@@ -1317,6 +1314,30 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             source: sourcePoint,
             target: targetPoint
         }
+    },
+
+    getConnectionReference: function(sourceAnchor, targetAnchor, route, endType) {
+
+        var attributes = this.model.attributes;
+
+        switch (endType) {
+            case 'source':
+                var sourceVector = attributes.source.direction;
+                if (sourceVector) {
+                    return sourceAnchor.clone().offset(sourceVector).move(sourceAnchor, 1e6);
+                }
+                var firstWaypoint = route[0];
+                return firstWaypoint || targetAnchor;
+            case 'target':
+                var targetVector = attributes.target.direction;
+                if (targetVector) {
+                    return targetAnchor.clone().offset(targetVector).move(targetAnchor, 1e6);
+                }
+                var lastWaypoint = route[route.length - 1];
+                return lastWaypoint || sourceAnchor;
+        }
+
+        return new g.Point();
     },
 
     getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
