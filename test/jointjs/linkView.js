@@ -712,7 +712,7 @@ QUnit.module('linkView', function(hooks) {
         });
     });
 
-    QUnit.module('connectionPoints', function() {
+    QUnit.module('connectionPoints', function(hooks) {
 
         var r1, r2, rv1, rv2;
 
@@ -887,6 +887,104 @@ QUnit.module('linkView', function(hooks) {
             ));
             assert.equal(strategySpy.thisValues[1], paper);
             assert.equal(linkView.model.attributes.target.test, true);
+        });
+    });
+
+    QUnit.module('connectionReference', function(hooks) {
+
+        var r1, r2;
+
+        hooks.beforeEach(function() {
+            r1 = new joint.shapes.standard.Rectangle();
+            r2 = new joint.shapes.standard.Rectangle();
+            r1.size(100, 100);
+            r2.size(100, 100);
+            r1.position(100, 100);
+            r2.position(300, 300);
+            r1.addTo(paper.model);
+            r2.addTo(paper.model);
+        });
+
+        var tests = [{
+            name: 'with no vertices',
+            prepare: function(link) {
+                link.vertices([]);
+            },
+            results: {
+                sourceConnectionPoint: new g.Point(200, 200),
+                targetConnectionPoint: new g.Point(300, 300)
+            }
+        }, {
+            name: 'with vertices',
+            prepare: function(link) {
+                link.vertices([{ x: 350, y: 150 }]);
+            },
+            results: {
+                sourceConnectionPoint: new g.Point(200, 150),
+                targetConnectionPoint: new g.Point(350, 300)
+            }
+        }, {
+            name: 'with directions',
+            prepare: function(link) {
+                link.vertices([]);
+                link.source({ x: 0, y: 0, direction: { x: 1, y: 0 }});
+                link.target({ x: 0, y: 0, direction: { x: 0, y: -1 }});
+            },
+            results: {
+                sourceConnectionPoint: new g.Point(200, 150),
+                targetConnectionPoint: new g.Point(350, 300)
+            }
+        }];
+
+        tests.forEach(function(test) {
+
+            QUnit.test(test.name, function(assert) {
+
+                test.prepare(link);
+
+                var spy = sinon.spy(linkView, 'getConnectionReference');
+
+                // only source connected
+                spy.reset();
+                link.prop('source/id', r1.id);
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWith(
+                    sinon.match.instanceOf(g.Point),
+                    sinon.match.instanceOf(g.Point),
+                    'source'
+                ));
+                assert.ok(spy.returned(sinon.match.object))
+
+                // both source and target connected
+                spy.reset();
+                link.prop('target/id', r2.id);
+                assert.ok(spy.calledTwice);
+                assert.ok(spy.calledWith(
+                    sinon.match.instanceOf(g.Point),
+                    sinon.match.instanceOf(g.Point),
+                    'source'
+                ));
+                assert.ok(spy.calledWith(
+                    sinon.match.instanceOf(g.Point),
+                    sinon.match.instanceOf(g.Point),
+                    'target'
+                ));
+
+                assert.ok(linkView.sourcePoint.equals(test.results.sourceConnectionPoint));
+                assert.ok(linkView.targetPoint.equals(test.results.targetConnectionPoint));
+
+                // only target connected
+                assert.ok(spy.alwaysReturned(sinon.match.object))
+                spy.reset();
+                link.prop('source', { x: 0, y: 0 });
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWith(
+                    sinon.match.instanceOf(g.Point),
+                    sinon.match.instanceOf(g.Point),
+                    'target'
+                ));
+                assert.ok(spy.returned(sinon.match.object))
+            });
         });
     });
 

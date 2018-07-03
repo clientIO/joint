@@ -1291,8 +1291,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var sourceDef = model.attributes.source;
             var sourceMagnet = (this.sourceMagnet || sourceView.el);
             var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            var sourcePointRef = this.getConnectionReference(sourceAnchor, route[0] || targetAnchor, 'source');
-            var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
+            var sourceRefPoint = new g.Point(route[0] || targetAnchor);
+            var sourceLineStart = this.getConnectionReference(sourceAnchor, sourceRefPoint, 'source');
+            var sourceLine = new g.Line(sourceLineStart, sourceAnchor);
             sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
         } else {
             sourcePoint = sourceAnchor;
@@ -1303,8 +1304,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var targetDef = model.attributes.target;
             var targetMagnet = (this.targetMagnet || targetView.el);
             var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            var targetPointRef = this.getConnectionReference(targetAnchor, route[route.length - 1] || sourceAnchor, 'target');
-            var targetLine = new g.Line(targetPointRef, targetAnchor);
+            var targetRefPoint = new g.Point(route[route.length - 1] || sourceAnchor);
+            var targetLineStart = this.getConnectionReference(targetAnchor, targetRefPoint, 'target');
+            var targetLine = new g.Line(targetLineStart, targetAnchor);
             targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
         } else {
             targetPoint = targetAnchor;
