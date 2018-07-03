@@ -1291,7 +1291,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var sourceDef = model.attributes.source;
             var sourceMagnet = (this.sourceMagnet || sourceView.el);
             var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
-            var sourcePointRef = this.getConnectionReference(sourceAnchor, route[0] || targetAnchor, route, 'source');
+            var sourcePointRef = this.getConnectionReference(sourceAnchor, route[0] || targetAnchor, 'source');
             var sourceLine = new g.Line(sourcePointRef, sourceAnchor);
             sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
         } else {
