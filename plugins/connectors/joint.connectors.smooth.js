@@ -23,7 +23,7 @@
         }
     }
 
-    function curvesThroughtPoints(sourcePoint, targetPoint, route) {
+    function curvesThroughPoints(sourcePoint, targetPoint, route) {
 
         var points = [sourcePoint].concat(route).concat([targetPoint]);
         return g.Curve.throughPoints(points);
@@ -57,7 +57,7 @@
         var points = route || [];
 
         var curves = (points.length !== 0)
-            ? curvesThroughtPoints(sourcePoint, targetPoint, points)
+            ? curvesThroughPoints(sourcePoint, targetPoint, points)
             : [curveDirect(sourcePoint, targetPoint)];
 
         if (options.directions) {
