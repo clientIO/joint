@@ -7,31 +7,31 @@
 var expect = require('chai').expect;
 var e2eHelpers = require('../e2eHelpers');
 
-describe('Petri Nets', function () {
+describe('Petri Nets', function() {
 
     var client;
     var url;
 
-    before(function (done) {
+    before(function(done) {
 
         url = e2eHelpers.staticUrl('/demo/petri nets/index.html');
         client = e2eHelpers.client(done);
     });
 
-    it('should be visible', function (done) {
+    it('should be visible', function(done) {
 
         client.url(url)
                 .waitForExist('#paper .joint-type-pn.joint-type-pn-transition')
-                .then(function (exists) {
+                .then(function(exists) {
                     expect(exists).to.equal(true);
                     done();
                 });
 
     });
 
-    describe('Element', function () {
+    describe('Element', function() {
 
-        it('should be movable', function (done) {
+        it('should be movable', function(done) {
 
             client.url(url)
                     .moveToObject('#paper .joint-type-pn.joint-type-pn-place', 30/* x-offset */, 30/* y-offset */)
@@ -39,7 +39,7 @@ describe('Petri Nets', function () {
                     .moveToObject('#paper svg', 40 /* x-offset */, 30 /* y-offset */)
                     .buttonUp()
                     .getAttribute('#paper .joint-type-pn.joint-type-pn-place', 'transform')
-                    .then(function (transform) {
+                    .then(function(transform) {
                         expect(transform[0]).to.equal("translate(10,20)");
                         done();
                     });
@@ -48,25 +48,25 @@ describe('Petri Nets', function () {
 
     });
 
-    describe('Link', function () {
+    describe('Link', function() {
 
-        it('should be visible', function (done) {
+        it('should be visible', function(done) {
 
             client.url(url)
                     .waitForExist('#paper .joint-link path.connection')
-                    .then(function (exists) {
+                    .then(function(exists) {
                         expect(exists).to.equal(true);
                         done();
                     });
 
         });
 
-        it('should be removable', function (done) {
+        it('should be removable', function(done) {
 
             client.url(url)
                     .click('#j_10 .tool-remove')
                     .waitForNotExist('#j_10')
-                    .then(function (exists) {
+                    .then(function(exists) {
                         expect(exists).to.equal(true);
                         done();
                     });
