@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for PETRI NETS demo: http://jointjs.com/demos/pn
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Petri Nets', function () {
 

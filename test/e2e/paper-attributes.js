@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for PAPER ATTRIBUTES demo: http://jointjs.com/demos/paper
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Paper attributes', function () {
 

@@ -79,7 +79,7 @@
 // Simulate user events.
 // ---------------------
 
-var simulate = {
+window.simulate = {
 
     mouseevent: function(opt) {
 

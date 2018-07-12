@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for DISCRETE EVENT SYSTEM SPECIFICATION demo: http://jointjs.com/demos/devs
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Discrete Event System Specification', function () {
 

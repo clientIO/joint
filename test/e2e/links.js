@@ -1,4 +1,4 @@
-/* 
+/*
  * e2e test for LINKS demo: http://jointjs.com/demos/links
  */
 
@@ -6,7 +6,6 @@
 
 var expect = require('chai').expect;
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Links demo', function () {
 

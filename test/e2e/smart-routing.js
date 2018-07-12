@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for SMART ROUTING demo: http://jointjs.com/demos/routing
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Smart Routing', function () {
 

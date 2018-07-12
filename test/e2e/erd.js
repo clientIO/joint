@@ -1,4 +1,4 @@
-/* 
+/*
  * e2e test for ER DIAGRAMS demo: http://jointjs.com/demos/erd
  */
 
@@ -6,7 +6,6 @@
 
 var expect = require('chai').expect;
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('ER Diagrams', function () {
 

@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for CHESS demo: http://jointjs.com/demos/chess
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Chess', function () {
 

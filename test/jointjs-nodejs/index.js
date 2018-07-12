@@ -1,6 +1,6 @@
 'use strict';
 
-var should = require('should');
+require('should');
 
 // Test against the latest JointJS build file.
 var joint = require('../../build/joint');

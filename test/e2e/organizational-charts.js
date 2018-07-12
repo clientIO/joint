@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for ORGANIZATIONAL CHARTS demo: http://jointjs.com/demos/org
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Organizational Charts', function () {
 

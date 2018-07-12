@@ -1,13 +1,11 @@
-/* 
+/*
  * e2e test for UNIFIED MODELING LANGUAGE demo: http://jointjs.com/demos/umlcd
  */
 
 'use strict';
 
 var expect = require('chai').expect;
-
 var e2eHelpers = require('../e2eHelpers');
-var config = e2eHelpers.config;
 
 describe('Unified Modeling Language - The Class Diagram', function () {
 
