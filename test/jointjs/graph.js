@@ -429,11 +429,11 @@ QUnit.module('graph', function(hooks) {
         graph.addCells([r1, r2, l1]);
 
         assert.deepEqual(_.map(graph.getCells(), 'id'), ['r1', 'r2', 'l1'],
-                         'getCells() returns all the cells in the graph.');
+            'getCells() returns all the cells in the graph.');
         assert.deepEqual(_.map(graph.getLinks(), 'id'), ['l1'],
-                         'getLinks() returns only the link in the graph.');
+            'getLinks() returns only the link in the graph.');
         assert.deepEqual(_.map(graph.getElements(), 'id'), ['r1', 'r2'],
-                         'getElements() returns only the elements in the graph');
+            'getElements() returns only the elements in the graph');
     });
 
     QUnit.test('graph.getCommonAncestor()', function(assert) {
@@ -783,17 +783,17 @@ QUnit.module('graph', function(hooks) {
         graph.addCell(elementJSON);
         var element = graph.getCell('a');
         assert.equal(element.constructor, joint.shapes.basic.Rect,
-                     'The class was found in the custom namespace based on the type provided.');
+            'The class was found in the custom namespace based on the type provided.');
 
         graph.addCell(linkJSON);
         var link = graph.getCell('b');
         assert.equal(link.constructor, joint.dia.Link,
-                     'The default link model is created when type equals "link".');
+            'The default link model is created when type equals "link".');
 
         graph.addCell(nonExistingJSON);
         var nonExisting = graph.getCell('c');
         assert.equal(nonExisting.constructor, joint.dia.Element,
-                     'If there is no class based on the type in the namespace, the default element model is used.');
+            'If there is no class based on the type in the namespace, the default element model is used.');
 
     });
 

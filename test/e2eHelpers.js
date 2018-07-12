@@ -106,18 +106,18 @@ var e2eHelpers = module.exports = {
         });
 
         return client.init()
-                .setViewportSize({width: 1024, height: 768}, false)
-                .timeouts('script', config.timeouts['script'])
+            .setViewportSize({width: 1024, height: 768}, false)
+            .timeouts('script', config.timeouts['script'])
 
-                /*
+        /*
                  Cannot set 'implicit' timeout because of a bug in webdriverio [1].
                  [1] https://github.com/webdriverio/webdriverio/issues/974
                  */
-                // .timeouts('implicit', config.timeouts['implicit'])
-                .timeouts('page load', config.timeouts['page load'])
-                .then(function() {
-                    cb();
-                }).catch(cb);
+        // .timeouts('implicit', config.timeouts['implicit'])
+            .timeouts('page load', config.timeouts['page load'])
+            .then(function() {
+                cb();
+            }).catch(cb);
     },
     customCommands: {
         waitForNotExist: function(selector, waitTime) {
@@ -142,14 +142,14 @@ var e2eHelpers = module.exports = {
             }
 
             return this
-                    .moveToObject(selector, 20/* x-offset */, 20/* y-offset */)
-                    .buttonDown()
-                    .moveToObject(selectorId + ' svg', posX /* x-offset */, posY /* y-offset */)
-                    .buttonUp()
-                    .getAttribute(selector, 'transform')
-                    .then(function(transform) {
-                        return transform;
-                    });
+                .moveToObject(selector, 20/* x-offset */, 20/* y-offset */)
+                .buttonDown()
+                .moveToObject(selectorId + ' svg', posX /* x-offset */, posY /* y-offset */)
+                .buttonUp()
+                .getAttribute(selector, 'transform')
+                .then(function(transform) {
+                    return transform;
+                });
         },
         changeRange: function(selector, posRangeX, newPosRangeX) {
 
@@ -160,24 +160,24 @@ var e2eHelpers = module.exports = {
             };
 
             return this
-                    .waitForExist(selector)
-                    .moveToObject(selector, posRangeX/* x-offset */, 10/* y-offset */)
-                    .buttonDown()
-                    .moveToObject(selector, newPosRangeX/* x-offset */, 10/* y-offset */)
-                    .buttonUp()
-                    .getAttribute('#paper .joint-viewport', 'transform')
-                    .then(function(transform) {
-                        retObj.transform = transform;
-                    })
-                    .getAttribute('#paper svg', 'width')
-                    .then(function(width) {
-                        retObj.width = width;
-                    })
-                    .getAttribute('#paper svg', 'height')
-                    .then(function(height) {
-                        retObj.height = height;
-                        return retObj;
-                    });
+                .waitForExist(selector)
+                .moveToObject(selector, posRangeX/* x-offset */, 10/* y-offset */)
+                .buttonDown()
+                .moveToObject(selector, newPosRangeX/* x-offset */, 10/* y-offset */)
+                .buttonUp()
+                .getAttribute('#paper .joint-viewport', 'transform')
+                .then(function(transform) {
+                    retObj.transform = transform;
+                })
+                .getAttribute('#paper svg', 'width')
+                .then(function(width) {
+                    retObj.width = width;
+                })
+                .getAttribute('#paper svg', 'height')
+                .then(function(height) {
+                    retObj.height = height;
+                    return retObj;
+                });
         }
     }
 };

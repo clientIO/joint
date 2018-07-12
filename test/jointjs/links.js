@@ -80,9 +80,9 @@ QUnit.module('links', function(hooks) {
         });
 
         assert.ok(_.isUndefined(l1.get('source').x) && _.isUndefined(l1.get('source').y),
-           'Source connected to an element has no x or y.');
+            'Source connected to an element has no x or y.');
         assert.ok(_.isUndefined(l1.get('target').x) && _.isUndefined(l1.get('target').y),
-           'Target connected to an element has no x or y.');
+            'Target connected to an element has no x or y.');
 
         this.graph.addCell(l1);
         var v1 = this.paper.findViewByModel(l1);
@@ -1029,9 +1029,9 @@ QUnit.module('links', function(hooks) {
         var availableCells = this.paper.el.querySelectorAll('.available-cell');
 
         assert.equal(availableMagnets.length, 3,
-              '3 magnets got marked when dragging an arrowhead started.');
+            '3 magnets got marked when dragging an arrowhead started.');
         assert.equal(availableCells.length, 2,
-              '2 cells got marked when dragging an arrowhead started.');
+            '2 cells got marked when dragging an arrowhead started.');
 
         event.target = this.paper.el;
         v.pointerup(event, 90, 90);
@@ -1040,7 +1040,7 @@ QUnit.module('links', function(hooks) {
         availableCells = this.paper.el.querySelectorAll('.available-cell');
 
         assert.equal(availableMagnets.length + availableCells.length, 0,
-              'When dragging an arrowhed stopped all magnets and cells were unmarked.');
+            'When dragging an arrowhed stopped all magnets and cells were unmarked.');
     });
 
     QUnit.test('defaultRouter', function(assert) {

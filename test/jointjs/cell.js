@@ -133,7 +133,7 @@ QUnit.module('cell', function(hooks) {
     QUnit.module('remove attributes', function(hooks) {
 
         var /** @type joint.dia.Cell */
-        el;
+            el;
         var attributes;
 
         hooks.beforeEach(function() {
@@ -241,7 +241,7 @@ QUnit.module('cell', function(hooks) {
     QUnit.module('prop()', function(hooks) {
 
         var /** @type joint.dia.Cell */
-        el;
+            el;
         var attrs;
 
         hooks.beforeEach(function() {

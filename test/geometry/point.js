@@ -332,7 +332,7 @@ QUnit.module('point', function() {
 
         QUnit.module('lerp(p, t)', function() {
 
-            QUnit.test('returns the linear interpolation of vector p0@p1 at parameter t', function (assert) {
+            QUnit.test('returns the linear interpolation of vector p0@p1 at parameter t', function(assert) {
 
                 var p0 = new g.Point(10, 20)
                 var p1 = new g.Point(30, 40);
