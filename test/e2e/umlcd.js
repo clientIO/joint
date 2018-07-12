@@ -21,11 +21,11 @@ describe('Unified Modeling Language - The Class Diagram', function() {
     it('should be visible', function(done) {
 
         client.url(url)
-                .waitForExist('#paper .joint-type-uml.joint-type-uml-interface')
-                .then(function(exists) {
-                    expect(exists).to.equal(true);
-                    done();
-                });
+            .waitForExist('#paper .joint-type-uml.joint-type-uml-interface')
+            .then(function(exists) {
+                expect(exists).to.equal(true);
+                done();
+            });
 
     });
 
@@ -34,11 +34,11 @@ describe('Unified Modeling Language - The Class Diagram', function() {
         it('should be movable', function(done) {
 
             client.url(url)
-                    .moveElement('#paper .joint-type-uml.joint-type-uml-class')
-                    .then(function(transform) {
-                        expect(transform[0]).to.equal("translate(20,10)");
-                        done();
-                    });
+                .moveElement('#paper .joint-type-uml.joint-type-uml-class')
+                .then(function(transform) {
+                    expect(transform[0]).to.equal("translate(20,10)");
+                    done();
+                });
 
         });
 
@@ -49,23 +49,23 @@ describe('Unified Modeling Language - The Class Diagram', function() {
         it('should be visible', function(done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-type-uml.joint-type-uml-implementation.joint-link path.connection')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .waitForExist('#paper .joint-type-uml.joint-type-uml-implementation.joint-link path.connection')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 
         it('should be removable', function(done) {
 
             client.url(url)
-                    .click('#paper .joint-type-uml.joint-type-uml-implementation.joint-link .tool-remove')
-                    .waitForNotExist('#paper .joint-type-uml.joint-type-uml-implementation.joint-link')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .click('#paper .joint-type-uml.joint-type-uml-implementation.joint-link .tool-remove')
+                .waitForNotExist('#paper .joint-type-uml.joint-type-uml-implementation.joint-link')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 

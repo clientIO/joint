@@ -21,11 +21,11 @@ describe('Discrete Event System Specification', function() {
     it('should be visible', function(done) {
 
         client.url(url)
-                .waitForExist('#paper .joint-type-devs.joint-type-devs-atomic')
-                .then(function(exists) {
-                    expect(exists).to.equal(true);
-                    done();
-                });
+            .waitForExist('#paper .joint-type-devs.joint-type-devs-atomic')
+            .then(function(exists) {
+                expect(exists).to.equal(true);
+                done();
+            });
 
     });
 
@@ -34,16 +34,16 @@ describe('Discrete Event System Specification', function() {
         it('should be movable', function(done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-type-devs.joint-type-devs-coupled')
-                    .moveToObject('#paper .joint-type-devs.joint-type-devs-coupled', 50/* x-offset */, 50/* y-offset */)
-                    .buttonDown()
-                    .moveToObject('#paper svg', 40 /* x-offset */, 40 /* y-offset */)
-                    .buttonUp()
-                    .getAttribute('#paper .joint-type-devs.joint-type-devs-coupled', 'transform')
-                    .then(function(transform) {
-                        expect(transform).to.equal("translate(21,-10)");
-                        done();
-                    });
+                .waitForExist('#paper .joint-type-devs.joint-type-devs-coupled')
+                .moveToObject('#paper .joint-type-devs.joint-type-devs-coupled', 50/* x-offset */, 50/* y-offset */)
+                .buttonDown()
+                .moveToObject('#paper svg', 40 /* x-offset */, 40 /* y-offset */)
+                .buttonUp()
+                .getAttribute('#paper .joint-type-devs.joint-type-devs-coupled', 'transform')
+                .then(function(transform) {
+                    expect(transform).to.equal("translate(21,-10)");
+                    done();
+                });
 
         });
 
@@ -54,25 +54,25 @@ describe('Discrete Event System Specification', function() {
         it('should be visible', function(done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-link path.connection')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .waitForExist('#paper .joint-link path.connection')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 
         it('should be removable', function(done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-type-devs.joint-type-devs-coupled')
-                    .moveToObject('#j_10 .tool-remove', 5/* x-offset */, 5/* y-offset */)
-                    .click('#j_10 .tool-remove')
-                    .waitForNotExist('#j_10')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .waitForExist('#paper .joint-type-devs.joint-type-devs-coupled')
+                .moveToObject('#j_10 .tool-remove', 5/* x-offset */, 5/* y-offset */)
+                .click('#j_10 .tool-remove')
+                .waitForNotExist('#j_10')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 

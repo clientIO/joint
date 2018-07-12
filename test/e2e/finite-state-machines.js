@@ -21,11 +21,11 @@ describe('Finite State Machines', function() {
     it('should be visible', function(done) {
 
         client.url(url)
-                .waitForExist('#paper .joint-type-fsa-state')
-                .then(function(exists) {
-                    expect(exists).to.equal(true);
-                    done();
-                });
+            .waitForExist('#paper .joint-type-fsa-state')
+            .then(function(exists) {
+                expect(exists).to.equal(true);
+                done();
+            });
 
     });
 
@@ -34,11 +34,11 @@ describe('Finite State Machines', function() {
         it('should be movable', function(done) {
 
             client.url(url)
-                    .moveElement('#paper .joint-type-fsa-state')
-                    .then(function(transform) {
-                        expect(transform[0]).to.equal("translate(20,10)");
-                        done();
-                    });
+                .moveElement('#paper .joint-type-fsa-state')
+                .then(function(transform) {
+                    expect(transform[0]).to.equal("translate(20,10)");
+                    done();
+                });
 
         });
 
@@ -49,11 +49,11 @@ describe('Finite State Machines', function() {
         it('should be visible', function(done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-link path.connection')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .waitForExist('#paper .joint-link path.connection')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 
@@ -61,19 +61,19 @@ describe('Finite State Machines', function() {
 
             var model_id;
             client.url(url)
-                    .getAttribute('#paper .joint-link', 'model-id')
-                    .then(function(attr) {
-                        model_id = attr[0];
+                .getAttribute('#paper .joint-link', 'model-id')
+                .then(function(attr) {
+                    model_id = attr[0];
 
-                        this
-                                .click('#paper g[model-id="' + model_id + '"] .tool-remove')
-                                .waitForNotExist('#paper g[model-id="' + model_id + '"]')
-                                .then(function(exists) {
-                                    expect(exists).to.equal(true);
-                                    done();
-                                });
+                    this
+                        .click('#paper g[model-id="' + model_id + '"] .tool-remove')
+                        .waitForNotExist('#paper g[model-id="' + model_id + '"]')
+                        .then(function(exists) {
+                            expect(exists).to.equal(true);
+                            done();
+                        });
 
-                    });
+                });
 
         });
 

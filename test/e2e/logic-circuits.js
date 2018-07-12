@@ -21,11 +21,11 @@ describe('Logic Circuits', function() {
     it('should be visible', function(done) {
 
         client.url(url)
-                .waitForExist('#paper .joint-type-logic.joint-type-logic-repeater')
-                .then(function(exists) {
-                    expect(exists).to.equal(true);
-                    done();
-                });
+            .waitForExist('#paper .joint-type-logic.joint-type-logic-repeater')
+            .then(function(exists) {
+                expect(exists).to.equal(true);
+                done();
+            });
 
     });
 
@@ -34,11 +34,11 @@ describe('Logic Circuits', function() {
         it('should be movable', function(done) {
 
             client.url(url)
-                    .moveElement('#paper .joint-type-logic.joint-type-logic-input')
-                    .then(function(transform) {
-                        expect(transform).to.equal("translate(10,5)");
-                        done();
-                    });
+                .moveElement('#paper .joint-type-logic.joint-type-logic-input')
+                .then(function(transform) {
+                    expect(transform).to.equal("translate(10,5)");
+                    done();
+                });
 
         });
 
@@ -49,23 +49,23 @@ describe('Logic Circuits', function() {
         it('should be visible', function(done) {
 
             client.url(url)
-                    .waitForExist('#paper .joint-type-logic.joint-link path.connection')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .waitForExist('#paper .joint-type-logic.joint-link path.connection')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 
         it('should be removable', function(done) {
 
             client.url(url)
-                    .click('#j_11 .tool-remove')
-                    .waitForNotExist('#j_11')
-                    .then(function(exists) {
-                        expect(exists).to.equal(true);
-                        done();
-                    });
+                .click('#j_11 .tool-remove')
+                .waitForNotExist('#j_11')
+                .then(function(exists) {
+                    expect(exists).to.equal(true);
+                    done();
+                });
 
         });
 
