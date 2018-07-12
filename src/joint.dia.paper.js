@@ -314,7 +314,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Setter:
         ctm = V.createSVGMatrix(ctm);
-        ctmString = V.matrixToTransformString(ctm);
+        var ctmString = V.matrixToTransformString(ctm);
         viewport.setAttribute('transform', ctmString);
         this.tools.setAttribute('transform', ctmString);
 

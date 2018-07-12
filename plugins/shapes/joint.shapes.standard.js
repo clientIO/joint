@@ -469,6 +469,8 @@
         }
     };
 
+    var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup;
+
     Element.define('standard.TextBlock', {
         attrs: {
             body: {
@@ -492,9 +494,7 @@
         markup: [{
             tagName: 'rect',
             selector: 'body'
-        },
-            (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup
-        ]
+        }, labelMarkup]
     }, {
         attributes: {
             text: {

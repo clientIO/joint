@@ -1,7 +1,9 @@
 // Geometry library.
 // -----------------
 
-var g = (function() {
+var g; // eslint-disable-line no-unused-vars
+
+g = (function() {
 
     var g = {};
 

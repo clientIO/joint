@@ -1,4 +1,4 @@
-(function(_, g, joint, util) {
+(function(g, joint, util) {
 
     function labelAttributes(opt1, opt2) {
 
@@ -229,4 +229,4 @@
         }
     };
 
-})(_, g, joint, joint.util);
+})(g, joint, joint.util);

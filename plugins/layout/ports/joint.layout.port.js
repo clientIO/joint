@@ -1,4 +1,4 @@
-(function(_, g, joint, util) {
+(function(g, joint, util) {
 
     function portTransformAttrs(point, angle, opt) {
 
@@ -178,4 +178,4 @@
         }
     };
 
-})(_, g, joint, joint.util);
+})(g, joint, joint.util);

@@ -526,14 +526,14 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         return label;
     }
-},
-    {
-        endsEqual: function(a, b) {
+}, {
 
-            var portsEqual = a.port === b.port || !a.port && !b.port;
-            return a.id === b.id && portsEqual;
-        }
-    });
+    endsEqual: function(a, b) {
+
+        var portsEqual = a.port === b.port || !a.port && !b.port;
+        return a.id === b.id && portsEqual;
+    }
+});
 
 
 // joint.dia.Link base view and controller.
@@ -1387,8 +1387,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.targetAnchor.offset(tx, ty);
     },
 
-     // if label position is a number, normalize it to a position object
-     // this makes sure that label positions can be merged properly
+    // if label position is a number, normalize it to a position object
+    // this makes sure that label positions can be merged properly
     _normalizeLabelPosition: function(labelPosition) {
 
         if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };

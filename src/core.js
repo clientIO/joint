@@ -236,24 +236,6 @@ var joint = {
             return string.replace(/[A-Z]/g, '-$&').toLowerCase();
         },
 
-        // Copy all the properties to the first argument from the following arguments.
-        // All the properties will be overwritten by the properties from the following
-        // arguments. Inherited properties are ignored.
-        mixin: _.assign,
-
-        // Copy all properties to the first argument from the following
-        // arguments only in case if they don't exists in the first argument.
-        // All the function propererties in the first argument will get
-        // additional property base pointing to the extenders same named
-        // property function's call method.
-        supplement: _.defaults,
-
-        // Same as `mixin()` but deep version.
-        deepMixin: _.mixin,
-
-        // Same as `supplement()` but deep version.
-        deepSupplement: _.defaultsDeep,
-
         normalizeEvent: function(evt) {
 
             var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
@@ -691,7 +673,7 @@ var joint = {
                 decodedString = unescape(encodeURIComponent(data));
             }
             // write the bytes of the string to a typed array
-            var ia = new window.Uint8Array(decodedString.length);
+            var ia = new Uint8Array(decodedString.length);
             for (var i = 0; i < decodedString.length; i++) {
                 ia[i] = decodedString.charCodeAt(i);
             }
@@ -1332,9 +1314,9 @@ var joint = {
                 value = before + after;
 
                 return (align === '<' ? negative + value + padding
-                        : align === '>' ? padding + negative + value
+                    : align === '>' ? padding + negative + value
                         : align === '^' ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length)
-                        : negative + (zcomma ? value : padding + value)) + fullSuffix;
+                            : negative + (zcomma ? value : padding + value)) + fullSuffix;
             },
 
             // Formatting string via the Python Format string.
@@ -1367,7 +1349,8 @@ var joint = {
                     formattedStringArray.push(pieceFormatedString);
 
                     formatString = formatString.slice(fieldDelimiterIndex + 1);
-                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{';
+                    endPlaceholder = !endPlaceholder;
+                    fieldDelimiter = (endPlaceholder) ? '}' : '{';
                 }
                 formattedStringArray.push(formatString);
 
@@ -1432,7 +1415,7 @@ var joint = {
                 Must support the variation in templating syntax found here:
                 https://lodash.com/docs#template
             */
-            var regex = /<%= ([^ ]+) %>|\$\{ ?([^\{\} ]+) ?\}|\{\{([^\{\} ]+)\}\}/g;
+            var regex = /<%= ([^ ]+) %>|\$\{ ?([^{} ]+) ?\}|\{\{([^{} ]+)\}\}/g;
 
             return function(data) {
 
@@ -1458,7 +1441,7 @@ var joint = {
         },
 
         /**
-         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
+         * @param {Element} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
          */
         toggleFullScreen: function(el) {
 
@@ -1632,6 +1615,26 @@ var joint = {
             }
         },
 
+        /* global _:true */
+
+        // Copy all the properties to the first argument from the following arguments.
+        // All the properties will be overwritten by the properties from the following
+        // arguments. Inherited properties are ignored.
+        mixin: _.assign,
+
+        // Copy all properties to the first argument from the following
+        // arguments only in case if they don't exists in the first argument.
+        // All the function propererties in the first argument will get
+        // additional property base pointing to the extenders same named
+        // property function's call method.
+        supplement: _.defaults,
+
+        // Same as `mixin()` but deep version.
+        deepMixin: _.mixin,
+
+        // Same as `supplement()` but deep version.
+        deepSupplement: _.defaultsDeep,
+
         // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
         uniq: _.uniqBy || _.uniq,
@@ -1653,7 +1656,6 @@ var joint = {
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
-        noop: function() {},
         cloneDeep: _.cloneDeep,
         toArray: _.toArray,
         flattenDeep: _.flattenDeep,
@@ -1663,25 +1665,6 @@ var joint = {
         without: _.without,
         debounce: _.debounce,
         clone: _.clone,
-
-        isBoolean: function(value) {
-            var toString = Object.prototype.toString;
-            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
-        },
-
-        isObject: function(value) {
-            return !!value && (typeof value === 'object' || typeof value === 'function');
-        },
-
-        isNumber: function(value) {
-            var toString = Object.prototype.toString;
-            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
-        },
-
-        isString: function(value) {
-            var toString = Object.prototype.toString;
-            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
-        },
 
         merge: function() {
             if (_.mergeWith) {
@@ -1703,6 +1686,29 @@ var joint = {
                 return _.mergeWith.apply(this, args)
             }
             return _.merge.apply(this, arguments);
+        },
+
+        /* global _:false */
+
+        noop: function() {},
+
+        isBoolean: function(value) {
+            var toString = Object.prototype.toString;
+            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
+        },
+
+        isObject: function(value) {
+            return !!value && (typeof value === 'object' || typeof value === 'function');
+        },
+
+        isNumber: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
+        },
+
+        isString: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
         }
     }
 };

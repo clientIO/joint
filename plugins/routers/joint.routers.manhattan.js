@@ -1,4 +1,4 @@
-joint.routers.manhattan = (function(g, _, joint, util) {
+joint.routers.manhattan = (function(g, joint, util) {
 
     'use strict';
 
@@ -797,4 +797,4 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         return router(vertices, util.assign({}, config, opt), linkView);
     };
 
-})(g, _, joint, joint.util);
+})(g, joint, joint.util);

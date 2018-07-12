@@ -1,4 +1,4 @@
-(function(joint, _, util) {
+(function(joint, util) {
 
     var PortData = function(data) {
 
@@ -783,4 +783,4 @@
         }
 
     });
-}(joint, _, joint.util));
+}(joint, joint.util));

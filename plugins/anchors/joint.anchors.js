@@ -119,7 +119,7 @@
 
         var portId = view.findAttribute('port', magnet);
         if (portId) {
-            portGroup = model.portProp(portId, 'group');
+            var portGroup = model.portProp(portId, 'group');
             var portsPositions = model.getPortsPositions(portGroup);
             var anchor = new g.Point(portsPositions[portId]).offset(bbox.origin());
             anchor.rotate(center, -angle);

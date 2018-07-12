@@ -3,9 +3,21 @@ module.exports = {
     'rules': {
         'indent': ['error', 4, { 'SwitchCase': 1 }],
         'space-before-function-paren': ['warn', 'never'],
-        'no-console': 0,
+        'no-console': ['error', { 'allow': ['warn'] }],
         'no-constant-condition': 0,
-        'no-undef': 0,
+        'no-undef': 2,
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }]
+    },
+    'env': {
+        'browser': true,
+        'node': true
+    },
+    'globals': {
+        'joint': true,
+        'V': true,
+        'g': true,
+        '$': true,
+        'Backbone': true,
+        'Uint8Array': true
     }
 };

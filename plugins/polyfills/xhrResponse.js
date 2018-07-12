@@ -16,6 +16,7 @@
 
     Object.defineProperty(XMLHttpRequest.prototype, 'response', {
         get: function() {
+            /* global VBArray:true */
             return new Uint8Array(new VBArray(this.responseBody).toArray());
         }
     });
