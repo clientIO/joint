@@ -373,7 +373,7 @@ QUnit.module('path', function(hooks) {
 
         QUnit.test('incorrect type', function(assert) {
 
-            var error;
+            var error, segment;
 
             // no type
             try {

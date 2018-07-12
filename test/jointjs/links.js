@@ -141,6 +141,7 @@ QUnit.module('links', function(hooks) {
             var r2port = rv2.el.querySelector('circle');
 
             var spy = paper.options.validateConnection = sinon.spy(function() { return true; });
+            var evt;
 
             evt = { type: 'mousemove' };
             lv0.startArrowheadMove('source');

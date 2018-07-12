@@ -687,7 +687,7 @@ QUnit.module('paper', function(hooks) {
         // Use guard option to only allow mouse events for left mouse button.
         this.paper.options.guard = function(evt, view) {
 
-            assert.ok(evt instanceof jQuery.Event);
+            assert.ok(evt instanceof $.Event);
             assert.equal(view, elementView);
 
             var isMouseEvent = evt.type.substr(0, 'mouse'.length) === 'mouse';
@@ -1474,10 +1474,7 @@ QUnit.module('paper', function(hooks) {
 
             this.paper.drawBackground({ color: 'red' });
 
-            assert.equal(
-                this.paper.$el.css('backgroundColor'),
-                normalizeCssAttr('backgroundColor', 'red')
-            );
+            assert.checkCssAttr('backgroundColor', this.paper.$el, 'red');
         });
 
         QUnit.test('image', function(assert) {
@@ -1509,10 +1506,7 @@ QUnit.module('paper', function(hooks) {
 
             _.delay(
                 _.bind(function() {
-                    assert.equal(
-                        this.paper.$background.css('opacity'),
-                        normalizeCssAttr('opacity', 0.5)
-                    );
+                    assert.checkCssAttr('opacity', this.paper.$background, 0.5);
                     done();
                 }, this)
             );

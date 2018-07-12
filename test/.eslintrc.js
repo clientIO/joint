@@ -3,13 +3,18 @@ module.exports = {
     'rules': {
         'indent': 0,//['error', 4, { 'SwitchCase': 1 }],
         'space-before-function-paren': 0,//['warn', 'never'],
-        'no-undef': 0,
+        'no-undef': 2,
         'no-unused-vars': 0//['error', { 'vars': 'local', 'args': 'none' }]
     },
     'globals': {
-//        '_': true,
+        '_': true,
         'QUnit': true,
         'sinon': true,
-        'blanket': true
+        'blanket': true,
+        'it': true,
+        'describe': true,
+        'before': true,
+        'after': true,
+        'simulate': true
     }
 };

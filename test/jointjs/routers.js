@@ -159,7 +159,7 @@ QUnit.module('routers', function(hooks) {
 
         this.graph.addCell([r1, r2, r3, l0]);
 
-        v0 = this.paper.findViewByModel(l0);
+        var v0 = this.paper.findViewByModel(l0);
 
         var d = v0.$('.connection').attr('d');
 
@@ -345,7 +345,7 @@ QUnit.module('routers', function(hooks) {
 
         this.graph.addCell([r1, r2, r3, l0]);
 
-        v0 = this.paper.findViewByModel(l0);
+        var v0 = this.paper.findViewByModel(l0);
 
         var d = v0.$('.connection').attr('d');
 
