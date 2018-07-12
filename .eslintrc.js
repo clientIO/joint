@@ -2,7 +2,7 @@ module.exports = {
     'extends': 'eslint:recommended',
     'rules': {
         'indent': ['error', 4, { 'SwitchCase': 1 }],
-        'space-before-function-paren': ['warn', 'never'],
+        'space-before-function-paren': ['error', 'never'],
         'no-console': ['error', { 'allow': ['warn'] }],
         'no-constant-condition': 0,
         'no-undef': 2,
