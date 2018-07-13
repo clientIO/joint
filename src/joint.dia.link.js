@@ -798,7 +798,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        return { fragment: fragment, selectors: {} }; // no selectors
+        return { fragment: fragment, selectors: {}}; // no selectors
     },
 
     // Label markup fragment may come wrapped in <g class="label" />, or not.

@@ -451,16 +451,16 @@ QUnit.module('cellView', function(hooks) {
 
                 assert.expect(6);
 
-                cell.attr({ text: { refX: null, x: X, text: 'single line - no refX and with x' }}, { dirty: true});
+                cell.attr({ text: { refX: null, x: X, text: 'single line - no refX and with x' }}, { dirty: true });
                 testTextOffset(X);
 
-                cell.attr({ text: { refX: X, x: X, text: 'single line - with refX and x' }}, { dirty: true});
+                cell.attr({ text: { refX: X, x: X, text: 'single line - with refX and x' }}, { dirty: true });
                 testTextOffset(X + X);
 
-                cell.attr({ text: { refX: null, x: X, text: '1. line - no refX and with x\n2. line - no refX and with x' }}, { dirty: true});
+                cell.attr({ text: { refX: null, x: X, text: '1. line - no refX and with x\n2. line - no refX and with x' }}, { dirty: true });
                 testTextOffset(X);
 
-                cell.attr({ text: { refX: X, x: X, text: '1. line - with refX and x\n2. line - with refX and x' }}, { dirty: true});
+                cell.attr({ text: { refX: X, x: X, text: '1. line - with refX and x\n2. line - with refX and x' }}, { dirty: true });
                 testTextOffset(X + X);
             });
         });

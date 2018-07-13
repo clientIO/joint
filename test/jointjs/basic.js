@@ -57,7 +57,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -80,7 +80,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -108,7 +108,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
         var r2 = r1.clone();
         var r3 = r1.clone();
@@ -140,7 +140,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -272,7 +272,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -304,34 +304,34 @@ QUnit.module('basic', function(hooks) {
 
         this.graph.addCell(rect);
 
-        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 } });
+        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 150 }});
         assert.equal(rect.prop('position/x'), 30, 'restrictedArea is respected when the element is translated to the left.');
 
-        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 } });
+        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 150, width: 1000 }});
         assert.equal(rect.prop('position/y'), 70, 'restrictedArea is respected when the element is translated to the bottom.');
 
-        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 } });
+        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
         assert.equal(rect.prop('position/x'), 10, 'restrictedArea is respected when the element is translated to the right.');
 
-        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 } });
+        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
         assert.equal(rect.prop('position/y'), 10, 'restrictedArea is respected when the element is translated to the top.');
 
         rect.position(50, 50).embed(embed);
         this.graph.addCell(embed);
 
-        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 } });
+        rect.translate(1000, 0, { restrictedArea: { x: 0, y: 0, height: 1000, width: 500 }});
         assert.equal(rect.prop('position/x'), 330, 'restrictedArea is respected when the element and its embeds are translated to the left.');
 
-        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 } });
+        rect.translate(0, 1000, { restrictedArea: { x: 0, y: 0, height: 500, width: 1000 }});
         assert.equal(rect.prop('position/y'), 400, 'restrictedArea is respected when the element and its embeds are translated to the bottom.');
 
         rect.position(50, 50);
         embed.position(20, 20);
 
-        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 } });
+        rect.translate(-1000, 0, { restrictedArea: { x: 10, y: 0, height: 1000, width: 1000 }});
         assert.equal(rect.prop('position/x'), 40, 'restrictedArea is respected when the element and its embeds are translated to the right.');
 
-        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 } });
+        rect.translate(0, -1000, { restrictedArea: { x: 0, y: 10, height: 1000, width: 1000 }});
         assert.equal(rect.prop('position/y'), 40, 'restrictedArea is respected when the element and its embeds are translated to the top.');
     });
 
@@ -368,7 +368,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: '' } }
+            attrs: { text: { text: '' }}
         });
 
         this.graph.addCell(myrect);
@@ -435,7 +435,7 @@ QUnit.module('basic', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -458,7 +458,7 @@ QUnit.module('basic', function(hooks) {
 
         var r1 = new joint.shapes.basic.Rect({
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
         this.graph.addCell(r1);
 
@@ -503,7 +503,7 @@ QUnit.module('basic', function(hooks) {
 
         assert.equal(elView.$('.big').attr('opacity'), undefined, 'No opacity is set on the element');
 
-        el.attr({ '.big': { opacity: .5 } });
+        el.attr({ '.big': { opacity: .5 }});
 
         assert.equal(elView.$('.big').attr('opacity'), .5, '.5 opacity was correctly set by attr()');
 
@@ -555,9 +555,9 @@ QUnit.module('basic', function(hooks) {
 
         var el = new joint.shapes.basic.Rect({
             flat: 5,
-            object: { nested: { value: 'foo' }, nested2: { value: 'bar' } },
+            object: { nested: { value: 'foo' }, nested2: { value: 'bar' }},
             array: [[5], [{ value: ['bar'] }]],
-            a: { b: { c: 1 } }
+            a: { b: { c: 1 }}
         });
 
         assert.equal(el.prop('flat'), 5, 'flat value returned in getter');
@@ -831,11 +831,11 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('fitEmbeds()', function(assert) {
 
         var mainGroup = new joint.shapes.basic.Rect;
-        var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 } });
-        var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 } });
-        var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 } });
-        var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 } });
-        var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 } });
+        var group1 = new joint.shapes.basic.Rect({ position: { x: 0, y: 0 }, size: { width: 10, height: 10 }});
+        var group2 = new joint.shapes.basic.Rect({ position: { x: 1000, y: 1000 }, size: { width: 10, height: 10 }});
+        var a = new joint.shapes.basic.Rect({ position: { x: 100, y: 100 }, size: { width: 20, height: 20 }});
+        var b = new joint.shapes.basic.Rect({ position: { x: 200, y: 100 }, size: { width: 20, height: 20 }});
+        var c = new joint.shapes.basic.Rect({ position: { x: 150, y: 200 }, size: { width: 20, height: 20 }});
 
         mainGroup.embed(group2.embed(c)).embed(group1.embed(a).embed(b));
 
@@ -865,7 +865,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(r1);
@@ -909,7 +909,7 @@ QUnit.module('basic', function(hooks) {
 
         // Deep clone.
 
-        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id } });
+        var l = new joint.dia.Link({ source: { id: r1.id }, target: { id: r2.id }});
         this.graph.addCell(l);
         var clones = r1.clone({ deep: true });
 
@@ -930,7 +930,7 @@ QUnit.module('basic', function(hooks) {
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(r1);
@@ -979,7 +979,7 @@ QUnit.module('basic', function(hooks) {
     QUnit.test('findMagnet()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect({
-            attrs: { text: { text: 'my\nrectangle' } }
+            attrs: { text: { text: 'my\nrectangle' }}
         });
 
         this.graph.addCell(r1);
@@ -989,7 +989,7 @@ QUnit.module('basic', function(hooks) {
         var magnet = r1View.findMagnet('tspan');
         assert.equal(magnet, r1View.el, 'should return the root element of the view if there is no subelement with magnet attribute set to true');
 
-        r1.attr({ text: { magnet: true } });
+        r1.attr({ text: { magnet: true }});
         magnet = r1View.findMagnet('tspan');
         assert.equal(magnet, r1View.$('text')[0], 'should return the text element that has the magnet attribute set to true even though we passed the child <tspan> in the selector');
 
@@ -1106,7 +1106,7 @@ QUnit.module('basic', function(hooks) {
 
         // Range [0, 1]
 
-        el.attr({ '.small': { 'ref-x': .5, 'ref-y': .5 } });
+        el.attr({ '.small': { 'ref-x': .5, 'ref-y': .5 }});
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
@@ -1118,7 +1118,7 @@ QUnit.module('basic', function(hooks) {
 
         // Percentage
 
-        el.attr({ '.small': { 'ref-x': '50%', 'ref-y': '50%' } });
+        el.attr({ '.small': { 'ref-x': '50%', 'ref-y': '50%' }});
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
@@ -1130,7 +1130,7 @@ QUnit.module('basic', function(hooks) {
 
         // Range [-x, 0]
 
-        el.attr({ '.small': { 'ref-x': -10, 'ref-y': -15 } });
+        el.attr({ '.small': { 'ref-x': -10, 'ref-y': -15 }});
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
@@ -1154,7 +1154,7 @@ QUnit.module('basic', function(hooks) {
         );
 
         assert.throws(function() {
-            el.attr({ '.small': { 'ref': '.not-existing-reference' } });
+            el.attr({ '.small': { 'ref': '.not-existing-reference' }});
         }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
     });
 
@@ -1231,7 +1231,7 @@ QUnit.module('basic', function(hooks) {
 
         // Percentage
 
-        el.attr({ '.small': { 'ref-width': '50%', 'ref-height': '40%' } });
+        el.attr({ '.small': { 'ref-width': '50%', 'ref-height': '40%' }});
 
         assert.deepEqual(
             { width: smallRectBbox.width, height: smallRectBbox.height },
@@ -1251,7 +1251,7 @@ QUnit.module('basic', function(hooks) {
 
         // Margin value 1
 
-        el.attr({ '.small': { 'ref-width': 1, 'ref-height': 1 } });
+        el.attr({ '.small': { 'ref-width': 1, 'ref-height': 1 }});
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
@@ -1261,7 +1261,7 @@ QUnit.module('basic', function(hooks) {
             'ref-width: 1, ref-height: 1 attributes element should set the exact referenced element size 100x50.'
         );
 
-        el.attr({ '.small': { 'ref-width': 0 } });
+        el.attr({ '.small': { 'ref-width': 0 }});
 
         smallRectBbox = V(elView.$('.small')[0]).bbox(false, elView.el);
 
@@ -1363,7 +1363,7 @@ QUnit.module('basic', function(hooks) {
         var defsChildrenCount = $(defs).children().length;
         assert.equal(defsChildrenCount, 0, 'there is no element in the <defs> by default.');
 
-        el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+        el.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
 
         // PhantomJS fails to lookup linearGradient with `querySelectorAll()` (also with jQuery).
         // Therefore, we use the following trick to check whether the element is in DOM.
@@ -1376,7 +1376,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'one <filter> element got created in <defs>.');
         assert.checkSvgAttr('filter', elView.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the newly created filter with url()');
 
-        el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 } });
+        el2.attr('rect/filter', { name: 'dropShadow', args: { dx: 2, dy: 2, blur: 3 }});
 
         defsChildrenCount = $(defs).children().length;
         assert.equal(defsChildrenCount, 1, 'one element still in <defs>.');
@@ -1386,7 +1386,7 @@ QUnit.module('basic', function(hooks) {
         assert.equal(filter.tagName.toLowerCase(), 'filter', 'still only one <filter> element is in <defs>.');
         assert.checkSvgAttr('filter', el2View.$('rect'), 'url(#' + filter.id + ')', 'filter attribute pointing to the correct gradient with url()');
 
-        el.attr('rect/filter', { name: 'blur', args: { x: 5 } });
+        el.attr('rect/filter', { name: 'blur', args: { x: 5 }});
 
         defsChildrenCount = $(defs).children().length;
         assert.equal(defsChildrenCount, 2, 'now two elements are in <defs>.');

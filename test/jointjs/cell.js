@@ -185,7 +185,7 @@ QUnit.module('cell', function(hooks) {
             });
 
             QUnit.test('set attr as an object', function(assert) {
-                el.attr({ 'object': { '123': 'property' } });
+                el.attr({ 'object': { '123': 'property' }});
                 assert.deepEqual(attributes.attrs.object,  { '123': 'property' });
             });
 
@@ -209,7 +209,7 @@ QUnit.module('cell', function(hooks) {
                 attributes.attrs.c = 'root_c';
                 attributes.attrs.b = 'root_b';
                 el.removeAttr(['a', 'b', 'c']);
-                assert.deepEqual(attributes.attrs, { a: { b: {} }, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
+                assert.deepEqual(attributes.attrs, { a: { b: {}}, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
             });
 
             QUnit.test('path defines as array - delimiter in name', function(assert) {
@@ -233,7 +233,7 @@ QUnit.module('cell', function(hooks) {
                 attributes.attrs.c = 'root_c';
                 attributes.attrs.b = 'root_b';
                 el.removeAttr('a/b/c');
-                assert.deepEqual(attributes.attrs, { a: { b: {} }, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
+                assert.deepEqual(attributes.attrs, { a: { b: {}}, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
             })
         });
     });
@@ -317,7 +317,7 @@ QUnit.module('cell', function(hooks) {
 
             QUnit.test('path and value as object', function(assert) {
 
-                el.prop({ name: { first: 'john' } });
+                el.prop({ name: { first: 'john' }});
                 assert.ok(attrs.hasOwnProperty('name'));
                 assert.equal(attrs.name.first, 'john');
 

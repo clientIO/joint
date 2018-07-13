@@ -106,7 +106,7 @@ var e2eHelpers = module.exports = {
         });
 
         return client.init()
-            .setViewportSize({width: 1024, height: 768}, false)
+            .setViewportSize({ width: 1024, height: 768 }, false)
             .timeouts('script', config.timeouts['script'])
 
         /*

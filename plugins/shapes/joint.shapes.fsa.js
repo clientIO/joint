@@ -39,6 +39,6 @@ joint.dia.Element.define('fsa.EndState', {
 });
 
 joint.dia.Link.define('fsa.Arrow', {
-    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } },
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
     smooth: true
 });

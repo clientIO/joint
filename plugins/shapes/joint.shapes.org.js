@@ -33,6 +33,6 @@ joint.dia.Element.define('org.Member', {
 
 joint.dia.Link.define('org.Arrow', {
     source: { selector: '.card' }, target: { selector: '.card' },
-    attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 } },
+    attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
     z: -1
 });

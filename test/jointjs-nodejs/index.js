@@ -30,7 +30,7 @@ describe('Graph', function() {
         it('should add a cell to the graph cells collection', function() {
 
             var g = new joint.dia.Graph;
-            var c = new joint.shapes.basic.Rect({ attrs: { text: { fill: 'yellow' } }});
+            var c = new joint.shapes.basic.Rect({ attrs: { text: { fill: 'yellow' }}});
             g.addCell(c);
             g.get('cells').length.should.be.exactly(1);
             g.get('cells').at(0).should.be.an.instanceOf(joint.shapes.basic.Rect);
@@ -42,7 +42,7 @@ describe('Graph', function() {
         it('should trigger add event when new cell has been added', function() {
 
             var g = new joint.dia.Graph;
-            var c = new joint.shapes.basic.Rect({ attrs: { text: { fill: 'yellow' } }});
+            var c = new joint.shapes.basic.Rect({ attrs: { text: { fill: 'yellow' }}});
             var called = false;
             g.on('add', function() { called = true; });
             g.addCell(c);

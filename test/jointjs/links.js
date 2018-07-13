@@ -54,7 +54,7 @@ QUnit.module('links', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
 
         this.graph.addCell([r1, r2]);
@@ -62,7 +62,7 @@ QUnit.module('links', function(hooks) {
         var l0 = new joint.dia.Link({
             source: { id: r1.id },
             target: { id: r2.id },
-            attrs: { '.connection': { stroke: 'black' } }
+            attrs: { '.connection': { stroke: 'black' }}
         });
 
         this.graph.addCell(l0);
@@ -196,7 +196,7 @@ QUnit.module('links', function(hooks) {
         assert.expect(6);
 
         var event;
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
         var r3 = r2.clone().translate(300);
 
@@ -208,9 +208,9 @@ QUnit.module('links', function(hooks) {
         var l0 = new joint.dia.Link({
             source: { id: r1.id },
             target: { id: r2.id },
-            attrs: { '.connection': { stroke: 'black' } },
+            attrs: { '.connection': { stroke: 'black' }},
             labels: [
-                { position: .5, attrs: { text: { text: 'test label' } } }
+                { position: .5, attrs: { text: { text: 'test label' }}}
             ]
         });
 
@@ -300,7 +300,7 @@ QUnit.module('links', function(hooks) {
         var model = new joint.shapes.basic.Rect({
             position: { x: 100, y: 100 },
             size: { width: 100, height: 100 },
-            attrs: { rect: { magnet: true, port: 'myPort' } }
+            attrs: { rect: { magnet: true, port: 'myPort' }}
         });
 
         this.graph.addCell(model);
@@ -413,7 +413,7 @@ QUnit.module('links', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
 
         this.graph.addCell(myrect);
@@ -426,7 +426,7 @@ QUnit.module('links', function(hooks) {
 
             source: { id: myrect.id },
             target: { id: myrect2.id },
-            attrs: { '.connection': { stroke: 'black' } }
+            attrs: { '.connection': { stroke: 'black' }}
         });
 
         this.graph.addCell(link);
@@ -503,13 +503,13 @@ QUnit.module('links', function(hooks) {
 
         var myrect = new joint.shapes.basic.Rect;
         this.graph.addCell(myrect);
-        var link = new joint.dia.Link({ source: { id: myrect.id }, target: { id: myrect.id } });
+        var link = new joint.dia.Link({ source: { id: myrect.id }, target: { id: myrect.id }});
         this.graph.addCell(link);
         assert.equal(link.hasLoop(), true, 'link has a loop');
 
         var myrect2 = new joint.shapes.basic.Rect;
         this.graph.addCell(myrect2);
-        var link2 = new joint.dia.Link({ source: { id: myrect2.id }, target: { x: 20, y: 20 } });
+        var link2 = new joint.dia.Link({ source: { id: myrect2.id }, target: { x: 20, y: 20 }});
         this.graph.addCell(link2);
         assert.equal(link2.hasLoop(), false, 'link pinned to the paper does not have a loop');
         assert.equal(link2.hasLoop({ deep: true }), false, 'link pinned to the paper does not have a loop with deep = true');
@@ -518,7 +518,7 @@ QUnit.module('links', function(hooks) {
         var myrect3a = new joint.shapes.basic.Rect;
         myrect3.embed(myrect3a);
         this.graph.addCells([myrect3, myrect3a]);
-        var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3a.id } });
+        var link3 = new joint.dia.Link({ source: { id: myrect3.id }, target: { id: myrect3a.id }});
         this.graph.addCell(link3);
         assert.equal(link3.hasLoop(), false, 'link targetting an embedded element does not have a loop with deep = false');
         assert.equal(link3.hasLoop({ deep: true }), true, 'link targetting an embedded element does have a loop with deep = true');
@@ -529,7 +529,7 @@ QUnit.module('links', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
         var myrect2 = myrect.clone();
         myrect2.translate(300);
@@ -580,7 +580,7 @@ QUnit.module('links', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
         var myrect2 = myrect.clone();
         myrect2.translate(300);
@@ -674,7 +674,7 @@ QUnit.module('links', function(hooks) {
         var myrect = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
             size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' } }
+            attrs: { text: { text: 'my rectangle' }}
         });
         var myrect2 = myrect.clone();
         myrect2.translate(300);
@@ -738,9 +738,9 @@ QUnit.module('links', function(hooks) {
                 source: { id: myrect.id },
                 target: { id: myrect2.id },
                 labels: [
-                    { position: 10, attrs: { text: { text: '1..n' } } },
-                    { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 } } },
-                    { position: -10, attrs: { text: { text: '*' } } }
+                    { position: 10, attrs: { text: { text: '1..n' }}},
+                    { position: .5, attrs: { text: { text: 'Foo', fill: 'white', 'font-family': 'sans-serif' }, rect: { stroke: '#F39C12', 'stroke-width': 20, rx: 5, ry: 5 }}},
+                    { position: -10, attrs: { text: { text: '*' }}}
                 ]
             });
 
@@ -761,7 +761,7 @@ QUnit.module('links', function(hooks) {
             assert.equal(linkView.$('.label')[1].textContent, 'Foo', 'second label has correctly set text');
             assert.equal(linkView.$('.label')[2].textContent, '*', 'third label has correctly set text');
 
-            link.label(1, { attrs: { text: { text: 'Bar' } } });
+            link.label(1, { attrs: { text: { text: 'Bar' }}});
 
             assert.equal(linkView.$('.label')[1].textContent, 'Bar', 'a call to link.label() changed text of the second label correctly');
 
@@ -775,7 +775,7 @@ QUnit.module('links', function(hooks) {
 
             assert.expect(2);
 
-            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 } });
+            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 50, height: 50 }});
             var r2 = r1.clone().translate(250);
 
             this.graph.addCell([r1, r2]);
@@ -783,9 +783,9 @@ QUnit.module('links', function(hooks) {
             var l0 = new joint.dia.Link({
                 source: { id: r1.id },
                 target: { id: r2.id },
-                attrs: { '.connection': { stroke: 'black' } },
+                attrs: { '.connection': { stroke: 'black' }},
                 labels: [
-                    { position: .5, attrs: { text: { text: 'test label' } } }
+                    { position: .5, attrs: { text: { text: 'test label' }}}
                 ]
             });
 
@@ -1491,18 +1491,18 @@ QUnit.module('links', function(hooks) {
         QUnit.module('label', function() {
 
             QUnit.test('getter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
-                assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 } });
-                assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 } });
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                assert.deepEqual(link.label(0), { position: { distance: 10, offset: 10 }});
+                assert.deepEqual(link.label(1), { position: { distance: 20, offset: 20 }});
                 assert.deepEqual(link.label(2), undefined);
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
-                link.label(0, { position: { distance: 100, offset: 100 } });
-                link.label(1, { position: { distance: 200 } });
-                link.label(2, { position: { distance: 30, offset: 30 } });
-                assert.deepEqual(link.get('labels'), [{ position: { distance: 100, offset: 100 } }, { position: { distance: 200, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                link.label(0, { position: { distance: 100, offset: 100 }});
+                link.label(1, { position: { distance: 200 }});
+                link.label(2, { position: { distance: 30, offset: 30 }});
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 100, offset: 100 }}, { position: { distance: 200, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
             });
         });
 
@@ -1511,15 +1511,15 @@ QUnit.module('links', function(hooks) {
             QUnit.test('getter', function(assert) {
                 var link = new joint.dia.Link();
                 assert.deepEqual(link.labels(), []);
-                link.set('labels', [{ position: { distance: 10, offset: 10 } }]);
+                link.set('labels', [{ position: { distance: 10, offset: 10 }}]);
                 assert.notEqual(link.labels(), link.get('labels'), 'Copy');
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }]);
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}]);
             });
 
             QUnit.test('setter', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }] });
-                link.labels([{ position: { distance: 30, offset: 30 } }]);
-                assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 } }]);
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}] });
+                link.labels([{ position: { distance: 30, offset: 30 }}]);
+                assert.deepEqual(link.get('labels'), [{ position: { distance: 30, offset: 30 }}]);
             });
         });
 
@@ -1536,10 +1536,10 @@ QUnit.module('links', function(hooks) {
                 }
                 assert.equal(!!error, true);
 
-                link.insertLabel(-1, { position: { distance: 20, offset: 20 } });
-                link.insertLabel(0, { position: { distance: 10, offset: 10 } });
-                link.insertLabel(100, { position: { distance: 30, offset: 30 } });
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+                link.insertLabel(-1, { position: { distance: 20, offset: 20 }});
+                link.insertLabel(0, { position: { distance: 10, offset: 10 }});
+                link.insertLabel(100, { position: { distance: 30, offset: 30 }});
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
             });
         });
 
@@ -1556,21 +1556,21 @@ QUnit.module('links', function(hooks) {
                 }
                 assert.equal(!!error, true);
 
-                link.appendLabel({ position: { distance: 10, offset: 10 } });
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }]);
+                link.appendLabel({ position: { distance: 10, offset: 10 }});
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}]);
             });
         });
 
         QUnit.module('removeLabel', function() {
 
             QUnit.test('sanity', function(assert) {
-                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }, { position: { distance: 40, offset: 40 } }] });
+                var link = new joint.dia.Link({ labels: [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}] });
                 link.removeLabel(100);
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }, { position: { distance: 40, offset: 40 } }]);
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}, { position: { distance: 40, offset: 40 }}]);
                 link.removeLabel(-1);
-                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 } }, { position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+                assert.deepEqual(link.labels(), [{ position: { distance: 10, offset: 10 }}, { position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
                 link.removeLabel(0);
-                assert.deepEqual(link.labels(), [{ position: { distance: 20, offset: 20 } }, { position: { distance: 30, offset: 30 } }]);
+                assert.deepEqual(link.labels(), [{ position: { distance: 20, offset: 20 }}, { position: { distance: 30, offset: 30 }}]);
             });
         });
     });

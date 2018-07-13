@@ -162,11 +162,11 @@ QUnit.module('util', function(hooks) {
         assert.deepEqual(joint.util.setByPath({ property: 2 }, 'property', 3), { property: 3 }, 'existing property in an obj set as a number');
         assert.deepEqual(joint.util.setByPath([], '0', 4), [4], 'add an item to an empty array');
         assert.deepEqual(joint.util.setByPath([5, 6], '1', 7), [5, 7], 'change an item in an array');
-        assert.deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 } } }, 'populate an empty object with nested objects');
-        assert.deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 } } }, 'same but this time with a custom delimiter');
+        assert.deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 }}}, 'populate an empty object with nested objects');
+        assert.deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 }}}, 'same but this time with a custom delimiter');
         assert.deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
         assert.deepEqual(joint.util.setByPath({ array: [] }, 'array/1', 'index'), { array: [undefined, 'index'] }, 'define array');
-        assert.deepEqual(joint.util.setByPath({ object: {} }, 'object/1', 'property'), { object: { '1': 'property' } }, 'define property');
+        assert.deepEqual(joint.util.setByPath({ object: {}}, 'object/1', 'property'), { object: { '1': 'property' }}, 'define property');
     });
 
     QUnit.module('util.unsetByPath', function(hooks) {
@@ -182,7 +182,7 @@ QUnit.module('util', function(hooks) {
             };
 
             joint.util.unsetByPath(obj, 'b/c', '/');
-            assert.deepEqual(obj, { a: 1, b: { d: 3 } }, 'A nested attribute was removed.');
+            assert.deepEqual(obj, { a: 1, b: { d: 3 }}, 'A nested attribute was removed.');
 
             joint.util.unsetByPath(obj, 'b');
             assert.deepEqual(obj, { a: 1 }, 'A primitive attribute was removed.');
@@ -230,7 +230,7 @@ QUnit.module('util', function(hooks) {
             };
 
             joint.util.unsetByPath(obj, ['b', 'c'], '/');
-            assert.deepEqual(obj, { a: 1, b: { d: 3 } }, 'A nested attribute was removed.');
+            assert.deepEqual(obj, { a: 1, b: { d: 3 }}, 'A nested attribute was removed.');
 
             joint.util.unsetByPath(obj, ['b']);
             assert.deepEqual(obj, { a: 1 }, 'A primitive attribute was removed.');
@@ -319,11 +319,11 @@ QUnit.module('util', function(hooks) {
 
     QUnit.test('util.merge', function(assert) {
 
-        var types = joint.util.merge({ a: [99] }, { a: { b: 1 } });
-        assert.deepEqual(types, { a: { b: 1 } }, 'array is not merged with object');
+        var types = joint.util.merge({ a: [99] }, { a: { b: 1 }});
+        assert.deepEqual(types, { a: { b: 1 }}, 'array is not merged with object');
 
 
-        var custom = joint.util.merge({ a: [99] }, { a: { b: 1 } }, function(a) {
+        var custom = joint.util.merge({ a: [99] }, { a: { b: 1 }}, function(a) {
             return "x";
         });
         assert.deepEqual(custom, { a: 'x' });

@@ -4,8 +4,9 @@ module.exports = {
         'indent': ['error', 4, { 'SwitchCase': 1 }],
         'space-before-function-paren': ['error', 'never'],
         'no-console': ['error', { 'allow': ['warn'] }],
-        'no-constant-condition': 0,
-        'no-undef': 2,
+        'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
+        'no-constant-condition': ['off'],
+        'no-undef': ['error'],
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }]
     },
     'env': {

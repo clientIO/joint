@@ -286,7 +286,7 @@ QUnit.module('element ports', function() {
             QUnit.test('test name', function(assert) {
 
                 var shape = create({
-                    groups: { 'a': { z: 0 } }
+                    groups: { 'a': { z: 0 }}
                 });
 
                 shape.addPorts([
@@ -476,9 +476,9 @@ QUnit.module('element ports', function() {
                     }, 'b': {}
                 },
                 items: [
-                    { id: 'pa1', group: 'a', label: { position: { name: 'top', args: { tx: 11 } } } },
+                    { id: 'pa1', group: 'a', label: { position: { name: 'top', args: { tx: 11 }}}},
                     { id: 'pa2', group: 'a' },
-                    { id: 'pb1', group: 'b', label: { position: { args: { tx: 11 } } } },
+                    { id: 'pb1', group: 'b', label: { position: { args: { tx: 11 }}}},
                     { id: 'pb2', group: 'b' }
                 ]
             };
@@ -586,7 +586,7 @@ QUnit.module('element ports', function() {
 
             var shape = create({
                 items: [
-                    { id: 'one', attrs: { '.body': { fill: 'red' } } }
+                    { id: 'one', attrs: { '.body': { fill: 'red' }}}
                 ]
             });
 
@@ -599,7 +599,7 @@ QUnit.module('element ports', function() {
             shape.portProp('one', 'attrs/.body', {});
             assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'newcolor');
 
-            shape.portProp('one', { attrs: { '.body': { fill: 'black', x: 1 } } });
+            shape.portProp('one', { attrs: { '.body': { fill: 'black', x: 1 }}});
             assert.equal(shape.prop('ports/items/0/attrs/.body/fill'), 'black');
             assert.equal(shape.prop('ports/items/0/attrs/.body/x'), 1);
         });
@@ -608,7 +608,7 @@ QUnit.module('element ports', function() {
 
             var shape = create({
                 items: [
-                    { id: 'one', attrs: { '.body': { fill: 'red' } } }
+                    { id: 'one', attrs: { '.body': { fill: 'red' }}}
                 ]
             });
 

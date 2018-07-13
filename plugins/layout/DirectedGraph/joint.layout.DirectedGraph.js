@@ -75,7 +75,7 @@ joint.layout.DirectedGraph = {
         }
 
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
-            var labelPosition = { x: glEdge.x, y: glEdge.y};
+            var labelPosition = { x: glEdge.x, y: glEdge.y };
             if (joint.util.isFunction(opt.setLabels)) {
                 opt.setLabels(link, labelPosition, points);
             } else {
