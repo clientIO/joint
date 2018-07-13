@@ -1,14 +1,13 @@
 module.exports = {
     'extends': '../.eslintrc.js',
+    'env': {
+        'mocha': true
+    },
     'globals': {
         '_': true,
         'QUnit': true,
         'sinon': true,
         'blanket': true,
-        'it': true,
-        'describe': true,
-        'before': true,
-        'after': true,
         'simulate': true
     }
 };
