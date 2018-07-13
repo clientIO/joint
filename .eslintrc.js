@@ -7,7 +7,8 @@ module.exports = {
         'object-curly-spacing': ['error', 'always', { 'objectsInObjects': false }],
         'no-constant-condition': ['off'],
         'no-undef': ['error'],
-        'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }]
+        'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
+        'quotes': ['error', 'single'],
     },
     'env': {
         'browser': true,

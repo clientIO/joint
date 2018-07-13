@@ -816,7 +816,7 @@ QUnit.module('basic', function(hooks) {
         var a1Z = a1.get('z');
         var b1Z = b1.get('z');
 
-        assert.ok(b1Z < a1Z, "b root z is lower than a root z");
+        assert.ok(b1Z < a1Z, 'b root z is lower than a root z');
 
         a1.toFront({ deep: true });
 

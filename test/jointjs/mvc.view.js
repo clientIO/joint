@@ -69,9 +69,9 @@ QUnit.module('joint.mvc.View', function(hooks) {
         });
         var svgEl = new svgElementView();
 
-        assert.ok(svgEl.el, "element is created");
-        assert.equal(svgEl.el.tagName.toLowerCase(), "g", "creates the correct element");
-        assert.ok(svgEl.el instanceof SVGElement, "element is of the type SVGElement");
+        assert.ok(svgEl.el, 'element is created');
+        assert.equal(svgEl.el.tagName.toLowerCase(), 'g', 'creates the correct element');
+        assert.ok(svgEl.el instanceof SVGElement, 'element is of the type SVGElement');
     });
 
     QUnit.test('init()', function(assert) {

@@ -37,7 +37,7 @@ describe('Chess', function() {
                 this
                     .moveElement('#board g[model-id="' + modelId + '"]', 150 + 30, 200 + 20) // d4
                     .then(function(transform) {
-                        expect(transform).to.equal("translate(150,200)");
+                        expect(transform).to.equal('translate(150,200)');
                         done();
                     });
             });

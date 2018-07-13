@@ -41,7 +41,7 @@ describe('Discrete Event System Specification', function() {
                 .buttonUp()
                 .getAttribute('#paper .joint-type-devs.joint-type-devs-coupled', 'transform')
                 .then(function(transform) {
-                    expect(transform).to.equal("translate(21,-10)");
+                    expect(transform).to.equal('translate(21,-10)');
                     done();
                 });
 

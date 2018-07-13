@@ -36,7 +36,7 @@ describe('Organizational Charts', function() {
             client.url(url)
                 .moveElement('#paper .joint-type-org-member')
                 .then(function(transform) {
-                    expect(transform[0]).to.equal("translate(20,10)");
+                    expect(transform[0]).to.equal('translate(20,10)');
                     done();
                 });
 

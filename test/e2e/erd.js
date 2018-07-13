@@ -36,7 +36,7 @@ describe('ER Diagrams', function() {
             client.url(url)
                 .moveElement('#paper .joint-type-erd.joint-type-erd-entity')
                 .then(function(transform) {
-                    expect(transform[0]).to.equal("translate(20,10)");
+                    expect(transform[0]).to.equal('translate(20,10)');
                     done();
                 });
 

@@ -324,7 +324,7 @@ QUnit.module('util', function(hooks) {
 
 
         var custom = joint.util.merge({ a: [99] }, { a: { b: 1 }}, function(a) {
-            return "x";
+            return 'x';
         });
         assert.deepEqual(custom, { a: 'x' });
     });

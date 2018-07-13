@@ -40,7 +40,7 @@ describe('Petri Nets', function() {
                 .buttonUp()
                 .getAttribute('#paper .joint-type-pn.joint-type-pn-place', 'transform')
                 .then(function(transform) {
-                    expect(transform[0]).to.equal("translate(10,20)");
+                    expect(transform[0]).to.equal('translate(10,20)');
                     done();
                 });
 

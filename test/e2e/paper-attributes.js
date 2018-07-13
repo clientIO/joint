@@ -36,7 +36,7 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#ox', 60/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("translate(101,0)");
+                    expect(data.transform).to.equal('translate(101,0)');
                     done();
                 });
 
@@ -47,7 +47,7 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#oy', 60/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("translate(0,101)");
+                    expect(data.transform).to.equal('translate(0,101)');
                     done();
                 });
 
@@ -58,7 +58,7 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#sx', 35/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("scale(2.3,1)");
+                    expect(data.transform).to.equal('scale(2.3,1)');
                     done();
                 });
 
@@ -69,7 +69,7 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#sy', 35/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("scale(1,2.3)");
+                    expect(data.transform).to.equal('scale(1,2.3)');
                     done();
                 });
 
@@ -80,7 +80,7 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#width', 55/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.width).to.equal("928");
+                    expect(data.width).to.equal('928');
                     done();
                 });
 
@@ -91,7 +91,7 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#height', 35/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.height).to.equal("928");
+                    expect(data.height).to.equal('928');
                     done();
                 });
 
@@ -106,9 +106,9 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#ftc-padding', 10/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("translate(0,25)");
-                    expect(data.width).to.equal("625");
-                    expect(data.height).to.equal("440");
+                    expect(data.transform).to.equal('translate(0,25)');
+                    expect(data.width).to.equal('625');
+                    expect(data.height).to.equal('440');
                     done();
                 });
 
@@ -119,9 +119,9 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#ftc-grid-width', 10/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("translate(-75,-50)");
-                    expect(data.width).to.equal("525");
-                    expect(data.height).to.equal("290");
+                    expect(data.transform).to.equal('translate(-75,-50)');
+                    expect(data.width).to.equal('525');
+                    expect(data.height).to.equal('290');
                     done();
                 });
 
@@ -132,9 +132,9 @@ describe('Paper attributes', function() {
             client.url(url)
                 .changeRange('#ftc-grid-height', 10/* orig range */, 80/* new range */)
                 .then(function(data) {
-                    expect(data.transform).to.equal("translate(-75,0)");
-                    expect(data.width).to.equal("475");
-                    expect(data.height).to.equal("375");
+                    expect(data.transform).to.equal('translate(-75,0)');
+                    expect(data.width).to.equal('475');
+                    expect(data.height).to.equal('375');
                     done();
                 });
 

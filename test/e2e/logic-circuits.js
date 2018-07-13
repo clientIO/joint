@@ -36,7 +36,7 @@ describe('Logic Circuits', function() {
             client.url(url)
                 .moveElement('#paper .joint-type-logic.joint-type-logic-input')
                 .then(function(transform) {
-                    expect(transform).to.equal("translate(10,5)");
+                    expect(transform).to.equal('translate(10,5)');
                     done();
                 });
 

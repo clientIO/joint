@@ -1513,7 +1513,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 add: function(id, vel) {
                     V(this.root.node.childNodes[0]).append(vel);
                     this.patterns[id] = vel;
-                    this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
+                    this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
                 },
                 get: function(id) {
                     return  this.patterns[id]
