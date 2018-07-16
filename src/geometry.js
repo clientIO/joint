@@ -1,11 +1,9 @@
 // Geometry library.
 // -----------------
 
-var g; // eslint-disable-line no-unused-vars
+var g = {};
 
-g = (function() {
-
-    var g = {};
+(function(g) {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -4846,6 +4844,4 @@ g = (function() {
         return this.regexSupportedData.test(d);
     }
 
-    return g;
-
-})();
+})(g);
