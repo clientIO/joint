@@ -78,7 +78,9 @@ var Shape = joint.shapes.standard.Rectangle.define('example', {
         var ports = this.getInPorts();
         var usedPorts = this.getUsedInPorts();
         var newPorts = this.getNewInPorts(Math.max(minNumberOfPorts - usedPorts.length, 1));
-        if (ports.length === usedPorts.length) {
+        if (ports.length === minNumberOfPorts && ports.length - usedPorts.length > 0) {
+            // noop
+        } else if (ports.length === usedPorts.length) {
             this.addPorts(newPorts);
         } else if (ports.length + 1 > usedPorts.length) {
             this.prop(['ports', 'items'], this.getOutPorts().concat(usedPorts).concat(newPorts), { rewrite: true });
