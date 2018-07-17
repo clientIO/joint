@@ -254,24 +254,24 @@ QUnit.module('line', function() {
 
             QUnit.test('returns null for a rectangle that does not intersect the line', function(assert) {
 
-                assert.equal(new g.Line('0 0', '0 -10').intersect(new g.Rect(10, 20, 30, 40)), null, "no intersection point");
+                assert.equal(new g.Line('0 0', '0 -10').intersect(new g.Rect(10, 20, 30, 40)), null, 'no intersection point');
             });
 
             QUnit.test('returns an array of intersecting points with the rectangle', function(assert) {
 
                 var rect = new g.Rect(-10, -20, 30, 40);
                 var line1 = new g.Line('0 0', '20 0');
-                assert.equal(line1.intersect(rect).length, 1, "one intersection point");
+                assert.equal(line1.intersect(rect).length, 1, 'one intersection point');
                 assert.equal(line1.intersect(rect)[0].toString(), '20@0');
 
                 var line2 = new g.Line('-20 0', '20 0');
-                assert.equal(line2.intersect(rect).length, 2, "two intersection points");
+                assert.equal(line2.intersect(rect).length, 2, 'two intersection points');
                 assert.equal(line2.intersect(rect)[0].toString(), '20@0');
                 assert.equal(line2.intersect(rect)[1].toString(), '-10@0');
 
                 var line3 = new g.Line('0 0', '5 5');
                 rect = new g.Rect(0, 0, 5, 5);
-                assert.equal(line3.intersect(rect).length, 2, "two intersection points");
+                assert.equal(line3.intersect(rect).length, 2, 'two intersection points');
                 assert.equal(line3.intersect(rect)[0].toString(), '0@0');
                 assert.equal(line3.intersect(rect)[1].toString(), '5@5');
             });

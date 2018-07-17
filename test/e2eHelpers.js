@@ -22,46 +22,46 @@ var port = 3000;
 
 var e2eHelpers = module.exports = {
     config: config,
-    staticUrl: function (uri) {
+    staticUrl: function(uri) {
 
         return 'http://' + host + ':' + port + uri;
     },
-    setUp: function (cb) {
+    setUp: function(cb) {
 
         e2eHelpers.createStaticServer(cb);
     },
-    createStaticServer: function (cb) {
+    createStaticServer: function(cb) {
 
         app = express();
         app.use(serveStatic(__dirname + '/..'));
         app.server = app.listen(port, host);
         cb();
     },
-    tearDown: function (cb) {
+    tearDown: function(cb) {
 
-        e2eHelpers.destroyClient(function (error) {
+        e2eHelpers.destroyClient(function(error) {
             if (error)
                 return cb(error);
             e2eHelpers.destroyStaticServer(cb);
         });
     },
-    destroyClient: function (cb) {
+    destroyClient: function(cb) {
 
         if (!client)
             return cb();
 
-        client.end().then(function () {
+        client.end().then(function() {
             client = null;
             cb();
         });
     },
-    destroyStaticServer: function (cb) {
+    destroyStaticServer: function(cb) {
 
         app.server.close();
         app = null;
         cb();
     },
-    client: function (cb) {
+    client: function(cb) {
 
         if (client) {
             setTimeout(cb, 0);
@@ -101,36 +101,36 @@ var e2eHelpers = module.exports = {
 
         client = webdriverio.remote(options);
 
-        _.each(e2eHelpers.customCommands, function (fn, name) {
+        _.each(e2eHelpers.customCommands, function(fn, name) {
             client.addCommand(name, fn, true);
         });
 
         return client.init()
-                .setViewportSize({width: 1024, height: 768}, false)
-                .timeouts('script', config.timeouts['script'])
+            .setViewportSize({ width: 1024, height: 768 }, false)
+            .timeouts('script', config.timeouts['script'])
 
-                /*
+        /*
                  Cannot set 'implicit' timeout because of a bug in webdriverio [1].
                  [1] https://github.com/webdriverio/webdriverio/issues/974
                  */
-                // .timeouts('implicit', config.timeouts['implicit'])
-                .timeouts('page load', config.timeouts['page load'])
-                .then(function () {
-                    cb();
-                }).catch(cb);
+        // .timeouts('implicit', config.timeouts['implicit'])
+            .timeouts('page load', config.timeouts['page load'])
+            .then(function() {
+                cb();
+            }).catch(cb);
     },
     customCommands: {
-        waitForNotExist: function (selector, waitTime) {
+        waitForNotExist: function(selector, waitTime) {
 
             if (_.isUndefined(waitTime)) {
                 waitTime = config.timeouts['implicit'];
             }
 
-            return this.waitForExist(selector, waitTime, true/* reverse */).then(function (notExists) {
+            return this.waitForExist(selector, waitTime, true/* reverse */).then(function(notExists) {
                 return notExists;
             });
         },
-        moveElement: function (selector, posX, posY) {
+        moveElement: function(selector, posX, posY) {
 
             var selectorId = selector.split(' ')[0];
 
@@ -142,16 +142,16 @@ var e2eHelpers = module.exports = {
             }
 
             return this
-                    .moveToObject(selector, 20/* x-offset */, 20/* y-offset */)
-                    .buttonDown()
-                    .moveToObject(selectorId + ' svg', posX /* x-offset */, posY /* y-offset */)
-                    .buttonUp()
-                    .getAttribute(selector, 'transform')
-                    .then(function (transform) {
-                        return transform;
-                    });
+                .moveToObject(selector, 20/* x-offset */, 20/* y-offset */)
+                .buttonDown()
+                .moveToObject(selectorId + ' svg', posX /* x-offset */, posY /* y-offset */)
+                .buttonUp()
+                .getAttribute(selector, 'transform')
+                .then(function(transform) {
+                    return transform;
+                });
         },
-        changeRange: function (selector, posRangeX, newPosRangeX) {
+        changeRange: function(selector, posRangeX, newPosRangeX) {
 
             var retObj = {
                 transform: '',
@@ -160,24 +160,24 @@ var e2eHelpers = module.exports = {
             };
 
             return this
-                    .waitForExist(selector)
-                    .moveToObject(selector, posRangeX/* x-offset */, 10/* y-offset */)
-                    .buttonDown()
-                    .moveToObject(selector, newPosRangeX/* x-offset */, 10/* y-offset */)
-                    .buttonUp()
-                    .getAttribute('#paper .joint-viewport', 'transform')
-                    .then(function (transform) {
-                        retObj.transform = transform;
-                    })
-                    .getAttribute('#paper svg', 'width')
-                    .then(function (width) {
-                        retObj.width = width;
-                    })
-                    .getAttribute('#paper svg', 'height')
-                    .then(function (height) {
-                        retObj.height = height;
-                        return retObj;
-                    });
+                .waitForExist(selector)
+                .moveToObject(selector, posRangeX/* x-offset */, 10/* y-offset */)
+                .buttonDown()
+                .moveToObject(selector, newPosRangeX/* x-offset */, 10/* y-offset */)
+                .buttonUp()
+                .getAttribute('#paper .joint-viewport', 'transform')
+                .then(function(transform) {
+                    retObj.transform = transform;
+                })
+                .getAttribute('#paper svg', 'width')
+                .then(function(width) {
+                    retObj.width = width;
+                })
+                .getAttribute('#paper svg', 'height')
+                .then(function(height) {
+                    retObj.height = height;
+                    return retObj;
+                });
         }
     }
 };

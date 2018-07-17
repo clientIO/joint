@@ -281,7 +281,7 @@ joint.shapes.basic.PortsModelInterface = {
             selector = '.outPorts';
             index = this.get('outPorts').indexOf(name);
 
-            if (index < 0) throw new Error("getPortSelector(): Port doesn't exist.");
+            if (index < 0) throw new Error('getPortSelector(): Port doesn\'t exist.');
         }
 
         return selector + '>g:nth-child(' + (index + 1) + ')>.port-body';

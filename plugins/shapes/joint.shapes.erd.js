@@ -107,7 +107,7 @@ joint.shapes.erd.Attribute.define('erd.Key', {
 });
 
 joint.shapes.erd.Attribute.define('erd.Normal', {
-    attrs: { text: { text: 'Normal' } }
+    attrs: { text: { text: 'Normal' }}
 });
 
 joint.dia.Element.define('erd.ISA', {
@@ -130,6 +130,6 @@ joint.dia.Element.define('erd.ISA', {
 
 joint.dia.Link.define('erd.Line', {}, {
     cardinality: function(value) {
-        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value } } }]);
+        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
     }
 });

@@ -125,7 +125,7 @@ joint.shapes.uml.Class.define('uml.Interface', {
 joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
 
 joint.dia.Link.define('uml.Generalization', {
-    attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' } }
+    attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
 });
 
 joint.dia.Link.define('uml.Implementation', {
@@ -136,11 +136,11 @@ joint.dia.Link.define('uml.Implementation', {
 });
 
 joint.dia.Link.define('uml.Aggregation', {
-    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' } }
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
 });
 
 joint.dia.Link.define('uml.Composition', {
-    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' } }
+    attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
 });
 
 joint.dia.Link.define('uml.Association');
@@ -219,7 +219,7 @@ joint.shapes.basic.Generic.define('uml.State', {
 
 joint.shapes.basic.Circle.define('uml.StartState', {
     type: 'uml.StartState',
-    attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 } }
+    attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
 });
 
 joint.shapes.basic.Generic.define('uml.EndState', {

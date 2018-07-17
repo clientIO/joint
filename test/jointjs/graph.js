@@ -21,15 +21,15 @@ QUnit.module('graph', function(hooks) {
         var g = new joint.shapes.basic.Rect({ id: 'g' }).addTo(graph); // -> g
         new joint.shapes.basic.Rect({ id: 'h' }).addTo(graph);
 
-        new joint.dia.Link({ id: 'l1', source: { id: a.id }, target: { id: b.id } }).addTo(graph); // a -> b
-        new joint.dia.Link({ id: 'l2', source: { id: a.id }, target: { id: c.id } }).addTo(graph); // a -> c
-        new joint.dia.Link({ id: 'l3', source: { id: a.id }, target: { id: d.id } }).addTo(graph); // a -> d
-        new joint.dia.Link({ id: 'l4', source: { id: d.id }, target: { id: e.id } }).addTo(graph); // d -> e
-        new joint.dia.Link({ id: 'l5', source: { id: e.id }, target: { id: b.id } }).addTo(graph); // e -> b
-        new joint.dia.Link({ id: 'l6', source: { id: e.id }, target: { id: a.id } }).addTo(graph); // e -> a
-        new joint.dia.Link({ id: 'l7', source: { id: f.id }, target: { x: 50, y: 50 } }).addTo(graph); // f ->
-        new joint.dia.Link({ id: 'l8', source: { x: 100, y: 100 }, target: { id: g.id } }).addTo(graph); // -> g
-        new joint.dia.Link({ id: 'l9', source: { x: 200, y: 200 }, target: { x: 300, y: 300 } }).addTo(graph); // ->
+        new joint.dia.Link({ id: 'l1', source: { id: a.id }, target: { id: b.id }}).addTo(graph); // a -> b
+        new joint.dia.Link({ id: 'l2', source: { id: a.id }, target: { id: c.id }}).addTo(graph); // a -> c
+        new joint.dia.Link({ id: 'l3', source: { id: a.id }, target: { id: d.id }}).addTo(graph); // a -> d
+        new joint.dia.Link({ id: 'l4', source: { id: d.id }, target: { id: e.id }}).addTo(graph); // d -> e
+        new joint.dia.Link({ id: 'l5', source: { id: e.id }, target: { id: b.id }}).addTo(graph); // e -> b
+        new joint.dia.Link({ id: 'l6', source: { id: e.id }, target: { id: a.id }}).addTo(graph); // e -> a
+        new joint.dia.Link({ id: 'l7', source: { id: f.id }, target: { x: 50, y: 50 }}).addTo(graph); // f ->
+        new joint.dia.Link({ id: 'l8', source: { x: 100, y: 100 }, target: { id: g.id }}).addTo(graph); // -> g
+        new joint.dia.Link({ id: 'l9', source: { x: 200, y: 200 }, target: { x: 300, y: 300 }}).addTo(graph); // ->
 
         // Add hierarchy.
         var aa = new joint.shapes.basic.Rect({ id: 'aa' }).addTo(graph); // top -> aa; child of a, parent of aaa
@@ -37,11 +37,11 @@ QUnit.module('graph', function(hooks) {
         var aaa = new joint.shapes.basic.Rect({ id: 'aaa' }).addTo(graph); // top, aa -> aaa -> top; aaa -> aaa (loop); child of a(aa)
         aa.embed(aaa);
         var top = new joint.shapes.basic.Rect({ id: 'top' }).addTo(graph); // aaa -> top -> aaa
-        new joint.dia.Link({ id: 'l10', source: { id: top.id }, target: { id: aa.id } }).addTo(graph); // top -> aa
-        new joint.dia.Link({ id: 'l11', source: { id: top.id }, target: { id: aaa.id } }).addTo(graph); // top -> aaa
-        new joint.dia.Link({ id: 'l12', source: { id: aaa.id }, target: { id: top.id } }).addTo(graph); // aaa -> top
-        new joint.dia.Link({ id: 'l13', source: { id: aaa.id }, target: { id: aaa.id } }).addTo(graph); // aaa -> aaa
-        new joint.dia.Link({ id: 'l14', source: { id: aa.id }, target: { id: aaa.id } }).addTo(graph); // aa -> aaa
+        new joint.dia.Link({ id: 'l10', source: { id: top.id }, target: { id: aa.id }}).addTo(graph); // top -> aa
+        new joint.dia.Link({ id: 'l11', source: { id: top.id }, target: { id: aaa.id }}).addTo(graph); // top -> aaa
+        new joint.dia.Link({ id: 'l12', source: { id: aaa.id }, target: { id: top.id }}).addTo(graph); // aaa -> top
+        new joint.dia.Link({ id: 'l13', source: { id: aaa.id }, target: { id: aaa.id }}).addTo(graph); // aaa -> aaa
+        new joint.dia.Link({ id: 'l14', source: { id: aa.id }, target: { id: aaa.id }}).addTo(graph); // aa -> aaa
     };
 
     this.setupTestTreeGraph = function(graph) {
@@ -405,9 +405,9 @@ QUnit.module('graph', function(hooks) {
         var r2 = new joint.shapes.basic.Rect;
         var r3 = new joint.shapes.basic.Rect;
         var r4 = new joint.shapes.basic.Rect;
-        var l1 = new joint.shapes.basic.Rect({ source: { id: r1.id }, target: { id: r2.id } });
-        var l2 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r3.id } });
-        var l3 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r4.id } });
+        var l1 = new joint.shapes.basic.Rect({ source: { id: r1.id }, target: { id: r2.id }});
+        var l2 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r3.id }});
+        var l3 = new joint.shapes.basic.Rect({ source: { id: r2.id }, target: { id: r4.id }});
 
         graph.addCells([r1, r2, l1, r3, l2, r4]);
         r3.embed(r2);
@@ -429,11 +429,11 @@ QUnit.module('graph', function(hooks) {
         graph.addCells([r1, r2, l1]);
 
         assert.deepEqual(_.map(graph.getCells(), 'id'), ['r1', 'r2', 'l1'],
-                         'getCells() returns all the cells in the graph.');
+            'getCells() returns all the cells in the graph.');
         assert.deepEqual(_.map(graph.getLinks(), 'id'), ['l1'],
-                         'getLinks() returns only the link in the graph.');
+            'getLinks() returns only the link in the graph.');
         assert.deepEqual(_.map(graph.getElements(), 'id'), ['r1', 'r2'],
-                         'getElements() returns only the elements in the graph');
+            'getElements() returns only the elements in the graph');
     });
 
     QUnit.test('graph.getCommonAncestor()', function(assert) {
@@ -593,7 +593,7 @@ QUnit.module('graph', function(hooks) {
 
         new joint.shapes.basic.Rect({ id: 'el1' }).addTo(graph);
         new joint.shapes.basic.Rect({ id: 'el2' }).addTo(graph);
-        var l1 = new joint.dia.Link({ id: 'l1', source: { id: 'el1' }, target: { id: 'el2' } }).addTo(graph);
+        var l1 = new joint.dia.Link({ id: 'l1', source: { id: 'el1' }, target: { id: 'el2' }}).addTo(graph);
 
         var sinks = graph.getSinks();
         assert.equal(sinks.length, 1, 'only one sink is in the graph');
@@ -721,9 +721,9 @@ QUnit.module('graph', function(hooks) {
 
     QUnit.test('graph.getCellsBBox()', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 } });
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 } });
-        var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 }});
+        var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 }});
 
         this.graph.resetCells([r1, r2, r3]);
 
@@ -783,17 +783,17 @@ QUnit.module('graph', function(hooks) {
         graph.addCell(elementJSON);
         var element = graph.getCell('a');
         assert.equal(element.constructor, joint.shapes.basic.Rect,
-                     'The class was found in the custom namespace based on the type provided.');
+            'The class was found in the custom namespace based on the type provided.');
 
         graph.addCell(linkJSON);
         var link = graph.getCell('b');
         assert.equal(link.constructor, joint.dia.Link,
-                     'The default link model is created when type equals "link".');
+            'The default link model is created when type equals "link".');
 
         graph.addCell(nonExistingJSON);
         var nonExisting = graph.getCell('c');
         assert.equal(nonExisting.constructor, joint.dia.Element,
-                     'If there is no class based on the type in the namespace, the default element model is used.');
+            'If there is no class based on the type in the namespace, the default element model is used.');
 
     });
 
@@ -1096,7 +1096,7 @@ QUnit.module('graph', function(hooks) {
         hooks.beforeEach(function() {
             var graph = this.graph;
 
-            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 } });
+            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 }});
             var l = new joint.dia.Link();
 
             this.ea = el.clone().set('id', 'a').position(100, 100).addTo(graph);
@@ -1135,7 +1135,7 @@ QUnit.module('graph', function(hooks) {
         hooks.beforeEach(function() {
             var graph = this.graph;
 
-            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 } });
+            var el = new joint.shapes.basic.Rect({ size: { width: 100, height: 50 }});
             var l = new joint.dia.Link();
 
             this.ea = el.clone().set('id', 'a').position(100, 100).addTo(graph);

@@ -429,22 +429,23 @@ module.exports = function(grunt) {
             }
         },
         eslint: {
-            src: [
-                // All plugins:
-                'plugins/**/*.js',
-
-                // Ignore third-party dependencies in plugins:
-                '!plugins/**/lib/**/*.js',
-
-                // Core jointjs:
-                'src/**/*.js',
-
-                // Tests:
-                'test/**/*.js',
-                '!test/**/lodash4/**'
-            ],
-            options: {
-                configFile: '.eslintrc.js'
+            joint: {
+                src: [
+                    'src/**/*.js',
+                    'plugins/**/*.js',
+                ],
+                options: {
+                    configFile: '.eslintrc.js'
+                }
+            },
+            test: {
+                src: [
+                    'test/**/*.js',
+                    '!test/**/lodash4/**'
+                ],
+                options: {
+                    configFile: 'test/.eslintrc.js'
+                }
             }
         },
         mochaTest: {

@@ -377,7 +377,7 @@ QUnit.module('path', function(hooks) {
 
             // no type
             try {
-                segment = g.Path.createSegment();
+                g.Path.createSegment();
             } catch (e) {
                 error = e;
             }
@@ -385,7 +385,7 @@ QUnit.module('path', function(hooks) {
 
             // unrecognized type
             try {
-                segment = g.Path.createSegment('X');
+                g.Path.createSegment('X');
             } catch (e) {
                 error = e;
             }

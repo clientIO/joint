@@ -1,9 +1,9 @@
 // Geometry library.
 // -----------------
 
-var g = (function() {
+var g = {};
 
-    var g = {};
+(function(g) {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -4844,6 +4844,4 @@ var g = (function() {
         return this.regexSupportedData.test(d);
     }
 
-    return g;
-
-})();
+})(g);

@@ -24,7 +24,7 @@ QUnit.module('connectors', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
 
         this.graph.addCell([r1, r2]);

@@ -1,4 +1,4 @@
-joint.connectors.jumpover = (function(_, g, util) {
+joint.connectors.jumpover = (function(g, util) {
 
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
@@ -360,4 +360,4 @@ joint.connectors.jumpover = (function(_, g, util) {
         var path = buildPath(jumpingLines, jumpSize, jumpType);
         return (raw) ? path : path.serialize();
     };
-}(_, g, joint.util));
+}(g, joint.util));

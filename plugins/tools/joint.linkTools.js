@@ -421,7 +421,7 @@
                     // we left the area of the source magnet for the first time
                     vertices.unshift(vertex);
                     this.shiftHandleIndexes(1);
-                    delateSourceAnchor = true;
+                    deleteSourceAnchor = true;
                 }
             } else if (index === 0) {
                 if (sourceBBox.containsPoint(vertex)) {

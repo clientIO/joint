@@ -213,8 +213,8 @@ QUnit.module('vectorizer', function(hooks) {
 
             t.text('abcdefgh', {
                 annotations: [
-                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-                    { start: 2, end: 5, attrs: { fill: 'blue' } }
+                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' }},
+                    { start: 2, end: 5, attrs: { fill: 'blue' }}
                 ]
             });
 
@@ -224,8 +224,8 @@ QUnit.module('vectorizer', function(hooks) {
 
             t.text('abcd\nefgh', {
                 annotations: [
-                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-                    { start: 2, end: 5, attrs: { fill: 'blue' } }
+                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' }},
+                    { start: 2, end: 5, attrs: { fill: 'blue' }}
                 ]
             });
 
@@ -259,8 +259,8 @@ QUnit.module('vectorizer', function(hooks) {
 
             t.text('abcdefgh', {
                 includeAnnotationIndices: true, annotations: [
-                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' } },
-                    { start: 2, end: 5, attrs: { fill: 'blue' } }
+                    { start: 1, end: 3, attrs: { fill: 'red', stroke: 'orange' }},
+                    { start: 2, end: 5, attrs: { fill: 'blue' }}
                 ]
             });
             assert.equal(V(t.find('tspan')[1]).attr('annotations'), '0', 'annotation indices added as an attribute');
@@ -321,41 +321,41 @@ QUnit.module('vectorizer', function(hooks) {
     QUnit.test('annotateString', function(assert) {
 
         var annotations = V.annotateString('This is a text that goes on multiple lines.', [
-            { start: 2, end: 5, attrs: { fill: 'red' } },
-            { start: 4, end: 8, attrs: { fill: 'blue' } }
+            { start: 2, end: 5, attrs: { fill: 'red' }},
+            { start: 4, end: 8, attrs: { fill: 'blue' }}
         ]);
 
         assert.deepEqual(
             annotations,
             [
                 'Th',
-                { t: 'is', attrs: { fill: 'red' } },
-                { t: ' is ', attrs: { fill: 'blue' } },
+                { t: 'is', attrs: { fill: 'red' }},
+                { t: ' is ', attrs: { fill: 'blue' }},
                 'a text that goes on multiple lines.'
             ],
             'String cut into pieces and attributed according to the spans.'
         );
 
         annotations = V.annotateString('abcdefgh', [
-            { start: 1, end: 3, attrs: { 'class': 'one' } },
-            { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' } }
+            { start: 1, end: 3, attrs: { 'class': 'one' }},
+            { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' }}
         ]);
 
         assert.deepEqual(
             annotations,
             [
                 'a',
-                { t: 'b', attrs: { 'class': 'one' } },
-                { t: 'c', attrs: { 'class': 'one two', fill: 'blue' } },
-                { t: 'de', attrs: { 'class': 'two', fill: 'blue' } },
+                { t: 'b', attrs: { 'class': 'one' }},
+                { t: 'c', attrs: { 'class': 'one two', fill: 'blue' }},
+                { t: 'de', attrs: { 'class': 'two', fill: 'blue' }},
                 'fgh'
             ],
             'String cut into pieces and attributed according to the annotations including concatenated classes.'
         );
 
         annotations = V.annotateString('abcdefgh', [
-            { start: 1, end: 3, attrs: { 'class': 'one' } },
-            { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' } }
+            { start: 1, end: 3, attrs: { 'class': 'one' }},
+            { start: 2, end: 5, attrs: { 'class': 'two', fill: 'blue' }}
         ], { includeAnnotationIndices: true });
 
         assert.deepEqual(
@@ -379,8 +379,8 @@ QUnit.module('vectorizer', function(hooks) {
     QUnit.test('mergeAttrs', function(assert) {
 
         assert.deepEqual(
-            V.mergeAttrs({ x: 5, y: 10, style: 'fill=red; stroke=blue' }, { y: 20, style: { stroke: 'orange' } }),
-            { x: 5, y: 20, style: { fill: 'red', stroke: 'orange' } },
+            V.mergeAttrs({ x: 5, y: 10, style: 'fill=red; stroke=blue' }, { y: 20, style: { stroke: 'orange' }}),
+            { x: 5, y: 20, style: { fill: 'red', stroke: 'orange' }},
             'style string parsed properly'
         );
     });

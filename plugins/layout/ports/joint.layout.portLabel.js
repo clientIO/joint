@@ -1,4 +1,4 @@
-(function(_, g, joint, util) {
+(function(g, joint, util) {
 
     function labelAttributes(opt1, opt2) {
 
@@ -189,19 +189,19 @@
         },
 
         left: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });
+            return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' }}});
         },
 
         right: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' } } });
+            return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' }}});
         },
 
         top: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' } } });
+            return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' }}});
         },
 
         bottom: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' } } });
+            return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' }}});
         },
 
         outsideOriented: function(portPosition, elBBox, opt) {
@@ -229,4 +229,4 @@
         }
     };
 
-})(_, g, joint, joint.util);
+})(g, joint, joint.util);

@@ -32,7 +32,7 @@
             ) {
                 charCode = str.charCodeAt(idx += 3 / 4);
                 if (charCode > 0xFF) {
-                    throw new InvalidCharacterError("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+                    throw new InvalidCharacterError('\'btoa\' failed: The string to be encoded contains characters outside of the Latin1 range.');
                 }
                 block = block << 8 | charCode;
             }
@@ -45,7 +45,7 @@
         object.atob = function(input) {
             var str = String(input).replace(/=+$/, '');
             if (str.length % 4 == 1) {
-                throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+                throw new InvalidCharacterError('\'atob\' failed: The string to be decoded is not correctly encoded.');
             }
             for (
                 // initialize result and counters
@@ -55,8 +55,8 @@
                 buffer = str.charAt(idx++);
                 // character found in table? initialize bit storage and add its ascii value;
                 ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-                    // and if not first of each 4 characters,
-                    // convert the first 8 bits to one ascii character
+                // and if not first of each 4 characters,
+                // convert the first 8 bits to one ascii character
                 bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
             ) {
                 // try to find character in table (0-63, not found => -1)

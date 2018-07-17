@@ -136,7 +136,7 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('contextmenu', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
         this.graph.resetCells([r1]);
 
         var cellContextmenuCallback = sinon.spy();
@@ -293,8 +293,8 @@ QUnit.module('paper', function(hooks) {
                 position: { x: 400, y: 400 },
                 size: { width: 100, height: 100 }
             });
-            var link = new joint.dia.Link({ id: 'link', source: { id: source.id }, target: { id: target.id } });
-            var soloLink = new joint.dia.Link({ id: 'link2', source: { id: source.id }, target: { x: 300, y: 300 } });
+            var link = new joint.dia.Link({ id: 'link', source: { id: source.id }, target: { id: target.id }});
+            var soloLink = new joint.dia.Link({ id: 'link2', source: { id: source.id }, target: { x: 300, y: 300 }});
 
             graphCells = [source, target, solo, link, soloLink];
             this.graph.addCells(graphCells);
@@ -522,7 +522,7 @@ QUnit.module('paper', function(hooks) {
 
         QUnit.test('reconnect port', function(assert) {
 
-            var link = new joint.dia.Link({ id: 'link', source: { id: this.modelWithPorts, port: 'in1' } });
+            var link = new joint.dia.Link({ id: 'link', source: { id: this.modelWithPorts, port: 'in1' }});
 
             this.graph.addCells([this.modelWithPorts, link]);
             var linkView = link.findView(this.paper);
@@ -575,7 +575,7 @@ QUnit.module('paper', function(hooks) {
             position: { x: 400, y: 100 },
             size: { width: 100, height: 100 }
         });
-        var link = new joint.dia.Link({ id: 'link', source: { id: source.id }, target: { id: target.id } });
+        var link = new joint.dia.Link({ id: 'link', source: { id: source.id }, target: { id: target.id }});
         var newLink; // to be created.
 
         this.graph.addCells([source, target, link]);
@@ -687,7 +687,7 @@ QUnit.module('paper', function(hooks) {
         // Use guard option to only allow mouse events for left mouse button.
         this.paper.options.guard = function(evt, view) {
 
-            assert.ok(evt instanceof jQuery.Event);
+            assert.ok(evt instanceof $.Event);
             assert.equal(view, elementView);
 
             var isMouseEvent = evt.type.substr(0, 'mouse'.length) === 'mouse';
@@ -1256,7 +1256,7 @@ QUnit.module('paper', function(hooks) {
             QUnit.test('set doubleMesh settings', function(assert) {
 
                 var drawGridTestFixtures = [
-                    { name: 'doubleMesh', args: { color: 'red', thickness: 11 } }, //update first layer
+                    { name: 'doubleMesh', args: { color: 'red', thickness: 11 }}, //update first layer
                     { name: 'doubleMesh', args: [{ color: 'red', thickness: 11 }, { color: 'black', thickness: 55 }] }, //udate both alyers
                     { name: 'doubleMesh', color: 'red', thickness: 11 } // update firs layer
                 ];
@@ -1474,10 +1474,7 @@ QUnit.module('paper', function(hooks) {
 
             this.paper.drawBackground({ color: 'red' });
 
-            assert.equal(
-                this.paper.$el.css('backgroundColor'),
-                normalizeCssAttr('backgroundColor', 'red')
-            );
+            assert.checkCssAttr('backgroundColor', this.paper.$el, 'red');
         });
 
         QUnit.test('image', function(assert) {
@@ -1509,10 +1506,7 @@ QUnit.module('paper', function(hooks) {
 
             _.delay(
                 _.bind(function() {
-                    assert.equal(
-                        this.paper.$background.css('opacity'),
-                        normalizeCssAttr('opacity', 0.5)
-                    );
+                    assert.checkCssAttr('opacity', this.paper.$background, 0.5);
                     done();
                 }, this)
             );

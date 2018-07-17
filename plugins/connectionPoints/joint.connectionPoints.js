@@ -106,7 +106,6 @@
         if (localShape instanceof g.Path) {
             var precision = opt.precision || 2;
             if (!data[BNDR_SUBDIVISIONS]) data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision });
-            segmentSubdivisions = data[BNDR_SUBDIVISIONS];
             pathOpt = {
                 precision: precision,
                 segmentSubdivisions: data[BNDR_SUBDIVISIONS]
