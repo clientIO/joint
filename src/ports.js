@@ -236,7 +236,8 @@
          */
         hasPorts: function() {
 
-            return this.prop('ports/items').length > 0;
+            var ports = this.prop('ports/items');
+            return Array.isArray(ports) && ports.length > 0;
         },
 
         /**
@@ -262,7 +263,7 @@
          */
         getPort: function(id) {
 
-            return util.cloneDeep(util.toArray(this.prop('ports/items')).find( function(port) {
+            return util.cloneDeep(util.toArray(this.prop('ports/items')).find(function(port) {
                 return port.id && port.id === id;
             }));
         },
