@@ -2227,12 +2227,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Backwards compatibility
         var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
         if (linkTool) {
-            // No further action to be executed
-            evt.stopPropagation();
-
             // Allow `interactive.useLinkTools=false`
             if (this.can('useLinkTools')) {
                 if (eventName === 'remove') {
+                    // No further action to be executed
+                    evt.stopPropagation();
                     // Built-in remove event
                     this.model.remove({ ui: true });
 
