@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -82,7 +82,7 @@ joint.layout.DirectedGraph = {
         }
 
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
-            var labelPosition = { x: glEdge.x, y: glEdge.y};
+            var labelPosition = { x: glEdge.x, y: glEdge.y };
             if (joint.util.isFunction(opt.setLabels)) {
                 opt.setLabels(link, labelPosition, points);
             } else {

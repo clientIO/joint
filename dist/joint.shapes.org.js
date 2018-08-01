@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -40,6 +40,6 @@ joint.dia.Element.define('org.Member', {
 
 joint.dia.Link.define('org.Arrow', {
     source: { selector: '.card' }, target: { selector: '.card' },
-    attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 } },
+    attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
     z: -1
 });

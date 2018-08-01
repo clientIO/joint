@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -114,7 +114,7 @@ joint.shapes.erd.Attribute.define('erd.Key', {
 });
 
 joint.shapes.erd.Attribute.define('erd.Normal', {
-    attrs: { text: { text: 'Normal' } }
+    attrs: { text: { text: 'Normal' }}
 });
 
 joint.dia.Element.define('erd.ISA', {
@@ -137,6 +137,6 @@ joint.dia.Element.define('erd.ISA', {
 
 joint.dia.Link.define('erd.Line', {}, {
     cardinality: function(value) {
-        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value } } }]);
+        this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
     }
 });

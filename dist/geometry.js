@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -30,9 +30,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // Geometry library.
 // -----------------
 
-var g = (function() {
+var g = {};
 
-    var g = {};
+(function(g) {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -4873,9 +4873,7 @@ var g = (function() {
         return this.regexSupportedData.test(d);
     }
 
-    return g;
-
-})();
+})(g);
 
 
     return g;

@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -39,8 +39,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-var V;
-var Vectorizer;
+var V; // eslint-disable-line no-unused-vars
+var Vectorizer; // eslint-disable-line no-unused-vars
 
 V = Vectorizer = (function() {
 
@@ -203,7 +203,7 @@ V = Vectorizer = (function() {
             return transform.translate;
         }
 
-        transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
+        transformAttr = transformAttr.replace(/translate\([^)]*\)/g, '').trim();
 
         var newTx = opt.absolute ? tx : transform.translate.tx + tx;
         var newTy = opt.absolute ? ty : transform.translate.ty + ty;
@@ -228,7 +228,7 @@ V = Vectorizer = (function() {
             return transform.rotate;
         }
 
-        transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
+        transformAttr = transformAttr.replace(/rotate\([^)]*\)/g, '').trim();
 
         angle %= 360;
 
@@ -254,7 +254,7 @@ V = Vectorizer = (function() {
             return transform.scale;
         }
 
-        transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
+        transformAttr = transformAttr.replace(/scale\([^)]*\)/g, '').trim();
 
         var newScale = 'scale(' + sx + ',' + sy + ')';
 
@@ -1014,7 +1014,7 @@ V = Vectorizer = (function() {
             // Fallback for IE 9.
             // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
             if (document.documentElement.getAttribute('smiling') === 'fake') {
-
+                /* global getTargets:true, Animator:true, animators:true id2anim:true */
                 // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
                 var animation = animateMotion.node;
                 animation.animators = [];
@@ -1131,7 +1131,7 @@ V = Vectorizer = (function() {
     };
 
     V.prototype.toGeometryShape = function() {
-        var x, y, width, height, cx, cy, r, rx, ry, points, d;
+        var x, y, width, height, cx, cy, r, rx, ry, points, d, x1, x2, y1, y2;
         switch (this.tagName()) {
 
             case 'RECT':
@@ -1738,27 +1738,27 @@ V = Vectorizer = (function() {
 
         return (da >= svgArcMax)
             ? (r0
-               ? 'M0,' + r1
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
-               + 'M0,' + r0
-               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
-               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
-               + 'Z'
-               : 'M0,' + r1
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
-               + 'Z')
+                ? 'M0,' + r1
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+                + 'M0,' + r0
+                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
+                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
+                + 'Z'
+                : 'M0,' + r1
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+                + 'Z')
             : (r0
-               ? 'M' + r1 * c0 + ',' + r1 * s0
-               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
-               + 'L' + r0 * c1 + ',' + r0 * s1
-               + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
-               + 'Z'
-               : 'M' + r1 * c0 + ',' + r1 * s0
-               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
-               + 'L0,0'
-               + 'Z');
+                ? 'M' + r1 * c0 + ',' + r1 * s0
+                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+                + 'L' + r0 * c1 + ',' + r0 * s1
+                + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
+                + 'Z'
+                : 'M' + r1 * c0 + ',' + r1 * s0
+                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+                + 'L0,0'
+                + 'Z');
     };
 
     // Merge attributes from object `b` with attributes in object `a`.

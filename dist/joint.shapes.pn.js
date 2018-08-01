@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -124,5 +124,5 @@ joint.shapes.basic.Generic.define('pn.Transition', {
 });
 
 joint.dia.Link.define('pn.Link', {
-    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } }
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 });
