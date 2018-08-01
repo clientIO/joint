@@ -1,6 +1,7 @@
 1-8-2018 (v2.1.4)
   * reconfigure eslint
   * add .editorconfig
+  * dia.Element - fix hasPorts() when no items defined
   * dia.LinkView - stop preventing propagation for legacy link tools events
 
 29-6-2018 (v2.1.3)
