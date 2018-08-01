@@ -1,4 +1,4 @@
-/*! JointJS v2.1.3 (2018-06-29) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -77,7 +77,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             ) {
                 charCode = str.charCodeAt(idx += 3 / 4);
                 if (charCode > 0xFF) {
-                    throw new InvalidCharacterError("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+                    throw new InvalidCharacterError('\'btoa\' failed: The string to be encoded contains characters outside of the Latin1 range.');
                 }
                 block = block << 8 | charCode;
             }
@@ -90,7 +90,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         object.atob = function(input) {
             var str = String(input).replace(/=+$/, '');
             if (str.length % 4 == 1) {
-                throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
+                throw new InvalidCharacterError('\'atob\' failed: The string to be decoded is not correctly encoded.');
             }
             for (
                 // initialize result and counters
@@ -100,8 +100,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 buffer = str.charAt(idx++);
                 // character found in table? initialize bit storage and add its ascii value;
                 ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
-                    // and if not first of each 4 characters,
-                    // convert the first 8 bits to one ascii character
+                // and if not first of each 4 characters,
+                // convert the first 8 bits to one ascii character
                 bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0
             ) {
                 // try to find character in table (0-63, not found => -1)
@@ -178,6 +178,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     Object.defineProperty(XMLHttpRequest.prototype, 'response', {
         get: function() {
+            /* global VBArray:true */
             return new Uint8Array(new VBArray(this.responseBody).toArray());
         }
     });
@@ -282,19 +283,19 @@ if (!Array.prototype.find) {
 
 // Production steps of ECMA-262, Edition 6, 22.1.2.1
 if (!Array.from) {
-    Array.from = (function () {
+    Array.from = (function() {
         var toStr = Object.prototype.toString;
-        var isCallable = function (fn) {
+        var isCallable = function(fn) {
             return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
         };
-        var toInteger = function (value) {
+        var toInteger = function(value) {
             var number = Number(value);
             if (isNaN(number)) { return 0; }
             if (number === 0 || !isFinite(number)) { return number; }
             return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
         };
         var maxSafeInteger = Math.pow(2, 53) - 1;
-        var toLength = function (value) {
+        var toLength = function(value) {
             var len = toInteger(value);
             return Math.min(Math.max(len, 0), maxSafeInteger);
         };
@@ -438,9 +439,9 @@ Number.isNaN = Number.isNaN || function(value) {
 // Geometry library.
 // -----------------
 
-var g = (function() {
+var g = {};
 
-    var g = {};
+(function(g) {
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -5281,9 +5282,7 @@ var g = (function() {
         return this.regexSupportedData.test(d);
     }
 
-    return g;
-
-})();
+})(g);
 
 // Vectorizer.
 // -----------
@@ -5291,8 +5290,8 @@ var g = (function() {
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-var V;
-var Vectorizer;
+var V; // eslint-disable-line no-unused-vars
+var Vectorizer; // eslint-disable-line no-unused-vars
 
 V = Vectorizer = (function() {
 
@@ -5455,7 +5454,7 @@ V = Vectorizer = (function() {
             return transform.translate;
         }
 
-        transformAttr = transformAttr.replace(/translate\([^\)]*\)/g, '').trim();
+        transformAttr = transformAttr.replace(/translate\([^)]*\)/g, '').trim();
 
         var newTx = opt.absolute ? tx : transform.translate.tx + tx;
         var newTy = opt.absolute ? ty : transform.translate.ty + ty;
@@ -5480,7 +5479,7 @@ V = Vectorizer = (function() {
             return transform.rotate;
         }
 
-        transformAttr = transformAttr.replace(/rotate\([^\)]*\)/g, '').trim();
+        transformAttr = transformAttr.replace(/rotate\([^)]*\)/g, '').trim();
 
         angle %= 360;
 
@@ -5506,7 +5505,7 @@ V = Vectorizer = (function() {
             return transform.scale;
         }
 
-        transformAttr = transformAttr.replace(/scale\([^\)]*\)/g, '').trim();
+        transformAttr = transformAttr.replace(/scale\([^)]*\)/g, '').trim();
 
         var newScale = 'scale(' + sx + ',' + sy + ')';
 
@@ -6266,7 +6265,7 @@ V = Vectorizer = (function() {
             // Fallback for IE 9.
             // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
             if (document.documentElement.getAttribute('smiling') === 'fake') {
-
+                /* global getTargets:true, Animator:true, animators:true id2anim:true */
                 // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)
                 var animation = animateMotion.node;
                 animation.animators = [];
@@ -6383,7 +6382,7 @@ V = Vectorizer = (function() {
     };
 
     V.prototype.toGeometryShape = function() {
-        var x, y, width, height, cx, cy, r, rx, ry, points, d;
+        var x, y, width, height, cx, cy, r, rx, ry, points, d, x1, x2, y1, y2;
         switch (this.tagName()) {
 
             case 'RECT':
@@ -6990,27 +6989,27 @@ V = Vectorizer = (function() {
 
         return (da >= svgArcMax)
             ? (r0
-               ? 'M0,' + r1
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
-               + 'M0,' + r0
-               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
-               + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
-               + 'Z'
-               : 'M0,' + r1
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
-               + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
-               + 'Z')
+                ? 'M0,' + r1
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+                + 'M0,' + r0
+                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + (-r0)
+                + 'A' + r0 + ',' + r0 + ' 0 1,0 0,' + r0
+                + 'Z'
+                : 'M0,' + r1
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + (-r1)
+                + 'A' + r1 + ',' + r1 + ' 0 1,1 0,' + r1
+                + 'Z')
             : (r0
-               ? 'M' + r1 * c0 + ',' + r1 * s0
-               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
-               + 'L' + r0 * c1 + ',' + r0 * s1
-               + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
-               + 'Z'
-               : 'M' + r1 * c0 + ',' + r1 * s0
-               + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
-               + 'L0,0'
-               + 'Z');
+                ? 'M' + r1 * c0 + ',' + r1 * s0
+                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+                + 'L' + r0 * c1 + ',' + r0 * s1
+                + 'A' + r0 + ',' + r0 + ' 0 ' + df + ',0 ' + r0 * c0 + ',' + r0 * s0
+                + 'Z'
+                : 'M' + r1 * c0 + ',' + r1 * s0
+                + 'A' + r1 + ',' + r1 + ' 0 ' + df + ',1 ' + r1 * c1 + ',' + r1 * s1
+                + 'L0,0'
+                + 'Z');
     };
 
     // Merge attributes from object `b` with attributes in object `a`.
@@ -7745,7 +7744,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '2.1.3',
+    version: '2.1.4',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -7978,24 +7977,6 @@ var joint = {
 
             return string.replace(/[A-Z]/g, '-$&').toLowerCase();
         },
-
-        // Copy all the properties to the first argument from the following arguments.
-        // All the properties will be overwritten by the properties from the following
-        // arguments. Inherited properties are ignored.
-        mixin: _.assign,
-
-        // Copy all properties to the first argument from the following
-        // arguments only in case if they don't exists in the first argument.
-        // All the function propererties in the first argument will get
-        // additional property base pointing to the extenders same named
-        // property function's call method.
-        supplement: _.defaults,
-
-        // Same as `mixin()` but deep version.
-        deepMixin: _.mixin,
-
-        // Same as `supplement()` but deep version.
-        deepSupplement: _.defaultsDeep,
 
         normalizeEvent: function(evt) {
 
@@ -8434,7 +8415,7 @@ var joint = {
                 decodedString = unescape(encodeURIComponent(data));
             }
             // write the bytes of the string to a typed array
-            var ia = new window.Uint8Array(decodedString.length);
+            var ia = new Uint8Array(decodedString.length);
             for (var i = 0; i < decodedString.length; i++) {
                 ia[i] = decodedString.charCodeAt(i);
             }
@@ -9075,9 +9056,9 @@ var joint = {
                 value = before + after;
 
                 return (align === '<' ? negative + value + padding
-                        : align === '>' ? padding + negative + value
+                    : align === '>' ? padding + negative + value
                         : align === '^' ? padding.substring(0, length >>= 1) + negative + value + padding.substring(length)
-                        : negative + (zcomma ? value : padding + value)) + fullSuffix;
+                            : negative + (zcomma ? value : padding + value)) + fullSuffix;
             },
 
             // Formatting string via the Python Format string.
@@ -9110,7 +9091,8 @@ var joint = {
                     formattedStringArray.push(pieceFormatedString);
 
                     formatString = formatString.slice(fieldDelimiterIndex + 1);
-                    fieldDelimiter = (endPlaceholder = !endPlaceholder) ? '}' : '{';
+                    endPlaceholder = !endPlaceholder;
+                    fieldDelimiter = (endPlaceholder) ? '}' : '{';
                 }
                 formattedStringArray.push(formatString);
 
@@ -9175,7 +9157,7 @@ var joint = {
                 Must support the variation in templating syntax found here:
                 https://lodash.com/docs#template
             */
-            var regex = /<%= ([^ ]+) %>|\$\{ ?([^\{\} ]+) ?\}|\{\{([^\{\} ]+)\}\}/g;
+            var regex = /<%= ([^ ]+) %>|\$\{ ?([^{} ]+) ?\}|\{\{([^{} ]+)\}\}/g;
 
             return function(data) {
 
@@ -9201,7 +9183,7 @@ var joint = {
         },
 
         /**
-         * @param {Element=} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
+         * @param {Element} el Element, which content is intent to display in full-screen mode, 'window.top.document.body' is default.
          */
         toggleFullScreen: function(el) {
 
@@ -9375,6 +9357,26 @@ var joint = {
             }
         },
 
+        /* global _:true */
+
+        // Copy all the properties to the first argument from the following arguments.
+        // All the properties will be overwritten by the properties from the following
+        // arguments. Inherited properties are ignored.
+        mixin: _.assign,
+
+        // Copy all properties to the first argument from the following
+        // arguments only in case if they don't exists in the first argument.
+        // All the function propererties in the first argument will get
+        // additional property base pointing to the extenders same named
+        // property function's call method.
+        supplement: _.defaults,
+
+        // Same as `mixin()` but deep version.
+        deepMixin: _.mixin,
+
+        // Same as `supplement()` but deep version.
+        deepSupplement: _.defaultsDeep,
+
         // lodash 3 vs 4 incompatible
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
         uniq: _.uniqBy || _.uniq,
@@ -9396,7 +9398,6 @@ var joint = {
         isPlainObject: _.isPlainObject,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
-        noop: function() {},
         cloneDeep: _.cloneDeep,
         toArray: _.toArray,
         flattenDeep: _.flattenDeep,
@@ -9406,25 +9407,6 @@ var joint = {
         without: _.without,
         debounce: _.debounce,
         clone: _.clone,
-
-        isBoolean: function(value) {
-            var toString = Object.prototype.toString;
-            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
-        },
-
-        isObject: function(value) {
-            return !!value && (typeof value === 'object' || typeof value === 'function');
-        },
-
-        isNumber: function(value) {
-            var toString = Object.prototype.toString;
-            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
-        },
-
-        isString: function(value) {
-            var toString = Object.prototype.toString;
-            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
-        },
 
         merge: function() {
             if (_.mergeWith) {
@@ -9446,6 +9428,29 @@ var joint = {
                 return _.mergeWith.apply(this, args)
             }
             return _.merge.apply(this, arguments);
+        },
+
+        /* global _:false */
+
+        noop: function() {},
+
+        isBoolean: function(value) {
+            var toString = Object.prototype.toString;
+            return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
+        },
+
+        isObject: function(value) {
+            return !!value && (typeof value === 'object' || typeof value === 'function');
+        },
+
+        isNumber: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'number' || (!!value && typeof value === 'object' && toString.call(value) === '[object Number]');
+        },
+
+        isString: function(value) {
+            var toString = Object.prototype.toString;
+            return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
         }
     }
 };
@@ -12403,8 +12408,8 @@ joint.dia.CellView = joint.mvc.View.extend({
     can: function(feature) {
 
         var interactive = joint.util.isFunction(this.options.interactive)
-                            ? this.options.interactive(this)
-                            : this.options.interactive;
+            ? this.options.interactive(this)
+            : this.options.interactive;
 
         return (joint.util.isObject(interactive) && interactive[feature] !== false) ||
                 (joint.util.isBoolean(interactive) && interactive !== false);
@@ -14731,14 +14736,14 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         return label;
     }
-},
-    {
-        endsEqual: function(a, b) {
+}, {
 
-            var portsEqual = a.port === b.port || !a.port && !b.port;
-            return a.id === b.id && portsEqual;
-        }
-    });
+    endsEqual: function(a, b) {
+
+        var portsEqual = a.port === b.port || !a.port && !b.port;
+        return a.id === b.id && portsEqual;
+    }
+});
 
 
 // joint.dia.Link base view and controller.
@@ -15003,7 +15008,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             }
         }
 
-        return { fragment: fragment, selectors: {} }; // no selectors
+        return { fragment: fragment, selectors: {}}; // no selectors
     },
 
     // Label markup fragment may come wrapped in <g class="label" />, or not.
@@ -15592,8 +15597,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.targetAnchor.offset(tx, ty);
     },
 
-     // if label position is a number, normalize it to a position object
-     // this makes sure that label positions can be merged properly
+    // if label position is a number, normalize it to a position object
+    // this makes sure that label positions can be merged properly
     _normalizeLabelPosition: function(labelPosition) {
 
         if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
@@ -16432,12 +16437,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Backwards compatibility
         var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
         if (linkTool) {
-            // No further action to be executed
-            evt.stopPropagation();
-
             // Allow `interactive.useLinkTools=false`
             if (this.can('useLinkTools')) {
                 if (eventName === 'remove') {
+                    // No further action to be executed
+                    evt.stopPropagation();
                     // Built-in remove event
                     this.model.remove({ ui: true });
 
@@ -17350,7 +17354,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Setter:
         ctm = V.createSVGMatrix(ctm);
-        ctmString = V.matrixToTransformString(ctm);
+        var ctmString = V.matrixToTransformString(ctm);
         viewport.setAttribute('transform', ctmString);
         this.tools.setAttribute('transform', ctmString);
 
@@ -18549,7 +18553,7 @@ joint.dia.Paper = joint.mvc.View.extend({
                 add: function(id, vel) {
                     V(this.root.node.childNodes[0]).append(vel);
                     this.patterns[id] = vel;
-                    this.root.append(V('rect', { width: "100%", height: "100%", fill: 'url(#' + id + ')' }));
+                    this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
                 },
                 get: function(id) {
                     return  this.patterns[id]
@@ -19108,7 +19112,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     }
 });
 
-(function(joint, _, util) {
+(function(joint, util) {
 
     var PortData = function(data) {
 
@@ -19346,7 +19350,8 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         hasPorts: function() {
 
-            return this.prop('ports/items').length > 0;
+            var ports = this.prop('ports/items');
+            return Array.isArray(ports) && ports.length > 0;
         },
 
         /**
@@ -19372,7 +19377,7 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         getPort: function(id) {
 
-            return util.cloneDeep(util.toArray(this.prop('ports/items')).find( function(port) {
+            return util.cloneDeep(util.toArray(this.prop('ports/items')).find(function(port) {
                 return port.id && port.id === id;
             }));
         },
@@ -19893,7 +19898,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
 
     });
-}(joint, _, joint.util));
+}(joint, joint.util));
 
 joint.dia.Element.define('basic.Generic', {
     attrs: {
@@ -20178,7 +20183,7 @@ joint.shapes.basic.PortsModelInterface = {
             selector = '.outPorts';
             index = this.get('outPorts').indexOf(name);
 
-            if (index < 0) throw new Error("getPortSelector(): Port doesn't exist.");
+            if (index < 0) throw new Error('getPortSelector(): Port doesn\'t exist.');
         }
 
         return selector + '>g:nth-child(' + (index + 1) + ')>.port-body';
@@ -20853,6 +20858,8 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         }
     };
 
+    var labelMarkup = (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup;
+
     Element.define('standard.TextBlock', {
         attrs: {
             body: {
@@ -20876,9 +20883,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         markup: [{
             tagName: 'rect',
             selector: 'body'
-        },
-            (env.test('svgforeignobject')) ? foLabelMarkup : svgLabelMarkup
-        ]
+        }, labelMarkup]
     }, {
         attributes: {
             text: {
@@ -21036,7 +21041,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
 })(joint.dia, joint.util, joint.env, V);
 
-joint.routers.manhattan = (function(g, _, joint, util) {
+joint.routers.manhattan = (function(g, joint, util) {
 
     'use strict';
 
@@ -21835,7 +21840,7 @@ joint.routers.manhattan = (function(g, _, joint, util) {
         return router(vertices, util.assign({}, config, opt), linkView);
     };
 
-})(g, _, joint, joint.util);
+})(g, joint, joint.util);
 
 joint.routers.metro = (function(util) {
 
@@ -22414,7 +22419,7 @@ joint.connectors.smooth = function(sourcePoint, targetPoint, route, opt) {
     return (raw) ? path : path.serialize();
 };
 
-joint.connectors.jumpover = (function(_, g, util) {
+joint.connectors.jumpover = (function(g, util) {
 
     // default size of jump if not specified in options
     var JUMP_SIZE = 5;
@@ -22776,9 +22781,9 @@ joint.connectors.jumpover = (function(_, g, util) {
         var path = buildPath(jumpingLines, jumpSize, jumpType);
         return (raw) ? path : path.serialize();
     };
-}(_, g, joint.util));
+}(g, joint.util));
 
-(function(_, g, joint, util) {
+(function(g, joint, util) {
 
     function portTransformAttrs(point, angle, opt) {
 
@@ -22958,9 +22963,9 @@ joint.connectors.jumpover = (function(_, g, util) {
         }
     };
 
-})(_, g, joint, joint.util);
+})(g, joint, joint.util);
 
-(function(_, g, joint, util) {
+(function(g, joint, util) {
 
     function labelAttributes(opt1, opt2) {
 
@@ -23151,19 +23156,19 @@ joint.connectors.jumpover = (function(_, g, util) {
         },
 
         left: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });
+            return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' }}});
         },
 
         right: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' } } });
+            return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' }}});
         },
 
         top: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' } } });
+            return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' }}});
         },
 
         bottom: function(portPosition, elBBox, opt) {
-            return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' } } });
+            return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' }}});
         },
 
         outsideOriented: function(portPosition, elBBox, opt) {
@@ -23191,7 +23196,7 @@ joint.connectors.jumpover = (function(_, g, util) {
         }
     };
 
-})(_, g, joint, joint.util);
+})(g, joint, joint.util);
 
 joint.highlighters.addClass = {
 
@@ -23485,7 +23490,7 @@ joint.highlighters.stroke = {
 
         var portId = view.findAttribute('port', magnet);
         if (portId) {
-            portGroup = model.portProp(portId, 'group');
+            var portGroup = model.portProp(portId, 'group');
             var portsPositions = model.getPortsPositions(portGroup);
             var anchor = new g.Point(portsPositions[portId]).offset(bbox.origin());
             anchor.rotate(center, -angle);
@@ -23620,7 +23625,6 @@ joint.highlighters.stroke = {
         if (localShape instanceof g.Path) {
             var precision = opt.precision || 2;
             if (!data[BNDR_SUBDIVISIONS]) data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision });
-            segmentSubdivisions = data[BNDR_SUBDIVISIONS];
             pathOpt = {
                 precision: precision,
                 segmentSubdivisions: data[BNDR_SUBDIVISIONS]
@@ -24128,7 +24132,7 @@ joint.highlighters.stroke = {
                     // we left the area of the source magnet for the first time
                     vertices.unshift(vertex);
                     this.shiftHandleIndexes(1);
-                    delateSourceAnchor = true;
+                    deleteSourceAnchor = true;
                 }
             } else if (index === 0) {
                 if (sourceBBox.containsPoint(vertex)) {
