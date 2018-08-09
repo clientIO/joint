@@ -2375,8 +2375,6 @@ V = Vectorizer = (function() {
                         path = ['L'].concat(d.x, path[1]);
                         break;
 
-                    // leave 'L' & 'Z' commands as they were:
-
                     case 'L':
                         break;
 
