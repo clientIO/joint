@@ -1596,6 +1596,10 @@ var joint = {
                             node.className = className;
                         }
                     }
+                    // TextContent
+                    if (nodeDef.hasOwnProperty('textContent')) {
+                        node.textContent = nodeDef.textContent;
+                    }
                     // Selector
                     if (nodeDef.hasOwnProperty('selector')) {
                         var nodeSelector = nodeDef.selector;
