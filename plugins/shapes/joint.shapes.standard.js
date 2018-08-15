@@ -209,6 +209,13 @@
                 stroke: '#333333',
                 strokeWidth: 2
             },
+            background: {
+                refWidth: -1,
+                refHeight: -1,
+                x: 0.5,
+                y: 0.5,
+                fill: '#FFFFFF'
+            },
             image: {
                 // xlinkHref: '[URL]'
                 refWidth: -1,
@@ -228,6 +235,12 @@
         }
     }, {
         markup: [{
+            tagName: 'rect',
+            selector: 'background',
+            attributes: {
+                'stroke': 'none'
+            }
+        }, {
             tagName: 'image',
             selector: 'image'
         }, {

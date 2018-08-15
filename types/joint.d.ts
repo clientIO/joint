@@ -1233,6 +1233,7 @@ export namespace shapes {
         interface BorderedImageSelectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGRectAttributes;
+            background?: attributes.SVGRectAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
         }
