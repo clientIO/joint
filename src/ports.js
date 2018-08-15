@@ -419,6 +419,33 @@
             return this;
         },
 
+        removePorts: function(portsForRemoval, opt) {
+
+            var options;
+
+            if (Array.isArray(portsForRemoval)) {
+                options = opt || {};
+
+                if (portsForRemoval.length) {
+                    options.rewrite = true;
+                    var currentPorts = util.assign([], this.prop('ports/items'));
+                    var remainingPorts = currentPorts.filter(function(cp) {
+                        return !portsForRemoval.some(function(rp) {
+                            var rpId = util.isObject(rp) ? rp.id : rp;
+                            return cp.id === rpId;
+                        })
+                    });
+                    this.prop('ports/items', remainingPorts, options);
+                }
+            } else {
+                options = portsForRemoval || {};
+                options.rewrite = true;
+                this.prop('ports/items', [], options);
+            }
+
+            return this
+        },
+
         /**
          * @private
          */
