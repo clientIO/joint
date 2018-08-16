@@ -4146,6 +4146,36 @@ var g = {};
     // Path segment interface:
     var segmentPrototype = {
 
+        // virtual
+        bbox: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        clone: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPoint: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPointLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPointNormalizedLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         // Redirect calls to closestPointNormalizedLength() function if closestPointT() is not defined for segment.
         closestPointT: function(p) {
 
@@ -4154,13 +4184,41 @@ var g = {};
             throw new Error('Neither closestPointT() nor closestPointNormalizedLength() function is implemented.');
         },
 
+        // virtual
+        closestPointTangent: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        equals: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        getSubdivisions: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        isDifferentiable: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         isSegment: true,
 
         isSubpathStart: false, // true for Moveto segments
 
         isVisible: true, // false for Moveto segments
 
-        nextSegment: null, // needed for subpath start segment updating
+        // virtual
+        length: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
 
         // Return a fraction of result of length() function if lengthAtT() is not defined for segment.
         lengthAtT: function(t) {
@@ -4174,6 +4232,20 @@ var g = {};
             return length * t;
         },
 
+        nextSegment: null, // needed for subpath start segment updating
+
+        // virtual
+        pointAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        pointAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         // Redirect calls to pointAt() function if pointAtT() is not defined for segment.
         pointAtT: function(t) {
 
@@ -4184,7 +4256,31 @@ var g = {};
 
         previousSegment: null, // needed to get segment start property
 
-        subpathStartSegment: null, // needed to get closepath segment end property
+        subpathStartSegment: null, // needed to get Closepath segment end property
+
+        // virtual
+        scale: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        serialize: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        tangentAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        tangentAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
 
         // Redirect calls to tangentAt() function if tangentAtT() is not defined for segment.
         tangentAtT: function(t) {
@@ -4194,104 +4290,59 @@ var g = {};
             throw new Error('Neither tangentAtT() nor tangentAt() function is implemented.');
         },
 
-        // VIRTUAL PROPERTIES (must be overriden by actual Segment implementations):
-
-        // type
-
-        // start // getter, always throws error for Moveto
-
-        // end // usually directly assigned, getter for Closepath
-
-        bbox: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        clone: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPoint: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointNormalizedLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointTangent: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        equals: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        getSubdivisions: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        isDifferentiable: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        length: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        pointAt: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        pointAtLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        scale: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        tangentAt: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        tangentAtLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        translate: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        serialize: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
+        // virtual
         toString: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        translate: function() {
 
             throw new Error('Declaration missing for virtual function.');
         }
     };
+
+    // usually directly assigned
+    // getter for Closepath
+    Object.defineProperty(segmentPrototype, 'end', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        writable: true
+    });
+
+    // always a getter
+    // always throws error for Moveto
+    Object.defineProperty(segmentPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    // virtual
+    Object.defineProperty(segmentPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            throw new Error('Bad segment declaration. No type specified.');
+        }
+    });
 
     // Path segment implementations:
     var Lineto = function() {
@@ -4374,14 +4425,6 @@ var g = {};
             return this;
         },
 
-        translate: function(tx, ty) {
-
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        type: 'L',
-
         serialize: function() {
 
             var end = this.end;
@@ -4391,22 +4434,22 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
-    Object.defineProperty(linetoPrototype, 'start', {
-        // get a reference to the end point of previous segment
+    Object.defineProperty(linetoPrototype, 'type', {
 
         configurable: true,
 
         enumerable: true,
 
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
+        value: 'L'
     });
 
     Lineto.prototype = extend(segmentPrototype, Line.prototype, linetoPrototype);
@@ -4500,16 +4543,6 @@ var g = {};
             return this;
         },
 
-        translate: function(tx, ty) {
-
-            this.controlPoint1.translate(tx, ty);
-            this.controlPoint2.translate(tx, ty);
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        type: 'C',
-
         serialize: function() {
 
             var c1 = this.controlPoint1;
@@ -4521,22 +4554,24 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
-    Object.defineProperty(curvetoPrototype, 'start', {
-        // get a reference to the end point of previous segment
+    Object.defineProperty(curvetoPrototype, 'type', {
 
         configurable: true,
 
         enumerable: true,
 
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
+        value: 'C'
     });
 
     Curveto.prototype = extend(segmentPrototype, Curve.prototype, curvetoPrototype);
@@ -4685,6 +4720,12 @@ var g = {};
             return this;
         },
 
+        serialize: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
         tangentAt: function() {
 
             return null;
@@ -4700,23 +4741,15 @@ var g = {};
             return null;
         },
 
+        toString: function() {
+
+            return this.type + ' ' + this.end;
+        },
+
         translate: function(tx, ty) {
 
             this.end.translate(tx, ty);
             return this;
-        },
-
-        type: 'M',
-
-        serialize: function() {
-
-            var end = this.end;
-            return this.type + ' ' + end.x + ' ' + end.y;
-        },
-
-        toString: function() {
-
-            return this.type + ' ' + this.end;
         }
     };
 
@@ -4730,7 +4763,16 @@ var g = {};
 
             throw new Error('Illegal access. Moveto segments should not need a start property.');
         }
-    })
+    });
+
+    Object.defineProperty(movetoPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        value: 'M'
+    });
 
     Moveto.prototype = extend(segmentPrototype, movetoPrototype); // does not inherit from any other geometry object
 
@@ -4777,13 +4819,6 @@ var g = {};
             return this;
         },
 
-        translate: function() {
-
-            return this;
-        },
-
-        type: 'Z',
-
         serialize: function() {
 
             return this.type;
@@ -4792,23 +4827,13 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.end;
+        },
+
+        translate: function() {
+
+            return this;
         }
     };
-
-    Object.defineProperty(closepathPrototype, 'start', {
-        // get a reference to the end point of previous segment
-
-        configurable: true,
-
-        enumerable: true,
-
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
-    });
 
     Object.defineProperty(closepathPrototype, 'end', {
         // get a reference to the end point of subpath start segment
@@ -4823,7 +4848,16 @@ var g = {};
 
             return this.subpathStartSegment.end;
         }
-    })
+    });
+
+    Object.defineProperty(closepathPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        value: 'Z'
+    });
 
     Closepath.prototype = extend(segmentPrototype, Line.prototype, closepathPrototype);
 
@@ -4837,9 +4871,10 @@ var g = {};
 
     Path.regexSupportedData = new RegExp('^[\\s\\d' + Object.keys(segmentTypes).join('') + ',.]*$');
 
-    Path.isDataSupported = function(d) {
-        if (typeof d !== 'string') return false;
-        return this.regexSupportedData.test(d);
+    Path.isDataSupported = function(data) {
+
+        if (typeof data !== 'string') return false;
+        return this.regexSupportedData.test(data);
     }
 
 })(g);
