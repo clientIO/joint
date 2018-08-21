@@ -160,8 +160,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     events: {
         'dblclick': 'pointerdblclick',
-        'click': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
-        'touchend': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
         'contextmenu': 'contextmenu',
         'mousedown': 'pointerdown',
         'touchstart': 'pointerdown',
@@ -215,8 +213,6 @@ joint.dia.Paper = joint.mvc.View.extend({
             .on('cell:unhighlight', this.onCellUnhighlight)
             .on('scale translate', this.update);
 
-        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
-        this._mousemoved = 0;
         // Hash of all cell views.
         this._views = {};
         // Reference to the paper owner document
@@ -1208,8 +1204,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerclick: function(evt) {
 
+        var data = this.eventData(evt);
         // Trigger event only if mouse has not moved.
-        if (this._mousemoved <= this.options.clickThreshold) {
+        if (data.mousemoved <= this.options.clickThreshold) {
 
             evt = joint.util.normalizeEvent(evt);
 
@@ -1278,6 +1275,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var data = this.eventData(evt);
         data.mousemoved || (data.mousemoved = 0);
         var mousemoved = ++data.mousemoved;
+
         if (mousemoved <= this.options.moveThreshold) return;
 
         evt = joint.util.normalizeEvent(evt);
@@ -1298,17 +1296,18 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.undelegateDocumentEvents();
 
-        evt = joint.util.normalizeEvent(evt);
+        var normalizedEvt = joint.util.normalizeEvent(evt);
 
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var localPoint = this.snapToGrid({ x: normalizedEvt.clientX, y: normalizedEvt.clientY });
 
         var view = this.eventData(evt).sourceView;
         if (view) {
-            view.pointerup(evt, localPoint.x, localPoint.y);
+            view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
-            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+            this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
+        this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
         this.delegateEvents();
     },
 
