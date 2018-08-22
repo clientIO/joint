@@ -560,8 +560,23 @@ var joint = {
                     if (lineHeight * lines.length > height) {
 
                         // remove overflowing lines
-                        lines.splice(Math.floor(height / lineHeight));
+                        var lastL = Math.floor(height / lineHeight) - 1;
+                        lines.splice(lastL + 1);
 
+                        var ellipsis = opt.ellipsis;
+                        if (!ellipsis || lastL < 0) break;
+
+                        var lastLine = lines[lastL];
+                        var k = lastLine.length;
+                        do {
+                            var lastLineEllipsed = lastLine.substring(0, k) + ellipsis;
+                            textNode.data = lastLineEllipsed;
+                            if (textSpan.getComputedTextLength() <= width) {
+                                lines[lastL] = lastLineEllipsed;
+                                break;
+                            }
+                            k--;
+                        } while (k >= 0);
                         break;
                     }
                 }
