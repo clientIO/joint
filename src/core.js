@@ -565,14 +565,22 @@ var joint = {
 
                         var ellipsis = opt.ellipsis;
                         if (!ellipsis || lastL < 0) break;
+                        if (typeof ellipsis !== 'string') ellipsis = '...';
 
                         var lastLine = lines[lastL];
                         var k = lastLine.length;
+                        var lastLineWithOmission, lastChar;
                         do {
-                            var lastLineEllipsed = lastLine.substring(0, k) + ellipsis;
-                            textNode.data = lastLineEllipsed;
+                            lastChar = lastLine[k];
+                            if (!lastChar || lastChar.match(separator)) {
+                                lastLineWithOmission = lastLine.substring(0, k) + ' ';
+                            } else {
+                                lastLineWithOmission = lastLine.substring(0, k - 1);
+                            }
+                            lastLineWithOmission += ellipsis;
+                            textNode.data = lastLineWithOmission;
                             if (textSpan.getComputedTextLength() <= width) {
-                                lines[lastL] = lastLineEllipsed;
+                                lines[lastL] = lastLineWithOmission;
                                 break;
                             }
                             k--;
