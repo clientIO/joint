@@ -3,11 +3,11 @@
 <p>Similar to the <code>text</code> <a href="#dia.attributes.text">attribute</a>, except the provided string is automatically wrapped to fit within the reference bounding box.</p>
 
 <p>Expects an object with a <code>text</code> property and optional <code>width</code> and <code>height</code>, which can adjust the final size of the wrapped text. Negative values decrease the dimension (e.g. to add padding around the wrapped text); positive values increase the dimension. Percentage values are accepted as well.</p>
-
-<p>If the text cannot fit into the bounding box as specified, the overflowing words are cut off. If no words at all can fit into the bounding box, no text is inserted.</p>
+<p>If the text cannot fit into the bounding box as specified, the overflowing words are cut off. If no words at all can fit into the bounding box, no text is inserted. The attribute accepts <code>ellipsis</code> option to display a string as the replacement for the overflowed content (see <a href="#util.breakText">util.breakText</a> for more info).</p>
 
 <pre><code>textWrap: {
   text: 'lorem ipsum dolor sit amet consectetur adipiscing elit',
   width: -10, // reference width minus 10
-  height: '50%' // half of the reference height
+  height: '50%', // half of the reference height
+  ellipsis: true
 }</code></pre>

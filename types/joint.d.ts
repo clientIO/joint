@@ -2681,6 +2681,7 @@ export namespace attributes {
         text?: string;
         width?: string | number;
         height?: string | number;
+        ellipsis?: boolean | string;
         [key: string]: any
     }
 
