@@ -563,9 +563,10 @@ var joint = {
                         var lastL = Math.floor(height / lineHeight) - 1;
                         lines.splice(lastL + 1);
 
+                        // add ellipsis
                         var ellipsis = opt.ellipsis;
                         if (!ellipsis || lastL < 0) break;
-                        if (typeof ellipsis !== 'string') ellipsis = '...';
+                        if (typeof ellipsis !== 'string') ellipsis = '\u2026';
 
                         var lastLine = lines[lastL];
                         var k = lastLine.length;

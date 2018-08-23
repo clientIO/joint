@@ -28,6 +28,7 @@
     <li><code>opt.separator</code> - a string or a regular expression which denotes how to split the text into words. Defaults to <code>' '</code></li>
     <li><code>opt.eol</code> - a string representing the end-of-line symbol. Defaults to <code>'\n'</code>.</li>
     <li><code>opt.svgDocument</code> - an SVG document to which the temporary SVG text element should be added. By default, an SVG document is created automatically for you.</li>
+    <li><code>opt.ellipsis</code> - a boolean to display ellipsis (<code>'…'</code>, <code>U+2026 HORIZONTAL ELLIPSIS</code>) for overflowed content or a string to be used to represent clipped text. It defaults to <code>false</code>.</li>
 </ul>
 
 <p>If you need to wrap text inside a <code>text</code> <a href="#dia.attributes.text">attribute</a> of an Element, you should use the <code>textWrap</code> <a href="#dia.attributes.textWrap">attribute</a> instead. It does not require you to provide explicit size measurements, and it automatically responds to element resizing.</p>
