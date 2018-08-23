@@ -570,13 +570,15 @@ var joint = {
 
                         var lastLine = lines[lastL];
                         var k = lastLine.length;
-                        var lastLineWithOmission, lastChar;
+                        var lastLineWithOmission, lastChar, separatorChar;
                         do {
                             lastChar = lastLine[k];
-                            if (!lastChar || lastChar.match(separator)) {
-                                lastLineWithOmission = lastLine.substring(0, k) + ' ';
-                            } else {
-                                lastLineWithOmission = lastLine.substring(0, k - 1);
+                            lastLineWithOmission = lastLine.substring(0, k);
+                            if (!lastChar) {
+                                separatorChar = (typeof separator === 'string') ? separator : ' ';
+                                lastLineWithOmission += separatorChar;
+                            } else if (lastChar.match(separator)) {
+                                lastLineWithOmission += lastChar;
                             }
                             lastLineWithOmission += ellipsis;
                             textNode.data = lastLineWithOmission;

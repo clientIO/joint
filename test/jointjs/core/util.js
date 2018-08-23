@@ -74,9 +74,10 @@ QUnit.module('util', function(hooks) {
         });
     });
 
-    QUnit.test('util.breakText', function(assert) {
+    QUnit.module('util.breakText', function(assert) {
 
         // tests can't compare exact results as they may vary in different browsers
+
 
         // This ensures that the tests will be more deterministic.
         // For example, some browsers might have a different default font size/family.
@@ -87,27 +88,78 @@ QUnit.module('util', function(hooks) {
 
         var text = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
-        assert.equal(joint.util.breakText('', { width: 100 }, styles), '', 'An empty text was correctly broken.');
+        QUnit.test('sanity', function(assert) {
 
-        assert.equal(joint.util.breakText(text, { width: 0, height: 0 }, styles), '', 'A text was correctly broken when zero width and height provided.');
+            assert.equal(joint.util.breakText('', { width: 100 }, styles), '', 'An empty text was correctly broken.');
 
-        assert.ok(_.includes(joint.util.breakText(text, { width: 100 }, styles), '\n'),
-            'A text was broken when width A specified.');
+            assert.equal(joint.util.breakText(text, { width: 0, height: 0 }, styles), '', 'A text was correctly broken when zero width and height provided.');
 
-        assert.ok(_.includes(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
+            assert.ok(_.includes(joint.util.breakText(text, { width: 100 }, styles), '\n'),
+                'A text was broken when width A specified.');
 
-        var brokenText = joint.util.breakText(text, { width: 100, height: 40 }, styles);
+            assert.ok(_.includes(joint.util.breakText(text, { width: 15 }, styles), '\n'), 'A text was broken when width B specified.');
 
-        assert.ok(_.includes(brokenText, 'Lorem') && !_.includes(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
+            var brokenText = joint.util.breakText(text, { width: 100, height: 40 }, styles);
 
-        brokenText = joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }));
+            assert.ok(_.includes(brokenText, 'Lorem') && !_.includes(brokenText, 'elit.'), 'A text was trimmed when width & height specified.');
 
-        assert.ok(_.includes(brokenText, '\n') || !_.includes(brokenText, 'elit.'), 'A text was broken when style specified.');
+            brokenText = joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }));
 
-        assert.throws(function() {
-            joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
-        }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
+            assert.ok(_.includes(brokenText, '\n') || !_.includes(brokenText, 'elit.'), 'A text was broken when style specified.');
+
+            assert.throws(function() {
+                joint.util.breakText(text, { width: 100, height: 50 }, _.extend({}, styles, { 'font-size': '18px' }), { svgDocument: 'not-svg' });
+            }, /appendChild|undefined/, 'A custom svgDocument provided was recognized.');
+        });
+
+        function measureText(text, styles) {
+            var vText = V('text').text(text).attr(styles || {});
+            var svgDoc = V('svg').append(vText);
+            document.body.appendChild(svgDoc.node);
+            var bbox = vText.getBBox();
+            svgDoc.remove();
+            return bbox;
+        }
+
+        QUnit.test('ellipsis', function(assert) {
+
+            var WIDTH = 100;
+            var HEIGHT = 20;
+            var ELLIPSIS = '\u2026';
+            var t, r;
+
+            t = text;
+            r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: false });
+            assert.ok(r.indexOf(ELLIPSIS) === -1);
+            assert.ok(measureText(r, styles).width < WIDTH);
+            assert.ok(measureText(r, styles).height < HEIGHT);
+
+            r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: true });
+            assert.ok(r.indexOf(ELLIPSIS) === r.length - ELLIPSIS.length);
+            assert.ok(measureText(r, styles).width < WIDTH);
+            assert.ok(measureText(r, styles).height < HEIGHT);
+
+            var customEllipsis = 'CUSTOM';
+            r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: customEllipsis });
+            assert.ok(r.indexOf(customEllipsis) === r.length - customEllipsis.length);
+            assert.ok(measureText(r, styles).width < WIDTH);
+            assert.ok(measureText(r, styles).height < HEIGHT);
+
+            // '...' vs ' ...'
+            [WIDTH, WIDTH - 3, WIDTH - 6, WIDTH - 9, WIDTH -12].forEach(function(w, i) {
+
+                t = 'NoSpacesNoSpacesNoSpaces';
+                r = joint.util.breakText(t, { width: w, height: HEIGHT }, styles, { ellipsis: true });
+                assert.notOk(r[r.length - 1 - ELLIPSIS.length] === ' ');
+
+                t = 'S P A C E S S P A C E S';
+                r = joint.util.breakText(t, { width: w, height: HEIGHT }, styles, { ellipsis: true });
+                assert.ok(r[r.length - 1 - ELLIPSIS.length] === ' ');
+            });
+        });
+
     });
+
 
     QUnit.test('util.parseCssNumeric', function(assert) {
 
