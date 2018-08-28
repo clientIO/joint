@@ -594,6 +594,8 @@
     // refX: 50%, refX2: 20
     attributesNS.refX2 = attributesNS.refX;
     attributesNS.refY2 = attributesNS.refY;
+    attributesNS.refWidth2 = attributesNS.refWidth;
+    attributesNS.refHeight2 = attributesNS.refHeight;
 
     // Aliases for backwards compatibility
     attributesNS['ref-x'] = attributesNS.refX;
