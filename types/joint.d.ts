@@ -1976,7 +1976,12 @@ export namespace util {
 
     export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement; separator: string | any; eol: string }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
+        svgDocument?: SVGElement;
+        separator?: string | any;
+        eol?: string;
+        ellipsis?: boolean | string;
+    }): string;
 
     export function sanitizeHTML(html: string): string;
 
@@ -2679,6 +2684,7 @@ export namespace attributes {
         text?: string;
         width?: string | number;
         height?: string | number;
+        ellipsis?: boolean | string;
         [key: string]: any
     }
 

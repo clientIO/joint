@@ -560,8 +560,34 @@ var joint = {
                     if (lineHeight * lines.length > height) {
 
                         // remove overflowing lines
-                        lines.splice(Math.floor(height / lineHeight));
+                        var lastL = Math.floor(height / lineHeight) - 1;
+                        lines.splice(lastL + 1);
 
+                        // add ellipsis
+                        var ellipsis = opt.ellipsis;
+                        if (!ellipsis || lastL < 0) break;
+                        if (typeof ellipsis !== 'string') ellipsis = '\u2026';
+
+                        var lastLine = lines[lastL];
+                        var k = lastLine.length;
+                        var lastLineWithOmission, lastChar, separatorChar;
+                        do {
+                            lastChar = lastLine[k];
+                            lastLineWithOmission = lastLine.substring(0, k);
+                            if (!lastChar) {
+                                separatorChar = (typeof separator === 'string') ? separator : ' ';
+                                lastLineWithOmission += separatorChar;
+                            } else if (lastChar.match(separator)) {
+                                lastLineWithOmission += lastChar;
+                            }
+                            lastLineWithOmission += ellipsis;
+                            textNode.data = lastLineWithOmission;
+                            if (textSpan.getComputedTextLength() <= width) {
+                                lines[lastL] = lastLineWithOmission;
+                                break;
+                            }
+                            k--;
+                        } while (k >= 0);
                         break;
                     }
                 }
