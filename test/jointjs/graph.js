@@ -719,25 +719,43 @@ QUnit.module('graph', function(hooks) {
         ajaxStub.restore();
     });
 
-    QUnit.test('graph.getCellsBBox()', function(assert) {
+    QUnit.module('graph.getCellsBBox()', function() {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 }});
-        var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 }});
+        QUnit.test('sanity', function(assert) {
 
-        this.graph.resetCells([r1, r2, r3]);
+            var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
+            var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 }});
+            var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 }});
 
-        var bbox = this.graph.getCellsBBox([r1, r2, r3]);
-        assert.equal(bbox.x, 20, 'bbox.x correct');
-        assert.equal(bbox.y, 10, 'bbox.y correct');
-        assert.equal(bbox.width, 100, 'bbox.width correct');
-        assert.equal(bbox.height, 210, 'bbox.height correct');
+            this.graph.resetCells([r1, r2, r3]);
 
-        assert.equal(this.graph.getCellsBBox([]), null, 'graph.getBBox([]) with empty array returns null');
+            var bbox = this.graph.getCellsBBox([r1, r2, r3]);
+            assert.equal(bbox.x, 20, 'bbox.x correct');
+            assert.equal(bbox.y, 10, 'bbox.y correct');
+            assert.equal(bbox.width, 100, 'bbox.width correct');
+            assert.equal(bbox.height, 210, 'bbox.height correct');
 
-        var l = new joint.dia.Link();
-        this.graph.addCell(l);
-        assert.equal(this.graph.getCellsBBox([l]), null, 'graph.getBBox() with links only returns null');
+            assert.equal(this.graph.getCellsBBox([]), null, 'graph.getBBox([]) with empty array returns null');
+
+            var l = new joint.dia.Link();
+            this.graph.addCell(l);
+            assert.equal(this.graph.getCellsBBox([l]), null, 'graph.getBBox() with links only returns null');
+
+        });
+
+        QUnit.test('rotated cells', function(assert) {
+
+            var r1 = new joint.shapes.standard.Rectangle({ position: { x: 50, y: 50 }, size: { width: 40, height: 20 }});
+            var r2 = new joint.shapes.standard.Rectangle({ angle: 90, position: { x: 100, y: 100 }, size: { width: 40, height: 20 }});
+
+            this.graph.resetCells([r1, r2]);
+
+            var bbox = this.graph.getCellsBBox([r1, r2]);
+            assert.equal(bbox.x, 50, 'bbox.x correct');
+            assert.equal(bbox.y, 50, 'bbox.y correct');
+            assert.equal(bbox.width, 130 - 50, 'bbox.width correct');
+            assert.equal(bbox.height, 130 - 50, 'bbox.height correct');
+        });
     });
 
     QUnit.test('graph.findModelsUnderElement()', function(assert) {

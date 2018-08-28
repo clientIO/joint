@@ -1004,10 +1004,13 @@ joint.dia.Graph = Backbone.Model.extend({
 
         return joint.util.toArray(cells).reduce(function(memo, cell) {
             if (cell.isLink()) return memo;
+            var rect = cell.getBBox(opt);
+            var angle = cell.angle();
+            if (angle) rect = rect.bbox(angle);
             if (memo) {
-                return memo.union(cell.getBBox(opt));
+                return memo.union(rect);
             } else {
-                return cell.getBBox(opt);
+                return rect;
             }
         }, null);
     },
