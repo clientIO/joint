@@ -78,7 +78,6 @@ QUnit.module('util', function(hooks) {
 
         // tests can't compare exact results as they may vary in different browsers
 
-
         // This ensures that the tests will be more deterministic.
         // For example, some browsers might have a different default font size/family.
         var styles = {
@@ -159,7 +158,6 @@ QUnit.module('util', function(hooks) {
         });
 
     });
-
 
     QUnit.test('util.parseCssNumeric', function(assert) {
 
@@ -348,8 +346,6 @@ QUnit.module('util', function(hooks) {
         assert.deepEqual(joint.util.normalizeSides({ left: NaN }), { top: 0, right: 0, bottom: 0, left: 0 },
             'Specific NaN becomes 0');
 
-
-
         assert.deepEqual(joint.util.normalizeSides(), { top: 0, right: 0, bottom: 0, left: 0 },
             'Returns sides defaulted to 0 if called without an argument.');
 
@@ -380,7 +376,6 @@ QUnit.module('util', function(hooks) {
         });
         assert.deepEqual(custom, { a: 'x' });
     });
-
 
     QUnit.test('joint.setTheme()', function(assert) {
 
