@@ -911,6 +911,21 @@ QUnit.module('util', function(hooks) {
             });
         });
 
+        QUnit.module('textContent', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'text', textContent: 'test' }]);
+                var node = res.fragment.firstChild;
+                assert.equal(node.textContent, 'test');
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([{ tagName: 'div', textContent: 'test' }], V.namespace.xhtml);
+                var node = res.fragment.firstChild;
+                assert.equal(node.textContent, 'test');
+            });
+        });
+
         QUnit.module('selector', function() {
 
             QUnit.test('svg', function(assert) {
