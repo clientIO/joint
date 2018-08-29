@@ -1264,7 +1264,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.trigger('blank:pointerdown', evt, localPoint.x, localPoint.y);
         }
 
-        this.delegateDragEvents(view, evt.data);
+        var delegatedView = this.eventData(evt).delegatedView;
+        this.delegateDragEvents(delegatedView || view, evt.data);
     },
 
     pointermove: function(evt) {

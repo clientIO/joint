@@ -959,11 +959,23 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (!this.can('elementMove')) return;
 
+        var model = this.model;
+        var paper = this.paper;
+
+        if (!this.can('embedsMove') && model.isEmbedded()) {
+            var parent = model.getParentCell();
+            var parentView = parent.findView(paper);
+            if (!parentView) return;
+            paper.eventData(evt, { delegatedView: parentView });
+            parentView.dragStart(evt, x, y);
+            return;
+        }
+
         this.eventData(evt, {
             action: 'move',
             x: x,
             y: y,
-            restrictedArea: this.paper.getRestrictedArea(this)
+            restrictedArea: paper.getRestrictedArea(this)
         });
     },
 
