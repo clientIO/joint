@@ -43,7 +43,8 @@ var paper = new joint.dia.Paper({
                 vertexAdd: false,
                 vertexRemove: false,
                 labelMove: false,
-                useLinkTools: false
+                useLinkTools: false,
+                linkMove: false
             };
         }
 
@@ -93,6 +94,15 @@ var paper = new joint.dia.Paper({
                     style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
+    <tr>
+        <th valign="top">linkMove</th>
+        <td colspan="3">
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/linkMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+            <p>Applicable for links with custom markup only (e.g. links from <code>joint.shapes.standard</code> namespace)</p>
+        </td>
+    </tr>
+
 </table>
 
 <p><b>Elements:</b></p>
@@ -108,6 +118,14 @@ var paper = new joint.dia.Paper({
         <td>
             <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/addLinkFromMagnet.html"
                     style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">embedsMove</th>
+        <td colspan="3">
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/embedsMove.html"
+                    style="height: 94px; width: 250px;"></iframe>
+            <p>The embedded element, which is being dragged by the user, moves the closest ancestor with <code>embedsMove</code> enabled or the last ancestor instead of itself. The ancestor needs to have <code>elementMove</code> enabled, otherwise movement is canceled.</p>
         </td>
     </tr>
 </table>
