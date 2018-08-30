@@ -896,7 +896,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var data = this.eventData(evt);
         switch (data.action) {
             case 'move':
-                data.delegatedView.drag(evt, x, y);
+                (data.delegatedView || this).drag(evt, x, y);
                 break;
             case 'magnet':
                 this.dragMagnet(evt, x, y);
@@ -918,7 +918,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var data = this.eventData(evt);
         switch (data.action) {
             case 'move':
-                data.delegatedView.dragEnd(evt, x, y);
+                (data.delegatedView || this).dragEnd(evt, x, y);
                 break;
             case 'magnet':
                 this.dragMagnetEnd(evt, x, y);
