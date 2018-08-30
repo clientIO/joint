@@ -119,7 +119,6 @@ var paper = new joint.dia.Paper({
         if (mT.getAttribute('port-group') !== 'in') return false;
         if (vT.model instanceof Shape) {
             var portId = mT.getAttribute('port');
-            if (lV.model.target().port === portId) return true;
             var usedInPorts = vT.model.getUsedInPorts();
             if (usedInPorts.find(function(port) { return port.id === portId; })) return false;
         }
