@@ -313,7 +313,7 @@ joint.shapes.basic.PortsViewInterface = {
 
         var portTemplate = joint.util.template(this.model.portMarkup);
 
-        var ports = this.model.ports || [];
+        var ports = joint.util.toArray(this.model.ports);
         ports.filter(function(p) {
             return p.type === 'in';
         }).forEach(function(port, index) {
