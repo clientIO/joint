@@ -123,4 +123,42 @@ QUnit.module('elementView', function(hooks) {
             });
         });
     });
+
+    QUnit.module('getDelegatedView()', function() {
+
+        QUnit.test('Interactivity "embedsMove"', function(assert) {
+
+            var element2 = new joint.shapes.standard.Rectangle();
+            var element3 = new joint.shapes.standard.Rectangle();
+
+            paper.model.addCells([element2, element3]);
+
+            var elementView2 = element2.findView(paper);
+            var elementView3 = element3.findView(paper);
+
+            element3.embed(element2);
+            element2.embed(elementView.model);
+
+            elementView.setInteractivity({ embedsMove: true });
+            assert.equal(elementView.getDelegatedView(), elementView);
+            elementView.setInteractivity({ embedsMove: false });
+            assert.equal(elementView.getDelegatedView(), elementView2);
+            elementView2.setInteractivity({ embedsMove: false });
+            assert.equal(elementView.getDelegatedView(), elementView3);
+            elementView3.setInteractivity({ embedsMove: false });
+            assert.equal(elementView.getDelegatedView(), elementView3);
+
+            var link = new joint.shapes.standard.Link();
+            link.addTo(paper.model);
+
+            link.embed(element3);
+            assert.equal(elementView.getDelegatedView(), null);
+            link.unembed(element3);
+
+            // view does not exists
+            paper.removeView(element2);
+            assert.equal(elementView.getDelegatedView(), null);
+        });
+
+    });
 });
