@@ -126,7 +126,7 @@ QUnit.module('elementView', function(hooks) {
 
     QUnit.module('getDelegatedView()', function() {
 
-        QUnit.test('Interactivity "embedsMove"', function(assert) {
+        QUnit.test('Interactivity "stopDelegation"', function(assert) {
 
             var element2 = new joint.shapes.standard.Rectangle();
             var element3 = new joint.shapes.standard.Rectangle();
@@ -139,13 +139,13 @@ QUnit.module('elementView', function(hooks) {
             element3.embed(element2);
             element2.embed(elementView.model);
 
-            elementView.setInteractivity({ embedsMove: true });
+            elementView.setInteractivity({ stopDelegation: true });
             assert.equal(elementView.getDelegatedView(), elementView);
-            elementView.setInteractivity({ embedsMove: false });
+            elementView.setInteractivity({ stopDelegation: false });
             assert.equal(elementView.getDelegatedView(), elementView2);
-            elementView2.setInteractivity({ embedsMove: false });
+            elementView2.setInteractivity({ stopDelegation: false });
             assert.equal(elementView.getDelegatedView(), elementView3);
-            elementView3.setInteractivity({ embedsMove: false });
+            elementView3.setInteractivity({ stopDelegation: false });
             assert.equal(elementView.getDelegatedView(), elementView3);
 
             var link = new joint.shapes.standard.Link();

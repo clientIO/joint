@@ -854,7 +854,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         while (view) {
             if (model.isLink()) break;
-            if (!model.isEmbedded() || view.can('embedsMove')) return view;
+            if (!model.isEmbedded() || view.can('stopDelegation')) return view;
             model = model.getParentCell();
             view = paper.findViewByModel(model);
         }
