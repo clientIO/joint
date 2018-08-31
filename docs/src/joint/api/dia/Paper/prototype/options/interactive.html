@@ -38,13 +38,13 @@ var paper = new joint.dia.Paper({
     interactive: function(cellView) {
         if (cellView.model.get('disableLinkInteractions')) {
             return {
+                linkMove: false,
+                labelMove: false,
                 arrowheadMove: false,
                 vertexMove: false,
                 vertexAdd: false,
                 vertexRemove: false,
-                labelMove: false,
                 useLinkTools: false,
-                linkMove: false
             };
         }
 
@@ -53,56 +53,69 @@ var paper = new joint.dia.Paper({
     }
 });</code></pre>
 
-<p>The following tables present a list of all recognized interaction keys, followed by an example paper with the related interactive property set to <code>false</code>.</p>
+<p>The example below has all interactions on the link and on the elements enabled. This is the default behavior:</p>
+
+<iframe src="about:blank" data-src="./demo/dia/Paper/interactive/enableAll.html" style="height: 94px; width: 400px;"></iframe>
+
+<p>The following tables present a list of all recognized interaction keys, followed by an example of a paper with only the related interactive property set to <code>true</code> (and all other properties set to <code>false</code>).</p>
 
 <p><b>Links:</b></p>
 
 <table>
     <tr>
-        <th valign="top">arrowheadMove</th>
+        <th valign="top">linkMove</th>
         <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/arrowheadMove.html"
-                    style="height: 94px; width: 250px;"></iframe>
-        </td>
-        <th valign="top">vertexMove</th>
-        <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexMove.html"
-                    style="height: 94px; width: 250px;"></iframe>
-        </td>
-    </tr>
-    <tr>
-        <th valign="top">vertexAdd</th>
-        <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexAdd.html"
-                    style="height: 94px; width: 250px;"></iframe>
-        </td>
-        <th valign="top">vertexRemove</th>
-        <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexRemove.html"
-                    style="height: 94px; width: 250px;"></iframe>
+            <p>Is the user allowed to move the link?</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/linkMove.html" style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
     <tr>
         <th valign="top">labelMove</th>
         <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/labelMove.html"
-                    style="height: 94px; width: 250px;"></iframe>
-        </td>
-        <th valign="top">useLinkTools</th>
-        <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/useLinkTools.html"
-                    style="height: 94px; width: 250px;"></iframe>
+            <p>Is the user allowed to move the link label?</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/labelMove.html" style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
     <tr>
-        <th valign="top">linkMove</th>
-        <td colspan="3">
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/linkMove.html"
-                    style="height: 94px; width: 250px;"></iframe>
-            <p>Applicable for links with custom markup only (e.g. links from <code>joint.shapes.standard</code> namespace)</p>
+        <th valign="top">arrowheadMove</th>
+        <td>
+            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
+            <p>(Is the user allowed to move the arrowheads?)</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/arrowheadMove.html" style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
-
+    <tr>
+        <th valign="top">vertexMove</th>
+        <td>
+            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
+            <p>(Is the user allowed to move the vertices?)</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexMove.html" style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">vertexAdd</th>
+        <td>
+            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
+            <p>(Is the user allowed to add vertices by clicking along the link path?)</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexAdd.html" style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">vertexRemove</th>
+        <td>
+            <p>Deprecated. Use a <a href="#linkTools">link tool</a> instead.</p>
+            <p>(Is the user allowed to remove vertices?)</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/vertexRemove.html" style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+    <tr>
+        <th valign="top">useLinkTools</th>
+        <td>
+            <p>Deprecated.</p>
+            <p>(Is the user allowed to use the default link buttons?)</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/useLinkTools.html" style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
 </table>
 
 <p><b>Elements:</b></p>
@@ -111,26 +124,32 @@ var paper = new joint.dia.Paper({
     <tr>
         <th valign="top">elementMove</th>
         <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/elementMove.html"
-                    style="height: 94px; width: 250px;"></iframe>
-        </td>
-        <th valign="top">addLinkFromMagnet</th>
-        <td>
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/addLinkFromMagnet.html"
-                    style="height: 94px; width: 250px;"></iframe>
+            <p>Is the user allowed to move the element?</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/elementMove.html" style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
     <tr>
-        <th valign="top">stopDelegation</th>
-        <td colspan="3">
-            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/stopDelegation.html"
-                    style="height: 94px; width: 250px;"></iframe>
-            <p>The embedded element, which is being dragged by the user, moves the closest ancestor with <code>stopDelegation</code> enabled or the last ancestor instead of itself. The ancestor needs to have <code>elementMove</code> enabled, otherwise movement is canceled.</p>
+        <th valign="top">addLinkFromMagnet</th>
+        <td>
+            <p>Is the user allowed to add connections from magnets/ports?</p>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/addLinkFromMagnet.html" style="height: 94px; width: 250px;"></iframe>
         </td>
     </tr>
 </table>
 
-<p>For comparison, the example below has all interactions on the link and on the elements enabled.</p>
+<p>The <code>stopDelegation</code> option is special. If it is <code>true</code> (default), the element's <code>elementMove</code> option determines whether the element responds to user drag.</p>
 
-<iframe src="about:blank" data-src="./demo/dia/Paper/interactive/enableAll.html"
-        style="height: 94px; width: 400px;"></iframe>
+<p>However, if <code>stopDelegation</code> is <code>false</code> and the element is embedded within a parent, the user's dragging is delegated to the embedding parent. The parent's <code>elementMove</code> option then determines whether both elements respond to user drag. The behavior is recursive. If the embedding parent has <code>stopDelegation: false</code>, it delegates to its own embedding parent's <code>elementMove</code> option and so on. If all children within an embedding have <code>stopDelegation</code> set to <code>false</code>, then no matter which element is dragged by the user, the whole embedding is dragged.</p>
+
+<p>If the element is not embedded within an element, the <code>stopDelegation</code> option is ignored (treated as <code>true</code>). There is no other element to delegate to. Then <code>elementMove</code> determines whether the element responds to user drag.</p>
+
+<p>In the following example, both embedded elements have <code>stopDelegation: false</code>. Thus, when the embedded element is dragged by the user, the parent ancestor (<q>Movable</q>) is dragged instead. When the parent ancestor has <code>elementMove</code> disabled (<q>Not movable</q>), nothing happens.</p>
+
+<table>
+    <tr>
+        <th valign="top">stopDelegation</th>
+        <td>
+            <iframe src="about:blank" data-src="./demo/dia/Paper/interactive/stopDelegation.html" style="height: 94px; width: 250px;"></iframe>
+        </td>
+    </tr>
+</table>

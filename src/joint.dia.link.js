@@ -2227,19 +2227,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Backwards compatibility
         var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
         if (linkTool) {
+            // No further action to be executed
+            evt.stopPropagation();
+
             // Allow `interactive.useLinkTools=false`
             if (this.can('useLinkTools')) {
                 if (eventName === 'remove') {
-                    // No further action to be executed
-                    evt.stopPropagation();
                     // Built-in remove event
                     this.model.remove({ ui: true });
+                    // Do not trigger link pointerdown
+                    return;
 
                 } else {
                     // link:options and other custom events inside the link tools
                     this.notify(eventName, evt, x, y);
                 }
             }
+
+            joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+            this.notify('link:pointerdown', evt, x, y);
 
         } else {
             joint.dia.CellView.prototype.onevent.apply(this, arguments);

@@ -39,7 +39,15 @@
         height: 90,
         gridSize: 1,
         interactive: function(view) {
-            return { linkMove: view.model.get('enabled') };
+            return {
+                linkMove: view.model.get('enabled'),
+                labelMove: false,
+                arrowheadMove: false,
+                vertexMove: false,
+                vertexAdd: false,
+                vertexRemove: false,
+                useLinkTools: false
+            };
         },
         model: graph
     });
@@ -63,15 +71,13 @@
     linkEnabled.source({ x: 20, y: 10 }).target({ x: 80, y: 80 });
     linkEnabled.appendLabel({
         attrs: {
-            text: { text: 'Enabled' },
-            root: { pointerEvents: 'none' }
+            text: { text: 'Enabled' }
         }
     });
     linkDisabled.source({ x: 100, y: 10 }).target({ x: 160, y: 80 });
     linkDisabled.appendLabel({
         attrs: {
-            text: { text: 'Disabled' },
-            root: { pointerEvents: 'none' }
+            text: { text: 'Disabled' }
         }
     });
 

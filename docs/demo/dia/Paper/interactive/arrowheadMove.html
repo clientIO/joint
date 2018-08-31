@@ -37,7 +37,15 @@
         width: 190,
         height: 90,
         gridSize: 1,
-        interactive: { arrowheadMove: false },
+        interactive: {
+            linkMove: false,
+            labelMove: false,
+            arrowheadMove: true,
+            vertexMove: false,
+            vertexAdd: false,
+            vertexRemove: false,
+            useLinkTools: false
+        },
         model: graph
     });
 
