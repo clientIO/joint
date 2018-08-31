@@ -846,6 +846,22 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
+    getDelegatedView: function() {
+
+        var view = this;
+        var model = view.model;
+        var paper = view.paper;
+
+        while (view) {
+            if (model.isLink()) break;
+            if (!model.isEmbedded() || view.can('stopDelegation')) return view;
+            model = model.getParentCell();
+            view = paper.findViewByModel(model);
+        }
+
+        return null;
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -880,7 +896,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var data = this.eventData(evt);
         switch (data.action) {
             case 'move':
-                this.drag(evt, x, y);
+                (data.delegatedView || this).drag(evt, x, y);
                 break;
             case 'magnet':
                 this.dragMagnet(evt, x, y);
@@ -902,7 +918,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var data = this.eventData(evt);
         switch (data.action) {
             case 'move':
-                this.dragEnd(evt, x, y);
+                (data.delegatedView || this).dragEnd(evt, x, y);
                 break;
             case 'magnet':
                 this.dragMagnetEnd(evt, x, y);
@@ -957,13 +973,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     dragStart: function(evt, x, y) {
 
-        if (!this.can('elementMove')) return;
+        var view = this.getDelegatedView();
+        if (!view || !view.can('elementMove')) return;
 
         this.eventData(evt, {
             action: 'move',
+            delegatedView: view
+        });
+
+        view.eventData(evt, {
             x: x,
             y: y,
-            restrictedArea: this.paper.getRestrictedArea(this)
+            restrictedArea: this.paper.getRestrictedArea(view)
         });
     },
 

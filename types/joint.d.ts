@@ -626,6 +626,8 @@ export namespace dia {
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
+        getDelegatedView(): ElementView | null;
+
         protected renderMarkup(): void;
 
         protected renderJSONMarkup(markup: MarkupJSON): void;

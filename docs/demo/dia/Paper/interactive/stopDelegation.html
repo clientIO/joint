@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>dia.Paper - interactive - stopDelegation disabled</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../../css/lib/joint.min.css"/>
+
+    <style>
+        .joint-paper {
+            border: 1px solid gray;
+            width: 800px
+        }
+
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- Dependencies: -->
+<script src="../../../../js/lib/jquery.min.js"></script>
+<script src="../../../../js/lib/lodash.min.js"></script>
+<script src="../../../../js/lib/backbone.min.js"></script>
+
+<script src="../../../../js/lib/joint.min.js"></script>
+
+</body>
+<script>
+    var graph = new joint.dia.Graph;
+
+    var paper = new joint.dia.Paper({
+        el: $('<div/>').appendTo(document.body),
+        width: 190,
+        height: 90,
+        gridSize: 1,
+        interactive: function(view) {
+            return {
+                elementMove: view.model.get('elementMove'),
+                stopDelegation: view.model.get('stopDelegation')
+            }
+        },
+        model: graph
+    });
+
+    // order of 2 and 1 switched so "movable" can be dragged in front of "not movable"
+    var container2 = new joint.shapes.standard.Rectangle();
+    var child2 = new joint.shapes.standard.Rectangle();
+
+    container2.resize(80, 80);
+    container2.position(105, 5);
+    container2.set('elementMove', false);
+    container2.set('stopDelegation', false); // irrelevant
+    container2.attr('label/text', 'Not movable');
+    container2.attr('label/refY', 60);
+    container2.addTo(graph);
+
+    child2.resize(70, 30)
+    child2.position(110, 10);
+    child2.set('elementMove', true); // irrelevant
+    child2.set('stopDelegation', false);
+    child2.attr('label/text', 'Embedded\nElement');
+    child2.attr('label/fontSize', 12);
+    child2.addTo(graph);
+
+    container2.embed(child2);
+
+    var container1 = new joint.shapes.standard.Rectangle();
+    var child1 = new joint.shapes.standard.Rectangle();
+
+    container1.resize(80, 80);
+    container1.position(5, 5);
+    container1.set('elementMove', true);
+    container1.set('stopDelegation', false); // irrelevant
+    container1.attr('label/text', 'Movable');
+    container1.attr('label/refY', 60);
+    container1.addTo(graph);
+
+    child1.resize(70, 30)
+    child1.position(10, 10);
+    child1.set('elementMove', true); // irrelevant
+    child1.set('stopDelegation', false);
+    child1.attr('label/text', 'Embedded\nElement');
+    child1.attr('label/fontSize', 12);
+    child1.addTo(graph);
+
+    container1.embed(child1);
+
+</script>
+</html>
