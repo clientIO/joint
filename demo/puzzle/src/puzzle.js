@@ -1,5 +1,4 @@
 joint.dia.Element.define('jigsaw.Piece', {
-    markup: '<g class="rotatable"><polygon/></g>',
     attrs: {
         polygon: {
             tabs: [0, 0, 0, 0],
@@ -7,7 +6,12 @@ joint.dia.Element.define('jigsaw.Piece', {
             stroke: '#ddd'
         }
     }
-}, null , {
+}, {
+    markup: [{
+        tagName: 'polygon',
+        selector: 'polygon'
+    }]
+} , {
     attributes: {
         tabs: { /* [topTab, rightTab, bottomTab, leftTab] */
             qualify: _.isArray,
@@ -85,23 +89,18 @@ var Jigsaw = {
         var paper = this.paper = new joint.dia.Paper({
             el: document.getElementById('paper'),
             gridSize: this.GRID,
-            model: graph
+            model: graph,
+            clickThreshold: 5
         }).on({
-            'cell:pointerdown': function(pieceView, evt) {
+            'cell:pointerdown': function(pieceView) {
                 pieceView.model.toFront();
                 pieceView.highlight('polygon');
-                evt.data = { pointerMoveCount: 0 };
             },
-            'cell:pointermove': function(cellView, evt) {
-                evt.data.pointerMoveCount++;
-            },
-            'cell:pointerup': function(pieceView, evt) {
+            'cell:pointerup': function(pieceView) {
                 pieceView.unhighlight('polygon');
-                if (evt.data.pointerMoveCount < this.GRID) {
-                    // Workaround for an unresolved chrome issue
-                    // https://bugs.chromium.org/p/chromium/issues/detail?id=716694
-                    pieceView.model.rotate(90);
-                }
+            },
+            'cell:pointerclick': function(pieceView) {
+                pieceView.model.rotate(90);
             }
         }, this);
 
