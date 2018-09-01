@@ -653,7 +653,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this._views[cell.id] = this.createViewForModel(cell);
 
-        V(this.viewport).append(view.el);
+        this.viewport.appendChild(view.el);
         view.paper = this;
         view.render();
 
@@ -1206,7 +1206,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var data = this.eventData(evt);
         // Trigger event only if mouse has not moved.
-        if (data.mousemoved <= this.options.clickThreshold) {
+        if (!data.preventClick && data.mousemoved <= this.options.clickThreshold) {
 
             evt = joint.util.normalizeEvent(evt);
 

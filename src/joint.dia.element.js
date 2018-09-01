@@ -963,10 +963,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     onmagnet: function(evt, x, y) {
 
-        this.dragMagnetStart(evt, x, y);
+        if (!this.can('addLinkFromMagnet')) return;
 
-        var stopPropagation = this.eventData(evt).stopPropagation;
-        if (stopPropagation) evt.stopPropagation();
+        evt.stopPropagation();
+
+        this.eventData(evt, {
+            action: 'magnet',
+            targetMagnet: evt.currentTarget,
+            stopPropagation: true
+        });
+
+        // var stopPropagation = this.eventData(evt).stopPropagation;
+        // if (stopPropagation) evt.stopPropagation();
+        this.paper.delegateDragEvents(this, evt.data);
     },
 
     // Drag Start Handlers
@@ -990,13 +999,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     dragMagnetStart: function(evt, x, y) {
 
-        if (!this.can('addLinkFromMagnet')) return;
-
         this.model.startBatch('add-link');
 
+        var data = this.eventData(evt);
         var paper = this.paper;
         var graph = paper.model;
-        var magnet = evt.target;
+        var magnet = data.targetMagnet || evt.target;
         var link = paper.getDefaultLink(this, magnet);
         var sourceEnd = this.getLinkEnd(magnet, x, y, link, 'source');
         var targetEnd = { x: x, y: y };
@@ -1007,16 +1015,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var linkView = link.findView(paper);
         joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
         linkView.notify('link:pointerdown', evt, x, y);
-        var data = linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
-        linkView.eventData(evt, data);
+        var linkViewData = linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
+        linkView.eventData(evt, linkViewData);
 
         this.eventData(evt, {
             action: 'magnet',
-            linkView: linkView,
-            stopPropagation: true
+            linkView: linkView
         });
-
-        this.paper.delegateDragEvents(this, evt.data);
     },
 
     // Drag Handlers
@@ -1059,7 +1064,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         var linkView = data.linkView;
-        if (linkView) linkView.pointermove(evt, x, y);
+        var targetMagnet = data.targetMagnet;
+        var currentTarget = evt.target;
+        if (linkView) {
+            linkView.pointermove(evt, x, y);
+        } else if (targetMagnet !== currentTarget && !V(targetMagnet).contains(currentTarget)) {
+            this.dragMagnetStart(evt, x, y);
+        }
     },
 
     // Drag End Handlers
@@ -1074,9 +1085,17 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         var linkView = data.linkView;
-        if (linkView) linkView.pointerup(evt, x, y);
-
-        this.model.stopBatch('add-link');
+        if (linkView) {
+            linkView.pointerup(evt, x, y);
+            this.model.stopBatch('add-link');
+        } else {
+            var paper = this.paper;
+            var paperData = paper.eventData(evt);
+            if (paperData.mousemoved <= paper.options.clickThreshold) {
+//                this.paper.eventData(evt, { preventClick: true });
+                this.notify('magnet:pointerclick', evt, x, y);
+            }
+        }
     }
 
 });
