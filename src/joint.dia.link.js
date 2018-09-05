@@ -2480,12 +2480,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var r = this.paper.options.snapLinks.radius || 50;
         var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
-        if (data.closestView) {
-            data.closestView.unhighlight(data.closestMagnet, {
-                connecting: true,
-                snapping: true
-            });
-        }
+        var prevClosestView = data.closestView || null;
+        var prevClosestMagnet = data.closestMagnet || null;
+
         data.closestView = data.closestMagnet = null;
 
         var distance;
@@ -2504,7 +2501,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < r && distance < minDistance) {
 
-                    if (paper.options.validateConnection.apply(
+                    if (prevClosestMagnet === view.el || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, null)
                     )) {
                         minDistance = distance;
@@ -2525,7 +2522,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (distance < r && distance < minDistance) {
 
-                    if (paper.options.validateConnection.apply(
+                    if (prevClosestMagnet === magnet || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, magnet)
                     )) {
                         minDistance = distance;
@@ -2542,12 +2539,24 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var closestView = data.closestView;
         var closestMagnet = data.closestMagnet;
         var endType = data.arrowhead;
+        var newClosestMagnet = (prevClosestMagnet !== closestMagnet);
+        if (prevClosestView && newClosestMagnet) {
+            prevClosestView.unhighlight(prevClosestMagnet, {
+                connecting: true,
+                snapping: true
+            });
+        }
+
         if (closestView) {
+
+            if (!newClosestMagnet) return;
+
             closestView.highlight(closestMagnet, {
                 connecting: true,
                 snapping: true
             });
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+
         } else {
             end = { x: x, y: y };
         }
