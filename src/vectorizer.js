@@ -1459,10 +1459,10 @@ V = Vectorizer = (function() {
                 rotate = [decomposedMatrix.rotation];
 
                 var transformations = [];
-                if (translate[0] !== 0 ||  translate[0] !== 0) {
+                if (translate[0] !== 0 || translate[1] !== 0) {
                     transformations.push('translate(' + translate + ')');
                 }
-                if (scale[0] !== 1 ||  scale[1] !== 1) {
+                if (scale[0] !== 1 || scale[1] !== 1) {
                     transformations.push('scale(' + scale + ')');
                 }
                 if (rotate[0] !== 0) {

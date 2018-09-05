@@ -1229,7 +1229,7 @@ QUnit.module('path', function(hooks) {
                 } catch (e) {
                     error = e;
                 }
-                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on an empty path.');
+                assert.equal(error.message, 'Path has no segments.', 'Should throw an error when called on an empty path.');
 
                 try {
                     path = new g.Path(g.Path.createSegment('M', 100, 100));
@@ -1237,15 +1237,15 @@ QUnit.module('path', function(hooks) {
                 } catch (e) {
                     error = e;
                 }
-                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with an index out of range.');
+                assert.equal(error.message, 'Index out of range.', 'Should throw an error when called with an index out of range.');
 
                 try {
-                    path = new g.Path();
+                    path = new g.Path(g.Path.createSegment('M', 100, 100));
                     segment = path.getSegment(-2);
                 } catch (e) {
                     error = e;
                 }
-                assert.ok(typeof error !== 'undefined', 'Should throw an error when called with a negative index out of range.');
+                assert.equal(error.message, 'Index out of range.', 'Should throw an error when called with a negative index out of range.');
 
                 path = new g.Path([
                     g.Path.createSegment('M', 100, 100),
