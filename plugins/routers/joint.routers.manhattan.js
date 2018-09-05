@@ -743,12 +743,14 @@ joint.routers.manhattan = (function(g, joint, util) {
 
         // find a route by concatenating all partial routes (routes need to pass through vertices)
         // source -> vertex[1] -> ... -> vertex[n] -> target
+        var to, from;
+
         for (var i = 0, len = oldVertices.length; i <= len; i++) {
 
             var partialRoute = null;
 
-            var from = to || sourceBBox;
-            var to = oldVertices[i];
+            from = to || sourceBBox;
+            to = oldVertices[i];
 
             if (!to) {
                 // this is the last iteration
