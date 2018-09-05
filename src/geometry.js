@@ -3944,7 +3944,7 @@ var g = {};
                 side = 'top';
             }
             if (distToBottom < closest) {
-                closest = distToBottom;
+                // closest = distToBottom;
                 side = 'bottom';
             }
             return side;
