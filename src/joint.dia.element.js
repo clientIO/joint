@@ -973,8 +973,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             stopPropagation: true
         });
 
-        // var stopPropagation = this.eventData(evt).stopPropagation;
-        // if (stopPropagation) evt.stopPropagation();
+        if (this.paper.options.magnetThreshold === 0) {
+            this.dragMagnetStart(evt, x, y);
+        }
+
         this.paper.delegateDragEvents(this, evt.data);
     },
 
@@ -1068,8 +1070,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var currentTarget = evt.target;
         if (linkView) {
             linkView.pointermove(evt, x, y);
-        } else if (targetMagnet !== currentTarget && !V(targetMagnet).contains(currentTarget)) {
-            this.dragMagnetStart(evt, x, y);
+        } else {
+            var paper = this.paper;
+            var magnetThreshold = paper.options.magnetThreshold;
+            var startDragging = false;
+            if (magnetThreshold === 'leave') {
+                startDragging = (targetMagnet !== currentTarget && !V(targetMagnet).contains(currentTarget));
+            } else {
+                var paperData = paper.eventData(evt);
+                startDragging = (paperData.mousemoved > magnetThreshold);
+            }
+            if (startDragging) {
+                this.dragMagnetStart(evt, x, y);
+            }
         }
     },
 
@@ -1092,8 +1105,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             var paper = this.paper;
             var paperData = paper.eventData(evt);
             if (paperData.mousemoved <= paper.options.clickThreshold) {
-//                this.paper.eventData(evt, { preventClick: true });
-                this.notify('magnet:pointerclick', evt, x, y);
+                this.notify('element:magnet:pointerclick', evt, x, y);
             }
         }
     }
