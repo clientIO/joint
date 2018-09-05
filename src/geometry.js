@@ -1915,7 +1915,7 @@ var g = {};
 
             var segments = this.segments;
             var numSegments = segments.length;
-            if (!numSegments === 0) throw new Error('Path has no segments.');
+            if (numSegments === 0) throw new Error('Path has no segments.');
 
             if (index < 0) index = numSegments + index; // convert negative indices to positive
             if (index >= numSegments || index < 0) throw new Error('Index out of range.');
@@ -3582,7 +3582,7 @@ var g = {};
 
             if (!angle) return this.clone();
 
-            var theta = toRad(angle || 0);
+            var theta = toRad(angle);
             var st = abs(sin(theta));
             var ct = abs(cos(theta));
             var w = this.width * ct + this.height * st;

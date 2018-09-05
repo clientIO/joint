@@ -1260,7 +1260,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // `nodesAttrs` are different from all attributes, when
         // rendering only  attributes sent to this method.
         var nodesAllAttrs = (roAttrs)
-            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
+            ? this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
             : nodesAttrs;
 
         for (var nodeId in nodesAttrs) {
