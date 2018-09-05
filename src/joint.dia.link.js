@@ -2533,7 +2533,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var closestView = data.closestView;
         var closestMagnet = data.closestMagnet;
         var endType = data.arrowhead;
-        var newClosestMagnet = prevClosestMagnet !== closestMagnet;
+        var newClosestMagnet = (prevClosestMagnet !== closestMagnet);
         if (prevClosestView && newClosestMagnet) {
             prevClosestView.unhighlight(prevClosestMagnet, {
                 connecting: true,
