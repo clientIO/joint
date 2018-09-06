@@ -154,12 +154,12 @@ joint.routers.manhattan = (function(g, joint, util) {
 
         var source = graph.getCell(link.get('source').id);
         if (source) {
-            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id }));
+            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id; }));
         }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
-            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
+            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id; }));
         }
 
         // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
@@ -172,7 +172,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         graph.getElements().reduce(function(map, element) {
 
             var isExcludedType = util.toArray(opt.excludeTypes).includes(element.get('type'));
-            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id });
+            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id; });
             var isExcludedAncestor = excludedAncestors.includes(element.id);
 
             var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
@@ -324,7 +324,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         var diffY = end.y - start.y;
 
         var gridStepsX = diffX / grid.x;
-        var gridStepsY = diffY / grid.y
+        var gridStepsY = diffY / grid.y;
 
         var distanceX = gridStepsX * step;
         var distanceY = gridStepsY * step;
@@ -358,7 +358,7 @@ joint.routers.manhattan = (function(g, joint, util) {
             source: source.clone(),
             x: getGridDimension(target.x - source.x, step),
             y: getGridDimension(target.y - source.y, step)
-        }
+        };
     }
 
     // helper function for getGrid()

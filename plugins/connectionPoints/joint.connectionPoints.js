@@ -3,7 +3,7 @@
     function closestIntersection(intersections, refPoint) {
 
         if (intersections.length === 1) return intersections[0];
-        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint) })[0];
+        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint); })[0];
     }
 
     function offset(p1, p2, offset) {
@@ -80,7 +80,7 @@
                 } else if (tagName === 'TITLE') {
                     node = node.nextSibling;
                 } else break;
-            } while (node)
+            } while (node);
         }
 
         if (!(node instanceof Element)) return anchor;
@@ -102,14 +102,14 @@
         }
 
         // Caching segment subdivisions for paths
-        var pathOpt
+        var pathOpt;
         if (localShape instanceof g.Path) {
             var precision = opt.precision || 2;
             if (!data[BNDR_SUBDIVISIONS]) data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision });
             pathOpt = {
                 precision: precision,
                 segmentSubdivisions: data[BNDR_SUBDIVISIONS]
-            }
+            };
         }
 
         if (opt.extrapolate === true) localLine.setLength(1e6);
@@ -141,6 +141,6 @@
         bbox: bboxIntersection,
         rectangle: rectangleIntersection,
         boundary: boundaryIntersection
-    }
+    };
 
 })(joint, joint.util, g, V);

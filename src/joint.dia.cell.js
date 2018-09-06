@@ -462,7 +462,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 if (isString) {
                     path = props;
-                    pathArray = path.split('/')
+                    pathArray = path.split('/');
                 } else {
                     path = props.join(delim);
                     pathArray = props.slice();
@@ -1001,7 +1001,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             if (node === this.el) return null;
             var currentNode = node.parentNode;
             while (currentNode && currentNode !== this.el && currentNode.nodeType === 1) {
-                attributeValue = currentNode.getAttribute(attributeName)
+                attributeValue = currentNode.getAttribute(attributeName);
                 if (attributeValue !== null) break;
                 currentNode = currentNode.parentNode;
             }

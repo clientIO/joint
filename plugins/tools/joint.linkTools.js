@@ -152,7 +152,7 @@
             return {
                 prev: new g.Point(prev),
                 next: new g.Point(next)
-            }
+            };
         },
         onHandleWillChange: function(handle, evt) {
             this.focus();
@@ -495,7 +495,7 @@
             var handles = this.handles;
             if (!Array.isArray(handles)) return;
             for (var i = 0, n = handles.length; i < n; i++) {
-                if (i !== index) handles[i].hide()
+                if (i !== index) handles[i].hide();
             }
             this.focus();
             var relatedView = this.relatedView;
@@ -526,7 +526,7 @@
                 if (length < this.options.segmentLengthThreshold) {
                     handle.hide();
                 } else {
-                    var position = segmentLine.midpoint()
+                    var position = segmentLine.midpoint();
                     var axis = (vertical) ? 'x' : 'y';
                     position[axis] += offset || 0;
                     var angle = segmentLine.vector().vectorAngle(new g.Point(1, 0));
@@ -560,7 +560,7 @@
             touchend: 'onPointerUp'
         },
         onRender: function() {
-            this.update()
+            this.update();
         },
         update: function() {
             var ratio = this.ratio;
@@ -648,7 +648,7 @@
         },
         onRender: function() {
             this.renderChildren(this.options.markup);
-            this.update()
+            this.update();
         },
         update: function() {
             var tangent, position, angle;
@@ -656,7 +656,7 @@
             if (util.isPercentage(distance)) {
                 tangent = this.relatedView.getTangentAtRatio(parseFloat(distance) / 100);
             } else {
-                tangent = this.relatedView.getTangentAtLength(distance)
+                tangent = this.relatedView.getTangentAtLength(distance);
             }
             if (tangent) {
                 position = tangent.start;
@@ -841,7 +841,7 @@
             areaNode.setAttribute('width', bbox.width);
             areaNode.setAttribute('height', bbox.height);
             var origin = view.model.getBBox().center();
-            var center = bbox.center().rotate(origin, -angle)
+            var center = bbox.center().rotate(origin, -angle);
             areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle +')');
         },
         toggleArea: function(visible) {

@@ -32,13 +32,13 @@
             };
 
             return end;
-        }
+        };
     }
 
     joint.connectionStrategies = {
         useDefaults: util.noop,
         pinAbsolute: pin(false),
         pinRelative: pin(true)
-    }
+    };
 
 })(joint, joint.util);

@@ -233,7 +233,7 @@ QUnit.module('point', function() {
 
             QUnit.test('returns the angle between vectors p0@p1 and p0@p2', function(assert) {
 
-                var p0 = new g.Point(1, 2)
+                var p0 = new g.Point(1, 2);
                 var p1 = new g.Point(2, 4);
                 var p2 = new g.Point(4, 3);
 
@@ -252,12 +252,12 @@ QUnit.module('point', function() {
             QUnit.test('returns the angle between vectors zero@p0 and zero@p', function(assert) {
 
                 var p0 = new g.Point(1, 2);
-                var p = new g.Point(3, 1)
+                var p = new g.Point(3, 1);
                 var zero = new g.Point(0, 0);
 
                 var PRECISION = 10;
 
-                assert.equal(zero.vectorAngle(zero).toString(), 'NaN')
+                assert.equal(zero.vectorAngle(zero).toString(), 'NaN');
                 assert.equal(p0.vectorAngle(zero).toString(), 'NaN');
                 assert.equal(p.vectorAngle(zero).toString(), 'NaN');
                 assert.equal(zero.vectorAngle(p0).toString(), 'NaN');
@@ -318,7 +318,7 @@ QUnit.module('point', function() {
 
             QUnit.test('returns the left-handed cross product of vectors p0@p1 and p0@p2', function(assert) {
 
-                var p0 = new g.Point(3, 15)
+                var p0 = new g.Point(3, 15);
                 var p1 = new g.Point(4, 17);
                 var p2 = new g.Point(2, 10);
 
@@ -334,7 +334,7 @@ QUnit.module('point', function() {
 
             QUnit.test('returns the linear interpolation of vector p0@p1 at parameter t', function(assert) {
 
-                var p0 = new g.Point(10, 20)
+                var p0 = new g.Point(10, 20);
                 var p1 = new g.Point(30, 40);
 
                 assert.equal(p0.lerp(p1, 0).toString(), '10@20');

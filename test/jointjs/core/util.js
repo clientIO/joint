@@ -778,7 +778,7 @@ QUnit.module('util', function(hooks) {
                 assert.throws(function() {
                     joint.util.getElementBBox();
                 });
-            })
+            });
         });
 
         QUnit.module('svg', function(hooks) {

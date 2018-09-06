@@ -371,7 +371,7 @@ QUnit.module('line', function() {
                     assert.equal(line.pointOffset('50@0'), 0);
                     assert.equal(line.pointOffset('50@10'), 10);
                     assert.equal(line.pointOffset('50@-10'), -10);
-                })
+                });
             });
         });
 

@@ -57,7 +57,7 @@ QUnit.module('element ports', function() {
             var eventOrder = ['ports:add', 'change:ports', 'change'];
 
             shape.on('all', function(eventName) {
-                assert.equal(eventName, eventOrder.shift())
+                assert.equal(eventName, eventOrder.shift());
             });
 
             shape.addPort({ id: 'a' });
@@ -72,7 +72,7 @@ QUnit.module('element ports', function() {
 
             var eventOrder = ['ports:remove', 'change:ports', 'change'];
             shape.on('all', function(eventName) {
-                assert.equal(eventName, eventOrder.shift())
+                assert.equal(eventName, eventOrder.shift());
             });
 
             shape.removePort(shape.getPort('aaa'));
@@ -86,7 +86,7 @@ QUnit.module('element ports', function() {
 
             var eventOrder = ['ports:remove', 'change:ports', 'change'];
             shape.on('all', function(eventName) {
-                assert.equal(eventName, eventOrder.shift())
+                assert.equal(eventName, eventOrder.shift());
             });
 
             shape.removePort('aaa');
@@ -116,7 +116,7 @@ QUnit.module('element ports', function() {
             var eventOrder = ['ports:remove', 'change:ports', 'change'];
 
             shape.on('all', function(eventName) {
-                assert.equal(eventName, eventOrder.shift())
+                assert.equal(eventName, eventOrder.shift());
             });
 
             shape.removePorts([{ id: 'aaa' }, { id: 'bbb' }]);
@@ -135,7 +135,7 @@ QUnit.module('element ports', function() {
             var eventOrder = ['ports:remove', 'change:ports', 'change'];
 
             shape.on('all', function(eventName) {
-                assert.equal(eventName, eventOrder.shift())
+                assert.equal(eventName, eventOrder.shift());
             });
 
             shape.removePorts([{ id: 'aaa' }, { id: 'ddd' }]);
@@ -155,7 +155,7 @@ QUnit.module('element ports', function() {
             var eventOrder = ['ports:remove', 'change:ports', 'change'];
 
             shape.on('all', function(eventName) {
-                assert.equal(eventName, eventOrder.shift())
+                assert.equal(eventName, eventOrder.shift());
             });
 
             shape.removePorts();
@@ -692,7 +692,7 @@ QUnit.module('element ports', function() {
 
             assert.ok(_.isPlainObject(shape.portProp('one', 'object')));
             assert.equal(shape.portProp('one', 'object/20'), 'object property');
-        })
+        });
     });
 
     QUnit.module('event ports:add and ports:remove', function(hooks) {
@@ -714,7 +714,7 @@ QUnit.module('element ports', function() {
                 done();
             });
 
-            shape.addPort({ id: 'a' })
+            shape.addPort({ id: 'a' });
         });
 
         QUnit.test('rewrite', function(assert) {
@@ -803,5 +803,5 @@ QUnit.module('element ports', function() {
 
             shape.addPorts([{ id: 'x' }, { id: 'y' }]);
         });
-    })
+    });
 });

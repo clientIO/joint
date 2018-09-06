@@ -691,7 +691,7 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
-        })
+        });
 
         QUnit.test('closepath', function(assert) {
 

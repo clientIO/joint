@@ -4875,6 +4875,6 @@ var g = {};
 
         if (typeof data !== 'string') return false;
         return this.regexSupportedData.test(data);
-    }
+    };
 
 })(g);

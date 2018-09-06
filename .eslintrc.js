@@ -9,6 +9,7 @@ module.exports = {
         'no-undef': ['error'],
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         'quotes': ['error', 'single'],
+        'semi': ['error', 'always']
     },
     'env': {
         'browser': true,

@@ -802,7 +802,7 @@ var joint = {
 
             var $el = $(el);
             if ($el.length === 0) {
-                throw new Error('Element not found')
+                throw new Error('Element not found');
             }
 
             var element = $el[0];
@@ -1642,7 +1642,7 @@ var joint = {
             return {
                 fragment: fragment,
                 selectors: selectors
-            }
+            };
         },
 
         /* global _:true */
@@ -1713,7 +1713,7 @@ var joint = {
                     }
                 });
 
-                return _.mergeWith.apply(this, args)
+                return _.mergeWith.apply(this, args);
             }
             return _.merge.apply(this, arguments);
         },
