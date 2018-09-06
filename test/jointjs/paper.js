@@ -606,7 +606,7 @@ QUnit.module('paper', function(hooks) {
             paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
         });
 
-        QUnit.test('magnetThreshold: "onleave"', function(assert) {
+        QUnit.test('magnetThreshold: string ("onleave")', function(assert) {
 
             var graph = this.graph;
             var paper = this.paper;
