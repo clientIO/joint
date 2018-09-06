@@ -995,7 +995,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var magnet = evt.currentTarget;
 
         if (this.paper.options.magnetThreshold <= 0) {
-            this.addLinkFromMagnet(evt, magnet, x, y);
+            this.dragLinkStart(evt, magnet, x, y);
         }
 
         this.eventData(evt, {
@@ -1007,9 +1007,21 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this.paper.delegateDragEvents(this, evt.data);
     },
 
-    addLinkFromMagnet: function(evt, magnet, x, y) {
+    dragLinkStart: function(evt, magnet, x, y) {
 
         this.model.startBatch('add-link');
+
+        var linkView = this.addLinkFromMagnet(magnet, x, y);
+
+        // backwards compatiblity events
+        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        linkView.notify('link:pointerdown', evt, x, y);
+
+        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
+        this.eventData(evt, { linkView: linkView });
+    },
+
+    addLinkFromMagnet: function(magnet, x, y) {
 
         var paper = this.paper;
         var graph = paper.model;
@@ -1023,15 +1035,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
             ui: true
         });
 
-        var linkView = link.findView(paper);
-
-        // backwards compatiblity events
-        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
-        linkView.notify('link:pointerdown', evt, x, y);
-
-        var linkViewData = linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
-        linkView.eventData(evt, linkViewData);
-        this.eventData(evt, { linkView: linkView });
+        return link.findView(paper);
     },
 
     // Drag Handlers
@@ -1088,7 +1092,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
                 // magnetThreshold defined as a number of movements
                 if (paper.eventData(evt).mousemoved <= magnetThreshold) return;
             }
-            this.addLinkFromMagnet(evt, targetMagnet, x, y);
+            this.dragLinkStart(evt, targetMagnet, x, y);
         }
     },
 

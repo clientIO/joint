@@ -645,6 +645,10 @@ export namespace dia {
         protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLinkStart(evt: JQuery.Event, magnet: SVGElement, x: number, y: number): void;
+
+        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
     }
 
     // dia.LinkView
@@ -839,6 +843,7 @@ export namespace dia {
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
             moveThreshold?: number;
+            magnetThreshold?: number | string;
             // views
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
