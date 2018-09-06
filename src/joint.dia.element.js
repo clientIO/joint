@@ -705,7 +705,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
         var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
-        if (rotation && rotation !== null) {
+        if (rotation) {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
             var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
