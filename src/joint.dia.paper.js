@@ -152,7 +152,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         moveThreshold: 0,
 
         // Number of required mousemove events before the a link is created out of the magnet.
-        // Or string `leave` so the link is created when the pointer leaves the magnet
+        // Or string `onleave` so the link is created when the pointer leaves the magnet
         magnetThreshold: 0,
 
         // The namespace, where all the cell views are defined.
@@ -1210,7 +1210,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var data = this.eventData(evt);
         // Trigger event only if mouse has not moved.
-        if (!data.preventClick && data.mousemoved <= this.options.clickThreshold) {
+        if (data.mousemoved <= this.options.clickThreshold) {
 
             evt = joint.util.normalizeEvent(evt);
 
