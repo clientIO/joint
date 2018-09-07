@@ -27,13 +27,13 @@ QUnit.module('Attributes', function() {
         var WIDTH = 85;
         var HEIGHT = 97;
 
-        var paper, graph, cell, cellView, node, refBBox
+        var paper, graph, cell, cellView, node, refBBox;
         var ns = joint.dia.attributes;
 
         hooks.beforeEach(function() {
             graph = new joint.dia.Graph;
             paper = new joint.dia.Paper({ model: graph });
-            cell = new joint.shapes.standard.Rectangle()
+            cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
             cellView = cell.findView(paper);
             refBBox = new g.Rect(0, 0, WIDTH, HEIGHT);

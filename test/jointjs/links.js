@@ -125,7 +125,7 @@ QUnit.module('links', function(hooks) {
             r1 = new joint.shapes.standard.Rectangle;
             r1.position(0, 0);
             r1.size(100, 100);
-            r1.addPort({ id: 'port', attrs: { circle: { magnet: true }}})
+            r1.addPort({ id: 'port', attrs: { circle: { magnet: true }}});
             r2 = r1.clone();
             r2.translate(200);
             l0 = new joint.shapes.standard.Link;

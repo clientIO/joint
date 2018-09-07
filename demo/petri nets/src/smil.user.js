@@ -1,7 +1,7 @@
 /*
 @id {7eeff186-cfb4-f7c3-21f2-a15f210dca49}
 @name FakeSmile
-@version 0.1.52
+@version 0.3.0
 @description SMIL implementation in ECMAScript
 @creator David Leunen (leunen.d@gmail.com)
 @homepageURL http://leunen.me/fakesmile/
@@ -13,7 +13,7 @@
 // @namespace svg.smil
 // ==/UserScript==
 
-/* MIT and GPL Licenses */
+/* MIT or GPLv3 Licenses */
 
 /*
 Copyright 2008 David Leunen
@@ -21,16 +21,20 @@ Copyright 2012 Helder Magalhaes
 */
 
 /**
- * Milliseconds Per Frame - relation between smoothness and CPU usage:
- * 40 for 25fps ("cine"-look, low CPU usage);
- * 33 for ~30fps (mild resources usage, best for most LCD displays);
- * 25 for 40fps (smoother animation, higher CPU usage);
- * 17 for ~60fps (high CPU usage, not recommended).
+ * Milliseconds Per Frame - relation between animation smoothness and resources usage:
+ * 83 for ~12fps (standard quality web animation; low CPU usage; slightly jumpy; recommended for discrete or slow-motion animations);
+ * 67 for ~15fps (high quality web animation; reasonable resources usage; recommended for most use-cases);
+ * 40 for  25fps ("cine"-look; recommended for good quality animations on television systems);
+ * 33 for ~30fps (half LCD refresh rate; recommended for high quality animations on desktop systems);
+ * 25 for  40fps (very smooth animation; recommended for high quality animations on dedicated desktop systems);
+ * 17 for ~60fps (LCD refresh rate; high CPU and system overhead; only recommended for very high quality animations running on high-end systems).
+ * Lower values are *not* recommended - may cause an overall negative impact on the Operating System and a relevant energy consumption increase!
  * References:
+ * http://animation.about.com/od/faqs/f/faq_fpsnumber.htm
  * http://en.wikipedia.org/wiki/Frame_rate#Frame_rates_in_film_and_television
- * http://knol.google.com/k/refresh-rate-frames-per-second-and-response-times-in-lcd-and-crt-technologies
+ * https://www.nczonline.net/blog/2011/12/14/timer-resolution-in-browsers/
  */
-var mpf = 33;
+var mpf = 67;
 var splinePrecision = 25;
 
 var svgns="http://www.w3.org/2000/svg";
@@ -44,7 +48,9 @@ var xlinkns="http://www.w3.org/1999/xlink";
 var animators = new Array(); // all animators
 var id2anim = new Object(); // id -> animation elements (workaround a Gecko bug)
 var animations = new Array(); // running animators
-var timeZero;
+var timeZero; // timeline start-up timestamp
+var prevTime; // previous render timestamp
+var animTimer; // render loop timer id, when active
 
 /**
  * If declarative animations are not supported,
@@ -57,13 +63,12 @@ function initSMIL() {
 	smile(document);
 
 	timeZero = new Date();
-	// I schedule them (after having instanciating them, for sync-based events)
+	prevTime = new Date(0); // not yet rendered
+
+	// I schedule them (after having instantiating them, for sync-based events)
 	// (it doesn't work either: first 0s animation don't trigger begin event to the following -> make it asynchronous)
 	for (var i=0, j=animators.length; i<j; ++i)
 		animators[i].register();
-
-	// starts the rendering loop
-	window.setInterval(animate, mpf);
 }
 
 function getURLCallback(data) {
@@ -78,54 +83,109 @@ function xhrCallback() {
 
 function smile(animating) {
 	var request = null;
+	var src = null;
+
+	var impl = document.implementation;
+	// namespace-to-process cache
+	// ("process" in the sense of "feature check states that support by script is needed")
+	// (map is initialized this way to avoid variables names being picked up as key instead of their value)
+	var ns2proc = {};
+	// NOTE: feature strings are broken in ASV - apparently only declarative switch declarations work
+	// (we have already filter this implementation, though, during the loading phase)
+	// http://tech.groups.yahoo.com/group/svg-developers/message/61236
+	ns2proc[svgns] = !impl.hasFeature("http://www.w3.org/TR/SVG11/feature#Animation", "1.1"); //&& !impl.hasFeature("org.w3c.svg.animation", "1.0");
+	ns2proc[smilanimns] = !impl.hasFeature(smilanimns, "1.1");
+	ns2proc[smil2ns] = !impl.hasFeature(smil2ns, "2.0");
+	ns2proc[smil21ns] = !impl.hasFeature(smil21ns, "2.1");
+	ns2proc[smil3ns] = !impl.hasFeature(smil3ns, "3.0");
+	ns2proc[timesheetns] = !impl.hasFeature(timesheetns, "1.0");
+
 	var animates = animating.getElementsByTagName("*");
 	for (var i=0, j=animates.length; i<j; ++i) {
 		var anim = animates.item(i);
-		var namespaceURI = anim.namespaceURI;
 		var nodeName = anim.localName;
-		if ((nodeName.toLowerCase()=="link" && anim.getAttribute("rel")=="timesheet" && anim.getAttribute("type")=="application/smil+xml") ||
-				((namespaceURI==timesheetns || namespaceURI==smil3ns) && nodeName=="timesheet") ) {
-			var src = anim.getAttribute(nodeName=="timesheet"?"src":"href");
-			if (src && src.length > 0) {
-				if (!request){
-					// lazy initialization of XHR
-					request = window.XMLHttpRequest ? new XMLHttpRequest() : window.ActiveXObject ? new ActiveXObject("MSXML2.XMLHTTP.3.0") : null;
-					if (request) {
-						if (request.overrideMimeType)
-							request.overrideMimeType('text/xml');
-						request.onreadystatechange = xhrCallback;
-					}
+		var namespaceURI = anim.namespaceURI;
+
+		switch (nodeName.length) {
+			case 4: // "link".length
+				if ((nodeName=="link" || nodeName=="LINK") && anim.getAttribute("rel")=="timesheet" && anim.getAttribute("type")=="application/smil+xml") {
+					src = anim.getAttribute("src");
+					if (src)
+						break;
 				}
+				continue;
+			case 9: // "timesheet".length
+				if (nodeName=="timesheet" && ns2proc[anim.namespaceURI]) {
+					src = anim.getAttribute("href");
+					if (src)
+						break;
+				}
+				continue;
+			case 3: // "set".length
+				if (nodeName=="set") {
+					break;
+				}
+				continue;
+			case 7: // "animate".length
+				if (nodeName=="animate") {
+					break;
+				}
+				continue;
+			case 12: // "animateColor".length
+				if (nodeName=="animateColor") {
+					break;
+				}
+				continue;
+			case 13: // "animateMotion".length
+				if (nodeName=="animateMotion") {
+					break;
+				}
+				continue;
+			case 16: // "animateTransform".length
+				if (nodeName=="animateTransform") {
+					break;
+				}
+				continue;
+			default:
+				continue;
+		}
+
+		// deal with external timesheets
+		if (src && src.length > 0) {
+			if (!request){
+				// lazy initialization of XHR
+				request = window.XMLHttpRequest ? new XMLHttpRequest() : window.ActiveXObject ? new ActiveXObject("MSXML2.XMLHTTP.3.0") : null;
 				if (request) {
-					request.open("GET", src, false);
-					request.send(null);
-				} else if (window.getURL && window.parseXML) {
-					getURL(src, getURLCallback);
+					if (request.overrideMimeType)
+						request.overrideMimeType('text/xml');
+					request.onreadystatechange = xhrCallback;
 				}
 			}
+			if (request) {
+				request.open("GET", src, false);
+				request.send(null);
+			} else if (window.getURL && window.parseXML) {
+				getURL(src, getURLCallback);
+			}
+			// reset variable
+			src = null;
 			continue;
 		}
-		var impl = document.implementation;
-		if ((namespaceURI==svgns && !impl.hasFeature("http://www.w3.org/TR/SVG11/feature#Animation", "1.1")) ||
-				(namespaceURI==smilanimns && !impl.hasFeature(smilanimns, "1.1")) ||
-				(namespaceURI==smil2ns && !impl.hasFeature(smil2ns, "2.0")) ||
-				(namespaceURI==smil21ns && !impl.hasFeature(smil21ns, "2.1")) ||
-				(namespaceURI==smil3ns && !impl.hasFeature(smil3ns, "3.0")) ||
-				(namespaceURI==timesheetns && !impl.hasFeature(timesheetns, "1.0"))) {
-			if (nodeName=="set" || nodeName=="animate" || nodeName=="animateColor" || nodeName=="animateMotion" || nodeName=="animateTransform") {
-				var targets = getTargets(anim);
-				var elAnimators = new Array();
-				for (var k=0; k<targets.length; ++k) {
-					var target = targets[k];
-					var animator = new Animator(anim, target, k);
-					animators.push(animator);
-					elAnimators[k] = animator;
-				}
-				anim.animators = elAnimators;
-				var id = anim.getAttribute("id");
-				if (id)
-					id2anim[id] = anim;
+
+		// deal with animations
+		if (ns2proc[anim.namespaceURI]) {
+			var targets = getTargets(anim);
+			var elAnimators = new Array();
+			for (var k=0; k<targets.length; ++k) {
+				var target = targets[k];
+				var animator = new Animator(anim, target, k);
+				animators.push(animator);
+				elAnimators[k] = animator;
 			}
+			anim.animators = elAnimators;
+			var id = anim.getAttribute("id");
+			if (id)
+				id2anim[id] = anim;
 		}
 	}
 }
@@ -186,10 +246,11 @@ Animator.prototype = {
 	 */
 	register : function() {
 		var begin = this.anim.getAttribute("begin");
-		if (!begin)
-			begin = "0";
-		this.schedule(begin, this.begin);
-		var end	= this.anim.getAttribute("end");
+		if (begin)
+			this.schedule(begin, this.begin);
+		else
+			this.begin(0);
+		var end = this.anim.getAttribute("end");
 		if (end)
 			this.schedule(end, this.finish);
 	},
@@ -205,9 +266,11 @@ Animator.prototype = {
 			if (time.length>11 && time.substring(0,10)=="wallclock(") {
 				var wallclock = new Date();
 				wallclock.setISO8601(time.substring(10,time.length-1));
-				var now = new Date();
-				var diff = wallclock-now;
-				func.call(me, diff);
+				if (!isNaN(wallclock.getTime())) {
+					var now = new Date();
+					var diff = wallclock-now;
+					func.call(me, diff);
+				}
 			} else if (isNaN(parseInt(time))) {
 				var offset = 0;
 				var io = time.indexOf("+");
@@ -218,7 +281,7 @@ Animator.prototype = {
 					time = time.substring(0, io).trim();
 				}
 				io = time.indexOf(".");
-				var elements = new Array();
+				var elements;
 				if (io==-1) {
 					elements = [this.target];
 				} else {
@@ -244,7 +307,7 @@ Animator.prototype = {
 
 	/**
 	 * Remembers the initial value of the animated attribute.
-	 * This function is overriden.
+	 * This function is overridden.
 	 */
 	getCurVal : function() {
 		if (this.attributeType=="CSS") {
@@ -269,7 +332,7 @@ Animator.prototype = {
 			return;
 		if (this.running)
 			this.finish();
-		if (offset!=null && offset>=0) {
+		if (offset && offset>0) {
 			var me = this;
 			var myself = this.begin;
 			var call = function() {myself.call(me)};
@@ -313,8 +376,8 @@ Animator.prototype = {
 			this.freezed = this.animVals[this.animVals.length-1];
 
 			if (this.animVals[0]) {
-				if ( (this.animVals[0].substring(0,1)=="#" || colors[this.animVals[0]] || (this.animVals[0].length>5 && this.animVals[0].trim().substring(0,4)=="rgb(")) &&
-					 (this.freezed.substring(0,1)=="#" || colors[this.freezed] || (this.freezed.length>5 && this.freezed.trim().substring(0,4)=="rgb(")) )
+				if ( (this.animVals[0][0]=="#" || colors[this.animVals[0]] || (this.animVals[0].length>5 && this.animVals[0].trim().substring(0,4)=="rgb(")) &&
+					 (this.freezed[0]=="#" || colors[this.freezed] || (this.freezed.length>5 && this.freezed.trim().substring(0,4)=="rgb(")) )
 					this.color();
 				else {
 					var cp = new Array();
@@ -339,6 +402,13 @@ Animator.prototype = {
 
 		this.iterBegin = this.startTime;
 		animations.push(this);
+		// if this is the first running animator, start the rendering loop
+		if (!animTimer) {
+			// asynchronous to render all animators, listeners, etc. starting at this frame
+			window.setTimeout(animate, 0);
+			// schedules the rendering loop
+			animTimer = window.setInterval(animate, mpf);
+		}
 		for (var i=0; i<this.beginListeners.length; ++i)
 			this.beginListeners[i].call();
 		var onbegin = this.anim.getAttribute("onbegin");
@@ -347,7 +417,7 @@ Animator.prototype = {
 	},
 
 	/**
-	 * This function is overriden for multiple values attributes (scale, rotate, translate).
+	 * This function is overridden for multiple values attributes (scale, rotate, translate).
 	 */
 	normalize : function(value) {
 		return value;
@@ -361,42 +431,39 @@ Animator.prototype = {
 	},
 
 	/**
-	 * Computes and apply the animated value for a given time.
-	 * It returns false if this animation has been stopped (removed from the running array).
+	 * Computes and applies the animated value for a given time.
+	 * Returns false if this animation has been stopped (removed from the running array).
 	 */
 	f : function(curTime) {
-		var anim = this.anim;
-
 		var dur = this.computedDur;
 		if (isNaN(dur))
 			return true;
 
 		var beginTime = this.iterBegin;
-
 		var diff = curTime-beginTime;
 		var percent = diff/dur;
 		if (percent>=1)
-			return this.end();
+			return this.end(curTime);
 
-		var iteration = parseFloat(this.iteration);
+		var iteration = this.iteration;
 		if (this.repeatCount && this.repeatCount!="indefinite" && (iteration+percent)>=this.repeatCount) {
 			if (this.fill=="freeze")
 				this.freezed = this.valueAt(this.repeatCount-iteration);
-			return this.end();
+			return this.end(curTime);
 		}
 		if (this.repeatDur && this.repeatDur!="indefinite" && (curTime-this.startTime)>=toMillis(this.repeatDur)) {
 			if (this.fill=="freeze") {
 				var div = toMillis(this.repeatDur)/dur;
 				this.freezed = this.valueAt(div-Math.floor(div));
 			}
-			return this.end();
+			return this.end(curTime);
 		}
 
+		var anim = this.anim;
 		if (anim.localName=="set")
 			return true;
 
 		var curVal = this.valueAt(percent);
-
 		this.step(curVal);
 		return true;
 	},
@@ -439,6 +506,8 @@ Animator.prototype = {
 						percent = (percent-t1)/(this.keyTimes[i]-t1);
 						break;
 					}
+				if (i>=this.keyTimes.length)
+					index = i-2;
 			} else {
 				var parts = tValues.length-1;
 				index = Math.floor(percent*parts);
@@ -471,8 +540,8 @@ Animator.prototype = {
 	},
 
 	/**
-	 * Does the interpolation.
-	 * This function is overriden.
+	 * Performs the interpolation.
+	 * This function is overridden.
 	 */
 	interpolate : function(from, to, percent) {
 		if (!this.isInterpolable(from, to)) {
@@ -494,19 +563,21 @@ Animator.prototype = {
 
 	/**
 	 * Apply a value to the attribute the animator is linked to.
-	 * This function is overriden.
+	 * This function is overridden.
 	 */
 	step : function(value) {
-		if (this.unit)
-			value += this.unit;
 		var attributeName = this.attributeName;
 		var attributeType = this.attributeType;
 		if (attributeType=="CSS") {
 			// workaround a Gecko and WebKit bug
 			if (attributeName=="font-size" && !isNaN(value))
 				value += "px";
+			else if (this.unit)
+				value += this.unit;
 			this.target.style.setProperty(attributeName, value, "");
 		} else {
+			if (this.unit)
+				value += this.unit;
 			//var animAtt = this.target[attributeName];
 			//if (animAtt && animAtt.animVal)
 			//	animAtt.animVal.value = value;
@@ -517,14 +588,13 @@ Animator.prototype = {
 
 	/**
 	 * Normal end of the animation:
-	 * it restarts if repeatCount
+	 * it restarts if repeatCount.
 	 */
-	end : function() {
+	end : function(now) {
 		if (!this.repeatCount && !this.repeatDur)
 			return this.finish();
 		else {
 			++this.iteration;
-			var now = new Date();
 			if (this.repeatCount && this.repeatCount!="indefinite" && this.iteration>=this.repeatCount)
 				return this.finish();
 			else if (this.repeatDur && this.repeatDur!="indefinite" && (now-this.startTime)>=toMillis(this.repeatDur))
@@ -564,7 +634,7 @@ Animator.prototype = {
 	finish : function(offset) {
 		if (this.min && this.min!="indefinite") {
 			var now = new Date();
-			if ((now-this.startTime)>=toMillis(this.min))
+			if ((now-this.startTime)>=this.computedMin)
 				return true;
 		}
 		if (offset && offset>0) {
@@ -608,6 +678,11 @@ Animator.prototype = {
 		for (var i=0, j=animations.length; i<j; ++i)
 			if (animations[i]==this) {
 				animations.splice(i, 1);
+				// if this is the last running animator, stop the rendering loop
+				if (!animations.length && animTimer) {
+					window.clearInterval(animTimer);
+					animTimer = null;
+				}
 				break;
 			}
 	},
@@ -657,18 +732,19 @@ Animator.prototype = {
 	/**
 	 * Initializes this animator as a translation (x,y):
 	 * <animateTransform type="translate"> or
-	 * <animateMotion> without a path
+	 * <animateMotion> without a path.
 	 */
 	translation : function() {
 		if (this.by && this.by.indexOf(",")==-1)
 			this.by = this.by+",0";
 		this.normalize = function(value) {
 			var coords = value.replace(/,/g," ").replace(/ +/," ").split(/ /);
-			if (coords.length==1)
-				coords[1] = "0";
-				//coords[1] = this.initVal.split(",")[1];
 			coords[0] = parseFloat(coords[0]);
-			coords[1] = parseFloat(coords[1]);
+			if (coords.length==1)
+				coords[1] = 0;
+				//coords[1] = this.initVal.split(",")[1];
+			else
+				coords[1] = parseFloat(coords[1]);
 			return coords;
 		};
 		this.add = function(a, b) {
@@ -687,7 +763,7 @@ Animator.prototype = {
 	/**
 	 * Initializes this animator as a color animation:
 	 * <animateColor> or
-	 * <animate> on a color attribute
+	 * <animate> on a color attribute.
 	 */
 	color : function() {
 		this.isInterpolable = function(from, to) { return true; };
@@ -703,7 +779,7 @@ Animator.prototype = {
 			if (rgb==null)
 				return toRGB(propDefaults[this.attributeName]);
 			return rgb;
-		}
+		};
 		this.add = function(a, b) {
 			var ret = new Array();
 			for (var i=0; i<a.length; ++i)
@@ -718,29 +794,34 @@ Animator.prototype = {
 			var path = "";
 			var listFrom = from.myNormalizedPathSegList;
 			var listTo = to.myNormalizedPathSegList;
-			var segFrom;
-			var segTo;
-			for (var i=0; i<listFrom.numberOfItems && i<listTo.numberOfItems; ++i) {
+			var segFrom, segTo, typeFrom, typeTo;
+			for (var i=0, j=Math.min(listFrom.numberOfItems, listTo.numberOfItems); i<j; ++i) {
 				segFrom = listFrom.getItem(i);
 				segTo = listTo.getItem(i);
 				typeFrom = segFrom.pathSegType;
 				typeTo = segTo.pathSegType;
-				if (typeFrom==1 || typeTo==1)
+				// NOTE: in 'normalizedPathSegList', only 'M', 'L', 'C' and 'z' path data commands are expected
+				if (typeFrom==1 || typeTo==1) // PATHSEG_CLOSEPATH
 					path += " z ";
 				else {
 					var x = segFrom.x+((segTo.x-segFrom.x)*percent);
 					var y = segFrom.y+((segTo.y-segFrom.y)*percent);
-					if (typeFrom==2 || typeTo==2)
+					if (typeFrom==2 || typeTo==2) // PATHSEG_MOVETO_ABS
 						path += " M ";
-					else if (typeFrom==4 || typeTo==4)
+					else if (typeFrom==4 || typeTo==4) // PATHSEG_LINETO_ABS
 						path += " L ";
-					else {
+					// NOTE: need to be more strict here, as interpolating a 'C' command with an 'M' or an 'L' isn't yet supported
+					// (additional trickery is required for dealing with different DOM interfaces and interpolating them)
+					else if (typeFrom==6 && typeTo==6) { // PATHSEG_CURVETO_CUBIC_ABS
 						var x1 = segFrom.x1+((segTo.x1-segFrom.x1)*percent);
 						var y1 = segFrom.y1+((segTo.y1-segFrom.y1)*percent);
 						var x2 = segFrom.x2+((segTo.x2-segFrom.x2)*percent);
 						var y2 = segFrom.y2+((segTo.y2-segFrom.y2)*percent);
 						path += " C "+x1+","+y1+" "+x2+","+y2+" ";
-					}
+					} else
+						// "unexpected" type found, which means that 'pathSegList' is being used
+						// (incomplete support for segment interpolation therefore switch to a discrete approach)
+						return (percent<.5? from: to).getAttribute("d");
 					path += x+","+y;
 				}
 			}
@@ -802,7 +883,7 @@ function Animator(anim, target, index) {
 		this.interpolate = function(from, to, percent) {
 			var ret = new Array();
 			var xyFrom, xyTo, x, y;
-			for (var i=0; i<from.length && i<to.length; ++i) {
+			for (var i=0, j=Math.min(from.length, to.length); i<j; ++i) {
 				xyFrom = from[i].split(",");
 				xyTo = to[i].split(",");
 				x = parseFloat(xyFrom[0])+((parseFloat(xyTo[0])-xyFrom[0])*percent);
@@ -825,7 +906,7 @@ function Animator(anim, target, index) {
 	this.values = anim.getAttribute("values");
 	if (this.values) {
 		this.values = this.values.trim();
-		if (this.values.substring(this.values.length-1)==";")
+		if (this.values[this.values.length-1]==";")
 			this.values = this.values.substring(0, this.values.length-1);
 	}
 	this.calcMode = anim.getAttribute("calcMode");
@@ -932,7 +1013,6 @@ function Animator(anim, target, index) {
 			};
 		}
 		this.step = function(value) {
-			var attributeName = this.attributeName;
 			value = "translate("+value+")";
 			this.target.setAttribute("transform", value);
 		};
@@ -962,10 +1042,11 @@ function Animator(anim, target, index) {
 			this.normalize = function(value) {
 				value = value.replace(/,/g," ");
 				var coords = value.split(" ");
+				coords[0] = parseFloat(coords[0]);
 				if (coords.length==1)
 					coords[1] = coords[0];
-				coords[0] = parseFloat(coords[0]);
-				coords[1] = parseFloat(coords[1]);
+				else
+					coords[1] = parseFloat(coords[1]);
 				return coords;
 			};
 			this.add = function(a, b) {
@@ -980,12 +1061,11 @@ function Animator(anim, target, index) {
 			this.normalize = function(value) {
 				value = value.replace(/,/g," ");
 				var coords = value.split(" ");
+				coords[0] = parseFloat(coords[0]);
 				if (coords.length<3) {
-					coords[0] = parseFloat(coords[0]);
 					coords[1] = 0;
 					coords[2] = 0;
 				} else {
-					coords[0] = parseFloat(coords[0]);
 					coords[1] = parseFloat(coords[1]);
 					coords[2] = parseFloat(coords[2]);
 				}
@@ -1033,10 +1113,10 @@ function Animator(anim, target, index) {
 	this.anim.endElement = function() { me.finish(); return true; };
 	this.anim.endElementAt = function(offset) { me.finish(offset*1000); return true; };
 
-	this.anim.getStartTime = function() { return parseFloat(me.iterBegin-timeZero)/1000; };
+	this.anim.getStartTime = function() { return (me.iterBegin-timeZero)/1000; };
 	this.anim.getCurrentTime = function() {
 		var now = new Date();
-		return parseFloat(now-me.iterBegin)/1000;
+		return (now-me.iterBegin)/1000;
 	};
 }
 
@@ -1047,27 +1127,31 @@ function Animator(anim, target, index) {
  */
 function animate() {
 	var curTime = new Date();
+	if (curTime<=prevTime)
+		return;
 	for (var i=0, j=animations.length; i<j; ++i) {
 		try {
 			if (!animations[i].f(curTime)) {
 				// animation was removed therefore we need to adjust both the iterator and the auxiliary variable
 				--i; --j;
-				}
+			}
 		} catch(exc) {
 			if (exc.message!=="Component returned failure code: 0x80004005 (NS_ERROR_FAILURE) [nsIDOMSVGPathElement.getTotalLength]") {
 				// NOTE: in IE, console object is only available when Developer tools are open
 				if (window.console && console.log) {
 					console.log(exc);
-				} else {
-					alert(exc);
+				// uncomment to force error display
+				//} else {
+				//	alert(exc);
 				}
 			}
 		}
 	}
+	prevTime = curTime;
 	// it would be cool if the attributes would be computed only, in the previous loop
 	// and then the last values applied after the loop
 	// for that, f(t) must return the value, and we must have a map for object(?).attributeType.attributeName -> value
-	// then f(t) cannot return false when autostoping -> we must find another mechanism
+	// then f(t) cannot return false when autostopping -> we must find another mechanism
 }
 
 
@@ -1082,27 +1166,27 @@ function toMillis(time) {
 
 	if (io!=-1) {
 		var clockVal = time.split(":");
-		var len = clockVal.length;
+		len = clockVal.length;
 		time = 0;
-		if (clockVal.length==3)
+		if (len==3)
 			time += parseInt(clockVal[0])*3600000;
 		time += parseInt(clockVal[len-2])*60000;
 		time += parseFloat(clockVal[len-1])*1000;
 	} else if (len>2 && time.substring(len-2)=="ms") {
-		time = time.substring(0, time.length-2);
-	} else if (len>1 && time.substring(len-1)=="s") {
+		time = parseInt(time.substring(0, time.length-2));
+	} else if (len>1 && time[len-1]=="s") {
 		time = time.substring(0, time.length-1);
-		time = time*1000;
+		time *= 1000;
 	} else if (len>3 && time.substring(len-3)=="min") {
 		time = time.substring(0, time.length-3);
-		time = time*60000;
-	} else if (len>1 && time.substring(len-1)=="h") {
+		time *= 60000;
+	} else if (len>1 && time[len-1]=="h") {
 		time = time.substring(0, time.length-1);
-		time = time*3600000;
+		time *= 3600000;
 	} else {
-		time = time*1000;
+		time *= 1000;
 	}
-	return parseFloat(time);
+	return time;
 }
 
 
@@ -1131,7 +1215,9 @@ function decompose(matrix, type) {
 		return scaleX+","+scaleY;
 	}
 	var AdotB = a*b+c*d;
-	var shear = Math.PI/2-Math.acos(AdotB==0?0:(AdotB/(ModB*ModA)));
+	if (AdotB==0)
+		return 0;
+	var shear = Math.PI/2-Math.acos(AdotB/(ModB*ModA));
 	return (shear*180)/Math.PI;
 }
 
@@ -1148,7 +1234,7 @@ function toRGB(color) {
 		var rgb = color.split(",");
 		for (var i=0; i<rgb.length; ++i) {
 			var len = rgb[i].length-1;
-			if (rgb[i].substring(len)=="%")
+			if (rgb[i][len]=="%")
 				rgb[i] = Math.round((rgb[i].substring(0,len))*2.55);
 			else
 				rgb[i] = parseInt(rgb[i]);
@@ -1191,15 +1277,19 @@ function createPath(d) {
 }
 
 
-var units = ["grad", "deg", "rad", "kHz", "Hz", "em", "em", "px", "pt", "pc", "mm", "cm", "in", "ms", "s", "%"];
+// NOTE: units which aren't valid variable names are enclosed in quotes
+var units = {grad: 1, deg: 1, rad: 1, kHz: 1, Hz: 1, em: 1, ex: 1, px: 1, pt: 1, pc: 1, mm: 1, cm: 1, in: 1, ms: 1, s: 1, "%": 1};
 function getUnit(str) {
-	if (str && str.substring) {
-		for (var i=0, j=units.length; i<j; ++i) {
-			var vlen = str.length-units[i].length;
-			if (vlen>0 && str.substring(vlen)==units[i]) {
-				var val = str.substring(0, vlen);
-				if (!isNaN(val))
-					return [val,units[i]];
+	if (str && str.substring && str.length > 1) {
+		for (var i=1; i<4; ++i) { // loop through units string length
+			var vlen = str.length-i;
+			if (vlen>0) {
+				var unit = str.substring(vlen);
+				if (units[unit]) {
+					var val = str.substring(0, vlen);
+					if (!isNaN(val))
+						return [val,unit];
+				}
 			}
 		}
 	}
@@ -1356,8 +1446,10 @@ var colors = {
 	yellowgreen : [154, 205, 50]
 };
 
+// NOTE: variables cannot contain dashes, as they are seen as a subtraction expression
+// (therefore, in those cases, enclosing in quotes is required)
 var propDefaults = {
-	"font" : "see individual properties",
+	font : "see individual properties",
 	"font-family" : "Arial",
 	"font-size" : "medium",
 	"font-size-adjust" : "none",
@@ -1365,56 +1457,56 @@ var propDefaults = {
 	"font-style" : "normal",
 	"font-variant" : "normal",
 	"font-weight" : "normal",
-	"direction" : "ltr",
+	direction : "ltr",
 	"letter-spacing" : "normal",
 	"text-decoration" : "none",
 	"unicode-bidi" : "normal",
 	"word-spacing" : "normal",
-	"clip" : "auto",
-	"color" : "depends on user agent",
-	"cursor" : "auto",
-	"display" : "inline",
-	"overflow" : "hidden",
-	"visibility" : "visible",
+	clip : "auto",
+	color : "depends on user agent",
+	cursor : "auto",
+	display : "inline",
+	overflow : "hidden",
+	visibility : "visible",
 	"clip-path" : "none",
 	"clip-rule" : "nonzero",
-	"mask" : "none",
-	"opacity" : "1",
+	mask : "none",
+	opacity: 1,
 	"enable-background" : "accumulate",
-	"filter" : "none",
+	filter : "none",
 	"flood-color" : "black",
-	"flood-opacity" : "1",
+	"flood-opacity" : 1,
 	"lighting-color" : "white",
 	"stop-color" : "black",
-	"stop-opacity" : "1",
+	"stop-opacity" : 1,
 	"pointer-events" : "visiblePainted",
 	"color-interpolation" : "sRGB",
 	"color-interpolation-filters" : "linearRGB",
 	"color-profile" : "auto",
 	"color-rendering" : "auto",
-	"fill" : "black",
-	"fill-opacity" : "1",
+	fill : "black",
+	"fill-opacity" : 1,
 	"fill-rule" : "nonzero",
 	"image-rendering" : "auto",
 	"marker-end" : "none",
 	"marker-mid" : "none",
 	"marker-start" : "none",
 	"shape-rendering" : "auto",
-	"stroke" : "none",
+	stroke : "none",
 	"stroke-dasharray" : "none",
-	"stroke-dashoffset" : "0",
+	"stroke-dashoffset" : 0,
 	"stroke-linecap" : "butt",
 	"stroke-linejoin" : "miter",
-	"stroke-miterlimit" : "4",
-	"stroke-opacity" : "1",
-	"stroke-width" : "1",
+	"stroke-miterlimit" : 4,
+	"stroke-opacity" : 1,
+	"stroke-width" : 1,
 	"text-rendering" : "auto",
-	"alignment-baseline" : "0",
+	"alignment-baseline" : 0,
 	"baseline-shift" : "baseline",
 	"dominant-baseline" : "auto",
-	"glyph-orientation-horizontal" : "0",
+	"glyph-orientation-horizontal" : 0,
 	"glyph-orientation-vertical" : "auto",
-	"kerning" : "auto",
+	kerning : "auto",
 	"text-anchor" : "start",
 	"writing-mode" : "lr-tb"
 };
@@ -1451,32 +1543,37 @@ if (!isNaN(Date.parse("2012-04-22T19:53:32Z"))){
 	};
 }else{
 	window._setISO8601RegExp = new RegExp(
-			"([0-9]{4})(-([0-9]{2})(-([0-9]{2})" +
-			"(T([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
-			"(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?"
+		"([0-9]{4})(?:-([0-9]{2})(?:-([0-9]{2})" +
+		"(?:T([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\.([0-9]+))?)?" +
+		"(?:Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?"
 	);
 	Date.prototype.setISO8601 = function (string) {
 		var d = window._setISO8601RegExp.exec(string);
 
-		var offset = 0;
-		var date = new Date(d[1], 0, 1);
-
-		if (d[3]) { date.setMonth(d[3] - 1); }
-		if (d[5]) { date.setDate(d[5]); }
-		if (d[7]) { date.setHours(d[7]); }
-		if (d[8]) { date.setMinutes(d[8]); }
-		if (d[10]) { date.setSeconds(d[10]); }
-		if (d[12]) { date.setMilliseconds(Number("0." + d[12]) * 1000); }
-		if (d[14]) {
-			offset = (Number(d[16]) * 60) + Number(d[17]);
-			offset *= ((d[15] == '-') ? 1 : -1);
-		}
-		offset -= date.getTimezoneOffset();
-		time = (Number(date) + (offset * 60 * 1000));
-		this.setTime(Number(time));
+		// check that RegExp was applied successfully and that at least year is present
+		if (d && d.length>1) {
+			var date = new Date(d[1], 0, 1);
+			if (d[2]) { date.setMonth(d[2] - 1); }
+			if (d[3]) { date.setDate(d[3]); }
+			if (d[4]) { date.setHours(d[4]); }
+			if (d[5]) { date.setMinutes(d[5]); }
+			if (d[6]) { date.setSeconds(d[6]); }
+			// NOTE: ISO 8601 "decimal fraction of a second" needs to be converted to milliseconds
+			if (d[7]) { date.setMilliseconds(parseFloat("0." + d[7]) * 1000); }
+			if (d[8]) {
+				var offset = (parseInt(d[10]) * 60) + parseInt(d[11]);
+				if (d[9]!='-') { offset = -offset; }
+			} else
+				var offset = 0;
+			offset -= date.getTimezoneOffset();
+			this.setTime(date.getTime() + (offset * 60 * 1000));
+		} else
+			this.setTime(NaN);
 	};
 }
 
 try {
+	// NOTE: ASV skips triggering the library here, as 'addEventListener' is not supported
+	// (but that's not an issue as most popular versions, ASV3 and ASV6 beta, both support SMIL)
 	window.addEventListener("load", initSMIL, false);
 } catch(exc) {}

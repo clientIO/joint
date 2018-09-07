@@ -168,7 +168,7 @@ QUnit.module('cell', function(hooks) {
                     assert.deepEqual(attributes.a[0], { aa: 'aa' });
                     assert.deepEqual(attributes.a[1], { cc: 'cc' });
                 });
-            })
+            });
         });
 
         QUnit.module('attr', function(hooks) {
@@ -234,7 +234,7 @@ QUnit.module('cell', function(hooks) {
                 attributes.attrs.b = 'root_b';
                 el.removeAttr('a/b/c');
                 assert.deepEqual(attributes.attrs, { a: { b: {}}, b: 'root_b', c: 'root_c' }, 'deep_c is removed');
-            })
+            });
         });
     });
 

@@ -433,7 +433,7 @@
                         return !portsForRemoval.some(function(rp) {
                             var rpId = util.isObject(rp) ? rp.id : rp;
                             return cp.id === rpId;
-                        })
+                        });
                     });
                     this.prop('ports/items', remainingPorts, options);
                 }
@@ -443,7 +443,7 @@
                 this.prop('ports/items', [], options);
             }
 
-            return this
+            return this;
         },
 
         /**

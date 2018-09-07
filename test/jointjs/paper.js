@@ -440,7 +440,7 @@ QUnit.module('paper', function(hooks) {
 
             QUnit.test('enabled - disconnect when return false', function(assert) {
 
-                this.paper.options.allowLink = function() { return false };
+                this.paper.options.allowLink = function() { return false; };
 
                 var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
 
@@ -454,7 +454,7 @@ QUnit.module('paper', function(hooks) {
 
             QUnit.test('enabled - disconnect when return true', function(assert) {
 
-                this.paper.options.allowLink = function() { return true };
+                this.paper.options.allowLink = function() { return true; };
 
                 var arrowhead = connectedLinkView.el.querySelector('.marker-arrowhead[end=target]');
 
@@ -1088,7 +1088,7 @@ QUnit.module('paper', function(hooks) {
 
                 var drawGrid = {
                     update: function(element, opt) {
-                        V(element).attr({ 'fill': 'green', width: 999, height: 111 })
+                        V(element).attr({ 'fill': 'green', width: 999, height: 111 });
                     }, color: 'red'
                 };
                 var paper = preparePaper(drawGrid);

@@ -35,7 +35,7 @@
             }
 
             return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
-        }
+        };
     }
 
     function resolveRefAsBBoxCenter(fn) {
@@ -46,13 +46,13 @@
                 var refView = this.paper.findView(ref);
                 var refPoint = (refView)
                     ? refView.getNodeBBox(ref).center()
-                    : new g.Point()
+                    : new g.Point();
 
-                return fn.call(this, view, magnet, refPoint, opt)
+                return fn.call(this, view, magnet, refPoint, opt);
             }
 
             return fn.apply(this, arguments);
-        }
+        };
     }
 
     function perpendicular(view, magnet, refPoint, opt) {
@@ -63,7 +63,7 @@
         var topLeft = bbox.origin();
         var bottomRight = bbox.corner();
 
-        var padding = opt.padding
+        var padding = opt.padding;
         if (!isFinite(padding)) padding = 0;
 
         if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
@@ -142,6 +142,6 @@
         perpendicular: resolveRefAsBBoxCenter(perpendicular),
         midSide: resolveRefAsBBoxCenter(midSide),
         modelCenter: modelCenter
-    }
+    };
 
 })(joint, joint.util);

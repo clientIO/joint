@@ -144,7 +144,7 @@
             }
             if (angle === 0) return { transform: 'translate(' + p.x + ',' + p.y + ')' };
             return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
-        }
+        };
     }
 
     function isTextInUse(lineHeight, node, attrs) {
@@ -169,7 +169,7 @@
         // Again the context 'fill-opacity' is ignored.
         var strokeOpacity = context.strokeOpacity;
         if (strokeOpacity === undefined) strokeOpacity = context['stroke-opacity'];
-        if (strokeOpacity === undefined) strokeOpacity = context.opacity
+        if (strokeOpacity === undefined) strokeOpacity = context.opacity;
         if (strokeOpacity !== undefined) {
             marker['stroke-opacity'] = strokeOpacity;
             marker['fill-opacity'] = strokeOpacity;
@@ -482,7 +482,7 @@
                 return function(value, refBBox) {
                     var fn = (refBBox.height > refBBox.width) ? widthFn : heightFn;
                     return fn(value, refBBox);
-                }
+                };
             })('r')
         },
 

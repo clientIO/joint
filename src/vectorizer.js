@@ -470,7 +470,7 @@ V = Vectorizer = (function() {
                 break;
             default:
             case 'top':
-                dy = (0.8 * flMaxFont)
+                dy = (0.8 * flMaxFont);
                 break;
         }
         return dy;
@@ -488,7 +488,7 @@ V = Vectorizer = (function() {
         // End of Line character
         var eol = opt.eol;
         // Text along path
-        var textPath = opt.textPath
+        var textPath = opt.textPath;
         // Vertical shift
         var verticalAnchor = opt.textVerticalAnchor;
         var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
@@ -600,10 +600,10 @@ V = Vectorizer = (function() {
                 }
                 switch (verticalAnchor) {
                     case 'middle':
-                        dy = (0.3 - (rh / 2)) + 'em'
+                        dy = (0.3 - (rh / 2)) + 'em';
                         break;
                     case 'bottom':
-                        dy = (-rh - 0.3) + 'em'
+                        dy = (-rh - 0.3) + 'em';
                         break;
                 }
             }
@@ -688,7 +688,7 @@ V = Vectorizer = (function() {
         }
 
         return this;
-    }
+    };
 
     VPrototype.remove = function() {
 

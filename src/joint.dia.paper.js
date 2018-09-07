@@ -1515,12 +1515,12 @@ joint.dia.Paper = joint.mvc.View.extend({
                     this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
                 },
                 get: function(id) {
-                    return  this.patterns[id]
+                    return  this.patterns[id];
                 },
                 exist: function(id) {
                     return this.patterns[id] !== undefined;
                 }
-            }
+            };
         }
 
         return this._gridCache;

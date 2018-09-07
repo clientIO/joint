@@ -1229,7 +1229,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return {
             source: sourceMarkerPoint,
             target: targetMarkerPoint
-        }
+        };
     },
 
     findAnchors: function(vertices) {
@@ -1275,7 +1275,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return {
             source: sourceAnchor,
             target: targetAnchor
-        }
+        };
     },
 
     findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
@@ -1316,7 +1316,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return {
             source: sourcePoint,
             target: targetPoint
-        }
+        };
     },
 
     getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
@@ -1345,7 +1345,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
         var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
         if (anchor) return anchor.round(this.decimalsRounding);
-        return new g.Point()
+        return new g.Point();
     },
 
 

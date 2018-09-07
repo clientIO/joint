@@ -231,7 +231,7 @@ QUnit.module('linkView', function(hooks) {
 
         QUnit.test('add vertex', function(assert) {
 
-            assert.deepEqual(link.vertices(), [])
+            assert.deepEqual(link.vertices(), []);
 
             linkView.addVertex(150, 100);
             assert.deepEqual(link.vertices(), [{ x: 150, y: 100 }]);
@@ -678,7 +678,7 @@ QUnit.module('linkView', function(hooks) {
                 rv1,
                 rv1.el.querySelector('rect'),
                 sinon.match(function(value) {
-                    return value instanceof SVGElement
+                    return value instanceof SVGElement;
                 }), // requires resolving
                 sinon.match({ testArg1: true }),
                 'source',
@@ -851,7 +851,7 @@ QUnit.module('linkView', function(hooks) {
                 sinon.match({ id: r1.id }),
                 rv1,
                 rv1.el,
-                sinon.match(function(coords) { return coords.equals(new g.Point(50, 50)) }),
+                sinon.match(function(coords) { return coords.equals(new g.Point(50, 50)); }),
                 linkView.model,
                 'source'
             ));
@@ -881,7 +881,7 @@ QUnit.module('linkView', function(hooks) {
                 sinon.match({ id: r1.id }),
                 rv1,
                 rv1.el,
-                sinon.match(function(coords) { return coords.equals(new g.Point(40, 40)) }),
+                sinon.match(function(coords) { return coords.equals(new g.Point(40, 40)); }),
                 linkView.model,
                 'target'
             ));
@@ -1019,5 +1019,5 @@ QUnit.module('linkView', function(hooks) {
                 assert.ok(toolView2.isVisible());
             });
         });
-    })
+    });
 });

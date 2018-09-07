@@ -15,21 +15,21 @@ var paper = new joint.dia.Paper({
 var rb = new joint.shapes.basic.Rect({
     position: { x: 50, y: 50 },
     size: { width: 100, height: 40 },
-    attrs: { text: { text: 'basic.Rect' } }
+    attrs: { text: { text: 'basic.Rect' }}
 });
 graph.addCell(rb);
 
 var tb = new joint.shapes.basic.Text({
     position: { x: 170, y: 50 },
     size: { width: 100, height: 30 },
-    attrs: { text: { text: 'basic.Text' } }
+    attrs: { text: { text: 'basic.Text' }}
 });
 graph.addCell(tb);
 
 var cb = new joint.shapes.basic.Circle({
     position: { x: 300, y: 70 },
     size: { width: 100, height: 40 },
-    attrs: { text: { text: 'basic.Circle' } }
+    attrs: { text: { text: 'basic.Circle' }}
 });
 graph.addCell(cb);
 
@@ -56,14 +56,14 @@ graph.addCell(pb);
 var rh = new joint.shapes.basic.Rhombus({
     position: { x: 50, y: 250 },
     size: { width: 70, height: 70 },
-    attrs: { text: { text: 'basic.Rhombus', 'font-size': 8 } }
+    attrs: { text: { text: 'basic.Rhombus', 'font-size': 8 }}
 });
 graph.addCell(rh);
 
 var tbl = new joint.shapes.basic.TextBlock({
     position: { x: 400, y: 150 },
     size: { width: 180, height: 100 },
-    content: "Lorem ipsum dolor sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est."
+    content: 'Lorem ipsum dolor sit amet,\n consectetur adipiscing elit. Nulla vel porttitor est.'
 });
 graph.addCell(tbl);
 
@@ -72,48 +72,48 @@ graph.addCell(tbl);
 
 var MyElementWithPorts = joint.shapes.basic.Generic.extend({
 
-   defaults: _.defaultsDeep({
+    defaults: _.defaultsDeep({
 
-       markup: [
-           '<g class="rotatable">',
-           '<g class="scalable">',
-           '<rect/>',
-           '</g>',
-           '<g class="inPorts">',
-           '<g class="port1"><circle/><text/></g>',
-           '<g class="port2"><circle/><text/></g>',
-           '</g>',
-           '<g class="outPorts">',
-           '<g class="port3"><circle/><text/></g>',
-           '<g class="port4"><circle/><text/></g>',
-           '</g>',
-           '</g>'
-       ].join(''),
+        markup: [
+            '<g class="rotatable">',
+            '<g class="scalable">',
+            '<rect/>',
+            '</g>',
+            '<g class="inPorts">',
+            '<g class="port1"><circle/><text/></g>',
+            '<g class="port2"><circle/><text/></g>',
+            '</g>',
+            '<g class="outPorts">',
+            '<g class="port3"><circle/><text/></g>',
+            '<g class="port4"><circle/><text/></g>',
+            '</g>',
+            '</g>'
+        ].join(''),
 
-       type: 'basic.Generic',
-       attrs: {
-           '.': { magnet: false },
-           rect: {
+        type: 'basic.Generic',
+        attrs: {
+            '.': { magnet: false },
+            rect: {
                width: 150, height: 250,
                stroke: 'black'
            },
-           circle: {
+            circle: {
                r: 5,
                magnet: true,
                stroke: 'black'
            },
-           text: {
+            text: {
                fill: 'black',
                'pointer-events': 'none'
            },
-           '.label': { text: 'Model', dx: 5, dy: 5 },
-           '.inPorts text': { dx:-15, 'text-anchor': 'end' },
-           '.outPorts text':{ dx: 15 },
-           '.inPorts circle': { fill: 'PaleGreen' },
-           '.outPorts circle': { fill: 'Tomato' }
-       }
+            '.label': { text: 'Model', dx: 5, dy: 5 },
+            '.inPorts text': { dx:-15, 'text-anchor': 'end' },
+            '.outPorts text':{ dx: 15 },
+            '.inPorts circle': { fill: 'PaleGreen' },
+            '.outPorts circle': { fill: 'Tomato' }
+        }
 
-   }, joint.shapes.basic.Generic.prototype.defaults)
+    }, joint.shapes.basic.Generic.prototype.defaults)
 });
 
 var d = new MyElementWithPorts({
@@ -217,7 +217,7 @@ joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
                     'L 40 10'
                 ].join(' ')
             },
-            'text': { fill: '#435460', 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .7, ref: 'path', 'y-alignment': 'middle', 'text-anchor': 'middle', fill: 'black', 'font-family': 'Arial, helvetica, sans-serif' }
+            'text': { fill: '#435460', 'font-size': 14, text: '', 'ref-x': .5, 'ref-y': .7, ref: 'path', 'y-alignment': 'middle', 'text-anchor': 'middle', 'font-family': 'Arial, helvetica, sans-serif' }
         }
 
     }, joint.shapes.basic.Generic.prototype.defaults)
