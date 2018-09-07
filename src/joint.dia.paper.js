@@ -151,6 +151,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Number of required mousemove events before the first pointermove event will be triggered.
         moveThreshold: 0,
 
+        // Number of required mousemove events before the a link is created out of the magnet.
+        // Or string `onleave` so the link is created when the pointer leaves the magnet
+        magnetThreshold: 0,
+
         // The namespace, where all the cell views are defined.
         cellViewNamespace: joint.shapes,
 
@@ -653,7 +657,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this._views[cell.id] = this.createViewForModel(cell);
 
-        V(this.viewport).append(view.el);
+        this.viewport.appendChild(view.el);
         view.paper = this;
         view.render();
 

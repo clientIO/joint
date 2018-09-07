@@ -560,6 +560,72 @@ QUnit.module('paper', function(hooks) {
         assert.ok(spy.calledOnce);
     });
 
+
+    QUnit.module('paper.options: magnetThreshold', function(hooks) {
+
+        var el, elView, elRect;
+
+        hooks.beforeEach(function() {
+            var graph = this.graph;
+            var paper = this.paper;
+            el = new joint.shapes.standard.Rectangle({ attrs: { body: { magnet: true }}});
+            el.size(100, 100).position(0, 0).addTo(graph);
+            elView = el.findView(paper);
+            elRect = elView.el.querySelector('rect');
+        });
+
+        QUnit.test('magnetThreshold: number (0)', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+            var data;
+
+            paper.options.magnetThreshold = 0;
+            data = {};
+
+            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            assert.equal(graph.getLinks().length, 1);
+            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+        });
+
+        QUnit.test('magnetThreshold: number (1+)', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+            var data;
+
+            paper.options.magnetThreshold = 2;
+            data = {};
+
+            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            assert.equal(graph.getLinks().length, 0);
+            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Processed
+            assert.equal(graph.getLinks().length, 1);
+            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+        });
+
+        QUnit.test('magnetThreshold: string ("onleave")', function(assert) {
+
+            var graph = this.graph;
+            var paper = this.paper;
+            var data;
+
+            paper.options.magnetThreshold = 'onleave';
+            data = {};
+
+            paper.onmagnet($.Event('mousedown', { currentTarget: elRect, data: data }));
+            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            paper.pointermove($.Event('mousemove', { target: elRect, data: data })); // Ignored
+            assert.equal(graph.getLinks().length, 0);
+            paper.pointermove($.Event('mousemove', { target: paper.svg, data: data })); // Processed
+            assert.equal(graph.getLinks().length, 1);
+            paper.pointerup($.Event('mouseup', { target: elRect, data: data }));
+        });
+    });
+
+
     QUnit.test('paper.options: linkPinning', function(assert) {
 
         assert.expect(5);
@@ -616,7 +682,7 @@ QUnit.module('paper', function(hooks) {
         this.paper.options.linkPinning = true;
         source.attr('.', { magnet: true });
         data = {};
-        sourceView.dragMagnetStart({ target: sourceView.el, type: 'mousedown', data: data }, 150, 150);
+        sourceView.dragMagnetStart({ currentTarget: sourceView.el, target: sourceView.el, type: 'mousedown', data: data }, 150, 150);
         sourceView.pointermove({ type: 'mousemove', data: data }, 150, 400);
 
         newLink = _.reject(this.graph.getLinks(), { id: 'link' })[0];
