@@ -47,6 +47,13 @@
           <td>Triggered when pointer is clicked on an element.</td>
         </tr>
         <tr>
+          <th>element:magnet:pointerclick</th>
+          <td>
+            <p></p>Triggered when pointer is clicked on an element magnet and no link was created yet from this magnet (controlled by <a href="#dia.Paper.prototype.options.magnetThreshold">magnetThreshold</a> option).</p>
+            <p>The callback function is passed <code>elementView</code>, <code>evt</code>, <code>magnet (SVGElement)</code>, <code>x</code> and <code>y</code> as arguments.</p>
+          </td>
+        </tr>
+        <tr>
           <th>blank:pointerclick</th>
           <td>
             <p>Triggered when pointer is clicked on the paper outside any cell.</p>
@@ -151,15 +158,15 @@
           <td>Triggered when pointer is released on a cell.</td>
         </tr>
         <tr>
-          <th>link:pointermove</th>
+          <th>link:pointerup</th>
           <td>Triggered when pointer is relased on a link.</td>
         </tr>
         <tr>
-          <th>element:pointermove</th>
+          <th>element:pointerup</th>
           <td>Triggered when pointer is released on an element.</td>
         </tr>
         <tr>
-          <th>blank:pointermove</th>
+          <th>blank:pointerup</th>
           <td>
             <p>Triggered when pointer is released on the paper outside any cell.</p>
             <p>The callback function is passed <code>evt</code>, <code>x</code> and <code>y</code> as arguments.</p>
@@ -290,11 +297,11 @@
           <td>Triggered when mouse wheel is rotated while the pointer is on a cell.</td>
         </tr>
         <tr>
-          <th>link:pointerdblclick</th>
+          <th>link:mousewheel</th>
           <td>Triggered when mouse wheel is rotated while the pointer is on a link.</td>
         </tr>
         <tr>
-          <th>element:pointerdblclick</th>
+          <th>element:mousewheel</th>
           <td>Triggered when mouse wheel is rotated while the pointer is on an element.</td>
         </tr>
         <tr>
