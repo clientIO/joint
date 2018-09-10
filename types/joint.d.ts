@@ -22,11 +22,13 @@ export namespace dia {
     type MarkupNodeJSON = {
         tagName: string;
         selector?: string;
+        group?: string;
         namespaceUri?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
         style?: { [key: string]: any };
-        children?: MarkupJSON
+        children?: MarkupJSON;
+        textContent?: string;
     }
 
     type MarkupJSON = MarkupNodeJSON[];
@@ -2015,6 +2017,14 @@ export namespace util {
     export function template(html: string): (data: any) => string;
 
     export function toggleFullScreen(el?: Element): void;
+
+    interface DOMJSONDocument {
+        fragment: DocumentFragment,
+        selectors: { [key: string]: Element },
+        groups: { [key: string]: Element[] }
+    }
+
+    export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
 
     export namespace timing {
 
