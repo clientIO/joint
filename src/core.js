@@ -1589,6 +1589,7 @@ var joint = {
         parseDOMJSON: function(json, namespace) {
 
             var selectors = {};
+            var groups = {};
             var svgNamespace = V.namespace.xmlns;
             var ns = namespace || svgNamespace;
             var fragment = document.createDocumentFragment();
@@ -1633,6 +1634,12 @@ var joint = {
                         selectors[nodeSelector] = node;
                         wrapper(node).attr('joint-selector', nodeSelector);
                     }
+                    // Groups
+                    if (nodeDef.hasOwnProperty('group')) {
+                        var nodeGroup = nodeDef.group;
+                        if (!groups[nodeGroup]) groups[nodeGroup] = [];
+                        groups[nodeGroup].push(node);
+                    }
                     parentNode.appendChild(node);
                     // Children
                     var childrenDef = nodeDef.children;
@@ -1641,7 +1648,8 @@ var joint = {
             }
             return {
                 fragment: fragment,
-                selectors: selectors
+                selectors: selectors,
+                groups: groups
             };
         },
 
