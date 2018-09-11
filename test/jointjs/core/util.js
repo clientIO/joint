@@ -960,6 +960,33 @@ QUnit.module('util', function(hooks) {
             });
         });
 
+        QUnit.module('groupSelector', function() {
+
+            QUnit.test('svg', function(assert) {
+                var res = util.parseDOMJSON([
+                    { tagName: 'rect', groupSelector: 'test' },
+                    { tagName: 'circle' },
+                    { tagName: 'ellipse', groupSelector: 'test' }
+                ]);
+                assert.deepEqual(Object.keys(res.groupSelectors), ['test']);
+                assert.equal(res.groupSelectors.test.length, 2);
+                assert.ok(res.groupSelectors.test[0] instanceof SVGRectElement);
+                assert.ok(res.groupSelectors.test[1] instanceof SVGEllipseElement);
+            });
+
+            QUnit.test('html', function(assert) {
+                var res = util.parseDOMJSON([
+                    { tagName: 'div', groupSelector: 'test' },
+                    { tagName: 'img' },
+                    { tagName: 'p', groupSelector: 'test' },
+                ], V.namespace.xhtml);
+                assert.deepEqual(Object.keys(res.groupSelectors), ['test']);
+                assert.equal(res.groupSelectors.test.length, 2);
+                assert.ok(res.groupSelectors.test[0] instanceof HTMLDivElement);
+                assert.ok(res.groupSelectors.test[1] instanceof HTMLParagraphElement);
+            });
+        });
+
         QUnit.module('namespaceURI', function() {
 
             QUnit.test('svg', function(assert) {

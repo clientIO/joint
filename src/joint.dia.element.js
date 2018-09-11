@@ -479,13 +479,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     renderJSONMarkup: function(markup) {
 
-        var doc = joint.util.parseDOMJSON(markup);
-        // Selectors
+        var doc = this.parseDOMJSON(markup);
         var selectors = this.selectors = doc.selectors;
-        var rootSelector = this.selector;
-        if (selectors[rootSelector]) throw new Error('dia.ElementView: ambiguous root selector.');
-        selectors[rootSelector] = this.el;
-        // Cache transformation groups
         this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
         this.scalableNode = V(selectors[this.scalableSelector]) || null;
         // Fragment

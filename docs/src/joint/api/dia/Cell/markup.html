@@ -23,7 +23,8 @@ markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></
 
 <ul>
     <li><code>tagName</code> <i>(string)</i> <i>(required)</i> The type of element to be created.</li>
-    <li><code>selector</code> <i>(string)</i> A selector for targeting the element within the <code>attr</code> cell attribute.</li>
+    <li><code>selector</code> <i>(string)</i> A unique selector for targeting the element within the <code>attr</code> cell attribute.</li>
+    <li><code>groupSelector</code> <i>(string)</i> A selector for targeting multiple elements within the <code>attr</code> cell attribute. The group selector name must not be the same as an existing selector name.</li>
     <li><code>namespaceURI</code> <i>(string)</i> The namespace URI of the element. It defaults to SVG namespace <a target="_blank" href="https://www.w3.org/2000/svg"><code>"http://www.w3.org/2000/svg"</code></a>.</li>
     <li><code>attributes</code> <i>(object with attributes name-value pairs)</i> Attributes of the element.</li>
     <li><code>style</code> <i>(object with CSS property-value pairs)</i> The <code>style</code> attribute of the element.</li>
@@ -52,9 +53,11 @@ markup: [{
     tagName: 'g',
     children: [{
         tagName: 'circle',
-        selector: 'circle1'
+        selector: 'circle1',
+        groupSelector: 'circles'
     }, {
         tagName: 'circle',
-        selector: 'circle2'
+        selector: 'circle2',
+        groupSelector: 'circles'
     }]
 }]</code></pre>

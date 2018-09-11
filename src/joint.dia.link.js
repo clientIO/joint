@@ -731,12 +731,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderJSONMarkup: function(markup) {
 
-        var doc = joint.util.parseDOMJSON(markup);
+        var doc = this.parseDOMJSON(markup);
         // Selectors
-        var selectors = this.selectors = doc.selectors;
-        var rootSelector = this.selector;
-        if (selectors[rootSelector]) throw new Error('dia.LinkView: ambiguous root selector.');
-        selectors[rootSelector] = this.el;
+        this.selectors = doc.selectors;
         // Fragment
         this.vel.append(doc.fragment);
     },

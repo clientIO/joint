@@ -778,6 +778,23 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
     },
 
+
+    parseDOMJSON: function(markup) {
+
+        var doc = joint.util.parseDOMJSON(markup);
+        var selectors = doc.selectors;
+        var groups = doc.groupSelectors;
+        for (var group in groups) {
+            if (selectors[group]) throw new Error('dia.CellView: ambigious group selector');
+            selectors[group] = groups[group];
+        }
+        var rootSelector = this.selector;
+        if (selectors[rootSelector]) throw new Error('dia.CellView: ambiguous root selector.');
+        selectors[rootSelector] = this.el;
+
+        return { fragment: doc.fragment, selectors: selectors };
+    },
+
     onChangeAttrs: function(cell, attrs, opt) {
 
         if (opt.dirty) {
@@ -810,7 +827,13 @@ joint.dia.CellView = joint.mvc.View.extend({
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
-        if (selectors && selectors[selector]) return [selectors[selector]];
+        if (selectors) {
+            var nodes = selectors[selector];
+            if (nodes) {
+                if (Array.isArray(nodes)) return nodes;
+                return [nodes];
+            }
+        }
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
         return $(root).find(selector).toArray();
