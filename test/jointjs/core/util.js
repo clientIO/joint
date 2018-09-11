@@ -960,30 +960,30 @@ QUnit.module('util', function(hooks) {
             });
         });
 
-        QUnit.module('group', function() {
+        QUnit.module('groupSelector', function() {
 
             QUnit.test('svg', function(assert) {
                 var res = util.parseDOMJSON([
-                    { tagName: 'rect', group: 'test' },
+                    { tagName: 'rect', groupSelector: 'test' },
                     { tagName: 'circle' },
-                    { tagName: 'ellipse', group: 'test' }
+                    { tagName: 'ellipse', groupSelector: 'test' }
                 ]);
-                assert.deepEqual(Object.keys(res.groups), ['test']);
-                assert.equal(res.groups.test.length, 2);
-                assert.ok(res.groups.test[0] instanceof SVGRectElement);
-                assert.ok(res.groups.test[1] instanceof SVGEllipseElement);
+                assert.deepEqual(Object.keys(res.groupSelectors), ['test']);
+                assert.equal(res.groupSelectors.test.length, 2);
+                assert.ok(res.groupSelectors.test[0] instanceof SVGRectElement);
+                assert.ok(res.groupSelectors.test[1] instanceof SVGEllipseElement);
             });
 
             QUnit.test('html', function(assert) {
                 var res = util.parseDOMJSON([
-                    { tagName: 'div', group: 'test' },
+                    { tagName: 'div', groupSelector: 'test' },
                     { tagName: 'img' },
-                    { tagName: 'p', group: 'test' },
+                    { tagName: 'p', groupSelector: 'test' },
                 ], V.namespace.xhtml);
-                assert.deepEqual(Object.keys(res.groups), ['test']);
-                assert.equal(res.groups.test.length, 2);
-                assert.ok(res.groups.test[0] instanceof HTMLDivElement);
-                assert.ok(res.groups.test[1] instanceof HTMLParagraphElement);
+                assert.deepEqual(Object.keys(res.groupSelectors), ['test']);
+                assert.equal(res.groupSelectors.test.length, 2);
+                assert.ok(res.groupSelectors.test[0] instanceof HTMLDivElement);
+                assert.ok(res.groupSelectors.test[1] instanceof HTMLParagraphElement);
             });
         });
 

@@ -783,7 +783,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
         var doc = joint.util.parseDOMJSON(markup);
         var selectors = doc.selectors;
-        var groups = doc.groups;
+        var groups = doc.groupSelectors;
         for (var group in groups) {
             if (selectors[group]) throw new Error('dia.CellView: ambigious group selector');
             selectors[group] = groups[group];

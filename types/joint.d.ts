@@ -22,7 +22,7 @@ export namespace dia {
     type MarkupNodeJSON = {
         tagName: string;
         selector?: string;
-        group?: string;
+        groupSelector?: string;
         namespaceUri?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
@@ -2021,7 +2021,7 @@ export namespace util {
     interface DOMJSONDocument {
         fragment: DocumentFragment,
         selectors: { [key: string]: Element },
-        groups: { [key: string]: Element[] }
+        groupSelectors: { [key: string]: Element[] }
     }
 
     export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
