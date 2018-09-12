@@ -230,6 +230,15 @@ joint.mvc.View = Backbone.View.extend({
         currentData[key] || (currentData[key] = {});
         joint.util.assign(currentData[key], data);
         return this;
+    },
+
+    stopPropagation: function(evt) {
+        this.eventData(evt, { propagationStopped: true });
+        return this;
+    },
+
+    isPropagationStopped: function(evt) {
+        return !!this.eventData(evt).propagationStopped;
     }
 
 }, {

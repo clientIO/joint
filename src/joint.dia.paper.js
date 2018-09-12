@@ -181,6 +181,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
         'touchstart .joint-cell [magnet]': 'onmagnet',
+        'dblclick [magnet]': 'magnetpointerdblclick',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
         'touchstart .joint-link .label': 'onlabel',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
@@ -1186,6 +1187,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         evt.preventDefault();
 
+        // magnetpointerdblclick can stop propagation
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1202,6 +1205,8 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointerclick: function(evt) {
+
+        // magnetpointerclick can stop propagation
 
         var data = this.eventData(evt);
         // Trigger event only if mouse has not moved.
@@ -1243,6 +1248,9 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointerdown: function(evt) {
+
+        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
+        // onevent can stop propagation
 
         evt = joint.util.normalizeEvent(evt);
 
@@ -1306,7 +1314,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
-        this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+        if (!evt.isPropagationStopped()) {
+            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+            // evt.stopPropagation();
+        }
+
         this.delegateEvents();
     },
 
@@ -1428,6 +1440,24 @@ joint.dia.Paper = joint.mvc.View.extend({
 
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
                 view.onmagnet(evt, localPoint.x, localPoint.y);
+            }
+        }
+    },
+
+
+    magnetpointerdblclick: function(evt) {
+
+        var magnetNode = evt.currentTarget;
+        var magnetValue = magnetNode.getAttribute('magnet');
+        if (magnetValue) {
+            var view = this.findView(magnetNode);
+            if (view) {
+
+                evt = joint.util.normalizeEvent(evt);
+                if (this.guard(evt, view)) return;
+
+                var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
+                view.magnetpointerdblclick(evt, magnetNode, localPoint.x, localPoint.y);
             }
         }
     },
