@@ -2985,7 +2985,7 @@ export namespace linkTools {
         type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
 
         interface Options extends dia.ToolView.Options {
-            distance?: number;
+            distance?: number | string;
             offset?: number;
             rotate?: boolean;
             action?: ActionCallback;
