@@ -12,7 +12,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         maximumLoops: 2000,
 
         // the number of decimal places to round floating point coordinates
-        precision: 10,
+        precision: 1,
 
         // maximum change of direction
         maxAllowedDirectionChange: 90,
