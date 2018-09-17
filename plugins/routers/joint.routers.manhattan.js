@@ -423,14 +423,14 @@ joint.routers.manhattan = (function(g, joint, util) {
     // PATHFINDING //
 
     // reconstructs a route by concatenating points with their parents
-    function reconstructRoute(parents, points, tailPoint, from, to, opt) {
+    function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
 
         var precision = opt.precision;
         var route = [];
 
         var prevDiff = normalizePoint(to.difference(tailPoint));
 
-        var currentKey = getKey(tailPoint, precision);
+        var currentKey = getKey(snapToGrid(tailPoint, grid), precision);
         var parent = parents[currentKey];
 
         var point;
@@ -444,7 +444,7 @@ joint.routers.manhattan = (function(g, joint, util) {
                 prevDiff = diff;
             }
 
-            currentKey = getKey(parent, precision);
+            currentKey = getKey(snapToGrid(parent, grid), precision);
             parent = parents[currentKey];
         }
 
@@ -654,7 +654,7 @@ joint.routers.manhattan = (function(g, joint, util) {
                 // check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
                     opt.previousDirectionAngle = previousDirectionAngle;
-                    return reconstructRoute(parents, points, currentPoint, start, end, opt);
+                    return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
                 }
 
                 // go over all possible directions and find neighbors
