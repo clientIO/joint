@@ -12,7 +12,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         maximumLoops: 2000,
 
         // the number of decimal places to round floating point coordinates
-        precision: 0,
+        precision: 10,
 
         // maximum change of direction
         maxAllowedDirectionChange: 90,
@@ -395,19 +395,20 @@ joint.routers.manhattan = (function(g, joint, util) {
     // round the point to opt.precision
     function round(point, precision) {
 
-        if (!point) return point;
-
         return point.round(precision);
+    }
+
+    // snap to grid and then round the point
+    function align(point, grid, precision) {
+
+        return round(snapToGrid(point.clone(), grid), precision);
     }
 
     // return a string representing the point
     // string is rounded in both dimensions
-    function getKey(point, precision) {
+    function getKey(point) {
 
-        precision = ((precision >= 2) ? precision - 2 : 0);
-
-        var roundedPoint = round(point.clone(), precision);
-        return roundedPoint.toString();
+        return point.clone().toString();
     }
 
     // return a normalized vector from given point
@@ -425,30 +426,33 @@ joint.routers.manhattan = (function(g, joint, util) {
     // reconstructs a route by concatenating points with their parents
     function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
 
-        var precision = opt.precision;
         var route = [];
 
         var prevDiff = normalizePoint(to.difference(tailPoint));
 
-        var currentKey = getKey(snapToGrid(tailPoint, grid), precision);
+        // tailPoint is assumed to be aligned already
+        var currentKey = getKey(tailPoint);
         var parent = parents[currentKey];
 
         var point;
         while (parent) {
 
-            point = round(points[currentKey], precision);
+            // point is assumed to be aligned already
+            point = points[currentKey];
 
-            var diff = normalizePoint(point.difference(round(parent.clone(), precision)));
+            var diff = normalizePoint(point.difference(parent));
             if (!diff.equals(prevDiff)) {
                 route.unshift(point);
                 prevDiff = diff;
             }
 
-            currentKey = getKey(snapToGrid(parent, grid), precision);
+            // parent is assumed to be aligned already
+            currentKey = getKey(parent);
             parent = parents[currentKey];
         }
 
-        var leadPoint = round(points[currentKey], precision);
+        // leadPoint is assumed to be aligned already
+        var leadPoint = points[currentKey];
 
         var fromDiff = normalizePoint(leadPoint.difference(from));
         if (!fromDiff.equals(prevDiff)) {
@@ -509,20 +513,21 @@ joint.routers.manhattan = (function(g, joint, util) {
                     var distance = anchor.squaredDistance(currentIntersection);
                     if ((farthestIntersectionDistance === undefined) || (distance > farthestIntersectionDistance)) {
                         farthestIntersectionDistance = distance;
-                        farthestIntersection = round(snapToGrid(currentIntersection, grid), precision);
+                        farthestIntersection = currentIntersection;
                     }
                 }
-                var point = farthestIntersection;
 
                 // if an intersection was found in this direction, it is our rectPoint
-                if (point) {
+                if (farthestIntersection) {
+                    var point = align(farthestIntersection, grid, precision);
+
                     // if the rectPoint lies inside the bbox, offset it by one more step
                     if (bbox.containsPoint(point)) {
-                        var offsetPoint = point.clone().offset(direction.x * grid.x, direction.y * grid.y);
-                        point = round(snapToGrid(offsetPoint, grid), precision);
+                        point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
                     }
 
                     // then add the point to the result array
+                    // aligned
                     res.push(point);
                 }
             }
@@ -532,8 +537,8 @@ joint.routers.manhattan = (function(g, joint, util) {
 
         // if anchor lies outside of bbox, add it to the array of points
         if (!bbox.containsPoint(anchor)) {
-            var anchorPoint = round(snapToGrid(anchor, grid), precision);
-            rectPoints.push(anchorPoint);
+            // aligned
+            rectPoints.push(align(anchor, grid, precision));
         }
 
         return rectPoints;
@@ -550,41 +555,41 @@ joint.routers.manhattan = (function(g, joint, util) {
         var sourceAnchor, targetAnchor;
 
         if (from instanceof g.Rect) { // `from` is sourceBBox
-            sourceAnchor = getSourceAnchor(this, opt).clone();
+            sourceAnchor = round(getSourceAnchor(this, opt).clone(), precision);
         } else {
-            sourceAnchor = from.clone();
+            sourceAnchor = round(from.clone(), precision);
         }
 
         if (to instanceof g.Rect) { // `to` is targetBBox
-            targetAnchor = getTargetAnchor(this, opt).clone();
+            targetAnchor = round(getTargetAnchor(this, opt).clone(), precision);
         } else {
-            targetAnchor = to.clone();
+            targetAnchor = round(to.clone(), precision);
         }
 
         var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
 
         // Get pathfinding points.
 
-        var start, end;
-        var startPoints, endPoints;
+        var start, end; // aligned with grid by definition
+        var startPoints, endPoints; // assumed to be aligned with grid already
 
         // set of points we start pathfinding from
         if (from instanceof g.Rect) { // `from` is sourceBBox
-            start = snapToGrid(sourceAnchor, grid);
+            start = sourceAnchor;
             startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
 
         } else {
-            start = snapToGrid(sourceAnchor, grid);
+            start = sourceAnchor;
             startPoints = [start];
         }
 
         // set of points we want the pathfinding to finish at
         if (to instanceof g.Rect) { // `to` is targetBBox
-            end = snapToGrid(targetAnchor, grid);
+            end = targetAnchor;
             endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
 
         } else {
-            end = snapToGrid(targetAnchor, grid);
+            end = targetAnchor;
             endPoints = [end];
         }
 
@@ -607,11 +612,13 @@ joint.routers.manhattan = (function(g, joint, util) {
             var costs = {};
 
             for (var i = 0, n = startPoints.length; i < n; i++) {
-                var point = startPoints[i];
+                // startPoint is assumed to be aligned already
+                var startPoint = startPoints[i];
 
-                var key = getKey(snapToGrid(point, grid), precision);
-                openSet.add(key, estimateCost(point, endPoints));
-                points[key] = point;
+                var key = getKey(startPoint);
+
+                openSet.add(key, estimateCost(startPoint, endPoints));
+                points[key] = startPoint;
                 costs[key] = 0;
             }
 
@@ -626,8 +633,9 @@ joint.routers.manhattan = (function(g, joint, util) {
             var numDirections = directions.length;
 
             var endPointsKeys = util.toArray(endPoints).reduce(function(res, endPoint) {
+                // endPoint is assumed to be aligned already
 
-                var key = getKey(snapToGrid(endPoint, grid), precision);
+                var key = getKey(endPoint);
                 res.push(key);
                 return res;
             }, []);
@@ -668,15 +676,14 @@ joint.routers.manhattan = (function(g, joint, util) {
                     // any direction is allowed for starting points
                     if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) continue;
 
-                    var neighborPoint = currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY);
-                    var neighborKey = getKey(snapToGrid(neighborPoint, grid), precision);
+                    var neighborPoint = align(currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY), grid, precision);
+                    var neighborKey = getKey(neighborPoint);
 
                     // Closed points from the openSet were already evaluated.
                     if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) continue;
 
                     // We can only enter end points at an acceptable angle.
                     if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
-                        round(snapToGrid(neighborPoint, grid), precision); // remove rounding errors
 
                         var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
 
