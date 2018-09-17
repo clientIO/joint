@@ -1082,7 +1082,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         } else {
             var paper = this.paper;
             var magnetThreshold = paper.options.magnetThreshold;
-            var currentTarget = evt.target;
+            var currentTarget = this.getEventTarget(evt);
             var targetMagnet = data.targetMagnet;
             if (magnetThreshold === 'onleave') {
                 // magnetThreshold when the pointer leaves the magnet

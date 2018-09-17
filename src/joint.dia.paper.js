@@ -181,7 +181,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
         'touchstart .joint-cell [magnet]': 'onmagnet',
-        'dblclick [magnet]': 'magnetpointerdblclick',
+        'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
         'touchstart .joint-link .label': 'onlabel',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
@@ -1276,8 +1276,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointermove: function(evt) {
 
-        evt.preventDefault();
-
         // mouse moved counter
         var data = this.eventData(evt);
         data.mousemoved || (data.mousemoved = 0);
@@ -1314,11 +1312,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
-        if (!evt.isPropagationStopped()) {
+        if (!normalizedEvt.isPropagationStopped()) {
             this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
-            // evt.stopPropagation();
         }
 
+        evt.stopImmediatePropagation();
         this.delegateEvents();
     },
 
@@ -1455,6 +1453,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
                 evt = joint.util.normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
+                if (!this.options.validateMagnet(view, magnetNode)) return;
 
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
                 view.magnetpointerdblclick(evt, magnetNode, localPoint.x, localPoint.y);

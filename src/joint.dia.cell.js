@@ -1250,6 +1250,17 @@ joint.dia.CellView = joint.mvc.View.extend({
         return nodesAttrs;
     },
 
+    getEventTarget: function(evt) {
+        // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
+        // It holds the element when a touchstart triggered.
+        var type = evt.type;
+        if (type === 'touchmove' || type === 'touchend') {
+            return document.elementFromPoint(evt.clientX, evt.clientY);
+        }
+
+        return evt.target;
+    },
+
     // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
     // unless `attrs` parameter was passed.
     updateDOMSubtreeAttributes: function(rootNode, attrs, opt) {

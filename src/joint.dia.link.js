@@ -2368,13 +2368,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this._snapArrowhead(x, y, data);
 
         } else {
-            // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
-            // It holds the element when a touchstart triggered.
-            var target = (evt.type === 'mousemove')
-                ? evt.target
-                : document.elementFromPoint(evt.clientX, evt.clientY);
 
-            this._connectArrowhead(target, x, y, data);
+            this._connectArrowhead(this.getEventTarget(evt), x, y, data);
         }
     },
 
