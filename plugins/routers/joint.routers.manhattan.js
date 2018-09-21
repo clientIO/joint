@@ -730,6 +730,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         opt.padding = util.result(opt, 'padding');
 
         if (opt.padding) {
+            // if both provided, opt.padding wins over opt.paddingBox
             var sides = util.normalizeSides(opt.padding);
             opt.paddingBox = {
                 x: -sides.left,

@@ -50,9 +50,9 @@ joint.routers.orthogonal = (function(util) {
         return new g.Rect(p.x, p.y, 0, 0);
     }
 
-    // resolve some of the options
     function getPaddingBox(opt) {
 
+        // if both provided, opt.padding wins over opt.elementPadding
         var sides = util.normalizeSides(opt.padding || opt.elementPadding || 20);
 
         return {
