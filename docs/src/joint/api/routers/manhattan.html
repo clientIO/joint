@@ -4,7 +4,13 @@
     <tr>
         <th>step</th>
         <td><i>number</i></td>
-        <td>Size of the imaginary grid followed by the <code>'manhattan'</code> pathfinding algorithm. Also the size of padding applied around start/end elements and obstacles. Lower number -> higher complexity. The <code>'manhattan'</code> router performs best when <code>step</code> has the same value as <code>dia.Paper.option.gridSize</code>. Default is <code>10</code>.</td>
+        <td>Size of the imaginary grid followed by the <code>'manhattan'</code> pathfinding algorithm. Lower number -> higher complexity. The <code>'manhattan'</code> router performs best when <code>step</code> has the same value as <code>dia.Paper.option.gridSize</code>. Default is <code>10</code>.</td>
+    </tr>
+    <tr>
+        <th>padding</th>
+        <td><i>number&nbsp;|&nbsp;object</i></td>
+        <td>Padding applied around start/end elements and obstacles. The <code>util.normalizeSides</code> <a href=#util.normalizeSides>function</a> is used to understand the provided value. A single number is applied as padding to all sides of the elements. An object may be provided to specify values for <code>left</code>, <code>top</code>, <code>right</code>, <code>bottom</code>, <code>horizontal</code> and/or <code>vertical</code> sides. If no value is specified, the <code>step</code> value is used (see above).
+        </td>
     </tr>
     <tr>
         <th>maximumLoops</th>
