@@ -42,7 +42,8 @@
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         attributes: {
             'r': 6,
@@ -56,6 +57,7 @@
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             this.options.paper.undelegateEvents();
             this.delegateDocumentEvents(null, evt.data);
             this.trigger('will-change');
@@ -94,7 +96,8 @@
         }],
         handles: null,
         events: {
-            'mousedown .joint-vertices-path': 'onPathPointerDown'
+            'mousedown .joint-vertices-path': 'onPathPointerDown',
+            'touchstart .joint-vertices-path': 'onPathPointerDown'
         },
         onRender: function() {
             this.resetHandles();
@@ -162,7 +165,8 @@
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index;
-            var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            var normalizedEvent = util.normalizeEvent(evt);
+            var vertex = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
             this.snapVertex(vertex, index);
             relatedView.model.vertex(index, vertex, { ui: true, tool: this.cid });
             handle.position(vertex.x, vertex.y);
@@ -203,7 +207,9 @@
         },
         onPathPointerDown: function(evt) {
             evt.stopPropagation();
-            var vertex = this.paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            evt.preventDefault();
+            var normalizedEvent = util.normalizeEvent(evt);
+            var vertex = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
             var relatedView = this.relatedView;
             relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
             var index = relatedView.getVertexIndex(vertex.x, vertex.y);
@@ -233,7 +239,8 @@
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         children: [{
             tagName: 'line',
@@ -279,6 +286,7 @@
         onPointerDown: function(evt) {
             this.trigger('change:start', this, evt);
             evt.stopPropagation();
+            evt.preventDefault();
             this.options.paper.undelegateEvents();
             this.delegateDocumentEvents(null, evt.data);
         },
@@ -395,7 +403,8 @@
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index - 1;
-            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
             var position = this.snapHandle(handle, coords.clone(), data);
             var axis = handle.options.axis;
             var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
@@ -557,7 +566,8 @@
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         onRender: function() {
             this.update();
@@ -580,6 +590,7 @@
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             var relatedView = this.relatedView;
             relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
             if (relatedView.can('arrowheadMove')) {
@@ -591,15 +602,17 @@
             this.el.style.pointerEvents = 'none';
         },
         onPointerMove: function(evt) {
-            var coords = this.paper.snapToGrid(evt.clientX, evt.clientY);
-            this.relatedView.pointermove(evt, coords.x, coords.y);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+            this.relatedView.pointermove(normalizedEvent, coords.x, coords.y);
         },
         onPointerUp: function(evt) {
             this.undelegateDocumentEvents();
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
-            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
-            relatedView.pointerup(evt, coords.x, coords.y);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+            relatedView.pointerup(normalizedEvent, coords.x, coords.y);
             paper.delegateEvents();
             this.blur();
             this.el.style.pointerEvents = '';
@@ -675,6 +688,7 @@
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             var actionFn = this.options.action;
             if (typeof actionFn === 'function') {
                 actionFn.call(this.relatedView, evt, this.relatedView);
@@ -767,7 +781,8 @@
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         options: {
             snap: snapAnchor,
@@ -849,6 +864,7 @@
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
             this.focus();
@@ -877,8 +893,8 @@
             var type = this.type;
             var view = relatedView.getEndView(type);
             var magnet = relatedView.getEndMagnet(type);
-
-            var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
             var snapFn = this.options.snap;
             if (typeof snapFn === 'function') {
                 coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView, this);
