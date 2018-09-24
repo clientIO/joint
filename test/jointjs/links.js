@@ -153,7 +153,7 @@ QUnit.module('links', function(hooks) {
 
             assert.ok(spy.calledOnce);
             assert.ok(spy.calledWithExactly(rv1, undefined, rv2, undefined, 'source', lv0));
-            spy.reset();
+            spy.resetHistory();
 
             lv0.startArrowheadMove('source');
             evt.target = paper.el;
@@ -164,7 +164,7 @@ QUnit.module('links', function(hooks) {
 
             assert.ok(spy.calledOnce);
             assert.ok(spy.calledWithExactly(rv1, r1port, rv2, undefined, 'source', lv0));
-            spy.reset();
+            spy.resetHistory();
 
             lv0.startArrowheadMove('target');
             evt.target = paper.el;
@@ -175,7 +175,7 @@ QUnit.module('links', function(hooks) {
 
             assert.ok(spy.calledOnce);
             assert.ok(spy.calledWithExactly(rv1, r1port, rv2, undefined, 'target', lv0));
-            spy.reset();
+            spy.resetHistory();
 
             lv0.startArrowheadMove('target');
             evt.target = paper.el;
@@ -186,7 +186,7 @@ QUnit.module('links', function(hooks) {
 
             assert.ok(spy.calledOnce);
             assert.ok(spy.calledWithExactly(rv1, r1port, rv2, r2port, 'target', lv0));
-            spy.reset();
+            spy.resetHistory();
 
         });
     });
@@ -821,69 +821,69 @@ QUnit.module('links', function(hooks) {
             });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
 
             l.prop('labels/0/attrs/text/text', 'label3', { rewrite: true });
             assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/0', { attrs: { text: { text: 'label4' }}}, { rewrite: true });
             assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/1', { markup: '<rect/><text/>' }, { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/0/markup', '<rect/><text/>', { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/1', { markup: [{ tagName: 'rect' }, { tagName: 'text' }] }, { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/0/markup', [{ tagName: 'rect' }, { tagName: 'text' }], { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/1', { markup: [{ tagName: 'rect', selector: 'body' }, { tagName: 'text', selector: 'label' }] }, { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/0/markup', [{ tagName: 'rect', selector: 'body' }, { tagName: 'text', selector: 'label' }], { rewrite: true });
             assert.ok(renderSpy.calledOnce);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/0/attrs/label/text', 'label3', { rewrite: true });
             assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
 
             l.prop('labels/0', { attrs: { label: { text: 'label4' }}}, { rewrite: true });
             assert.ok(renderSpy.notCalled);
             assert.ok(updateSpy.calledOnce);
-            renderSpy.reset();
-            updateSpy.reset();
+            renderSpy.resetHistory();
+            updateSpy.resetHistory();
         });
 
     });
@@ -1256,51 +1256,51 @@ QUnit.module('links', function(hooks) {
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link point to point, link translated');
 
         l.set('target', { id: 'a' });
-        lv.update.reset();
+        lv.update.resetHistory();
         l.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link point to element, source translated');
 
         l.set('target', { x: 0, y: 0 });
         l.set('source', { id: 'a' });
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element to point, source translated');
 
-        lv.update.reset();
+        lv.update.resetHistory();
         l.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element to point, link translated');
 
         l.vertices([{ x: 0, y: 0 }]);
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element to point with vertices, link translated');
 
         // loop
         l.vertices([]);
         l.set('target', { id: 'a' });
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: loop link, source translated');
 
         // link element-element
         l.set('target', { id: 'b' });
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element, source translated');
 
         l.set('vertices', [{ x: 0, y: 0 }]);
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices, source translated');
 
         l.set('target', { x: 0, y: 0 });
-        lv.update.reset();
+        lv.update.resetHistory();
         l.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link point-element with vertices, link translated');
 
         // loop + vertices
         l.set('target', { id: 'a' });
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: loop link with vertices, source translated.');
 
@@ -1308,23 +1308,23 @@ QUnit.module('links', function(hooks) {
 
         // loop + vertices + embedded
         a.embed(l);
-        lv.update.reset();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, source translated.');
 
         // loop + vertices + embedded (moving container)
         c.embed(a);
-        lv.update.reset();
+        lv.update.resetHistory();
         c.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, container translated.');
 
         // loop + vertices + embedded (resizing source)
-        lv.update.reset();
+        lv.update.resetHistory();
         a.resize(100, 100);
         assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, source resized.');
 
         a.unembed(l);
-        lv.update.reset();
+        lv.update.resetHistory();
         a.resize(99, 99);
         assert.equal(lv.update.callCount, 1, 'update: loop link with vertices, source resized.');
 
@@ -1333,22 +1333,22 @@ QUnit.module('links', function(hooks) {
 
         // source, target and link with vertices are embedded,
         // translating container
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         c.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, container translated');
         assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element with vertices embedded, container translated');
 
         // translating source
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, source translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, source translated');
 
         // translating target
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         b.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, target translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, target translated');
@@ -1356,22 +1356,22 @@ QUnit.module('links', function(hooks) {
         // source, target and link are embedded,
         // translating container
         l.set('vertices', []);
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         c.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, container translated');
         assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element embedded, container translated');
 
         // translating source
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, source translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, source translated');
 
         // translating target
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         b.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, target translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, target translated');
@@ -1379,15 +1379,15 @@ QUnit.module('links', function(hooks) {
         // loop link and element are embedded
         // translating container
         l.set('target', { id: 'a' });
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         c.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: loop link embedded, container translated');
         assert.equal(lv.findRoute.callCount, 0, 'findRoute: loop link embedded, container translated');
 
         // translating element
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: loop link embedded, source translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: loop link embedded, source translated');
@@ -1396,43 +1396,43 @@ QUnit.module('links', function(hooks) {
         // translateing container
         c.unembed(l);
         l.set('target', { id: 'b' });
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         c.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, container translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, container translated');
 
         // translating source
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, source translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, source translated');
 
         // translating target
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         b.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, source translated');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, source translated');
 
         // adding vertex
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         l.set('vertices', [{ x: 0, y: 0 }]);
         assert.equal(lv.update.callCount, 1, 'update: vertex added');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: vertex added');
 
         // changing attr
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         l.attr('.connection/stroke', 'red');
         assert.equal(lv.update.callCount, 1, 'update: change attrs');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: change attrs');
 
         // source resize
-        lv.findRoute.reset();
-        lv.update.reset();
+        lv.findRoute.resetHistory();
+        lv.update.resetHistory();
         a.resize(20, 20);
         assert.equal(lv.update.callCount, 1, 'update: source resized');
         assert.equal(lv.findRoute.callCount, 1, 'findRoute: source resized');
@@ -1440,8 +1440,8 @@ QUnit.module('links', function(hooks) {
         // 2 loop links connected to the same element.
         l2.set('source', { id: 'a' }).set('target', { id: 'b' });
         l.set('source', { id: 'a' }).set('target', { id: 'b' });
-        lv.update.reset();
-        l2v.update.reset();
+        lv.update.resetHistory();
+        l2v.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: 2 loops link, source translated (first)');
         assert.equal(l2v.update.callCount, 1, 'update: 2 loops link, source translated (second)');
