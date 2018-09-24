@@ -7,7 +7,7 @@
 joint.routers.oneSide = function(vertices, opt, linkView) {
 
     var side = opt.side || 'bottom';
-    var padding = opt.padding || 40;
+    var padding = joint.util.normalizeSides(opt.padding || 40);
 
     // LinkView contains cached source an target bboxes.
     // Note that those are Geometry rectangle objects.
@@ -44,11 +44,11 @@ joint.routers.oneSide = function(vertices, opt, linkView) {
     }
 
     // move the points from the center of the element to outside of it.
-    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding);
-    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding);
+    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding[side]);
+    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding[side]);
 
     // make link orthogonal (at least the first and last vertex).
-    if (direction * (sourcePoint[coordinate] - targetPoint[coordinate]) > 0) {
+    if ((direction * (sourcePoint[coordinate] - targetPoint[coordinate])) > 0) {
         targetPoint[coordinate] = sourcePoint[coordinate];
     } else {
         sourcePoint[coordinate] = targetPoint[coordinate];

@@ -2,16 +2,16 @@
 
 <table>
     <tr>
-        <th>elementPadding</th>
-        <td><i>number</i></td>
-        <td>The minimum distance from element at which the first/last route angle may be placed. Default is <code>20</code>.</td>
+        <th>padding</th>
+        <td><i>number&nbsp;|&nbsp;object</i></td>
+        <td>The minimum distance from element at which the first/last route angle may be placed. Default is <code>20</code>. The <code>util.normalizeSides</code> <a href=#util.normalizeSides>function</a> is used to understand the provided value. A single number is applied as padding to all sides of the elements. An object may be provided to specify values for <code>left</code>, <code>top</code>, <code>right</code>, <code>bottom</code>, <code>horizontal</code> and/or <code>vertical</code> sides.</td>
     </tr>
 </table>
 
 <p>Example:</p>
 
 <pre><code>link.router('orthogonal', {
-    elementPadding: 10
+    padding: 10
 });</code></pre>
 
 <p>(<i>Deprecated</i>) For the purposes of backwards compatibility, the <code>'orthogonal'</code> router can also be enabled by setting the <code>link.manhattan</code> property to <code>true</code>. Note that the meaning of <q>manhattan</q> in JointJS has changed over time.</p>

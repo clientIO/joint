@@ -7,17 +7,34 @@ export namespace dia {
     type Size = Pick<BBox, 'width' | 'height'>;
 
     type PaddingJSON = {
+        left?: number;
         top?: number;
         right?: number;
         bottom?: number;
-        left?: number
     };
 
     type Padding = number | PaddingJSON;
 
+    type SidesJSON = {
+        left?: number;
+        top?: number;
+        right?: number;
+        bottom?: number;
+        horizontal?: number;
+        vertical?: number;
+    }
+
+    type Sides = number | SidesJSON;
+
+    type OrthogonalDirection =
+        'left' | 'top' | 'right' | 'bottom';
+
     type Direction =
-        'left' | 'right' | 'top' | 'bottom' | 'top-right' |
-        'top-left' | 'bottom-left' | 'bottom-right';
+        OrthogonalDirection |
+        'top-left' | 'top-right' | 'bottom-right' | 'bottom-left';
+
+    type LinkEnd =
+        'source' | 'target';
 
     type MarkupNodeJSON = {
         tagName: string;
@@ -673,7 +690,7 @@ export namespace dia {
                 view: ElementView,
                 magnet: SVGElement,
                 reference: Point,
-                end: 'source' | 'target'
+                end: LinkEnd
             ): Point;
         }
 
@@ -834,7 +851,7 @@ export namespace dia {
             markAvailable?: boolean;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
-            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: 'source' | 'target', linkView: LinkView) => boolean;
+            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
             linkPinning?: boolean;
@@ -2012,7 +2029,7 @@ export namespace util {
 
     export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
 
-    export function normalizeSides(sides: number | { top?: number, bottom?: number, left?: number, right?: number }): dia.PaddingJSON;
+    export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
     export function template(html: string): (data: any) => string;
 
@@ -2273,21 +2290,25 @@ export namespace routers {
     }
 
     interface ManhattanRouterArguments {
-        excludeTypes?: string[];
-        excludeEnds?: 'source' | 'target';
-        startDirections?: ['left' | 'right' | 'top' | 'bottom'];
-        endDirections?: ['left' | 'right' | 'top' | 'bottom'];
         step?: number;
+        padding?: dia.Sides;
         maximumLoops?: number;
+        maxAllowedDirectionChange?: number;
+        perpendicular?: boolean;
+        excludeEnds?: dia.LinkEnd[];
+        excludeTypes?: string[];
+        startDirections?: dia.OrthogonalDirection[];
+        endDirections?: dia.OrthogonalDirection[];
     }
 
     interface OrthogonalRouterArguments {
         elementPadding?: number;
+        padding?: dia.Sides;
     }
 
     interface OneSideRouterArguments {
-        side?: 'bottom' | 'top' | 'left' | 'right';
-        padding?: number;
+        side?: dia.OrthogonalDirection;
+        padding?: dia.Sides;
     }
 
     interface RouterArgumentsMap {

@@ -727,6 +727,18 @@ joint.routers.manhattan = (function(g, joint, util) {
         opt.directions = util.result(opt, 'directions');
         opt.penalties = util.result(opt, 'penalties');
         opt.paddingBox = util.result(opt, 'paddingBox');
+        opt.padding = util.result(opt, 'padding');
+
+        if (opt.padding) {
+            // if both provided, opt.padding wins over opt.paddingBox
+            var sides = util.normalizeSides(opt.padding);
+            opt.paddingBox = {
+                x: -sides.left,
+                y: -sides.top,
+                width: sides.left + sides.right,
+                height: sides.top + sides.bottom
+            };
+        }
 
         util.toArray(opt.directions).forEach(function(direction) {
 

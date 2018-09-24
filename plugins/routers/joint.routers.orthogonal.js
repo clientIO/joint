@@ -50,18 +50,29 @@ joint.routers.orthogonal = (function(util) {
         return new g.Rect(p.x, p.y, 0, 0);
     }
 
+    function getPaddingBox(opt) {
+
+        // if both provided, opt.padding wins over opt.elementPadding
+        var sides = util.normalizeSides(opt.padding || opt.elementPadding || 20);
+
+        return {
+            x: -sides.left,
+            y: -sides.top,
+            width: sides.left + sides.right,
+            height: sides.top + sides.bottom
+        };
+    }
+
     // return source bbox
     function getSourceBBox(linkView, opt) {
 
-        var padding = (opt && opt.elementPadding) || 20;
-        return linkView.sourceBBox.clone().inflate(padding);
+        return linkView.sourceBBox.clone().moveAndExpand(getPaddingBox(opt));
     }
 
     // return target bbox
     function getTargetBBox(linkView, opt) {
 
-        var padding = (opt && opt.elementPadding) || 20;
-        return linkView.targetBBox.clone().inflate(padding);
+        return linkView.targetBBox.clone().moveAndExpand(getPaddingBox(opt));
     }
 
     // return source anchor
@@ -218,8 +229,6 @@ joint.routers.orthogonal = (function(util) {
     // routing from source to target going through `vertices`.
     function router(vertices, opt, linkView) {
 
-        var padding = opt.elementPadding || 20;
-
         var sourceBBox = getSourceBBox(linkView, opt);
         var targetBBox = getTargetBBox(linkView, opt);
 
@@ -262,7 +271,7 @@ joint.routers.orthogonal = (function(util) {
                 } else { // route source -> vertex
 
                     if (sourceBBox.containsPoint(to)) {
-                        route = insideElement(from, to, sourceBBox, getPointBox(to).inflate(padding));
+                        route = insideElement(from, to, sourceBBox, getPointBox(to).moveAndExpand(getPaddingBox(opt)));
 
                     } else if (!isOrthogonal) {
                         route = elementVertex(from, to, sourceBBox);
@@ -275,7 +284,7 @@ joint.routers.orthogonal = (function(util) {
                 var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
 
                 if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
-                    route = insideElement(from, to, getPointBox(from).inflate(padding), targetBBox, bearing);
+                    route = insideElement(from, to, getPointBox(from).moveAndExpand(getPaddingBox(opt)), targetBBox, bearing);
 
                 } else if (!isOrthogonal) {
                     route = vertexElement(from, to, targetBBox, bearing);
