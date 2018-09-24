@@ -33,6 +33,9 @@ export namespace dia {
         OrthogonalDirection |
         'top-left' | 'top-right' | 'bottom-right' | 'bottom-left';
 
+    type LinkEnd =
+        'source' | 'target';
+
     type MarkupNodeJSON = {
         tagName: string;
         selector?: string;
@@ -687,7 +690,7 @@ export namespace dia {
                 view: ElementView,
                 magnet: SVGElement,
                 reference: Point,
-                end: 'source' | 'target'
+                end: LinkEnd
             ): Point;
         }
 
@@ -848,7 +851,7 @@ export namespace dia {
             markAvailable?: boolean;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
-            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: 'source' | 'target', linkView: LinkView) => boolean;
+            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
             linkPinning?: boolean;
@@ -2292,7 +2295,7 @@ export namespace routers {
         maximumLoops?: number;
         maxAllowedDirectionChange?: number;
         perpendicular?: boolean;
-        excludeEnds?: 'source' | 'target';
+        excludeEnds?: dia.LinkEnd[];
         excludeTypes?: string[];
         startDirections?: dia.OrthogonalDirection[];
         endDirections?: dia.OrthogonalDirection[];
