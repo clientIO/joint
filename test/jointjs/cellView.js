@@ -498,8 +498,8 @@ QUnit.module('cellView', function(hooks) {
                     sinon.match.number
                 ));
                 // Event should not be triggered
-                paperSpy.reset();
-                cellViewSpy.reset();
+                paperSpy.resetHistory();
+                cellViewSpy.resetHistory();
                 simulate.mousedown({ el: cellView.el.querySelector('.c') });
                 assert.notOk(paperSpy.called);
                 assert.notOk(cellViewSpy.called);

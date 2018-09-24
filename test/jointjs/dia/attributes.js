@@ -58,19 +58,19 @@ QUnit.module('Attributes', function() {
                 var spy = sinon.spy(joint.util, 'breakText');
 
                 // no text
-                spy.reset();
+                spy.resetHistory();
                 ns.textWrap.set.call(cellView, {}, bbox, node, {});
                 assert.equal(node.textContent, '-'); // Vectorizer empty line has `-` character with opacity 0
                 assert.ok(!spy.called || spy.calledWith('', sinon.match.instanceOf(g.Rect)));
 
                 // text via `text` attribute
-                spy.reset();
+                spy.resetHistory();
                 ns.textWrap.set.call(cellView, {}, bbox, node, { text: 'text' });
                 assert.equal(node.textContent, 'text');
                 assert.ok(spy.calledWith('text', sinon.match.instanceOf(g.Rect)));
 
                 // text as part of the `textWrap` value
-                spy.reset();
+                spy.resetHistory();
                 ns.textWrap.set.call(cellView, { text: 'text' }, bbox, node, {});
                 assert.equal(node.textContent, 'text');
                 assert.ok(spy.calledWith('text', sinon.match.instanceOf(g.Rect)));

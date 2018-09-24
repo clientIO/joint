@@ -672,7 +672,7 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(sourceAnchorSpy.calledTwice);
 
             // Source Magnet
-            sourceAnchorSpy.reset();
+            sourceAnchorSpy.resetHistory();
             linkView.model.prop('source/magnet', 'body');
             assert.ok(sourceAnchorSpy.calledWithExactly(
                 rv1,
@@ -686,7 +686,7 @@ QUnit.module('linkView', function(hooks) {
             ));
 
             // Target Magnet
-            targetAnchorSpy.reset();
+            targetAnchorSpy.resetHistory();
             linkView.model.prop('target/magnet', 'body');
             assert.ok(targetAnchorSpy.calledWithExactly(
                 rv2,
@@ -701,12 +701,12 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(targetAnchor.equals(linkView.targetAnchor));
 
             // Link connected by source to a point does not use anchors
-            sourceAnchorSpy.reset();
+            sourceAnchorSpy.resetHistory();
             linkView.model.removeProp('source/id');
             assert.ok(sourceAnchorSpy.notCalled);
 
             // Link connected by target to a point does not use anchors
-            targetAnchorSpy.reset();
+            targetAnchorSpy.resetHistory();
             linkView.model.removeProp('target/id');
             assert.ok(targetAnchorSpy.notCalled);
         });
@@ -773,7 +773,7 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(sourceConnectionPointSpy.calledTwice);
 
             // Source Magnet
-            sourceConnectionPointSpy.reset();
+            sourceConnectionPointSpy.resetHistory();
             linkView.model.prop('source/magnet', 'body');
             assert.ok(sourceConnectionPointSpy.calledWithExactly(
                 sinon.match.instanceOf(g.Line),
@@ -785,7 +785,7 @@ QUnit.module('linkView', function(hooks) {
             ));
 
             // Target Magnet
-            targetConnectionPointSpy.reset();
+            targetConnectionPointSpy.resetHistory();
             linkView.model.prop('target/magnet', 'body');
             assert.ok(targetConnectionPointSpy.calledWithExactly(
                 sinon.match.instanceOf(g.Line),
@@ -800,12 +800,12 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(targetPoint.equals(linkView.targetPoint));
 
             // Link connected by source to a point does not use connectionPoints
-            sourceConnectionPointSpy.reset();
+            sourceConnectionPointSpy.resetHistory();
             linkView.model.removeProp('source/id');
             assert.ok(sourceConnectionPointSpy.notCalled);
 
             // Link connected by target to a point does not use connectionPoints
-            targetConnectionPointSpy.reset();
+            targetConnectionPointSpy.resetHistory();
             linkView.model.removeProp('target/id');
             assert.ok(targetConnectionPointSpy.notCalled);
         });

@@ -75,7 +75,7 @@
     "selenium-standalone": "6.15.3",
     "serve-static": "1.13.2",
     "should": "13.2.3",
-    "sinon": "1.17.5",
+    "sinon": "6.3.4",
     "time-grunt": "1.4.0",
     "typescript": "3.0.3",
     "webdriverio": "4.13.2",
