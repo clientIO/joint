@@ -879,13 +879,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             ? this.viewport.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
-        while (el && el !== this.el && el !== document) {
-
-            var id = el.getAttribute('model-id');
-            if (id) return this._views[id];
-
-            el = el.parentNode;
-        }
+        var id = this.findAttribute('model-id', el);
+        if (id) return this._views[id];
 
         return undefined;
     },
