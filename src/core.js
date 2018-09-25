@@ -258,7 +258,7 @@ var joint = {
                 if (useElement) normalizedEvent.target = useElement;
             }
 
-            return evt;
+            return normalizedEvent;
         },
 
         nextFrame: (function() {
