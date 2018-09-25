@@ -238,6 +238,7 @@ var joint = {
 
         normalizeEvent: function(evt) {
 
+            var normalizedEvent = evt;
             var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
             if (touchEvt) {
                 for (var property in evt) {
@@ -247,10 +248,17 @@ var joint = {
                         touchEvt[property] = evt[property];
                     }
                 }
-                return touchEvt;
+                normalizedEvent = touchEvt;
             }
 
-            return evt;
+            // IE: evt.target could be set to SVGElementInstance for SVGUseElement
+            var target = normalizedEvent.target;
+            if (target) {
+                var useElement = target.correspondingUseElement;
+                if (useElement) normalizedEvent.target = useElement;
+            }
+
+            return normalizedEvent;
         },
 
         nextFrame: (function() {

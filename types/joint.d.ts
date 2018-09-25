@@ -567,8 +567,6 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
-        findAttribute(attributeName: string, node: Element): string | null;
-
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         getStrokeBBox(el?: SVGElement): g.Rect;
@@ -2270,6 +2268,8 @@ export namespace mvc {
         eventData(evt: JQuery.Event, data: viewEventData): this;
 
         renderChildren(children?: dia.MarkupJSON): this;
+
+        findAttribute(attributeName: string, node: Element): string | null;
 
         protected init(): void;
 

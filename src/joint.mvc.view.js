@@ -38,6 +38,23 @@ joint.mvc.View = Backbone.View.extend({
         return this;
     },
 
+    findAttribute: function(attributeName, node) {
+
+        var currentNode = node;
+
+        while (currentNode && currentNode.nodeType === 1) {
+            var attributeValue = currentNode.getAttribute(attributeName);
+            // attribute found
+            if (attributeValue) return attributeValue;
+            // do not climb up the DOM
+            if (currentNode === this.el) return null;
+            // try parent node
+            currentNode = currentNode.parentNode;
+        }
+
+        return null;
+    },
+
     // Override the Backbone `_ensureElement()` method in order to create an
     // svg element (e.g., `<g>`) node that wraps all the nodes of the Cell view.
     // Expose class name setter as a separate method.

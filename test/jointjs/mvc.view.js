@@ -170,4 +170,51 @@ QUnit.module('joint.mvc.View', function(hooks) {
         assert.ok(_.isEmpty(protoProps), 'does not add any properties to prototype properties argument');
         assert.ok(_.isEmpty(staticProps), 'does not add any properties to static properties argument');
     });
+
+    QUnit.module('findAttribute()', function() {
+
+        QUnit.test('sanity', function(assert) {
+
+            var View = joint.mvc.View.extend({
+                tagName: 'g',
+                svgElement: true,
+                attributes: {
+                    'root-attribute': 'test-root'
+                },
+                children: [{
+                    tagName: 'g',
+                    selector: 'group',
+                    attributes: {
+                        'group-attribute': 'test-group'
+                    },
+                    children: [{
+                        tagName: 'rect',
+                        selector: 'rect',
+                        attributes: {
+                            'rect-attribute': 'test-rect'
+                        }
+                    }]
+                }]
+            });
+
+            var view = new View();
+            view.renderChildren();
+
+            assert.equal(view.findAttribute('root-attribute', view.el), 'test-root');
+            assert.equal(view.findAttribute('root-attribute', view.childNodes.group), 'test-root');
+            assert.equal(view.findAttribute('root-attribute', view.childNodes.rect), 'test-root');
+
+            assert.equal(view.findAttribute('group-attribute', view.el), null);
+            assert.equal(view.findAttribute('group-attribute', view.childNodes.group), 'test-group');
+            assert.equal(view.findAttribute('group-attribute', view.childNodes.rect), 'test-group');
+
+            assert.equal(view.findAttribute('rect-attribute', view.el), null);
+            assert.equal(view.findAttribute('rect-attribute', view.childNodes.group), null);
+            assert.equal(view.findAttribute('rect-attribute', view.childNodes.rect), 'test-rect');
+
+            assert.equal(view.findAttribute('root-attribute', document.body), null);
+
+            view.remove();
+        });
+    });
 });
