@@ -365,6 +365,16 @@ QUnit.module('util', function(hooks) {
             'If called with an object, horizontal sides are overriden by more specific sides from the object and the rest is defaulted to 0.');
     });
 
+    QUnit.module('util.normalizeEvent()', function() {
+
+        QUnit.test('correspondingUseElement', function(assert) {
+            var useElement = V('use').node;
+            var event = new $.Event('mouseover', { target: { correspondingUseElement: useElement }});
+            assert.equal(joint.util.normalizeEvent(event).target, useElement);
+        });
+
+    });
+
     QUnit.test('util.merge', function(assert) {
 
         var types = joint.util.merge({ a: [99] }, { a: { b: 1 }});

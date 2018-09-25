@@ -40,7 +40,6 @@ joint.mvc.View = Backbone.View.extend({
 
     findAttribute: function(attributeName, node) {
 
-        var util = joint.util;
         var currentNode = node;
 
         while (currentNode && currentNode.nodeType === 1) {
@@ -50,7 +49,7 @@ joint.mvc.View = Backbone.View.extend({
             // do not climb up the DOM
             if (currentNode === this.el) return null;
             // try parent node
-            currentNode = util.normalizeNode(currentNode.parentNode);
+            currentNode = currentNode.parentNode;
         }
 
         return null;
