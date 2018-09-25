@@ -42,14 +42,16 @@ joint.mvc.View = Backbone.View.extend({
 
         if (!node) return null;
 
-        var attributeValue = node.getAttribute(attributeName);
+        var util = joint.util;
+        var currentNode = util.normalizeNode(node);
+        var attributeValue = currentNode.getAttribute(attributeName);
         if (attributeValue === null) {
-            if (node === this.el) return null;
-            var currentNode = node.parentNode;
+            if (currentNode === this.el) return null;
+            currentNode = util.normalizeNode(currentNode.parentNode);
             while (currentNode && currentNode !== this.el && currentNode.nodeType === 1) {
                 attributeValue = currentNode.getAttribute(attributeName);
                 if (attributeValue !== null) break;
-                currentNode = currentNode.parentNode;
+                currentNode = util.normalizeNode(currentNode.parentNode);
             }
         }
         return attributeValue;

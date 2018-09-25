@@ -916,6 +916,12 @@ var joint = {
             return { top: top, right: right, bottom: bottom, left: left };
         },
 
+        normalizeNode: function(node) {
+            if (!node) return null;
+            // IE: evt.target could be set to SVGElementInstance for SVGUseElement
+            return node.correspondingUseElement || node;
+        },
+
         timing: {
 
             linear: function(t) {
