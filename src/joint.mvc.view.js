@@ -40,21 +40,20 @@ joint.mvc.View = Backbone.View.extend({
 
     findAttribute: function(attributeName, node) {
 
-        if (!node) return null;
-
         var util = joint.util;
-        var currentNode = util.normalizeNode(node);
-        var attributeValue = currentNode.getAttribute(attributeName);
-        if (attributeValue === null) {
+        var currentNode = node;
+
+        while (currentNode && currentNode.nodeType === 1) {
+            var attributeValue = currentNode.getAttribute(attributeName);
+            // attribute found
+            if (attributeValue) return attributeValue;
+            // do not climb up the DOM
             if (currentNode === this.el) return null;
+            // try parent node
             currentNode = util.normalizeNode(currentNode.parentNode);
-            while (currentNode && currentNode !== this.el && currentNode.nodeType === 1) {
-                attributeValue = currentNode.getAttribute(attributeName);
-                if (attributeValue !== null) break;
-                currentNode = util.normalizeNode(currentNode.parentNode);
-            }
         }
-        return attributeValue;
+
+        return null;
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an

@@ -250,6 +250,10 @@ var joint = {
                 return touchEvt;
             }
 
+            // IE: evt.target could be set to SVGElementInstance for SVGUseElement
+            var useElement = evt.target.correspondingUseElement;
+            if (useElement) evt.target = useElement;
+
             return evt;
         },
 
@@ -914,12 +918,6 @@ var joint = {
             if (isFinite(box.left)) left = +box.left; // overwrite horizontal
 
             return { top: top, right: right, bottom: bottom, left: left };
-        },
-
-        normalizeNode: function(node) {
-            if (!node) return null;
-            // IE: evt.target could be set to SVGElementInstance for SVGUseElement
-            return node.correspondingUseElement || node;
         },
 
         timing: {

@@ -2029,8 +2029,6 @@ export namespace util {
 
     export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
-    export function normalizeNode(node: Element | SVGElementInstance): Element | null;
-
     export function template(html: string): (data: any) => string;
 
     export function toggleFullScreen(el?: Element): void;
