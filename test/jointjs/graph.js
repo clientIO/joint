@@ -387,15 +387,42 @@ QUnit.module('graph', function(hooks) {
             graph1,
             'The graph reference was not stored after the model was added to a graph while it\'s still member of another graph.'
         );
+    });
+
+    QUnit.test('dry flag', function(assert) {
+
+        var graph1 = new joint.dia.Graph;
+        var graph2 = new joint.dia.Graph;
+        var graph3 = new joint.dia.Graph;
 
         // Dry mode
 
-        b.remove();
+        var b = new joint.shapes.standard.Rectangle();
+
         graph1.addCell(b, { dry: true });
-        assert.ok(b.graph === null, 'The graph reference is not stored after element added when the `dry` flag is passed.');
+        assert.ok(b.graph == null, 'The graph reference is not stored after element added when the `dry` flag is passed.');
 
         graph1.resetCells([b], { dry: true });
-        assert.ok(b.graph === null, 'The graph reference is not stored after graph reset when the `dry` flag is passed.');
+        assert.ok(b.graph == null, 'The graph reference is not stored after graph reset when the `dry` flag is passed.');
+
+        graph1.addCell({ id: 'c', type: 'standard.Rectangle' }, { dry: true });
+        var c = graph1.getCell('c');
+        assert.ok(c.graph == null);
+
+        var d = new joint.shapes.standard.Rectangle();
+        graph2.addCell(d, { dry: true });
+        assert.ok(graph2.getCell(d.id));
+        graph3.addCell(d, { dry: false });
+        assert.ok(graph3.getCell(d.id));
+        d.remove();
+        assert.notOk(graph3.getCell(d.id));
+
+        var e = new joint.shapes.standard.Rectangle();
+        var someCollection = new Backbone.Collection();
+        someCollection.add(e);
+        assert.ok(e.collection === someCollection);
+        e.remove();
+        assert.notOk(e.collection);
     });
 
     QUnit.test('graph.clear()', function(assert) {

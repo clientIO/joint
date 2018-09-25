@@ -149,21 +149,28 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Store the graph in a variable because `this.graph` won't' be accessbile after `this.trigger('remove', ...)` down below.
         var graph = this.graph;
-        if (graph) {
-            graph.startBatch('remove');
+        if (!graph) {
+            // The collection is a common backbone collection (not the graph collection).
+            if (this.collection) this.collection.remove(this, opt);
+            return this;
         }
+
+        graph.startBatch('remove');
 
         // First, unembed this cell from its parent cell if there is one.
         var parentCell = this.getParentCell();
         if (parentCell) parentCell.unembed(this);
 
-        joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
-
-        this.trigger('remove', this, this.collection, opt);
-
-        if (graph) {
-            graph.stopBatch('remove');
+        // Remove also all the cells, which were embedded into this cell
+        var embeddedCells = this.getEmbeddedCells();
+        for (var i = 0, n = embeddedCells.length; i < n; i++) {
+            var embed = embeddedCells[i];
+            if (embed) embed.remove(opt);
         }
+
+        this.trigger('remove', this, graph.attributes.cells, opt);
+
+        graph.stopBatch('remove');
 
         return this;
     },
