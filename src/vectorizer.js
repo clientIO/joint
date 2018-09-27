@@ -1007,7 +1007,7 @@ V = Vectorizer = (function() {
 
     VPrototype.addClass = function(className) {
 
-        if (!this.hasClass(className)) {
+        if (className && !this.hasClass(className)) {
             var prevClasses = this.node.getAttribute('class') || '';
             this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
         }
@@ -1017,7 +1017,7 @@ V = Vectorizer = (function() {
 
     VPrototype.removeClass = function(className) {
 
-        if (this.hasClass(className)) {
+        if (className && this.hasClass(className)) {
             var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
             this.node.setAttribute('class', newClasses);
         }

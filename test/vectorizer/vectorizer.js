@@ -1262,4 +1262,22 @@ QUnit.module('vectorizer', function(hooks) {
             assert.deepEqual(parsed.translate, { tx: 9, ty: 0 });
         });
     });
+
+    QUnit.module('className', function() {
+
+        QUnit.test('addClass()', function(assert) {
+            var res;
+            var rect = V('rect');
+            res = rect.addClass();
+            assert.ok(res === rect);
+            assert.equal(rect.node.className.baseVal, '');
+            res = rect.addClass('test1');
+            assert.ok(res === rect);
+            assert.equal(rect.node.className.baseVal, 'test1');
+            rect.addClass('test1');
+            assert.equal(rect.node.className.baseVal, 'test1');
+            rect.addClass('test2');
+            assert.equal(rect.node.className.baseVal, 'test1 test2');
+        });
+    });
 });
