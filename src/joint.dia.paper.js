@@ -796,7 +796,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         });
     },
 
-    _minScale: 1e-6,
+    MIN_SCALE: 1e-6,
 
     scale: function(sx, sy, ox, oy) {
 
@@ -822,8 +822,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.translate(newTx, newTy);
         }
 
-        sx = Math.max(sx || 0, this._minScale);
-        sy = Math.max(sy || 0, this._minScale);
+        sx = Math.max(sx || 0, this.MIN_SCALE);
+        sy = Math.max(sy || 0, this.MIN_SCALE);
 
         var ctm = this.matrix();
         ctm.a = sx;
