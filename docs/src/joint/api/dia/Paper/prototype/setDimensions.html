@@ -1,3 +1,29 @@
 
 <pre class="docs-method-signature"><code>paper.setDimensions(width, height)</code></pre>
 <p>Change dimensions of a paper. Dimensions should always be passed to the options object of the <code>joint.dia.Paper</code> constructor. Use <code>setDimensions()</code> to change dimensions of the paper later on if needed. If the method is called a <code>&quot;resize&quot;</code> event is triggered on the paper.</p>
+<table>
+    <tr>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+       <td>Number</td>
+       <td>Dimension in pixels (e.g <code>800</code>).</td>
+    </tr>
+    <tr>
+        <td>String</td>
+        <td>
+            Dimension as CSS property value (e.g <code>"100%"</code>). <br
+            ><i>Make sure the paper container element has size defined.</i>
+            <pre><code>// Responsive Paper
+var paper = new joint.dia.Paper({ width: '100%', height: '100%' });
+window.on('resize', joint.util.debounce(function() {
+  paper.scaleContentToFit({ padding: 10 });
+}), false);</code></pre>
+        </td>
+    </tr>
+    <tr>
+        <td>null</td>
+        <td>No dimension set. Useful when size of the paper controlled in CSS.</td>
+    </tr>
+</table>
