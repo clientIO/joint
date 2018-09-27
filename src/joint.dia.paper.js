@@ -373,8 +373,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         var h = (height === undefined) ? options.height : height;
         this.options.width = w;
         this.options.height = h;
-        if (util.isNumber(w)) w = Math.round(width);
-        if (util.isNumber(h)) h = Math.round(height);
+        if (util.isNumber(w)) w = Math.round(w);
+        if (util.isNumber(h)) h = Math.round(h);
         this.$el.css({ width: w, height: h });
         var computedDimension = this.getComputedDimensions();
         this.trigger('resize', computedDimension.width, computedDimension.height);
@@ -503,12 +503,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             };
         }
 
-        fittingBBox = g.rect(fittingBBox).moveAndExpand({
-            x: padding,
-            y: padding,
-            width: -2 * padding,
-            height: -2 * padding
-        });
+        fittingBBox = new g.Rect(fittingBBox).inflate(-padding);
 
         var currentScale = this.scale();
 
@@ -560,7 +555,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // for non-default origin we need to take the viewport translation into account
         var currentTranslate = this.translate();
 
-        return g.rect({
+        return new g.Rect({
             x: crect.left - clientCTM.e + currentTranslate.tx,
             y: crect.top - clientCTM.f + currentTranslate.ty,
             width: crect.width,
@@ -801,6 +796,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         });
     },
 
+    _minScale: 1e-6,
+
     scale: function(sx, sy, ox, oy) {
 
         // getter
@@ -825,9 +822,12 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.translate(newTx, newTy);
         }
 
+        sx = Math.max(sx || 0, this._minScale);
+        sy = Math.max(sy || 0, this._minScale);
+
         var ctm = this.matrix();
-        ctm.a = sx || 0;
-        ctm.d = sy || 0;
+        ctm.a = sx;
+        ctm.d = sy;
 
         this.matrix(ctm);
 
@@ -915,7 +915,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find all views at given point
     findViewsFromPoint: function(p) {
 
-        p = g.point(p);
+        p = new g.Point(p);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
 
@@ -928,7 +928,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     findViewsInArea: function(rect, opt) {
 
         opt = joint.util.defaults(opt || {}, { strict: false });
-        rect = g.rect(rect);
+        rect = new g.Rect(rect);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
         var method = opt.strict ? 'containsRect' : 'intersect';
@@ -967,44 +967,44 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     localToPaperPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var localPoint = g.Point(x, y);
+        var localPoint = new g.Point(x, y);
         var paperPoint = V.transformPoint(localPoint, this.matrix());
-        return g.Point(paperPoint);
+        return paperPoint;
     },
 
     localToPaperRect: function(x, y, width, height) {
         // allow `x` to be a rectangle and rest arguments undefined
-        var localRect = g.Rect(x, y);
+        var localRect = new g.Rect(x, y, width, height);
         var paperRect = V.transformRect(localRect, this.matrix());
-        return g.Rect(paperRect);
+        return paperRect;
     },
 
     paperToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var paperPoint = g.Point(x, y);
+        var paperPoint = new g.Point(x, y);
         var localPoint = V.transformPoint(paperPoint, this.matrix().inverse());
-        return g.Point(localPoint);
+        return localPoint;
     },
 
     paperToLocalRect: function(x, y, width, height) {
         // allow `x` to be a rectangle and rest arguments undefined
-        var paperRect = g.Rect(x, y, width, height);
+        var paperRect = new g.Rect(x, y, width, height);
         var localRect = V.transformRect(paperRect, this.matrix().inverse());
-        return g.Rect(localRect);
+        return localRect;
     },
 
     localToClientPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var localPoint = g.Point(x, y);
+        var localPoint = new g.Point(x, y);
         var clientPoint = V.transformPoint(localPoint, this.clientMatrix());
-        return g.Point(clientPoint);
+        return clientPoint;
     },
 
     localToClientRect: function(x, y, width, height) {
         // allow `x` to be a point and `y` undefined
-        var localRect = g.Rect(x, y, width, height);
+        var localRect = new g.Rect(x, y, width, height);
         var clientRect = V.transformRect(localRect, this.clientMatrix());
-        return g.Rect(clientRect);
+        return clientRect;
     },
 
     // Transform client coordinates to the paper local coordinates.
@@ -1013,16 +1013,16 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Example: var localPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
     clientToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var clientPoint = g.Point(x, y);
+        var clientPoint = new g.Point(x, y);
         var localPoint = V.transformPoint(clientPoint, this.clientMatrix().inverse());
-        return g.Point(localPoint);
+        return localPoint;
     },
 
     clientToLocalRect: function(x, y, width, height) {
         // allow `x` to be a point and `y` undefined
-        var clientRect = g.Rect(x, y, width, height);
+        var clientRect = new g.Rect(x, y, width, height);
         var localRect = V.transformRect(clientRect, this.clientMatrix().inverse());
-        return g.Rect(localRect);
+        return localRect;
     },
 
     localToPagePoint: function(x, y) {
@@ -1032,12 +1032,12 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     localToPageRect: function(x, y, width, height) {
 
-        return this.localToPaperRect(x, y, width, height).moveAndExpand(this.pageOffset());
+        return this.localToPaperRect(x, y, width, height).offset(this.pageOffset());
     },
 
     pageToLocalPoint: function(x, y) {
 
-        var pagePoint = g.Point(x, y);
+        var pagePoint = new g.Point(x, y);
         var paperPoint = pagePoint.difference(this.pageOffset());
         return this.paperToLocalPoint(paperPoint);
     },
@@ -1045,7 +1045,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     pageToLocalRect: function(x, y, width, height) {
 
         var pageOffset = this.pageOffset();
-        var paperRect = g.Rect(x, y, width, height);
+        var paperRect = new g.Rect(x, y, width, height);
         paperRect.x -= pageOffset.x;
         paperRect.y -= pageOffset.y;
         return this.paperToLocalRect(paperRect);
@@ -1054,7 +1054,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     clientOffset: function() {
 
         var clientRect = this.svg.getBoundingClientRect();
-        return g.Point(clientRect.left, clientRect.top);
+        return new g.Point(clientRect.left, clientRect.top);
     },
 
     pageOffset: function() {
@@ -1670,7 +1670,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // backgroundSize
         if (joint.util.isObject(backgroundSize)) {
-            backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
+            backgroundSize = new g.Rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
 
