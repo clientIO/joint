@@ -786,7 +786,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var fragment = document.createDocumentFragment();
 
         if (!Array.isArray(children)) {
-            fragment.append(children.node);
+            fragment.appendChild(children.node);
 
         } else {
             for (var i = 0, n = children.length; i < n; i++) {
