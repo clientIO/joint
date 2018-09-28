@@ -1853,140 +1853,164 @@ QUnit.module('paper', function(hooks) {
 
         QUnit.module('Magnets', function(hooks) {
 
-            hooks.beforeEach(function() {
-                el.attr(['body', 'magnet'], true);
+            ['active', 'passive'].forEach(function(magnetType) {
+
+                QUnit.test(magnetType + ' magnet:pointerclick', function(assert) {
+
+                    el.attr(['body', 'magnet'], magnetType);
+
+                    var eventName = 'element:magnet:pointerclick';
+                    var paper = this.paper;
+                    var spy = sinon.spy();
+
+                    paper.on('all', spy);
+                    paper.options.magnetThreshold = 'onleave';
+                    // Events Order
+                    simulate.click({
+                        el: elRect,
+                        clientX: 100,
+                        clientY: 100
+                    });
+
+                    var eventOrder;
+                    if (magnetType === 'passive') {
+                        assert.equal(spy.callCount, 7);
+                        eventOrder = [
+                            'cell:pointerdown',
+                            'element:pointerdown',
+                            'element:pointerup',
+                            'cell:pointerup',
+                            eventName,
+                            'cell:pointerclick',
+                            'element:pointerclick'
+                        ];
+                    } else {
+                        assert.ok(spy.calledThrice);
+                        eventOrder = [
+                            eventName,
+                            'cell:pointerclick',
+                            'element:pointerclick'
+                        ];
+                    }
+                    assert.deepEqual(getEventNames(spy), eventOrder);
+                    // Stop propagation
+                    paper.on(eventName, function(_, evt) {
+                        evt.stopPropagation();
+                    });
+                    spy.resetHistory();
+                    simulate.click({
+                        el: elRect,
+                        clientX: 13,
+                        clientY: 17
+                    });
+                    if (magnetType === 'passive') {
+                        assert.equal(spy.callCount, 5);
+                    } else {
+                        assert.ok(spy.calledOnce);
+                    }
+                    var localPoint = paper.snapToGrid(13, 17);
+                    assert.ok(spy.lastCall.calledWithExactly(
+                        eventName,
+                        elView,
+                        sinon.match.instanceOf($.Event),
+                        elRect,
+                        localPoint.x,
+                        localPoint.y
+                    ));
+                });
+
+                QUnit.test(magnetType +' magnet:pointerdblclick', function(assert) {
+
+                    el.attr(['body', 'magnet'], magnetType);
+
+                    var eventName = 'element:magnet:pointerdblclick';
+                    var paper = this.paper;
+                    var spy = sinon.spy();
+
+                    paper.on('all', spy);
+                    paper.options.magnetThreshold = 'onleave';
+                    // Events Order
+                    simulate.mouseevent({
+                        type: 'dblclick',
+                        el: elRect,
+                        clientX: 100,
+                        clientY: 100
+                    });
+                    assert.ok(spy.calledThrice);
+                    assert.deepEqual(getEventNames(spy), [
+                        eventName,
+                        'cell:pointerdblclick',
+                        'element:pointerdblclick'
+                    ]);
+                    // Stop propagation
+                    paper.on(eventName, function(_, evt) {
+                        evt.stopPropagation();
+                    });
+                    spy.resetHistory();
+                    simulate.mouseevent({
+                        type: 'dblclick',
+                        el: elRect,
+                        clientX: 13,
+                        clientY: 17
+                    });
+                    var localPoint = paper.snapToGrid(13, 17);
+                    assert.ok(spy.calledOnce);
+                    assert.ok(spy.calledWithExactly(
+                        eventName,
+                        elView,
+                        sinon.match.instanceOf($.Event),
+                        elRect,
+                        localPoint.x,
+                        localPoint.y
+                    ));
+                });
+
+                QUnit.test(magnetType + 'magnet:contextmenu', function(assert) {
+
+                    el.attr(['body', 'magnet'], magnetType);
+
+                    var eventName = 'element:magnet:contextmenu';
+                    var paper = this.paper;
+                    var spy = sinon.spy();
+
+                    paper.on('all', spy);
+                    paper.options.magnetThreshold = 'onleave';
+                    // Events Order
+                    simulate.mouseevent({
+                        type: 'contextmenu',
+                        el: elRect,
+                        clientX: 100,
+                        clientY: 100
+                    });
+                    assert.ok(spy.calledThrice);
+                    assert.deepEqual(getEventNames(spy), [
+                        eventName,
+                        'cell:contextmenu',
+                        'element:contextmenu'
+                    ]);
+                    // Stop propagation
+                    paper.on(eventName, function(_, evt) {
+                        evt.stopPropagation();
+                    });
+                    spy.resetHistory();
+                    simulate.mouseevent({
+                        type: 'contextmenu',
+                        el: elRect,
+                        clientX: 13,
+                        clientY: 17
+                    });
+                    var localPoint = paper.snapToGrid(13, 17);
+                    assert.ok(spy.calledOnce);
+                    assert.ok(spy.calledWithExactly(
+                        eventName,
+                        elView,
+                        sinon.match.instanceOf($.Event),
+                        elRect,
+                        localPoint.x,
+                        localPoint.y
+                    ));
+                });
             });
-
-            QUnit.test('magnet:pointerclick', function(assert) {
-
-                var eventName = 'element:magnet:pointerclick';
-                var paper = this.paper;
-                var spy = sinon.spy();
-
-                paper.on('all', spy);
-                paper.options.magnetThreshold = 'onleave';
-                // Events Order
-                simulate.click({
-                    el: elRect,
-                    clientX: 100,
-                    clientY: 100
-                });
-                assert.ok(spy.calledThrice);
-                assert.deepEqual(getEventNames(spy), [
-                    eventName,
-                    'cell:pointerclick',
-                    'element:pointerclick'
-                ]);
-                // Stop propagation
-                paper.on(eventName, function(_, evt) {
-                    evt.stopPropagation();
-                });
-                spy.resetHistory();
-                simulate.click({
-                    el: elRect,
-                    clientX: 13,
-                    clientY: 17
-                });
-                var localPoint = paper.snapToGrid(13, 17);
-                assert.ok(spy.calledOnce);
-                assert.ok(spy.calledWithExactly(
-                    eventName,
-                    elView,
-                    sinon.match.instanceOf($.Event),
-                    elRect,
-                    localPoint.x,
-                    localPoint.y
-                ));
-            });
-
-            QUnit.test('magnet:pointerdblclick', function(assert) {
-
-                var eventName = 'element:magnet:pointerdblclick';
-                var paper = this.paper;
-                var spy = sinon.spy();
-
-                paper.on('all', spy);
-                paper.options.magnetThreshold = 'onleave';
-                // Events Order
-                simulate.mouseevent({
-                    type: 'dblclick',
-                    el: elRect,
-                    clientX: 100,
-                    clientY: 100
-                });
-                assert.ok(spy.calledThrice);
-                assert.deepEqual(getEventNames(spy), [
-                    eventName,
-                    'cell:pointerdblclick',
-                    'element:pointerdblclick'
-                ]);
-                // Stop propagation
-                paper.on(eventName, function(_, evt) {
-                    evt.stopPropagation();
-                });
-                spy.resetHistory();
-                simulate.mouseevent({
-                    type: 'dblclick',
-                    el: elRect,
-                    clientX: 13,
-                    clientY: 17
-                });
-                var localPoint = paper.snapToGrid(13, 17);
-                assert.ok(spy.calledOnce);
-                assert.ok(spy.calledWithExactly(
-                    eventName,
-                    elView,
-                    sinon.match.instanceOf($.Event),
-                    elRect,
-                    localPoint.x,
-                    localPoint.y
-                ));
-            });
-
-            QUnit.test('magnet:contextmenu', function(assert) {
-
-                var eventName = 'element:magnet:contextmenu';
-                var paper = this.paper;
-                var spy = sinon.spy();
-
-                paper.on('all', spy);
-                paper.options.magnetThreshold = 'onleave';
-                // Events Order
-                simulate.mouseevent({
-                    type: 'contextmenu',
-                    el: elRect,
-                    clientX: 100,
-                    clientY: 100
-                });
-                assert.ok(spy.calledThrice);
-                assert.deepEqual(getEventNames(spy), [
-                    eventName,
-                    'cell:contextmenu',
-                    'element:contextmenu'
-                ]);
-                // Stop propagation
-                paper.on(eventName, function(_, evt) {
-                    evt.stopPropagation();
-                });
-                spy.resetHistory();
-                simulate.mouseevent({
-                    type: 'contextmenu',
-                    el: elRect,
-                    clientX: 13,
-                    clientY: 17
-                });
-                var localPoint = paper.snapToGrid(13, 17);
-                assert.ok(spy.calledOnce);
-                assert.ok(spy.calledWithExactly(
-                    eventName,
-                    elView,
-                    sinon.match.instanceOf($.Event),
-                    elRect,
-                    localPoint.x,
-                    localPoint.y
-                ));
-            });
-
         });
 
         QUnit.test('custom event', function(assert) {
