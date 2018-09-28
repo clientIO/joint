@@ -1825,4 +1825,213 @@ QUnit.module('paper', function(hooks) {
             );
         });
     });
+
+
+    QUnit.module('Events', function(hooks) {
+
+        var el, elView, elRect, elText;
+
+        hooks.beforeEach(function() {
+            var graph = this.graph;
+            var paper = this.paper;
+            el = new joint.shapes.standard.Rectangle({
+                attrs: {
+                    label: { text: 'Label' }
+                }
+            });
+            el.size(100, 100).position(0, 0).addTo(graph);
+            elView = el.findView(paper);
+            elRect = elView.el.querySelector('rect');
+            elText = elView.el.querySelector('text');
+        });
+
+        function getEventNames(spy) {
+            return spy.args.map(function(args) {
+                return args[0];
+            });
+        }
+
+        QUnit.module('Magnets', function(hooks) {
+
+            hooks.beforeEach(function() {
+                el.attr(['body', 'magnet'], true);
+            });
+
+            QUnit.test('magnet:pointerclick', function(assert) {
+
+                var eventName = 'element:magnet:pointerclick';
+                var paper = this.paper;
+                var spy = sinon.spy();
+
+                paper.on('all', spy);
+                paper.options.magnetThreshold = 'onleave';
+                // Events Order
+                simulate.click({
+                    el: elRect,
+                    clientX: 100,
+                    clientY: 100
+                });
+                assert.ok(spy.calledThrice);
+                assert.deepEqual(getEventNames(spy), [
+                    eventName,
+                    'cell:pointerclick',
+                    'element:pointerclick'
+                ]);
+                // Stop propagation
+                paper.on(eventName, function(_, evt) {
+                    evt.stopPropagation();
+                });
+                spy.resetHistory();
+                simulate.click({
+                    el: elRect,
+                    clientX: 13,
+                    clientY: 17
+                });
+                var localPoint = paper.snapToGrid(13, 17);
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWithExactly(
+                    eventName,
+                    elView,
+                    sinon.match.instanceOf($.Event),
+                    elRect,
+                    localPoint.x,
+                    localPoint.y
+                ));
+            });
+
+            QUnit.test('magnet:pointerdblclick', function(assert) {
+
+                var eventName = 'element:magnet:pointerdblclick';
+                var paper = this.paper;
+                var spy = sinon.spy();
+
+                paper.on('all', spy);
+                paper.options.magnetThreshold = 'onleave';
+                // Events Order
+                simulate.mouseevent({
+                    type: 'dblclick',
+                    el: elRect,
+                    clientX: 100,
+                    clientY: 100
+                });
+                assert.ok(spy.calledThrice);
+                assert.deepEqual(getEventNames(spy), [
+                    eventName,
+                    'cell:pointerdblclick',
+                    'element:pointerdblclick'
+                ]);
+                // Stop propagation
+                paper.on(eventName, function(_, evt) {
+                    evt.stopPropagation();
+                });
+                spy.resetHistory();
+                simulate.mouseevent({
+                    type: 'dblclick',
+                    el: elRect,
+                    clientX: 13,
+                    clientY: 17
+                });
+                var localPoint = paper.snapToGrid(13, 17);
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWithExactly(
+                    eventName,
+                    elView,
+                    sinon.match.instanceOf($.Event),
+                    elRect,
+                    localPoint.x,
+                    localPoint.y
+                ));
+            });
+
+            QUnit.test('magnet:contextmenu', function(assert) {
+
+                var eventName = 'element:magnet:contextmenu';
+                var paper = this.paper;
+                var spy = sinon.spy();
+
+                paper.on('all', spy);
+                paper.options.magnetThreshold = 'onleave';
+                // Events Order
+                simulate.mouseevent({
+                    type: 'contextmenu',
+                    el: elRect,
+                    clientX: 100,
+                    clientY: 100
+                });
+                assert.ok(spy.calledThrice);
+                assert.deepEqual(getEventNames(spy), [
+                    eventName,
+                    'cell:contextmenu',
+                    'element:contextmenu'
+                ]);
+                // Stop propagation
+                paper.on(eventName, function(_, evt) {
+                    evt.stopPropagation();
+                });
+                spy.resetHistory();
+                simulate.mouseevent({
+                    type: 'contextmenu',
+                    el: elRect,
+                    clientX: 13,
+                    clientY: 17
+                });
+                var localPoint = paper.snapToGrid(13, 17);
+                assert.ok(spy.calledOnce);
+                assert.ok(spy.calledWithExactly(
+                    eventName,
+                    elView,
+                    sinon.match.instanceOf($.Event),
+                    elRect,
+                    localPoint.x,
+                    localPoint.y
+                ));
+            });
+
+        });
+
+        QUnit.test('custom event', function(assert) {
+
+            var eventName = 'test';
+            var paper = this.paper;
+            var spy = sinon.spy();
+
+            el.attr(['label', 'event'], eventName);
+
+            paper.on('all', spy);
+            // Events Order
+            simulate.mouseevent({
+                type: 'mousedown',
+                el: elText,
+                clientX: 100,
+                clientY: 100
+            });
+            assert.ok(spy.calledThrice);
+            assert.deepEqual(getEventNames(spy), [
+                eventName,
+                'cell:pointerdown',
+                'element:pointerdown'
+            ]);
+            simulate.mouseup({ el: document });
+            // Stop propagation
+            paper.on(eventName, function(_, evt) {
+                evt.stopPropagation();
+            });
+            spy.resetHistory();
+            simulate.mouseevent({
+                type: 'mousedown',
+                el: elText,
+                clientX: 13,
+                clientY: 17
+            });
+            var localPoint = paper.snapToGrid(13, 17);
+            assert.ok(spy.calledOnce);
+            assert.ok(spy.calledWithExactly(
+                eventName,
+                elView,
+                sinon.match.instanceOf($.Event),
+                localPoint.x,
+                localPoint.y
+            ));
+        });
+    });
 });

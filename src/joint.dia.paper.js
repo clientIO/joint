@@ -1425,7 +1425,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    magnetViewEvent: function(evt, handler) {
+    magnetEvent: function(evt, handler) {
 
         var magnetNode = evt.currentTarget;
         var magnetValue = magnetNode.getAttribute('magnet');
@@ -1441,14 +1441,16 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     onmagnet: function(evt) {
-        this.magnetViewEvent(evt, function(view, evt, _, x, y) {
+
+        this.magnetEvent(evt, function(view, evt, _, x, y) {
             view.onmagnet(evt, x, y);
         });
     },
 
 
     magnetpointerdblclick: function(evt) {
-        this.magnetViewEvent(evt, function(view, evt, magnet, x, y) {
+
+        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
             view.magnetpointerdblclick(evt, magnet, x, y);
         });
     },
@@ -1456,8 +1458,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     magnetcontextmenu: function(evt) {
 
         if (this.options.preventContextMenu) evt.preventDefault();
-
-        this.magnetViewEvent(evt, function(view, evt, magnet, x, y) {
+        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
             view.magnetcontextmenu(evt, magnet, x, y);
         });
     },
