@@ -997,17 +997,12 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (!this.can('addLinkFromMagnet')) return;
 
-        evt.stopPropagation();
-
         var magnet = evt.currentTarget;
         var paper = this.paper;
         this.eventData(evt, { targetMagnet: magnet });
+        evt.stopPropagation();
 
         if (paper.options.validateMagnet(this, magnet)) {
-
-            this.pointerdown(evt, x, y);
-
-        } else {
 
             if (paper.options.magnetThreshold <= 0) {
                 this.dragLinkStart(evt, magnet, x, y);
@@ -1015,6 +1010,10 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
             this.eventData(evt, { action: 'magnet' });
             this.stopPropagation(evt);
+
+        } else {
+
+            this.pointerdown(evt, x, y);
         }
 
         paper.delegateDragEvents(this, evt.data);

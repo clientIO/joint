@@ -1454,6 +1454,9 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     magnetcontextmenu: function(evt) {
+
+        if (this.options.preventContextMenu) evt.preventDefault();
+
         this.magnetViewEvent(evt, function(view, evt, magnet, x, y) {
             view.magnetcontextmenu(evt, magnet, x, y);
         });
