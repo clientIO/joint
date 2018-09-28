@@ -351,7 +351,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.removeViews();
     },
 
-    getComputedDimensions: function() {
+    getComputedSize: function() {
 
         var util = joint.util;
         var options = this.options;
@@ -359,10 +359,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         var h = options.height;
         if (!util.isNumber(w)) w = this.el.clientWidth;
         if (!util.isNumber(h)) h = this.el.clientHeight;
-        return {
-            width: w,
-            height: h
-        };
+        return { width: w, height: h };
     },
 
     setDimensions: function(width, height) {
@@ -375,9 +372,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.options.height = h;
         if (util.isNumber(w)) w = Math.round(w);
         if (util.isNumber(h)) h = Math.round(h);
-        this.$el.css({ width: w, height: h });
-        var computedDimension = this.getComputedDimensions();
-        this.trigger('resize', computedDimension.width, computedDimension.height);
+        this.$el.css({
+            width: (w === null) ? '' : w,
+            height: (h === null) ? '' : h
+        });
+        var computedSize = this.getComputedSize();
+        this.trigger('resize', computedSize.width, computedSize.height);
     },
 
     setOrigin: function(ox, oy) {
@@ -448,8 +448,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         calcWidth = Math.min(calcWidth, opt.maxWidth || Number.MAX_VALUE);
         calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
-        var computedDimensions = this.getComputedDimensions();
-        var dimensionChange = calcWidth != computedDimensions.options.width || calcHeight != computedDimensions.height;
+        var computedSize = this.getComputedSize();
+        var dimensionChange = calcWidth != computedSize.width || calcHeight != computedSize.height;
         var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
 
         // Change the dimensions only if there is a size discrepency or an origin change
@@ -494,12 +494,12 @@ joint.dia.Paper = joint.mvc.View.extend({
             fittingBBox = opt.fittingBBox;
         } else {
             var currentTranslate = this.translate();
-            var computedDimensions = this.getComputedDimensions();
+            var computedSize = this.getComputedSize();
             fittingBBox = {
                 x: currentTranslate.tx,
                 y: currentTranslate.ty,
-                width: computedDimensions.width,
-                height: computedDimensions.height
+                width: computedSize.width,
+                height: computedSize.height
             };
         }
 
@@ -568,13 +568,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // and the top border to the bottom one).
     getArea: function() {
 
-        var computedDimensions = this.getComputedDimensions();
-        return this.paperToLocalRect({
-            x: 0,
-            y: 0,
-            width: computedDimensions.width,
-            height: computedDimensions.height
-        });
+        return this.paperToLocalRect(this.getComputedSize());
     },
 
     getRestrictedArea: function() {

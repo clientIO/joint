@@ -972,6 +972,8 @@ export namespace dia {
 
         isDefined(defId: string): boolean;
 
+        getComputedSize(): Size;
+
         getArea(): g.Rect;
 
         getRestrictedArea(): g.Rect | undefined;

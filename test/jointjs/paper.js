@@ -21,6 +21,64 @@ QUnit.module('paper', function(hooks) {
         this.paper = null;
     });
 
+    QUnit.module('Dimensions', function(hooks) {
+
+        var $container;
+
+        hooks.beforeEach(function() {
+            var $paper = this.paper.$el;
+            $container = $('<div>').css('display', 'inline-block');
+            $paper.parent().append($container.append($paper));
+        });
+
+        hooks.afterEach(function() {
+            $container.remove();
+        });
+
+        QUnit.test('default', function(assert) {
+            var paper = this.paper;
+            var size = paper.getComputedSize();
+            assert.equal(size.width, 800);
+            assert.equal(size.height, 600);
+        });
+
+        QUnit.test('number', function(assert) {
+            var WIDTH = 100;
+            var HEIGHT = 200;
+            var paper = this.paper;
+            paper.setDimensions(WIDTH, HEIGHT);
+            assert.equal(paper.options.width, WIDTH);
+            assert.equal(paper.options.height, HEIGHT);
+            var size = paper.getComputedSize();
+            assert.equal(size.width, WIDTH);
+            assert.equal(size.height, HEIGHT);
+        });
+
+        QUnit.test('string', function(assert) {
+            var WIDTH = '100%';
+            var HEIGHT = '50%';
+            var paper = this.paper;
+            $container.css({ width: 100, height: 200 });
+            paper.setDimensions(WIDTH, HEIGHT);
+            assert.equal(paper.options.width, WIDTH);
+            assert.equal(paper.options.height, HEIGHT);
+            var size = paper.getComputedSize();
+            assert.equal(size.width, 100);
+            assert.equal(size.height, 100);
+        });
+
+        QUnit.test('null', function(assert) {
+            var paper = this.paper;
+            paper.setDimensions(null, null);
+            assert.equal(paper.options.width, null);
+            assert.equal(paper.options.height, null);
+            var size = paper.getComputedSize();
+            assert.equal(size.width, 0);
+            assert.equal(size.height, 0);
+        });
+
+    });
+
     QUnit.test('paper.addCell() number of sortViews()', function(assert) {
 
         var spy = sinon.spy(this.paper, 'sortViews');
