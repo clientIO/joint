@@ -182,6 +182,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
         'touchstart .joint-cell [magnet]': 'onmagnet',
         'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
+        'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
         'touchstart .joint-link .label': 'onlabel',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
@@ -1424,41 +1425,38 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    onmagnet: function(evt) {
+    magnetViewEvent: function(evt, handler) {
 
         var magnetNode = evt.currentTarget;
         var magnetValue = magnetNode.getAttribute('magnet');
         if (magnetValue) {
             var view = this.findView(magnetNode);
             if (view) {
-
                 evt = joint.util.normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
-                if (!this.options.validateMagnet(view, magnetNode)) return;
-
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-                view.onmagnet(evt, localPoint.x, localPoint.y);
+                handler.call(this, view, evt, magnetNode, localPoint.x, localPoint.y);
             }
         }
     },
 
+    onmagnet: function(evt) {
+        this.magnetViewEvent(evt, function(view, evt, _, x, y) {
+            view.onmagnet(evt, x, y);
+        });
+    },
+
 
     magnetpointerdblclick: function(evt) {
+        this.magnetViewEvent(evt, function(view, evt, magnet, x, y) {
+            view.magnetpointerdblclick(evt, magnet, x, y);
+        });
+    },
 
-        var magnetNode = evt.currentTarget;
-        var magnetValue = magnetNode.getAttribute('magnet');
-        if (magnetValue) {
-            var view = this.findView(magnetNode);
-            if (view) {
-
-                evt = joint.util.normalizeEvent(evt);
-                if (this.guard(evt, view)) return;
-                if (!this.options.validateMagnet(view, magnetNode)) return;
-
-                var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-                view.magnetpointerdblclick(evt, magnetNode, localPoint.x, localPoint.y);
-            }
-        }
+    magnetcontextmenu: function(evt) {
+        this.magnetViewEvent(evt, function(view, evt, magnet, x, y) {
+            view.magnetcontextmenu(evt, magnet, x, y);
+        });
     },
 
     onlabel: function(evt) {
