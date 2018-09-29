@@ -292,7 +292,7 @@
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
+                var textAttrs = util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -345,7 +345,7 @@
                 var text = value.text;
                 if (text === undefined) text = attrs.text;
                 if (text !== undefined) {
-                    wrappedText = joint.util.breakText('' + text, refBBox, {
+                    wrappedText = util.breakText('' + text, refBBox, {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
                         'font-size': attrs['font-size'] || attrs.fontSize,
                         'font-family': attrs['font-family'] || attrs.fontFamily,

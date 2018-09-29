@@ -2057,5 +2057,53 @@ QUnit.module('paper', function(hooks) {
                 localPoint.y
             ));
         });
+
+        QUnit.test('element:pointerclick', function(assert) {
+
+            var eventName = 'element:pointerclick';
+            var paper = this.paper;
+            var spy = sinon.spy();
+
+            paper.on('all', spy);
+            // Events Order
+            simulate.click({
+                el: elRect,
+                clientX: 13,
+                clientY: 17
+            });
+            var localPoint = paper.snapToGrid(13, 17);
+            assert.equal(spy.callCount, 6);
+            var eventOrder = [
+                'cell:pointerdown',
+                'element:pointerdown',
+                'element:pointerup',
+                'cell:pointerup',
+                'cell:pointerclick',
+                eventName
+            ];
+            assert.deepEqual(getEventNames(spy), eventOrder);
+            assert.ok(spy.getCall(eventOrder.indexOf(eventName)).calledWithExactly(
+                eventName,
+                elView,
+                sinon.match.instanceOf($.Event),
+                localPoint.x,
+                localPoint.y
+            ));
+
+            simulate.mouseup({ el: document });
+            // Stop propagation
+            paper.on('cell:pointerup', function(_, evt) {
+                evt.stopPropagation();
+            });
+            spy.resetHistory();
+            simulate.click({
+                el: elText,
+                clientX: 100,
+                clientY: 100
+            });
+            assert.equal(spy.callCount, 4);
+            assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerup') + 1));
+        });
+
     });
 });
