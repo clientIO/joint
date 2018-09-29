@@ -2154,16 +2154,16 @@ QUnit.module('paper', function(hooks) {
             var paper = this.paper;
             paper.options.clickThreshold = 5;
             paper.on({
-                'element:pointerdown': function(evt) {
+                'element:pointerdown': function(view, evt) {
                     evt.data = { test: 1 };
                 },
-                'element:pointermove': function(evt) {
+                'element:pointermove': function(view, evt) {
                     evt.data.test += 1;
                 },
-                'element:pointerup': function(evt) {
+                'element:pointerup': function(view, evt) {
                     assert.equal(evt.data.test, 2);
                 },
-                'element:pointerclick': function(evt) {
+                'element:pointerclick': function(view, evt) {
                     assert.equal(evt.data.test, 2);
                 }
             });
