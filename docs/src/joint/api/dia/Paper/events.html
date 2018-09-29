@@ -47,13 +47,6 @@
           <td>Triggered when pointer is clicked on an element.</td>
         </tr>
         <tr>
-          <th>element:magnet:pointerclick</th>
-          <td>
-            <p></p>Triggered when pointer is clicked on an element magnet and no link was created yet from this magnet (controlled by <a href="#dia.Paper.prototype.options.magnetThreshold">magnetThreshold</a> option).</p>
-            <p>The callback function is passed <code>elementView</code>, <code>evt</code>, <code>magnet (SVGElement)</code>, <code>x</code> and <code>y</code> as arguments.</p>
-          </td>
-        </tr>
-        <tr>
           <th>blank:pointerclick</th>
           <td>
             <p>Triggered when pointer is clicked on the paper outside any cell.</p>
@@ -173,6 +166,7 @@
           </td>
         </tr>
       </table>
+      <p>Calling <code>evt.stopPropagation()</code> prevents triggering a subsequent <code>pointerclick</code> event.</p>
     </td>
   </tr>
   <tr>
@@ -315,6 +309,27 @@
     </td>
   </tr>
   <tr>
+    <th>magnet</th>
+      <td>
+        <p>Triggered when interacting with a magnet target.</p>
+        <p>The callback function is passed <code>elementView</code>, <code>evt</code>, <code>magnetSVGElement</code>, <code>x</code>, <code>y</code> as arguments.</p>
+        <table>
+          <tr>
+            <th>element:magnet:pointerclick</th>
+            <td>Triggered when pointer is clicked on an element magnet and no link was created yet from this magnet (controlled by <a href="#dia.Paper.prototype.options.magnetThreshold">magnetThreshold</a> option). Calling <code>evt.stopPropagation()</code> prevents triggering <code>cell:pointerclick</code> and <code>element:pointerclick</code> events.</td>
+          </tr>
+          <tr>
+            <th>element:magnet:pointerdblclick</th>
+            <td>Triggered when pointer is double-clicked on an element magnet. Calling <code>evt.stopPropagation()</code> prevents triggering <code>cell:pointerdblclick</code> and <code>element:pointerdblclick</code> events.</td>
+          </tr>
+          <tr>
+            <th>element:magnet:contextmenu</th>
+            <td>Triggered when pointer is right-clicked on an element magnet. Calling <code>evt.stopPropagation()</code> prevents triggering <code>cell:contextmenu</code> and <code>element:contextmenu</code> events.<td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  <tr>
     <th>cell:highlight</th>
     <td>
       <p>Triggered when the <code>cellView.highlight</code> <a href="joint.html#dia.CellView.prototype.highlight">method</a> is called on a link or element view.</p>
@@ -349,6 +364,10 @@
   <tr>
     <th>rendered:done</th>
     <td>Triggered when the paper has finished rendering all cell views in case <a href="#dia.Paper.constructor">async</a> rendering is enabled.</td>
+  </tr>
+  <tr>
+    <th>[custom]</th>
+    <td>Custom cell event can be triggered on pointerdown with <a href="#dia.attributes.event">Event</a> attribute. Calling <code>evt.stopPropagation()</code> prevents triggering all subsequent events.</td>
   </tr>
 </table>
 

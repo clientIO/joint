@@ -2072,7 +2072,6 @@ QUnit.module('paper', function(hooks) {
                 clientY: 17
             });
             var localPoint = paper.snapToGrid(13, 17);
-            assert.equal(spy.callCount, 6);
             var eventOrder = [
                 'cell:pointerdown',
                 'element:pointerdown',
@@ -2081,6 +2080,7 @@ QUnit.module('paper', function(hooks) {
                 'cell:pointerclick',
                 eventName
             ];
+            assert.equal(spy.callCount, eventOrder.length);
             assert.deepEqual(getEventNames(spy), eventOrder);
             assert.ok(spy.getCall(eventOrder.indexOf(eventName)).calledWithExactly(
                 eventName,
@@ -2097,7 +2097,7 @@ QUnit.module('paper', function(hooks) {
             });
             spy.resetHistory();
             simulate.click({
-                el: elText,
+                el: elRect,
                 clientX: 100,
                 clientY: 100
             });
@@ -2105,5 +2105,72 @@ QUnit.module('paper', function(hooks) {
             assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerup') + 1));
         });
 
+        QUnit.test('blank:pointerclick', function(assert) {
+
+            var eventName = 'blank:pointerclick';
+            var paper = this.paper;
+            var spy = sinon.spy();
+
+            paper.on('all', spy);
+            // Events Order
+            simulate.click({
+                el: paper.svg,
+                clientX: 13,
+                clientY: 17
+            });
+            var localPoint = paper.snapToGrid(13, 17);
+            var eventOrder = [
+                'blank:pointerdown',
+                'blank:pointerup',
+                eventName
+            ];
+            assert.equal(spy.callCount, eventOrder.length);
+            assert.deepEqual(getEventNames(spy), eventOrder);
+            assert.ok(spy.getCall(eventOrder.indexOf(eventName)).calledWithExactly(
+                eventName,
+                sinon.match.instanceOf($.Event),
+                localPoint.x,
+                localPoint.y
+            ));
+
+            simulate.mouseup({ el: document });
+            // Stop propagation
+            paper.on('blank:pointerup', function(evt) {
+                evt.stopPropagation();
+            });
+            spy.resetHistory();
+            simulate.click({
+                el: paper.svg,
+                clientX: 100,
+                clientY: 100
+            });
+            assert.equal(spy.callCount, eventOrder.length - 1);
+            assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('blank:pointerup') + 1));
+        });
+
+        QUnit.test('event.data', function(assert) {
+
+            assert.expect(2);
+            var paper = this.paper;
+            paper.options.clickThreshold = 5;
+            paper.on({
+                'element:pointerdown': function(evt) {
+                    evt.data = { test: 1 };
+                },
+                'element:pointermove': function(evt) {
+                    evt.data.test += 1;
+                },
+                'element:pointerup': function(evt) {
+                    assert.equal(evt.data.test, 2);
+                },
+                'element:pointerclick': function(evt) {
+                    assert.equal(evt.data.test, 2);
+                }
+            });
+
+            simulate.mousedown({ el: elRect });
+            simulate.mousemove({ el: elRect });
+            simulate.mouseup({ el: elRect });
+        });
     });
 });
