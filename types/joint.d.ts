@@ -831,10 +831,12 @@ export namespace dia {
             waterMarkAngle?: number;
         }
 
+        type Dimension = number | string | null;
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
-            width?: number;
-            height?: number;
+            width?: Dimension;
+            height?: Dimension;
             origin?: Point;
             perpendicularLinks?: boolean;
             linkConnectionPoint?: LinkView.GetConnectionPoint;
@@ -903,7 +905,6 @@ export namespace dia {
             maxWidth?: number;
             maxHeight?: number;
         }
-
     }
 
     class Paper extends mvc.View<Graph> {
@@ -971,6 +972,8 @@ export namespace dia {
 
         isDefined(defId: string): boolean;
 
+        getComputedSize(): Size;
+
         getArea(): g.Rect;
 
         getRestrictedArea(): g.Rect | undefined;
@@ -1004,7 +1007,7 @@ export namespace dia {
 
         getModelById(id: string | number | Cell): Cell;
 
-        setDimensions(width: number, height: number): void;
+        setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
 
         setGridSize(gridSize: number): this;
 

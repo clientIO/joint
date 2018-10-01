@@ -1,59 +1,38 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8"/>
-    <title>JointJS Hello World!</title>
-    <link rel="stylesheet" href="../build/joint.css" />
-    <style>
-      #myholder {
-         display: inline-block;
-         border: 1px solid blue;
-         width: 100%;
-         height: 100%;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="myholder"></div>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8"/>
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 
-    <!-- Dependencies: -->
-    <script src="../node_modules/jquery/dist/jquery.js"></script>
-    <script src="../node_modules/lodash/index.js"></script>
-    <script src="../node_modules/backbone/backbone.js"></script>
+        <title>Responsive Paper</title>
 
-    <script src="../build/joint.js"></script>
+        <link rel="stylesheet" type="text/css" href="../build/joint.css" />
 
-    <script>
-      var graph = new joint.dia.Graph;
-      
-      var paper = new joint.dia.Paper({
-          el: $('#myholder'),
-          width: '100%',
-          height: '100%',
-          model: graph,
-          gridSize: 1
-      });
+        <style>
+            body {
+                position: absolute;
+                top: 10px;
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+            }
+            #paper {
+                border: 1px solid gray;
+            }
+        </style>
+    </head>
+    <body>
 
-      V(paper.svg).attr({
-          viewBox: '0 0 800 400',
-          preserveAspectRatio: 'xMinYMin meet'
-      }); 
-      
-      var rect = new joint.shapes.basic.Rect({
-          position: { x: 100, y: 30 },
-          size: { width: 100, height: 30 },
-          attrs: { rect: { fill: 'blue' }, text: { text: 'my box', fill: 'white' } }
-      });
-      
-      var rect2 = rect.clone();
-      rect2.translate(300);
-      
-      var link = new joint.dia.Link({
-          source: { id: rect.id },
-          target: { id: rect2.id }
-      });
-      
-      graph.addCells([rect, rect2, link]);
-    </script>
-  </body>
+        <div id="paper"></div>
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+        <script src="../build/joint.js"></script>
+
+        <script src="./responsive.js"></script>
+
+    </body>
 </html>
