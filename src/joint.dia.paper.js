@@ -181,6 +181,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
         'touchstart .joint-cell [magnet]': 'onmagnet',
+        'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
+        'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
         'touchstart .joint-link .label': 'onlabel',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
@@ -1199,6 +1201,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         evt.preventDefault();
 
+        // magnetpointerdblclick can stop propagation
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1215,6 +1219,8 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointerclick: function(evt) {
+
+        // magnetpointerclick can stop propagation
 
         var data = this.eventData(evt);
         // Trigger event only if mouse has not moved.
@@ -1257,6 +1263,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
+        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
+        // onevent can stop propagation
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -1280,8 +1289,6 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     pointermove: function(evt) {
-
-        evt.preventDefault();
 
         // mouse moved counter
         var data = this.eventData(evt);
@@ -1319,7 +1326,11 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
-        this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+        if (!normalizedEvt.isPropagationStopped()) {
+            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+        }
+
+        evt.stopImmediatePropagation();
         this.delegateEvents();
     },
 
@@ -1427,22 +1438,42 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    onmagnet: function(evt) {
+    magnetEvent: function(evt, handler) {
 
         var magnetNode = evt.currentTarget;
         var magnetValue = magnetNode.getAttribute('magnet');
         if (magnetValue) {
             var view = this.findView(magnetNode);
             if (view) {
-
                 evt = joint.util.normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
-                if (!this.options.validateMagnet(view, magnetNode)) return;
-
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-                view.onmagnet(evt, localPoint.x, localPoint.y);
+                handler.call(this, view, evt, magnetNode, localPoint.x, localPoint.y);
             }
         }
+    },
+
+    onmagnet: function(evt) {
+
+        this.magnetEvent(evt, function(view, evt, _, x, y) {
+            view.onmagnet(evt, x, y);
+        });
+    },
+
+
+    magnetpointerdblclick: function(evt) {
+
+        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
+            view.magnetpointerdblclick(evt, magnet, x, y);
+        });
+    },
+
+    magnetcontextmenu: function(evt) {
+
+        if (this.options.preventContextMenu) evt.preventDefault();
+        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
+            view.magnetcontextmenu(evt, magnet, x, y);
+        });
     },
 
     onlabel: function(evt) {
