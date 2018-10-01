@@ -880,10 +880,15 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find all views in given area
     findViewsInArea: function(rect, opt) {
 
-        opt = joint.util.defaults(opt || {}, { strict: false });
+        opt = joint.util.defaults(opt || {}, { strict: false, includeLinks: false });
         rect = g.rect(rect);
 
-        var views = this.model.getElements().map(this.findViewByModel, this);
+        var models = this.model.getElements();
+        if (opt.includeLinks) {
+            models = models.concat(this.model.getLinks());
+        }
+
+        var views = models.map(this.findViewByModel, this);
         var method = opt.strict ? 'containsRect' : 'intersect';
 
         return views.filter(function(view) {
