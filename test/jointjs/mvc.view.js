@@ -33,6 +33,16 @@ QUnit.module('joint.mvc.View', function(hooks) {
 
         assert.ok(setThemeCalled, 'should have executed setTheme() method');
         assert.ok(_.keys(joint.mvc.views).length === 1, 'should add the instantiated view to the `joint.views` object');
+
+        // SVG, no className
+        var SVGView = joint.mvc.View.extend({
+            svgElement: true,
+            tagName: 'g',
+            setTheme: function() {}
+        });
+
+        var svgView = new SVGView;
+        assert.equal(svgView.el.className.baseVal, '');
     });
 
     QUnit.test('options', function(assert) {

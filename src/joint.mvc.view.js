@@ -97,6 +97,7 @@ joint.mvc.View = Backbone.View.extend({
 
     _ensureElClassName: function() {
         var className = joint.util.result(this, 'className');
+        if (!className) return;
         var prefixedClassName = joint.util.addClassNamePrefix(className);
         // Note: className removal here kept for backwards compatibility only
         if (this.svgElement) {
