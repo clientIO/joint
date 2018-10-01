@@ -250,7 +250,7 @@
         create: function(linkView) {
             this.remove();
             this.instance = new this({
-                el: this.template.cloneNode(true).getElementById('link-controls'),
+                el: this.template.cloneNode(true),
                 cellView: linkView
             });
             this.instance.$el.insertAfter('#layout-controls');
@@ -272,7 +272,7 @@
 
         instance: null,
 
-        template: document.getElementById('link-controls-template').content
+        template: document.getElementById('link-controls-template').content.querySelector('.controls')
 
     });
 
