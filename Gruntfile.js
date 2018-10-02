@@ -408,6 +408,13 @@ module.exports = function(grunt) {
                         dest: 'build/docs/css/prism.css'
                     }
                 ]
+            },
+            appsLibs: {
+                files: [
+                    { nonull: true, src: 'build/joint.d.ts', dest: 'demo/ts-demo/vendor/joint.d.ts' },
+                    { nonull: true, src: 'build/joint.js', dest: 'demo/ts-demo/vendor/joint.js' },
+                    { nonull: true, src: 'build/joint.min.css', dest: 'demo/ts-demo/vendor/joint.css' }
+                ]
             }
         },
         csslint: {
@@ -812,7 +819,8 @@ module.exports = function(grunt) {
     grunt.registerTask('build:all', [
         'build:joint',
         'build:bundles',
-        'build:docs'
+        'build:docs',
+        'newer:copy:appsLibs'
     ]);
 
     grunt.registerTask('dist', [
