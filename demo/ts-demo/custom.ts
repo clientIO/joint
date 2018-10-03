@@ -1,7 +1,7 @@
-import * as joint from './build/joint';
+import * as joint from './vendor/joint';
 
 // extend joint.shapes namespace
-declare module './build/joint' {
+declare module './vendor/joint' {
     namespace shapes {
         namespace app {
             class CustomRect extends joint.shapes.basic.Rect {

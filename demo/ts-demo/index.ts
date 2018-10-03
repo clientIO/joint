@@ -1,17 +1,19 @@
-import * as joint from "./build/joint";
+import * as joint from './vendor/joint';
 import './custom';
-import {V, g} from "./build/joint";
-import * as $ from "jquery";
+import {V, g} from './vendor/joint';
+import * as $ from 'jquery';
 
 const $body = $('body');
 
 // Paper:
 $body.append($('<h3 />').text('Example Paper'));
-$body.append($('<div id="paper" style="border: 1px dashed #ddd" />'));
+let $paper = $('<div id="paper" style="border: 1px dashed #ddd" />');
+$body.append($paper);
 
 const graph = new joint.dia.Graph;
+
 const paper = new joint.dia.Paper({
-    el: $('#paper'),
+    el: $paper,
     width: 500,
     height: 200,
     gridSize: 20,
@@ -188,10 +190,12 @@ svg.append(curvePath);
 // Text
 let vText = V('text', { x: 250, y: 30, fill: 'black' });
 
-vText.text('This is a rich text.\nThis text goes to multiple lines.', { lineHeight: 'auto', annotations: [
-    { start: 5, end: 10, attrs: { fill: 'red', 'font-size': 30, rotate: '20' } },
-    { start: 7, end: 15, attrs: { fill: 'blue' } },
-    { start: 20, end: 30, attrs: { fill: 'blue', 'class': 'text-link', style: 'text-decoration: underline' } }
-], includeAnnotationIndices: true });
+vText.text('This is a rich text.\nThis text goes to multiple lines.', {
+    lineHeight: 'auto', annotations: [
+        { start: 5, end: 10, attrs: { fill: 'red', 'font-size': 30, rotate: '20' } },
+        { start: 7, end: 15, attrs: { fill: 'blue' } },
+        { start: 20, end: 30, attrs: { fill: 'blue', 'class': 'text-link', style: 'text-decoration: underline' } }
+    ], includeAnnotationIndices: true
+});
 
 svg.append(vText);
