@@ -431,6 +431,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         this._initializePorts();
 
         this.metrics = {};
+        this.dependencies = [];
     },
 
     /**
@@ -443,6 +444,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     update: function(cell, renderingOnlyAttrs) {
 
         this.metrics = {};
+        this.dependencies = [];
 
         this._removePorts();
 

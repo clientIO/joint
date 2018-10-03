@@ -431,6 +431,10 @@
             // The attribute itself does not qualify for relative positioning.
         },
 
+        bindings: {
+            // We do not set `bindings` attribute directly on an element.
+        },
+
         // if `refX` is in [0, 1] then `refX` is a fraction of bounding box width
         // if `refX` is < 0 then `refX`'s absolute values is the right coordinate of the bounding box
         // otherwise, `refX` is the left coordinate of the bounding box

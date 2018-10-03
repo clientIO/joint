@@ -774,15 +774,18 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
+        var model = this.model;
+
         joint.util.bindAll(this, 'remove', 'update');
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
         // Add the cell's type to the view's element as a data attribute.
-        this.$el.attr('data-type', this.model.get('type'));
+        this.$el.attr('data-type', model.get('type'));
 
-        this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
+        this.listenTo(model, 'change:attrs', this.onChangeAttrs);
+        this.listenTo(model, 'all', this.onDependencyChange);
     },
 
 
@@ -800,6 +803,18 @@ joint.dia.CellView = joint.mvc.View.extend({
         selectors[rootSelector] = this.el;
 
         return { fragment: doc.fragment, selectors: selectors };
+    },
+
+    // listenTo `all` vs `change` ?
+    onDependencyChange: function(eventName, element, _, opt) {
+        var dependencies = this.dependencies;
+        if (!dependencies) return;
+        var match = eventName.match(/^change:(\w+)$/);
+        if (match) {
+            if (dependencies.indexOf(match[1]) > -1) {
+                this.onChangeAttrs(element, null, opt);
+            }
+        }
     },
 
     onChangeAttrs: function(cell, attrs, opt) {
@@ -1043,7 +1058,21 @@ joint.dia.CellView = joint.mvc.View.extend({
         var attrName, attrVal, def, i, n;
         var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
         var relatives = [];
+        var dependencies = [];
         // divide the attributes between normal and special
+        var BINDINGS = 'bindings';
+        if (attrs.hasOwnProperty(BINDINGS)) {
+            var bindings = attrs[BINDINGS];
+            if (joint.util.isObject(bindings)) {
+                attrs = Object.assign({}, attrs);
+                for (attrName in bindings) {
+                    if (!bindings.hasOwnProperty(attrName)) continue;
+                    var path = bindings[attrName];
+                    dependencies.push(path);
+                    attrs[attrName] = this.model.prop(path);
+                }
+            }
+        }
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
@@ -1087,7 +1116,8 @@ joint.dia.CellView = joint.mvc.View.extend({
             normal: normalAttrs,
             set: setAttrs,
             position: positionAttrs,
-            offset: offsetAttrs
+            offset: offsetAttrs,
+            dependencies: dependencies
         };
     },
 
@@ -1292,6 +1322,9 @@ joint.dia.CellView = joint.mvc.View.extend({
             nodeAttrs = nodeData.attributes;
             node = nodeData.node;
             processedAttrs = this.processNodeAttributes(node, nodeAttrs);
+
+            var dependencies = this.dependencies;
+            if (dependencies) Array.prototype.push.apply(dependencies, processedAttrs.dependencies);
 
             if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
                 // Set all the normal attributes right on the SVG/HTML element.
