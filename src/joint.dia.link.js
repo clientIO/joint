@@ -597,16 +597,19 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // connection path metrics
         this.metrics = {},
 
+        this.dependencies = [];
+
         // bind events
         this.startListening();
     },
+
+    PRESENTATION_ATTRIBUTES: ['attrs', 'router', 'connector', 'smooth', 'manhattan'],
 
     startListening: function() {
 
         var model = this.model;
 
         this.listenTo(model, 'change:markup', this.render);
-        this.listenTo(model, 'change:smooth change:manhattan change:router change:connector', this.update);
         this.listenTo(model, 'change:toolMarkup', this.onToolsChange);
         this.listenTo(model, 'change:labels change:labelMarkup', this.onLabelsChange);
         this.listenTo(model, 'change:vertices change:vertexMarkup', this.onVerticesChange);

@@ -195,19 +195,16 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, 'M 140 120 L 280 120 L 280 0 L 580 0 L 580 20 L 620 20',
             'The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.');
 
-        assert.throws(function() {
+        var fallbackRouteSpy = sinon.spy(function() { return []; });
+        l0.set('router', {
+            name: 'manhattan',
+            args: {
+                maximumLoops: 1,
+                fallbackRoute: fallbackRouteSpy
+            }
+        });
 
-            l0.set('router', {
-                name: 'manhattan',
-                args: {
-                    maximumLoops: 1,
-                    fallbackRoute: function() {
-                        throw 'fallback-route';
-                    }
-                }
-            });
-
-        }, /fallback-route/, 'A fallback route is available.');
+        assert.ok(fallbackRouteSpy.calledOnce,  'A fallback route is available.');
 
         l0.set('router', {
             name: 'manhattan',

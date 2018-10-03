@@ -784,8 +784,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // Add the cell's type to the view's element as a data attribute.
         this.$el.attr('data-type', model.get('type'));
 
-        this.listenTo(model, 'change:attrs', this.onChangeAttrs);
-        this.listenTo(model, 'all', this.onDependencyChange);
+        this.listenTo(model, 'change', this.onAttributesChange);
     },
 
 
@@ -805,28 +804,22 @@ joint.dia.CellView = joint.mvc.View.extend({
         return { fragment: doc.fragment, selectors: selectors };
     },
 
-    // listenTo `all` vs `change` ?
-    onDependencyChange: function(eventName, element, _, opt) {
-        var dependencies = this.dependencies;
-        if (!dependencies) return;
-        var match = eventName.match(/^change:(\w+)$/);
-        if (match) {
-            if (dependencies.indexOf(match[1]) > -1) {
-                this.onChangeAttrs(element, null, opt);
+    PRESENTATION_ATTRIBUTES: ['attrs'],
+
+    onAttributesChange: function(cell, opt) {
+        var attributes = this.PRESENTATION_ATTRIBUTES.concat(this.dependencies);
+        for (var i = 0, n = attributes.length; i < n; i++) {
+            var attribute = attributes[i];
+            if (!cell.hasChanged(attribute)) continue;
+            if (opt.dirty) {
+                // dirty flag could be set when a model attribute was removed and it needs to be cleared
+                // also from the DOM element. See cell.removeAttr().
+                this.render();
+            } else {
+                this.update(cell, cell.attributes.attrs, opt);
             }
+            break;
         }
-    },
-
-    onChangeAttrs: function(cell, attrs, opt) {
-
-        if (opt.dirty) {
-
-            // dirty flag could be set when a model attribute was removed and it needs to be cleared
-            // also from the DOM element. See cell.removeAttr().
-            return this.render();
-        }
-
-        return this.update(cell, attrs, opt);
     },
 
     // Return `true` if cell link is allowed to perform a certain UI `feature`.
