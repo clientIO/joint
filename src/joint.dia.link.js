@@ -567,6 +567,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _dragData: null, // deprecated
 
     metrics: null,
+    dependencies: null,
     decimalsRounding: 2,
 
     initialize: function(options) {
@@ -598,69 +599,73 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.metrics = {},
 
         this.dependencies = [];
-
-        // bind events
-        this.startListening();
     },
 
     PRESENTATION_ATTRIBUTES: ['attrs', 'router', 'connector', 'smooth', 'manhattan'],
 
-    startListening: function() {
-
-        var model = this.model;
-
-        this.listenTo(model, 'change:markup', this.render);
-        this.listenTo(model, 'change:toolMarkup', this.onToolsChange);
-        this.listenTo(model, 'change:labels change:labelMarkup', this.onLabelsChange);
-        this.listenTo(model, 'change:vertices change:vertexMarkup', this.onVerticesChange);
-        this.listenTo(model, 'change:source', this.onSourceChange);
-        this.listenTo(model, 'change:target', this.onTargetChange);
+    presentationAttributes: {
+        markup: 1,
+        attrs: 2,
+        router: 2,
+        connector: 2,
+        smooth: 2,
+        manhattan: 2,
+        toolMarkup: 4,
+        labels: 8,
+        labelMarkup: 8,
+        vertices: 16 | 2,
+        vertexMarkup: 16,
+        source: 32,
+        target: 64
     },
 
-    onSourceChange: function(cell, source, opt) {
+    onAttributesChange: function(cell, opt) {
 
-        // Start watching the new source model.
-        this.watchSource(cell, source);
-        // This handler is called when the source attribute is changed.
-        // This can happen either when someone reconnects the link (or moves arrowhead),
-        // or when an embedded link is translated by its ancestor.
-        // 1. Always do update.
-        // 2. Do update only if the opposite end ('target') is also a point.
-        var model = this.model;
-        if (!opt.translateBy || !model.get('target').id || !source.id) {
-            this.update(model, null, opt);
+        var flag = cell.getChangeFlag(this.presentationAttributes);
+        var attributes = cell.attributes;
+
+        if (!flag) return;
+
+        if (flag & 32) {
+            this.watchSource(cell, attributes.source);
         }
-    },
 
-    onTargetChange: function(cell, target, opt) {
-
-        // Start watching the new target model.
-        this.watchTarget(cell, target);
-        // See `onSourceChange` method.
-        var model = this.model;
-        if (!opt.translateBy || (model.get('source').id && !target.id && joint.util.isEmpty(model.get('vertices')))) {
-            this.update(model, null, opt);
+        if (flag & 64) {
+            this.watchTarget(cell, attributes.target);
         }
-    },
 
-    onVerticesChange: function(cell, changed, opt) {
+        if (flag & 1) {
+            this.render();
+            return;
+        }
 
-        this.renderVertexMarkers();
+        if (flag & 16) {
+            this.renderVertexMarkers();
+            flag ^= 16;
+        }
 
-        // If the vertices have been changed by a translation we do update only if the link was
-        // the only link that was translated. If the link was translated via another element which the link
-        // is embedded in, this element will be translated as well and that triggers an update.
-        // Note that all embeds in a model are sorted - first comes links, then elements.
-        if (!opt.translateBy || opt.translateBy === this.model.id || this.model.hasLoop()) {
-            // Vertices were changed (not as a reaction on translate)
-            // or link.translate() was called or
+        if (flag & 2) {
+            if (opt.dirty) {
+                this.render();
+            } else {
+                this.update(cell, null, opt);
+            }
+            return;
+        }
+
+        if (flag & 4) {
+            this.renderTools().updateToolsPosition();
+            flag ^= 4;
+        }
+
+        if (flag & 8) {
+            this.onLabelsChange(cell, attributes.labels, opt);
+            flag ^= 8;
+        }
+
+        if (flag) {
             this.update(cell, null, opt);
         }
-    },
-
-    onToolsChange: function() {
-
-        this.renderTools().updateToolsPosition();
     },
 
     onLabelsChange: function(link, labels, opt) {

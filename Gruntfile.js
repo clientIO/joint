@@ -28,6 +28,7 @@ module.exports = function(grunt) {
             'src/joint.dia.cell.js',
             'src/joint.dia.element.js',
             'src/joint.dia.link.js',
+            'src/joint.dia.linkView.js',
             'src/joint.dia.paper.js',
             'src/ports.js',
             'plugins/shapes/joint.shapes.basic.js',
@@ -604,7 +605,7 @@ module.exports = function(grunt) {
                 files = grunt.file.expand(config.qunit[name]);
 
                 // Overwrite QUnit task config with URLs method.
-                config.qunit[name] = { options: { urls: [] } };
+                config.qunit[name] = { options: { urls: [] }};
 
                 files.forEach(function(file) {
 
@@ -684,8 +685,8 @@ module.exports = function(grunt) {
     // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
-        config.concat[name] = { files: {} };
-        config.uglify[name] = { files: {} };
+        config.concat[name] = { files: {}};
+        config.uglify[name] = { files: {}};
 
         config.uglify[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
         config.concat[name].files['build/joint.' + name + '.js'] = js.plugins[name];
@@ -693,7 +694,7 @@ module.exports = function(grunt) {
 
         if (css.plugins[name]) {
 
-            config.cssmin[name] = { files: {} };
+            config.cssmin[name] = { files: {}};
             config.cssmin[name].files['build/min/joint.' + name + '.min.css'] = css.plugins[name];
             config.concat[name].files['build/joint.' + name + '.css'] = css.plugins[name];
             config.concat[name].files['build/joint.' + name + '.min.css'] = ['build/min/joint.' + name + '.min.css'];

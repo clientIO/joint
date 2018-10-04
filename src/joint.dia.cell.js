@@ -705,6 +705,16 @@ joint.dia.Cell = Backbone.Model.extend({
 
         if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
+    },
+
+    getChangeFlag: function(attributes) {
+        var flag = 0;
+        if (!attributes) return flag;
+        for (var key in attributes) {
+            if (!attributes.hasOwnProperty(key) || !this.hasChanged(key)) continue;
+            flag |= attributes[key];
+        }
+        return flag;
     }
 
 }, {
