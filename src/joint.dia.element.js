@@ -585,8 +585,9 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var id = V.ensureId(magnet);
 
-        if (!metrics[id]) metrics[id] = {};
-        return metrics[id];
+        var metric = metrics[id];
+        if (!metric) metric = metrics[id] = {};
+        return metric;
     },
 
     getNodeData: function(magnet) {
