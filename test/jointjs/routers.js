@@ -242,24 +242,21 @@ QUnit.module('routers', function(hooks) {
 
         d = v0.$('.connection').attr('d');
 
+        var draggingRouteSpy = sinon.spy(function() { return []; });
         assert.checkDataPath(d, 'M 80 80 L 80 21 L 21 21 L 21 20 L 620 20',
             'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
 
-        assert.throws(function() {
-
-            l0.set({
-                target: { x: 200, y: 200 },
-                router: {
-                    name: 'manhattan',
-                    args: {
-                        draggingRoute: function() {
-                            throw 'dragging-route';
-                        }
-                    }
+        l0.set({
+            target: { x: 200, y: 200 },
+            router: {
+                name: 'manhattan',
+                args: {
+                    draggingRoute: draggingRouteSpy
                 }
-            });
+            }
+        });
 
-        }, /dragging-route/, 'A dragging route is triggered correctly');
+        assert.ok(draggingRouteSpy.calledOnce, 'A dragging route is triggered correctly');
 
         l0.set({
             target: { id: r3.id },
