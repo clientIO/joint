@@ -1088,9 +1088,9 @@ joint.dia.Paper = joint.mvc.View.extend({
     getDefaultLink: function(cellView, magnet) {
 
         return joint.util.isFunction(this.options.defaultLink)
-        // default link is a function producing link model
+            // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
-        // default link is the Backbone model
+            // default link is the Backbone model
             : this.options.defaultLink.clone();
     },
 
