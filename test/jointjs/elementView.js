@@ -28,6 +28,39 @@ QUnit.module('elementView', function(hooks) {
         paper = null;
     });
 
+    QUnit.module('custom view ', function() {
+
+        QUnit.test('getBBox should not fail for custom view', function(assert) {
+
+            var element = new joint.shapes.basic.Generic({ markup: '<toBeOverriden/>' });
+            var CustomView = joint.dia.ElementView.extend({
+                initialize: function() {
+                    // noop
+                },
+                update: function() {
+                    // noop
+                }
+            });
+
+            paper = new joint.dia.Paper({
+                el: $('<div/>').appendTo('#qunit-fixture'),
+                model: new joint.dia.Graph,
+                elementView: CustomView,
+                width: 300,
+                height: 300
+            });
+
+            element.addTo(paper.model);
+
+            var elementView = element.findView(paper);
+
+            var bbx = elementView.getBBox();
+
+            assert.ok(bbx instanceof g.Rect);
+            assert.ok(elementView.metrics === null, 'cache should not be used for this view');
+        });
+    });
+
     QUnit.module('rotatable group and no scalable group', function(hooks) {
 
         hooks.beforeEach(function() {

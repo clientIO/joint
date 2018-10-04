@@ -577,6 +577,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     nodeCache: function(magnet) {
 
         var id = V.ensureId(magnet);
+
+        if (!this.metrics) {
+            // don't use cache
+            // it most likely a custom view with overridden update
+            return {};
+        }
+
         var metrics = this.metrics[id];
         if (!metrics) metrics = this.metrics[id] = {};
         return metrics;
