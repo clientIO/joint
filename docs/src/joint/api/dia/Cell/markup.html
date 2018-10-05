@@ -61,3 +61,20 @@ markup: [{
         groupSelector: 'circles'
     }]
 }]</code></pre>
+
+<h5>Setting attributes with selectors</h5>
+
+Here are simple rules how SVG attributes are set on the nodes when one uses combination of <code>selector</code> and <code>groupSelector</code>.
+
+<ul>
+    <li><code>selector</code> is unique i.e. can target a single node only.</li>
+    <li><code>selector</code> takes precedense over <code>groupSelector</code>.</li>
+    <li><code>groupSelector</code> targeting <code>n</code> nodes takes precedense over <code>groupSelector</code> targeting <code>m</code> nodes for <code>n</code> &lt; <code>m</code>. When <code>n</code> === <code>m</code> the order how the attributes are applied is unspecified.</li>
+</ul>
+
+<p>In the example below, the circle with the selector <code>circle1</code> is filled with <code>"red"</code> color. All other circles are filled with <code>"blue"</code> color.</p>
+
+<pre><code>cell.attr({
+    circle1: { fill: 'red' },
+    circles: { fill: 'blue', stroke: 'black' }
+});</code></pre>
