@@ -125,6 +125,53 @@ QUnit.module('cellView', function(hooks) {
             cell.resize(100,100).position(0, 0);
         });
 
+        QUnit.module('Merging', function(hooks) {
+
+            hooks.beforeEach(function() {
+                cell.set('markup', [{
+                    tagName: 'rect',
+                    selector: 'selector1',
+                    groupSelector: ['groupSelector', 'groupSelector1']
+                }, {
+                    tagName: 'rect',
+                    selector: 'selector2',
+                    groupSelector: ['groupSelector', 'groupSelector2']
+                }]);
+            });
+
+            hooks.afterEach(function(assert) {
+                assert.equal(cellView.el.querySelector('[joint-selector="selector1"]').getAttribute('test'), 'selector');
+            });
+
+            QUnit.test('selector, groupSelector(n > 1)', function() {
+                cell.attr({
+                    selector1: { test: 'selector' },
+                    groupSelector: { test: 'groupSelector' }
+                });
+            });
+
+            QUnit.test('groupSelector(n > 1), selector', function() {
+                cell.attr({
+                    groupSelector: { test: 'groupSelector' },
+                    selector1: { test: 'selector' }
+                });
+            });
+
+            QUnit.test('selector, groupSelector(n === 1)', function() {
+                cell.attr({
+                    selector1: { test: 'selector' },
+                    groupSelector1: { test: 'groupSelector' }
+                });
+            });
+
+            QUnit.test('groupSelector(n === 1), selector', function() {
+                cell.attr({
+                    groupSelector1: { test: 'groupSelector' },
+                    selector1: { test: 'selector' }
+                });
+            });
+        });
+
         QUnit.module('Type: Set', function(hooks) {
 
             var rectA, rectB;
