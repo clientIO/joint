@@ -1222,7 +1222,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 var node = selected[i];
                 nodeId = V.ensureId(node);
                 nodeAttrs = attrs[selector];
-                // "unique" sekectirs are selectors that referencing a single node (defined by `selector`)
+                // "unique" selectors are selectors that referencing a single node (defined by `selector`)
                 // groupSelector referencing a single node is not "unique"
                 var unique = (selectors && selectors[selector] === node);
                 var prevNodeAttrs = nodesAttrs[nodeId];
