@@ -1261,7 +1261,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         for (i = 0, n = mergeIds.length; i < n; i++) {
             nodeId = mergeIds[i];
             nodeAttrs = nodesAttrs[nodeId];
-            nodeAttrs.attributes = util.merge.apply(null, [{}].concat(nodeAttrs.attributes.reverse()));
+            nodeAttrs.attributes = util.merge.apply(util, [{}].concat(nodeAttrs.attributes.reverse()));
         }
 
         return nodesAttrs;
