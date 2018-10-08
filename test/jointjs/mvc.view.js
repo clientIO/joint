@@ -135,23 +135,43 @@ QUnit.module('joint.mvc.View', function(hooks) {
         assert.equal(returnValue, view, 'should return itself');
     });
 
-    QUnit.test('onRender()', function(assert) {
+    QUnit.module('onRender()', function() {
 
-        assert.ok(typeof joint.mvc.View.prototype.onRender === 'function', 'should be a function');
+        QUnit.test('sanity', function(assert) {
 
-        var called;
+            assert.ok(typeof joint.mvc.View.prototype.onRender === 'function', 'should be a function');
 
-        var SomeView = joint.mvc.View.extend({
-            onRender: function() {
-                called = true;
-            }
+            var called;
+
+            var SomeView = joint.mvc.View.extend({
+                onRender: function() {
+                    called = true;
+                }
+            });
+
+            var view = new SomeView();
+
+            called = false;
+            view.render();
+            assert.ok(called, 'should be called when render() is called');
         });
 
-        var view = new SomeView();
 
-        called = false;
-        view.render();
-        assert.ok(called, 'should be called when render() is called');
+        QUnit.test('long chain', function(assert) {
+
+            var spy = sinon.spy();
+
+            var SomeView = joint.mvc.View.extend({
+                // nothing
+            }).extend({
+                onRender: spy
+            });
+
+            var view = new SomeView();
+
+            view.render();
+            assert.ok(spy.calledOnce, 'should be called once when render() is called');
+        });
     });
 
     QUnit.test('classNamePrefix', function(assert) {
