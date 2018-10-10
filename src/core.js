@@ -1644,10 +1644,14 @@ var joint = {
                     }
                     // Groups
                     if (nodeDef.hasOwnProperty('groupSelector')) {
-                        var nodeGroup = nodeDef.groupSelector;
-                        var group = groupSelectors[nodeGroup];
-                        if (!group) group = groupSelectors[nodeGroup] = [];
-                        group.push(node);
+                        var nodeGroups = nodeDef.groupSelector;
+                        if (!Array.isArray(nodeGroups)) nodeGroups = [nodeGroups];
+                        for (var j = 0, m = nodeGroups.length; j < m; j++) {
+                            var nodeGroup = nodeGroups[j];
+                            var group = groupSelectors[nodeGroup];
+                            if (!group) group = groupSelectors[nodeGroup] = [];
+                            group.push(node);
+                        }
                     }
                     parentNode.appendChild(node);
                     // Children

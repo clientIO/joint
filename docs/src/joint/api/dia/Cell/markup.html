@@ -24,7 +24,7 @@ markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></
 <ul>
     <li><code>tagName</code> <i>(string)</i> <i>(required)</i> The type of element to be created.</li>
     <li><code>selector</code> <i>(string)</i> A unique selector for targeting the element within the <code>attr</code> cell attribute.</li>
-    <li><code>groupSelector</code> <i>(string)</i> A selector for targeting multiple elements within the <code>attr</code> cell attribute. The group selector name must not be the same as an existing selector name.</li>
+    <li><code>groupSelector</code> <i>(string | string[])</i> A selector for targeting multiple elements within the <code>attr</code> cell attribute. The group selector name must not be the same as an existing selector name.</li>
     <li><code>namespaceURI</code> <i>(string)</i> The namespace URI of the element. It defaults to SVG namespace <a target="_blank" href="https://www.w3.org/2000/svg"><code>"http://www.w3.org/2000/svg"</code></a>.</li>
     <li><code>attributes</code> <i>(object with attributes name-value pairs)</i> Attributes of the element.</li>
     <li><code>style</code> <i>(object with CSS property-value pairs)</i> The <code>style</code> attribute of the element.</li>
@@ -61,3 +61,20 @@ markup: [{
         groupSelector: 'circles'
     }]
 }]</code></pre>
+
+<h5>Setting attributes with selectors</h5>
+
+Here are simple rules how SVG attributes are set on the nodes when one uses combination of <code>selector</code> and <code>groupSelector</code>.
+
+<ul>
+    <li><code>selector</code> is unique i.e. can target a single node only.</li>
+    <li><code>selector</code> takes precedence over <code>groupSelector</code>.</li>
+    <li><code>groupSelector</code> targeting <code>n</code> nodes takes precedence over <code>groupSelector</code> targeting <code>m</code> nodes for <code>n</code> &lt; <code>m</code>. When <code>n</code> === <code>m</code> the order how the attributes are applied is unspecified.</li>
+</ul>
+
+<p>In the example below, the circle with the selector <code>circle1</code> is filled with <code>"red"</code> color. All the other circles are filled with <code>"blue"</code> color.</p>
+
+<pre><code>cell.attr({
+    circle1: { fill: 'red' },
+    circles: { fill: 'blue', stroke: 'black' }
+});</code></pre>

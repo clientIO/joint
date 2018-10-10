@@ -1211,40 +1211,57 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     findNodesAttributes: function(attrs, root, selectorCache, selectors) {
 
-        // TODO: merge attributes in order defined by `index` property
-
-        // most browsers sort elements in attrs by order of addition
-        // which is useful but not required
-
-        // link.updateLabels() relies on that assumption for merging label attrs over default label attrs
-
+        var util = joint.util;
+        var i, n, nodeAttrs, nodeId;
         var nodesAttrs = {};
-
+        var mergeIds = [];
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
             var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
-            for (var i = 0, n = selected.length; i < n; i++) {
+            for (i = 0, n = selected.length; i < n; i++) {
                 var node = selected[i];
-                var nodeId = V.ensureId(node);
-                var nodeAttrs = attrs[selector];
+                nodeId = V.ensureId(node);
+                nodeAttrs = attrs[selector];
+                // "unique" selectors are selectors that referencing a single node (defined by `selector`)
+                // groupSelector referencing a single node is not "unique"
+                var unique = (selectors && selectors[selector] === node);
                 var prevNodeAttrs = nodesAttrs[nodeId];
                 if (prevNodeAttrs) {
-                    if (!prevNodeAttrs.merged) {
-                        prevNodeAttrs.merged = true;
-                        // if prevNode attrs is `null`, replace with `{}`
-                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes) || {};
+                    // Note, that nodes referenced by deprecated `CSS selectors` are not taken into account.
+                    // e.g. css:`.circle` and selector:`circle` can be applied in a random order
+                    if (!prevNodeAttrs.array) {
+                        mergeIds.push(nodeId);
+                        prevNodeAttrs.array = true;
+                        prevNodeAttrs.attributes = [prevNodeAttrs.attributes];
+                        prevNodeAttrs.selectedLength = [prevNodeAttrs.selectedLength];
                     }
-                    // if prevNode attrs not set (or `null` or`{}`), use node attrs
-                    // if node attrs not set (or `null` or `{}`), use prevNode attrs
-                    joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
+                    var attributes = prevNodeAttrs.attributes;
+                    var selectedLength = prevNodeAttrs.selectedLength;
+                    if (unique) {
+                        // node referenced by `selector`
+                        attributes.unshift(nodeAttrs);
+                        selectedLength.unshift(-1);
+                    } else {
+                        // node referenced by `groupSelector`
+                        var sortIndex = util.sortedIndex(selectedLength, n);
+                        attributes.splice(sortIndex, 0, nodeAttrs);
+                        selectedLength.splice(sortIndex, 0, n);
+                    }
                 } else {
                     nodesAttrs[nodeId] = {
                         attributes: nodeAttrs,
+                        selectedLength: unique ? -1 : n,
                         node: node,
-                        merged: false
+                        array: false
                     };
                 }
             }
+        }
+
+        for (i = 0, n = mergeIds.length; i < n; i++) {
+            nodeId = mergeIds[i];
+            nodeAttrs = nodesAttrs[nodeId];
+            nodeAttrs.attributes = util.merge.apply(util, [{}].concat(nodeAttrs.attributes.reverse()));
         }
 
         return nodesAttrs;

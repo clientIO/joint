@@ -972,7 +972,7 @@ QUnit.module('util', function(hooks) {
 
         QUnit.module('groupSelector', function() {
 
-            QUnit.test('svg', function(assert) {
+            QUnit.test('svg - string', function(assert) {
                 var res = util.parseDOMJSON([
                     { tagName: 'rect', groupSelector: 'test' },
                     { tagName: 'circle' },
@@ -984,7 +984,7 @@ QUnit.module('util', function(hooks) {
                 assert.ok(res.groupSelectors.test[1] instanceof SVGEllipseElement);
             });
 
-            QUnit.test('html', function(assert) {
+            QUnit.test('html - string', function(assert) {
                 var res = util.parseDOMJSON([
                     { tagName: 'div', groupSelector: 'test' },
                     { tagName: 'img' },
@@ -995,6 +995,44 @@ QUnit.module('util', function(hooks) {
                 assert.ok(res.groupSelectors.test[0] instanceof HTMLDivElement);
                 assert.ok(res.groupSelectors.test[1] instanceof HTMLParagraphElement);
             });
+
+            QUnit.test('svg - array', function(assert) {
+                var res = util.parseDOMJSON([
+                    { tagName: 'rect', groupSelector: ['test0', 'test1'] },
+                    { tagName: 'circle', groupSelector: ['test1', 'test2'] },
+                    { tagName: 'ellipse', groupSelector: ['test0', 'test2'] }
+                ]);
+                assert.deepEqual(Object.keys(res.groupSelectors).sort(), ['test0', 'test1', 'test2']);
+                assert.equal(res.groupSelectors.test0.length, 2);
+                assert.equal(res.groupSelectors.test1.length, 2);
+                assert.equal(res.groupSelectors.test2.length, 2);
+                assert.ok(res.groupSelectors.test0[0] instanceof SVGRectElement);
+                assert.ok(res.groupSelectors.test0[1] instanceof SVGEllipseElement);
+                assert.ok(res.groupSelectors.test1[0] instanceof SVGRectElement);
+                assert.ok(res.groupSelectors.test1[1] instanceof SVGCircleElement);
+                assert.ok(res.groupSelectors.test2[0] instanceof SVGCircleElement);
+                assert.ok(res.groupSelectors.test2[1] instanceof SVGEllipseElement);
+            });
+
+            QUnit.test('html - array', function(assert) {
+                var res = util.parseDOMJSON([
+                    { tagName: 'div', groupSelector: ['test0', 'test1'] },
+                    { tagName: 'img', groupSelector: ['test1', 'test2'] },
+                    { tagName: 'p', groupSelector: ['test0', 'test2'] },
+                ], V.namespace.xhtml);
+                assert.deepEqual(Object.keys(res.groupSelectors).sort(), ['test0', 'test1', 'test2']);
+                assert.equal(res.groupSelectors.test0.length, 2);
+                assert.equal(res.groupSelectors.test1.length, 2);
+                assert.equal(res.groupSelectors.test2.length, 2);
+                assert.ok(res.groupSelectors.test0[0] instanceof HTMLDivElement);
+                assert.ok(res.groupSelectors.test0[1] instanceof HTMLParagraphElement);
+                assert.ok(res.groupSelectors.test1[0] instanceof HTMLDivElement);
+                assert.ok(res.groupSelectors.test1[1] instanceof HTMLImageElement);
+                assert.ok(res.groupSelectors.test2[0] instanceof HTMLImageElement);
+                assert.ok(res.groupSelectors.test2[1] instanceof HTMLParagraphElement);
+            });
+
+
         });
 
         QUnit.module('namespaceURI', function() {
