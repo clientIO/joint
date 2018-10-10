@@ -263,17 +263,22 @@ joint.mvc.View = Backbone.View.extend({
         */
         protoProps.render = function() {
 
-            if (renderFn) {
+            if (typeof renderFn === 'function') {
                 // Call the original render method.
                 renderFn.apply(this, arguments);
             }
 
-            // Should always call onRender() method.
-            this.onRender();
+            if (this.render.__render__ === renderFn) {
+                // Should always call onRender() method.
+                // Should call it only once when renderFn is actual protoype method i.e. not the wrapper
+                this.onRender();
+            }
 
             // Should always return itself.
             return this;
         };
+
+        protoProps.render.__render__ = renderFn;
 
         return Backbone.View.extend.call(this, protoProps, staticProps);
     }
