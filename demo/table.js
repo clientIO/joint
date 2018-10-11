@@ -1,7 +1,7 @@
 var graph = new joint.dia.Graph;
 
-var paper = new joint.dia.Paper({
-    el: $('<div/>').prependTo(document.body).css({ border: '1px solid gray' }),
+new joint.dia.Paper({
+    el: $('<div>').prependTo(document.body).css({ border: '1px solid gray' }),
     width: 1200,
     height: 550,
     gridSize: 40,
@@ -226,7 +226,7 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
     },
 
     renderMarkup: function() {
-        joint.dia.ElementView.prototype.renderMarkup.apply(this, arguments)
+        joint.dia.ElementView.prototype.renderMarkup.apply(this, arguments);
 
         this._elements = [];
         var info = this.model.prop('table/metadata');
@@ -271,7 +271,7 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
                     refX: 0.5,
                     refY: 0.5
                 }
-            }, bbox])
+            }, bbox]);
 
         }.bind(this));
     },
@@ -301,7 +301,7 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
         var bBox = this.model._rangeToBBox(range);
         var corner = bBox.corner();
 
-        _.each(border.sides || ['top', 'left', 'bottom', 'right'], function(side) {
+        joint.util.toArray(border.sides || ['top', 'left', 'bottom', 'right']).forEach(function(side) {
             switch (side) {
                 case 'top':
                     d.push('M', bBox.x, bBox.y, 'H', bBox.topRight().x);
@@ -398,15 +398,18 @@ joint.shapes.basic.TableView = joint.dia.ElementView.extend({
 });
 
 var table = new Table({
-    position: { x: 40, y: 40 },
-    size: { width: 200, height: 90 },
+    position: { x: 300, y: 40 },
+    size: { width: 500, height: 380 },
     attrs: {
         text: {
             fontFamily: 'monospace'
         },
         '.main-shape-text': {
             text: 'shape with table',
-            refX: .5, refY: .5, xAlignment: 'middle', yAlignment: 'middle'
+            refX: .5,
+            refY: 20,
+            xAlignment: 'middle',
+            yAlignment: 'middle'
         },
         '.main-shape': {
             refWidth: '100%',
@@ -416,7 +419,7 @@ var table = new Table({
             ry: 10
         },
         '.table': {
-            refY: '70%',
+            refY: 40,
             refX: 10
         }
     }
