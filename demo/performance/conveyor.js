@@ -187,7 +187,7 @@ function createCircle(center, radius, rectSize) {
             angle: -angle
         });
 
-        console.log(`Add: ${p.x} x ${p.y}`);
+        console.log('Add: ' + p.x + ' x ' + p.y);
 
         if (elements.length % 2 === 0) {
             conveyorElement.addPallet();
