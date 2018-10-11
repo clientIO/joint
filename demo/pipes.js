@@ -5,8 +5,7 @@ joint.connectors.normal = function(sourcePoint, targetPoint, vertices) {
     // Construct the `d` attribute of the `<path>` element.
     var d = ['M', sourcePoint.x, sourcePoint.y];
 
-    _.each(vertices, function(vertex) {
-
+    vertices.forEach(function(vertex) {
         d.push(vertex.x, vertex.y);
     });
 
@@ -57,7 +56,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         joint.util.cancelFrame(this.frameId);
 
-        this.frameId = joint.util.nextFrame(_.bind(this.fillWithPattern, this));
+        this.frameId = joint.util.nextFrame(this.fillWithPattern.bind(this));
 
         return this;
     },
@@ -66,12 +65,12 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var strokeWidth = this.strokeWidth;
 
-        var bbox = g.rect(V(this.el).bbox(true)).inflate(strokeWidth);
+        var bbox = new g.Rect(V(this.el).bbox(true)).inflate(strokeWidth);
 
         var points = [].concat(this.sourcePoint, this.route, this.targetPoint);
 
-        points = _.map(points, function(point) {
-            return g.point(point.x - bbox.x, point.y - bbox.y);
+        points = points.map(function(point) {
+            return new g.Point(point.x - bbox.x, point.y - bbox.y);
         });
 
         var canvas = document.createElement('canvas');
@@ -80,8 +79,8 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var ctx = canvas.getContext('2d');
         ctx.lineWidth = strokeWidth;
-        ctx.lineJoin = "round";
-        ctx.lineCap = "round";
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
 
         for (var i=0, pointsCount = points.length - 1; i < pointsCount; i++) {
 
@@ -105,8 +104,8 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var angle = g.toRad(from.theta(to) - 90);
         var center = g.line(from, to).midpoint();
-        var start = g.point.fromPolar(width / 2, angle, center);
-        var end = g.point.fromPolar(width / 2, Math.PI + angle, center);
+        var start = new g.Point.fromPolar(width / 2, angle, center);
+        var end = new g.Point.fromPolar(width / 2, Math.PI + angle, center);
 
         return [start.x, start.y, end.x, end.y];
     },
@@ -120,7 +119,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
         ctx.closePath();
 
         ctx.beginPath();
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = 'white';
         ctx.lineWidth = width - 2;
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -131,8 +130,9 @@ var PatternLinkView = joint.dia.LinkView.extend({
 });
 
 var graph = new joint.dia.Graph;
-var paper = new joint.dia.Paper({
-    el: $('#paper'),
+
+new joint.dia.Paper({
+    el: document.getElementById('paper'),
     width: 1200,
     height: 800,
     gridSize: 1,
@@ -144,8 +144,8 @@ var paper = new joint.dia.Paper({
 
             var innerWidth = width - 4;
             var outerWidth = width;
-            var buttFrom = g.point(from).move(to, -outerWidth / 2);
-            var buttTo = g.point(to).move(from, -outerWidth / 2);
+            var buttFrom = new g.Point(from).move(to, -outerWidth / 2);
+            var buttTo = new g.Point(to).move(from, -outerWidth / 2);
 
             ctx.beginPath();
             ctx.lineWidth = outerWidth;
@@ -169,7 +169,7 @@ var paper = new joint.dia.Paper({
             ctx.stroke();
             ctx.closePath();
 
-            ctx.lineCap = "square";
+            ctx.lineCap = 'square';
 
             ctx.beginPath();
             ctx.lineWidth = innerWidth;
@@ -237,13 +237,11 @@ var link3 = new joint.dia.Link({
     attrs: {
         '.connection': {
             'stroke-width': 20
-            //'stroke-linecap': 'round'
         },
         '.marker-source': { d: 'M 0 0 5 0 5 20 0 20 z', fill: 'rgba(86, 170, 255, 1.000)' },
         '.marker-target': { d: 'M 0 0 5 0 5 20 0 20 z', fill: 'rgba(86, 170, 255, 1.000)' }
 
     }
-    //connector: { name: 'rounded' },
 });
 
 graph.resetCells([r1, r2, r3, link1, link2, link3]);
