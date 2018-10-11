@@ -2,7 +2,7 @@
 
 joint.dia.FastPaper = joint.dia.Paper.extend({
 
-    sortViews: _.noop,
+    sortViews: joint.util.noop,
 
     beforeRenderViews: function() {
 
@@ -43,7 +43,7 @@ joint.shapes.basic.ConveyorElement = joint.dia.Element.extend({
 
     PADDING: 2,
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.ConveyorElement',
         hasPallet: false
