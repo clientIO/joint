@@ -15,7 +15,7 @@
 
         <!-- Dependencies: -->
         <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/lodash/lodash.js"></script>
         <script src="../node_modules/backbone/backbone.js"></script>
 
 
@@ -53,7 +53,7 @@
                 coordinates passed to the default <code>pointerdown()</code> and <code>pointermove()</code>
                 methods are located on the boundary of our ellipse object. To compute the points on the boundary
                 of our ellipse, we simply take advantage of the <code>ellipse.prototype.intersectionWithLineFromCenterToPoint()</code>
-                function. [A complete documentation to the geometry library of JointJS can be found on 
+                function. [A complete documentation to the geometry library of JointJS can be found on
                 <a href="http://www.daviddurman.com/hidden-gold-of-jointjs-the-geometry-library.html" target="_blank">my blog</a>]
             </p>
 
@@ -80,7 +80,7 @@ var ConstraintElementView = joint.dia.ElementView.extend({
             <p>Now we can just create a graph and paper as usual and tell the paper to use
                 our custom view for all the element models. [Note that if you need a custom view
                 for just one type of model (not all the models added to the paper), you can do that
-                be defining a view for a specific type. An example of this can be found in the 
+                be defining a view for a specific type. An example of this can be found in the
                 <a href="https://groups.google.com/forum/#!topic/jointjs/TigaktJ4wFM" target="_blank">forum page</a>.]</p>
 
             <pre><code>var graph = new joint.dia.Graph;

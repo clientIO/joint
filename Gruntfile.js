@@ -130,7 +130,7 @@ module.exports = function(grunt) {
     } : {};
 
 
-    var lodash4TestDir = __dirname + '/test/jointjs/lodash4';
+    var lodash3TestDir = __dirname + '/test/jointjs/lodash3';
 
     var config = {
 
@@ -449,7 +449,7 @@ module.exports = function(grunt) {
             test: {
                 src: [
                     'test/**/*.js',
-                    '!test/**/lodash4/**'
+                    '!test/**/lodash3/**'
                 ],
                 options: {
                     configFile: 'test/.eslintrc.js'
@@ -508,9 +508,9 @@ module.exports = function(grunt) {
                     return cmd;
                 }
             },
-            lodash4testsInstall: {
+            lodash3testsInstall: {
                 command: function() {
-                    return 'cd ' + lodash4TestDir + ' && npm install';
+                    return 'cd ' + lodash3TestDir + ' && npm install';
                 }
             }
         },
@@ -527,7 +527,7 @@ module.exports = function(grunt) {
             },
             deps: {
                 files: {
-                    'build/min/lodash.min.js': 'node_modules/lodash/index.js'
+                    'build/min/lodash.min.js': 'node_modules/lodash/lodash.js'
                 }
             },
             geometry: {
@@ -611,7 +611,7 @@ module.exports = function(grunt) {
                 files = grunt.file.expand(config.qunit[name]);
 
                 // Overwrite QUnit task config with URLs method.
-                config.qunit[name] = { options: { urls: [] } };
+                config.qunit[name] = { options: { urls: [] }};
 
                 files.forEach(function(file) {
 
@@ -691,8 +691,8 @@ module.exports = function(grunt) {
     // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
 
-        config.concat[name] = { files: {} };
-        config.uglify[name] = { files: {} };
+        config.concat[name] = { files: {}};
+        config.uglify[name] = { files: {}};
 
         config.uglify[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
         config.concat[name].files['build/joint.' + name + '.js'] = js.plugins[name];
@@ -700,7 +700,7 @@ module.exports = function(grunt) {
 
         if (css.plugins[name]) {
 
-            config.cssmin[name] = { files: {} };
+            config.cssmin[name] = { files: {}};
             config.cssmin[name].files['build/min/joint.' + name + '.min.css'] = css.plugins[name];
             config.concat[name].files['build/joint.' + name + '.css'] = css.plugins[name];
             config.concat[name].files['build/joint.' + name + '.min.css'] = ['build/min/joint.' + name + '.min.css'];
@@ -844,11 +844,11 @@ module.exports = function(grunt) {
         'shell:bowerInstall:.'
     ]);
 
-    grunt.registerTask('lodash4tests', [
-        'shell:lodash4testsInstall'
+    grunt.registerTask('lodash3tests', [
+        'shell:lodash3testsInstall'
     ]);
 
-    grunt.registerTask('install', ['lodash4tests', 'bowerInstall', 'build:all']);
+    grunt.registerTask('install', ['lodash3tests', 'bowerInstall', 'build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 
     var e2eBrowsers = {
