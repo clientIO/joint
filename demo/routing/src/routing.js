@@ -1,19 +1,18 @@
 var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     width: 1000,
     height: 600,
     gridSize: 10,
     model: graph
 });
 
-
-var source = new joint.shapes.basic.Rect({
+var source = new joint.shapes.standard.Rectangle({
     position: { x: 50, y: 50 },
     size: { width: 140, height: 70 },
     attrs: {
-        rect: {
+        body: {
             fill: {
                 type: 'linearGradient',
                 stops: [
@@ -23,48 +22,44 @@ var source = new joint.shapes.basic.Rect({
                 attrs: { x1: '0%', y1: '0%', x2: '0%', y2: '100%' }
             },
             stroke: '#ed8661',
-            'stroke-width': 2
+            strokeWidth: 2
         },
-        text: {
+        label: {
             text: 'Source',
             fill: '#f0f0f0',
-            'font-size': 18,
-            'font-weight': 'lighter',
-            'font-variant': 'small-caps'
+            fontSize: 18,
+            fontWeight: 'lighter',
+            fontVariant: 'small-caps'
         }
     }
 });
 
 var target = source.clone().translate(750, 400).attr('text/text', 'Target');
 
-var link = new joint.dia.Link({
+var link = new joint.shapes.standard.Link({
     source: { id: source.id },
     target: { id: target.id },
     router: { name: 'manhattan' },
     connector: { name: 'rounded' },
     attrs: {
-        '.connection': {
+        line: {
             stroke: '#333333',
-            'stroke-width': 3
-        },
-        '.marker-target': {
-            fill: '#333333',
-            d: 'M 10 0 L 0 5 L 10 10 z'
+            strokeWidth: 3
         }
     }
 });
 
 var obstacle = source.clone().translate(300, 100).attr({
-    text: {
+    label: {
         text: 'Obstacle',
         fill: '#eee'
     },
-    rect: {
+    body: {
         fill: {
             stops: [{ color: '#b5acf9' }, { color: '#9687fe' }]
         },
         stroke: '#8e89e5',
-        'stroke-width': 2
+        strokeWidth: 2
     }
 });
 
@@ -81,7 +76,18 @@ link.toBack();
 graph.on('change:position', function(cell) {
 
     // has an obstacle been moved? Then reroute the link.
-    if (_.contains(obstacles, cell)) paper.findViewByModel(link).update();
+    if (obstacles.indexOf(cell) > -1) paper.findViewByModel(link).update();
+});
+
+paper.on('link:mouseenter', function(linkView) {
+    var tools = new joint.dia.ToolsView({
+        tools: [new joint.linkTools.Vertices()]
+    });
+    linkView.addTools(tools);
+});
+
+paper.on('link:mouseleave', function(linkView) {
+    linkView.removeTools();
 });
 
 $('.router-switch').on('click', function(evt) {
