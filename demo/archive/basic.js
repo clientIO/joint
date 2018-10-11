@@ -72,7 +72,7 @@ graph.addCell(tbl);
 
 var MyElementWithPorts = joint.shapes.basic.Generic.extend({
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         markup: [
             '<g class="rotatable">',
@@ -94,18 +94,18 @@ var MyElementWithPorts = joint.shapes.basic.Generic.extend({
         attrs: {
             '.': { magnet: false },
             rect: {
-               width: 150, height: 250,
-               stroke: 'black'
-           },
+                width: 150, height: 250,
+                stroke: 'black'
+            },
             circle: {
-               r: 5,
-               magnet: true,
-               stroke: 'black'
-           },
+                r: 5,
+                magnet: true,
+                stroke: 'black'
+            },
             text: {
-               fill: 'black',
-               'pointer-events': 'none'
-           },
+                fill: 'black',
+                'pointer-events': 'none'
+            },
             '.label': { text: 'Model', dx: 5, dy: 5 },
             '.inPorts text': { dx:-15, 'text-anchor': 'end' },
             '.outPorts text':{ dx: 15 },
@@ -154,7 +154,7 @@ rb.on('change:attrs', function(element) {
     var width = 0;
 
     // Find the longest line width.
-    _.each(lines, function(line) {
+    lines.forEach(function(line) {
 
         textNode.data = line;
         var lineWidth = textSpan.getComputedTextLength();
@@ -175,7 +175,7 @@ joint.shapes.basic.DecoratedRect = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><image/><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.DecoratedRect',
         size: { width: 100, height: 60 },
@@ -203,7 +203,7 @@ joint.shapes.basic.Cylinder = joint.shapes.basic.Generic.extend({
 
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
         type: 'basic.Cylinder',
         size: { width: 40, height: 40 },

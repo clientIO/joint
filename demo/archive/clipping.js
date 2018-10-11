@@ -1,8 +1,7 @@
 var graph = new joint.dia.Graph;
 
-var paper = new joint.dia.Paper({
-
-    el: $('#paper'),
+new joint.dia.Paper({
+    el: document.getElementById('paper'),
     width: 650,
     height: 400,
     gridSize: 20,
@@ -19,7 +18,7 @@ joint.shapes.fsa.MyState = joint.shapes.fsa.State.extend({
         '</g><text/></g>'
     ].join(''),
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
         type: 'fsa.MyState',
         size: { width: 60, height: 60 },
         attrs: {
@@ -33,7 +32,7 @@ joint.shapes.fsa.MyState = joint.shapes.fsa.State.extend({
 var mystate1 = new joint.shapes.fsa.MyState({
     position: { x: 50, y: 50 },
     size: { width: 100, height: 100 },
-    attrs: { text: { text: 'my state 1' } }
+    attrs: { text: { text: 'my state 1' }}
 });
 
 graph.addCell(mystate1);

@@ -38,7 +38,7 @@ joint.dia.attributes.fitRef = {
                     height: refBBox.height
                 };
             case 'PATH':
-                var rect = _.extend(refBBox.toJSON(), fitRef);
+                var rect = Object.assign(refBBox.toJSON(), fitRef);
                 return {
                     d: V.rectToPath(rect)
                 };
@@ -48,23 +48,32 @@ joint.dia.attributes.fitRef = {
 };
 
 var Circle = joint.dia.Element.define('custom.Circle', {
-    markup: '<g class="rotatable"><ellipse/><text/><path/></g>',
+    markup: [{
+        tagName: 'ellipse',
+        selector: 'body'
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }, {
+        tagName: 'path',
+        selector: 'lines'
+    }],
     attrs: {
-        ellipse: {
+        body: {
             fill: '#FFFFFF',
             stroke: '#cbd2d7',
             strokeWidth: 3,
             lineStyle: 'dashed',
             fitRef: true
         },
-        path: {
+        lines: {
             stroke: '#cbd2d7',
             strokeWidth: 3,
             lineStyle: 'dotted',
             fill: 'none',
             d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
         },
-        text: {
+        label: {
             fill: '#cbd2d7',
             fontSize: 20,
             fontFamily: 'Arial, helvetica, sans-serif',
@@ -79,7 +88,7 @@ var Circle = joint.dia.Element.define('custom.Circle', {
 }, {
 
     setText: function(text) {
-        return this.attr('text/text', text);
+        return this.attr('label/text', text);
     }
 
 }, {
@@ -90,11 +99,11 @@ var Circle = joint.dia.Element.define('custom.Circle', {
         d: {
             // The path data `d` attribute to be defined via an array.
             // e.g. d: ['M', 0, '25%', '100%', '25%', 'M', '100%', '75%', 0, '75%']
-            qualify: _.isArray,
+            qualify: Array.isArray,
             set: function(value, refBBox) {
                 var i = 0;
                 var attrValue = value.map(function(data, index) {
-                    if (_.isString(data)) {
+                    if (typeof data === 'string') {
                         if (data.slice(-1) === '%') {
                             return parseFloat(data) / 100 * refBBox[((index - i) % 2) ? 'height' : 'width'];
                         } else {
@@ -119,14 +128,21 @@ var circle = (new Circle())
 circle.transition('angle', 0, { delay: 500 });
 
 var Rectangle = joint.dia.Element.define('custom.Rectangle', {
-    markup: [
-        '<rect class="body"/>',
-        '<circle class="red"/>',
-        '<path class="green"/>',
-        '<text class="content"/>'
-    ].join(''),
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }, {
+        tagName: 'circle',
+        selector: 'red'
+    }, {
+        tagName: 'path',
+        selector: 'green'
+    }, {
+        tagName: 'text',
+        selector: 'content'
+    }],
     attrs: {
-        '.body': {
+        body: {
             fill: '#ddd',
             stroke: '#000',
             refWidth: '100%',
@@ -134,7 +150,7 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             rx: 5,
             ty: 5
         },
-        '.red': {
+        red: {
             r: 12,
             fill: '#d00',
             stroke: '#000',
@@ -144,7 +160,7 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             event: 'element:delete',
             cursor: 'pointer'
         },
-        '.green': {
+        green: {
             r: 4,
             fill: '#0d0',
             stroke: '#000',
@@ -153,7 +169,7 @@ var Rectangle = joint.dia.Element.define('custom.Rectangle', {
             transform: 'translate(-4,4)',
             pointerEvents: 'none'
         },
-        '.content': {
+        content: {
             textWrap: {
                 text: 'An element with text automatically wrapped to fit the rectangle.',
                 width: -10,
@@ -183,27 +199,36 @@ paper.on('element:delete', function(elementView, evt) {
 
 var Header = joint.dia.Element.define('custom.Header', {
 
-    markup: [
-        '<rect class="body"/>',
-        '<rect class="header"/>',
-        '<text class="caption"/>',
-        '<text class="description"/>',
-        '<image class="icon"/>'
-    ].join(''),
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }, {
+        tagName: 'rect',
+        selector: 'header'
+    }, {
+        tagName: 'text',
+        selector: 'caption'
+    }, {
+        tagName: 'text',
+        selector: 'description'
+    }, {
+        tagName: 'image',
+        selector: 'icon'
+    }],
     attrs: {
-        '.body': {
+        body: {
             fitRef: true,
             fill: 'white',
             stroke: 'gray',
             strokeWidth: 3
         },
-        '.header': {
+        header: {
             fill: 'gray',
             stroke: 'none',
             height: 20,
             refWidth: '100%'
         },
-        '.caption': {
+        caption: {
             refX: '50%',
             textAnchor: 'middle',
             fontSize: 12,
@@ -215,7 +240,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             },
             fill: '#fff'
         },
-        '.description': {
+        description: {
             refX: '50%',
             refX2: 15,
             refY: 25,
@@ -229,7 +254,7 @@ var Header = joint.dia.Element.define('custom.Header', {
             },
             fill: '#aaa'
         },
-        '.icon': {
+        icon: {
             x: 3,
             y: 22,
             width: 30,
@@ -251,7 +276,7 @@ header.transition('size', { width: 160, height: 100 }, {
     delay: 1000
 });
 
-var link = new joint.dia.Link({
+new joint.shapes.standard.Link({
     source: { id: circle.id },
     target: { id: rectangle.id },
     router: {
@@ -259,9 +284,12 @@ var link = new joint.dia.Link({
     },
     labels: [{
         position: 0.5,
-        markup: '<path/>',
+        markup: [{
+            tagName: 'path',
+            selector: 'arrow'
+        }],
         attrs: {
-            path: {
+            arrow: {
                 d: 'M 30 15 -30 15',
                 stroke: '#666',
                 strokeWidth: 2,
@@ -283,7 +311,7 @@ var link = new joint.dia.Link({
         }
     }],
     attrs: {
-        '.connection': {
+        line: {
             stroke: '#333',
             strokeWidth: 2,
             sourceMarker: {
@@ -310,12 +338,15 @@ var link = new joint.dia.Link({
 }).addTo(graph);
 
 var Shape = joint.dia.Element.define('custom.Shape', {
-    markup: 'path',
+    markup: [{
+        tagName: 'path',
+        selector: 'body'
+    }],
     attrs: {
-        '.': {
+        root: {
             magnet: false
         },
-        path: {
+        body: {
             fill: 'lightgreen',
             stroke: 'green'
         }
@@ -323,16 +354,19 @@ var Shape = joint.dia.Element.define('custom.Shape', {
     ports: {
         groups: {
             main: {
+                markup: [{
+                    tagName: 'path',
+                    selector: 'body'
+                }],
                 position: {
                     name: 'absolute',
                     args: {
                         y: '50%'
                     }
                 },
-                markup: 'path',
                 size: { width: 20, height: 20 },
                 attrs: {
-                    path: {
+                    body: {
                         fill: 'green',
                         transform: 'translate(-10,-10)',
                         magnet: true
@@ -346,11 +380,11 @@ var Shape = joint.dia.Element.define('custom.Shape', {
 
         shape: {
             qualify: function(value, node) {
-                return _.contains([
+                return ([
                     'hexagon',
                     'rhombus',
                     'rounded-rectangle'
-                ], value) && (node instanceof SVGPathElement);
+                ].indexOf(value) > -1) && (node instanceof SVGPathElement);
             },
             set: function(shape, refBBox) {
                 var data;
@@ -391,14 +425,13 @@ var shape1 = (new Shape())
     .position(100, 50)
     .addPort({
         group: 'main',
-        attrs: { path: { shape: 'hexagon' }}
+        attrs: { body: { shape: 'hexagon' }}
     })
     .addPort({
         group: 'main',
         args: { x: '100%' },
-        attrs: { path: { shape: 'hexagon' }}
-    })
-    .addTo(graph);
+        attrs: { body: { shape: 'hexagon' }}
+    });
 
 var shape2 = (new Shape())
     .attr('path/shape', 'rhombus')
@@ -406,14 +439,13 @@ var shape2 = (new Shape())
     .position(100, 170)
     .addPort({
         group: 'main',
-        attrs: { path: { shape: 'rhombus' }}
+        attrs: { body: { shape: 'rhombus' }}
     })
     .addPort({
         group: 'main',
         args: { x: '100%' },
-        attrs: { path: { shape: 'rhombus' }}
-    })
-    .addTo(graph);
+        attrs: { body: { shape: 'rhombus' }}
+    });
 
 var shape3 = (new Shape())
     .attr('path/shape', 'rounded-rectangle')
@@ -427,26 +459,36 @@ var shape3 = (new Shape())
         id: 'circle-port',
         group: 'main',
         args: { x: '100%' },
-        markup: '<g><circle/><circle/></g>',
+        markup: [{
+            tagName: 'circle',
+            selector: 'first',
+            groupSelector: ['circles']
+        }, {
+            tagName: 'circle',
+            selector: 'last',
+            groupSelector: ['circles']
+
+        }],
         attrs: {
-            circle: {
+            circles: {
                 fill: 'green'
             },
-            'circle:first': {
+            first: {
                 r: 15
             },
-            'circle:last': {
-                ref: 'circle:first',
+            last: {
+                ref: 'first',
                 r: 10,
                 refDx: 10,
                 magnet: true
             }
         }
-    })
-    .addTo(graph);
+    });
+
+graph.addCells([shape1, shape2, shape3]);
 
 var portIndex = shape3.getPortIndex('circle-port');
 
-shape3.transition('ports/items/' + portIndex + '/attrs/circle:first/r', 5, {
+shape3.transition('ports/items/' + portIndex + '/attrs/first/r', 5, {
     delay: 2000
 });
