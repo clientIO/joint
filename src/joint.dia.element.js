@@ -479,7 +479,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     renderJSONMarkup: function(markup) {
 
-        var doc = this.parseDOMJSON(markup);
+        var doc = this.parseDOMJSON(markup, this.el);
         var selectors = this.selectors = doc.selectors;
         this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
         this.scalableNode = V(selectors[this.scalableSelector]) || null;

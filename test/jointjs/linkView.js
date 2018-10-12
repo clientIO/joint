@@ -38,6 +38,46 @@ QUnit.module('linkView', function(hooks) {
         paper = null;
     });
 
+    QUnit.module('labels', function() {
+
+        QUnit.test('SVGGroup container', function(assert) {
+            link.labels([{}]);
+            assert.ok(linkView.el.querySelector('.labels'));
+            link.labels([]);
+            assert.notOk(linkView.el.querySelector('.labels'));
+        });
+
+        QUnit.test('Selectors', function(assert) {
+            link.labels([{
+                markup: [{
+                    tagName: 'circle',
+                    selector: 'c',
+                    groupSelector: 'cr'
+                }, {
+                    tagName: 'rect',
+                    selector: 'r',
+                    groupSelector: 'cr'
+                }],
+                attrs: {
+                    root: { rootTest: true },
+                    c: { circleTest: true },
+                    r: { rectTest: true },
+                    cr: { groupTest: true }
+                }
+            }]);
+            var rootNode = linkView.el.querySelector('[root-test]');
+            var circleNode = linkView.el.querySelector('[circle-test]');
+            var rectNode = linkView.el.querySelector('[rect-test]');
+            var group = linkView.el.querySelectorAll('[group-test]');
+            assert.ok(rootNode instanceof SVGGElement);
+            assert.ok(circleNode instanceof SVGCircleElement);
+            assert.ok(rectNode instanceof SVGRectElement);
+            assert.equal(group.length, 2);
+            assert.equal(group[0], circleNode);
+            assert.equal(group[1], rectNode);
+        });
+    });
+
     QUnit.module('addLabel', function(hooks) {
 
         QUnit.test('default args', function(assert) {

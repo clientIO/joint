@@ -786,7 +786,7 @@ joint.dia.CellView = joint.mvc.View.extend({
     },
 
 
-    parseDOMJSON: function(markup) {
+    parseDOMJSON: function(markup, root) {
 
         var doc = joint.util.parseDOMJSON(markup);
         var selectors = doc.selectors;
@@ -795,10 +795,11 @@ joint.dia.CellView = joint.mvc.View.extend({
             if (selectors[group]) throw new Error('dia.CellView: ambigious group selector');
             selectors[group] = groups[group];
         }
-        var rootSelector = this.selector;
-        if (selectors[rootSelector]) throw new Error('dia.CellView: ambiguous root selector.');
-        selectors[rootSelector] = this.el;
-
+        if (root) {
+            var rootSelector = this.selector;
+            if (selectors[rootSelector]) throw new Error('dia.CellView: ambiguous root selector.');
+            selectors[rootSelector] = root;
+        }
         return { fragment: doc.fragment, selectors: selectors };
     },
 

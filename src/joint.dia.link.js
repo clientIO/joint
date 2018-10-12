@@ -731,7 +731,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderJSONMarkup: function(markup) {
 
-        var doc = this.parseDOMJSON(markup);
+        var doc = this.parseDOMJSON(markup, this.el);
         // Selectors
         this.selectors = doc.selectors;
         // Fragment
@@ -770,14 +770,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!labelMarkup) return undefined;
 
-        if (Array.isArray(labelMarkup)) return this._getLabelJSONMarkup(labelMarkup);
+        if (Array.isArray(labelMarkup)) return this.parseDOMJSON(labelMarkup, null);
         if (typeof labelMarkup === 'string') return this._getLabelStringMarkup(labelMarkup);
         throw new Error('dia.linkView: invalid label markup');
-    },
-
-    _getLabelJSONMarkup: function(labelMarkup) {
-
-        return joint.util.parseDOMJSON(labelMarkup); // fragment and selectors
     },
 
     _getLabelStringMarkup: function(labelMarkup) {
@@ -813,15 +808,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if ((childNodes.length > 1) || childNodes[0].nodeName.toUpperCase() !== 'G') {
             // default markup fragment is not wrapped in <g />
             // add a <g /> container
-
-            vNode = V('g');
-            vNode.append(fragment);
-            vNode.addClass('label');
-
+            vNode = V('g').append(fragment);
         } else {
             vNode = V(childNodes[0]);
-            vNode.addClass('label');
         }
+
+        vNode.addClass('label');
 
         return { node: vNode.node, selectors: markup.selectors };
     },
@@ -832,50 +824,59 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var vLabels = cache.labels;
         var labelCache = this._labelCache = {};
         var labelSelectors = this._labelSelectors = {};
-
-        if (vLabels) vLabels.empty();
-
         var model = this.model;
-        var labels = model.get('labels') || [];
+        var labels = model.attributes.labels || [];
         var labelsCount = labels.length;
-        if (labelsCount === 0) return this;
 
-        if (!vLabels) {
+        if (labelsCount === 0) {
+            if (vLabels) vLabels.remove();
+            return this;
+        }
+
+        if (vLabels) {
+            vLabels.empty();
+        }  else {
             // there is no label container in the markup but some labels are defined
             // add a <g class="labels" /> container
-            vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
+            vLabels = cache.labels = V('g').addClass('labels');
+        }
+
+        var container = vLabels.node;
+        if (!container.parentNode) {
+            this.el.appendChild(container);
         }
 
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
             var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
-
-            var node;
+            var labelNode;
             var selectors;
             if (labelMarkup) {
-                node = labelMarkup.node;
+
+                labelNode = labelMarkup.node;
                 selectors = labelMarkup.selectors;
 
             } else {
+
                 var builtinDefaultLabel =  model._builtins.defaultLabel;
                 var builtinDefaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(builtinDefaultLabel.markup));
-
                 var defaultLabel = model._getDefaultLabel();
                 var defaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(defaultLabel.markup));
-
                 var defaultMarkup = defaultLabelMarkup || builtinDefaultLabelMarkup;
 
-                node = defaultMarkup.node;
+                labelNode = defaultMarkup.node;
                 selectors = defaultMarkup.selectors;
             }
 
-            var vLabel = V(node);
-            vLabel.attr('label-idx', i); // assign label-idx
-            vLabel.appendTo(vLabels);
-            labelCache[i] = vLabel; // cache node for `updateLabels()` so it can just update label node positions
+            labelNode.setAttribute('label-idx', i); // assign label-idx
+            container.appendChild(labelNode);
+            labelCache[i] = labelNode; // cache node for `updateLabels()` so it can just update label node positions
 
-            selectors[this.selector] = vLabel.node;
+            var rootSelector = this.selector;
+            if (selectors[rootSelector]) throw new Error('dia.LinkView: ambiguous label root selector.');
+            selectors[rootSelector] = labelNode;
+
             labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
         }
 
@@ -923,8 +924,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         for (var i = 0, n = labels.length; i < n; i++) {
 
-            var vLabel = this._labelCache[i];
-            vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
+            var labelNode = this._labelCache[i];
+            labelNode.setAttribute('cursor', (canLabelMove ? 'move' : 'default'));
 
             var selectors = this._labelSelectors[i];
 
@@ -939,7 +940,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 builtinDefaultLabelAttrs
             );
 
-            this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
+            this.updateDOMSubtreeAttributes(labelNode, attrs, {
                 rootBBox: new g.Rect(label.size),
                 selectors: selectors
             });
@@ -1422,7 +1423,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var position = joint.util.merge({}, defaultPosition, labelPosition);
 
             var labelPoint = this.getLabelCoordinates(position);
-            this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
+            this._labelCache[idx].setAttribute('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
         return this;

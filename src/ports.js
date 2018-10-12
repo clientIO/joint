@@ -661,14 +661,15 @@
          */
         _createPortElement: function(port) {
 
-
             var portElement;
             var labelElement;
+
+            var portContainerElement = V(this.portContainerMarkup).addClass('joint-port');
 
             var portMarkup = this._getPortMarkup(port);
             var portSelectors;
             if (Array.isArray(portMarkup)) {
-                var portDoc = util.parseDOMJSON(portMarkup);
+                var portDoc = this.parseDOMJSON(portMarkup, portContainerElement.node);
                 var portFragment = portDoc.fragment;
                 if (portFragment.childNodes.length > 1) {
                     portElement = V('g').append(portFragment);
@@ -695,7 +696,7 @@
             var labelMarkup = this._getPortLabelMarkup(port.label);
             var labelSelectors;
             if (Array.isArray(labelMarkup)) {
-                var labelDoc = util.parseDOMJSON(labelMarkup);
+                var labelDoc = this.parseDOMJSON(labelMarkup, portContainerElement.node);
                 var labelFragment = labelDoc.fragment;
                 if (labelFragment.childNodes.length > 1) {
                     labelElement = V('g').append(labelFragment);
@@ -717,19 +718,17 @@
             var portContainerSelectors;
             if (portSelectors && labelSelectors) {
                 for (var key in labelSelectors) {
-                    if (portSelectors[key]) throw new Error('ElementView: selectors within port must be unique.');
+                    if (portSelectors[key] && key !== this.selector) throw new Error('ElementView: selectors within port must be unique.');
                 }
                 portContainerSelectors = util.assign({}, portSelectors, labelSelectors);
             } else {
                 portContainerSelectors = portSelectors || labelSelectors;
             }
 
-            var portContainerElement = V(this.portContainerMarkup)
-                .addClass('joint-port')
-                .append([
-                    portElement.addClass('joint-port-body'),
-                    labelElement.addClass('joint-port-label')
-                ]);
+            portContainerElement.append([
+                portElement.addClass('joint-port-body'),
+                labelElement.addClass('joint-port-label')
+            ]);
 
             this._portElementsCache[port.id] = {
                 portElement: portContainerElement,
