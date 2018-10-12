@@ -22,20 +22,13 @@ var paper = new joint.dia.Paper({
     async: ASYNC
 });
 
-var el = new joint.shapes.basic.Generic({
-    // The majority of applications does not need elements to be rotatable.
-    // Thus no `.rotatable` group is used in this example.
-    // e.g. `element.rotate(45)` has no effect.
-    // There is also no need for the `.scalable` group. Using special attributes `ref-width`
-    // and `ref-height` does the same trick here (it expands the SVG Rectangle based on the
-    // current model dimensions).
-    markup: '<rect class="body"/><text class="label"/>',
+var Shape = joint.dia.Element.define('Shape', {
     size: {
         width: 100,
         height: 50
     },
     attrs: {
-        '.body': {
+        body: {
             // Using of special 'ref-like` attributes it's not generally the most
             // performer. In this particular case it's different though.
             // If the `ref` attribute is not defined all the metrics (width, height, x, y)
@@ -50,7 +43,7 @@ var el = new joint.shapes.basic.Generic({
             rx: 5,
             ry: 5
         },
-        '.label': {
+        label: {
             fill: 'black',
             // Please see the `ref-width` & `ref-height` comment.
             refX: '50%',
@@ -60,23 +53,28 @@ var el = new joint.shapes.basic.Generic({
             // in the browser is usually the slowest.
             // `text-anchor` attribute does the same job here (works for the text elements only).
             textAnchor: 'middle',
-            // Do not use special attribute `y-alignment`. See above.
-            // `y="0.3em"` gives the best result.
-            y: '.3em'
+            // Do not use special attribute `y-alignment` for text vertical positioning. See above.
+            textVerticalAnchor: 'middle'
         }
     },
     z: 2
+}, {
+    // if markup does not change during the application life time, define it on the prototype (i.e. not in the defaults above)
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }]
 });
 
-var l = new joint.dia.Link({
-    // use only SVG Elements that you need in the application
-    // e.g in this example vertices, tools or wrapper is not needed
-    markup: '<path class="connection"/>',
+
+var Link = joint.dia.Link.define('Link', {
     z: 1,
     attrs: {
-        '.connection': {
-            stroke: 'green',
-            strokeWidth: 2,
+        line: {
+            connection: true,
             // SVG Markers are pretty fast. Let's take advantage of this.
             targetMarker: {
                 type: 'path',
@@ -86,12 +84,28 @@ var l = new joint.dia.Link({
             }
         }
     }
+}, {
+    markup: [{
+        tagName: 'path',
+        selector: 'line',
+        attributes: {
+            // Here comes SVG attributes, for which values won't change during the application life time.
+            // These are specs SVG attributes. Do not add special attributes (e.g. targetMarker, fill: { /* gradient */ })).
+            // These attributes are set during render, and never touched again during updates.
+            'stroke': 'green',
+            'stroke-width': 2,
+        }
+    }]
 });
 
+var el = new Shape();
+var l = new Link();
+
 var cells = [];
-_.times(COUNT / 2, function(n) {
-    var a = el.clone().position(n * 110, 100).attr('.label/text', n + 1);
-    var b = el.clone().position(n * 100, 300).attr('.label/text', n + 1 + (COUNT / 2));
+
+Array.from({ length: COUNT / 2 }).forEach(function(_, n) {
+    var a = el.clone().position(n * 110, 100).attr('label/text', n + 1);
+    var b = el.clone().position(n * 100, 300).attr('label/text', n + 1 + (COUNT / 2));
     var ab = l.clone().prop('source/id', a.id).prop('target/id', b.id);
     cells.push(a, b, ab);
 });
