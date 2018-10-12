@@ -842,9 +842,6 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         var container = vLabels.node;
-        if (!container.parentNode) {
-            this.el.appendChild(container);
-        }
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -878,6 +875,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             selectors[rootSelector] = labelNode;
 
             labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
+        }
+
+        if (!container.parentNode) {
+            this.el.appendChild(container);
         }
 
         this.updateLabels();
