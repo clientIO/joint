@@ -6,110 +6,107 @@ var paper = new joint.dia.Paper({
     gridSize: 10,
     drawGrid: true,
     model: graph,
-    linkConnectionPoint: function(linkView, view) {
-        // connection point is always in the center of an element
-        return view.model.getBBox().center();
-    }
+    defaultConnectionPoint: { name: 'anchor' }
 });
 
 var elements = [
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 75, y: 175 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'joint', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 0 0 L 100 0 80 20 100 40 0 40 Z' }
+            label: { text: 'joint' },
+            body: { d: 'M 0 0 L 100 0 80 20 100 40 0 40 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 200, y: 275 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'dia', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            label: { text: 'dia' },
+            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 200, y: 75 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'util', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            label: { text: 'util' },
+            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 200, y: 175 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'shapes', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            label: { text: 'shapes' },
+            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 325, y: 175 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'basic', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            label: { text: 'basic' },
+            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 450, y: 150 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Path', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            label: { text: 'Path' },
+            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 450, y: 200 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Text', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            label: { text: 'Text' },
+            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 325, y: 250 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Paper', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            label: { text: 'Paper' },
+            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 325, y: 300 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'Graph', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            label: { text: 'Graph' },
+            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 325, y: 100 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'getByPath', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            label: { text: 'getByPath' },
+            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
-    new joint.shapes.basic.Path({
+    new joint.shapes.standard.Path({
         position: { x: 325, y: 50 },
         size: { width: 100, height: 40 },
         attrs: {
-            text: { text: 'setByPath', 'ref-y': 0.5, 'y-alignment': 'middle', 'ref-dy': null },
-            path: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            label: { text: 'setByPath' },
+            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     })
 ];
@@ -126,8 +123,8 @@ var linkEnds = [
 ];
 
 // add all links to the graph
-_.each(linkEnds, function(ends) {
-    new joint.dia.Link({
+linkEnds.forEach(function(ends) {
+    new joint.shapes.standard.Link({
         source: { id: elements[ends.source].id },
         target: { id: elements[ends.target].id },
         z: -1 // make sure all links are displayed under the elements
@@ -165,7 +162,7 @@ var svgAxisX = svgVertical.clone().addClass('axis');
 var svgAxisY = svgHorizontal.clone().addClass('axis');
 var svgBBox = svgRect.clone().addClass('bbox');
 
-svgBBox.hide = _.debounce(function() {
+svgBBox.hide = joint.util.debounce(function() {
     svgBBox.removeClass('active');
 }, 500);
 
@@ -173,11 +170,11 @@ svgBBox.hide = _.debounce(function() {
 var svgContainer = [];
 
 svgContainer.showAll = function() {
-    _.each(this, function(v) { v.addClass('active'); });
+    this.forEach(function(v) { v.addClass('active'); });
 };
 
 svgContainer.hideAll = function() {
-    _.each(this, function(v) { v.removeClass('active'); });
+    this.forEach(function(v) { v.removeClass('active'); });
 };
 
 svgContainer.removeAll = function() {
@@ -428,15 +425,15 @@ var _inputRenderer = function(gridTypes, onChange) {
     var currentOpt = {};
     var formTypes = {
         'color': function(inputDef, container) {
-            var input = $('<input/>', { type: 'color'}).val(inputDef.value).on('change input', function() {
+            var input = $('<input/>', { type: 'color' }).val(inputDef.value).on('change input', function() {
                 inputDef.onChange($(this).val(), currentOpt);
-                onChange(currentOpt)
+                onChange(currentOpt);
             }).trigger('change');
             container.append($('<label/>').text(inputDef.name));
             container.append(input);
         },
         'number': function(inputDef, container) {
-            var input = $('<input/>', { type: 'range'})
+            var input = $('<input/>', { type: 'range' })
                 .val(inputDef.value)
                 .attr({
                     step: inputDef.step,
@@ -460,17 +457,16 @@ var _inputRenderer = function(gridTypes, onChange) {
     };
 
     return {
-        renderSettings: function (gridTypeName) {
+        renderSettings: function(gridTypeName) {
             currentOpt.name = gridTypeName;
             currentOpt.args = [{}, {}];
-            _.each(gridTypes[gridTypeName].inputs, function (x) {
-
+            gridTypes[gridTypeName].inputs.forEach(function(x) {
                 var element = $('<div/>').addClass('form-group').appendTo($gridTypesOpt);
                 renderInput(x, element);
             });
             onChange(currentOpt);
         }
-    }
+    };
 };
 
 var gridTypes = {
@@ -542,7 +538,7 @@ var gridTypes = {
         }]
     }
 };
-var renderer = _inputRenderer(gridTypes, function (gridOpt) {
+var renderer = _inputRenderer(gridTypes, function(gridOpt) {
 
     paper.setGrid(gridOpt);
     paper.drawGrid();
@@ -553,7 +549,7 @@ var $gridTypesOpt = $('.grid-types-opt');
 $('#grid-type').on('change input', function() {
 
     $gridTypesOpt.empty();
-    renderer.renderSettings($(this).val())
+    renderer.renderSettings($(this).val());
 });
 
 renderer.renderSettings($('#grid-type').val());
