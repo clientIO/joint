@@ -1,11 +1,11 @@
-joint.dia.Link.define('toggable.Link', null, {
+joint.shapes.standard.Link.define('toggable.Link', null, {
 
     hide: function() {
-        this.set('hidden', true)
+        this.set('hidden', true);
     },
 
     show: function() {
-        this.set('hidden', false)
+        this.set('hidden', false);
     },
 
     isVisible: function() {
@@ -29,14 +29,14 @@ joint.dia.Link.define('toggable.Link', null, {
             result = {
                 oppositeEnd: target,
                 currentEnd: source
-            }
+            };
         }
 
         return result;
     }
 });
 
-joint.dia.Element.define('toggable.Element', {
+joint.shapes.standard.Rectangle.define('toggable.Element', {
     hidden: false
 }, {
     options: {
@@ -93,12 +93,12 @@ joint.dia.Element.define('toggable.Element', {
     neighborHiddenChangedByPort: function(portId, hidden) {
 
         var expand = !hidden;
-        var collapsedList = _.clone(this.get('collapsed')) || {};
+        var collapsedList = Object.assign({}, this.get('collapsed'));
 
         if (expand) {
             // expand
 
-            if (_.isFinite(collapsedList[portId])) {
+            if (isFinite(collapsedList[portId])) {
                 collapsedList[portId]--;
             }
 
