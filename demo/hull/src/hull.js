@@ -17,7 +17,7 @@
     });
 
     function random(max, min) {
-        return Math.random() * (max - min) + min;
+        return Math.floor(Math.random() * (max - min)) + min;
     }
 
     // create circles

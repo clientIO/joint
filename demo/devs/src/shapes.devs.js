@@ -10,6 +10,8 @@ var paper = new joint.dia.Paper({
     snapLinks: true,
     linkPinning: false,
     embeddingMode: true,
+    clickThreshold: 5,
+    defaultConnectionPoint: { name: 'boundary' },
     highlighting: {
         'default': {
             name: 'stroke',
@@ -26,12 +28,10 @@ var paper = new joint.dia.Paper({
     },
 
     validateEmbedding: function(childView, parentView) {
-
         return parentView.model instanceof joint.shapes.devs.Coupled;
     },
 
     validateConnection: function(sourceView, sourceMagnet, targetView, targetMagnet) {
-
         return sourceMagnet != targetMagnet;
     }
 });
@@ -53,7 +53,6 @@ var connect = function(source, sourcePort, target, targetPort) {
 };
 
 var c1 = new joint.shapes.devs.Coupled({
-
     position: {
         x: 230,
         y: 50
@@ -68,7 +67,6 @@ c1.set('inPorts', ['in']);
 c1.set('outPorts', ['out 1', 'out 2']);
 
 var a1 = new joint.shapes.devs.Atomic({
-
     position: {
         x: 360,
         y: 260
@@ -78,7 +76,6 @@ var a1 = new joint.shapes.devs.Atomic({
 });
 
 var a2 = new joint.shapes.devs.Atomic({
-
     position: {
         x: 50,
         y: 160
@@ -87,7 +84,6 @@ var a2 = new joint.shapes.devs.Atomic({
 });
 
 var a3 = new joint.shapes.devs.Atomic({
-
     position: {
         x: 650,
         y: 50
@@ -97,6 +93,15 @@ var a3 = new joint.shapes.devs.Atomic({
         height: 300
     },
     inPorts: ['a', 'b']
+});
+
+[c1, a1, a2, a3].forEach(function(element) {
+    element.attr({
+        '.body': {
+            'rx': 6,
+            'ry': 6
+        }
+    });
 });
 
 graph.addCells([c1, a1, a2, a3]);
@@ -110,14 +115,20 @@ connect(a1, 'y', c1, 'out 2');
 connect(c1, 'out 1', a3, 'a');
 connect(c1, 'out 2', a3, 'b');
 
-/* rounded corners */
+// Interactions
 
-_.each([c1, a1, a2, a3], function(element) {
+var strokeDasharrayPath = '.body/strokeDasharray';
 
-    element.attr({
-        '.body': {
-            'rx': 6,
-            'ry': 6
-        }
-    });
+paper.on('element:pointerdblclick', function(elementView) {
+    var element = elementView.model;
+    if (element.get('type') === 'devs.Atomic') {
+        element.attr(strokeDasharrayPath, element.attr(strokeDasharrayPath) ? '' : '15,2');
+    }
 });
+
+paper.setInteractivity(function(elementView) {
+    return {
+        stopDelegation: !elementView.model.attr(strokeDasharrayPath)
+    };
+});
+
