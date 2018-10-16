@@ -1668,11 +1668,13 @@ var joint = {
 
         /* global _:true */
 
+        // Deprecated
         // Copy all the properties to the first argument from the following arguments.
         // All the properties will be overwritten by the properties from the following
         // arguments. Inherited properties are ignored.
         mixin: _.assign,
 
+        // Deprecated
         // Copy all properties to the first argument from the following
         // arguments only in case if they don't exists in the first argument.
         // All the function propererties in the first argument will get
@@ -1683,39 +1685,44 @@ var joint = {
         // Same as `mixin()` but deep version.
         deepMixin: _.mixin,
 
+        // Deprecated
         // Same as `supplement()` but deep version.
         deepSupplement: _.defaultsDeep,
 
-        // lodash 3 vs 4 incompatible
-        sortedIndex: _.sortedIndexBy || _.sortedIndex,
-        uniq: _.uniqBy || _.uniq,
-        uniqueId: _.uniqueId,
-        sortBy: _.sortBy,
-        isFunction: _.isFunction,
-        result: _.result,
-        union: _.union,
-        invoke: _.invokeMap || _.invoke,
-        difference: _.difference,
-        intersection: _.intersection,
-        omit: _.omit,
-        pick: _.pick,
-        has: _.has,
-        bindAll: _.bindAll,
+        // Replacements for deprecated functions
         assign: _.assign,
         defaults: _.defaults,
+        // no better-named replacement for `deepMixin`
         defaultsDeep: _.defaultsDeep,
-        isPlainObject: _.isPlainObject,
+
+        // Lodash 3 vs 4 incompatible
+        invoke: _.invokeMap || _.invoke,
+        sortedIndex: _.sortedIndexBy || _.sortedIndex,
+        uniq: _.uniqBy || _.uniq,
+
+        debounce: _.debounce,
+        groupBy: _.groupBy,
+        sortBy: _.sortBy,
+        flattenDeep: _.flattenDeep,
+        without: _.without,
+        difference: _.difference,
+        intersection: _.intersection,
+        union: _.union,
+        has: _.has,
+        result: _.result,
+        omit: _.omit,
+        pick: _.pick,
+        bindAll: _.bindAll,
+        forIn: _.forIn,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
+        isFunction: _.isFunction,
+        isPlainObject: _.isPlainObject,
+        clone: _.clone,
         cloneDeep: _.cloneDeep,
         toArray: _.toArray,
-        flattenDeep: _.flattenDeep,
         camelCase: _.camelCase,
-        groupBy: _.groupBy,
-        forIn: _.forIn,
-        without: _.without,
-        debounce: _.debounce,
-        clone: _.clone,
+        uniqueId: _.uniqueId,
 
         merge: function() {
             if (_.mergeWith) {
