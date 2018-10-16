@@ -1700,6 +1700,8 @@ var joint = {
         sortedIndex: _.sortedIndexBy || _.sortedIndex,
         uniq: _.uniqBy || _.uniq,
 
+        clone: _.clone,
+        cloneDeep: _.cloneDeep,
         debounce: _.debounce,
         groupBy: _.groupBy,
         sortBy: _.sortBy,
@@ -1718,8 +1720,6 @@ var joint = {
         isEqual: _.isEqual,
         isFunction: _.isFunction,
         isPlainObject: _.isPlainObject,
-        clone: _.clone,
-        cloneDeep: _.cloneDeep,
         toArray: _.toArray,
         camelCase: _.camelCase,
         uniqueId: _.uniqueId,

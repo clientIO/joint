@@ -2200,6 +2200,10 @@ export namespace util {
 
     export function uniq(array: any[], iteratee?: Iteratee): any[];
 
+    export function clone<T>(value: T): T;
+
+    export function cloneDeep<T>(value: T): T;
+
     export function debounce(func: Function, wait?: number, options?: object): Function;
 
     export function groupBy(collection: Collection, iteratee?: Iteratee): object;
@@ -2235,10 +2239,6 @@ export namespace util {
     export function isFunction(value: any): boolean;
 
     export function isPlainObject(value: any): boolean;
-
-    export function clone<T>(value: T): T;
-
-    export function cloneDeep<T>(value: T): T;
 
     export function toArray(value: any): any[];
 
