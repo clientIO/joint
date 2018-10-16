@@ -1702,6 +1702,11 @@ var joint = {
 
         clone: _.clone,
         cloneDeep: _.cloneDeep,
+        isEmpty: _.isEmpty,
+        isEqual: _.isEqual,
+        isFunction: _.isFunction,
+        isPlainObject: _.isPlainObject,
+        toArray: _.toArray,
         debounce: _.debounce,
         groupBy: _.groupBy,
         sortBy: _.sortBy,
@@ -1716,11 +1721,6 @@ var joint = {
         pick: _.pick,
         bindAll: _.bindAll,
         forIn: _.forIn,
-        isEmpty: _.isEmpty,
-        isEqual: _.isEqual,
-        isFunction: _.isFunction,
-        isPlainObject: _.isPlainObject,
-        toArray: _.toArray,
         camelCase: _.camelCase,
         uniqueId: _.uniqueId,
 

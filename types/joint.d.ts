@@ -2204,6 +2204,16 @@ export namespace util {
 
     export function cloneDeep<T>(value: T): T;
 
+    export function isEmpty(value: any): boolean;
+
+    export function isEqual(value: any, otherValue: any): boolean;
+
+    export function isFunction(value: any): boolean;
+
+    export function isPlainObject(value: any): boolean;
+
+    export function toArray(value: any): any[];
+
     export function debounce(func: Function, wait?: number, options?: object): Function;
 
     export function groupBy(collection: Collection, iteratee?: Iteratee): object;
@@ -2231,16 +2241,6 @@ export namespace util {
     export function bindAll(object: object, methodNames: PropertyPath[]): object;
 
     export function forIn(object: object, iteratee?: Iteratee): object;
-
-    export function isEmpty(value: any): boolean;
-
-    export function isEqual(value: any, otherValue: any): boolean;
-
-    export function isFunction(value: any): boolean;
-
-    export function isPlainObject(value: any): boolean;
-
-    export function toArray(value: any): any[];
 
     export function camelCase(string: string): string;
 
