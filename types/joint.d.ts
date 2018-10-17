@@ -2174,6 +2174,9 @@ export namespace util {
     type IterateeFunction = (value: any) => NotVoid;
     type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
 
+    type SourceObjectsOptionalFinalCustomizer = Array<object | CustomizerFunction>; // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
+    type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
+
     /** @deprecated use Lodash util.assign */
     export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
 
@@ -2245,6 +2248,15 @@ export namespace util {
     export function camelCase(string: string): string;
 
     export function uniqueId(prefix?: string): string;
+
+    // `merge` has a weird signature
+    // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
+    export function merge(destinationObject: object, sourceObject: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, sourceObject4: object, customizer?: CustomizerFunction): object;
+    // generic but less precise signature for `merge`
+    export function merge(destinationObject: object, ...sourceObjectsOptionalFinalCustomizer: SourceObjectsOptionalFinalCustomizer): object;
 }
 
 // env
