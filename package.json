@@ -46,7 +46,7 @@
     "@types/jquery": "3.3.10",
     "async": "2.6.1",
     "chai": "4.2.0",
-    "cheerio": "1.0.0-rc.2",
+    "cheerio": "0.22.0",
     "express": "4.16.3",
     "grunt": "1.0.3",
     "grunt-browserify": "5.3.0",
