@@ -2176,6 +2176,17 @@ export namespace util {
     /** @deprecated use lodash _.mixin  */
     export function deepMixin(objects: any[]): any;
 
+    // ADDITIONAL SIMPLE UTIL FUNCTIONS:
+
+    export function isBoolean(value: any): boolean;
+
+    export function isObject(value: any): boolean;
+
+    export function isNumber(value: any): boolean;
+
+    export function isString(value: any): boolean;
+
+    export function noop(): void;
 }
 
 // env
