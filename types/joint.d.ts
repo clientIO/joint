@@ -2162,20 +2162,101 @@ export namespace util {
         export function prefix(value: number, precision: number): { scale: (d: number) => number; symbol: string; } | undefined
     }
 
-    // Not documented but used in examples
-    /** @deprecated use lodash _.defaultsDeep */
-    export function deepSupplement(objects: any, defaultIndicator?: any): any;
+    // LODASH FUNCTIONS:
 
-    // Private functions
-    /** @deprecated use lodash _.assign */
-    export function mixin(objects: any[]): any;
+    type NotVoid = {} | null | undefined; // the `any` type without `void` and `never`
 
-    /** @deprecated use lodash _.defaults */
-    export function supplement(objects: any[]): any;
+    type Collection = object | any[]; // an object or an array
 
-    /** @deprecated use lodash _.mixin  */
-    export function deepMixin(objects: any[]): any;
+    type PropertyPath = string | string[];
 
+    type Iteratee = IterateeFunction | IterateeShorthand;
+    type IterateeFunction = (value: any) => NotVoid;
+    type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
+
+    type SourceObjectsOptionalFinalCustomizer = Array<object | CustomizerFunction>; // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
+    type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
+
+    /** @deprecated use Lodash util.assign */
+    export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
+
+    /** @deprecated use Lodash util.defaults */
+    export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
+
+    export function deepMixin(destinationObject: object, sourceObject: object, options?: object): object;
+
+    /** @deprecated use Lodash util.defaultsDeep */
+    export function deepSupplement(destionationObject: object, ...sourceObjects: object[]): object;
+
+    export function assign(destinationObject: object, ...sourceObjects: object[]): object;
+
+    export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
+
+    // no better-named replacement for `deepMixin`
+
+    export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
+
+    export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
+    export function invoke(collection: Collection, functionToInvokeForAll: IterateeFunction, args?: any[]): any[];
+
+    export function sortedIndex(sortedArray: any[], valueToInsert: any, iteratee?: Iteratee): number;
+
+    export function uniq(array: any[], iteratee?: Iteratee): any[];
+
+    export function clone<T>(value: T): T;
+
+    export function cloneDeep<T>(value: T): T;
+
+    export function isEmpty(value: any): boolean;
+
+    export function isEqual(value: any, otherValue: any): boolean;
+
+    export function isFunction(value: any): boolean;
+
+    export function isPlainObject(value: any): boolean;
+
+    export function toArray(value: any): any[];
+
+    export function debounce(func: Function, wait?: number, options?: object): Function;
+
+    export function groupBy(collection: Collection, iteratee?: Iteratee): object;
+
+    export function sortBy(collection: Collection, iterateesArray: Iteratee[]): any[];
+
+    export function flattenDeep(array: any[]): any[];
+
+    export function without(array: any[], ...values: any[]): any[];
+
+    export function difference(array: any[], ...excludedValuesArrays: any[][]): any[];
+
+    export function intersection(...arrays: any[][]): any[];
+
+    export function union(...arrays: any[][]): any[];
+
+    export function has(object: object, path: PropertyPath): boolean;
+
+    export function result(object: object, propertyPath: PropertyPath, defaultValue?: any): any;
+
+    export function omit(object: object, ...propertyPathsToOmit: PropertyPath[]): object;
+
+    export function pick(object: object, ...propertyPathsToPick: PropertyPath[]): object;
+
+    export function bindAll(object: object, methodNames: PropertyPath[]): object;
+
+    export function forIn(object: object, iteratee?: Iteratee): object;
+
+    export function camelCase(string: string): string;
+
+    export function uniqueId(prefix?: string): string;
+
+    // `merge` has a weird signature
+    // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
+    export function merge(destinationObject: object, sourceObject: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, sourceObject4: object, customizer?: CustomizerFunction): object;
+    // generic but less precise signature for `merge`
+    export function merge(destinationObject: object, ...sourceObjectsOptionalFinalCustomizer: SourceObjectsOptionalFinalCustomizer): object;
 }
 
 // env
