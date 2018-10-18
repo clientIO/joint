@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>util.normalizeEvent(evt)</code></pre>
+<p>Normalize the provided event.</p>
+
+<p>For touch events, the normalized event receives a copy of all properties from <code>evt.originalEvent</code> that are not included in <code>evt</code>.</p>
+
+<p>Additionally, if <code>evt.target.correspondingUseElement</code> is defined (as in IE), that element is assigned as <code>target</code> in the normalized event.</p>

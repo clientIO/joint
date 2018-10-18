@@ -1748,8 +1748,6 @@ var joint = {
 
         /* global _:false */
 
-        noop: function() {},
-
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
             return value === true || value === false || (!!value && typeof value === 'object' && toString.call(value) === '[object Boolean]');
@@ -1767,6 +1765,8 @@ var joint = {
         isString: function(value) {
             var toString = Object.prototype.toString;
             return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
-        }
+        },
+
+        noop: function() {}
     }
 };

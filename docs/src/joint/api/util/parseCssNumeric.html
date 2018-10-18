@@ -1,0 +1,14 @@
+<pre class="docs-method-signature"><code>util.parseCssNumeric(value)</code></pre>
+<p>Parse the provided value as a float and return an object with the number as a <code>value</code> parameter. Example:</p>
+
+<pre><code>joint.util.parseCssNumeric(123.4); // => { value: 123.4 }
+joint.util.parseCssNumeric('123.4'); // => { value: 123.4 }</code></pre>
+
+<pre class="docs-method-signature"><code>util.parseCssNumeric(value, restrictUnits)</code></pre>
+<p>If the provided value is a string and <code>restrictUnits</code> is an array of strings, return <code>null</code> unless the unit part of <code>value</code> matches one of the elements of <code>restrictUnits</code>. Then, an object is returned with the number as a <code>value</code> and the unit as a <code>unit</code> parameters. Example:</p>
+
+<pre><code>joint.util.parseCssNumeric('123.4', ['px']); // => null
+joint.util.parseCssNumeric('123.4px', ['mm']); // => null
+joint.util.parseCssNumeric('123.4px', ['px']); // => { value: 123.4, unit: 'px' }
+joint.util.parseCssNumeric('123.4px', ['px', 'mm']); // => { value: 123.4, unit: 'px' }
+joint.util.parseCssNumeric('123.4mm', ['px', 'mm']); // => { value: 123.4, unit: 'mm' }</code></pre>

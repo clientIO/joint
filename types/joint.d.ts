@@ -2258,6 +2258,18 @@ export namespace util {
     export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, sourceObject4: object, customizer?: CustomizerFunction): object;
     // generic but less precise signature for `merge`
     export function merge(destinationObject: object, ...sourceObjectsOptionalFinalCustomizer: SourceObjectsOptionalFinalCustomizer): object;
+
+    // ADDITIONAL SIMPLE UTIL FUNCTIONS:
+
+    export function isBoolean(value: any): boolean;
+
+    export function isObject(value: any): boolean;
+
+    export function isNumber(value: any): boolean;
+
+    export function isString(value: any): boolean;
+
+    export function noop(): void;
 }
 
 // env
