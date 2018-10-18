@@ -203,4 +203,60 @@ QUnit.module('embedding', function(hooks) {
 
         assert.equal(r3.get('parent'), r1.id, 'enabled: parent on the bottom found');
     });
+
+
+    QUnit.test('z-indexes', function(assert) {
+
+        var graph = this.graph;
+        var paper = this.paper;
+
+        paper.options.embeddingMode = true;
+
+        var r1 = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 100 },
+            size: { width: 100, height: 100 },
+            z: 2
+        });
+        var r2 = new joint.shapes.standard.Rectangle({
+            position: { x: 500, y: 500 },
+            size: { width: 100, height: 100 },
+            z: 3,
+        });
+        var r3 = new joint.shapes.standard.Rectangle({
+            position: { x: 600, y: 600 },
+            size: { width: 100, height: 100 },
+            z: 4
+        });
+        var l23 = new joint.shapes.standard.Link({
+            source: { id: r2.id },
+            target: { id: r3.id },
+            z: 0
+        });
+        var l22 = new joint.shapes.standard.Link({
+            source: { id: r2.id },
+            target: { id: r2.id },
+            z: 1
+        });
+
+        graph.addCells([r1, r2, r3, l23, l22]);
+
+        r1.embed(r2);
+
+        var v1 = r1.findView(paper);
+
+        var evt = { target: v1.el };
+        v1.pointerdown(evt, 500, 500);
+        v1.pointermove(evt, 100, 100);
+        v1.pointerup(evt, 100, 100);
+
+        var linksZIndex =[l23, l22].map(function(l) { return l.get('z'); });
+        var elementZIndex = [r1, r2, r3].map(function(e) { return e.get('z'); });
+
+        assert.ok(linksZIndex.every(function(linkZIndex) {
+            return elementZIndex.every(function(elementZIndex) {
+                return linkZIndex > elementZIndex;
+            });
+        }), 'All links were brought to front.');
+    });
+
 });

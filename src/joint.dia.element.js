@@ -741,19 +741,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
         // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
-        var maxZ = graph.get('cells').max('z').get('z');
-        var connectedLinks = graph.getConnectedLinks(model, { deep: true, includeEnclosed: true });
+        var maxZ = graph.getElements().reduce(function(max, cell) {
+            return Math.max(max, cell.attributes.z || 0);
+        }, 0);
 
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        joint.util.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
+        var connectedLinks = graph.getConnectedLinks(model, { deep: true, includeEnclosed: true });
+        connectedLinks.forEach(function(link) {
+            if (link.attributes.z <= maxZ) link.set('z', maxZ + 1, { ui: true });
+        });
 
         model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
         var parentId = model.parent();
-        parentId && graph.getCell(parentId).unembed(model, { ui: true });
+        if (parentId) {
+            graph.getCell(parentId).unembed(model, { ui: true });
+        }
     },
 
     processEmbedding: function(data) {
