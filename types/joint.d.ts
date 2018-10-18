@@ -2178,22 +2178,22 @@ export namespace util {
     type SourceObjectsOptionalFinalCustomizer = Array<object | CustomizerFunction>; // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
     type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
 
-    /** @deprecated use Lodash util.assign */
+    /** @deprecated do not use */
     export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
 
-    /** @deprecated use Lodash util.defaults */
-    export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
-
+    /** @deprecated do not use */
     export function deepMixin(destinationObject: object, sourceObject: object, options?: object): object;
 
-    /** @deprecated use Lodash util.defaultsDeep */
-    export function deepSupplement(destionationObject: object, ...sourceObjects: object[]): object;
-
+    /** @deprecated do not use */
     export function assign(destinationObject: object, ...sourceObjects: object[]): object;
 
-    export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
+    /** @deprecated use joint.util.defaults */
+    export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
 
-    // no better-named replacement for `deepMixin`
+    /** @deprecated use joint.util.defaultsDeep */
+    export function deepSupplement(destionationObject: object, ...sourceObjects: object[]): object;
+
+    export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
 
     export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
 
