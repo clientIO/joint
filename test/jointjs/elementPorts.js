@@ -316,6 +316,43 @@ QUnit.module('element ports', function() {
             assert.equal(shapeView.$el.find('.custom-rect').length, 1);
             assert.equal(shapeView.$el.find('.custom-rect').prop('tagName'), 'rect');
         });
+
+        QUnit.test('Selectors', function(assert) {
+
+            var shape = create({
+                items: [{
+                    markup: [{
+                        tagName: 'circle',
+                        selector: 'c',
+                        groupSelector: 'cr'
+                    }, {
+                        tagName: 'rect',
+                        selector: 'r',
+                        groupSelector: 'cr'
+                    }],
+                    attrs: {
+                        root: { rootTest: true },
+                        c: { circleTest: true },
+                        r: { rectTest: true },
+                        cr: { groupTest: true }
+                    }
+                }]
+            });
+
+            var shapeView = new joint.dia.ElementView({ model: shape });
+            shapeView.render();
+
+            var rootNode = shapeView.el.querySelector('[root-test]');
+            var circleNode = shapeView.el.querySelector('[circle-test]');
+            var rectNode = shapeView.el.querySelector('[rect-test]');
+            var group = shapeView.el.querySelectorAll('[group-test]');
+            assert.ok(rootNode instanceof SVGGElement);
+            assert.ok(circleNode instanceof SVGCircleElement);
+            assert.ok(rectNode instanceof SVGRectElement);
+            assert.equal(group.length, 2);
+            assert.equal(group[0], circleNode);
+            assert.equal(group[1], rectNode);
+        });
     });
 
     QUnit.module('port update', function() {
