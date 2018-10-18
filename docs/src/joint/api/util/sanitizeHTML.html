@@ -14,7 +14,7 @@
 
 <p>Examples:</p>
 
-<pre><code>joint.util.sanitizeHTML('&lt;html&gt;&lt;body&gt;&lt;p&gt;Hello&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;') === '&lt;p&gt;Hello&lt;/p&gt;'
-joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;script&gt;alert("Hacked");&lt;/script&gt;') === '&lt;p&gt;Hello&lt;/p&gt;'
-joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;img onload="alert(&amp;quot;Hacked&amp;quot;);"&gt;') === '&lt;p&gt;Hello&lt;/p&gt;&lt;img&gt;'
-joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;img src="javascript:alert(&amp;quot;Hacked&amp;quot;);"&gt;') === '&lt;p&gt;Hello&lt;/p&gt;&lt;img&gt;'</code></pre>
+<pre><code>joint.util.sanitizeHTML('&lt;html&gt;&lt;body&gt;&lt;p&gt;Hello&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;'); // => '&lt;p&gt;Hello&lt;/p&gt;'
+joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;script&gt;alert("Hacked");&lt;/script&gt;'); // => '&lt;p&gt;Hello&lt;/p&gt;'
+joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;img onload="alert(&amp;quot;Hacked&amp;quot;);"&gt;'); // => '&lt;p&gt;Hello&lt;/p&gt;&lt;img&gt;'
+joint.util.sanitizeHTML('&lt;p&gt;Hello&lt;/p&gt;&lt;img src="javascript:alert(&amp;quot;Hacked&amp;quot;);"&gt;'); // => '&lt;p&gt;Hello&lt;/p&gt;&lt;img&gt;'</code></pre>
