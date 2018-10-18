@@ -375,27 +375,56 @@ var joint = {
             return joint.util.isString(val) && val.slice(-1) === '%';
         },
 
-        parseCssNumeric: function(strValue, restrictUnits) {
+        parseCssNumeric: function(val, restrictUnits) {
 
-            restrictUnits = restrictUnits || [];
-            var cssNumeric = { value: parseFloat(strValue) };
+            function getUnit(validUnitExp) {
 
-            if (Number.isNaN(cssNumeric.value)) {
-                return null;
+                // one or more numbers, followed by
+                // any number of (
+                //  `.`, followed by
+                //  one or more numbers
+                // ), followed by
+                // `validUnitExp`, followed by
+                // end of string
+                var matches = new RegExp('(?:\\d+(?:\\.\\d+)*)(' + validUnitExp + ')$').exec(val);
+
+                if (!matches) return null;
+                return matches[1];
             }
 
-            var validUnitsExp = restrictUnits.join('|');
+            var number = parseFloat(val);
 
-            if (joint.util.isString(strValue)) {
-                var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
-                if (!matches) {
-                    return null;
-                }
-                if (matches[2]) {
-                    cssNumeric.unit = matches[2];
-                }
+            // if `val` cannot be parsed as a number, return `null`
+            if (Number.isNaN(number)) return null;
+
+            // else: we know `output.value`
+            var output = {};
+            output.value = number;
+
+            // determine the unit
+            var validUnitExp;
+            if (restrictUnits == null) {
+                // no restriction
+                // accept any unit, as well as no unit
+                validUnitExp = '[A-Za-z]*';
+            } else if (restrictUnits === []) {
+                // restriction - no units
+                validUnitExp = '';
+            } else if (Array.isArray(restrictUnits)) {
+                // restriction - an array of valid unit strings
+                validUnitExp = restrictUnits.join('|');
+            } else if (joint.util.isString(restrictUnits)) {
+                // restriction - a single valid unit string
+                validUnitExp = restrictUnits;
             }
-            return cssNumeric;
+            var unit = getUnit(validUnitExp);
+
+            // if we found no matches for `restrictUnits`, return `null`
+            if (unit === null) return null;
+
+            // else: we know the unit
+            output.unit = unit;
+            return output;
         },
 
         breakText: function(text, size, styles, opt) {

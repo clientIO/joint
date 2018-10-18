@@ -2002,8 +2002,7 @@ export namespace util {
 
     export function isPercentage(val: any): boolean;
 
-    export function parseCssNumeric(str: string): { value: number; } | null;
-    export function parseCssNumeric(str: string, restrictUnits: string[]): { value: number; unit: string; } | null;
+    export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
 
     export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;

@@ -161,15 +161,32 @@ QUnit.module('util', function(hooks) {
 
     QUnit.test('util.parseCssNumeric', function(assert) {
 
-        assert.equal(joint.util.parseCssNumeric('auto'), null);
+        assert.equal(joint.util.parseCssNumeric('auto'), null, 'no number to parse');
 
-        assert.deepEqual(joint.util.parseCssNumeric('1.1'), { value: 1.1 });
-        assert.deepEqual(joint.util.parseCssNumeric('1.1em', ['em']), { value: 1.1, unit: 'em' });
-        assert.equal(joint.util.parseCssNumeric('10px', ['em']), null, 'invalid unit');
+        assert.deepEqual(joint.util.parseCssNumeric(1.1), { value: 1.1, unit: '' });
+        assert.deepEqual(joint.util.parseCssNumeric('1.1'), { value: 1.1, unit: '' });
+        assert.deepEqual(joint.util.parseCssNumeric('1.1px'), { value: 1.1, unit: 'px' });
 
-        assert.deepEqual(joint.util.parseCssNumeric('10px', ['em', 'px']), { value: 10, unit: 'px' });
+        assert.deepEqual(joint.util.parseCssNumeric(1.1, ''), { value: 1.1, unit: '' });
+        assert.deepEqual(joint.util.parseCssNumeric('1.1', ''), { value: 1.1, unit: '' });
+        assert.equal(joint.util.parseCssNumeric('1.1px', ''), null, '\'px\' found, expects no unit');
+
+        assert.equal(joint.util.parseCssNumeric(1.1, 'px'), null, 'no unit found, expects \'px\'');
+        assert.equal(joint.util.parseCssNumeric('1.1', 'px'), null, 'no unit found, expects \'px\'');
+        assert.deepEqual(joint.util.parseCssNumeric('1.1px', 'px'), { value: 1.1, unit: 'px' });
+        assert.equal(joint.util.parseCssNumeric('1.1em', 'px'), null, '\'em\' found, expects \'px\'');
+
+        assert.deepEqual(joint.util.parseCssNumeric(1.1, []), { value: 1.1, unit: '' });
+        assert.deepEqual(joint.util.parseCssNumeric('1.1', []), { value: 1.1, unit: '' });
+        assert.equal(joint.util.parseCssNumeric('1.1px', []), null, '\'px\' found, expects no unit');
+
+        assert.equal(joint.util.parseCssNumeric(1.1, ['px']), null, 'no unit found, expects \'px\'');
+        assert.equal(joint.util.parseCssNumeric('1.1', ['px']), null, 'no unit found, expects \'px\'');
+        assert.deepEqual(joint.util.parseCssNumeric('1.1px', ['px']), { value: 1.1, unit: 'px' });
+        assert.equal(joint.util.parseCssNumeric('1.1em', ['px']), null, '\'em\' found, expects \'px\'');
+
+        assert.deepEqual(joint.util.parseCssNumeric('1.1px', ['em', 'px']), { value: 1.1, unit: 'px' });
         assert.deepEqual(joint.util.parseCssNumeric('1.1em', ['em', 'px']), { value: 1.1, unit: 'em' });
-        assert.deepEqual(joint.util.parseCssNumeric(10, ['em', 'px']), { value: 10 });
     });
 
     QUnit.test('util.getByPath()', function(assert) {
