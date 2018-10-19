@@ -407,12 +407,14 @@ var joint = {
                 // no restriction
                 // accept any unit, as well as no unit
                 validUnitExp = '[A-Za-z]*';
-            } else if (restrictUnits === []) {
-                // restriction - no units
-                validUnitExp = '';
+
             } else if (Array.isArray(restrictUnits)) {
-                // restriction - an array of valid unit strings
+                // if this is an empty array, top restriction - return `null`
+                if (restrictUnits.length === 0) return null;
+
+                // else: restriction - an array of valid unit strings
                 validUnitExp = restrictUnits.join('|');
+
             } else if (joint.util.isString(restrictUnits)) {
                 // restriction - a single valid unit string
                 validUnitExp = restrictUnits;
