@@ -1,57 +1,118 @@
-var graph = new joint.dia.Graph;
-var paper = new joint.dia.Paper({
-    el: $('#paper'),
-    width: 650,
-    height: 400,
-    gridSize: 20,
-    model: graph
-});
 
-// Create a custom element.
-// ------------------------
+(function() {
 
-joint.shapes.custom = {};
-// The following custom shape creates a link out of the whole element.
-joint.shapes.custom.ElementLink = joint.shapes.basic.Rect.extend({
-    // Note the `<a>` SVG element surrounding the rest of the markup.
-    markup: '<a><g class="rotatable"><g class="scalable"><rect/></g><text/></g></a>',
-    defaults: _.defaultsDeep({
-        type: 'custom.ElementLink'
-    }, joint.shapes.basic.Rect.prototype.defaults)
-});
-// The following custom shape creates a link only out of the label inside the element.
-joint.shapes.custom.ElementLabelLink = joint.shapes.basic.Rect.extend({
-    // Note the `<a>` SVG element surrounding the rest of the markup.
-    markup: '<g class="rotatable"><g class="scalable"><rect/></g><a><text/></a></g>',
-    defaults: _.defaultsDeep({
-        type: 'custom.ElementLabelLink'
-    }, joint.shapes.basic.Rect.prototype.defaults)
-});
+    var graph = new joint.dia.Graph;
 
-// Create JointJS elements and add them to the graph as usual.
-// -----------------------------------------------------------
+    new joint.dia.Paper({
+        el: document.getElementById('paper'),
+        model: graph,
+        width: 600,
+        height: 100,
+        // use a custom element view
+        // (to ensure that opening the link is not prevented on touch devices)
+        elementView: joint.dia.ElementView.extend({
+            events: {
+                'touchstart a': 'onAnchorTouchStart'
+            },
+            onAnchorTouchStart: function(evt) {
+                evt.stopPropagation();
+            }
+        })
+    });
 
-var el1 = new joint.shapes.custom.ElementLink({
-    position: { x: 80, y: 80 }, size: { width: 170, height: 100 },
-    attrs: {
-        rect: { fill: '#E67E22', stroke: '#D35400', 'stroke-width': 5 },
-        a: { 'xlink:href': 'http://jointjs.com', 'xlink:show': 'new', cursor: 'pointer' },
-        text: { text: 'Element as a link:\nhttp://jointjs.com', fill: 'white' }
-    }
-});
-var el2 = new joint.shapes.custom.ElementLabelLink({
-    position: { x: 370, y: 160 }, size: { width: 170, height: 100 },
-    attrs: {
-        rect: { fill: '#9B59B6', stroke: '#8E44AD', 'stroke-width': 5 },
-        a: { 'xlink:href': 'http://jointjs.com', cursor: 'pointer' },
-        text: { text: 'Only label as a link:\nhttp://jointjs.com', fill: 'white' }
-    }
-});
+    // first element
+    // (only the label is a hyperlink)
+    joint.shapes.standard.Rectangle.define('examples.HyperlinkLabelRectangle', {
+        attrs: {
+            body: {
+                fill: '#ffffff',
+                stroke: '#000000'
+            },
+            link: {
+                refWidth: '100%',
+                refHeight: '100%',
+                xlinkShow: 'new',
+                cursor: 'pointer'
+            },
+            label: {
+                fill: '#ffa500'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body',
+        }, {
+            // `link` envelops only `label`
+            tagName: 'a',
+            selector: 'link',
+            children: [{
+                tagName: 'text',
+                selector: 'label'
+            }]
+        }]
+    });
 
-var l = new joint.dia.Link({
-    source: { id: el1.id }, target: { id: el2.id },
-    attrs: { '.connection': { 'stroke-width': 5, stroke: '#34495E' } }
-});
+    var rect = new joint.shapes.examples.HyperlinkLabelRectangle();
+    rect.position(75, 20);
+    rect.resize(150, 60);
+    rect.attr({
+        link: {
+            xlinkHref: 'https://jointjs.com'
+        },
+        label: {
+            text: 'Label as link\nhttps://jointjs.com',
+        }
+    });
+    rect.addTo(graph);
 
-graph.addCells([el1, el2, l]);
+    // second element
+    // (the whole element is a hyperlink)
+    joint.shapes.standard.Rectangle.define('examples.HyperlinkRectangle', {
+        attrs: {
+            link: {
+                xlinkShow: 'new',
+                cursor: 'pointer'
+            },
+            body: {
+                fill: '#ffffff',
+                stroke: '#ffa500'
+            },
+            label: {
+                fill: '#ffa500'
+            }
+        }
+    }, {
+        markup: [{
+            // `link` envelops both `body` and `label`
+            tagName: 'a',
+            selector: 'link',
+            children: [{
+                tagName: 'rect',
+                selector: 'body'
+            }, {
+                tagName: 'text',
+                selector: 'label'
+            }]
+        }]
+    });
 
+    var rect2 = new joint.shapes.examples.HyperlinkRectangle();
+    rect2.position(375, 20);
+    rect2.resize(150, 60);
+    rect2.attr({
+        link: {
+            xlinkHref: 'https://jointjs.com'
+        },
+        label: {
+            text: 'Whole element as link\nhttps://jointjs.com',
+        }
+    });
+    rect2.addTo(graph);
+
+    var link = new joint.shapes.standard.Link();
+    link.source(rect);
+    link.target(rect2);
+    link.addTo(graph);
+
+}());
