@@ -2,9 +2,11 @@ var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({
 
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     model: graph,
-    width: 1000, height: 600, gridSize: 5,
+    width: 1000,
+    height: 600,
+    gridSize: 5,
     snapLinks: true,
     linkPinning: false,
     defaultLink: new joint.shapes.logic.Wire,
@@ -17,11 +19,10 @@ var paper = new joint.dia.Paper({
             if (!mt || !mt.getAttribute('class') || mt.getAttribute('class').indexOf('input') < 0) return false;
 
             // check whether the port is being already used
-            var portUsed = _.find(this.model.getLinks(), function(link) {
-
+            var portUsed = this.model.getLinks().some(function(link) {
                 return (link.id !== vl.model.id &&
                         link.get('target').id === vt.model.id &&
-                        link.get('target').port === mt.getAttribute('port')); 
+                        link.get('target').port === mt.getAttribute('port'));
             });
 
             return !portUsed;
@@ -29,7 +30,7 @@ var paper = new joint.dia.Paper({
         } else { // e === 'source'
 
             // source requires an output port to connect
-            return ms && ms.getAttribute('class') && ms.getAttribute('class').indexOf('output') >= 0; 
+            return ms && ms.getAttribute('class') && ms.getAttribute('class').indexOf('output') >= 0;
         }
     }
 });
@@ -39,32 +40,36 @@ paper.scale(1.5,1.5);
 
 function toggleLive(model, signal) {
     // add 'live' class to the element if there is a positive signal
-    V(paper.findViewByModel(model).el).toggleClass('live', signal > 0);
+    model.findView(paper).vel.toggleClass('live', signal > 0);
 }
 
 function broadcastSignal(gate, signal) {
     // broadcast signal to all output ports
-    _.defer(_.invoke, graph.getConnectedLinks(gate, { outbound: true }), 'set', 'signal', signal);
+    setTimeout(function() {
+        joint.util.invoke(graph.getConnectedLinks(gate, { outbound: true }), 'set', 'signal', signal);
+    }, 0);
 }
 
 function initializeSignal() {
 
     var signal = Math.random();
     // > 0 wire with a positive signal is alive
-    // < 0 wire with a negative signal means, there is no signal 
+    // < 0 wire with a negative signal means, there is no signal
     // 0 none of the above - reset value
 
     // cancel all signals stores in wires
-    _.invoke(graph.getLinks(), 'set', 'signal', 0);
+    joint.util.invoke(graph.getLinks(), 'set', 'signal', 0);
 
     // remove all 'live' classes
-    $('.live').each(function() {
-        V(this).removeClass('live');
+    V(paper.viewport).find('.live').forEach(function(vel) {
+        vel.removeClass('live');
     });
 
-    _.each(graph.getElements(), function(element) {
+    graph.getElements().forEach(function(element) {
         // broadcast a new signal from every input in the graph
-        (element instanceof joint.shapes.logic.Input) && broadcastSignal(element, signal);
+        if (element instanceof joint.shapes.logic.Input) {
+            broadcastSignal(element, signal);
+        }
     });
 
     return signal;
@@ -72,16 +77,18 @@ function initializeSignal() {
 
 // Every logic gate needs to know how to handle a situation, when a signal comes to their ports.
 joint.shapes.logic.Gate.prototype.onSignal = function(signal, handler) {
-    handler.call(this, signal);
-}
+    handler(signal);
+};
 // The repeater delays a signal handling by 400ms
 joint.shapes.logic.Repeater.prototype.onSignal = function(signal, handler) {
-    _.delay(handler, 400, signal);
-}
+    setTimeout(function() {
+        handler(signal);
+    }, 400);
+};
 // Output element just marks itself as alive.
 joint.shapes.logic.Output.prototype.onSignal = function(signal) {
     toggleLive(this, signal);
-}
+};
 
 // diagramm setup
 
@@ -104,14 +111,14 @@ var wires = [
     { source: { id: gates.not.id, port: 'out' }, target: { id: gates.nor.id, port: 'in1' }},
     { source: { id: gates.nor.id, port: 'out' }, target: { id: gates.repeater.id, port: 'in' }},
     { source: { id: gates.nor.id, port: 'out' }, target: { id: gates.output.id, port: 'in' }},
-    { source: { id: gates.repeater.id, port: 'out' }, target: { id: gates.nor.id, port: 'in2'},
-      vertices: [{ x: 215, y: 100 }]
+    { source: { id: gates.repeater.id, port: 'out' }, target: { id: gates.nor.id, port: 'in2' },
+        vertices: [{ x: 215, y: 100 }]
     }
 ];
 
 // add gates and wires to the graph
-graph.addCells(_.toArray(gates));
-_.each(wires, function(attributes) {
+graph.addCells(joint.util.toArray(gates));
+joint.util.forIn(wires, function(attributes) {
     graph.addCell(paper.getDefaultLink().set(attributes));
 });
 
@@ -134,28 +141,26 @@ graph.on('change:signal', function(wire, signal) {
     // if a new signal has been generated stop transmitting the old one
     if (magnitude !== current) return;
 
-    var gate = graph.getCell(wire.get('target').id);
-
+    var gate = wire.getTargetElement();
     if (gate) {
 
         gate.onSignal(signal, function() {
 
             // get an array of signals on all input ports
-            var inputs = _.chain(graph.getConnectedLinks(gate, { inbound: true }))
-                .groupBy(function(wire) {
-                    return wire.get('target').port;
-                })
-                .map(function(wires) {
-                    return Math.max.apply(this, _.invoke(wires, 'get', 'signal')) > 0;
-                })
-                .value();
+            var inboundLinks = graph.getConnectedLinks(gate, { inbound: true });
+            var linksByPorts = joint.util.groupBy(inboundLinks, function(wire) {
+                return wire.get('target').port;
+            });
+            var inputs = joint.util.toArray(linksByPorts).map(function(wires) {
+                return Math.max.apply(this, joint.util.invoke(wires, 'get', 'signal')) > 0;
+            });
 
             // calculate the output signal
             var output = magnitude * (gate.operation.apply(gate, inputs) ? 1 : -1);
-            
+
             broadcastSignal(gate, output);
         });
-   }
+    }
 });
 
 // initialize signal and keep its value
