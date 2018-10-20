@@ -122,7 +122,7 @@ var strokeDasharrayPath = '.body/strokeDasharray';
 paper.on('element:pointerdblclick', function(elementView) {
     var element = elementView.model;
     if (element.get('type') === 'devs.Atomic') {
-        element.attr(strokeDasharrayPath, element.attr(strokeDasharrayPath) ? '' : '15,2');
+        toggleDelegation(element);
     }
 });
 
@@ -132,3 +132,8 @@ paper.setInteractivity(function(elementView) {
     };
 });
 
+toggleDelegation(a1);
+
+function toggleDelegation(element) {
+    element.attr(strokeDasharrayPath, element.attr(strokeDasharrayPath) ? '' : '15,1');
+}

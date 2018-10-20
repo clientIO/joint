@@ -1,78 +1,99 @@
 var graph = new joint.dia.Graph();
 var paper = new joint.dia.Paper({
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     width: 800,
     height: 350,
     gridSize: 10,
-    perpendicularLinks: true,
+    defaultAnchor: { name: 'perpendicular' },
+    defaultConnectionPoint: { name: 'boundary' },
     model: graph
 });
 
 var pn = joint.shapes.pn;
 
 var pReady = new pn.Place({
-    position: {x: 140, y: 50},
+    position: { x: 140, y: 50 },
     attrs: {
-        '.label': {text: 'ready', fill: '#7c68fc'},
-        '.root': {stroke: '#9586fd', 'stroke-width': 3},
-        '.tokens > circle': {fill: '#7a7e9b'}
+        '.label': {
+            'text': 'ready',
+            'fill': '#7c68fc' },
+        '.root': {
+            'stroke': '#9586fd',
+            'stroke-width': 3
+        },
+        '.tokens > circle': {
+            'fill': '#7a7e9b'
+        }
     },
     tokens: 1
 });
 
-var pIdle = pReady.clone().attr({
-    '.label': {text: 'idle'}
-}).position(140, 260).set('tokens', 2);
+var pIdle = pReady.clone()
+    .attr('.label/text', 'idle')
+    .position(140, 260)
+    .set('tokens', 2);
 
-var buffer = pReady.clone().attr({
-    '.label': {text: 'buffer'},
-    '.alot > text': {
-        fill: '#fe854c',
-        'font-family': 'Courier New',
-        'font-size': 20,
-        'font-weight': 'bold',
-        'ref-x': 0.5,
-        'ref-y': 0.5,
-        'y-alignment': -0.5,
-        'transform': null
-    }
-}).position(350, 160).set('tokens', 12);
+var buffer = pReady.clone()
+    .position(350, 160)
+    .set('tokens', 12)
+    .attr({
+        '.label': {
+            'text': 'buffer'
+        },
+        '.alot > text': {
+            'fill': '#fe854c',
+            'font-family': 'Courier New',
+            'font-size': 20,
+            'font-weight': 'bold',
+            'ref-x': 0.5,
+            'ref-y': 0.5,
+            'y-alignment': -0.5,
+            'transform': null
+        }
+    });
 
-var cAccepted = pReady.clone().attr({
-    '.label': {text: 'accepted'}
-}).position(550, 50).set('tokens', 1);
+var cAccepted = pReady.clone()
+    .attr('.label/text', 'accepted')
+    .position(550, 50)
+    .set('tokens', 1);
 
-var cReady = pReady.clone().attr({
-    '.label': {text: 'accepted'}
-}).position(560, 260).set('ready', 3);
-
+var cReady = pReady.clone()
+    .attr('.label/text', 'accepted')
+    .position(560, 260)
+    .set('ready', 3);
 
 var pProduce = new pn.Transition({
-    position: {x: 50, y: 160},
+    position: { x: 50, y: 160 },
     attrs: {
-        '.label': {text: 'produce', fill: '#fe854f'},
-        '.root': {fill: '#9586fd', stroke: '#9586fd'}
+        '.label': {
+            'text': 'produce',
+            'fill': '#fe854f'
+        },
+        '.root': {
+            'fill': '#9586fd',
+            'stroke': '#9586fd'
+        }
     }
 });
 
-var pSend = pProduce.clone().attr({
-    '.label': {text: 'send'}
-}).position(270, 160);
+var pSend = pProduce.clone()
+    .attr('.label/text', 'send')
+    .position(270, 160);
 
-var cAccept = pProduce.clone().attr({
-    '.label': {text: 'accept'}
-}).position(470, 160);
+var cAccept = pProduce.clone()
+    .attr('.label/text', 'accept')
+    .position(470, 160);
 
-var cConsume = pProduce.clone().attr({
-    '.label': {text: 'consume'}
-}).position(680, 160);
+var cConsume = pProduce.clone()
+    .attr('.label/text', 'consume')
+    .position(680, 160);
 
 
 function link(a, b) {
 
     return new pn.Link({
-        source: {id: a.id, selector: '.root'},
-        target: {id: b.id, selector: '.root'},
+        source: { id: a.id, selector: '.root' },
+        target: { id: b.id, selector: '.root' },
         attrs: {
             '.connection': {
                 'fill': 'none',
@@ -102,67 +123,78 @@ graph.addCell([
 
 function fireTransition(t, sec) {
 
-    var inbound = graph.getConnectedLinks(t, {inbound: true});
-    var outbound = graph.getConnectedLinks(t, {outbound: true});
+    var inbound = graph.getConnectedLinks(t, { inbound: true });
+    var outbound = graph.getConnectedLinks(t, { outbound: true });
 
-    var placesBefore = _.map(inbound, function (link) {
-        return graph.getCell(link.get('source').id);
+    var placesBefore = inbound.map(function(link) {
+        return link.getSourceElement();
     });
-    var placesAfter = _.map(outbound, function (link) {
-        return graph.getCell(link.get('target').id);
+    var placesAfter = outbound.map(function(link) {
+        return link.getTargetElement();
     });
 
     var isFirable = true;
-    _.each(placesBefore, function (p) {
-        if (p.get('tokens') === 0)
+    placesBefore.forEach(function(p) {
+        if (p.get('tokens') === 0) {
             isFirable = false;
+        }
     });
 
     if (isFirable) {
 
-        _.each(placesBefore, function (p) {
+        placesBefore.forEach(function(p) {
             // Let the execution finish before adjusting the value of tokens. So that we can loop over all transitions
             // and call fireTransition() on the original number of tokens.
-            _.defer(function () {
+            setTimeout(function() {
                 p.set('tokens', p.get('tokens') - 1);
+            }, 0);
+
+            var links = inbound.filter(function(l) {
+                return l.getSourceElement() === p;
             });
 
-            var link = _.find(inbound, function (l) {
-                return l.get('source').id === p.id;
+            links.forEach(function(l) {
+                var token = V('circle', { r: 5, fill: '#feb662' });
+                l.findView(paper).sendToken(token, sec * 1000);
             });
-            paper.findViewByModel(link).sendToken(V('circle', {r: 5, fill: '#feb662'}).node, sec * 1000);
-
         });
 
-        _.each(placesAfter, function (p) {
-            var link = _.find(outbound, function (l) {
-                return l.get('target').id === p.id;
-            });
-            paper.findViewByModel(link).sendToken(V('circle', {r: 5, fill: '#feb662'}).node, sec * 1000, function () {
-                p.set('tokens', p.get('tokens') + 1);
+        placesAfter.forEach(function(p) {
+
+            var links = outbound.filter(function(l) {
+                return l.getTargetElement() === p;
             });
 
+            links.forEach(function(l) {
+                var token = V('circle', { r: 5, fill: '#feb662' });
+                l.findView(paper).sendToken(token, sec * 1000, function() {
+                    p.set('tokens', p.get('tokens') + 1);
+                });
+            });
         });
     }
 }
 
 function simulate() {
+
     var transitions = [pProduce, pSend, cAccept, cConsume];
-    _.each(transitions, function (t) {
-        if (Math.random() < 0.7)
+    transitions.forEach(function(t) {
+        if (Math.random() < 0.7) {
             fireTransition(t, 1);
+        }
     });
 
-    return setInterval(function () {
-        _.each(transitions, function (t) {
-            if (Math.random() < 0.7)
+    return setInterval(function() {
+        transitions.forEach(function(t) {
+            if (Math.random() < 0.7) {
                 fireTransition(t, 1);
+            }
         });
     }, 2000);
 }
 
+var simulationId = simulate();
+
 function stopSimulation(simulationId) {
     clearInterval(simulationId);
 }
-
-var simulationId = simulate();
