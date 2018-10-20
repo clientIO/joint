@@ -5,27 +5,25 @@
         el: document.getElementById('paper'),
         width: 650,
         height: 400,
-        gridSize: 20,
         model: graph
     });
-
 
     // Create a custom element.
     // ------------------------
 
-    joint.shapes.html = {};
-    joint.shapes.html.Element = joint.shapes.basic.Generic.extend({
-        markup: '<rect/>',
-        defaults: _.defaultsDeep({
-            type: 'html.Element',
-            attrs: {
-                rect: {
-                    'ref-width': '100%',
-                    'ref-height': '100%',
-                    'stroke': 'gray'
-                }
+    joint.dia.Element.define('html.Element', {
+        attrs: {
+            placeholder: {
+                refWidth: '100%',
+                refHeight: '100%',
+                stroke: 'gray'
             }
-        }, joint.shapes.basic.Generic.prototype.defaults)
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'placeholder'
+        }]
     });
 
     // Create a custom view for that element that displays an HTML div above it.
@@ -65,7 +63,7 @@
             this.$attributes = $box.find('[data-attribute]');
 
             // React on all box changes. e.g. input change
-            $box.on('change', _.bind(this.onBoxChange, this));
+            $box.on('change', this.onBoxChange.bind(this));
 
             // Update the box size and position whenever the paper transformation changes.
             // Note: there is no paper yet on `init` method.
@@ -139,7 +137,7 @@
         mylabel: 'I am HTML label'
     });
 
-    var l = new joint.dia.Link({
+    var l = new joint.shapes.standard.Link({
         source: { id: el1.id },
         target: { id: el2.id }
     });
