@@ -131,7 +131,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
 var graph = new joint.dia.Graph;
 
-new joint.dia.Paper({
+window.paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 1200,
     height: 800,
@@ -190,15 +190,11 @@ new joint.dia.Paper({
     })
 });
 
-
-
-
-
-var r1 = new joint.shapes.basic.Rect({
+var r1 = new joint.shapes.standard.Rectangle({
     size: { width: 100, height: 100 },
     position: { x: 100, y: 100 },
     attrs: {
-        rect: {
+        body: {
             fill: {
                 type: 'linearGradient',
                 stops: [

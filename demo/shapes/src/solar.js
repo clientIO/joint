@@ -7,9 +7,10 @@ var ConstraintElementView = joint.dia.ElementView.extend({
 
     pointerdown: function(evt, x, y) {
 
-        var constraint = orbits[this.model.get('name')];
-        var position = this.model.get('position');
-        var size = this.model.get('size');
+        var model = this.model;
+        var constraint = orbits[model.get('name')];
+        var position = model.position();
+        var size = model.size();
         var center = new g.Rect(position.x, position.y, size.width, size.height).center();
         var intersection = constraint.intersectionWithLineFromCenterToPoint(center);
         joint.dia.ElementView.prototype.pointerdown.apply(this, [evt, intersection.x, intersection.y]);
@@ -59,15 +60,12 @@ function drawOrbits() {
 
     Object.keys(orbits).forEach(function(name) {
         var orbit = orbits[name];
-        var orbitShape = V('ellipse');
-        orbitShape.attr({
+        var orbitShape = V('ellipse').addClass('orbit').attr({
             'cx': orbit.x,
             'cy': orbit.y,
             'rx': orbit.a,
-            'ry': orbit.b,
-            'class': 'orbit'
+            'ry': orbit.b
         });
-
-        V(paper.viewport).append(orbitShape);
+        orbitShape.appendTo(paper.viewport);
     });
 }

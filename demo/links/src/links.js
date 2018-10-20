@@ -3,8 +3,7 @@
 var graph = new joint.dia.Graph();
 
 var paper = new joint.dia.Paper({
-
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     width: 800,
     height: 600,
     model: graph,
@@ -14,7 +13,7 @@ var paper = new joint.dia.Paper({
 // custom link definition
 var CustomLink = joint.dia.Link.define('examples.CustomLink', {
     defaultLabel: {
-        attrs: { text: { text: '*' } }
+        attrs: { text: { text: '*' }}
     }
 });
 
@@ -22,21 +21,6 @@ var link = new CustomLink({
     source: { x: 10, y: 20 },
     target: { x: 350, y: 20 }
 });
-
-/*
-$rappid_green: #31d0c6;
-$rappid_purple: #7c68fc;
-$rappid_orange: #fe854f;
-$rappid_orange2: #feb663;
-$rappid_white: #f6f6f6;
-$rappid_grey1: #222138;
-$rappid_grey2: #33334e;
-$rappid_grey3: #4b4a67;
-$rappid_orange4: #3c4260;
-$rappid_grey5: #6a6c8a;
-$rappid_grey6: #c6c7e2;
-$payne_grey: #3c4260;
-*/
 
 link.attr({
     '.connection': { stroke: '#222138' },
@@ -96,12 +80,12 @@ var link6 = new CustomLink({
     source: { x: 10, y: 200 },
     target: { x: 350, y: 200 },
     attrs: {
-        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z'},
+        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' },
         '.marker-target': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' }
     },
     labels: [
         {
-            attrs: { text: { text: 'label' } },
+            attrs: { text: { text: 'label' }},
             position: 0.5
         }
     ]
@@ -140,12 +124,12 @@ var link8 = new CustomLink({
     vertices: [{ x: 150, y: 350 }, { x: 250, y: 350 }, { x: 250, y: 280 }, { x: 500, y: 280 }, { x: 500, y: 350 }, { x: 630, y: 350 }],
     smooth: true,
     attrs: {
-        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z'},
+        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' },
         '.marker-target': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' }
     },
     labels: [
         {
-            attrs: { text: { text: '1..n' } },
+            attrs: { text: { text: '1..n' }},
             position: 25
         },
         {
