@@ -4,7 +4,8 @@ import * as joint from './vendor/joint';
 declare module './vendor/joint' {
     namespace shapes {
         namespace app {
-            class CustomRect extends joint.shapes.basic.Rect {
+            class CustomRect extends joint.shapes.standard.Rectangle {
+
                 test(): void;
 
                 static staticTest(): void;
@@ -16,9 +17,9 @@ declare module './vendor/joint' {
     }
 }
 
-joint.shapes.basic.Rect.define('app.Link', {
+joint.shapes.standard.Link.define('app.Link', {
     attrs: {
-        '.connection': {
+        line: {
             stroke: '#222138',
             strokeDasharray: '0',
             strokeWidth: 1,
@@ -27,15 +28,15 @@ joint.shapes.basic.Rect.define('app.Link', {
     }
 });
 
-joint.shapes.basic.Rect.define('app.CustomRect', {
+joint.shapes.standard.Rectangle.define('app.CustomRect', {
     attrs: {
-        rect: {
+        body: {
             fill: 'red'
         }
     }
 }, {
     test: function () {
-        console.log("test");
+        console.log('test');
     }
 }, {
     staticTest: function () {
