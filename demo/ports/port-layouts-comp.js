@@ -1,15 +1,21 @@
-var paper6 = createPaper();
+var paper6 = window.createPaper();
 
-var g6 = new joint.shapes.basic.Circle({
+var g6 = new joint.shapes.standard.Ellipse({
     position: { x: 50, y: 50 },
     size: { width: 500, height: 300 },
     attrs: {
-        text: { text: 'compensateRotation: true', fill: '#6a6c8a' },
-        circle: { stroke: '#31d0c6', 'stroke-width': 2 }
+        label: {
+            text: 'compensateRotation: true',
+            fill: '#6a6c8a'
+        },
+        body: {
+            stroke: '#31d0c6',
+            strokeWidth: 2
+        }
     },
     ports: {
         groups: {
-            'a': {
+            a: {
                 position: {
                     name: 'ellipseSpread',
                     args: { startAngle: 0, dr: 0, compensateRotation: true }
@@ -20,13 +26,14 @@ var g6 = new joint.shapes.basic.Circle({
                 attrs: {
                     rect: {
                         stroke: '#31d0c6',
-                        'stroke-width': 2,
+                        fill: '#ffffff',
+                        strokeWidth: 2,
                         width: 20,
                         height: 20,
                         x: -10,
                         y: -10
                     },
-                    '.dot': {
+                    dot: {
                         fill: '#fe854f',
                         r: 2
                     },
@@ -34,25 +41,29 @@ var g6 = new joint.shapes.basic.Circle({
                         fill: '#6a6c8a'
                     }
                 },
-                markup: '<g><rect/><circle class="dot"/></g>'
+                markup: [{
+                    tagName: 'rect',
+                    selector: 'rect'
+                }, {
+                    tagName: 'circle',
+                    selector: 'dot'
+                }]
             }
         }
     }
 });
 
-_.times(36, function(index) {
-    g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index } } });
+Array.from({ length: 36 }).forEach(function(_, index) {
+    g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index }}});
 });
 
 paper6.model.addCell(g6);
-paper6.on('cell:pointerclick', function(cellView, e) {
+paper6.on('element:pointerclick', function(cellView) {
 
-    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
-        return;
-    }
+    if (!cellView.model.hasPorts()) return;
 
     var current = cellView.model.prop('ports/groups/a/position/args/compensateRotation');
-    cellView.model.prop('attrs/text/text', 'compensateRotation: ' + !current);
+    cellView.model.prop('attrs/label/text', 'compensateRotation: ' + !current);
     cellView.model.prop('ports/groups/a/position/args/compensateRotation', !current);
 });
 
