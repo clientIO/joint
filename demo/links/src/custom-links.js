@@ -7,7 +7,7 @@ var paper = new joint.dia.Paper({
     model: graph
 });
 
-paper.on('myclick:circle', function (linkView, evt) {
+paper.on('myclick:circle', function(linkView, evt) {
     evt.stopPropagation();
     var link = linkView.model;
     var t = (link.attr('c1/atConnectionRatio') > .2) ? .2 :.9;

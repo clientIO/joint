@@ -11,7 +11,15 @@
         defaultConnectionPoint: {
             name: 'boundary',
             args: {
-                selector: ['firstChild', 'children', 5]
+                selector: [
+                    'firstElementChild',
+                    'firstElementChild',
+                    'nextElementSibling',
+                    'nextElementSibling',
+                    'nextElementSibling',
+                    'nextElementSibling',
+                    'nextElementSibling'
+                ]
             }
         }
     });
