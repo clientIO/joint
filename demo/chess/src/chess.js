@@ -1,6 +1,6 @@
 var Board = joint.dia.Paper.extend({
 
-    options: _.extend(joint.dia.Paper.prototype.options, {
+    options: Object.assign(joint.dia.Paper.prototype.options, {
 
         letters: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
 
@@ -22,7 +22,6 @@ var Board = joint.dia.Paper.extend({
         height: 8 * 50,
 
         gridSize: 1
-
     }),
 
     initialize: function() {
@@ -34,22 +33,21 @@ var Board = joint.dia.Paper.extend({
         this.on('cell:pointerdown', function(cellView) {
 
             cellView.model.toFront();
-
-            this._p0 = cellView.model.get('position');
-
+            this._p0 = cellView.model.position();
             this.trigger('piece:touch', cellView.model, this._p2n(this._p0));
         });
 
         this.on('cell:pointerup', function(cellView) {
 
-            var pos = cellView.model.get('position');
+            var model = cellView.model;
+            var pos = model.position();
             var p0 = this._p0;
-            var p1 = { x: g.snapToGrid(pos.x, 50), y: g.snapToGrid(pos.y, 50) };
+            var p1 = g.Point(pos).snapToGrid(50).toJSON();
 
-            cellView.model.set('position', p1);
+            model.set('position', p1);
 
-            this.trigger('piece:drop', cellView.model, this._p2n(p0), this._p2n(p1), function() {
-                cellView.model.set('position', p0);
+            this.trigger('piece:drop', model, this._p2n(p0), this._p2n(p1), function() {
+                model.set('position', p0);
             });
         });
 
@@ -60,12 +58,12 @@ var Board = joint.dia.Paper.extend({
 
         this.model.resetCells();
 
-        _.each(this.options.startup, this.addPiece, this);
+        joint.util.forIn(this.options.startup, this.addPiece.bind(this));
     },
 
     at: function(square) {
 
-        return _.pluck(this.findViewsFromPoint(this._mid(this._n2p(square))), 'model');
+        return this.model.findModelsFromPoint(this._mid(this._n2p(square)));
     },
 
     addPiece: function(piece, square) {
@@ -81,11 +79,11 @@ var Board = joint.dia.Paper.extend({
 
         if (!this.options.animation || opts.animation === false) {
 
-            _.invoke(pc, 'set', 'position', this._n2p(to));
+            joint.util.invoke(pc, 'set', 'position', this._n2p(to));
 
         } else {
 
-            _.invoke(pc, 'transition', 'position', this._n2p(to), {
+            joint.util.invoke(pc, 'transition', 'position', this._n2p(to), {
                 valueFunction: joint.util.interpolate.object
             });
         }
@@ -93,46 +91,53 @@ var Board = joint.dia.Paper.extend({
 
     addPointer: function(from, to) {
 
-        this.model.addCell(new joint.dia.Link({
+        var pointer = new joint.shapes.standard.Link({
             source: this._mid(this._n2p(from)),
             target: this._mid(this._n2p(to)),
             z: -1,
             attrs: {
-                '.': {
-                    opacity: .2,
-                    stroke: 'black'
+                root: {
+                    opacity: .2
                 },
-                '.marker-target': {
-                    d: "m 0, -10 a 10,10 0 1,0 20,0 a 10,10 0 1,0 -20,0",
-                    fill: 'black'
-                },
-                '.connection': {
-                    'stroke-width': '4px'
+                line: {
+                    strokeWidth: 4,
+                    stroke: 'black',
+                    targetMarker: {
+                        'type': 'circle',
+                        'r': 10
+                    }
                 }
             }
-        }));
+        });
+        pointer.addTo(this.model);
     },
 
     addPointers: function(from, toArray) {
 
-        var p1 =  this._n2p(from);
-
-        _.chain(toArray)
-            .map(this._n2p, this)
-            .groupBy(function(p0) {
-                return g.point(p0).theta(p1);
-            })
-            .map(function(group) {
-                return _.max(group, function(p0) {
-                    return g.point(p1).distance(p0);
-                });
-            })
-            .each(_.compose(_.partial(this.addPointer, from), this._p2n), this);
+        var p1 = this._n2p(from);
+        var moves = toArray.map(this._n2p.bind(this));
+        var groupedMoves = joint.util.groupBy(moves, function(p0) {
+            return g.Point(p0).theta(p1);
+        });
+        joint.util.toArray(groupedMoves).map(function(group) {
+            var distance = 0;
+            var to = null;
+            group.forEach(function(p0) {
+                var currentDistance = g.Point(p1).distance(p0);
+                if (currentDistance > distance) {
+                    distance = currentDistance;
+                    to = p0;
+                }
+            });
+            return to;
+        }).forEach(function(to) {
+            this.addPointer(from, this._p2n(to));
+        }, this);
     },
-    
+
     removePointers: function() {
 
-        _.invoke(this.model.getLinks(), 'remove');
+        joint.util.invoke(this.model.getLinks(), 'remove');
     },
 
     _p2n: function(p) {
@@ -152,7 +157,7 @@ var Board = joint.dia.Paper.extend({
 
         return { x: p.x + 25, y: p.y + 25 };
     }
-    
+
 });
 
 // Garbochess integration
@@ -161,22 +166,22 @@ var Chessboard = Board.extend({
 
     playMove: function(transition, mv) {
 
-        var from = FormatSquare(mv & 0xFF);
-        var to = FormatSquare((mv >> 8) & 0xFF);
+        var from = window.FormatSquare(mv & 0xFF);
+        var to = window.FormatSquare((mv >> 8) & 0xFF);
         var opts = { animation: transition };
 
-        _.invoke(this.at(to), 'remove');
+        joint.util.invoke(this.at(to), 'remove');
 
         board.movePiece(from, to, opts);
 
-        if (mv & moveflagPromotion) {
+        if (mv & window.moveflagPromotion) {
 
-            var promote = _.bind(function(color) {
+            var promote = (function(color) {
 
-                _.invoke(this.at(to), 'remove');
+                joint.util.invoke(this.at(to), 'remove');
                 this.addPiece('Queen' + color, to);
 
-            }, this, (g_toMove ? 'White' : 'Black'));
+            }).bind(this, (window.g_toMove ? 'White' : 'Black'));
 
             if (transition) {
                 this.listenToOnce(this.model, 'transition:end', promote);
@@ -184,26 +189,26 @@ var Chessboard = Board.extend({
                 promote();
             }
 
-        } else if (mv & moveflagCastleQueen) {
+        } else if (mv & window.moveflagCastleQueen) {
 
             this.movePiece('a'+ to[1], 'd' + to[1], opts);
 
-        } else if (mv & moveflagCastleKing) {
+        } else if (mv & window.moveflagCastleKing) {
 
             this.movePiece('h'+ to[1], 'f' + to[1], opts);
 
-        } else if (mv & moveflagEPC) {
+        } else if (mv & window.moveflagEPC) {
 
-            _.invoke(this.at(to[0] + from[1]), 'remove');
-	}
+            joint.util.invoke(this.at(to[0] + from[1]), 'remove');
+        }
 
-        var msg = ['message', g_moveCount, GetMoveSAN(mv), ''];
+        var msg = ['message', window.g_moveCount, window.GetMoveSAN(mv), ''];
 
-        MakeMove(mv);
+        window.MakeMove(mv);
 
-        if (GenerateValidMoves().length == 0) {
+        if (window.GenerateValidMoves().length == 0) {
 
-            msg[3] = g_inCheck ? !g_toMove ? '1 : 0' : '0 : 1' : '½ : ½';
+            msg[3] = window.g_inCheck ? !window.g_toMove ? '1 : 0' : '0 : 1' : '½ : ½';
 
             this.isGameOver = true;
         }
@@ -213,26 +218,30 @@ var Chessboard = Board.extend({
 
     getMove: function(from, to) {
 
-        var s = from + to;
-        return _.find(GenerateValidMoves(), _.compose(function(m) {
-            return m == s || m == s + 'q';
-        }, FormatMove));
+        var s1 = from + to;
+        var moves = window.GenerateValidMoves();
+        while (moves.length > 0) {
+            var move = moves.pop();
+            var s2 = window.FormatMove(move);
+            if (s2 == s1 || s2 == s1 + 'q') return move;
+        }
+        return null;
     },
 
     whereToGo: function(from) {
 
-        return _.chain(GenerateValidMoves())
-            .map(FormatMove)
+        return window.GenerateValidMoves()
+            .map(window.FormatMove)
             .filter(function(move) {
                 return !move.lastIndexOf(from);
-            })
-            .invoke('slice', 2, 4)
-            .value();
+            }).map(function(mv) {
+                return mv.slice(2,4);
+            });
     },
 
     findBestMove: function(callback) {
 
-        Search(callback, 99, null);
+        window.Search(callback, 99, null);
     }
 });
 
@@ -243,7 +252,7 @@ var board = new Chessboard({
         image: './background.png',
         repeat: 'repeat'
     },
-    el: $('#board'),
+    el: document.getElementById('board'),
     animation: true
 });
 
@@ -262,7 +271,9 @@ board.on('piece:drop', function(piece, from, to, undo) {
 
     if (mv) {
         this.playMove(false, mv);
-        this.isGameOver || this.findBestMove(_.bind(this.playMove, this, true));
+        this.isGameOver || this.findBestMove(function(mv) {
+            board.playMove(true, mv);
+        });
     }
 });
 
@@ -272,4 +283,4 @@ board.on('message', function(rnd, mov, res) {
     document.getElementById('message').textContent += text;
 });
 
-ResetGame();
+window.ResetGame();
