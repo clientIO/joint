@@ -186,3 +186,58 @@ var link3 = new joint.shapes.standard.ShadowLink({
 });
 
 link3.addTo(graph);
+
+var ArrowLink = joint.dia.Link.define('example.ArrowLink', {
+    attrs: {
+        line: {
+            connection: true,
+            stroke: '#333333',
+            strokeWidth: 2,
+            strokeLinejoin: 'round',
+            targetMarker: {
+                type: 'path',
+                d: 'M 10 -5 0 0 10 5 z'
+            }
+        },
+        wrapper: {
+            connection: true,
+            strokeWidth: 10,
+            strokeLinejoin: 'round'
+        },
+        arrow: {
+            atConnectionRatio: 0.5,
+            d: 'M 0 -10 10 0 0 10 z',
+            fill: '#ffffff',
+            stroke: '#333333'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'path',
+        selector: 'wrapper',
+        attributes: {
+            'fill': 'none',
+            'cursor': 'pointer',
+            'stroke': 'transparent'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'line',
+        attributes: {
+            'fill': 'none',
+            'pointer-events': 'none'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'arrow',
+        attributes: {
+            'pointer-events': 'none'
+        }
+    }]
+});
+
+var link4 = new ArrowLink({
+    source: { x: 100, y: 300 },
+    target: { x: 300, y: 350 }
+});
+link4.addTo(graph);
