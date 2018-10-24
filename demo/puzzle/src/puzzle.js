@@ -14,7 +14,7 @@ joint.dia.Element.define('jigsaw.Piece', {
 } , {
     attributes: {
         tabs: { /* [topTab, rightTab, bottomTab, leftTab] */
-            qualify: _.isArray,
+            qualify: Array.isArray,
             set: function(tabs, refBBox) {
                 var tabSize = this.model.prop('tabSize');
                 var points = [];
@@ -44,7 +44,7 @@ joint.dia.Element.define('jigsaw.Piece', {
             }
         },
         image: { /* [imageId, rowIndex, columnIndex] */
-            qualify: _.isArray,
+            qualify: Array.isArray,
             set: function(image) {
                 var paper = this.paper;
                 var model = this.model;
@@ -142,7 +142,7 @@ var Jigsaw = {
                 delay: delay || 0,
                 duration: 1000
             });
-            piece.transition('angle', _.sample([0, 90, 180, 270]), {
+            piece.transition('angle', sample([0, 90, 180, 270]), {
                 delay: delay || 0,
                 duration: 1000
             });
@@ -163,10 +163,10 @@ var Jigsaw = {
                 var tabs = [0, 0, 0, 0];
 
                 if (c < (columns - 1)) {
-                    tabs[1] = _.sample([1, -1]);
+                    tabs[1] = sample([1, -1]);
                 }
                 if (r < (rows - 1)) {
-                    tabs[2] = _.sample([1, -1]);
+                    tabs[2] = sample([1, -1]);
                 }
                 if (r > 0) {
                     tabs[0] -= pieces[(r - 1) * columns + c].attr('polygon/tabs/2');
@@ -238,3 +238,9 @@ sizePicker.addEventListener('change', function() {
 });
 
 Jigsaw.createPuzzle(JSON.parse(sizePicker.value), imagePicker.value);
+
+// Utils
+
+function sample(values) {
+    return values[Math.ceil(Math.random() * values.length) - 1];
+}

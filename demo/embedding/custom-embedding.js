@@ -1,15 +1,15 @@
-var Child = joint.shapes.basic.Rect.define('basic.Child', {
+var Child = joint.shapes.standard.Rectangle.define('standard.Child', {
     attrs: {
-        rect: { stroke: 'transparent', fill: 'green', rx: 5, ry: 5 },
-        text: { 'font-size': 14, 'text': 'child1', fill: 'white' }
+        body: { stroke: 'transparent', fill: 'green', rx: 5, ry: 5 },
+        label: { fontSize: 14, text: 'child1', fill: 'white' }
     }
 });
 
-var Parent = joint.shapes.basic.Rect.define('basic.Parent', {
+var Parent = joint.shapes.standard.Rectangle.define('standard.Parent', {
     customEmebedding: true,
     attrs: {
-        rect: { stroke: 'transparent', fill: 'black', rx: 5, ry: 5 },
-        text: { 'font-size': 14, 'text': 'Parent', fill: 'white' }
+        body: { stroke: 'transparent', fill: 'black', rx: 5, ry: 5 },
+        label: { fontSize: 14, text: 'Parent', fill: 'white' }
     }
 });
 
@@ -42,7 +42,7 @@ new joint.dia.Paper({
                 if (embeddedCells.length) {
                     var embedsSize = this.getCellsBBox(embeddedCells);
                     elBBox.height += embedsSize.height;
-                    elBBox.y -= embedsSize.height
+                    elBBox.y -= embedsSize.height;
                 }
 
                 elBBox.y -= EMBEDDING_OFFSET;
@@ -60,50 +60,50 @@ new Parent().position(240, 400).size(160, 100).addTo(graph);
 
 new Child({
     attrs: {
-        rect: { fill: 'red' },
-        text: { text: 'Try to move me\n above the \n "Parent" element' }
+        body: { fill: 'red' },
+        label: { text: 'Try to move me\n above the \n "Parent" element' }
     }
 }).position(20, 120).size(160, 100).addTo(graph);
 
 new Child({
     attrs: {
-        rect: { fill: 'green' },
-        text: { text: 'Try to move me\n above the \n "Parent" element' }
+        body: { fill: 'green' },
+        label: { text: 'Try to move me\n above the \n "Parent" element' }
     }
 }).position(20, 240).size(160, 100).addTo(graph);
 
 new Child({
     attrs: {
-        rect: { fill: 'blue' },
-        text: { text: 'Try to move me\n above the \n "Parent" element' }
+        body: { fill: 'blue' },
+        label: { text: 'Try to move me\n above the \n "Parent" element' }
     }
 }).position(20, 360).size(160, 100).addTo(graph);
 
 // Result demonstration
 var r = new Child({
     attrs: {
-        rect: { fill: 'red' },
-        text: { text: 'Embedded!' }
+        body: { fill: 'red' },
+        label: { text: 'Embedded!' }
     }
 }).position(600, 120).size(160, 100).addTo(graph);
 
 var g = new Child({
     attrs: {
-        rect: { fill: 'green' },
-        text: { text: 'Embedded!' }
+        body: { fill: 'green' },
+        label: { text: 'Embedded!' }
     }
 }).position(660, 240).size(160, 100).addTo(graph);
 
 var b = new Child({
     attrs: {
-        rect: { fill: 'blue' },
-        text: { text: 'Embedded!' }
+        body: { fill: 'blue' },
+        label: { text: 'Embedded!' }
     }
 }).position(600, 360).size(160, 100).addTo(graph);
 
 new Parent({
     attrs: {
-        text: { text: 'Parent\n(try to move me)' }
+        label: { text: 'Parent\n(try to move me)' }
     }
 }).position(640, 480).size(160, 100).addTo(graph).embed(r).embed(g).embed(b);
 

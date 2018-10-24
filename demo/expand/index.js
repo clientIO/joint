@@ -2,81 +2,68 @@ var EXPANDED_COLOR = '#8CC152';
 var COLLAPSED_COLOR = '#FCBB42';
 var BASE_COLOR = '#434A54';
 
-var appLink = joint.shapes.toggable.Link.define('app.Link',
-    {
-        markup: [
-            '<path class="connection" stroke="#434A54" d="M 0 0 0 0"/>',
-            '<path class="marker-source" fill="#434A54" stroke="#434A54" d="M 0 0 0 0"/>',
-            '<path class="marker-target" fill="#434A54" stroke="#434A54" d="M 0 0 0 0"/>',
-            '<path class="connection-wrap" d="M 0 0 0 0"/>',
-            '<g class="marker-vertices"/>',
-            '<g class="marker-arrowheads"/>'
-        ].join(''),
-        attrs: {
-            '.marker-target': { fill: BASE_COLOR, d: 'M 10 0 L 0 5 L 10 10 z' },
-            '.marker-source': { fill: BASE_COLOR, d: 'M 10 0 L 0 5 L 10 10 z' }
-        }
-    });
+var appLink = joint.shapes.toggable.Link.define('app.Link', {
+    attrs: {
+        line: { fill: BASE_COLOR },
+    }
+});
 
-var appModel = joint.shapes.toggable.Element.define('app.Model',
-    {
-        ports: {
-            groups: {
-                'in': {
-                    attrs: {
-                        circle: {
-                            stroke: BASE_COLOR,
-                            magnet: true,
-                            fill: EXPANDED_COLOR
-                        }
-                    },
-                    position: {
-                        name: 'left'
+var appModel = joint.shapes.toggable.Element.define('app.Model', {
+    ports: {
+        groups: {
+            'in': {
+                attrs: {
+                    circle: {
+                        stroke: BASE_COLOR,
+                        magnet: true,
+                        fill: EXPANDED_COLOR
                     }
                 },
-                'out': {
-                    attrs: {
-                        circle: {
-                            stroke: BASE_COLOR,
-                            magnet: true,
-                            fill: EXPANDED_COLOR
-                        }
-                    },
-                    position: 'right'
+                position: {
+                    name: 'left'
                 }
-            }
-        },
-        attrs: {
-            text: {
-                refX: '50%',
-                refY: '50%',
-                'font-weight': 'bold',
-                'font-size': 24,
-                xAlignment: 'middle',
-                yAlignment: 'middle',
-                fill: '#F5F7FA'
             },
-            '.body': {
-                refWidth: 1,
-                refHeight: 1,
-                fill: '#AAB2BD'
+            'out': {
+                attrs: {
+                    circle: {
+                        stroke: BASE_COLOR,
+                        magnet: true,
+                        fill: EXPANDED_COLOR
+                    }
+                },
+                position: 'right'
             }
         }
-
-    }, {
-        markup: '<g class="rotatable"><rect class="body"/><text class="label"/></g>',
-        options: {
-            onPortExpand: function(cell, portId, expand) {
-
-                var color = expand ? EXPANDED_COLOR : COLLAPSED_COLOR;
-                var className = expand ? 'expanded' : 'collapsed';
-
-                cell.portProp(portId, 'attrs/circle/fill', color);
-                cell.portProp(portId, 'attrs/circle/class', className);
-            }
+    },
+    attrs: {
+        label: {
+            refX: '50%',
+            refY: '50%',
+            fontWeight: 'bold',
+            fontSize: 24,
+            xAlignment: 'middle',
+            yAlignment: 'middle',
+            fill: '#F5F7FA'
+        },
+        body: {
+            refWidth: 1,
+            refHeight: 1,
+            fill: '#AAB2BD'
         }
     }
-);
+
+}, {
+    options: {
+        onPortExpand: function(cell, portId, expand) {
+
+            var color = expand ? EXPANDED_COLOR : COLLAPSED_COLOR;
+            var className = expand ? 'expanded' : 'collapsed';
+
+            cell.portProp(portId, 'attrs/circle/fill', color);
+            cell.portProp(portId, 'attrs/circle/class', className);
+        }
+    }
+});
 
 var graph = new joint.dia.Graph();
 
@@ -87,6 +74,9 @@ var paper = new joint.dia.ExpandPaper({
     gridSize: 1,
     model: graph,
     defaultLink: new appLink(),
+    defaultConnectionPoint: { name: 'boundary' },
+    magnetThreshold: 'onleave',
+    clickThreshold: 5,
     validateMagnet: function(cellView, magnet) {
 
         var cell = cellView.model;
@@ -97,7 +87,7 @@ var paper = new joint.dia.ExpandPaper({
 
 var a = new appModel({
     id: 'a',
-    attrs: { '.label': { text: 'a' } },
+    attrs: { label: { text: 'a' }},
     ports: {
         items: [
             { group: 'in', id: 'in1', type: 'a' },
@@ -111,7 +101,7 @@ var a = new appModel({
 var aa = new appModel({
     hidden: false,
     id: 'aa',
-    attrs: { '.label': { text: 'aa' } },
+    attrs: { label: { text: 'aa' }},
     ports: {
         items: [
             { group: 'in', id: 'in1' },
@@ -124,7 +114,7 @@ var aa = new appModel({
 
 var aaa = new appModel({
     id: 'aaa',
-    attrs: { '.label': { text: 'aaa' } },
+    attrs: {  label: { text: 'aaa' }},
     ports: {
         items: [
             { group: 'in', id: 'in1' },
@@ -135,7 +125,7 @@ var aaa = new appModel({
 
 var b = new appModel({
     id: 'b',
-    attrs: { '.label': { text: 'b' } },
+    attrs: { label: { text: 'b' }},
     ports: {
         items: [
             { group: 'in', id: 'in1' },
@@ -148,7 +138,7 @@ var b = new appModel({
 
 var bb = new appModel({
     id: 'bb',
-    attrs: { '.label': { text: 'bb' } },
+    attrs: { label: { text: 'bb' }},
     ports: {
         items: [
             { group: 'in', id: 'in1' },
@@ -160,7 +150,7 @@ var bb = new appModel({
 }).size(100, 100).position(400, 200).addTo(graph);
 
 var bbb = new appModel({
-    id: 'bbb', attrs: { '.label': { text: 'bbb' } },
+    id: 'bbb', attrs: { label: { text: 'bbb' }},
     ports: {
         items: [
             { group: 'in', id: 'in1' },
@@ -172,7 +162,7 @@ var bbb = new appModel({
 }).size(100, 100).position(400, 350).addTo(graph);
 
 var x = new appModel({
-    id: 'x', attrs: { '.label': { text: 'x' } },
+    id: 'x', attrs: { label: { text: 'x' }},
     ports: {
         items: [
             { group: 'out', id: 'out1' },
@@ -182,7 +172,7 @@ var x = new appModel({
 }).size(100, 100).position(60, 400).addTo(graph);
 
 var y = new appModel({
-    id: 'y', attrs: { '.label': { text: 'y' } },
+    id: 'y', attrs: { label: { text: 'y' }},
     ports: {
         items: [
             { group: 'out', id: 'out1' },
@@ -193,16 +183,16 @@ var y = new appModel({
 
 var link = new appLink();
 
-link.clone().set({ id: 'aToAa', source: { id: a.id, port: 'out1' }, target: { id: aa.id, port: 'in1' } }).addTo(graph);
-link.clone().set({ source: { id: aa.id, port: 'out2' }, target: { id: aaa.id, port: 'in1' } }).addTo(graph);
-link.clone().set({ source: { id: b.id, port: 'out1' }, target: { id: bb.id, port: 'in1' } }).addTo(graph);
-link.clone().set({ source: { id: b.id, port: 'out2' }, target: { id: bbb.id, port: 'in1' } }).addTo(graph);
-link.clone().set({ source: { id: b.id, port: 'out1' }, target: { id: aaa.id, port: 'in1' } }).addTo(graph);
-link.clone().set({ source: { id: aaa.id, port: 'out1' }, target: { x: 700, y: 100 } }).addTo(graph);
-link.clone().set({ source: { id: bbb.id, port: 'in1' }, target: { id: x.id, port: 'out2' } }).addTo(graph);
-link.clone().set({ source: { id: b.id, port: 'in2' }, target: { id: x.id, port: 'out1' } }).addTo(graph);
-link.clone().set({ source: { id: b.id, port: 'in1' }, target: { id: y.id, port: 'out2' } }).addTo(graph);
-link.clone().set({ source: { id: a.id, port: 'in1' }, target: { id: y.id, port: 'out1' } }).addTo(graph);
+link.clone().set({ id: 'aToAa', source: { id: a.id, port: 'out1' }, target: { id: aa.id, port: 'in1' }}).addTo(graph);
+link.clone().set({ source: { id: aa.id, port: 'out2' }, target: { id: aaa.id, port: 'in1' }}).addTo(graph);
+link.clone().set({ source: { id: b.id, port: 'out1' }, target: { id: bb.id, port: 'in1' }}).addTo(graph);
+link.clone().set({ source: { id: b.id, port: 'out2' }, target: { id: bbb.id, port: 'in1' }}).addTo(graph);
+link.clone().set({ source: { id: b.id, port: 'out1' }, target: { id: aaa.id, port: 'in1' }}).addTo(graph);
+link.clone().set({ source: { id: aaa.id, port: 'out1' }, target: { x: 700, y: 100 }}).addTo(graph);
+link.clone().set({ source: { id: bbb.id, port: 'in1' }, target: { id: x.id, port: 'out2' }}).addTo(graph);
+link.clone().set({ source: { id: b.id, port: 'in2' }, target: { id: x.id, port: 'out1' }}).addTo(graph);
+link.clone().set({ source: { id: b.id, port: 'in1' }, target: { id: y.id, port: 'out2' }}).addTo(graph);
+link.clone().set({ source: { id: a.id, port: 'in1' }, target: { id: y.id, port: 'out1' }}).addTo(graph);
 
 // Simple unit testing
 var isExpanded = function(cell, portId) {
@@ -221,11 +211,11 @@ var runTests = function() {
     a.hide();
     console.assert(aa.portProp('in1', 'collapsed'), 'aa in1 is collapsed');
 
-/////////////
+    /////////////
     a.show();
     console.assert(!aa.portProp('in1', 'collapsed'), 'aa in1 is expanded');
 
-/////////////
+    /////////////
     bb.hide();
     aaa.hide();
     console.assert(b.portProp('out1', 'collapsed'), 'b out1 is collapsed');
@@ -239,7 +229,7 @@ var runTests = function() {
     console.assert(!b.portProp('out1', 'collapsed'), 'is expanded');
     console.assert(!aaa.portProp('in1', 'collapsed'), 'is expanded');
 
-////////////
+    ////////////
     aaa.hide();
     bb.hide();
     bbb.hide();
@@ -253,7 +243,7 @@ var runTests = function() {
     console.assert(!b.portProp('out1', 'collapsed'), 'is expanded');
     console.assert(!b.portProp('out2', 'collapsed'), 'is expanded');
 
-////////////////
+    ////////////////
     aa.hide();
     a.hide();
 
@@ -266,7 +256,7 @@ var runTests = function() {
     isExpanded(aaa, 'in1');
     isExpanded(a, 'out1');
 
-/////////////
+    /////////////
     x.hide();
     isCollapsed(b, 'in2');
     isCollapsed(bbb, 'in1');
@@ -287,24 +277,20 @@ try {
     console.log('FAIL', err);
 }
 
-paper.on('cell:pointerclick', function(cellView, evt) {
+paper.on('element:pointerclick', function(elementView) {
+    elementView.model.hide();
+});
 
-    var cell = cellView.model;
-    if (cell.isLink()) {
-        return;
-    }
-    var $el = $(evt.target);
-    var portId = $el.attr('port');
-
+paper.on('element:magnet:pointerclick', function(elementView, evt, magnet) {
+    evt.stopPropagation();
+    var portId = magnet.getAttribute('port');
     if (portId) {
-        cell.expandPort(portId)
-    } else {
-        cell.hide();
+        elementView.model.expandPort(portId);
     }
 });
 
 $('<button/>').text('Show All').on('click', function() {
-    _.each(graph.getCells(), function(cell) {
+    graph.getCells().forEach(function(cell) {
         if (!cell.isVisible()) {
             cell.show();
         }

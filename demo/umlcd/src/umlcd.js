@@ -1,13 +1,12 @@
 var graph = new joint.dia.Graph();
 
-var paper = new joint.dia.Paper({
-    el: $('#paper'),
+new joint.dia.Paper({
+    el: document.getElementById('paper'),
     width: 800,
     height: 600,
     gridSize: 1,
     model: graph
 });
-
 
 var uml = joint.shapes.uml;
 
@@ -166,7 +165,9 @@ var classes = {
 
 };
 
-_.each(classes, function(c) { graph.addCell(c); });
+Object.keys(classes).forEach(function(key) {
+    graph.addCell(classes[key]);
+});
 
 var relations = [
     new uml.Generalization({ source: { id: classes.man.id }, target: { id: classes.person.id }}),
@@ -176,4 +177,6 @@ var relations = [
     new uml.Composition({ source: { id: classes.person.id }, target: { id: classes.bloodgroup.id }})
 ];
 
-_.each(relations, function(r) { graph.addCell(r); });
+Object.keys(relations).forEach(function(key) {
+    graph.addCell(relations[key]);
+});

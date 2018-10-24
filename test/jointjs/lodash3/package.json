@@ -1,0 +1,8 @@
+{
+    "dependencies": {
+        "dagre": "0.7.4",
+        "graphlib": "1.0.7",
+        "lodash": "3.10.1",
+        "module-alias": "2.0.1"
+    }
+}

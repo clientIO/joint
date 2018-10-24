@@ -23,16 +23,15 @@ const paper = new joint.dia.Paper({
     connectionStrategy: joint.connectionStrategies.pinAbsolute
 });
 
-let rect = new joint.shapes.basic.Rect()
+let rect = new joint.shapes.standard.Rectangle()
     .position(40, 20)
     .size(100, 100)
     .addTo(graph)
 
-
 // declare a new shape using the `define`
-var Circle = joint.shapes.basic.Circle.define('CustomCircle', {
+const Circle = joint.shapes.standard.Circle.define('CustomCircle', {
     attrs: {
-        circle: {
+        body: {
             fill: 'purple'
         }
     }

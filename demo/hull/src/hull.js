@@ -1,4 +1,4 @@
-(function(joint, _, V, G) {
+(function(joint, V) {
 
     var graph = new joint.dia.Graph();
 
@@ -16,10 +16,14 @@
         }
     });
 
+    function random(max, min) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+
     // create circles
-    _.times(10, function(n) {
-        var x = _.random(100, 700);
-        var y = _.random(100, 500);
+    Array.from({ length: 10 }).forEach(function(_, n) {
+        var x = random(100, 700);
+        var y = random(100, 500);
         createCircle(x, y, (n % 3 === 0) ? 'inner' : 'outer').addTo(graph);
     });
 
@@ -50,11 +54,11 @@
 
     function getPointsByGroup(group, padding) {
 
-        var elements = _.filter(graph.getElements(), function(el) {
+        var elements = graph.getElements().filter(function(el) {
             return el.get('group') === group;
         });
 
-        return _.reduce(elements, function(res, el) {
+        return elements.reduce(function(res, el) {
             return res.concat(getElementCornerPoints(el, padding));
         }, []);
     }
@@ -64,7 +68,7 @@
 
         padding = padding || 0;
 
-        return _.reduce(inPoints, function(outPoints, point) {
+        return inPoints.reduce(function(outPoints, point) {
             outPoints.push(
                 point.clone().offset(padding, padding),
                 point.clone().offset(-padding, padding),
@@ -91,15 +95,15 @@
 
     function createCircle(x, y, group) {
 
-        var circle = new joint.shapes.basic.Circle({
+        var circle = new joint.shapes.standard.Circle({
             size: { width: 20, height: 20 },
             position: { x: x, y: y },
             group: group,
             attrs: {
-                circle: {
-                    'stroke-width': 3,
-                    'fill': (group === 'inner') ? '#af9bff' : '#31d0c6',
-                    'stroke': (group === 'inner') ? '#7c68fc' : '#009d93'
+                body: {
+                    strokeWidth: 3,
+                    fill: (group === 'inner') ? '#af9bff' : '#31d0c6',
+                    stroke: (group === 'inner') ? '#7c68fc' : '#009d93'
                 }
             }
         });
@@ -123,17 +127,17 @@
 
     function createData(points, radius) {
 
-        var origin = g.Line(points[0], points[points.length - 1]).midpoint();
+        var origin = new g.Line(points[0], points[points.length - 1]).midpoint();
         return joint.connectors.rounded(origin, origin, points, {
             radius: radius || 30
         });
     }
 
-    // Graham scan convex hull algorithm 
+    // Graham scan convex hull algorithm
     function convexHullAlgorithm(points) {
 
-        return g.Polyline(points).convexHull().points;
+        return new g.Polyline(points).convexHull().points;
 
     }
 
-})(joint, _, V, g);
+})(joint, V);

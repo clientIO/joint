@@ -97,7 +97,7 @@ output,
   margin-right: 5px;
 }
 @media screen and (max-width: 1240px) {
-    .right, .left { 
+    .right, .left {
         position: absolute;
         top: 500px;
     }
@@ -105,22 +105,22 @@ output,
 
 /* jointjs elements */
 
-.joint-element.joint-type-basic-path path {
+.joint-element.joint-type-standard-path [joint-selector="body"] {
     fill: #6a6c8a;
     stroke-width: 0px;
 }
 
-.joint-element.joint-type-basic-path:hover path {
+.joint-element.joint-type-standard-path:hover [joint-selector="body"] {
     fill: #FEC582;
 }
 
-.joint-element.joint-type-basic-path text {
+.joint-element.joint-type-standard-path [joint-selector="label"] {
     fill: #FFF;
     font-size: 12px;
     font-weight: lighter;
 }
 
-.joint-link .connection {
+.joint-link [joint-selector="line"] {
     stroke: #6a6c8a;
     stroke-width: 2px;
 }

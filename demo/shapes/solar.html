@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8"/>
+
+        <title>Interactive solar system</title>
+
+        <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+
+        <style>
+            #paper {
+                border: 1px solid gray;
+            }
+            .orbit {
+                stroke: gray;
+                fill: none;
+                pointer-events: none;
+                opacity: .2;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="paper"></div>
+
+        <!-- Dependencies: -->
+        <script src="../../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../../node_modules/lodash/lodash.js"></script>
+        <script src="../../node_modules/backbone/backbone.js"></script>
+
+        <script src="../../build/joint.js"></script>
+
+        <script src="./src/solar.js"></script>
+    </body>
+</html>

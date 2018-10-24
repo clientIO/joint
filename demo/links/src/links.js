@@ -1,190 +1,584 @@
-// Demo with fancy link labels
-
 var graph = new joint.dia.Graph();
-
 var paper = new joint.dia.Paper({
-
-    el: $('#paper'),
+    el: document.getElementById('paper'),
     width: 800,
     height: 600,
     model: graph,
-    gridSize: 1
-});
-
-// custom link definition
-var CustomLink = joint.dia.Link.define('examples.CustomLink', {
-    defaultLabel: {
-        attrs: { text: { text: '*' } }
+    interactive: { linkMove: false },
+    defaultConnectionPoint: {
+        name: 'boundary',
+        args: {
+            extrapolate: true,
+            sticky: true
+        }
+    },
+    validateConnection: function() {
+        return false;
     }
 });
 
-var link = new CustomLink({
-    source: { x: 10, y: 20 },
-    target: { x: 350, y: 20 }
+var link1 = new joint.shapes.standard.Link({
+    source: { x: 20, y: 20 },
+    target: { x: 350, y: 20 },
+    attrs: {
+        line: {
+            stroke: '#222138',
+            sourceMarker: {
+                'fill': '#31d0c6',
+                'stroke': 'none',
+                'd': 'M 5 -10 L -15 0 L 5 10 Z'
+            },
+            targetMarker: {
+                'fill': '#fe854f',
+                'stroke': 'none',
+                'd': 'M 5 -10 L -15 0 L 5 10 Z'
+            }
+        }
+    }
 });
 
-/*
-$rappid_green: #31d0c6;
-$rappid_purple: #7c68fc;
-$rappid_orange: #fe854f;
-$rappid_orange2: #feb663;
-$rappid_white: #f6f6f6;
-$rappid_grey1: #222138;
-$rappid_grey2: #33334e;
-$rappid_grey3: #4b4a67;
-$rappid_orange4: #3c4260;
-$rappid_grey5: #6a6c8a;
-$rappid_grey6: #c6c7e2;
-$payne_grey: #3c4260;
-*/
-
-link.attr({
-    '.connection': { stroke: '#222138' },
-    '.marker-source': { fill: '#31d0c6', stroke: 'none', d: 'M 10 0 L 0 5 L 10 10 z' },
-    '.marker-target': { fill: '#fe854f', stroke: '#7c68fc', d: 'M 10 0 L 0 5 L 10 10 z' }
+var link2 = new joint.shapes.standard.Link({
+    source: { x: 20, y: 80 },
+    target: { x: 350, y: 80 },
+    attrs: {
+        line: {
+            stroke: '#fe854f',
+            strokeWidth: 4,
+            sourceMarker: {
+                // if no fill or stroke specified, marker inherits the line color
+                'd': 'M 0 -5 L -10 0 L 0 5 Z'
+            },
+            targetMarker: {
+                // the marker can be an arbitrary SVGElement
+                'type': 'circle',
+                'r': 5
+            }
+        }
+    }
 });
 
-var link2 = new CustomLink({
-    source: { x: 10, y: 80 },
-    target: { x: 350, y: 80 }
-});
+// Utility function for normalizing marker's path data.
+// Translates the center of an arbitrary path at <0 + offset,0>.
+function normalizeMarker(d, offset) {
+    var path = new g.Path(V.normalizePathData(d));
+    var bbox = path.bbox();
+    var ty = - bbox.height / 2 - bbox.y;
+    var tx = - bbox.width / 2 - bbox.x;
+    if (typeof offset === 'number') tx -= offset;
+    path.translate(tx, ty);
+    return path.serialize();
+}
 
-link2.attr({
-    '.connection': { stroke: '#fe854f', 'stroke-width': 4 },
-    '.marker-source': { stroke: '#fe854f', fill: '#fe854f', d: 'M 10 0 L 0 5 L 10 10 z' },
-    '.marker-target': { stroke: '#fe854f', fill: '#fe854f', d: 'M 10 0 L 0 5 L 10 10 z' }
-});
-
-var link3 = new CustomLink({
+var link3 = new joint.shapes.standard.Link({
     source: { x: 10, y: 140 },
-    target: { x: 350, y: 140 }
+    target: { x: 350, y: 140 },
+    attrs: {
+        line: {
+            stroke: '#31d0c6',
+            strokeWidth: 3,
+            strokeDasharray: '5 2',
+            sourceMarker: {
+                'stroke': '#31d0c6',
+                'fill': '#31d0c6',
+                'd': normalizeMarker('M5.5,15.499,15.8,21.447,15.8,15.846,25.5,21.447,25.5,9.552,15.8,15.152,15.8,9.552z')
+            },
+            targetMarker: {
+                'stroke': '#31d0c6',
+                'fill': '#31d0c6',
+                'd': normalizeMarker('M4.834,4.834L4.833,4.833c-5.889,5.892-5.89,15.443,0.001,21.334s15.44,5.888,21.33-0.002c5.891-5.891,5.893-15.44,0.002-21.33C20.275-1.056,10.725-1.056,4.834,4.834zM25.459,5.542c0.833,0.836,1.523,1.757,2.104,2.726l-4.08,4.08c-0.418-1.062-1.053-2.06-1.912-2.918c-0.859-0.859-1.857-1.494-2.92-1.913l4.08-4.08C23.7,4.018,24.622,4.709,25.459,5.542zM10.139,20.862c-2.958-2.968-2.959-7.758-0.001-10.725c2.966-2.957,7.756-2.957,10.725,0c2.954,2.965,2.955,7.757-0.001,10.724C17.896,23.819,13.104,23.817,10.139,20.862zM5.542,25.459c-0.833-0.837-1.524-1.759-2.105-2.728l4.081-4.081c0.418,1.063,1.055,2.06,1.914,2.919c0.858,0.859,1.855,1.494,2.917,1.913l-4.081,4.081C7.299,26.982,6.379,26.292,5.542,25.459zM8.268,3.435l4.082,4.082C11.288,7.935,10.29,8.571,9.43,9.43c-0.858,0.859-1.494,1.855-1.912,2.918L3.436,8.267c0.58-0.969,1.271-1.89,2.105-2.727C6.377,4.707,7.299,4.016,8.268,3.435zM22.732,27.563l-4.082-4.082c1.062-0.418,2.061-1.053,2.919-1.912c0.859-0.859,1.495-1.857,1.913-2.92l4.082,4.082c-0.58,0.969-1.271,1.891-2.105,2.728C24.623,26.292,23.701,26.983,22.732,27.563z', 10)
+            }
+        }
+    }
 });
 
-link3.attr({
-    '.connection': { stroke: '#31d0c6', 'stroke-width': 3, 'stroke-dasharray': '5 2' },
-    '.marker-source': { stroke: '#31d0c6', fill: '#31d0c6', d: 'M5.5,15.499,15.8,21.447,15.8,15.846,25.5,21.447,25.5,9.552,15.8,15.152,15.8,9.552z' },
-    '.marker-target': { stroke: '#31d0c6', fill: '#31d0c6', d: 'M4.834,4.834L4.833,4.833c-5.889,5.892-5.89,15.443,0.001,21.334s15.44,5.888,21.33-0.002c5.891-5.891,5.893-15.44,0.002-21.33C20.275-1.056,10.725-1.056,4.834,4.834zM25.459,5.542c0.833,0.836,1.523,1.757,2.104,2.726l-4.08,4.08c-0.418-1.062-1.053-2.06-1.912-2.918c-0.859-0.859-1.857-1.494-2.92-1.913l4.08-4.08C23.7,4.018,24.622,4.709,25.459,5.542zM10.139,20.862c-2.958-2.968-2.959-7.758-0.001-10.725c2.966-2.957,7.756-2.957,10.725,0c2.954,2.965,2.955,7.757-0.001,10.724C17.896,23.819,13.104,23.817,10.139,20.862zM5.542,25.459c-0.833-0.837-1.524-1.759-2.105-2.728l4.081-4.081c0.418,1.063,1.055,2.06,1.914,2.919c0.858,0.859,1.855,1.494,2.917,1.913l-4.081,4.081C7.299,26.982,6.379,26.292,5.542,25.459zM8.268,3.435l4.082,4.082C11.288,7.935,10.29,8.571,9.43,9.43c-0.858,0.859-1.494,1.855-1.912,2.918L3.436,8.267c0.58-0.969,1.271-1.89,2.105-2.727C6.377,4.707,7.299,4.016,8.268,3.435zM22.732,27.563l-4.082-4.082c1.062-0.418,2.061-1.053,2.919-1.912c0.859-0.859,1.495-1.857,1.913-2.92l4.082,4.082c-0.58,0.969-1.271,1.891-2.105,2.728C24.623,26.292,23.701,26.983,22.732,27.563z' }
-});
-
-var link4 = new CustomLink({
+var link4 = new joint.shapes.standard.Link({
     source: { x: 400, y: 20 },
     target: { x: 740, y: 20 },
-    router: { name: 'orthogonal' },
-    vertices: [{ x: 500, y: 60 }, { x: 550, y: 40 }]
+    vertices: [{ x: 400, y: 60 }, { x: 550, y: 60 }, { x: 550, y: 20 }],
+    attrs: {
+        line: {
+            stroke: '#3c4260',
+            strokeWidth: 2,
+            sourceMarker: {
+                'fill': '#4b4a67',
+                'stroke': '#4b4a67',
+                'd': normalizeMarker('M5.5,15.499,15.8,21.447,15.8,15.846,25.5,21.447,25.5,9.552,15.8,15.152,15.8,9.552z')
+            },
+            targetMarker: {
+                'fill': '#4b4a67',
+                'stroke': '#4b4a67',
+                'd': normalizeMarker('M5.5,15.499,15.8,21.447,15.8,15.846,25.5,21.447,25.5,9.552,15.8,15.152,15.8,9.552z')
+            },
+            vertexMarker: {
+                'type': 'circle',
+                'r': 5,
+                'stroke-width': 2,
+                'fill': 'white'
+            }
+        }
+    }
 });
 
-link4.attr({
-    '.connection': { stroke: '#3c4260', 'stroke-width': 2 },
-    '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M5.5,15.499,15.8,21.447,15.8,15.846,25.5,21.447,25.5,9.552,15.8,15.152,15.8,9.552z' },
-    '.marker-target': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M5.5,15.499,15.8,21.447,15.8,15.846,25.5,21.447,25.5,9.552,15.8,15.152,15.8,9.552z' }
-});
-
-var link5 = new CustomLink({
+var link5 = new joint.shapes.standard.Link({
     source: { x: 440, y: 100 },
     target: { x: 740, y: 100 },
     vertices: [{ x: 400, y: 140 }, { x: 550, y: 100 }, { x: 600, y: 140 }],
-    smooth: true
+    smooth: true,
+    attrs: {
+        line: {
+            stroke: '#7c68fc',
+            strokeWidth: 3,
+            sourceMarker: {
+                'stroke': '#7c68fc',
+                'fill': '#7c68fc',
+                'd': normalizeMarker('M24.316,5.318,9.833,13.682,9.833,5.5,5.5,5.5,5.5,25.5,9.833,25.5,9.833,17.318,24.316,25.682z')
+            },
+            targetMarker: {
+                'stroke': '#feb663',
+                'fill': '#feb663',
+                'd': normalizeMarker('M14.615,4.928c0.487-0.986,1.284-0.986,1.771,0l2.249,4.554c0.486,0.986,1.775,1.923,2.864,2.081l5.024,0.73c1.089,0.158,1.335,0.916,0.547,1.684l-3.636,3.544c-0.788,0.769-1.28,2.283-1.095,3.368l0.859,5.004c0.186,1.085-0.459,1.553-1.433,1.041l-4.495-2.363c-0.974-0.512-2.567-0.512-3.541,0l-4.495,2.363c-0.974,0.512-1.618,0.044-1.432-1.041l0.858-5.004c0.186-1.085-0.307-2.6-1.094-3.368L3.93,13.977c-0.788-0.768-0.542-1.525,0.547-1.684l5.026-0.73c1.088-0.158,2.377-1.095,2.864-2.081L14.615,4.928z')
+            }
+        }
+    }
 });
 
-link5.attr({
-    '.connection': { stroke: '#7c68fc', 'stroke-width': 2 },
-    '.marker-source': { stroke: '#7c68fc', fill: '#7c68fc', d: 'M24.316,5.318,9.833,13.682,9.833,5.5,5.5,5.5,5.5,25.5,9.833,25.5,9.833,17.318,24.316,25.682z' },
-    '.marker-target': { stroke: '#feb663', fill: '#feb663', d: 'M14.615,4.928c0.487-0.986,1.284-0.986,1.771,0l2.249,4.554c0.486,0.986,1.775,1.923,2.864,2.081l5.024,0.73c1.089,0.158,1.335,0.916,0.547,1.684l-3.636,3.544c-0.788,0.769-1.28,2.283-1.095,3.368l0.859,5.004c0.186,1.085-0.459,1.553-1.433,1.041l-4.495-2.363c-0.974-0.512-2.567-0.512-3.541,0l-4.495,2.363c-0.974,0.512-1.618,0.044-1.432-1.041l0.858-5.004c0.186-1.085-0.307-2.6-1.094-3.368L3.93,13.977c-0.788-0.768-0.542-1.525,0.547-1.684l5.026-0.73c1.088-0.158,2.377-1.095,2.864-2.081L14.615,4.928z' }
-});
-
-var link6 = new CustomLink({
+var link6 = new joint.shapes.standard.DoubleLink({
     source: { x: 10, y: 200 },
     target: { x: 350, y: 200 },
     attrs: {
-        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z'},
-        '.marker-target': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' }
-    },
-    labels: [
-        {
-            attrs: { text: { text: 'label' } },
-            position: 0.5
+        line: {
+            stroke: '#7c68fc'
         }
-    ]
+    },
+    labels: [{
+        attrs: { text: { text: 'Label' }},
+        position: {
+            offset: 15,
+            distance: 0.5
+        }
+    }]
 });
 
-var link7 = new CustomLink({
+var link7 = new joint.shapes.standard.Link({
     source: { x: 400, y: 200 },
     target: { x: 740, y: 200 },
     attrs: {
-        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' },
-        '.marker-target': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' }
-    },
-    labels: [
-        {
-            attrs: {
-                text: {
-                    text: 'fancy label',
-                    fill: '#f6f6f6',
-                    fontFamily: 'sans-serif'
-                },
-                rect: {
-                    stroke: '#7c68fc',
-                    strokeWidth: 20,
-                    rx: 5,
-                    ry: 5
-                }
-            },
-            position: 0.5
+        line: {
+            targetMarker: {
+                'd': 'M 0 -5 L -10 0 L 0 5 Z'
+            }
         }
-    ]
+    },
+    labels: [{
+        markup: [{
+            tagName: 'rect',
+            selector: 'labelBody'
+        }, {
+            tagName: 'text',
+            selector: 'labelText'
+        }],
+        attrs: {
+            labelText: {
+                text: 'First',
+                fill: '#7c68fc',
+                fontFamily: 'sans-serif',
+                textAnchor: 'middle',
+                textVerticalAnchor: 'middle'
+            },
+            labelBody: {
+                ref: 'labelText',
+                refX: -5,
+                refY: -5,
+                refWidth: '100%',
+                refHeight: '100%',
+                refWidth2: 10,
+                refHeight2: 10,
+                stroke: '#7c68fc',
+                fill: 'white',
+                strokeWidth: 2,
+                rx: 5,
+                ry: 5
+            }
+        },
+        position: 0.3
+    }, {
+        markup: [{
+            tagName: 'ellipse',
+            selector: 'labelBody'
+        }, {
+            tagName: 'text',
+            selector: 'labelText'
+        }],
+        attrs: {
+            labelText: {
+                text: 'Second',
+                fill: '#31d0c6',
+                fontFamily: 'sans-serif',
+                textAnchor: 'middle',
+                textVerticalAnchor: 'middle'
+            },
+            labelBody: {
+                ref: 'labelText',
+                refRx: '70%',
+                refRy: '80%',
+                stroke: '#31d0c6',
+                fill: 'white',
+                strokeWidth: 2
+            }
+        },
+        position: 0.7
+    }]
 });
 
-var link8 = new CustomLink({
+var link8 = new joint.shapes.standard.ShadowLink({
     source: { x: 10, y: 280 },
-    target: { x: 740, y: 280 },
-    vertices: [{ x: 150, y: 350 }, { x: 250, y: 350 }, { x: 250, y: 280 }, { x: 500, y: 280 }, { x: 500, y: 350 }, { x: 630, y: 350 }],
+    target: { x: 440, y: 280 },
+    vertices: [{ x: 150, y: 350 }, { x: 300, y: 280 }],
     smooth: true,
-    attrs: {
-        '.marker-source': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z'},
-        '.marker-target': { fill: '#4b4a67', stroke: '#4b4a67', d: 'M 10 0 L 0 5 L 10 10 z' }
-    },
-    labels: [
-        {
-            attrs: { text: { text: '1..n' } },
-            position: 25
-        },
-        {
-            attrs: {
-                text: {
-                    text: 'multiple',
-                    fill: 'white',
-                    fontFamily: 'sans-serif'
-                },
-                rect: {
-                    stroke: '#31d0c6',
-                    strokeWidth: 20,
-                    rx: 5,
-                    ry: 5
-                }
-            },
-            position: 0.45,
-        },
-        {
-            attrs: {
-                text: {
-                    text: 'labels',
-                    fill: 'white',
-                    fontFamily: 'sans-serif'
-                },
-                rect: {
-                    stroke: '#31d0c6',
-                    strokeWidth: 20,
-                    rx: 5,
-                    ry: 5
-                }
-            },
-            position: 0.55
-        },
-        {
-            position: -25
+    markup: [{
+        tagName: 'path',
+        selector: 'shadow',
+        attributes: {
+            'fill': 'none'
         }
-    ]
+    }, {
+        tagName: 'path',
+        selector: 'line',
+        attributes: {
+            'fill': 'none'
+        }
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }],
+    attrs: {
+        line: {
+            stroke: '#3c4260'
+        },
+        label: {
+            textPath: {
+                selector: 'line',
+                startOffset: '50%'
+            },
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            text: 'Label Along Path',
+            fill: '#f6f6f6',
+            fontSize: 15,
+            fontWeight: 'bold',
+            fontFamily: 'fantasy'
+        }
+    }
 });
 
+// Custom Link
 
-graph.addCell([link, link2, link3, link4, link5, link6, link7, link8]);
+var link9 = new joint.dia.Link({
+    markup: [{
+        tagName: 'path',
+        selector: 'p1'
+    }, {
+        tagName: 'rect',
+        selector: 'sign'
+    }, {
+        tagName: 'circle',
+        selector: 'c1',
+    }, {
+        tagName: 'path',
+        selector: 'p2'
+    }, {
+        tagName: 'circle',
+        selector: 'c2'
+    }, {
+        tagName: 'text',
+        selector: 'signText'
+    }],
+    source: { x: 380, y: 380 },
+    target: { x: 740, y: 280 },
+    vertices: [{ x: 600, y: 280 }],
+    attrs: {
+        p1: {
+            connection: true,
+            fill: 'none',
+            stroke: 'black',
+            strokeWidth: 6,
+            strokeLinejoin: 'round'
+        },
+        p2: {
+            connection: true,
+            fill: 'none',
+            stroke: '#fe854f',
+            strokeWidth: 4,
+            pointerEvents: 'none',
+            strokeLinejoin: 'round',
+            targetMarker: {
+                'type': 'path',
+                'fill': '#fe854f',
+                'stroke': 'black',
+                'stroke-width': 1,
+                'd': 'M 10 -3 10 -10 -2 0 10 10 10 3'
+            }
+        },
+        sign: {
+            x: -20,
+            y: -10,
+            width: 40,
+            height: 20,
+            stroke: 'black',
+            fill: '#fe854f',
+            atConnectionLength: 30,
+            strokeWidth: 1,
+            event: 'myclick:rect'
+        },
+        signText: {
+            atConnectionLength: 30,
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            text: 'Link',
+        },
+        c1: {
+            r: 10,
+            stroke: 'black',
+            fill: '#fe854f',
+            atConnectionRatio: .5,
+            strokeWidth: 1,
+            event: 'myclick:circle',
+            cursor: 'pointer'
+        },
+        c2: {
+            r: 5,
+            stroke: 'black',
+            fill: 'white',
+            atConnectionRatio: .5,
+            strokeWidth: 1,
+            pointerEvents: 'none'
+        }
+    }
+});
+
+var el1 = new joint.shapes.standard.Path({
+    position: { x: 500, y: 450 },
+    size: { width: 100, height: 100 },
+    attrs: {
+        body: {
+            fill: '#31d0c6',
+            refD: 'M 0 20 10 20 10 30 30 30 30 0 40 0 40 40 0 40 z'
+        }
+    }
+});
+
+var link10 = new joint.shapes.standard.Link({
+    source: { x: 300, y: 400 },
+    target: { id: el1.id },
+    attrs: {
+        line: {
+            sourceMarker: {
+                'd': 'M 0 0 15 0',
+                'stroke': 'white',
+                'stroke-width': 3
+            }
+        }
+    }
+});
+
+graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10]);
+
+// Custom Link Tools
+
+var RectangleSourceArrowhead = joint.linkTools.SourceArrowhead.extend({
+    tagName: 'rect',
+    attributes: {
+        'x': -15,
+        'y': -15,
+        'width': 30,
+        'height': 30,
+        'fill': 'black',
+        'fill-opacity': 0.3,
+        'stroke': 'black',
+        'stroke-width': 2,
+        'cursor': 'move',
+        'class': 'target-arrowhead'
+    }
+});
+
+var CircleTargetArrowhead = joint.linkTools.TargetArrowhead.extend({
+    tagName: 'circle',
+    attributes: {
+        'r': 20,
+        'fill': 'black',
+        'fill-opacity': 0.3,
+        'stroke': 'black',
+        'stroke-width': 2,
+        'cursor': 'move',
+        'class': 'target-arrowhead'
+    }
+});
+
+var CustomBoundary = joint.linkTools.Boundary.extend({
+    attributes: {
+        'fill': '#7c68fc',
+        'fill-opacity': 0.2,
+        'stroke': '#33334F',
+        'stroke-width': .5,
+        'stroke-dasharray': '5, 5',
+        'pointer-events': 'none'
+    },
+});
+
+// Interactions
+
+paper.on('link:mouseenter', function(linkView) {
+
+    var tools;
+    switch (linkView.model) {
+        case link1:
+        case link3:
+        case link4:
+            tools = [
+                new joint.linkTools.Vertices(),
+                new joint.linkTools.Segments()
+            ];
+            break;
+        case link2:
+            tools = [
+                new joint.linkTools.Button({
+                    markup: [{
+                        tagName: 'circle',
+                        selector: 'button',
+                        attributes: {
+                            'r': 7,
+                            'stroke': '#fe854f',
+                            'stroke-width': 3,
+                            'fill': 'white',
+                            'cursor': 'pointer'
+                        }
+                    }, {
+                        tagName: 'text',
+                        textContent: 'B',
+                        selector: 'icon',
+                        attributes: {
+                            'fill': '#fe854f',
+                            'font-size': 10,
+                            'text-anchor': 'middle',
+                            'font-weight': 'bold',
+                            'pointer-events': 'none',
+                            'y': '0.3em'
+                        }
+                    }],
+                    distance: -30,
+                    action: function() {
+                        var link = this.model;
+                        var source = link.source();
+                        var target = link.target();
+                        link.source(target);
+                        link.target(source);
+                    }
+                }),
+                new joint.linkTools.Button({
+                    markup: [{
+                        tagName: 'circle',
+                        selector: 'button',
+                        attributes: {
+                            'r': 7,
+                            'stroke': '#fe854f',
+                            'stroke-width': 3,
+                            'fill': 'white',
+                            'cursor': 'pointer'
+                        }
+                    }, {
+                        tagName: 'text',
+                        textContent: 'A',
+                        selector: 'icon',
+                        attributes: {
+                            'fill': '#fe854f',
+                            'font-size': 10,
+                            'text-anchor': 'middle',
+                            'font-weight': 'bold',
+                            'pointer-events': 'none',
+                            'y': '0.3em'
+                        }
+                    }],
+                    distance: -50,
+                    action: function() {
+                        var link = this.model;
+                        link.attr({
+                            line: {
+                                strokeDasharray: '5,1',
+                                strokeDashoffset: (link.attr('line/strokeDashoffset') | 0) + 20
+                            }
+                        });
+                    }
+                })
+            ];
+            break;
+        case link5:
+            tools = [
+                new joint.linkTools.Vertices({
+                    snapRadius: 0,
+                    redundancyRemoval: false
+                }),
+                new RectangleSourceArrowhead(),
+                new CircleTargetArrowhead(),
+            ];
+            break;
+        case link6:
+            tools = [
+                new joint.linkTools.Vertices(),
+                new CustomBoundary({ padding: 25 })
+            ];
+            break;
+        case link7:
+            tools = [
+                new joint.linkTools.SourceArrowhead(),
+                new joint.linkTools.TargetArrowhead(),
+                new joint.linkTools.Remove({ distance: 20 })
+            ];
+            break;
+        case link8:
+            tools = [
+                new joint.linkTools.Vertices({
+                    snapRadius: 0,
+                    redundancyRemoval: false,
+                    vertexAdding: false
+                })
+            ];
+            break;
+        default:
+            return;
+    }
+
+    linkView.addTools(new joint.dia.ToolsView({
+        name: 'onhover',
+        tools: tools
+    }));
+});
+
+paper.on('link:mouseleave', function(linkView) {
+    if (!linkView.hasTools('onhover')) return;
+    linkView.removeTools();
+});
+
+// Permanent Link Tool
+
+link10.findView(paper).addTools(new joint.dia.ToolsView({
+    name: 'permanent',
+    tools: [
+        new joint.linkTools.TargetAnchor(),
+        new RectangleSourceArrowhead()
+    ]
+}));
+
+// Attribute Event
+
+paper.on('myclick:circle', function(linkView, evt) {
+    evt.stopPropagation();
+    var link = linkView.model;
+    var t = (link.attr('c1/atConnectionRatio') > .2) ? .2 :.9;
+    var transitionOpt = {
+        delay: 100,
+        duration: 2000,
+        timingFunction: joint.util.timing.inout
+    };
+    link.transition('attrs/c1/atConnectionRatio', t, transitionOpt);
+    link.transition('attrs/c2/atConnectionRatio', t, transitionOpt);
+});

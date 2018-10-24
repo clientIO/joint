@@ -15,7 +15,7 @@
 
         <!-- Dependencies: -->
         <script src="../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../node_modules/lodash/index.js"></script>
+        <script src="../node_modules/lodash/lodash.js"></script>
         <script src="../node_modules/backbone/backbone.js"></script>
 
 
@@ -71,7 +71,7 @@
                 </svg>
             </div>
 
-            <p>The idea is simple. We create and render a link. We create an 
+            <p>The idea is simple. We create and render a link. We create an
                 <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Canvas" target="_blank">HTML 5 canvas element</a> of the size of
                 the bounding box of the link. We draw onto the canvas anything we'd like the link to look like. We generate
                 a <a href="http://en.wikipedia.org/wiki/Data_URI_scheme" target="_blank">Data URI image</a> from the canvas
@@ -98,7 +98,7 @@
                 Called once the view is removed.
                 <br>The <code>linkView.sourcePoint</code> and <code>linkView.targetPoint</code> are cached coordinates of a
                 point where the link connects to an element or point.
-                <br>The <code>linkView.route</code> is a cached array of points calculated from the vertices by a 
+                <br>The <code>linkView.route</code> is a cached array of points calculated from the vertices by a
                 <a href="/docs/jointjs/v1.0/joint.html#dia.Link" target="_blank">router</a>.
                 <br>The <code>linkView.paper</code> is a reference to the paper the view is rendered into.
             </p>
@@ -328,7 +328,7 @@
 
             <p>Let's combine all this together and create a link which looks like a pipe.
                 The demo below contains all that we described so far, plus it is adding some new features.
-                <br>The LinkView draws into the canvas and updates the pattern asynchronously (using 
+                <br>The LinkView draws into the canvas and updates the pattern asynchronously (using
                 <a href="/docs/jointjs/v1.0/joint.html#util.nextFrame" target="_top">joint.util.nextFrame</a>).
                 <br>It automatically creates a gradient with a directions perpendicular to the path direction for each link
                 segment. This way you can style your link from the 'border' to 'border' and draw an image like the one

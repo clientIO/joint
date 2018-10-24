@@ -2,7 +2,7 @@
 
 joint.dia.FastPaper = joint.dia.Paper.extend({
 
-    sortViews: _.noop,
+    sortViews: joint.util.noop,
 
     beforeRenderViews: function() {
 
@@ -39,13 +39,14 @@ joint.dia.FastPaper = joint.dia.Paper.extend({
     }
 });
 
-joint.shapes.basic.ConveyorElement = joint.dia.Element.extend({
+joint.shapes.perf = {};
+joint.shapes.perf.ConveyorElement = joint.dia.Element.extend({
 
     PADDING: 2,
 
-    defaults: _.defaultsDeep({
+    defaults: joint.util.defaultsDeep({
 
-        type: 'basic.ConveyorElement',
+        type: 'perf.ConveyorElement',
         hasPallet: false
 
     }, joint.dia.Element.prototype.defaults),
@@ -103,7 +104,7 @@ joint.shapes.basic.ConveyorElement = joint.dia.Element.extend({
 });
 
 
-joint.shapes.basic.ConveyorElementView = joint.dia.ElementView.extend({
+joint.shapes.perf.ConveyorElementView = joint.dia.ElementView.extend({
 
     initialize: function() {
 
@@ -181,13 +182,13 @@ function createCircle(center, radius, rectSize) {
 
         var p = g.point.fromPolar(radius, g.toRad(angle), center);
 
-        var conveyorElement = new joint.shapes.basic.ConveyorElement({
+        var conveyorElement = new joint.shapes.perf.ConveyorElement({
             position: { x: p.x, y: p.y },
             size: { width: rectSize, height: rectSize },
             angle: -angle
         });
 
-        console.log(`Add: ${p.x} x ${p.y}`);
+        console.log('Add: ' + p.x + ' x ' + p.y);
 
         if (elements.length % 2 === 0) {
             conveyorElement.addPallet();
