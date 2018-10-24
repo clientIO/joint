@@ -135,11 +135,11 @@ var g2Circle = new joint.shapes.standard.Ellipse({
     }
 });
 
-Array.from({ length: 8 }).forEach(function() {
+Array.from({ length: 4 }).forEach(function() {
     g2Rect.addPort({ group: 'blacks' });
 });
 
-Array.from({ length: 8 }).forEach(function() {
+Array.from({ length: 24 }).forEach(function() {
     g2Rect.addPort({ group: 'reds' });
 });
 
