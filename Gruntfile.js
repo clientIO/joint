@@ -129,9 +129,6 @@ module.exports = function(grunt) {
         interval: 1500
     } : {};
 
-
-    var lodash3TestDir = __dirname + '/test/jointjs/lodash3';
-
     var config = {
 
         pkg: pkg,
@@ -507,11 +504,6 @@ module.exports = function(grunt) {
 
                     return cmd;
                 }
-            },
-            lodash3testsInstall: {
-                command: function() {
-                    return 'cd ' + lodash3TestDir + ' && npm install';
-                }
             }
         },
         syntaxHighlighting: {
@@ -844,11 +836,7 @@ module.exports = function(grunt) {
         'shell:bowerInstall:.'
     ]);
 
-    grunt.registerTask('lodash3tests', [
-        'shell:lodash3testsInstall'
-    ]);
-
-    grunt.registerTask('install', ['lodash3tests', 'bowerInstall', 'build:all']);
+    grunt.registerTask('install', ['bowerInstall', 'build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 
     var e2eBrowsers = {
