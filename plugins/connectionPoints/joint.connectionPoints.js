@@ -57,12 +57,6 @@
         return offset(cp, line.start, opt.offset);
     }
 
-    function isNodeMeasurable(node) {
-        if (!node) return false;
-        // Checking if the node is a SVGGraphicsElement (not supported in IE)
-        return (node instanceof Element) && (typeof node.getBBox === 'function');
-    }
-
     function findShapeNode(magnet) {
         if (!magnet) return null;
         var node = magnet;
@@ -96,8 +90,8 @@
             node = findShapeNode(magnet);
         }
 
-        if (!isNodeMeasurable(node)) {
-            if (node === magnet || !isNodeMeasurable(magnet)) return anchor;
+        if (!V.isSVGGraphicsElement(node)) {
+            if (node === magnet || !V.isSVGGraphicsElement(magnet)) return anchor;
             node = magnet;
         }
 
