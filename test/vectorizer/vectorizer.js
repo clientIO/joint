@@ -16,6 +16,7 @@ QUnit.module('vectorizer', function(hooks) {
     var svgGroup3;
     var svgPath2;
     var svgPath3;
+    var svgLinearGradient;
 
     var childrenTagNames = function(vel) {
         var tagNames = [];
@@ -43,7 +44,8 @@ QUnit.module('vectorizer', function(hooks) {
                         '</g>' +
                     '</g>' +
                 '</g>' +
-                '<path id="svg-path-3"/>';
+                '<path id="svg-path-3"/>' +
+                '<linearGradient id= "svg-linear-gradient"><stop/></linearGradient>';
 
         $fixture.append(V('svg', { id: 'svg-container' }, V(svgContent)).node);
 
@@ -60,6 +62,7 @@ QUnit.module('vectorizer', function(hooks) {
         svgGroup3 = document.getElementById('svg-group-3');
         svgPath2 = document.getElementById('svg-path-2');
         svgPath3 = document.getElementById('svg-path-3');
+        svgLinearGradient = document.getElementById('svg-linear-gradient');
     });
 
     function serializeNode(node) {
@@ -119,6 +122,14 @@ QUnit.module('vectorizer', function(hooks) {
         assert.equal(id, node.id);
         assert.equal(id, V.ensureId(node));
         assert.equal(id, node.id);
+    });
+
+    QUnit.test('V.isSVGGraphicsElement()', function(assert) {
+        assert.ok(V.isSVGGraphicsElement(svgCircle));
+        assert.ok(V.isSVGGraphicsElement(V('circle', { class: 'not-in-dom' })));
+        assert.ok(V.isSVGGraphicsElement(svgGroup));
+        assert.notOk(V.isSVGGraphicsElement());
+        assert.notOk(V.isSVGGraphicsElement(svgLinearGradient));
     });
 
     QUnit.test('index()', function(assert) {
@@ -1094,6 +1105,10 @@ QUnit.module('vectorizer', function(hooks) {
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgCircle, recursive: true }) instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer }) instanceof g.Rect);
             assert.ok(V('circle', { class: 'not-in-dom' }).getBBox({ target: svgContainer, recursive: true }) instanceof g.Rect);
+            // Not an SVGGraphicsElement
+            assert.ok(V(svgLinearGradient).getBBox({}) instanceof g.Rect);
+            assert.ok(V(svgLinearGradient).getBBox({ target: svgContainer }) instanceof g.Rect);
+            assert.ok(V(svgLinearGradient).getBBox({ target: svgCircle }) instanceof g.Rect);
         });
 
         QUnit.test('recursive', function(assert) {

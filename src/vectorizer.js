@@ -129,9 +129,17 @@ V = Vectorizer = (function() {
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    VPrototype.getTransformToElement = function(toElem) {
-        toElem = V.toNode(toElem);
-        return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
+    VPrototype.getTransformToElement = function(target) {
+        var node = this.node;
+        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
+            var targetCTM = V.toNode(target).getScreenCTM();
+            var nodeCTM = node.getScreenCTM();
+            if (targetCTM && nodeCTM) {
+                return targetCTM.inverse().multiply(nodeCTM);
+            }
+        }
+        // Could not get actual transformation matrix
+        return V.createSVGMatrix();
     };
 
     /**
@@ -282,7 +290,8 @@ V = Vectorizer = (function() {
 
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
-        if (!ownerSVGElement) {
+        // If the element is not an SVGGraphicsElement, we could not measure the bounding box either
+        if (!ownerSVGElement || !V.isSVGGraphicsElement(node)) {
             return new g.Rect(0, 0, 0, 0);
         }
 
@@ -1588,6 +1597,15 @@ V = Vectorizer = (function() {
 
     // For backwards compatibility:
     V.isVElement = V.isV;
+
+    // Element implements `getBBox()`, `getCTM()` and `getScreenCTM()`
+    // https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement
+    V.isSVGGraphicsElement = function(node) {
+        if (!node) return false;
+        node = V.toNode(node);
+        // IE/Edge does not implement SVGGraphicsElement interface, thus check for `getScreenCTM` below
+        return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
+    };
 
     var svgDocument = V('svg').node;
 
