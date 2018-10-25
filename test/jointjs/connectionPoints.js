@@ -1,6 +1,6 @@
 QUnit.module('connectionPoints', function(hooks) {
 
-    var paper, graph, r1, rv1, l1, lv1, sp, tp, fullNode, quarterNode;
+    var paper, graph, r1, rv1, l1, lv1, sp, tp, fullNode;
 
     hooks.beforeEach(function() {
 
@@ -51,9 +51,7 @@ QUnit.module('connectionPoints', function(hooks) {
         graph.addCells([r1, l1]);
         rv1 = r1.findView(paper);
         lv1 = l1.findView(paper);
-
-        fullNode = rv1.findBySelector('full')[0];
-        quarterNode = rv1.findBySelector('quarter')[0];
+        fullNode = rv1.el.querySelector('[joint-selector="full"]');
     });
 
     hooks.afterEach(function() {
@@ -61,7 +59,6 @@ QUnit.module('connectionPoints', function(hooks) {
         paper = null;
         graph = null;
     });
-
 
     QUnit.module('anchor', function() {
 
