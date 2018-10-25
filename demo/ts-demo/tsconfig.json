@@ -1,8 +1,16 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "noImplicitAny": true,
-        "lib": [ "es6", "dom" ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitAny": true,
+    "typeRoots": [
+      "./typings",
+      "./node_modules/@types"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "joint": [ "./vendor/joint" ]
     },
-    "compileOnSave": false
+    "lib": [ "es6", "dom" ]
+  },
+  "compileOnSave": false
 }

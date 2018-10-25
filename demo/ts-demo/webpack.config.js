@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
     entry: './index.ts',
     mode: 'development',
@@ -5,7 +7,10 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js'],
+        alias: {
+            joint: path.resolve(__dirname, 'vendor/joint.js')
+        }
     },
     module: {
         rules: [

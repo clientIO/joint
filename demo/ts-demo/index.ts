@@ -1,6 +1,6 @@
-import * as joint from './vendor/joint';
+import * as joint from 'joint';
 import './custom';
-import {V, g} from './vendor/joint';
+import {V, g} from 'joint';
 import * as $ from 'jquery';
 
 const $body = $('body');
