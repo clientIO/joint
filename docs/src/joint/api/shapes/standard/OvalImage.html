@@ -1,0 +1,46 @@
+<p>An ellipse with an image and label.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>image</td>
+        <td><i>SVGImageElement</i></td>
+        <td>Image of the shape</td>
+    </tr>
+    <tr>
+        <td>border</td>
+        <td><i>SVGEllipseElement</i></td>
+        <td>Border around the icon</td>
+    </tr>
+    <tr>
+        <td>background</td>
+        <td><i>SVGEllipseElement</i></td>
+        <td>Area behind the icon</td>
+    </tr>
+    <tr>
+        <td>label</td>
+        <td><i>SVGTextElement</i></td>
+        <td>Text below the icon</td>
+    </tr>
+</table>
+
+<pre><code>var icon = new joint.shapes.standard.OvalImage();
+icon.resize(150, 100);
+icon.position(225, 410);
+icon.attr('root/title', 'joint.shapes.standard.OvalImage');
+icon.attr('label/text', 'Oval Image');
+icon.attr('border/strokeWidth', 5);
+icon.attr('background/fill', 'lightgray');
+icon.attr('image/xlinkHref', 'image.png');
+icon.addTo(graph);</code></pre>
