@@ -251,6 +251,8 @@ export class Vectorizer {
 
     static isVElement(value: any): boolean;
 
+    static isSVGGraphicsElement(value: any): boolean;
+
     static createSVGMatrix(matrix: SVGMatrix | Vectorizer.Matrix): SVGMatrix;
 
     static createSVGTransform(matrix?: SVGMatrix | Vectorizer.Matrix): SVGTransform;
