@@ -57,6 +57,22 @@
         return offset(cp, line.start, opt.offset);
     }
 
+    function findShapeNode(magnet) {
+        if (!magnet) return null;
+        var node = magnet;
+        do {
+            var tagName = node.tagName;
+            if (typeof tagName !== 'string') return null;
+            tagName = tagName.toUpperCase();
+            if (tagName === 'G') {
+                node = node.firstElementChild;
+            } else if (tagName === 'TITLE') {
+                node = node.nextElementSibling;
+            } else break;
+        } while (node);
+        return node;
+    }
+
     var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
     var BNDR_SHAPE_BBOX = 'shapeBBox';
 
@@ -71,19 +87,13 @@
         } else if (Array.isArray(selector)) {
             node = util.getByPath(magnet, selector);
         } else {
-            // Find the closest non-group descendant
-            node = magnet;
-            do {
-                var tagName = node.tagName.toUpperCase();
-                if (tagName === 'G') {
-                    node = node.firstChild;
-                } else if (tagName === 'TITLE') {
-                    node = node.nextSibling;
-                } else break;
-            } while (node);
+            node = findShapeNode(magnet);
         }
 
-        if (!(node instanceof Element)) return anchor;
+        if (!V.isSVGGraphicsElement(node)) {
+            if (node === magnet || !V.isSVGGraphicsElement(magnet)) return anchor;
+            node = magnet;
+        }
 
         var localShape = view.getNodeShape(node);
         var magnetMatrix = view.getNodeMatrix(node);
