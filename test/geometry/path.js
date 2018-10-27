@@ -2,14 +2,15 @@
 
 QUnit.module('path', function(hooks) {
 
-    var $fixture = $('#qunit-fixture');
+    var fixture = document.createElement('div');
+    fixture.id = 'qunit-fixture';
 
     var getSvg = function() {
-        var svg = V('svg');
-        svg.attr('width', 600);
-        svg.attr('height', 800);
-        $fixture.append(svg.node);
-
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svg.setAttribute('width',  600);
+        svg.setAttribute('height',  800);
+        document.body.appendChild(fixture);
+        fixture.appendChild(svg);
         return svg;
     };
 
@@ -1838,10 +1839,11 @@ QUnit.module('path', function(hooks) {
                 var svg = getSvg();
 
                 var gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                var path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+                var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
-                assert.equal(Math.round(gPath.length({ precision: 3 })), Math.round(path.node.getTotalLength()));
+                assert.equal(Math.round(gPath.length({ precision: 3 })), Math.round(path.getTotalLength()));
 
                 svg.remove();
             });
@@ -2177,13 +2179,15 @@ QUnit.module('path', function(hooks) {
                 var svg = getSvg();
 
                 gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
                 p1 = gPath.pointAtLength(250, { precision: 4 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = path.node.getPointAtLength(250);
+                p2 = path.getPointAtLength(250);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
 
@@ -2191,26 +2195,28 @@ QUnit.module('path', function(hooks) {
 
                 // browser implementation is wrong
                 /*gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
                 p1 = gPath.pointAtLength(-1, { precision: 1 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = path.node.getPointAtLength(-1);
+                p2 = path.getPointAtLength(-1);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
 
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);*/
 
                 gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
                 p1 = gPath.pointAtLength(10000, { precision: 1 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = path.node.getPointAtLength(10000);
+                p2 = path.getPointAtLength(10000);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
 

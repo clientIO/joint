@@ -45,8 +45,13 @@ module.exports = function(grunt) {
             'plugins/tools/*.js'
         ],
 
-        geometry: ['src/geometry.js'],
-        vectorizer: ['src/vectorizer.js'],
+        geometry: [
+            'src/geometry.js'
+        ],
+
+        vectorizer: [
+            'src/vectorizer.js'
+        ],
 
         polyfills: [
             'plugins/polyfills/base64.js',
@@ -58,7 +63,6 @@ module.exports = function(grunt) {
         ],
 
         plugins: {
-
             'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
             'shapes.fsa': ['plugins/shapes/joint.shapes.fsa.js'],
             'shapes.org': ['plugins/shapes/joint.shapes.org.js'],
@@ -67,9 +71,21 @@ module.exports = function(grunt) {
             'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
             'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
             'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
-
             'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
-        }
+        },
+
+        dependecies: [
+            'node_modules/jquery/dist/jquery.js',
+            'node_modules/lodash/lodash.js',
+            'node_modules/backbone/backbone.js',
+            'node_modules/graphlib/dist/graphlib.core.js',
+            'node_modules/dagre/dist/dagre.core.js',
+        ],
+
+        testDependecies: [
+            'node_modules/async/dist/async.js',
+            'node_modules/sinon/pkg/sinon.js'
+        ]
     };
 
     var css = {
@@ -475,21 +491,17 @@ module.exports = function(grunt) {
         },
         qunit: {
             all: [
-                'test/**/*.html',
-                '!test/**/coverage.html',
-                '!test/**/node_modules/**'
-            ],
-            all_coverage: [
-                'test/**/coverage.html',
-                '!test/**/node_modules/**'
+                'test/**/*.html'
             ],
             joint: [
-                'test/jointjs/*.html',
-                '!test/jointjs/coverage.html',
-                '!test/**/node_modules/**'
+                'test/jointjs/*.html'
             ],
-            geometry: ['test/geometry/*.html'],
-            vectorizer: ['test/vectorizer/*.html']
+            geometry: [
+                'test/geometry/*.html'
+            ],
+            vectorizer: [
+                'test/vectorizer/*.html'
+            ]
         },
         syntaxHighlighting: {
             docs: {
@@ -553,78 +565,95 @@ module.exports = function(grunt) {
                 tasks: ['newer:concat:types']
             }
         },
+        karma: {
+            options: {
+                basePath: '',
+                autoWatch: true,
+                frameworks: ['qunit'],
+                browsers: ['PhantomJS'],
+                reporters: ['progress', 'coverage'],
+                singleRun: true,
+                exclude: [
+                    'test/**/require.js',
+                    'test/**/browserify.js'
+                ]
+            },
+            geometry: {
+                options: {
+                    files: [
+                        js.geometry,
+                        'test/geometry/*.js'
+                    ],
+                    preprocessors: coveragePreprocessors(js.geometry),
+                    coverageReporter: {
+                        dir: 'coverage/geometry',
+                        reporters: coverageReporters('geometry')
+                    }
+                },
+            },
+            vectorizer: {
+                options: {
+                    files: [
+                        js.geometry,
+                        js.vectorizer,
+                        'test/vectorizer/*.js',
+                    ],
+                    preprocessors: coveragePreprocessors(js.vectorizer),
+                    coverageReporter: {
+                        dir: 'coverage/vectorizer',
+                        reporters: coverageReporters('vectorizer')
+                    }
+                }
+            },
+            joint: {
+                options: {
+                    files: [
+                        js.dependecies,
+                        js.testDependecies,
+                        js.geometry,
+                        js.vectorizer,
+                        js.polyfills,
+                        js.core,
+                        allJSPlugins(),
+                        'test/utils.js',
+                        'test/jointjs/**/*.js',
+                    ],
+                    preprocessors: coveragePreprocessors([].concat(js.core, allJSPlugins())),
+                    coverageReporter: {
+                        dir: 'coverage/joint',
+                        reporters: coverageReporters('joint')
+                    }
+                }
+            }
+        },
         env: {
 
         }
     };
 
-    var isTestCoverageTask = grunt.cli.tasks.indexOf('test:coverage') !== -1;
+    function coveragePreprocessors(files) {
+        return files.reduce(function(preprocessors, file) {
+            preprocessors[file] = ['coverage'];
+            return preprocessors;
+        }, {});
+    }
 
-    if (isTestCoverageTask) {
-
-        (function() {
-
-            // Replace all qunit configurations with the 'urls' method.
-            // Append all URLs with ?coverage=true&grunt
-            // This will run all qunit tests with test coverage enabled and report results back to grunt.
-
-            var reporter = grunt.option('reporter') || 'lcov';
-
-            // Serve up the test files via an express app.
-            var express = require('express');
-            var serveStatic = require('serve-static');
-            var app = express();
-            var host = 'localhost';
-            var port = 3000;
-
-            app.use('/', serveStatic(__dirname));
-            app.listen(port, host);
-
-            var name, files;
-
-            for (name in config.qunit) {
-
-                // Resolve the paths for all files referenced in the task.
-                files = grunt.file.expand(config.qunit[name]);
-
-                // Overwrite QUnit task config with URLs method.
-                config.qunit[name] = { options: { urls: [] }};
-
-                files.forEach(function(file) {
-
-                    var url = 'http://' + host + ':' + port + '/' + file + '?coverage=true&reporter=' + reporter;
-
-                    config.qunit[name].options.urls.push(url);
-                });
-            }
-
-            var reporterToFileExtension = {
-                lcov: 'info'
-            };
-
-            var reports = [];
-
-            grunt.event.on('qunit.report', function(data) {
-
-                reports.push(data);
-            });
-
-            process.on('exit', function() {
-
-                var ext = reporterToFileExtension[reporter];
-                var outputFile = grunt.option('output') || 'coverage' + (ext ? '.' + ext : '');
-                var data;
-
-                switch (reporter) {
-                    case 'lcov':
-                        data = reports.join('\n');
-                        break;
-                }
-
-                grunt.file.write(outputFile, data);
-            });
-
-        })();
+    function coverageReporters(name) {
+        var reporter = grunt.option('reporter') || 'html'
+        switch (reporter) {
+            case 'lcov':
+                return [{
+                    type: 'lcovonly',
+                    subdir: '.',
+                    file: `${name}.lcov`
+                }];
+            case 'html':
+                return [{
+                    type: 'html'
+                }];
+        }
+        grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
+        process.exit(1);
     }
 
     (function registerPartials(partials) {
@@ -814,7 +843,9 @@ module.exports = function(grunt) {
     grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
 
     grunt.registerTask('test:coverage', [
-        'qunit:all_coverage'
+        'karma:geometry',
+        'karma:vectorizer',
+        'karma:joint'
     ]);
 
     grunt.registerTask('install', ['build:all']);
