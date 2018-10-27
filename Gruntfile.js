@@ -631,7 +631,8 @@ module.exports = function(grunt) {
 
     function coverageReporters(name) {
         var reporters;
-        var reporter = grunt.option('reporter') || 'stdout';
+        var check;
+        var reporter = grunt.option('reporter') || '';
         switch (reporter) {
             case 'lcov':
                 reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
@@ -639,18 +640,16 @@ module.exports = function(grunt) {
             case 'html':
                 reporters = [{ type: 'html' }];
                 break;
-            case 'stdout':
-                reporters = [{ type: 'text' }, { type: 'text-summary' }];
+            case '':
+                reporters = [{ type: 'text-summary' }];
+                check = grunt.file.readJSON('coverage.json')[name];
                 break;
             default:
                 grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
                 process.exit(1);
                 return;
         }
-        return {
-            dir: `coverage/${name}`,
-            reporters
-        }
+        return { dir: `coverage/${name}`, reporters, check }
     }
 
     (function registerPartials(partials) {
@@ -837,13 +836,8 @@ module.exports = function(grunt) {
     grunt.registerTask('test:server', ['mochaTest:server']);
     grunt.registerTask('test:client', ['qunit:all']);
     grunt.registerTask('test:code-style', ['eslint']);
-    grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
-
-    grunt.registerTask('test:coverage', [
-        'karma:geometry',
-        'karma:vectorizer',
-        'karma:joint'
-    ]);
+    grunt.registerTask('test:coverage', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
+    grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style', 'test:coverage']);
 
     grunt.registerTask('install', ['build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);

@@ -73,9 +73,8 @@ QUnit.module('paper', function(hooks) {
             assert.equal(paper.options.width, null);
             assert.equal(paper.options.height, null);
             var size = paper.getComputedSize();
-            assert.equal(size.width, 0);
-            //assert.equal(size.height, 0);
-            console.log(size);
+            assert.equal(size.width, paper.$el.width());
+            assert.equal(size.height, paper.$el.height());
         });
 
     });
