@@ -491,21 +491,6 @@ module.exports = function(grunt) {
             geometry: ['test/geometry/*.html'],
             vectorizer: ['test/vectorizer/*.html']
         },
-        shell: {
-
-            /*
-                Run `bower install` in the context of the given directory.
-            */
-            bowerInstall: {
-                command: function(dir, environment) {
-
-                    var flags = environment && environment === 'production' ? ' --production': '';
-                    var cmd = 'cd ' + dir + ' && bower --allow-root install' + flags;
-
-                    return cmd;
-                }
-            }
-        },
         syntaxHighlighting: {
             docs: {
                 src: [
@@ -832,11 +817,7 @@ module.exports = function(grunt) {
         'qunit:all_coverage'
     ]);
 
-    grunt.registerTask('bowerInstall', [
-        'shell:bowerInstall:.'
-    ]);
-
-    grunt.registerTask('install', ['bowerInstall', 'build:all']);
+    grunt.registerTask('install', ['build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 
     var e2eBrowsers = {

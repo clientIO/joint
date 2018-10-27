@@ -47,6 +47,7 @@ QUnit.module('vectorizer', function(hooks) {
                 '<path id="svg-path-3"/>' +
                 '<linearGradient id= "svg-linear-gradient"><stop/></linearGradient>';
 
+        $fixture.empty().appendTo(document.body);
         $fixture.append(V('svg', { id: 'svg-container' }, V(svgContent)).node);
 
         svgContainer = document.getElementById('svg-container');
