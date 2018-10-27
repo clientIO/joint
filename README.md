@@ -30,13 +30,15 @@ Please see [http://jointjs.com](http://jointjs.com) for more information, demos 
 
 ## Supported browsers
 
-Only the good ones (those that support SVG):
-
 * Latest Google Chrome (including mobile)
 * Latest Firefox
-* Safari (including mobile)
-* IE 9+
+* Latest Safari (including mobile)
+* Latest MSEdge
+* Latest Opera
+* IE 10+
+* PhantomJS
 
+Any problem with JointJS in the above browsers should be reported as a bug in JointJS.
 
 ## Development Environment
 
@@ -89,14 +91,20 @@ To run code style checks:
 grunt test:code-style
 ```
 
+To run the code-coverage tests:
+```
+grunt test:code-style
+```
 
-### Code Coverage
+### Code Coverage Reports
 
-To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:
+To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) or html for all unit tests:
 ```
 grunt test:coverage --reporter="lcov"
+grunt test:coverage --reporter="html"
 ```
-The output will be saved to a new file named `coverage.info` at the root of the project directory.
+
+The output will be saved into the `coverage` directory.
 
 
 ### Building Distribution Files
