@@ -585,10 +585,7 @@ module.exports = function(grunt) {
                         'test/geometry/*.js'
                     ],
                     preprocessors: coveragePreprocessors(js.geometry),
-                    coverageReporter: {
-                        dir: 'coverage/geometry',
-                        reporters: coverageReporters('geometry')
-                    }
+                    coverageReporter: coverageReporters('geometry')
                 },
             },
             vectorizer: {
@@ -599,10 +596,7 @@ module.exports = function(grunt) {
                         'test/vectorizer/*.js',
                     ],
                     preprocessors: coveragePreprocessors(js.vectorizer),
-                    coverageReporter: {
-                        dir: 'coverage/vectorizer',
-                        reporters: coverageReporters('vectorizer')
-                    }
+                    coverageReporter: coverageReporters('vectorizer')
                 }
             },
             joint: {
@@ -619,10 +613,7 @@ module.exports = function(grunt) {
                         'test/jointjs/**/*.js',
                     ],
                     preprocessors: coveragePreprocessors([].concat(js.core, allJSPlugins())),
-                    coverageReporter: {
-                        dir: 'coverage/joint',
-                        reporters: coverageReporters('joint')
-                    }
+                    coverageReporter: coverageReporters('joint')
                 }
             }
         },
@@ -639,21 +630,27 @@ module.exports = function(grunt) {
     }
 
     function coverageReporters(name) {
-        var reporter = grunt.option('reporter') || 'html'
+        var reporters;
+        var reporter = grunt.option('reporter') || 'stdout';
         switch (reporter) {
             case 'lcov':
-                return [{
-                    type: 'lcovonly',
-                    subdir: '.',
-                    file: `${name}.lcov`
-                }];
+                reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
+                break;
             case 'html':
-                return [{
-                    type: 'html'
-                }];
+                reporters = [{ type: 'html' }];
+                break;
+            case 'stdout':
+                reporters = [{ type: 'text' }, { type: 'text-summary' }];
+                break;
+            default:
+                grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
+                process.exit(1);
+                return;
         }
-        grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
-        process.exit(1);
+        return {
+            dir: `coverage/${name}`,
+            reporters
+        }
     }
 
     (function registerPartials(partials) {
