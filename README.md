@@ -98,13 +98,17 @@ grunt test:code-style
 
 ### Code Coverage Reports
 
-To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) or html for all unit tests:
+To output a code coverage report in HTML:
 ```
-grunt test:coverage --reporter="lcov"
 grunt test:coverage --reporter="html"
 ```
 
-The output will be saved into the `coverage` directory.
+To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
+```
+grunt test:coverage --reporter="lcov"
+```
+
+The output for all unit tests will be saved in the `coverage` directory.
 
 
 ### Building Distribution Files
