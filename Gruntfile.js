@@ -484,19 +484,6 @@ module.exports = function(grunt) {
                 }
             }
         },
-        qunit: {
-            joint: [
-                'test/jointjs/requirejs.html',
-                'test/jointjs/browserify.html'
-
-            ],
-            geometry: [
-                'test/geometry/requirejs.html',
-            ],
-            vectorizer: [
-                'test/vectorizer/requirejs.html'
-            ]
-        },
         syntaxHighlighting: {
             docs: {
                 src: [
@@ -558,6 +545,19 @@ module.exports = function(grunt) {
                 ],
                 tasks: ['newer:concat:types']
             }
+        },
+        qunit: {
+            joint: [
+                'test/jointjs/requirejs.html',
+                'test/jointjs/browserify.html'
+
+            ],
+            geometry: [
+                'test/geometry/requirejs.html',
+            ],
+            vectorizer: [
+                'test/vectorizer/requirejs.html'
+            ]
         },
         karma: {
             options: {
