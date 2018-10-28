@@ -91,16 +91,11 @@ To run code style checks:
 grunt test:code-style
 ```
 
-To run the code-coverage tests:
-```
-grunt test:code-style
-```
-
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:
 ```
-grunt test:coverage --reporter="html"
+grunt test:coverage"
 ```
 
 To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):

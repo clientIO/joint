@@ -485,17 +485,16 @@ module.exports = function(grunt) {
             }
         },
         qunit: {
-            all: [
-                'test/**/*.html'
-            ],
             joint: [
-                'test/jointjs/*.html'
+                'test/jointjs/requirejs.html',
+                'test/jointjs/browserify.html'
+
             ],
             geometry: [
-                'test/geometry/*.html'
+                'test/geometry/requirejs.html',
             ],
             vectorizer: [
-                'test/vectorizer/*.html'
+                'test/vectorizer/requirejs.html'
             ]
         },
         syntaxHighlighting: {
@@ -633,6 +632,9 @@ module.exports = function(grunt) {
         var reporters;
         var check;
         var reporter = grunt.option('reporter') || '';
+        if (!reporter && grunt.cli.tasks.indexOf('test:coverage') !== -1) {
+            reporter = 'html';
+        }
         switch (reporter) {
             case 'lcov':
                 reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
@@ -833,11 +835,13 @@ module.exports = function(grunt) {
         'concat:types'
     ]);
 
-    grunt.registerTask('test:server', ['mochaTest:server']);
-    grunt.registerTask('test:client', ['qunit:all']);
+    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry'])
+    grunt.registerTask('test:src', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
+    grunt.registerTask('test:coverage', ['test:src']);
     grunt.registerTask('test:code-style', ['eslint']);
-    grunt.registerTask('test:coverage', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
-    grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style', 'test:coverage']);
+    grunt.registerTask('test:server', ['mochaTest:server']);
+    grunt.registerTask('test:client', ['test:src', 'test:bundles']);
+    grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
 
     grunt.registerTask('install', ['build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
