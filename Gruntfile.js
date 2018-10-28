@@ -80,11 +80,6 @@ module.exports = function(grunt) {
             'node_modules/backbone/backbone.js',
             'node_modules/graphlib/dist/graphlib.core.js',
             'node_modules/dagre/dist/dagre.core.js',
-        ],
-
-        testDependecies: [
-            'node_modules/async/dist/async.js',
-            'node_modules/sinon/pkg/sinon.js'
         ]
     };
 
@@ -568,9 +563,9 @@ module.exports = function(grunt) {
         karma: {
             options: {
                 basePath: '',
-                autoWatch: true,
-                frameworks: ['qunit'],
-                browsers: ['PhantomJS'],
+                autoWatch: false,
+                frameworks: ['sinon', 'qunit'],
+                browsers: karmaBrowsers(),
                 reporters: ['progress', 'coverage'],
                 singleRun: true,
                 exclude: [
@@ -584,8 +579,8 @@ module.exports = function(grunt) {
                         js.geometry,
                         'test/geometry/*.js'
                     ],
-                    preprocessors: coveragePreprocessors(js.geometry),
-                    coverageReporter: coverageReporters('geometry')
+                    preprocessors: karmaPreprocessors(js.geometry),
+                    coverageReporter: karmaCoverageReporters('geometry')
                 },
             },
             vectorizer: {
@@ -595,15 +590,14 @@ module.exports = function(grunt) {
                         js.vectorizer,
                         'test/vectorizer/*.js',
                     ],
-                    preprocessors: coveragePreprocessors(js.vectorizer),
-                    coverageReporter: coverageReporters('vectorizer')
+                    preprocessors: karmaPreprocessors(js.vectorizer),
+                    coverageReporter: karmaCoverageReporters('vectorizer')
                 }
             },
             joint: {
                 options: {
                     files: [
                         js.dependecies,
-                        js.testDependecies,
                         js.geometry,
                         js.vectorizer,
                         js.polyfills,
@@ -612,8 +606,8 @@ module.exports = function(grunt) {
                         'test/utils.js',
                         'test/jointjs/**/*.js',
                     ],
-                    preprocessors: coveragePreprocessors([].concat(js.core, allJSPlugins())),
-                    coverageReporter: coverageReporters('joint')
+                    preprocessors: karmaPreprocessors([].concat(js.core, allJSPlugins())),
+                    coverageReporter: karmaCoverageReporters('joint')
                 }
             }
         },
@@ -622,14 +616,20 @@ module.exports = function(grunt) {
         }
     };
 
-    function coveragePreprocessors(files) {
-        return files.reduce(function(preprocessors, file) {
-            preprocessors[file] = ['coverage'];
-            return preprocessors;
+    function karmaBrowsers() {
+        var browser = grunt.option('browser') || 'PhantomJS';
+        return [browser];
+    }
+
+    function karmaPreprocessors(files) {
+        var preprocessors = ['coverage'];
+        return files.reduce(function(files, file) {
+            files[file] = preprocessors;
+            return files;
         }, {});
     }
 
-    function coverageReporters(name) {
+    function karmaCoverageReporters(name) {
         var reporters;
         var check;
         var reporter = grunt.option('reporter') || '';
