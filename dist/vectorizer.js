@@ -1,4 +1,4 @@
-/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
+/*! JointJS v2.2.0 (2018-10-30) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -164,9 +164,17 @@ V = Vectorizer = (function() {
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    VPrototype.getTransformToElement = function(toElem) {
-        toElem = V.toNode(toElem);
-        return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
+    VPrototype.getTransformToElement = function(target) {
+        var node = this.node;
+        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
+            var targetCTM = V.toNode(target).getScreenCTM();
+            var nodeCTM = node.getScreenCTM();
+            if (targetCTM && nodeCTM) {
+                return targetCTM.inverse().multiply(nodeCTM);
+            }
+        }
+        // Could not get actual transformation matrix
+        return V.createSVGMatrix();
     };
 
     /**
@@ -317,7 +325,8 @@ V = Vectorizer = (function() {
 
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
-        if (!ownerSVGElement) {
+        // If the element is not an SVGGraphicsElement, we could not measure the bounding box either
+        if (!ownerSVGElement || !V.isSVGGraphicsElement(node)) {
             return new g.Rect(0, 0, 0, 0);
         }
 
@@ -505,7 +514,7 @@ V = Vectorizer = (function() {
                 break;
             default:
             case 'top':
-                dy = (0.8 * flMaxFont)
+                dy = (0.8 * flMaxFont);
                 break;
         }
         return dy;
@@ -523,7 +532,7 @@ V = Vectorizer = (function() {
         // End of Line character
         var eol = opt.eol;
         // Text along path
-        var textPath = opt.textPath
+        var textPath = opt.textPath;
         // Vertical shift
         var verticalAnchor = opt.textVerticalAnchor;
         var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
@@ -635,10 +644,10 @@ V = Vectorizer = (function() {
                 }
                 switch (verticalAnchor) {
                     case 'middle':
-                        dy = (0.3 - (rh / 2)) + 'em'
+                        dy = (0.3 - (rh / 2)) + 'em';
                         break;
                     case 'bottom':
-                        dy = (-rh - 0.3) + 'em'
+                        dy = (-rh - 0.3) + 'em';
                         break;
                 }
             }
@@ -723,7 +732,7 @@ V = Vectorizer = (function() {
         }
 
         return this;
-    }
+    };
 
     VPrototype.remove = function() {
 
@@ -1042,7 +1051,7 @@ V = Vectorizer = (function() {
 
     VPrototype.addClass = function(className) {
 
-        if (!this.hasClass(className)) {
+        if (className && !this.hasClass(className)) {
             var prevClasses = this.node.getAttribute('class') || '';
             this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
         }
@@ -1052,7 +1061,7 @@ V = Vectorizer = (function() {
 
     VPrototype.removeClass = function(className) {
 
-        if (this.hasClass(className)) {
+        if (className && this.hasClass(className)) {
             var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
             this.node.setAttribute('class', newClasses);
         }
@@ -1494,10 +1503,10 @@ V = Vectorizer = (function() {
                 rotate = [decomposedMatrix.rotation];
 
                 var transformations = [];
-                if (translate[0] !== 0 ||  translate[0] !== 0) {
+                if (translate[0] !== 0 || translate[1] !== 0) {
                     transformations.push('translate(' + translate + ')');
                 }
-                if (scale[0] !== 1 ||  scale[1] !== 1) {
+                if (scale[0] !== 1 || scale[1] !== 1) {
                     transformations.push('scale(' + scale + ')');
                 }
                 if (rotate[0] !== 0) {
@@ -1623,6 +1632,15 @@ V = Vectorizer = (function() {
 
     // For backwards compatibility:
     V.isVElement = V.isV;
+
+    // Element implements `getBBox()`, `getCTM()` and `getScreenCTM()`
+    // https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement
+    V.isSVGGraphicsElement = function(node) {
+        if (!node) return false;
+        node = V.toNode(node);
+        // IE/Edge does not implement SVGGraphicsElement interface, thus check for `getScreenCTM` below
+        return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
+    };
 
     var svgDocument = V('svg').node;
 
@@ -2409,8 +2427,6 @@ V = Vectorizer = (function() {
                     case 'V':
                         path = ['L'].concat(d.x, path[1]);
                         break;
-
-                    // leave 'L' & 'Z' commands as they were:
 
                     case 'L':
                         break;
