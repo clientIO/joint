@@ -1,0 +1,46 @@
+<p>An image inscribed in an ellipse with a label.</p>
+
+<b>Supported <code>attrs</code> properties</b></p>
+
+<table>
+    <tr>
+        <th>Selector</th>
+        <th>Node</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>root</td>
+        <td><i>SVGGElement</i></td>
+        <td>Container of all nodes</td>
+    </tr>
+    <tr>
+        <td>image</td>
+        <td><i>SVGImageElement</i></td>
+        <td>Image inscribed in the ellipse</td>
+    </tr>
+    <tr>
+        <td>border</td>
+        <td><i>SVGEllipseElement</i></td>
+        <td>Border around the ellipse</td>
+    </tr>
+    <tr>
+        <td>background</td>
+        <td><i>SVGEllipseElement</i></td>
+        <td>Area of the ellipse</td>
+    </tr>
+    <tr>
+        <td>label</td>
+        <td><i>SVGTextElement</i></td>
+        <td>Text below the shape</td>
+    </tr>
+</table>
+
+<pre><code>var inscribedImage = new joint.shapes.standard.InscibedImage();
+inscribedImage.resize(150, 100);
+inscribedImage.position(225, 410);
+inscribedImage.attr('root/title', 'joint.shapes.standard.InscribedImage');
+inscribedImage.attr('label/text', 'Inscribed Image');
+inscribedImage.attr('border/strokeWidth', 5);
+inscribedImage.attr('background/fill', 'lightgray');
+inscribedImage.attr('image/xlinkHref', 'image.png');
+inscribedImage.addTo(graph);</code></pre>

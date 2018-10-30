@@ -1289,6 +1289,21 @@ export namespace shapes {
             )
         }
 
+        interface InscribedImageSelectors {
+            root?: attributes.SVGAttributes;
+            border?: attributes.SVGEllipseAttributes;
+            background?: attributes.SVGEllipseAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class InscribedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<InscribedImageSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
         interface HeaderedRectangleSelectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
