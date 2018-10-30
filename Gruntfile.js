@@ -45,8 +45,13 @@ module.exports = function(grunt) {
             'plugins/tools/*.js'
         ],
 
-        geometry: ['src/geometry.js'],
-        vectorizer: ['src/vectorizer.js'],
+        geometry: [
+            'src/geometry.js'
+        ],
+
+        vectorizer: [
+            'src/vectorizer.js'
+        ],
 
         polyfills: [
             'plugins/polyfills/base64.js',
@@ -58,7 +63,6 @@ module.exports = function(grunt) {
         ],
 
         plugins: {
-
             'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
             'shapes.fsa': ['plugins/shapes/joint.shapes.fsa.js'],
             'shapes.org': ['plugins/shapes/joint.shapes.org.js'],
@@ -67,9 +71,16 @@ module.exports = function(grunt) {
             'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
             'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
             'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
-
             'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
-        }
+        },
+
+        dependecies: [
+            'node_modules/jquery/dist/jquery.js',
+            'node_modules/lodash/lodash.js',
+            'node_modules/backbone/backbone.js',
+            'node_modules/graphlib/dist/graphlib.core.js',
+            'node_modules/dagre/dist/dagre.core.js',
+        ]
     };
 
     var css = {
@@ -473,39 +484,6 @@ module.exports = function(grunt) {
                 }
             }
         },
-        qunit: {
-            all: [
-                'test/**/*.html',
-                '!test/**/coverage.html',
-                '!test/**/node_modules/**'
-            ],
-            all_coverage: [
-                'test/**/coverage.html',
-                '!test/**/node_modules/**'
-            ],
-            joint: [
-                'test/jointjs/*.html',
-                '!test/jointjs/coverage.html',
-                '!test/**/node_modules/**'
-            ],
-            geometry: ['test/geometry/*.html'],
-            vectorizer: ['test/vectorizer/*.html']
-        },
-        shell: {
-
-            /*
-                Run `bower install` in the context of the given directory.
-            */
-            bowerInstall: {
-                command: function(dir, environment) {
-
-                    var flags = environment && environment === 'production' ? ' --production': '';
-                    var cmd = 'cd ' + dir + ' && bower --allow-root install' + flags;
-
-                    return cmd;
-                }
-            }
-        },
         syntaxHighlighting: {
             docs: {
                 src: [
@@ -568,78 +546,112 @@ module.exports = function(grunt) {
                 tasks: ['newer:concat:types']
             }
         },
+        qunit: {
+            joint: [
+                'test/jointjs/requirejs.html',
+                'test/jointjs/browserify.html',
+                'test/jointjs/lodash3/index.html'
+            ],
+            geometry: [
+                'test/geometry/requirejs.html',
+            ],
+            vectorizer: [
+                'test/vectorizer/requirejs.html'
+            ]
+        },
+        karma: {
+            options: {
+                basePath: '',
+                autoWatch: false,
+                frameworks: ['sinon', 'qunit'],
+                browsers: karmaBrowsers(),
+                reporters: ['progress', 'coverage'],
+                singleRun: true,
+                exclude: [
+                    'test/**/require.js',
+                    'test/**/browserify.js'
+                ]
+            },
+            geometry: {
+                options: {
+                    files: [
+                        js.geometry,
+                        'test/geometry/*.js'
+                    ],
+                    preprocessors: karmaPreprocessors(js.geometry),
+                    coverageReporter: karmaCoverageReporters('geometry')
+                },
+            },
+            vectorizer: {
+                options: {
+                    files: [
+                        js.geometry,
+                        js.vectorizer,
+                        'test/vectorizer/*.js',
+                    ],
+                    preprocessors: karmaPreprocessors(js.vectorizer),
+                    coverageReporter: karmaCoverageReporters('vectorizer')
+                }
+            },
+            joint: {
+                options: {
+                    files: [
+                        js.dependecies,
+                        js.geometry,
+                        js.vectorizer,
+                        js.polyfills,
+                        js.core,
+                        allJSPlugins(),
+                        'test/utils.js',
+                        'test/jointjs/**/*.js',
+                    ],
+                    preprocessors: karmaPreprocessors([].concat(js.core, allJSPlugins())),
+                    coverageReporter: karmaCoverageReporters('joint')
+                }
+            }
+        },
         env: {
 
         }
     };
 
-    var isTestCoverageTask = grunt.cli.tasks.indexOf('test:coverage') !== -1;
+    function karmaBrowsers() {
+        var browser = grunt.option('browser') || 'PhantomJS';
+        return [browser];
+    }
 
-    if (isTestCoverageTask) {
+    function karmaPreprocessors(files) {
+        var preprocessors = ['coverage'];
+        return files.reduce(function(files, file) {
+            files[file] = preprocessors;
+            return files;
+        }, {});
+    }
 
-        (function() {
-
-            // Replace all qunit configurations with the 'urls' method.
-            // Append all URLs with ?coverage=true&grunt
-            // This will run all qunit tests with test coverage enabled and report results back to grunt.
-
-            var reporter = grunt.option('reporter') || 'lcov';
-
-            // Serve up the test files via an express app.
-            var express = require('express');
-            var serveStatic = require('serve-static');
-            var app = express();
-            var host = 'localhost';
-            var port = 3000;
-
-            app.use('/', serveStatic(__dirname));
-            app.listen(port, host);
-
-            var name, files;
-
-            for (name in config.qunit) {
-
-                // Resolve the paths for all files referenced in the task.
-                files = grunt.file.expand(config.qunit[name]);
-
-                // Overwrite QUnit task config with URLs method.
-                config.qunit[name] = { options: { urls: [] }};
-
-                files.forEach(function(file) {
-
-                    var url = 'http://' + host + ':' + port + '/' + file + '?coverage=true&reporter=' + reporter;
-
-                    config.qunit[name].options.urls.push(url);
-                });
-            }
-
-            var reporterToFileExtension = {
-                lcov: 'info'
-            };
-
-            var reports = [];
-
-            grunt.event.on('qunit.report', function(data) {
-
-                reports.push(data);
-            });
-
-            process.on('exit', function() {
-
-                var ext = reporterToFileExtension[reporter];
-                var outputFile = grunt.option('output') || 'coverage' + (ext ? '.' + ext : '');
-                var data;
-
-                switch (reporter) {
-                    case 'lcov':
-                        data = reports.join('\n');
-                        break;
-                }
-
-                grunt.file.write(outputFile, data);
-            });
-
-        })();
+    function karmaCoverageReporters(name) {
+        var reporters;
+        var check;
+        var reporter = grunt.option('reporter') || '';
+        if (!reporter && grunt.cli.tasks.indexOf('test:coverage') !== -1) {
+            reporter = 'html';
+        }
+        switch (reporter) {
+            case 'lcov':
+                reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
+                break;
+            case 'html':
+                reporters = [{ type: 'html' }];
+                break;
+            case '':
+                reporters = [{ type: 'text-summary' }];
+                check = grunt.file.readJSON('coverage.json')[name];
+                break;
+            default:
+                grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
+                process.exit(1);
+                return;
+        }
+        return { dir: `coverage/${name}`, reporters, check }
     }
 
     (function registerPartials(partials) {
@@ -823,20 +835,15 @@ module.exports = function(grunt) {
         'concat:types'
     ]);
 
-    grunt.registerTask('test:server', ['mochaTest:server']);
-    grunt.registerTask('test:client', ['qunit:all']);
+    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry'])
+    grunt.registerTask('test:src', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
+    grunt.registerTask('test:coverage', ['test:src']);
     grunt.registerTask('test:code-style', ['eslint']);
+    grunt.registerTask('test:server', ['mochaTest:server']);
+    grunt.registerTask('test:client', ['test:src', 'test:bundles']);
     grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
 
-    grunt.registerTask('test:coverage', [
-        'qunit:all_coverage'
-    ]);
-
-    grunt.registerTask('bowerInstall', [
-        'shell:bowerInstall:.'
-    ]);
-
-    grunt.registerTask('install', ['bowerInstall', 'build:all']);
+    grunt.registerTask('install', ['build:all']);
     grunt.registerTask('default', ['install', 'build', 'watch']);
 
     var e2eBrowsers = {

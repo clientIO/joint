@@ -1,7 +1,7 @@
 QUnit.module('embedding', function(hooks) {
     hooks.beforeEach(function() {
 
-        var $fixture = $('#qunit-fixture');
+        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
         var $paper = $('<div/>');
         $fixture.append($paper);
 

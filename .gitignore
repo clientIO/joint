@@ -1,6 +1,4 @@
 build/
 node_modules/
-lib/*/*
-coverage.info
-npm-debug.log
-phantomjsdriver.log
+coverage/
+*.log
