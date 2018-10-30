@@ -1,5 +1,5 @@
 
-31-10-2018 (v2.2.0)
+30-10-2018 (v2.2.0)
   * update unsecure dependcies (mainly Lodash v4.17.11)
   * use Karma+Istanbul to run the tests
   * dia.Graph - getCellsBBox() takes the cells rotation into account
