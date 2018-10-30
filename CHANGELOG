@@ -1,6 +1,6 @@
 30-10-2018 (v2.2.0)
   * update insecure dependcies (mainly Lodash v4.17.11)
-  * use Karma+Istanbul to run coverage tests
+  * use Karma+Istanbul to run tests
   * dia.Graph - getCellsBBox() takes cells' rotation into account
   * dia.Graph - fix cell removal after dry flag passed
   * dia.Paper - support relative dimensions (e.g. width='100%')
