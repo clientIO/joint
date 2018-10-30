@@ -22,6 +22,7 @@
   * dia.atributes - add refWidth2 and refHeight2
   * shapes.standard - add background to BorderedImage
   * shapes.standard - add InscribedImage shape
+  * shapes.pn - fix PlaceView
   * connectionPoints.Boundary - fix for non-graphical elements
   * routers.manhattan - prevent rounding errors, add padding option
   * routers.orthogonal - add padding option
