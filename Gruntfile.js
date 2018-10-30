@@ -549,8 +549,8 @@ module.exports = function(grunt) {
         qunit: {
             joint: [
                 'test/jointjs/requirejs.html',
-                'test/jointjs/browserify.html'
-
+                'test/jointjs/browserify.html',
+                'test/jointjs/lodash3/index.html'
             ],
             geometry: [
                 'test/geometry/requirejs.html',
