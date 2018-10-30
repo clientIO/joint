@@ -1369,6 +1369,30 @@ var g = {};
             return this.tangentAt(this.closestPointNormalizedLength(p));
         },
 
+        // Divides the line into two at requested `ratio` between 0 and 1.
+        divideAt: function(ratio) {
+
+            var dividerPoint = this.pointAt(ratio);
+
+            // return array with two new lines
+            return [
+                new Line(this.start, dividerPoint),
+                new Line(dividerPoint, this.end)
+            ];
+        },
+
+        // Divides the line into two at requested `length`.
+        divideAtLength: function(length) {
+
+            var dividerPoint = this.pointAtLength(length);
+
+            // return array with two new lines
+            return [
+                new Line(this.start, dividerPoint),
+                new Line(dividerPoint, this.end)
+            ];
+        },
+
         equals: function(l) {
 
             return !!l &&
