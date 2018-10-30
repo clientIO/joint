@@ -1071,7 +1071,7 @@ var g = {};
         }
     };
 
-    Curve.prototype.divide = Point.prototype.divideAtT;
+    Curve.prototype.divide = Curve.prototype.divideAtT;
 
     var Ellipse = g.Ellipse = function(c, a, b) {
 
