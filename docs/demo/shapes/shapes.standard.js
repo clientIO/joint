@@ -129,17 +129,17 @@ embeddedImage.attr('body/stroke', '#fe854f');
 embeddedImage.attr('image/xlinkHref', 'http://via.placeholder.com/60x80');
 embeddedImage.addTo(graph);
 
-var icon = new standard.OvalImage();
-icon.resize(100, 100);
-icon.position(450, 450);
-icon.attr('root/tabindex', 11);
-icon.attr('root/title', 'joint.shapes.standard.OvalImage');
-icon.attr('label/text', 'Icon');
-icon.attr('background/fill', '#fe854f');
-icon.attr('background/fillOpacity', 0.5);
-icon.attr('border/stroke', '#fe854f');
-icon.attr('image/xlinkHref', 'http://via.placeholder.com/80x80');
-icon.addTo(graph);
+var inscribedImage = new standard.InscribedImage();
+inscribedImage.resize(100, 100);
+inscribedImage.position(450, 450);
+inscribedImage.attr('root/tabindex', 11);
+inscribedImage.attr('root/title', 'joint.shapes.standard.InscribedImage');
+inscribedImage.attr('label/text', 'Inscribed\nImage');
+inscribedImage.attr('background/fill', '#fe854f');
+inscribedImage.attr('background/fillOpacity', 0.5);
+inscribedImage.attr('border/stroke', '#fe854f');
+inscribedImage.attr('image/xlinkHref', 'http://via.placeholder.com/80x80');
+inscribedImage.addTo(graph);
 
 var headeredRectangle = new standard.HeaderedRectangle();
 headeredRectangle.resize(150, 100);

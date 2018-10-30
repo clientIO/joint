@@ -1289,7 +1289,7 @@ export namespace shapes {
             )
         }
 
-        interface OvalImageSelectors {
+        interface InscribedImageSelectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGEllipseAttributes;
             background?: attributes.SVGEllipseAttributes;
@@ -1297,9 +1297,9 @@ export namespace shapes {
             label?: attributes.SVGTextAttributes;
         }
 
-        class OvalImage extends dia.Element {
+        class InscribedImage extends dia.Element {
             constructor(
-                attributes?: dia.Element.GenericAttributes<OvalImageSelectors>,
+                attributes?: dia.Element.GenericAttributes<InscribedImageSelectors>,
                 opt?: dia.Graph.Options
             )
         }

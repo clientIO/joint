@@ -295,7 +295,7 @@
         }]
     });
 
-    Element.define('standard.OvalImage', {
+    Element.define('standard.InscribedImage', {
         attrs: {
             border: {
                 refRx: '50%',
