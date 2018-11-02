@@ -486,6 +486,41 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
+
+            // moveto -> 1 line (correct)
+            segment = g.Path.createSegment('M', new g.Line('10 10', '10 20'));
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 20');
+
+            // moveto -> 2 lines (incorrect)
+            try {
+                segment = g.Path.createSegment('M', new g.Line('10 10', '10 20'), new g.Line('10 20', '20 20'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 2 lines.');
+
+            // moveto -> 1 curve (correct)
+            segment = g.Path.createSegment('M', new g.Curve('10 10', '10 20', '20 0', '20 10'));
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 20 10');
+
+            // moveto -> 2 curves (incorrect)
+            try {
+                segment = g.Path.createSegment('M', new g.Curve('10 10', '10 20', '20 0', '20 10'), new g.Curve('20 10', '20 20', '30 0', '30 10'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 2 curves.');
+
+            // moveto functions
+            segment = g.Path.createSegment('M', '10', '10');
+            assert.equal(segment.bbox(), null);
+            assert.equal(segment.closestPoint(new g.Point('20', '20')).toString(), '10@10');
         });
 
         QUnit.test('lineto', function(assert) {
@@ -581,6 +616,21 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
+
+            // lineto -> 1 line (correct)
+            segment = g.Path.createSegment('L', new g.Line('10 10', '10 20'));
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 20');
+
+            // lineto -> 2 lines (incorrect)
+            try {
+                segment = g.Path.createSegment('L', new g.Line('10 10', '10 20'), new g.Line('10 20', '20 20'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when L called with 2 lines.');
         });
 
         QUnit.test('curveto', function(assert) {
@@ -692,6 +742,21 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
+
+            // curveto -> 1 curve (correct)
+            segment = g.Path.createSegment('C', new g.Curve('10 10', '10 20', '20 0', '20 10'));
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 20 20 0 20 10');
+
+            // curveto -> 2 curves (incorrect)
+            try {
+                segment = g.Path.createSegment('C', new g.Curve('10 10', '10 20', '20 0', '20 10'), new g.Curve('20 10', '20 20', '30 0', '30 10'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 2 curves.');
         });
 
         QUnit.test('closepath', function(assert) {
@@ -1326,6 +1391,11 @@ QUnit.module('path', function(hooks) {
 
                 var path;
                 var pathDivide;
+
+                path = new g.Path();
+                assert.equal(path.divideAtLength(40), null);
+                assert.equal(path.divideAtLength(40, { precision: 0 }), null);
+                assert.equal(path.divideAtLength(10000), null);
 
                 path = new g.Path('M 0 0 M 100 0');
                 assert.equal(path.divideAtLength(40), null);
