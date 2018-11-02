@@ -433,6 +433,22 @@ QUnit.module('path', function(hooks) {
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
 
+            // moveto -> 1 plain object (correct)
+            segment = g.Path.createSegment('M', { x: 10, y: 10 });
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10');
+
+            // moveto -> 2 plain objects (correct)
+            segment = g.Path.createSegment('M', { x: 10, y: 10 }, { x: 11, y: 11 });
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
+
             // moveto -> 1 string coordinate (incorrect)
             try {
                 segment = g.Path.createSegment('M', '10');
@@ -563,6 +579,22 @@ QUnit.module('path', function(hooks) {
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
 
+            // lineto -> 1 plain object (correct)
+            segment = g.Path.createSegment('L', { x: 10, y: 10 });
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10');
+
+            // lineto -> 2 plain objects (correct)
+            segment = g.Path.createSegment('L', { x: 10, y: 10 }, { x: 11, y: 11 });
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.L);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
+
             // lineto -> 1 string coordinate (incorrect)
             try {
                 segment = g.Path.createSegment('L', '10');
@@ -682,6 +714,38 @@ QUnit.module('path', function(hooks) {
 
             // curveto -> 6 points (correct)
             segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13), new g.Point(14, 14), new g.Point(15, 15));
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.C);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
+
+            // curveto -> 2 plain objects (incorrect)
+            try {
+                segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 });
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 2 points.');
+
+            // curveto -> 3 plain objects (correct)
+            segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 }, { x: 12, y: 12 });
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12');
+
+            // curveto -> 5 plain objects (incorrect)
+            try {
+                segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 }, { x: 12, y: 12 }, { x: 13, y: 13 }, { x: 14, y: 14 });
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 5 points.');
+
+            // curveto -> 6 plain objects (correct)
+            segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 }, { x: 12, y: 12 }, { x: 13, y: 13 }, { x: 14, y: 14 }, { x: 15, y: 15 });
             assert.ok(Array.isArray(segment));
             assert.ok(segment[0] instanceof g.Path.segmentTypes.C);
             assert.ok(segment[1] instanceof g.Path.segmentTypes.C);
