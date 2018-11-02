@@ -4590,7 +4590,16 @@ var g = {};
 
         var outputArray;
 
-        if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
+        if (args[0] instanceof Line) { // lines provided
+            if (n === 1) {
+                this.end = args[0].end.clone();
+                return this;
+
+            } else {
+                throw new Error('Lineto constructor expects a line, 1 point, or 2 coordinates (' + n + ' lines provided).');
+            }
+
+        } else if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
             if (n === 2) {
                 this.end = new Point(+args[0], +args[1]);
                 return this;
@@ -4609,7 +4618,7 @@ var g = {};
                 return outputArray;
             }
 
-        } else if (args[0] instanceof Point) { // points provided
+        } else { // points provided (needs to be last to also cover plain objects with x and y)
             if (n === 1) {
                 this.end = new Point(args[0]);
                 return this;
@@ -4623,15 +4632,6 @@ var g = {};
                     outputArray.push(new Lineto(segmentPoint));
                 }
                 return outputArray;
-            }
-
-        } else if (args[0] instanceof Line) { // lines provided
-            if (n === 1) {
-                this.end = args[0].end.clone();
-                return this;
-
-            } else {
-                throw new Error('Lineto constructor expects a line, 1 point, or 2 coordinates (' + n + ' lines provided).');
             }
         }
     };
@@ -4708,7 +4708,18 @@ var g = {};
 
         var outputArray;
 
-        if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
+        if (args[0] instanceof Curve) { // curves provided
+            if (n === 1) {
+                this.controlPoint1 = args[0].controlPoint1.clone();
+                this.controlPoint2 = args[0].controlPoint2.clone();
+                this.end = args[0].end.clone();
+                return this;
+
+            } else {
+                throw new Error('Curveto constructor expects a curve, 3 points, or 6 coordinates (' + n + ' curves provided).');
+            }
+
+        } else if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
             if (n === 6) {
                 this.controlPoint1 = new Point(+args[0], +args[1]);
                 this.controlPoint2 = new Point(+args[2], +args[3]);
@@ -4729,7 +4740,7 @@ var g = {};
                 return outputArray;
             }
 
-        } else if (args[0] instanceof Point) { // points provided
+        } else { // points provided (needs to be last to also cover plain objects with x and y)
             if (n === 3) {
                 this.controlPoint1 = new Point(args[0]);
                 this.controlPoint2 = new Point(args[1]);
@@ -4748,17 +4759,6 @@ var g = {};
                     outputArray.push(applyToNew(Curveto, segmentPoints));
                 }
                 return outputArray;
-            }
-
-        } else if (args[0] instanceof Curve) { // curves provided
-            if (n === 1) {
-                this.controlPoint1 = args[0].controlPoint1.clone();
-                this.controlPoint2 = args[0].controlPoint2.clone();
-                this.end = args[0].end.clone();
-                return this;
-
-            } else {
-                throw new Error('Curveto constructor expects a curve, 3 points, or 6 coordinates (' + n + ' curves provided).');
             }
         }
     };
@@ -4841,7 +4841,25 @@ var g = {};
 
         var outputArray;
 
-        if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
+        if (args[0] instanceof Line) { // lines provided
+            if (n === 1) {
+                this.end = args[0].end.clone();
+                return this;
+
+            } else {
+                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' lines provided).');
+            }
+
+        } else if (args[0] instanceof Curve) { // curves provided
+            if (n === 1) {
+                this.end = args[0].end.clone();
+                return this;
+
+            } else {
+                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' curves provided).');
+            }
+
+        } else if (typeof args[0] === 'string' || typeof args[0] === 'number') { // coordinates provided
             if (n === 2) {
                 this.end = new Point(+args[0], +args[1]);
                 return this;
@@ -4861,7 +4879,7 @@ var g = {};
                 return outputArray;
             }
 
-        } else if (args[0] instanceof Point) { // points provided
+        } else { // points provided (needs to be last to also cover plain objects with x and y)
             if (n === 1) {
                 this.end = new Point(args[0]);
                 return this;
@@ -4876,23 +4894,6 @@ var g = {};
                     else outputArray.push(new Lineto(segmentPoint));
                 }
                 return outputArray;
-            }
-
-        } else if (args[0] instanceof Line) { // lines provided
-            if (n === 1) {
-                this.end = args[0].end.clone();
-                return this;
-
-            } else {
-                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' lines provided).');
-            }
-        } else if (args[0] instanceof Curve) { // curves provided
-            if (n === 1) {
-                this.end = args[0].end.clone();
-                return this;
-
-            } else {
-                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' curves provided).');
             }
         }
     };
