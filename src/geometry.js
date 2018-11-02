@@ -1984,14 +1984,14 @@ var g = {};
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
                 if (segment.isDifferentiable()) { // segment is not just a point
+                    lastValidSegment = segment;
+                    lastValidSegmentIndex = (fromStart ? (i) : (numSegments - 1 - i));
+
                     if (length <= (l + d)) {
                         dividedSegmentIndex = (fromStart ? (i) : (numSegments - 1 - i));
                         divided = segment.divideAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
-                        continue;
+                        break;
                     }
-
-                    lastValidSegment = segment;
-                    lastValidSegmentIndex = (fromStart ? (i) : (numSegments - 1 - i));
                 }
 
                 l += d;
@@ -2014,39 +2014,69 @@ var g = {};
             for (i = 0; i < numSegments; i++) {
 
                 segment = segments[i].clone();
+                var segmentType = segment.type;
 
                 if (i < dividedSegmentIndex) {
                     firstPath.appendSegment(segment);
 
                 } else if (i === dividedSegmentIndex) {
-                    var segmentType = segment.type;
-                    if (segmentType === 'Z') {
-                        // Closepath segments are converted into Lineto segments
-                        segmentType = 'L';
-                    }
-
+                    // first path is guaranteed to start with a moveto segment (must be valid)
                     // add the first divided part to first path
                     // do not add a single-point divided segment at the end of first path
-                    // unless we are at the very beginning of the path
-                    // (and then the single-point segment is the only segment in the first path)
-                    if (divided[0].isDifferentiable() || (dividedSegmentIndex === 0)) {
-                        var firstDividedPart = Path.createSegment(segmentType, divided[0]);
+                    if (divided[0].isDifferentiable()) {
+                        var firstDividedPart;
+
+                        if (segmentType === 'Z') {
+                            if (divided[1].isDifferentiable()) {
+                                // Closepath segment is converted into two Lineto segments
+                                firstDividedPart = Path.createSegment('L', divided[0]);
+                            }
+
+                            if (!divided[1].isDifferentiable()) {
+                                // if the second divided part is just a point, keep 'Z'
+                                firstDividedPart = Path.createSegment('Z');
+                            }
+
+                        } else {
+                            firstDividedPart = Path.createSegment(segmentType, divided[0]);
+                        }
+
                         firstPath.appendSegment(firstDividedPart);
                     }
 
-                    // add the second divided part to second path
+                    // start second path with a Moveto segment (so we end up with a valid path)
                     var secondPathMoveto = Path.createSegment('M', divided[0]);
                     secondPath.appendSegment(secondPathMoveto);
-                    // do not add a single-point divided segment at the beginning of second path
-                    // unless we are at the very end of the path
-                    // (and then the single-point segment is the only segment in the second path)
-                    if (divided[1].isDifferentiable() || (dividedSegmentIndex === (numSegments - 1))) {
-                        var secondDividedPart = Path.createSegment(segmentType, divided[1]);
+                    // add the second divided part to second path
+                    // do not add a single-point divided segment here
+                    if (divided[1].isDifferentiable()) {
+                        var secondDividedPart;
+
+                        if (segmentType === 'Z') {
+                            secondDividedPart = Path.createSegment('L', divided[1]);
+
+                        } else {
+                            secondDividedPart = Path.createSegment(segmentType, divided[1]);
+                        }
+
                         secondPath.appendSegment(secondDividedPart);
                     }
 
                 } else { // i > dividedSegmentIndex
                     secondPath.appendSegment(segment);
+
+                    // check if Closepath segment points to correct subpath start
+                    if (segmentType === 'Z') {
+                        var originalSegment = this.getSegment(i);
+                        var secondPathSegment = secondPath.getSegment(-1);
+
+                        if (!originalSegment.subpathStartSegment.end.equals(secondPathSegment.subpathStartSegment.end)) {
+                            // the reported subpath start is different for original and reproduced segment
+                            // convert original Closepath segment to Lineto and replace the segment in the new path
+                            var convertedSegment = Path.createSegment('L', originalSegment.end);
+                            secondPath.replaceSegment(-1, convertedSegment);
+                        }
+                    }
                 }
             }
 
@@ -4590,8 +4620,6 @@ var g = {};
 
         } else if (args[0] instanceof Line) { // lines provided
             if (n === 1) {
-                this.controlPoint1 = args[0].controlPoint1.clone();
-                this.controlPoint2 = args[0].controlPoint2.clone();
                 this.end = args[0].end.clone();
                 return this;
 
@@ -4801,7 +4829,7 @@ var g = {};
         }
 
         if (n === 0) {
-            throw new Error('Moveto constructor expects a line, 1 point, or 2 coordinates (none provided).');
+            throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (none provided).');
         }
 
         var outputArray;
@@ -4812,7 +4840,7 @@ var g = {};
                 return this;
 
             } else if (n < 2) {
-                throw new Error('Moveto constructor expects a line, 1 point, or 2 coordinates (' + n + ' coordinates provided).');
+                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' coordinates provided).');
 
             } else { // this is a moveto-with-subsequent-poly-line segment
                 var segmentCoords;
@@ -4849,7 +4877,15 @@ var g = {};
                 return this;
 
             } else {
-                throw new Error('Moveto constructor expects a line, 1 point, or 2 coordinates (' + n + ' lines provided).');
+                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' lines provided).');
+            }
+        } else if (args[0] instanceof Curve) { // curves provided
+            if (n === 1) {
+                this.end = args[0].end.clone();
+                return this;
+
+            } else {
+                throw new Error('Moveto constructor expects a line, a curve, 1 point, or 2 coordinates (' + n + ' curves provided).');
             }
         }
     };

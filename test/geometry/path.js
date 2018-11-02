@@ -1194,6 +1194,197 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('divideAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var pathDivide;
+
+                path = new g.Path();
+                assert.equal(path.divideAt(0.5), null);
+                assert.equal(path.divideAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.divideAt(-1), null);
+                assert.equal(path.divideAt(10), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.divideAt(0.5), null);
+                assert.equal(path.divideAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.divideAt(-1), null);
+                assert.equal(path.divideAt(10), null);
+
+                path = new g.Path('M 0 0 L 0 0');
+                assert.equal(path.divideAt(0.5), null);
+                assert.equal(path.divideAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.divideAt(-1), null);
+                assert.equal(path.divideAt(10), null);
+
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAt(0.1);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // point of discontinuity
+                pathDivide = path.divideAt(0.2);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto midpoint
+                pathDivide = path.divideAt(0.4);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto
+                pathDivide = path.divideAt(0.5);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // closepath
+                pathDivide = path.divideAt(0.9);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAt(-1);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAt(10);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+            });
+
+            QUnit.test('returns an array with two paths, divided at provided `ratio`', function(assert) {
+
+                var path;
+                var pathDivide;
+
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAt(0.1);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 100.00383501229652');
+                assert.equal(pathDivide[1].toString(), 'M 0 100.00383501229652 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // point of discontinuity
+                pathDivide = path.divideAt(0.2);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0.007670024593031677');
+                assert.equal(pathDivide[1].toString(), 'M 0 0.007670024593031677 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // curveto midpoint
+                pathDivide = path.divideAt(0.4);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 100 50 150 100 150');
+                assert.equal(pathDivide[1].toString(), 'M 100 150 C 150 150 200 100 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // arbitrary curveto point
+                pathDivide = path.divideAt(0.5);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 159.765625 127.62527465820312 191.90597534179688 178.97450625896454 96.42105102539062');
+                assert.equal(pathDivide[1].toString(), 'M 178.97450625896454 96.42105102539062 C 191.90597534179688 72.37472534179688 200 40.234375 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // closepath
+                pathDivide = path.divideAt(0.9);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 L 99.99616498770342 200');
+                assert.equal(pathDivide[1].toString(), 'M 99.99616498770342 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                pathDivide = path.divideAt(-1);
+                assert.equal(pathDivide[0].toString(), 'M 0 200');
+                assert.equal(pathDivide[1].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+                assert.equal(pathDivide[1].toString(), path.toString());
+
+                pathDivide = path.divideAt(10);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.equal(pathDivide[1].toString(), 'M 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+            });
+        });
+
+        QUnit.module('divideAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curveDivide;
+
+                curveDivide = curve.divideAtLength(120); // normal
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(-120); // normal negative
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(0); // minimum
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(1000); // too much
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(-1000); // too much negative
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+            });
+
+            QUnit.test('returns an array with two paths, divided at provided `length`', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curveDivide;
+
+                curveDivide = curve.divideAtLength(120);
+                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
+                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+
+                curveDivide = curve.divideAtLength(-120);
+                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
+                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+
+                curveDivide = curve.divideAtLength(0);
+                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
+                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+
+                curveDivide = curve.divideAtLength(1000);
+                assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
+                assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
+
+                curveDivide = curve.divideAtLength(-1000);
+                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
+                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+            });
+        });
+
         QUnit.module('equals()', function() {
 
             QUnit.test('checks whether two paths are exactly the same', function(assert) {
