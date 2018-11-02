@@ -955,7 +955,8 @@ var g = {};
             var l = 0; // length so far
             var n = subdivisions.length;
             var subdivisionSize = 1 / n;
-            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (var i = 0; i < n; i++) {
+                var index = (fromStart ? i : (n - 1 - i));
 
                 var currentSubdivision = subdivisions[i];
                 var d = currentSubdivision.endpointDistance(); // length of current subdivision
@@ -963,8 +964,8 @@ var g = {};
                 if (length <= (l + d)) {
                     investigatedSubdivision = currentSubdivision;
 
-                    investigatedSubdivisionStartT = i * subdivisionSize;
-                    investigatedSubdivisionEndT = (i + 1) * subdivisionSize;
+                    investigatedSubdivisionStartT = index * subdivisionSize;
+                    investigatedSubdivisionEndT = (index + 1) * subdivisionSize;
 
                     baselinePointDistFromStart = (fromStart ? (length - l) : ((d + l) - length));
                     baselinePointDistFromEnd = (fromStart ? ((d + l) - length) : (length - l));
@@ -1977,18 +1978,19 @@ var g = {};
             var lastValidSegment; // visible AND differentiable
             var lastValidSegmentIndex;
             var t;
-            for (i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (i = 0; i < numSegments; i++) {
+                var index = (fromStart ? i : (numSegments - 1 - i));
 
-                segment = segments[i];
-                var subdivisions = segmentSubdivisions[i];
+                segment = segments[index];
+                var subdivisions = segmentSubdivisions[index];
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
                 if (segment.isDifferentiable()) { // segment is not just a point
                     lastValidSegment = segment;
-                    lastValidSegmentIndex = i;
+                    lastValidSegmentIndex = index;
 
                     if (length <= (l + d)) {
-                        dividedSegmentIndex = i;
+                        dividedSegmentIndex = index;
                         divided = segment.divideAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
                         break;
                     }
@@ -2353,10 +2355,11 @@ var g = {};
 
             var lastVisibleSegment;
             var l = 0; // length so far
-            for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (var i = 0; i < numSegments; i++) {
+                var index = (fromStart ? i : (numSegments - 1 - i));
 
-                var segment = segments[i];
-                var subdivisions = segmentSubdivisions[i];
+                var segment = segments[index];
+                var subdivisions = segmentSubdivisions[index];
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
                 if (segment.isVisible) {
@@ -2568,15 +2571,16 @@ var g = {};
 
             var lastVisibleSegmentIndex = null;
             var l = 0; // length so far
-            for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (var i = 0; i < numSegments; i++) {
+                var index = (fromStart ? i : (numSegments - 1 - i));
 
-                var segment = segments[i];
-                var subdivisions = segmentSubdivisions[i];
+                var segment = segments[index];
+                var subdivisions = segmentSubdivisions[index];
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
                 if (segment.isVisible) {
-                    if (length <= (l + d)) return i;
-                    lastVisibleSegmentIndex = i;
+                    if (length <= (l + d)) return index;
+                    lastVisibleSegmentIndex = index;
                 }
 
                 l += d;
@@ -2638,10 +2642,11 @@ var g = {};
 
             var lastValidSegment; // visible AND differentiable (with a tangent)
             var l = 0; // length so far
-            for (var i = (fromStart ? 0 : (numSegments - 1)); (fromStart ? (i < numSegments) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (var i = 0; i < numSegments; i++) {
+                var index = (fromStart ? i : (numSegments - 1 - i));
 
-                var segment = segments[i];
-                var subdivisions = segmentSubdivisions[i];
+                var segment = segments[index];
+                var subdivisions = segmentSubdivisions[index];
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
                 if (segment.isDifferentiable()) {
@@ -3587,10 +3592,11 @@ var g = {};
 
             var l = 0;
             var n = numPoints - 1;
-            for (var i = (fromStart ? 0 : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (var i = 0; i < n; i++) {
+                var index = (fromStart ? i : (n - 1 - i));
 
-                var a = points[i];
-                var b = points[i + 1];
+                var a = points[index];
+                var b = points[index + 1];
                 var line = new Line(a, b);
                 var d = a.distance(b);
 
@@ -3651,10 +3657,11 @@ var g = {};
             var lastValidLine; // differentiable (with a tangent)
             var l = 0; // length so far
             var n = numPoints - 1;
-            for (var i = (fromStart ? (0) : (n - 1)); (fromStart ? (i < n) : (i >= 0)); (fromStart ? (i++) : (i--))) {
+            for (var i = 0; i < n; i++) {
+                var index = (fromStart ? i : (n - 1 - i));
 
-                var a = points[i];
-                var b = points[i + 1];
+                var a = points[index];
+                var b = points[index + 1];
                 var line = new Line(a, b);
                 var d = a.distance(b);
 
