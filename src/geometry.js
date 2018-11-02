@@ -1985,10 +1985,10 @@ var g = {};
 
                 if (segment.isDifferentiable()) { // segment is not just a point
                     lastValidSegment = segment;
-                    lastValidSegmentIndex = (fromStart ? (i) : (numSegments - 1 - i));
+                    lastValidSegmentIndex = i;
 
                     if (length <= (l + d)) {
-                        dividedSegmentIndex = (fromStart ? (i) : (numSegments - 1 - i));
+                        dividedSegmentIndex = i;
                         divided = segment.divideAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
                         break;
                     }

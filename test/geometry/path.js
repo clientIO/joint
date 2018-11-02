@@ -1324,64 +1324,181 @@ QUnit.module('path', function(hooks) {
 
             QUnit.test('sanity', function(assert) {
 
-                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
-                var curveDivide;
+                var path;
+                var pathDivide;
 
-                curveDivide = curve.divideAtLength(120); // normal
-                assert.ok(Array.isArray(curveDivide));
-                assert.equal(curveDivide.length, 2);
-                assert.ok(curveDivide[0] instanceof g.Curve);
-                assert.ok(curveDivide[1] instanceof g.Curve);
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.divideAtLength(40), null);
+                assert.equal(path.divideAtLength(40, { precision: 0 }), null);
+                assert.equal(path.divideAtLength(10000), null);
 
-                curveDivide = curve.divideAtLength(-120); // normal negative
-                assert.ok(Array.isArray(curveDivide));
-                assert.equal(curveDivide.length, 2);
-                assert.ok(curveDivide[0] instanceof g.Curve);
-                assert.ok(curveDivide[1] instanceof g.Curve);
+                assert.equal(path.divideAtLength(-40), null);
+                assert.equal(path.divideAtLength(-40, { precision: 0 }), null);
+                assert.equal(path.divideAtLength(-10000), null);
 
-                curveDivide = curve.divideAtLength(0); // minimum
-                assert.ok(Array.isArray(curveDivide));
-                assert.equal(curveDivide.length, 2);
-                assert.ok(curveDivide[0] instanceof g.Curve);
-                assert.ok(curveDivide[1] instanceof g.Curve);
+                path = new g.Path('M 0 0 L 0 0');
+                assert.equal(path.divideAtLength(10000), null);
+                assert.equal(path.divideAtLength(-10000), null);
 
-                curveDivide = curve.divideAtLength(1000); // too much
-                assert.ok(Array.isArray(curveDivide));
-                assert.equal(curveDivide.length, 2);
-                assert.ok(curveDivide[0] instanceof g.Curve);
-                assert.ok(curveDivide[1] instanceof g.Curve);
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAtLength(100);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
 
-                curveDivide = curve.divideAtLength(-1000); // too much negative
-                assert.ok(Array.isArray(curveDivide));
-                assert.equal(curveDivide.length, 2);
-                assert.ok(curveDivide[0] instanceof g.Curve);
-                assert.ok(curveDivide[1] instanceof g.Curve);
+                // point of discontinuity
+                pathDivide = path.divideAtLength(200);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(400);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(500);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // closepath
+                pathDivide = path.divideAtLength(900);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAtLength(10000);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAtLength(-10000);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // first lineto
+                pathDivide = path.divideAtLength(-900);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // point of discontinuity
+                pathDivide = path.divideAtLength(-800);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(-600);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(-500);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // closepath
+                pathDivide = path.divideAtLength(-100);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
             });
 
             QUnit.test('returns an array with two paths, divided at provided `length`', function(assert) {
 
-                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
-                var curveDivide;
+                var path;
+                var pathDivide;
 
-                curveDivide = curve.divideAtLength(120);
-                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
-                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAtLength(100);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 100');
+                assert.equal(pathDivide[1].toString(), 'M 0 100 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
 
-                curveDivide = curve.divideAtLength(-120);
-                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
-                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+                // point of discontinuity
+                pathDivide = path.divideAtLength(200);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0');
+                assert.equal(pathDivide[1].toString(), 'M 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
 
-                curveDivide = curve.divideAtLength(0);
-                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
-                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+                // curveto midpoint
+                pathDivide = path.divideAtLength(400);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 100 50 150 100 150');
+                assert.equal(pathDivide[1].toString(), 'M 100 150 C 150 150 200 100 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
 
-                curveDivide = curve.divideAtLength(1000);
-                assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
-                assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(500);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 159.765625 127.62527465820312 191.90597534179688 178.97450625896454 96.42105102539062');
+                assert.equal(pathDivide[1].toString(), 'M 178.97450625896454 96.42105102539062 C 191.90597534179688 72.37472534179688 200 40.234375 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
 
-                curveDivide = curve.divideAtLength(-1000);
-                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
-                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+                // closepath
+                pathDivide = path.divideAtLength(900);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 L 99.96164987703469 200');
+                assert.equal(pathDivide[1].toString(), 'M 99.96164987703469 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                pathDivide = path.divideAtLength(10000);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.equal(pathDivide[1].toString(), 'M 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                pathDivide = path.divideAtLength(-10000);
+                assert.equal(pathDivide[0].toString(), 'M 0 200');
+                assert.equal(pathDivide[1].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // first lineto
+                pathDivide = path.divideAtLength(-900);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 100.03835012296531');
+                assert.equal(pathDivide[1].toString(), 'M 0 100.03835012296531 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // point of discontinuity
+                pathDivide = path.divideAtLength(-800);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0.038350122965313815');
+                assert.equal(pathDivide[1].toString(), 'M 0 0.038350122965313815 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(-600);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 100 50 150 100 150');
+                assert.equal(pathDivide[1].toString(), 'M 100 150 C 150 150 200 100 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(-500);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 159.765625 127.62527465820312 191.90597534179688 178.97450625896454 96.42105102539062');
+                assert.equal(pathDivide[1].toString(), 'M 178.97450625896454 96.42105102539062 C 191.90597534179688 72.37472534179688 200 40.234375 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // closepath
+                pathDivide = path.divideAtLength(-100);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 L 100 200');
+                assert.equal(pathDivide[1].toString(), 'M 100 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
             });
         });
 
