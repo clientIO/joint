@@ -145,7 +145,12 @@ export namespace g {
 
         closestPointTangent(p: PlainPoint, opt?: SubdivisionsOpt): Line | null;
 
-        divide(t: number): [Curve, Curve];
+        divideAt(ratio: number, opt?: SubdivisionsOpt): [Curve, Curve];
+
+        divideAtLength(length: number, opt?: SubdivisionsOpt): [Curve, Curve];
+
+        divideAtT(t: number): [Curve, Curve];
+        divide(t: number): [Curve, Curve]; // alias to `divideAtT`
 
         endpointDistance(): number;
 
@@ -249,6 +254,10 @@ export namespace g {
 
         closestPointTangent(p: PlainPoint | string): Line | null;
 
+        divideAt(t: number): [Line, Line];
+
+        divideAtLength(length: number): [Line, Line];
+
         equals(line: Line): boolean;
 
         intersect(line: Line): Point | null; // Backwards compatibility, should return an array
@@ -323,6 +332,10 @@ export namespace g {
         closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
 
         closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        divideAt(ratio: number, opt?: SegmentSubdivisionsOpt): [Path, Path] | null;
+
+        divideAtLength(length: number, opt?: SegmentSubdivisionsOpt): [Path, Path] | null;
 
         equals(p: Path): boolean;
 
