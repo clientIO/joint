@@ -1,4 +1,4 @@
-/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-11-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -433,7 +433,7 @@ Number.isFinite = Number.isFinite || function(value) {
 //The following works because NaN is the only value in javascript which is not equal to itself.
 Number.isNaN = Number.isNaN || function(value) {
     return value !== value;
-}
+};
 
 
 // Geometry library.
@@ -551,6 +551,35 @@ var g = {};
             return [firstControlPoints, secondControlPoints];
         },
 
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @deprecated
+        // @param control points (start, control start, control end, end)
+        // @return a function that accepts t and returns 2 curves.
+        getCurveDivider: function(p0, p1, p2, p3) {
+
+            console.warn('deprecated');
+
+            var curve = new Curve(p0, p1, p2, p3);
+
+            return function divideCurve(t) {
+
+                var divided = curve.divide(t);
+
+                return [{
+                    p0: divided[0].start,
+                    p1: divided[0].controlPoint1,
+                    p2: divided[0].controlPoint2,
+                    p3: divided[0].end
+                }, {
+                    p0: divided[1].start,
+                    p1: divided[1].controlPoint1,
+                    p2: divided[1].controlPoint2,
+                    p3: divided[1].end
+                }];
+            };
+        },
+
         // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
         // @deprecated
         // @param rhs Right hand side vector.
@@ -580,35 +609,6 @@ var g = {};
             }
 
             return x;
-        },
-
-        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
-        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
-        // @deprecated
-        // @param control points (start, control start, control end, end)
-        // @return a function that accepts t and returns 2 curves.
-        getCurveDivider: function(p0, p1, p2, p3) {
-
-            console.warn('deprecated');
-
-            var curve = new Curve(p0, p1, p2, p3);
-
-            return function divideCurve(t) {
-
-                var divided = curve.divide(t);
-
-                return [{
-                    p0: divided[0].start,
-                    p1: divided[0].controlPoint1,
-                    p2: divided[0].controlPoint2,
-                    p3: divided[0].end
-                }, {
-                    p0: divided[1].start,
-                    p1: divided[1].controlPoint1,
-                    p2: divided[1].controlPoint2,
-                    p3: divided[1].end
-                }];
-            };
         },
 
         // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
@@ -651,34 +651,6 @@ var g = {};
     // @param {array} points Array of points through which the smooth line will go.
     // @return {array} curves.
     Curve.throughPoints = (function() {
-
-        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
-        // @param rhs Right hand side vector.
-        // @return Solution vector.
-        function getFirstControlPoints(rhs) {
-
-            var n = rhs.length;
-            // `x` is a solution vector.
-            var x = [];
-            var tmp = [];
-            var b = 2.0;
-
-            x[0] = rhs[0] / b;
-
-            // Decomposition and forward substitution.
-            for (var i = 1; i < n; i++) {
-                tmp[i] = 1 / b;
-                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
-                x[i] = (rhs[i] - x[i - 1]) / b;
-            }
-
-            for (i = 1; i < n; i++) {
-                // Backsubstitution.
-                x[n - i - 1] -= tmp[n - i] * x[n - i];
-            }
-
-            return x;
-        }
 
         // Get open-ended Bezier Spline Control Points.
         // @param knots Input Knot Bezier spline points (At least two points!).
@@ -755,6 +727,34 @@ var g = {};
             }
 
             return [firstControlPoints, secondControlPoints];
+        }
+
+        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
+        // @param rhs Right hand side vector.
+        // @return Solution vector.
+        function getFirstControlPoints(rhs) {
+
+            var n = rhs.length;
+            // `x` is a solution vector.
+            var x = [];
+            var tmp = [];
+            var b = 2.0;
+
+            x[0] = rhs[0] / b;
+
+            // Decomposition and forward substitution.
+            for (var i = 1; i < n; i++) {
+                tmp[i] = 1 / b;
+                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
+                x[i] = (rhs[i] - x[i - 1]) / b;
+            }
+
+            for (i = 1; i < n; i++) {
+                // Backsubstitution.
+                x[n - i - 1] -= tmp[n - i] * x[n - i];
+            }
+
+            return x;
         }
 
         return function(points) {
@@ -1447,15 +1447,6 @@ var g = {};
             }
         },
 
-        translate: function(tx, ty) {
-
-            this.start.translate(tx, ty);
-            this.controlPoint1.translate(tx, ty);
-            this.controlPoint2.translate(tx, ty);
-            this.end.translate(tx, ty);
-            return this;
-        },
-
         // Returns an array of points that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
         // Flattened length is no more than 10^(-precision) away from real curve length.
         toPoints: function(opt) {
@@ -1486,6 +1477,15 @@ var g = {};
         toString: function() {
 
             return this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.translate(tx, ty);
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
@@ -1519,25 +1519,35 @@ var g = {};
             return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
         },
 
+        /**
+         * @returns {g.Point}
+         */
+        center: function() {
+
+            return new Point(this.x, this.y);
+        },
+
         clone: function() {
 
             return new Ellipse(this);
         },
 
         /**
-         * @param {g.Point} point
-         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         * @param {g.Point} p
+         * @returns {boolean}
          */
-        normalizedDistance: function(point) {
+        containsPoint: function(p) {
 
-            var x0 = point.x;
-            var y0 = point.y;
-            var a = this.a;
-            var b = this.b;
-            var x = this.x;
-            var y = this.y;
+            return this.normalizedDistance(p) <= 1;
+        },
 
-            return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
+        equals: function(ellipse) {
+
+            return !!ellipse &&
+                    ellipse.x === this.x &&
+                    ellipse.y === this.y &&
+                    ellipse.a === this.a &&
+                    ellipse.b === this.b;
         },
 
         // inflate by dx and dy
@@ -1557,65 +1567,6 @@ var g = {};
             this.b += 2 * dy;
 
             return this;
-        },
-
-
-        /**
-         * @param {g.Point} p
-         * @returns {boolean}
-         */
-        containsPoint: function(p) {
-
-            return this.normalizedDistance(p) <= 1;
-        },
-
-        /**
-         * @returns {g.Point}
-         */
-        center: function() {
-
-            return new Point(this.x, this.y);
-        },
-
-        /** Compute angle between tangent and x axis
-         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
-         * @returns {number} angle between tangent and x axis
-         */
-        tangentTheta: function(p) {
-
-            var refPointDelta = 30;
-            var x0 = p.x;
-            var y0 = p.y;
-            var a = this.a;
-            var b = this.b;
-            var center = this.bbox().center();
-            var m = center.x;
-            var n = center.y;
-
-            var q1 = x0 > center.x + a / 2;
-            var q3 = x0 < center.x - a / 2;
-
-            var y, x;
-            if (q1 || q3) {
-                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
-                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
-
-            } else {
-                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
-                y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
-            }
-
-            return (new Point(x, y)).theta(p);
-
-        },
-
-        equals: function(ellipse) {
-
-            return !!ellipse &&
-                    ellipse.x === this.x &&
-                    ellipse.y === this.y &&
-                    ellipse.a === this.a &&
-                    ellipse.b === this.b;
         },
 
         intersectionWithLine: function(line) {
@@ -1694,6 +1645,54 @@ var g = {};
 
             if (angle) return result.rotate(new Point(this.x, this.y), -angle);
             return result;
+        },
+
+        /**
+         * @param {g.Point} point
+         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         */
+        normalizedDistance: function(point) {
+
+            var x0 = point.x;
+            var y0 = point.y;
+            var a = this.a;
+            var b = this.b;
+            var x = this.x;
+            var y = this.y;
+
+            return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
+        },
+
+        /** Compute angle between tangent and x axis
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
+         * @returns {number} angle between tangent and x axis
+         */
+        tangentTheta: function(p) {
+
+            var refPointDelta = 30;
+            var x0 = p.x;
+            var y0 = p.y;
+            var a = this.a;
+            var b = this.b;
+            var center = this.bbox().center();
+            var m = center.x;
+            var n = center.y;
+
+            var q1 = x0 > center.x + a / 2;
+            var q3 = x0 < center.x - a / 2;
+
+            var y, x;
+            if (q1 || q3) {
+                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
+                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
+
+            } else {
+                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
+                y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
+            }
+
+            return (new Point(x, y)).theta(p);
+
         },
 
         toString: function() {
@@ -1795,6 +1794,30 @@ var g = {};
                     this.end.y === l.end.y;
         },
 
+        // @return {point} Point where I'm intersecting a line.
+        // @return [point] Points where I'm intersecting a rectangle.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersect: function(shape, opt) {
+
+            if (shape instanceof Line ||
+                shape instanceof Rect ||
+                shape instanceof Polyline ||
+                shape instanceof Ellipse ||
+                shape instanceof Path
+            ) {
+                var intersection = shape.intersectionWithLine(this, opt);
+
+                // Backwards compatibility
+                if (intersection && (shape instanceof Line)) {
+                    intersection = intersection[0];
+                }
+
+                return intersection;
+            }
+
+            return null;
+        },
+
         intersectionWithLine: function(line) {
 
             var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
@@ -1824,30 +1847,6 @@ var g = {};
                 this.start.x + (alpha * pt1Dir.x / det),
                 this.start.y + (alpha * pt1Dir.y / det)
             )];
-        },
-
-        // @return {point} Point where I'm intersecting a line.
-        // @return [point] Points where I'm intersecting a rectangle.
-        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersect: function(shape, opt) {
-
-            if (shape instanceof Line ||
-                shape instanceof Rect ||
-                shape instanceof Polyline ||
-                shape instanceof Ellipse ||
-                shape instanceof Path
-            ) {
-                var intersection = shape.intersectionWithLine(this, opt);
-
-                // Backwards compatibility
-                if (intersection && (shape instanceof Line)) {
-                    intersection = intersection[0];
-                }
-
-                return intersection;
-            }
-
-            return null;
         },
 
         isDifferentiable: function() {
@@ -1986,6 +1985,11 @@ var g = {};
             return tangentLine;
         },
 
+        toString: function() {
+
+            return this.start.toString() + ' ' + this.end.toString();
+        },
+
         translate: function(tx, ty) {
 
             this.start.translate(tx, ty);
@@ -1997,11 +2001,6 @@ var g = {};
         vector: function() {
 
             return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-        },
-
-        toString: function() {
-
-            return this.start.toString() + ' ' + this.end.toString();
         }
     };
 
@@ -2354,7 +2353,7 @@ var g = {};
 
             var segments = this.segments;
             var numSegments = segments.length;
-            if (!numSegments === 0) throw new Error('Path has no segments.');
+            if (numSegments === 0) throw new Error('Path has no segments.');
 
             if (index < 0) index = numSegments + index; // convert negative indices to positive
             if (index >= numSegments || index < 0) throw new Error('Index out of range.');
@@ -2437,6 +2436,27 @@ var g = {};
                     previousSegment = currentSegment;
                 }
             }
+        },
+
+        intersectionWithLine: function(line, opt) {
+
+            var intersection = null;
+            var polylines = this.toPolylines(opt);
+            if (!polylines) return null;
+            for (var i = 0, n = polylines.length; i < n; i++) {
+                var polyline = polylines[i];
+                var polylineIntersection = line.intersect(polyline);
+                if (polylineIntersection) {
+                    intersection || (intersection = []);
+                    if (Array.isArray(polylineIntersection)) {
+                        Array.prototype.push.apply(intersection, polylineIntersection);
+                    } else {
+                        intersection.push(polylineIntersection);
+                    }
+                }
+            }
+
+            return intersection;
         },
 
         isDifferentiable: function() {
@@ -2614,6 +2634,9 @@ var g = {};
             return segments[segmentIndex].pointAtT(tValue);
         },
 
+        // Default precision
+        PRECISION: 3,
+
         // Helper method for adding segments.
         prepareSegment: function(segment, previousSegment, nextSegment) {
 
@@ -2634,9 +2657,6 @@ var g = {};
 
             return segment;
         },
-
-        // Default precision
-        PRECISION: 3,
 
         // Remove the segment at `index`.
         // Accepts negative indices, from `-1` to `-segments.length`.
@@ -2766,77 +2786,6 @@ var g = {};
             return this.segmentIndexAtLength(length, localOpt);
         },
 
-        toPoints: function(opt) {
-
-            var segments = this.segments;
-            var numSegments = segments.length;
-            if (numSegments === 0) return null; // if segments is an empty array
-
-            opt = opt || {};
-            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
-            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
-
-            var points = [];
-            var partialPoints = [];
-            for (var i = 0; i < numSegments; i++) {
-                var segment = segments[i];
-                if (segment.isVisible) {
-                    var currentSegmentSubdivisions = segmentSubdivisions[i];
-                    if (currentSegmentSubdivisions.length > 0) {
-                        var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
-                            return curve.start;
-                        });
-                        Array.prototype.push.apply(partialPoints, subdivisionPoints);
-                    } else {
-                        partialPoints.push(segment.start);
-                    }
-                } else if (partialPoints.length > 0) {
-                    partialPoints.push(segments[i - 1].end);
-                    points.push(partialPoints);
-                    partialPoints = [];
-                }
-            }
-
-            if (partialPoints.length > 0) {
-                partialPoints.push(this.end);
-                points.push(partialPoints);
-            }
-            return points;
-        },
-
-        toPolylines: function(opt) {
-
-            var polylines = [];
-            var points = this.toPoints(opt);
-            if (!points) return null;
-            for (var i = 0, n = points.length; i < n; i++) {
-                polylines.push(new Polyline(points[i]));
-            }
-
-            return polylines;
-        },
-
-        intersectionWithLine: function(line, opt) {
-
-            var intersection = null;
-            var polylines = this.toPolylines(opt);
-            if (!polylines) return null;
-            for (var i = 0, n = polylines.length; i < n; i++) {
-                var polyline = polylines[i];
-                var polylineIntersection = line.intersect(polyline);
-                if (polylineIntersection) {
-                    intersection || (intersection = []);
-                    if (Array.isArray(polylineIntersection)) {
-                        Array.prototype.push.apply(intersection, polylineIntersection);
-                    } else {
-                        intersection.push(polylineIntersection);
-                    }
-                }
-            }
-
-            return intersection;
-        },
-
         // Accepts negative length.
         segmentIndexAtLength: function(length, opt) {
 
@@ -2874,6 +2823,15 @@ var g = {};
             // if length requested is higher than the length of the path, return last visible segment index
             // if no visible segment, return null
             return lastVisibleSegmentIndex;
+        },
+
+        // Returns a string that can be used to reconstruct the path.
+        // Additional error checking compared to toString (must start with M segment).
+        serialize: function() {
+
+            if (!this.isValid()) throw new Error('Invalid path segments.');
+
+            return this.toString();
         },
 
         // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -2963,6 +2921,71 @@ var g = {};
             return segments[segmentIndex].tangentAtT(tValue);
         },
 
+        toPoints: function(opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+
+            var points = [];
+            var partialPoints = [];
+            for (var i = 0; i < numSegments; i++) {
+                var segment = segments[i];
+                if (segment.isVisible) {
+                    var currentSegmentSubdivisions = segmentSubdivisions[i];
+                    if (currentSegmentSubdivisions.length > 0) {
+                        var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
+                            return curve.start;
+                        });
+                        Array.prototype.push.apply(partialPoints, subdivisionPoints);
+                    } else {
+                        partialPoints.push(segment.start);
+                    }
+                } else if (partialPoints.length > 0) {
+                    partialPoints.push(segments[i - 1].end);
+                    points.push(partialPoints);
+                    partialPoints = [];
+                }
+            }
+
+            if (partialPoints.length > 0) {
+                partialPoints.push(this.end);
+                points.push(partialPoints);
+            }
+            return points;
+        },
+
+        toPolylines: function(opt) {
+
+            var polylines = [];
+            var points = this.toPoints(opt);
+            if (!points) return null;
+            for (var i = 0, n = points.length; i < n; i++) {
+                polylines.push(new Polyline(points[i]));
+            }
+
+            return polylines;
+        },
+
+        toString: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            var pathData = '';
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                pathData += segment.serialize() + ' ';
+            }
+
+            return pathData.trim();
+        },
+
         translate: function(tx, ty) {
 
             var segments = this.segments;
@@ -2990,30 +3013,6 @@ var g = {};
                 previousSegment = segment;
                 segment = segment.nextSegment; // move on to the segment after etc.
             }
-        },
-
-        // Returns a string that can be used to reconstruct the path.
-        // Additional error checking compared to toString (must start with M segment).
-        serialize: function() {
-
-            if (!this.isValid()) throw new Error('Invalid path segments.');
-
-            return this.toString();
-        },
-
-        toString: function() {
-
-            var segments = this.segments;
-            var numSegments = segments.length;
-
-            var pathData = '';
-            for (var i = 0; i < numSegments; i++) {
-
-                var segment = segments[i];
-                pathData += segment.serialize() + ' ';
-            }
-
-            return pathData.trim();
         }
     };
 
@@ -3141,6 +3140,23 @@ var g = {};
             return this;
         },
 
+        // Compute the angle between vector from me to p1 and the vector from me to p2.
+        // ordering of points p1 and p2 is important!
+        // theta function's angle convention:
+        // returns angles between 0 and 180 when the angle is counterclockwise
+        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
+        // returns NaN if any of the points p1, p2 is coincident with this point
+        angleBetween: function(p1, p2) {
+
+            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
+
+            if (angleBetween < 0) {
+                angleBetween += 360; // correction to keep angleBetween between 0 and 360
+            }
+
+            return angleBetween;
+        },
+
         // Return the bearing between me and the given point.
         bearing: function(point) {
 
@@ -3160,6 +3176,19 @@ var g = {};
             return new Point(this);
         },
 
+        // Returns the cross product of this point relative to two other points
+        // this point is the common point
+        // point p1 lies on the first vector, point p2 lies on the second vector
+        // watch out for the ordering of points p1 and p2!
+        // positive result indicates a clockwise ("right") turn from first to second vector
+        // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // note that the above directions are reversed from the usual answer on the Internet
+        // that is because we are in a left-handed coord system (because the y-axis points downward)
+        cross: function(p1, p2) {
+
+            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
+        },
+
         difference: function(dx, dy) {
 
             if ((Object(dx) === dx)) {
@@ -3176,9 +3205,10 @@ var g = {};
             return (new Line(this, p)).length();
         },
 
-        squaredDistance: function(p) {
+        // Returns the dot product of this point with given other point
+        dot: function(p) {
 
-            return (new Line(this, p)).squaredLength();
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
         },
 
         equals: function(p) {
@@ -3186,6 +3216,14 @@ var g = {};
             return !!p &&
                 this.x === p.x &&
                 this.y === p.y;
+        },
+
+        // Linear interpolation
+        lerp: function(p, t) {
+
+            var x = this.x;
+            var y = this.y;
+            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
         },
 
         magnitude: function() {
@@ -3277,6 +3315,11 @@ var g = {};
             return this;
         },
 
+        squaredDistance: function(p) {
+
+            return (new Line(this, p)).squaredLength();
+        },
+
         // Compute the angle between me and `p` and the x axis.
         // (cartesian-to-polar coordinates conversion)
         // Return theta angle in degrees.
@@ -3295,31 +3338,6 @@ var g = {};
             }
 
             return 180 * rad / PI;
-        },
-
-        // Compute the angle between vector from me to p1 and the vector from me to p2.
-        // ordering of points p1 and p2 is important!
-        // theta function's angle convention:
-        // returns angles between 0 and 180 when the angle is counterclockwise
-        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
-        // returns NaN if any of the points p1, p2 is coincident with this point
-        angleBetween: function(p1, p2) {
-
-            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
-
-            if (angleBetween < 0) {
-                angleBetween += 360; // correction to keep angleBetween between 0 and 360
-            }
-
-            return angleBetween;
-        },
-
-        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
-        // Returns NaN if p is at 0,0.
-        vectorAngle: function(p) {
-
-            var zero = new Point(0,0);
-            return zero.angleBetween(this, p);
         },
 
         toJSON: function() {
@@ -3351,497 +3369,16 @@ var g = {};
             return this;
         },
 
-        // Returns the dot product of this point with given other point
-        dot: function(p) {
+        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
+        // Returns NaN if p is at 0,0.
+        vectorAngle: function(p) {
 
-            return p ? (this.x * p.x + this.y * p.y) : NaN;
-        },
-
-        // Returns the cross product of this point relative to two other points
-        // this point is the common point
-        // point p1 lies on the first vector, point p2 lies on the second vector
-        // watch out for the ordering of points p1 and p2!
-        // positive result indicates a clockwise ("right") turn from first to second vector
-        // negative result indicates a counterclockwise ("left") turn from first to second vector
-        // note that the above directions are reversed from the usual answer on the Internet
-        // that is because we are in a left-handed coord system (because the y-axis points downward)
-        cross: function(p1, p2) {
-
-            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
-        },
-
-
-        // Linear interpolation
-        lerp: function(p, t) {
-
-            var x = this.x;
-            var y = this.y;
-            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
+            var zero = new Point(0,0);
+            return zero.angleBetween(this, p);
         }
     };
 
     Point.prototype.translate = Point.prototype.offset;
-
-    var Rect = g.Rect = function(x, y, w, h) {
-
-        if (!(this instanceof Rect)) {
-            return new Rect(x, y, w, h);
-        }
-
-        if ((Object(x) === x)) {
-            y = x.y;
-            w = x.width;
-            h = x.height;
-            x = x.x;
-        }
-
-        this.x = x === undefined ? 0 : x;
-        this.y = y === undefined ? 0 : y;
-        this.width = w === undefined ? 0 : w;
-        this.height = h === undefined ? 0 : h;
-    };
-
-    Rect.fromEllipse = function(e) {
-
-        e = new Ellipse(e);
-        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
-    };
-
-    Rect.prototype = {
-
-        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
-        // @return r {rectangle} representing a bounding box
-        bbox: function(angle) {
-
-            if (!angle) return this.clone();
-
-            var theta = toRad(angle || 0);
-            var st = abs(sin(theta));
-            var ct = abs(cos(theta));
-            var w = this.width * ct + this.height * st;
-            var h = this.width * st + this.height * ct;
-            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
-        },
-
-        bottomLeft: function() {
-
-            return new Point(this.x, this.y + this.height);
-        },
-
-        bottomLine: function() {
-
-            return new Line(this.bottomLeft(), this.bottomRight());
-        },
-
-        bottomMiddle: function() {
-
-            return new Point(this.x + this.width / 2, this.y + this.height);
-        },
-
-        center: function() {
-
-            return new Point(this.x + this.width / 2, this.y + this.height / 2);
-        },
-
-        clone: function() {
-
-            return new Rect(this);
-        },
-
-        // @return {bool} true if point p is insight me
-        containsPoint: function(p) {
-
-            p = new Point(p);
-            return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
-        },
-
-        // @return {bool} true if rectangle `r` is inside me.
-        containsRect: function(r) {
-
-            var r0 = new Rect(this).normalize();
-            var r1 = new Rect(r).normalize();
-            var w0 = r0.width;
-            var h0 = r0.height;
-            var w1 = r1.width;
-            var h1 = r1.height;
-
-            if (!w0 || !h0 || !w1 || !h1) {
-                // At least one of the dimensions is 0
-                return false;
-            }
-
-            var x0 = r0.x;
-            var y0 = r0.y;
-            var x1 = r1.x;
-            var y1 = r1.y;
-
-            w1 += x1;
-            w0 += x0;
-            h1 += y1;
-            h0 += y0;
-
-            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
-        },
-
-        corner: function() {
-
-            return new Point(this.x + this.width, this.y + this.height);
-        },
-
-        // @return {boolean} true if rectangles are equal.
-        equals: function(r) {
-
-            var mr = (new Rect(this)).normalize();
-            var nr = (new Rect(r)).normalize();
-            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
-        },
-
-        // @return {rect} if rectangles intersect, {null} if not.
-        intersect: function(r) {
-
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = r.origin();
-            var rCorner = r.corner();
-
-            // No intersection found
-            if (rCorner.x <= myOrigin.x ||
-                rCorner.y <= myOrigin.y ||
-                rOrigin.x >= myCorner.x ||
-                rOrigin.y >= myCorner.y) return null;
-
-            var x = max(myOrigin.x, rOrigin.x);
-            var y = max(myOrigin.y, rOrigin.y);
-
-            return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
-        },
-
-        intersectionWithLine: function(line) {
-
-            var r = this;
-            var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
-            var points = [];
-            var dedupeArr = [];
-            var pt, i;
-
-            var n = rectLines.length;
-            for (i = 0; i < n; i ++) {
-
-                pt = line.intersect(rectLines[i]);
-                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
-                    points.push(pt);
-                    dedupeArr.push(pt.toString());
-                }
-            }
-
-            return points.length > 0 ? points : null;
-        },
-
-        // Find point on my boundary where line starting
-        // from my center ending in point p intersects me.
-        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
-        intersectionWithLineFromCenterToPoint: function(p, angle) {
-
-            p = new Point(p);
-            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
-            var result;
-
-            if (angle) p.rotate(center, angle);
-
-            // (clockwise, starting from the top side)
-            var sides = [
-                this.topLine(),
-                this.rightLine(),
-                this.bottomLine(),
-                this.leftLine()
-            ];
-            var connector = new Line(center, p);
-
-            for (var i = sides.length - 1; i >= 0; --i) {
-                var intersection = sides[i].intersection(connector);
-                if (intersection !== null) {
-                    result = intersection;
-                    break;
-                }
-            }
-            if (result && angle) result.rotate(center, -angle);
-            return result;
-        },
-
-        leftLine: function() {
-
-            return new Line(this.topLeft(), this.bottomLeft());
-        },
-
-        leftMiddle: function() {
-
-            return new Point(this.x , this.y + this.height / 2);
-        },
-
-        // Move and expand me.
-        // @param r {rectangle} representing deltas
-        moveAndExpand: function(r) {
-
-            this.x += r.x || 0;
-            this.y += r.y || 0;
-            this.width += r.width || 0;
-            this.height += r.height || 0;
-            return this;
-        },
-
-        // Offset me by the specified amount.
-        offset: function(dx, dy) {
-
-            // pretend that this is a point and call offset()
-            // rewrites x and y according to dx and dy
-            return Point.prototype.offset.call(this, dx, dy);
-        },
-
-        // inflate by dx and dy, recompute origin [x, y]
-        // @param dx {delta_x} representing additional size to x
-        // @param dy {delta_y} representing additional size to y -
-        // dy param is not required -> in that case y is sized by dx
-        inflate: function(dx, dy) {
-
-            if (dx === undefined) {
-                dx = 0;
-            }
-
-            if (dy === undefined) {
-                dy = dx;
-            }
-
-            this.x -= dx;
-            this.y -= dy;
-            this.width += 2 * dx;
-            this.height += 2 * dy;
-
-            return this;
-        },
-
-        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
-        // If width < 0 the function swaps the left and right corners,
-        // and it swaps the top and bottom corners if height < 0
-        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
-        normalize: function() {
-
-            var newx = this.x;
-            var newy = this.y;
-            var newwidth = this.width;
-            var newheight = this.height;
-            if (this.width < 0) {
-                newx = this.x + this.width;
-                newwidth = -this.width;
-            }
-            if (this.height < 0) {
-                newy = this.y + this.height;
-                newheight = -this.height;
-            }
-            this.x = newx;
-            this.y = newy;
-            this.width = newwidth;
-            this.height = newheight;
-            return this;
-        },
-
-        origin: function() {
-
-            return new Point(this.x, this.y);
-        },
-
-        // @return {point} a point on my boundary nearest to the given point.
-        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
-        pointNearestToPoint: function(point) {
-
-            point = new Point(point);
-            if (this.containsPoint(point)) {
-                var side = this.sideNearestToPoint(point);
-                switch (side){
-                    case 'right': return new Point(this.x + this.width, point.y);
-                    case 'left': return new Point(this.x, point.y);
-                    case 'bottom': return new Point(point.x, this.y + this.height);
-                    case 'top': return new Point(point.x, this.y);
-                }
-            }
-            return point.adhereToRect(this);
-        },
-
-        rightLine: function() {
-
-            return new Line(this.topRight(), this.bottomRight());
-        },
-
-        rightMiddle: function() {
-
-            return new Point(this.x + this.width, this.y + this.height / 2);
-        },
-
-        round: function(precision) {
-
-            var f = pow(10, precision || 0);
-            this.x = round(this.x * f) / f;
-            this.y = round(this.y * f) / f;
-            this.width = round(this.width * f) / f;
-            this.height = round(this.height * f) / f;
-            return this;
-        },
-
-        // Scale rectangle with origin.
-        scale: function(sx, sy, origin) {
-
-            origin = this.origin().scale(sx, sy, origin);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width *= sx;
-            this.height *= sy;
-            return this;
-        },
-
-        maxRectScaleToFit: function(rect, origin) {
-
-            rect = new Rect(rect);
-            origin || (origin = rect.center());
-
-            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
-            var ox = origin.x;
-            var oy = origin.y;
-
-            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
-            // so when the scale is applied the point is still inside the rectangle.
-
-            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
-
-            // Top Left
-            var p1 = rect.topLeft();
-            if (p1.x < ox) {
-                sx1 = (this.x - ox) / (p1.x - ox);
-            }
-            if (p1.y < oy) {
-                sy1 = (this.y - oy) / (p1.y - oy);
-            }
-            // Bottom Right
-            var p2 = rect.bottomRight();
-            if (p2.x > ox) {
-                sx2 = (this.x + this.width - ox) / (p2.x - ox);
-            }
-            if (p2.y > oy) {
-                sy2 = (this.y + this.height - oy) / (p2.y - oy);
-            }
-            // Top Right
-            var p3 = rect.topRight();
-            if (p3.x > ox) {
-                sx3 = (this.x + this.width - ox) / (p3.x - ox);
-            }
-            if (p3.y < oy) {
-                sy3 = (this.y - oy) / (p3.y - oy);
-            }
-            // Bottom Left
-            var p4 = rect.bottomLeft();
-            if (p4.x < ox) {
-                sx4 = (this.x - ox) / (p4.x - ox);
-            }
-            if (p4.y > oy) {
-                sy4 = (this.y + this.height - oy) / (p4.y - oy);
-            }
-
-            return {
-                sx: min(sx1, sx2, sx3, sx4),
-                sy: min(sy1, sy2, sy3, sy4)
-            };
-        },
-
-        maxRectUniformScaleToFit: function(rect, origin) {
-
-            var scale = this.maxRectScaleToFit(rect, origin);
-            return min(scale.sx, scale.sy);
-        },
-
-        // @return {string} (left|right|top|bottom) side which is nearest to point
-        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
-        sideNearestToPoint: function(point) {
-
-            point = new Point(point);
-            var distToLeft = point.x - this.x;
-            var distToRight = (this.x + this.width) - point.x;
-            var distToTop = point.y - this.y;
-            var distToBottom = (this.y + this.height) - point.y;
-            var closest = distToLeft;
-            var side = 'left';
-
-            if (distToRight < closest) {
-                closest = distToRight;
-                side = 'right';
-            }
-            if (distToTop < closest) {
-                closest = distToTop;
-                side = 'top';
-            }
-            if (distToBottom < closest) {
-                closest = distToBottom;
-                side = 'bottom';
-            }
-            return side;
-        },
-
-        snapToGrid: function(gx, gy) {
-
-            var origin = this.origin().snapToGrid(gx, gy);
-            var corner = this.corner().snapToGrid(gx, gy);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width = corner.x - origin.x;
-            this.height = corner.y - origin.y;
-            return this;
-        },
-
-        topLine: function() {
-
-            return new Line(this.topLeft(), this.topRight());
-        },
-
-        topMiddle: function() {
-
-            return new Point(this.x + this.width / 2, this.y);
-        },
-
-        topRight: function() {
-
-            return new Point(this.x + this.width, this.y);
-        },
-
-        toJSON: function() {
-
-            return { x: this.x, y: this.y, width: this.width, height: this.height };
-        },
-
-        toString: function() {
-
-            return this.origin().toString() + ' ' + this.corner().toString();
-        },
-
-        // @return {rect} representing the union of both rectangles.
-        union: function(rect) {
-
-            rect = new Rect(rect);
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = rect.origin();
-            var rCorner = rect.corner();
-
-            var originX = min(myOrigin.x, rOrigin.x);
-            var originY = min(myOrigin.y, rOrigin.y);
-            var cornerX = max(myCorner.x, rCorner.x);
-            var cornerY = max(myCorner.y, rCorner.y);
-
-            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
-        }
-    };
-
-    Rect.prototype.bottomRight = Rect.prototype.corner;
-
-    Rect.prototype.topLeft = Rect.prototype.origin;
-
-    Rect.prototype.translate = Rect.prototype.offset;
 
     var Polyline = g.Polyline = function(points) {
 
@@ -4207,6 +3744,20 @@ var g = {};
             return true;
         },
 
+        intersectionWithLine: function(l) {
+            var line = new Line(l);
+            var intersections = [];
+            var points = this.points;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var l2 = new Line(a, b);
+                var int = line.intersectionWithLine(l2);
+                if (int) intersections.push(int[0]);
+            }
+            return (intersections.length > 0) ? intersections : null;
+        },
+
         isDifferentiable: function() {
 
             var points = this.points;
@@ -4366,18 +3917,9 @@ var g = {};
             return null;
         },
 
-        intersectionWithLine: function(l) {
-            var line = new Line(l);
-            var intersections = [];
-            var points = this.points;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i+1];
-                var l2 = new Line(a, b);
-                var int = line.intersectionWithLine(l2);
-                if (int) intersections.push(int[0]);
-            }
-            return (intersections.length > 0) ? intersections : null;
+        toString: function() {
+
+            return this.points + '';
         },
 
         translate: function(tx, ty) {
@@ -4408,11 +3950,6 @@ var g = {};
             }
 
             return output.trim();
-        },
-
-        toString: function() {
-
-            return this.points + '';
         }
     };
 
@@ -4449,6 +3986,467 @@ var g = {};
             return this.points[numPoints - 1];
         },
     });
+
+    var Rect = g.Rect = function(x, y, w, h) {
+
+        if (!(this instanceof Rect)) {
+            return new Rect(x, y, w, h);
+        }
+
+        if ((Object(x) === x)) {
+            y = x.y;
+            w = x.width;
+            h = x.height;
+            x = x.x;
+        }
+
+        this.x = x === undefined ? 0 : x;
+        this.y = y === undefined ? 0 : y;
+        this.width = w === undefined ? 0 : w;
+        this.height = h === undefined ? 0 : h;
+    };
+
+    Rect.fromEllipse = function(e) {
+
+        e = new Ellipse(e);
+        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
+    };
+
+    Rect.prototype = {
+
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+
+            if (!angle) return this.clone();
+
+            var theta = toRad(angle);
+            var st = abs(sin(theta));
+            var ct = abs(cos(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        },
+
+        bottomLeft: function() {
+
+            return new Point(this.x, this.y + this.height);
+        },
+
+        bottomLine: function() {
+
+            return new Line(this.bottomLeft(), this.bottomRight());
+        },
+
+        bottomMiddle: function() {
+
+            return new Point(this.x + this.width / 2, this.y + this.height);
+        },
+
+        center: function() {
+
+            return new Point(this.x + this.width / 2, this.y + this.height / 2);
+        },
+
+        clone: function() {
+
+            return new Rect(this);
+        },
+
+        // @return {bool} true if point p is insight me
+        containsPoint: function(p) {
+
+            p = new Point(p);
+            return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
+        },
+
+        // @return {bool} true if rectangle `r` is inside me.
+        containsRect: function(r) {
+
+            var r0 = new Rect(this).normalize();
+            var r1 = new Rect(r).normalize();
+            var w0 = r0.width;
+            var h0 = r0.height;
+            var w1 = r1.width;
+            var h1 = r1.height;
+
+            if (!w0 || !h0 || !w1 || !h1) {
+                // At least one of the dimensions is 0
+                return false;
+            }
+
+            var x0 = r0.x;
+            var y0 = r0.y;
+            var x1 = r1.x;
+            var y1 = r1.y;
+
+            w1 += x1;
+            w0 += x0;
+            h1 += y1;
+            h0 += y0;
+
+            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
+        },
+
+        corner: function() {
+
+            return new Point(this.x + this.width, this.y + this.height);
+        },
+
+        // @return {boolean} true if rectangles are equal.
+        equals: function(r) {
+
+            var mr = (new Rect(this)).normalize();
+            var nr = (new Rect(r)).normalize();
+            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
+        },
+
+        // inflate by dx and dy, recompute origin [x, y]
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.x -= dx;
+            this.y -= dy;
+            this.width += 2 * dx;
+            this.height += 2 * dy;
+
+            return this;
+        },
+
+        // @return {rect} if rectangles intersect, {null} if not.
+        intersect: function(r) {
+
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = r.origin();
+            var rCorner = r.corner();
+
+            // No intersection found
+            if (rCorner.x <= myOrigin.x ||
+                rCorner.y <= myOrigin.y ||
+                rOrigin.x >= myCorner.x ||
+                rOrigin.y >= myCorner.y) return null;
+
+            var x = max(myOrigin.x, rOrigin.x);
+            var y = max(myOrigin.y, rOrigin.y);
+
+            return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
+        },
+
+        intersectionWithLine: function(line) {
+
+            var r = this;
+            var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
+            var points = [];
+            var dedupeArr = [];
+            var pt, i;
+
+            var n = rectLines.length;
+            for (i = 0; i < n; i ++) {
+
+                pt = line.intersect(rectLines[i]);
+                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                    points.push(pt);
+                    dedupeArr.push(pt.toString());
+                }
+            }
+
+            return points.length > 0 ? points : null;
+        },
+
+        // Find point on my boundary where line starting
+        // from my center ending in point p intersects me.
+        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+
+            p = new Point(p);
+            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
+            var result;
+
+            if (angle) p.rotate(center, angle);
+
+            // (clockwise, starting from the top side)
+            var sides = [
+                this.topLine(),
+                this.rightLine(),
+                this.bottomLine(),
+                this.leftLine()
+            ];
+            var connector = new Line(center, p);
+
+            for (var i = sides.length - 1; i >= 0; --i) {
+                var intersection = sides[i].intersection(connector);
+                if (intersection !== null) {
+                    result = intersection;
+                    break;
+                }
+            }
+            if (result && angle) result.rotate(center, -angle);
+            return result;
+        },
+
+        leftLine: function() {
+
+            return new Line(this.topLeft(), this.bottomLeft());
+        },
+
+        leftMiddle: function() {
+
+            return new Point(this.x , this.y + this.height / 2);
+        },
+
+        maxRectScaleToFit: function(rect, origin) {
+
+            rect = new Rect(rect);
+            origin || (origin = rect.center());
+
+            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
+            var ox = origin.x;
+            var oy = origin.y;
+
+            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
+            // so when the scale is applied the point is still inside the rectangle.
+
+            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
+
+            // Top Left
+            var p1 = rect.topLeft();
+            if (p1.x < ox) {
+                sx1 = (this.x - ox) / (p1.x - ox);
+            }
+            if (p1.y < oy) {
+                sy1 = (this.y - oy) / (p1.y - oy);
+            }
+            // Bottom Right
+            var p2 = rect.bottomRight();
+            if (p2.x > ox) {
+                sx2 = (this.x + this.width - ox) / (p2.x - ox);
+            }
+            if (p2.y > oy) {
+                sy2 = (this.y + this.height - oy) / (p2.y - oy);
+            }
+            // Top Right
+            var p3 = rect.topRight();
+            if (p3.x > ox) {
+                sx3 = (this.x + this.width - ox) / (p3.x - ox);
+            }
+            if (p3.y < oy) {
+                sy3 = (this.y - oy) / (p3.y - oy);
+            }
+            // Bottom Left
+            var p4 = rect.bottomLeft();
+            if (p4.x < ox) {
+                sx4 = (this.x - ox) / (p4.x - ox);
+            }
+            if (p4.y > oy) {
+                sy4 = (this.y + this.height - oy) / (p4.y - oy);
+            }
+
+            return {
+                sx: min(sx1, sx2, sx3, sx4),
+                sy: min(sy1, sy2, sy3, sy4)
+            };
+        },
+
+        maxRectUniformScaleToFit: function(rect, origin) {
+
+            var scale = this.maxRectScaleToFit(rect, origin);
+            return min(scale.sx, scale.sy);
+        },
+
+        // Move and expand me.
+        // @param r {rectangle} representing deltas
+        moveAndExpand: function(r) {
+
+            this.x += r.x || 0;
+            this.y += r.y || 0;
+            this.width += r.width || 0;
+            this.height += r.height || 0;
+            return this;
+        },
+
+        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
+        // If width < 0 the function swaps the left and right corners,
+        // and it swaps the top and bottom corners if height < 0
+        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
+        normalize: function() {
+
+            var newx = this.x;
+            var newy = this.y;
+            var newwidth = this.width;
+            var newheight = this.height;
+            if (this.width < 0) {
+                newx = this.x + this.width;
+                newwidth = -this.width;
+            }
+            if (this.height < 0) {
+                newy = this.y + this.height;
+                newheight = -this.height;
+            }
+            this.x = newx;
+            this.y = newy;
+            this.width = newwidth;
+            this.height = newheight;
+            return this;
+        },
+
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+
+            // pretend that this is a point and call offset()
+            // rewrites x and y according to dx and dy
+            return Point.prototype.offset.call(this, dx, dy);
+        },
+
+        origin: function() {
+
+            return new Point(this.x, this.y);
+        },
+
+        // @return {point} a point on my boundary nearest to the given point.
+        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
+        pointNearestToPoint: function(point) {
+
+            point = new Point(point);
+            if (this.containsPoint(point)) {
+                var side = this.sideNearestToPoint(point);
+                switch (side){
+                    case 'right': return new Point(this.x + this.width, point.y);
+                    case 'left': return new Point(this.x, point.y);
+                    case 'bottom': return new Point(point.x, this.y + this.height);
+                    case 'top': return new Point(point.x, this.y);
+                }
+            }
+            return point.adhereToRect(this);
+        },
+
+        rightLine: function() {
+
+            return new Line(this.topRight(), this.bottomRight());
+        },
+
+        rightMiddle: function() {
+
+            return new Point(this.x + this.width, this.y + this.height / 2);
+        },
+
+        round: function(precision) {
+
+            var f = pow(10, precision || 0);
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
+            this.width = round(this.width * f) / f;
+            this.height = round(this.height * f) / f;
+            return this;
+        },
+
+        // Scale rectangle with origin.
+        scale: function(sx, sy, origin) {
+
+            origin = this.origin().scale(sx, sy, origin);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width *= sx;
+            this.height *= sy;
+            return this;
+        },
+
+        // @return {string} (left|right|top|bottom) side which is nearest to point
+        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
+        sideNearestToPoint: function(point) {
+
+            point = new Point(point);
+            var distToLeft = point.x - this.x;
+            var distToRight = (this.x + this.width) - point.x;
+            var distToTop = point.y - this.y;
+            var distToBottom = (this.y + this.height) - point.y;
+            var closest = distToLeft;
+            var side = 'left';
+
+            if (distToRight < closest) {
+                closest = distToRight;
+                side = 'right';
+            }
+            if (distToTop < closest) {
+                closest = distToTop;
+                side = 'top';
+            }
+            if (distToBottom < closest) {
+                // closest = distToBottom;
+                side = 'bottom';
+            }
+            return side;
+        },
+
+        snapToGrid: function(gx, gy) {
+
+            var origin = this.origin().snapToGrid(gx, gy);
+            var corner = this.corner().snapToGrid(gx, gy);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width = corner.x - origin.x;
+            this.height = corner.y - origin.y;
+            return this;
+        },
+
+        toJSON: function() {
+
+            return { x: this.x, y: this.y, width: this.width, height: this.height };
+        },
+
+        topLine: function() {
+
+            return new Line(this.topLeft(), this.topRight());
+        },
+
+        topMiddle: function() {
+
+            return new Point(this.x + this.width / 2, this.y);
+        },
+
+        topRight: function() {
+
+            return new Point(this.x + this.width, this.y);
+        },
+
+        toString: function() {
+
+            return this.origin().toString() + ' ' + this.corner().toString();
+        },
+
+        // @return {rect} representing the union of both rectangles.
+        union: function(rect) {
+
+            rect = new Rect(rect);
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = rect.origin();
+            var rCorner = rect.corner();
+
+            var originX = min(myOrigin.x, rOrigin.x);
+            var originY = min(myOrigin.y, rOrigin.y);
+            var cornerX = max(myCorner.x, rCorner.x);
+            var cornerY = max(myCorner.y, rCorner.y);
+
+            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
+        }
+    };
+
+    Rect.prototype.bottomRight = Rect.prototype.corner;
+
+    Rect.prototype.topLeft = Rect.prototype.origin;
+
+    Rect.prototype.translate = Rect.prototype.offset;
 
     g.scale = {
 
@@ -4586,6 +4584,36 @@ var g = {};
     // Path segment interface:
     var segmentPrototype = {
 
+        // virtual
+        bbox: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        clone: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPoint: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPointLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPointNormalizedLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         // Redirect calls to closestPointNormalizedLength() function if closestPointT() is not defined for segment.
         closestPointT: function(p) {
 
@@ -4594,13 +4622,41 @@ var g = {};
             throw new Error('Neither closestPointT() nor closestPointNormalizedLength() function is implemented.');
         },
 
+        // virtual
+        closestPointTangent: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        equals: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        getSubdivisions: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        isDifferentiable: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         isSegment: true,
 
         isSubpathStart: false, // true for Moveto segments
 
         isVisible: true, // false for Moveto segments
 
-        nextSegment: null, // needed for subpath start segment updating
+        // virtual
+        length: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
 
         // Return a fraction of result of length() function if lengthAtT() is not defined for segment.
         lengthAtT: function(t) {
@@ -4614,6 +4670,20 @@ var g = {};
             return length * t;
         },
 
+        nextSegment: null, // needed for subpath start segment updating
+
+        // virtual
+        pointAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        pointAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         // Redirect calls to pointAt() function if pointAtT() is not defined for segment.
         pointAtT: function(t) {
 
@@ -4624,7 +4694,31 @@ var g = {};
 
         previousSegment: null, // needed to get segment start property
 
-        subpathStartSegment: null, // needed to get closepath segment end property
+        subpathStartSegment: null, // needed to get Closepath segment end property
+
+        // virtual
+        scale: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        serialize: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        tangentAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        tangentAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
 
         // Redirect calls to tangentAt() function if tangentAtT() is not defined for segment.
         tangentAtT: function(t) {
@@ -4634,104 +4728,59 @@ var g = {};
             throw new Error('Neither tangentAtT() nor tangentAt() function is implemented.');
         },
 
-        // VIRTUAL PROPERTIES (must be overriden by actual Segment implementations):
-
-        // type
-
-        // start // getter, always throws error for Moveto
-
-        // end // usually directly assigned, getter for Closepath
-
-        bbox: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        clone: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPoint: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointNormalizedLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointTangent: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        equals: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        getSubdivisions: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        isDifferentiable: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        length: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        pointAt: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        pointAtLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        scale: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        tangentAt: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        tangentAtLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        translate: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        serialize: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
+        // virtual
         toString: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        translate: function() {
 
             throw new Error('Declaration missing for virtual function.');
         }
     };
+
+    // usually directly assigned
+    // getter for Closepath
+    Object.defineProperty(segmentPrototype, 'end', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        writable: true
+    });
+
+    // always a getter
+    // always throws error for Moveto
+    Object.defineProperty(segmentPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    // virtual
+    Object.defineProperty(segmentPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            throw new Error('Bad segment declaration. No type specified.');
+        }
+    });
 
     // Path segment implementations:
     var Lineto = function() {
@@ -4814,14 +4863,6 @@ var g = {};
             return this;
         },
 
-        translate: function(tx, ty) {
-
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        type: 'L',
-
         serialize: function() {
 
             var end = this.end;
@@ -4831,22 +4872,22 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
-    Object.defineProperty(linetoPrototype, 'start', {
-        // get a reference to the end point of previous segment
+    Object.defineProperty(linetoPrototype, 'type', {
 
         configurable: true,
 
         enumerable: true,
 
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
+        value: 'L'
     });
 
     Lineto.prototype = extend(segmentPrototype, Line.prototype, linetoPrototype);
@@ -4940,16 +4981,6 @@ var g = {};
             return this;
         },
 
-        translate: function(tx, ty) {
-
-            this.controlPoint1.translate(tx, ty);
-            this.controlPoint2.translate(tx, ty);
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        type: 'C',
-
         serialize: function() {
 
             var c1 = this.controlPoint1;
@@ -4961,22 +4992,24 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
-    Object.defineProperty(curvetoPrototype, 'start', {
-        // get a reference to the end point of previous segment
+    Object.defineProperty(curvetoPrototype, 'type', {
 
         configurable: true,
 
         enumerable: true,
 
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
+        value: 'C'
     });
 
     Curveto.prototype = extend(segmentPrototype, Curve.prototype, curvetoPrototype);
@@ -5125,6 +5158,12 @@ var g = {};
             return this;
         },
 
+        serialize: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
         tangentAt: function() {
 
             return null;
@@ -5140,23 +5179,15 @@ var g = {};
             return null;
         },
 
+        toString: function() {
+
+            return this.type + ' ' + this.end;
+        },
+
         translate: function(tx, ty) {
 
             this.end.translate(tx, ty);
             return this;
-        },
-
-        type: 'M',
-
-        serialize: function() {
-
-            var end = this.end;
-            return this.type + ' ' + end.x + ' ' + end.y;
-        },
-
-        toString: function() {
-
-            return this.type + ' ' + this.end;
         }
     };
 
@@ -5170,7 +5201,16 @@ var g = {};
 
             throw new Error('Illegal access. Moveto segments should not need a start property.');
         }
-    })
+    });
+
+    Object.defineProperty(movetoPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        value: 'M'
+    });
 
     Moveto.prototype = extend(segmentPrototype, movetoPrototype); // does not inherit from any other geometry object
 
@@ -5217,13 +5257,6 @@ var g = {};
             return this;
         },
 
-        translate: function() {
-
-            return this;
-        },
-
-        type: 'Z',
-
         serialize: function() {
 
             return this.type;
@@ -5232,23 +5265,13 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.end;
+        },
+
+        translate: function() {
+
+            return this;
         }
     };
-
-    Object.defineProperty(closepathPrototype, 'start', {
-        // get a reference to the end point of previous segment
-
-        configurable: true,
-
-        enumerable: true,
-
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
-    });
 
     Object.defineProperty(closepathPrototype, 'end', {
         // get a reference to the end point of subpath start segment
@@ -5263,7 +5286,16 @@ var g = {};
 
             return this.subpathStartSegment.end;
         }
-    })
+    });
+
+    Object.defineProperty(closepathPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        value: 'Z'
+    });
 
     Closepath.prototype = extend(segmentPrototype, Line.prototype, closepathPrototype);
 
@@ -5277,10 +5309,11 @@ var g = {};
 
     Path.regexSupportedData = new RegExp('^[\\s\\d' + Object.keys(segmentTypes).join('') + ',.]*$');
 
-    Path.isDataSupported = function(d) {
-        if (typeof d !== 'string') return false;
-        return this.regexSupportedData.test(d);
-    }
+    Path.isDataSupported = function(data) {
+
+        if (typeof data !== 'string') return false;
+        return this.regexSupportedData.test(data);
+    };
 
 })(g);
 
@@ -5415,9 +5448,17 @@ V = Vectorizer = (function() {
      * @param {SVGGElement} toElem
      * @returns {SVGMatrix}
      */
-    VPrototype.getTransformToElement = function(toElem) {
-        toElem = V.toNode(toElem);
-        return toElem.getScreenCTM().inverse().multiply(this.node.getScreenCTM());
+    VPrototype.getTransformToElement = function(target) {
+        var node = this.node;
+        if (V.isSVGGraphicsElement(target) && V.isSVGGraphicsElement(node)) {
+            var targetCTM = V.toNode(target).getScreenCTM();
+            var nodeCTM = node.getScreenCTM();
+            if (targetCTM && nodeCTM) {
+                return targetCTM.inverse().multiply(nodeCTM);
+            }
+        }
+        // Could not get actual transformation matrix
+        return V.createSVGMatrix();
     };
 
     /**
@@ -5568,7 +5609,8 @@ V = Vectorizer = (function() {
 
         // If the element is not in the live DOM, it does not have a bounding box defined and
         // so fall back to 'zero' dimension element.
-        if (!ownerSVGElement) {
+        // If the element is not an SVGGraphicsElement, we could not measure the bounding box either
+        if (!ownerSVGElement || !V.isSVGGraphicsElement(node)) {
             return new g.Rect(0, 0, 0, 0);
         }
 
@@ -5756,7 +5798,7 @@ V = Vectorizer = (function() {
                 break;
             default:
             case 'top':
-                dy = (0.8 * flMaxFont)
+                dy = (0.8 * flMaxFont);
                 break;
         }
         return dy;
@@ -5774,7 +5816,7 @@ V = Vectorizer = (function() {
         // End of Line character
         var eol = opt.eol;
         // Text along path
-        var textPath = opt.textPath
+        var textPath = opt.textPath;
         // Vertical shift
         var verticalAnchor = opt.textVerticalAnchor;
         var namedVerticalAnchor = (verticalAnchor === 'middle' || verticalAnchor === 'bottom' || verticalAnchor === 'top');
@@ -5886,10 +5928,10 @@ V = Vectorizer = (function() {
                 }
                 switch (verticalAnchor) {
                     case 'middle':
-                        dy = (0.3 - (rh / 2)) + 'em'
+                        dy = (0.3 - (rh / 2)) + 'em';
                         break;
                     case 'bottom':
-                        dy = (-rh - 0.3) + 'em'
+                        dy = (-rh - 0.3) + 'em';
                         break;
                 }
             }
@@ -5974,7 +6016,7 @@ V = Vectorizer = (function() {
         }
 
         return this;
-    }
+    };
 
     VPrototype.remove = function() {
 
@@ -6293,7 +6335,7 @@ V = Vectorizer = (function() {
 
     VPrototype.addClass = function(className) {
 
-        if (!this.hasClass(className)) {
+        if (className && !this.hasClass(className)) {
             var prevClasses = this.node.getAttribute('class') || '';
             this.node.setAttribute('class', (prevClasses + ' ' + className).trim());
         }
@@ -6303,7 +6345,7 @@ V = Vectorizer = (function() {
 
     VPrototype.removeClass = function(className) {
 
-        if (this.hasClass(className)) {
+        if (className && this.hasClass(className)) {
             var newClasses = this.node.getAttribute('class').replace(new RegExp('(\\s|^)' + className + '(\\s|$)', 'g'), '$2');
             this.node.setAttribute('class', newClasses);
         }
@@ -6745,10 +6787,10 @@ V = Vectorizer = (function() {
                 rotate = [decomposedMatrix.rotation];
 
                 var transformations = [];
-                if (translate[0] !== 0 ||  translate[0] !== 0) {
+                if (translate[0] !== 0 || translate[1] !== 0) {
                     transformations.push('translate(' + translate + ')');
                 }
-                if (scale[0] !== 1 ||  scale[1] !== 1) {
+                if (scale[0] !== 1 || scale[1] !== 1) {
                     transformations.push('scale(' + scale + ')');
                 }
                 if (rotate[0] !== 0) {
@@ -6874,6 +6916,15 @@ V = Vectorizer = (function() {
 
     // For backwards compatibility:
     V.isVElement = V.isV;
+
+    // Element implements `getBBox()`, `getCTM()` and `getScreenCTM()`
+    // https://developer.mozilla.org/en-US/docs/Web/API/SVGGraphicsElement
+    V.isSVGGraphicsElement = function(node) {
+        if (!node) return false;
+        node = V.toNode(node);
+        // IE/Edge does not implement SVGGraphicsElement interface, thus check for `getScreenCTM` below
+        return node instanceof SVGElement && typeof node.getScreenCTM === 'function';
+    };
 
     var svgDocument = V('svg').node;
 
@@ -7661,8 +7712,6 @@ V = Vectorizer = (function() {
                         path = ['L'].concat(d.x, path[1]);
                         break;
 
-                    // leave 'L' & 'Z' commands as they were:
-
                     case 'L':
                         break;
 
@@ -7959,8 +8008,8 @@ var joint = {
             // credit: http://stackoverflow.com/posts/2117523/revisions
 
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16|0;
-                var v = c == 'x' ? r : (r&0x3|0x8);
+                var r = (Math.random() * 16) | 0;
+                var v = (c === 'x') ? r : (r&0x3|0x8);
                 return v.toString(16);
             });
         },
@@ -7980,6 +8029,7 @@ var joint = {
 
         normalizeEvent: function(evt) {
 
+            var normalizedEvent = evt;
             var touchEvt = evt.originalEvent && evt.originalEvent.changedTouches && evt.originalEvent.changedTouches[0];
             if (touchEvt) {
                 for (var property in evt) {
@@ -7989,10 +8039,17 @@ var joint = {
                         touchEvt[property] = evt[property];
                     }
                 }
-                return touchEvt;
+                normalizedEvent = touchEvt;
             }
 
-            return evt;
+            // IE: evt.target could be set to SVGElementInstance for SVGUseElement
+            var target = normalizedEvent.target;
+            if (target) {
+                var useElement = target.correspondingUseElement;
+                if (useElement) normalizedEvent.target = useElement;
+            }
+
+            return normalizedEvent;
         },
 
         nextFrame: (function() {
@@ -8109,27 +8166,58 @@ var joint = {
             return joint.util.isString(val) && val.slice(-1) === '%';
         },
 
-        parseCssNumeric: function(strValue, restrictUnits) {
+        parseCssNumeric: function(val, restrictUnits) {
 
-            restrictUnits = restrictUnits || [];
-            var cssNumeric = { value: parseFloat(strValue) };
+            function getUnit(validUnitExp) {
 
-            if (Number.isNaN(cssNumeric.value)) {
-                return null;
+                // one or more numbers, followed by
+                // any number of (
+                //  `.`, followed by
+                //  one or more numbers
+                // ), followed by
+                // `validUnitExp`, followed by
+                // end of string
+                var matches = new RegExp('(?:\\d+(?:\\.\\d+)*)(' + validUnitExp + ')$').exec(val);
+
+                if (!matches) return null;
+                return matches[1];
             }
 
-            var validUnitsExp = restrictUnits.join('|');
+            var number = parseFloat(val);
 
-            if (joint.util.isString(strValue)) {
-                var matches = new RegExp('(\\d+)(' + validUnitsExp + ')$').exec(strValue);
-                if (!matches) {
-                    return null;
-                }
-                if (matches[2]) {
-                    cssNumeric.unit = matches[2];
-                }
+            // if `val` cannot be parsed as a number, return `null`
+            if (Number.isNaN(number)) return null;
+
+            // else: we know `output.value`
+            var output = {};
+            output.value = number;
+
+            // determine the unit
+            var validUnitExp;
+            if (restrictUnits == null) {
+                // no restriction
+                // accept any unit, as well as no unit
+                validUnitExp = '[A-Za-z]*';
+
+            } else if (Array.isArray(restrictUnits)) {
+                // if this is an empty array, top restriction - return `null`
+                if (restrictUnits.length === 0) return null;
+
+                // else: restriction - an array of valid unit strings
+                validUnitExp = restrictUnits.join('|');
+
+            } else if (joint.util.isString(restrictUnits)) {
+                // restriction - a single valid unit string
+                validUnitExp = restrictUnits;
             }
-            return cssNumeric;
+            var unit = getUnit(validUnitExp);
+
+            // if we found no matches for `restrictUnits`, return `null`
+            if (unit === null) return null;
+
+            // else: we know the unit
+            output.unit = unit;
+            return output;
         },
 
         breakText: function(text, size, styles, opt) {
@@ -8302,8 +8390,34 @@ var joint = {
                     if (lineHeight * lines.length > height) {
 
                         // remove overflowing lines
-                        lines.splice(Math.floor(height / lineHeight));
+                        var lastL = Math.floor(height / lineHeight) - 1;
+                        lines.splice(lastL + 1);
 
+                        // add ellipsis
+                        var ellipsis = opt.ellipsis;
+                        if (!ellipsis || lastL < 0) break;
+                        if (typeof ellipsis !== 'string') ellipsis = '\u2026';
+
+                        var lastLine = lines[lastL];
+                        var k = lastLine.length;
+                        var lastLineWithOmission, lastChar, separatorChar;
+                        do {
+                            lastChar = lastLine[k];
+                            lastLineWithOmission = lastLine.substring(0, k);
+                            if (!lastChar) {
+                                separatorChar = (typeof separator === 'string') ? separator : ' ';
+                                lastLineWithOmission += separatorChar;
+                            } else if (lastChar.match(separator)) {
+                                lastLineWithOmission += lastChar;
+                            }
+                            lastLineWithOmission += ellipsis;
+                            textNode.data = lastLineWithOmission;
+                            if (textSpan.getComputedTextLength() <= width) {
+                                lines[lastL] = lastLineWithOmission;
+                                break;
+                            }
+                            k--;
+                        } while (k >= 0);
                         break;
                     }
                 }
@@ -8518,7 +8632,7 @@ var joint = {
 
             var $el = $(el);
             if ($el.length === 0) {
-                throw new Error('Element not found')
+                throw new Error('Element not found');
             }
 
             var element = $el[0];
@@ -9305,6 +9419,7 @@ var joint = {
         parseDOMJSON: function(json, namespace) {
 
             var selectors = {};
+            var groupSelectors = {};
             var svgNamespace = V.namespace.xmlns;
             var ns = namespace || svgNamespace;
             var fragment = document.createDocumentFragment();
@@ -9338,12 +9453,27 @@ var joint = {
                             node.className = className;
                         }
                     }
+                    // TextContent
+                    if (nodeDef.hasOwnProperty('textContent')) {
+                        node.textContent = nodeDef.textContent;
+                    }
                     // Selector
                     if (nodeDef.hasOwnProperty('selector')) {
                         var nodeSelector = nodeDef.selector;
                         if (selectors[nodeSelector]) throw new Error('json-dom-parser: selector must be unique');
                         selectors[nodeSelector] = node;
                         wrapper(node).attr('joint-selector', nodeSelector);
+                    }
+                    // Groups
+                    if (nodeDef.hasOwnProperty('groupSelector')) {
+                        var nodeGroups = nodeDef.groupSelector;
+                        if (!Array.isArray(nodeGroups)) nodeGroups = [nodeGroups];
+                        for (var j = 0, m = nodeGroups.length; j < m; j++) {
+                            var nodeGroup = nodeGroups[j];
+                            var group = groupSelectors[nodeGroup];
+                            if (!group) group = groupSelectors[nodeGroup] = [];
+                            group.push(node);
+                        }
                     }
                     parentNode.appendChild(node);
                     // Children
@@ -9353,17 +9483,20 @@ var joint = {
             }
             return {
                 fragment: fragment,
-                selectors: selectors
-            }
+                selectors: selectors,
+                groupSelectors: groupSelectors
+            };
         },
 
         /* global _:true */
 
+        // Deprecated
         // Copy all the properties to the first argument from the following arguments.
         // All the properties will be overwritten by the properties from the following
         // arguments. Inherited properties are ignored.
         mixin: _.assign,
 
+        // Deprecated
         // Copy all properties to the first argument from the following
         // arguments only in case if they don't exists in the first argument.
         // All the function propererties in the first argument will get
@@ -9374,39 +9507,44 @@ var joint = {
         // Same as `mixin()` but deep version.
         deepMixin: _.mixin,
 
+        // Deprecated
         // Same as `supplement()` but deep version.
         deepSupplement: _.defaultsDeep,
 
-        // lodash 3 vs 4 incompatible
-        sortedIndex: _.sortedIndexBy || _.sortedIndex,
-        uniq: _.uniqBy || _.uniq,
-        uniqueId: _.uniqueId,
-        sortBy: _.sortBy,
-        isFunction: _.isFunction,
-        result: _.result,
-        union: _.union,
-        invoke: _.invokeMap || _.invoke,
-        difference: _.difference,
-        intersection: _.intersection,
-        omit: _.omit,
-        pick: _.pick,
-        has: _.has,
-        bindAll: _.bindAll,
+        // Replacements for deprecated functions
         assign: _.assign,
         defaults: _.defaults,
+        // no better-named replacement for `deepMixin`
         defaultsDeep: _.defaultsDeep,
-        isPlainObject: _.isPlainObject,
+
+        // Lodash 3 vs 4 incompatible
+        invoke: _.invokeMap || _.invoke,
+        sortedIndex: _.sortedIndexBy || _.sortedIndex,
+        uniq: _.uniqBy || _.uniq,
+
+        clone: _.clone,
+        cloneDeep: _.cloneDeep,
         isEmpty: _.isEmpty,
         isEqual: _.isEqual,
-        cloneDeep: _.cloneDeep,
+        isFunction: _.isFunction,
+        isPlainObject: _.isPlainObject,
         toArray: _.toArray,
-        flattenDeep: _.flattenDeep,
-        camelCase: _.camelCase,
-        groupBy: _.groupBy,
-        forIn: _.forIn,
-        without: _.without,
         debounce: _.debounce,
-        clone: _.clone,
+        groupBy: _.groupBy,
+        sortBy: _.sortBy,
+        flattenDeep: _.flattenDeep,
+        without: _.without,
+        difference: _.difference,
+        intersection: _.intersection,
+        union: _.union,
+        has: _.has,
+        result: _.result,
+        omit: _.omit,
+        pick: _.pick,
+        bindAll: _.bindAll,
+        forIn: _.forIn,
+        camelCase: _.camelCase,
+        uniqueId: _.uniqueId,
 
         merge: function() {
             if (_.mergeWith) {
@@ -9425,14 +9563,12 @@ var joint = {
                     }
                 });
 
-                return _.mergeWith.apply(this, args)
+                return _.mergeWith.apply(this, args);
             }
             return _.merge.apply(this, arguments);
         },
 
         /* global _:false */
-
-        noop: function() {},
 
         isBoolean: function(value) {
             var toString = Object.prototype.toString;
@@ -9451,7 +9587,9 @@ var joint = {
         isString: function(value) {
             var toString = Object.prototype.toString;
             return typeof value === 'string' || (!!value && typeof value === 'object' && toString.call(value) === '[object String]');
-        }
+        },
+
+        noop: function() {}
     }
 };
 
@@ -9493,6 +9631,23 @@ joint.mvc.View = Backbone.View.extend({
             this.childNodes = doc.selectors;
         }
         return this;
+    },
+
+    findAttribute: function(attributeName, node) {
+
+        var currentNode = node;
+
+        while (currentNode && currentNode.nodeType === 1) {
+            var attributeValue = currentNode.getAttribute(attributeName);
+            // attribute found
+            if (attributeValue) return attributeValue;
+            // do not climb up the DOM
+            if (currentNode === this.el) return null;
+            // try parent node
+            currentNode = currentNode.parentNode;
+        }
+
+        return null;
     },
 
     // Override the Backbone `_ensureElement()` method in order to create an
@@ -9537,6 +9692,7 @@ joint.mvc.View = Backbone.View.extend({
 
     _ensureElClassName: function() {
         var className = joint.util.result(this, 'className');
+        if (!className) return;
         var prefixedClassName = joint.util.addClassNamePrefix(className);
         // Note: className removal here kept for backwards compatibility only
         if (this.svgElement) {
@@ -9670,6 +9826,15 @@ joint.mvc.View = Backbone.View.extend({
         currentData[key] || (currentData[key] = {});
         joint.util.assign(currentData[key], data);
         return this;
+    },
+
+    stopPropagation: function(evt) {
+        this.eventData(evt, { propagationStopped: true });
+        return this;
+    },
+
+    isPropagationStopped: function(evt) {
+        return !!this.eventData(evt).propagationStopped;
     }
 
 }, {
@@ -9693,17 +9858,22 @@ joint.mvc.View = Backbone.View.extend({
         */
         protoProps.render = function() {
 
-            if (renderFn) {
+            if (typeof renderFn === 'function') {
                 // Call the original render method.
                 renderFn.apply(this, arguments);
             }
 
-            // Should always call onRender() method.
-            this.onRender();
+            if (this.render.__render__ === renderFn) {
+                // Should always call onRender() method.
+                // Should call it only once when renderFn is actual protoype method i.e. not the wrapper
+                this.onRender();
+            }
 
             // Should always return itself.
             return this;
         };
+
+        protoProps.render.__render__ = renderFn;
 
         return Backbone.View.extend.call(this, protoProps, staticProps);
     }
@@ -10716,10 +10886,13 @@ joint.dia.Graph = Backbone.Model.extend({
 
         return joint.util.toArray(cells).reduce(function(memo, cell) {
             if (cell.isLink()) return memo;
+            var rect = cell.getBBox(opt);
+            var angle = cell.angle();
+            if (angle) rect = rect.bbox(angle);
             if (memo) {
-                return memo.union(cell.getBBox(opt));
+                return memo.union(rect);
             } else {
-                return cell.getBBox(opt);
+                return rect;
             }
         }, null);
     },
@@ -10978,7 +11151,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
             }
             if (angle === 0) return { transform: 'translate(' + p.x + ',' + p.y + ')' };
             return { transform: 'translate(' + p.x + ',' + p.y + ') rotate(' + angle + ')' };
-        }
+        };
     }
 
     function isTextInUse(lineHeight, node, attrs) {
@@ -11003,7 +11176,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
         // Again the context 'fill-opacity' is ignored.
         var strokeOpacity = context.strokeOpacity;
         if (strokeOpacity === undefined) strokeOpacity = context['stroke-opacity'];
-        if (strokeOpacity === undefined) strokeOpacity = context.opacity
+        if (strokeOpacity === undefined) strokeOpacity = context.opacity;
         if (strokeOpacity !== undefined) {
             marker['stroke-opacity'] = strokeOpacity;
             marker['fill-opacity'] = strokeOpacity;
@@ -11126,7 +11299,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = joint.util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
+                var textAttrs = util.pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -11179,7 +11352,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                 var text = value.text;
                 if (text === undefined) text = attrs.text;
                 if (text !== undefined) {
-                    wrappedText = joint.util.breakText('' + text, refBBox, {
+                    wrappedText = util.breakText('' + text, refBBox, {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
                         'font-size': attrs['font-size'] || attrs.fontSize,
                         'font-family': attrs['font-family'] || attrs.fontFamily,
@@ -11187,7 +11360,8 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                     }, {
                         // Provide an existing SVG Document here
                         // instead of creating a temporary one over again.
-                        svgDocument: this.paper.svg
+                        svgDocument: this.paper.svg,
+                        ellipsis: value.ellipsis
                     });
                 } else {
                     wrappedText = '';
@@ -11315,7 +11489,7 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
                 return function(value, refBBox) {
                     var fn = (refBBox.height > refBBox.width) ? widthFn : heightFn;
                     return fn(value, refBBox);
-                }
+                };
             })('r')
         },
 
@@ -11427,6 +11601,8 @@ joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'remov
     // refX: 50%, refX2: 20
     attributesNS.refX2 = attributesNS.refX;
     attributesNS.refY2 = attributesNS.refY;
+    attributesNS.refWidth2 = attributesNS.refWidth;
+    attributesNS.refHeight2 = attributesNS.refHeight;
 
     // Aliases for backwards compatibility
     attributesNS['ref-x'] = attributesNS.refX;
@@ -11762,21 +11938,28 @@ joint.dia.Cell = Backbone.Model.extend({
 
         // Store the graph in a variable because `this.graph` won't' be accessbile after `this.trigger('remove', ...)` down below.
         var graph = this.graph;
-        if (graph) {
-            graph.startBatch('remove');
+        if (!graph) {
+            // The collection is a common backbone collection (not the graph collection).
+            if (this.collection) this.collection.remove(this, opt);
+            return this;
         }
+
+        graph.startBatch('remove');
 
         // First, unembed this cell from its parent cell if there is one.
         var parentCell = this.getParentCell();
         if (parentCell) parentCell.unembed(this);
 
-        joint.util.invoke(this.getEmbeddedCells(), 'remove', opt);
-
-        this.trigger('remove', this, this.collection, opt);
-
-        if (graph) {
-            graph.stopBatch('remove');
+        // Remove also all the cells, which were embedded into this cell
+        var embeddedCells = this.getEmbeddedCells();
+        for (var i = 0, n = embeddedCells.length; i < n; i++) {
+            var embed = embeddedCells[i];
+            if (embed) embed.remove(opt);
         }
+
+        this.trigger('remove', this, graph.attributes.cells, opt);
+
+        graph.stopBatch('remove');
 
         return this;
     },
@@ -12075,7 +12258,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
                 if (isString) {
                     path = props;
-                    pathArray = path.split('/')
+                    pathArray = path.split('/');
                 } else {
                     path = props.join(delim);
                     pathArray = props.slice();
@@ -12391,6 +12574,24 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
     },
 
+
+    parseDOMJSON: function(markup, root) {
+
+        var doc = joint.util.parseDOMJSON(markup);
+        var selectors = doc.selectors;
+        var groups = doc.groupSelectors;
+        for (var group in groups) {
+            if (selectors[group]) throw new Error('dia.CellView: ambigious group selector');
+            selectors[group] = groups[group];
+        }
+        if (root) {
+            var rootSelector = this.selector;
+            if (selectors[rootSelector]) throw new Error('dia.CellView: ambiguous root selector.');
+            selectors[rootSelector] = root;
+        }
+        return { fragment: doc.fragment, selectors: selectors };
+    },
+
     onChangeAttrs: function(cell, attrs, opt) {
 
         if (opt.dirty) {
@@ -12423,7 +12624,13 @@ joint.dia.CellView = joint.mvc.View.extend({
         // These are either descendants of `this.$el` of `this.$el` itself.
         // `.` is a special selector used to select the wrapping `<g>` element.
         if (!selector || selector === '.') return [root];
-        if (selectors && selectors[selector]) return [selectors[selector]];
+        if (selectors) {
+            var nodes = selectors[selector];
+            if (nodes) {
+                if (Array.isArray(nodes)) return nodes;
+                return [nodes];
+            }
+        }
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
         return $(root).find(selector).toArray();
@@ -12603,23 +12810,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return magnet;
-    },
-
-    findAttribute: function(attributeName, node) {
-
-        if (!node) return null;
-
-        var attributeValue = node.getAttribute(attributeName);
-        if (attributeValue === null) {
-            if (node === this.el) return null;
-            var currentNode = node.parentNode;
-            while (currentNode && currentNode !== this.el && currentNode.nodeType === 1) {
-                attributeValue = currentNode.getAttribute(attributeName)
-                if (attributeValue !== null) break;
-                currentNode = currentNode.parentNode;
-            }
-        }
-        return attributeValue;
     },
 
     getAttributeDefinition: function(attrName) {
@@ -12811,43 +13001,71 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     findNodesAttributes: function(attrs, root, selectorCache, selectors) {
 
-        // TODO: merge attributes in order defined by `index` property
-
-        // most browsers sort elements in attrs by order of addition
-        // which is useful but not required
-
-        // link.updateLabels() relies on that assumption for merging label attrs over default label attrs
-
+        var util = joint.util;
+        var i, n, nodeAttrs, nodeId;
         var nodesAttrs = {};
-
+        var mergeIds = [];
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
             var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
-            for (var i = 0, n = selected.length; i < n; i++) {
+            for (i = 0, n = selected.length; i < n; i++) {
                 var node = selected[i];
-                var nodeId = V.ensureId(node);
-                var nodeAttrs = attrs[selector];
+                nodeId = V.ensureId(node);
+                nodeAttrs = attrs[selector];
+                // "unique" selectors are selectors that referencing a single node (defined by `selector`)
+                // groupSelector referencing a single node is not "unique"
+                var unique = (selectors && selectors[selector] === node);
                 var prevNodeAttrs = nodesAttrs[nodeId];
                 if (prevNodeAttrs) {
-                    if (!prevNodeAttrs.merged) {
-                        prevNodeAttrs.merged = true;
-                        // if prevNode attrs is `null`, replace with `{}`
-                        prevNodeAttrs.attributes = joint.util.cloneDeep(prevNodeAttrs.attributes) || {};
+                    // Note, that nodes referenced by deprecated `CSS selectors` are not taken into account.
+                    // e.g. css:`.circle` and selector:`circle` can be applied in a random order
+                    if (!prevNodeAttrs.array) {
+                        mergeIds.push(nodeId);
+                        prevNodeAttrs.array = true;
+                        prevNodeAttrs.attributes = [prevNodeAttrs.attributes];
+                        prevNodeAttrs.selectedLength = [prevNodeAttrs.selectedLength];
                     }
-                    // if prevNode attrs not set (or `null` or`{}`), use node attrs
-                    // if node attrs not set (or `null` or `{}`), use prevNode attrs
-                    joint.util.merge(prevNodeAttrs.attributes, nodeAttrs);
+                    var attributes = prevNodeAttrs.attributes;
+                    var selectedLength = prevNodeAttrs.selectedLength;
+                    if (unique) {
+                        // node referenced by `selector`
+                        attributes.unshift(nodeAttrs);
+                        selectedLength.unshift(-1);
+                    } else {
+                        // node referenced by `groupSelector`
+                        var sortIndex = util.sortedIndex(selectedLength, n);
+                        attributes.splice(sortIndex, 0, nodeAttrs);
+                        selectedLength.splice(sortIndex, 0, n);
+                    }
                 } else {
                     nodesAttrs[nodeId] = {
                         attributes: nodeAttrs,
+                        selectedLength: unique ? -1 : n,
                         node: node,
-                        merged: false
+                        array: false
                     };
                 }
             }
         }
 
+        for (i = 0, n = mergeIds.length; i < n; i++) {
+            nodeId = mergeIds[i];
+            nodeAttrs = nodesAttrs[nodeId];
+            nodeAttrs.attributes = util.merge.apply(util, [{}].concat(nodeAttrs.attributes.reverse()));
+        }
+
         return nodesAttrs;
+    },
+
+    getEventTarget: function(evt) {
+        // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
+        // It holds the element when a touchstart triggered.
+        var type = evt.type;
+        if (type === 'touchmove' || type === 'touchend') {
+            return document.elementFromPoint(evt.clientX, evt.clientY);
+        }
+
+        return evt.target;
     },
 
     // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
@@ -12873,7 +13091,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         // `nodesAttrs` are different from all attributes, when
         // rendering only  attributes sent to this method.
         var nodesAllAttrs = (roAttrs)
-            ? nodesAllAttrs = this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
+            ? this.findNodesAttributes(attrs, rootNode, selectorCache, opt.selectors)
             : nodesAttrs;
 
         for (var nodeId in nodesAttrs) {
@@ -13129,6 +13347,16 @@ joint.dia.CellView = joint.mvc.View.extend({
     },
 
     onmagnet: function() {
+
+        // noop
+    },
+
+    magnetpointerdblclick: function() {
+
+        // noop
+    },
+
+    magnetcontextmenu: function() {
 
         // noop
     },
@@ -13627,13 +13855,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     renderJSONMarkup: function(markup) {
 
-        var doc = joint.util.parseDOMJSON(markup);
-        // Selectors
+        var doc = this.parseDOMJSON(markup, this.el);
         var selectors = this.selectors = doc.selectors;
-        var rootSelector = this.selector;
-        if (selectors[rootSelector]) throw new Error('dia.ElementView: ambiguous root selector.');
-        selectors[rootSelector] = this.el;
-        // Cache transformation groups
         this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
         this.scalableNode = V(selectors[this.scalableSelector]) || null;
         // Fragment
@@ -13729,10 +13952,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     nodeCache: function(magnet) {
 
+        var metrics = this.metrics;
+        if (!metrics) {
+            // don't use cache
+            // it most likely a custom view with overridden update
+            return {};
+        }
+
         var id = V.ensureId(magnet);
-        var metrics = this.metrics[id];
-        if (!metrics) metrics = this.metrics[id] = {};
-        return metrics;
+
+        var value = metrics[id];
+        if (!value) value = metrics[id] = {};
+        return value;
     },
 
     getNodeData: function(magnet) {
@@ -13853,7 +14084,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         // Cancel the rotation but now around a different origin, which is the center of the scaled object.
         var rotatable = this.rotatableNode;
         var rotation = rotatable && rotatable.attr('transform');
-        if (rotation && rotation !== null) {
+        if (rotation) {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
             var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
@@ -13886,19 +14117,25 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
         // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
-        var maxZ = graph.get('cells').max('z').get('z');
-        var connectedLinks = graph.getConnectedLinks(model, { deep: true, includeEnclosed: true });
+        var maxZ = graph.getElements().reduce(function(max, cell) {
+            return Math.max(max, cell.attributes.z || 0);
+        }, 0);
 
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        joint.util.invoke(connectedLinks, 'set', 'z', maxZ + 1, { ui: true });
+        var connectedLinks = graph.getConnectedLinks(model, { deep: true, includeEnclosed: true });
+        connectedLinks.forEach(function(link) {
+            if (link.attributes.z <= maxZ) link.set('z', maxZ + 1, { ui: true });
+        });
 
         model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
         var parentId = model.parent();
-        parentId && graph.getCell(parentId).unembed(model, { ui: true });
+        if (parentId) {
+            graph.getCell(parentId).unembed(model, { ui: true });
+        }
     },
 
     processEmbedding: function(data) {
@@ -13994,6 +14231,22 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         joint.util.invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
     },
 
+    getDelegatedView: function() {
+
+        var view = this;
+        var model = view.model;
+        var paper = view.paper;
+
+        while (view) {
+            if (model.isLink()) break;
+            if (!model.isEmbedded() || view.can('stopDelegation')) return view;
+            model = model.getParentCell();
+            view = paper.findViewByModel(model);
+        }
+
+        return null;
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
@@ -14017,6 +14270,8 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     pointerdown: function(evt, x, y) {
 
+        if (this.isPropagationStopped(evt)) return;
+
         joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
         this.notify('element:pointerdown', evt, x, y);
 
@@ -14026,18 +14281,18 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     pointermove: function(evt, x, y) {
 
         var data = this.eventData(evt);
+
         switch (data.action) {
-            case 'move':
-                this.drag(evt, x, y);
-                break;
             case 'magnet':
                 this.dragMagnet(evt, x, y);
                 break;
-        }
-
-        if (!data.stopPropagation) {
-            joint.dia.CellView.prototype.pointermove.apply(this, arguments);
-            this.notify('element:pointermove', evt, x, y);
+            case 'move':
+                (data.delegatedView || this).drag(evt, x, y);
+            // eslint: no-fallthrough=false
+            default:
+                joint.dia.CellView.prototype.pointermove.apply(this, arguments);
+                this.notify('element:pointermove', evt, x, y);
+                break;
         }
 
         // Make sure the element view data is passed along.
@@ -14049,18 +14304,19 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         switch (data.action) {
-            case 'move':
-                this.dragEnd(evt, x, y);
-                break;
             case 'magnet':
                 this.dragMagnetEnd(evt, x, y);
-                return;
+                break;
+            case 'move':
+                (data.delegatedView || this).dragEnd(evt, x, y);
+            // eslint: no-fallthrough=false
+            default:
+                this.notify('element:pointerup', evt, x, y);
+                joint.dia.CellView.prototype.pointerup.apply(this, arguments);
         }
 
-        if (!data.stopPropagation) {
-            this.notify('element:pointerup', evt, x, y);
-            joint.dia.CellView.prototype.pointerup.apply(this, arguments);
-        }
+        var magnet = data.targetMagnet;
+        if (magnet) this.magnetpointerclick(evt, magnet, x, y);
     },
 
     mouseover: function(evt) {
@@ -14096,22 +14352,34 @@ joint.dia.ElementView = joint.dia.CellView.extend({
     onmagnet: function(evt, x, y) {
 
         this.dragMagnetStart(evt, x, y);
+    },
 
-        var stopPropagation = this.eventData(evt).stopPropagation;
-        if (stopPropagation) evt.stopPropagation();
+    magnetpointerdblclick: function(evt, magnet, x, y) {
+
+        this.notify('element:magnet:pointerdblclick', evt, magnet, x, y);
+    },
+
+    magnetcontextmenu: function(evt, magnet, x, y) {
+
+        this.notify('element:magnet:contextmenu', evt, magnet, x, y);
     },
 
     // Drag Start Handlers
 
     dragStart: function(evt, x, y) {
 
-        if (!this.can('elementMove')) return;
+        var view = this.getDelegatedView();
+        if (!view || !view.can('elementMove')) return;
 
         this.eventData(evt, {
             action: 'move',
+            delegatedView: view
+        });
+
+        view.eventData(evt, {
             x: x,
             y: y,
-            restrictedArea: this.paper.getRestrictedArea(this)
+            restrictedArea: this.paper.getRestrictedArea(view)
         });
     },
 
@@ -14119,31 +14387,57 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         if (!this.can('addLinkFromMagnet')) return;
 
+        var magnet = evt.currentTarget;
+        var paper = this.paper;
+        this.eventData(evt, { targetMagnet: magnet });
+        evt.stopPropagation();
+
+        if (paper.options.validateMagnet(this, magnet)) {
+
+            if (paper.options.magnetThreshold <= 0) {
+                this.dragLinkStart(evt, magnet, x, y);
+            }
+
+            this.eventData(evt, { action: 'magnet' });
+            this.stopPropagation(evt);
+
+        } else {
+
+            this.pointerdown(evt, x, y);
+        }
+
+        paper.delegateDragEvents(this, evt.data);
+    },
+
+    dragLinkStart: function(evt, magnet, x, y) {
+
         this.model.startBatch('add-link');
+
+        var linkView = this.addLinkFromMagnet(magnet, x, y);
+
+        // backwards compatiblity events
+        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        linkView.notify('link:pointerdown', evt, x, y);
+
+        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
+        this.eventData(evt, { linkView: linkView });
+    },
+
+    addLinkFromMagnet: function(magnet, x, y) {
 
         var paper = this.paper;
         var graph = paper.model;
-        var magnet = evt.target;
+
         var link = paper.getDefaultLink(this, magnet);
-        var sourceEnd = this.getLinkEnd(magnet, x, y, link, 'source');
-        var targetEnd = { x: x, y: y };
-
-        link.set({ source: sourceEnd, target: targetEnd });
-        link.addTo(graph, { async: false, ui: true });
-
-        var linkView = link.findView(paper);
-        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
-        linkView.notify('link:pointerdown', evt, x, y);
-        var data = linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' });
-        linkView.eventData(evt, data);
-
-        this.eventData(evt, {
-            action: 'magnet',
-            linkView: linkView,
-            stopPropagation: true
+        link.set({
+            source: this.getLinkEnd(magnet, x, y, link, 'source'),
+            target: { x: x, y: y }
+        }).addTo(graph, {
+            async: false,
+            ui: true
         });
 
-        this.paper.delegateDragEvents(this, evt.data);
+        return link.findView(paper);
     },
 
     // Drag Handlers
@@ -14186,7 +14480,22 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         var linkView = data.linkView;
-        if (linkView) linkView.pointermove(evt, x, y);
+        if (linkView) {
+            linkView.pointermove(evt, x, y);
+        } else {
+            var paper = this.paper;
+            var magnetThreshold = paper.options.magnetThreshold;
+            var currentTarget = this.getEventTarget(evt);
+            var targetMagnet = data.targetMagnet;
+            if (magnetThreshold === 'onleave') {
+                // magnetThreshold when the pointer leaves the magnet
+                if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) return;
+            } else {
+                // magnetThreshold defined as a number of movements
+                if (paper.eventData(evt).mousemoved <= magnetThreshold) return;
+            }
+            this.dragLinkStart(evt, targetMagnet, x, y);
+        }
     },
 
     // Drag End Handlers
@@ -14201,11 +14510,16 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         var data = this.eventData(evt);
         var linkView = data.linkView;
-        if (linkView) linkView.pointerup(evt, x, y);
-
+        if (!linkView) return;
+        linkView.pointerup(evt, x, y);
         this.model.stopBatch('add-link');
-    }
+    },
 
+    magnetpointerclick: function(evt, magnet, x, y) {
+        var paper = this.paper;
+        if (paper.eventData(evt).mousemoved > paper.options.clickThreshold) return;
+        this.notify('element:magnet:pointerclick', evt, magnet, x, y);
+    }
 });
 
 
@@ -14941,12 +15255,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     renderJSONMarkup: function(markup) {
 
-        var doc = joint.util.parseDOMJSON(markup);
+        var doc = this.parseDOMJSON(markup, this.el);
         // Selectors
-        var selectors = this.selectors = doc.selectors;
-        var rootSelector = this.selector;
-        if (selectors[rootSelector]) throw new Error('dia.LinkView: ambiguous root selector.');
-        selectors[rootSelector] = this.el;
+        this.selectors = doc.selectors;
         // Fragment
         this.vel.append(doc.fragment);
     },
@@ -14983,14 +15294,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         if (!labelMarkup) return undefined;
 
-        if (Array.isArray(labelMarkup)) return this._getLabelJSONMarkup(labelMarkup);
+        if (Array.isArray(labelMarkup)) return this.parseDOMJSON(labelMarkup, null);
         if (typeof labelMarkup === 'string') return this._getLabelStringMarkup(labelMarkup);
         throw new Error('dia.linkView: invalid label markup');
-    },
-
-    _getLabelJSONMarkup: function(labelMarkup) {
-
-        return joint.util.parseDOMJSON(labelMarkup); // fragment and selectors
     },
 
     _getLabelStringMarkup: function(labelMarkup) {
@@ -14999,7 +15305,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var fragment = document.createDocumentFragment();
 
         if (!Array.isArray(children)) {
-            fragment.append(children.node);
+            fragment.appendChild(children.node);
 
         } else {
             for (var i = 0, n = children.length; i < n; i++) {
@@ -15026,15 +15332,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if ((childNodes.length > 1) || childNodes[0].nodeName.toUpperCase() !== 'G') {
             // default markup fragment is not wrapped in <g />
             // add a <g /> container
-
-            vNode = V('g');
-            vNode.append(fragment);
-            vNode.addClass('label');
-
+            vNode = V('g').append(fragment);
         } else {
             vNode = V(childNodes[0]);
-            vNode.addClass('label');
         }
+
+        vNode.addClass('label');
 
         return { node: vNode.node, selectors: markup.selectors };
     },
@@ -15045,51 +15348,61 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var vLabels = cache.labels;
         var labelCache = this._labelCache = {};
         var labelSelectors = this._labelSelectors = {};
-
-        if (vLabels) vLabels.empty();
-
         var model = this.model;
-        var labels = model.get('labels') || [];
+        var labels = model.attributes.labels || [];
         var labelsCount = labels.length;
-        if (labelsCount === 0) return this;
 
-        if (!vLabels) {
+        if (labelsCount === 0) {
+            if (vLabels) vLabels.remove();
+            return this;
+        }
+
+        if (vLabels) {
+            vLabels.empty();
+        }  else {
             // there is no label container in the markup but some labels are defined
             // add a <g class="labels" /> container
-            vLabels = cache.labels = V('g').addClass('labels').appendTo(this.el);
+            vLabels = cache.labels = V('g').addClass('labels');
         }
+
+        var container = vLabels.node;
 
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
             var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
-
-            var node;
+            var labelNode;
             var selectors;
             if (labelMarkup) {
-                node = labelMarkup.node;
+
+                labelNode = labelMarkup.node;
                 selectors = labelMarkup.selectors;
 
             } else {
+
                 var builtinDefaultLabel =  model._builtins.defaultLabel;
                 var builtinDefaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(builtinDefaultLabel.markup));
-
                 var defaultLabel = model._getDefaultLabel();
                 var defaultLabelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(defaultLabel.markup));
-
                 var defaultMarkup = defaultLabelMarkup || builtinDefaultLabelMarkup;
 
-                node = defaultMarkup.node;
+                labelNode = defaultMarkup.node;
                 selectors = defaultMarkup.selectors;
             }
 
-            var vLabel = V(node);
-            vLabel.attr('label-idx', i); // assign label-idx
-            vLabel.appendTo(vLabels);
-            labelCache[i] = vLabel; // cache node for `updateLabels()` so it can just update label node positions
+            labelNode.setAttribute('label-idx', i); // assign label-idx
+            container.appendChild(labelNode);
+            labelCache[i] = labelNode; // cache node for `updateLabels()` so it can just update label node positions
 
-            selectors[this.selector] = vLabel.node;
+            var rootSelector = this.selector;
+            if (selectors[rootSelector]) throw new Error('dia.LinkView: ambiguous label root selector.');
+            selectors[rootSelector] = labelNode;
+
             labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
+        }
+
+        if (!container.parentNode) {
+            this.el.appendChild(container);
         }
 
         this.updateLabels();
@@ -15136,8 +15449,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         for (var i = 0, n = labels.length; i < n; i++) {
 
-            var vLabel = this._labelCache[i];
-            vLabel.attr('cursor', (canLabelMove ? 'move' : 'default'));
+            var labelNode = this._labelCache[i];
+            labelNode.setAttribute('cursor', (canLabelMove ? 'move' : 'default'));
 
             var selectors = this._labelSelectors[i];
 
@@ -15152,7 +15465,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 builtinDefaultLabelAttrs
             );
 
-            this.updateDOMSubtreeAttributes(vLabel.node, attrs, {
+            this.updateDOMSubtreeAttributes(labelNode, attrs, {
                 rootBBox: new g.Rect(label.size),
                 selectors: selectors
             });
@@ -15439,7 +15752,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return {
             source: sourceMarkerPoint,
             target: targetMarkerPoint
-        }
+        };
     },
 
     findAnchors: function(vertices) {
@@ -15485,7 +15798,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return {
             source: sourceAnchor,
             target: targetAnchor
-        }
+        };
     },
 
     findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
@@ -15526,7 +15839,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return {
             source: sourcePoint,
             target: targetPoint
-        }
+        };
     },
 
     getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
@@ -15555,7 +15868,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
         var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
         if (anchor) return anchor.round(this.decimalsRounding);
-        return new g.Point()
+        return new g.Point();
     },
 
 
@@ -15635,7 +15948,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var position = joint.util.merge({}, defaultPosition, labelPosition);
 
             var labelPoint = this.getLabelCoordinates(position);
-            this._labelCache[idx].attr('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
+            this._labelCache[idx].setAttribute('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
         }
 
         return this;
@@ -16437,19 +16750,25 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Backwards compatibility
         var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
         if (linkTool) {
+            // No further action to be executed
+            evt.stopPropagation();
+
             // Allow `interactive.useLinkTools=false`
             if (this.can('useLinkTools')) {
                 if (eventName === 'remove') {
-                    // No further action to be executed
-                    evt.stopPropagation();
                     // Built-in remove event
                     this.model.remove({ ui: true });
+                    // Do not trigger link pointerdown
+                    return;
 
                 } else {
                     // link:options and other custom events inside the link tools
                     this.notify(eventName, evt, x, y);
                 }
             }
+
+            joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+            this.notify('link:pointerdown', evt, x, y);
 
         } else {
             joint.dia.CellView.prototype.onevent.apply(this, arguments);
@@ -16575,13 +16894,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             this._snapArrowhead(x, y, data);
 
         } else {
-            // Touchmove event's target is not reflecting the element under the coordinates as mousemove does.
-            // It holds the element when a touchstart triggered.
-            var target = (evt.type === 'mousemove')
-                ? evt.target
-                : document.elementFromPoint(evt.clientX, evt.clientY);
 
-            this._connectArrowhead(target, x, y, data);
+            this._connectArrowhead(this.getEventTarget(evt), x, y, data);
         }
     },
 
@@ -16684,12 +16998,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var r = this.paper.options.snapLinks.radius || 50;
         var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
-        if (data.closestView) {
-            data.closestView.unhighlight(data.closestMagnet, {
-                connecting: true,
-                snapping: true
-            });
-        }
+        var prevClosestView = data.closestView || null;
+        var prevClosestMagnet = data.closestMagnet || null;
+
         data.closestView = data.closestMagnet = null;
 
         var distance;
@@ -16708,7 +17019,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < r && distance < minDistance) {
 
-                    if (paper.options.validateConnection.apply(
+                    if (prevClosestMagnet === view.el || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, null)
                     )) {
                         minDistance = distance;
@@ -16729,7 +17040,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
                 if (distance < r && distance < minDistance) {
 
-                    if (paper.options.validateConnection.apply(
+                    if (prevClosestMagnet === magnet || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, magnet)
                     )) {
                         minDistance = distance;
@@ -16746,12 +17057,24 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var closestView = data.closestView;
         var closestMagnet = data.closestMagnet;
         var endType = data.arrowhead;
+        var newClosestMagnet = (prevClosestMagnet !== closestMagnet);
+        if (prevClosestView && newClosestMagnet) {
+            prevClosestView.unhighlight(prevClosestMagnet, {
+                connecting: true,
+                snapping: true
+            });
+        }
+
         if (closestView) {
+
+            if (!newClosestMagnet) return;
+
             closestView.highlight(closestMagnet, {
                 connecting: true,
                 snapping: true
             });
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+
         } else {
             end = { x: x, y: y };
         }
@@ -17191,6 +17514,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Number of required mousemove events before the first pointermove event will be triggered.
         moveThreshold: 0,
 
+        // Number of required mousemove events before the a link is created out of the magnet.
+        // Or string `onleave` so the link is created when the pointer leaves the magnet
+        magnetThreshold: 0,
+
         // The namespace, where all the cell views are defined.
         cellViewNamespace: joint.shapes,
 
@@ -17200,8 +17527,6 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     events: {
         'dblclick': 'pointerdblclick',
-        'click': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
-        'touchend': 'pointerclick', // triggered alongside pointerdown and pointerup if no movement
         'contextmenu': 'contextmenu',
         'mousedown': 'pointerdown',
         'touchstart': 'pointerdown',
@@ -17219,6 +17544,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         'touchstart .joint-cell [event]': 'onevent',
         'mousedown .joint-cell [magnet]': 'onmagnet', // interaction with cell with `magnet` attribute set
         'touchstart .joint-cell [magnet]': 'onmagnet',
+        'dblclick .joint-cell [magnet]': 'magnetpointerdblclick',
+        'contextmenu .joint-cell [magnet]': 'magnetcontextmenu',
         'mousedown .joint-link .label': 'onlabel', // interaction with link label
         'touchstart .joint-link .label': 'onlabel',
         'dragstart .joint-cell image': 'onImageDragStart' // firefox fix
@@ -17255,8 +17582,6 @@ joint.dia.Paper = joint.mvc.View.extend({
             .on('cell:unhighlight', this.onCellUnhighlight)
             .on('scale translate', this.update);
 
-        // Hold the value when mouse has been moved: when mouse moved, no click event will be triggered.
-        this._mousemoved = 0;
         // Hash of all cell views.
         this._views = {};
         // Reference to the paper owner document
@@ -17391,17 +17716,33 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.removeViews();
     },
 
+    getComputedSize: function() {
+
+        var util = joint.util;
+        var options = this.options;
+        var w = options.width;
+        var h = options.height;
+        if (!util.isNumber(w)) w = this.el.clientWidth;
+        if (!util.isNumber(h)) h = this.el.clientHeight;
+        return { width: w, height: h };
+    },
+
     setDimensions: function(width, height) {
 
-        width = this.options.width = width || this.options.width;
-        height = this.options.height = height || this.options.height;
-
+        var util = joint.util;
+        var options = this.options;
+        var w = (width === undefined) ? options.width : width;
+        var h = (height === undefined) ? options.height : height;
+        this.options.width = w;
+        this.options.height = h;
+        if (util.isNumber(w)) w = Math.round(w);
+        if (util.isNumber(h)) h = Math.round(h);
         this.$el.css({
-            width: Math.round(width),
-            height: Math.round(height)
+            width: (w === null) ? '' : w,
+            height: (h === null) ? '' : h
         });
-
-        this.trigger('resize', width, height);
+        var computedSize = this.getComputedSize();
+        this.trigger('resize', computedSize.width, computedSize.height);
     },
 
     setOrigin: function(ox, oy) {
@@ -17472,7 +17813,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         calcWidth = Math.min(calcWidth, opt.maxWidth || Number.MAX_VALUE);
         calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
 
-        var dimensionChange = calcWidth != this.options.width || calcHeight != this.options.height;
+        var computedSize = this.getComputedSize();
+        var dimensionChange = calcWidth != computedSize.width || calcHeight != computedSize.height;
         var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
 
         // Change the dimensions only if there is a size discrepency or an origin change
@@ -17517,20 +17859,16 @@ joint.dia.Paper = joint.mvc.View.extend({
             fittingBBox = opt.fittingBBox;
         } else {
             var currentTranslate = this.translate();
+            var computedSize = this.getComputedSize();
             fittingBBox = {
                 x: currentTranslate.tx,
                 y: currentTranslate.ty,
-                width: this.options.width,
-                height: this.options.height
+                width: computedSize.width,
+                height: computedSize.height
             };
         }
 
-        fittingBBox = g.rect(fittingBBox).moveAndExpand({
-            x: padding,
-            y: padding,
-            width: -2 * padding,
-            height: -2 * padding
-        });
+        fittingBBox = new g.Rect(fittingBBox).inflate(-padding);
 
         var currentScale = this.scale();
 
@@ -17582,7 +17920,7 @@ joint.dia.Paper = joint.mvc.View.extend({
         // for non-default origin we need to take the viewport translation into account
         var currentTranslate = this.translate();
 
-        return g.rect({
+        return new g.Rect({
             x: crect.left - clientCTM.e + currentTranslate.tx,
             y: crect.top - clientCTM.f + currentTranslate.ty,
             width: crect.width,
@@ -17595,12 +17933,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // and the top border to the bottom one).
     getArea: function() {
 
-        return this.paperToLocalRect({
-            x: 0,
-            y: 0,
-            width: this.options.width,
-            height: this.options.height
-        });
+        return this.paperToLocalRect(this.getComputedSize());
     },
 
     getRestrictedArea: function() {
@@ -17697,7 +18030,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this._views[cell.id] = this.createViewForModel(cell);
 
-        V(this.viewport).append(view.el);
+        this.viewport.appendChild(view.el);
         view.paper = this;
         view.render();
 
@@ -17822,6 +18155,8 @@ joint.dia.Paper = joint.mvc.View.extend({
         });
     },
 
+    MIN_SCALE: 1e-6,
+
     scale: function(sx, sy, ox, oy) {
 
         // getter
@@ -17846,9 +18181,12 @@ joint.dia.Paper = joint.mvc.View.extend({
             this.translate(newTx, newTy);
         }
 
+        sx = Math.max(sx || 0, this.MIN_SCALE);
+        sy = Math.max(sy || 0, this.MIN_SCALE);
+
         var ctm = this.matrix();
-        ctm.a = sx || 0;
-        ctm.d = sy || 0;
+        ctm.a = sx;
+        ctm.d = sy;
 
         this.matrix(ctm);
 
@@ -17919,13 +18257,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             ? this.viewport.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
-        while (el && el !== this.el && el !== document) {
-
-            var id = el.getAttribute('model-id');
-            if (id) return this._views[id];
-
-            el = el.parentNode;
-        }
+        var id = this.findAttribute('model-id', el);
+        if (id) return this._views[id];
 
         return undefined;
     },
@@ -17941,7 +18274,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Find all views at given point
     findViewsFromPoint: function(p) {
 
-        p = g.point(p);
+        p = new g.Point(p);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
 
@@ -17954,7 +18287,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     findViewsInArea: function(rect, opt) {
 
         opt = joint.util.defaults(opt || {}, { strict: false });
-        rect = g.rect(rect);
+        rect = new g.Rect(rect);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
         var method = opt.strict ? 'containsRect' : 'intersect';
@@ -17993,44 +18326,44 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     localToPaperPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var localPoint = g.Point(x, y);
+        var localPoint = new g.Point(x, y);
         var paperPoint = V.transformPoint(localPoint, this.matrix());
-        return g.Point(paperPoint);
+        return paperPoint;
     },
 
     localToPaperRect: function(x, y, width, height) {
         // allow `x` to be a rectangle and rest arguments undefined
-        var localRect = g.Rect(x, y);
+        var localRect = new g.Rect(x, y, width, height);
         var paperRect = V.transformRect(localRect, this.matrix());
-        return g.Rect(paperRect);
+        return paperRect;
     },
 
     paperToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var paperPoint = g.Point(x, y);
+        var paperPoint = new g.Point(x, y);
         var localPoint = V.transformPoint(paperPoint, this.matrix().inverse());
-        return g.Point(localPoint);
+        return localPoint;
     },
 
     paperToLocalRect: function(x, y, width, height) {
         // allow `x` to be a rectangle and rest arguments undefined
-        var paperRect = g.Rect(x, y, width, height);
+        var paperRect = new g.Rect(x, y, width, height);
         var localRect = V.transformRect(paperRect, this.matrix().inverse());
-        return g.Rect(localRect);
+        return localRect;
     },
 
     localToClientPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var localPoint = g.Point(x, y);
+        var localPoint = new g.Point(x, y);
         var clientPoint = V.transformPoint(localPoint, this.clientMatrix());
-        return g.Point(clientPoint);
+        return clientPoint;
     },
 
     localToClientRect: function(x, y, width, height) {
         // allow `x` to be a point and `y` undefined
-        var localRect = g.Rect(x, y, width, height);
+        var localRect = new g.Rect(x, y, width, height);
         var clientRect = V.transformRect(localRect, this.clientMatrix());
-        return g.Rect(clientRect);
+        return clientRect;
     },
 
     // Transform client coordinates to the paper local coordinates.
@@ -18039,16 +18372,16 @@ joint.dia.Paper = joint.mvc.View.extend({
     // Example: var localPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
     clientToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var clientPoint = g.Point(x, y);
+        var clientPoint = new g.Point(x, y);
         var localPoint = V.transformPoint(clientPoint, this.clientMatrix().inverse());
-        return g.Point(localPoint);
+        return localPoint;
     },
 
     clientToLocalRect: function(x, y, width, height) {
         // allow `x` to be a point and `y` undefined
-        var clientRect = g.Rect(x, y, width, height);
+        var clientRect = new g.Rect(x, y, width, height);
         var localRect = V.transformRect(clientRect, this.clientMatrix().inverse());
-        return g.Rect(localRect);
+        return localRect;
     },
 
     localToPagePoint: function(x, y) {
@@ -18058,12 +18391,12 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     localToPageRect: function(x, y, width, height) {
 
-        return this.localToPaperRect(x, y, width, height).moveAndExpand(this.pageOffset());
+        return this.localToPaperRect(x, y, width, height).offset(this.pageOffset());
     },
 
     pageToLocalPoint: function(x, y) {
 
-        var pagePoint = g.Point(x, y);
+        var pagePoint = new g.Point(x, y);
         var paperPoint = pagePoint.difference(this.pageOffset());
         return this.paperToLocalPoint(paperPoint);
     },
@@ -18071,7 +18404,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     pageToLocalRect: function(x, y, width, height) {
 
         var pageOffset = this.pageOffset();
-        var paperRect = g.Rect(x, y, width, height);
+        var paperRect = new g.Rect(x, y, width, height);
         paperRect.x -= pageOffset.x;
         paperRect.y -= pageOffset.y;
         return this.paperToLocalRect(paperRect);
@@ -18080,7 +18413,7 @@ joint.dia.Paper = joint.mvc.View.extend({
     clientOffset: function() {
 
         var clientRect = this.svg.getBoundingClientRect();
-        return g.Point(clientRect.left, clientRect.top);
+        return new g.Point(clientRect.left, clientRect.top);
     },
 
     pageOffset: function() {
@@ -18118,9 +18451,9 @@ joint.dia.Paper = joint.mvc.View.extend({
     getDefaultLink: function(cellView, magnet) {
 
         return joint.util.isFunction(this.options.defaultLink)
-        // default link is a function producing link model
+            // default link is a function producing link model
             ? this.options.defaultLink.call(this, cellView, magnet)
-        // default link is the Backbone model
+            // default link is the Backbone model
             : this.options.defaultLink.clone();
     },
 
@@ -18231,6 +18564,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         evt.preventDefault();
 
+        // magnetpointerdblclick can stop propagation
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -18248,8 +18583,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerclick: function(evt) {
 
+        // magnetpointerclick can stop propagation
+
+        var data = this.eventData(evt);
         // Trigger event only if mouse has not moved.
-        if (this._mousemoved <= this.options.clickThreshold) {
+        if (data.mousemoved <= this.options.clickThreshold) {
 
             evt = joint.util.normalizeEvent(evt);
 
@@ -18288,6 +18626,9 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointerdown: function(evt) {
 
+        // onmagnet stops propagation when `addLinkFromMagnet` is allowed
+        // onevent can stop propagation
+
         evt = joint.util.normalizeEvent(evt);
 
         var view = this.findView(evt.target);
@@ -18312,12 +18653,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     pointermove: function(evt) {
 
-        evt.preventDefault();
-
         // mouse moved counter
         var data = this.eventData(evt);
         data.mousemoved || (data.mousemoved = 0);
         var mousemoved = ++data.mousemoved;
+
         if (mousemoved <= this.options.moveThreshold) return;
 
         evt = joint.util.normalizeEvent(evt);
@@ -18338,17 +18678,22 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.undelegateDocumentEvents();
 
-        evt = joint.util.normalizeEvent(evt);
+        var normalizedEvt = joint.util.normalizeEvent(evt);
 
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var localPoint = this.snapToGrid({ x: normalizedEvt.clientX, y: normalizedEvt.clientY });
 
         var view = this.eventData(evt).sourceView;
         if (view) {
-            view.pointerup(evt, localPoint.x, localPoint.y);
+            view.pointerup(normalizedEvt, localPoint.x, localPoint.y);
         } else {
-            this.trigger('blank:pointerup', evt, localPoint.x, localPoint.y);
+            this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
+        if (!normalizedEvt.isPropagationStopped()) {
+            this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+        }
+
+        evt.stopImmediatePropagation();
         this.delegateEvents();
     },
 
@@ -18456,22 +18801,42 @@ joint.dia.Paper = joint.mvc.View.extend({
         }
     },
 
-    onmagnet: function(evt) {
+    magnetEvent: function(evt, handler) {
 
         var magnetNode = evt.currentTarget;
         var magnetValue = magnetNode.getAttribute('magnet');
         if (magnetValue) {
             var view = this.findView(magnetNode);
             if (view) {
-
                 evt = joint.util.normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
-                if (!this.options.validateMagnet(view, magnetNode)) return;
-
                 var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
-                view.onmagnet(evt, localPoint.x, localPoint.y);
+                handler.call(this, view, evt, magnetNode, localPoint.x, localPoint.y);
             }
         }
+    },
+
+    onmagnet: function(evt) {
+
+        this.magnetEvent(evt, function(view, evt, _, x, y) {
+            view.onmagnet(evt, x, y);
+        });
+    },
+
+
+    magnetpointerdblclick: function(evt) {
+
+        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
+            view.magnetpointerdblclick(evt, magnet, x, y);
+        });
+    },
+
+    magnetcontextmenu: function(evt) {
+
+        if (this.options.preventContextMenu) evt.preventDefault();
+        this.magnetEvent(evt, function(view, evt, magnet, x, y) {
+            view.magnetcontextmenu(evt, magnet, x, y);
+        });
     },
 
     onlabel: function(evt) {
@@ -18556,12 +18921,12 @@ joint.dia.Paper = joint.mvc.View.extend({
                     this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
                 },
                 get: function(id) {
-                    return  this.patterns[id]
+                    return  this.patterns[id];
                 },
                 exist: function(id) {
                     return this.patterns[id] !== undefined;
                 }
-            }
+            };
         }
 
         return this._gridCache;
@@ -18693,7 +19058,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // backgroundSize
         if (joint.util.isObject(backgroundSize)) {
-            backgroundSize = g.rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
+            backgroundSize = new g.Rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
 
@@ -19533,6 +19898,33 @@ joint.dia.Paper = joint.mvc.View.extend({
             return this;
         },
 
+        removePorts: function(portsForRemoval, opt) {
+
+            var options;
+
+            if (Array.isArray(portsForRemoval)) {
+                options = opt || {};
+
+                if (portsForRemoval.length) {
+                    options.rewrite = true;
+                    var currentPorts = util.assign([], this.prop('ports/items'));
+                    var remainingPorts = currentPorts.filter(function(cp) {
+                        return !portsForRemoval.some(function(rp) {
+                            var rpId = util.isObject(rp) ? rp.id : rp;
+                            return cp.id === rpId;
+                        });
+                    });
+                    this.prop('ports/items', remainingPorts, options);
+                }
+            } else {
+                options = portsForRemoval || {};
+                options.rewrite = true;
+                this.prop('ports/items', [], options);
+            }
+
+            return this;
+        },
+
         /**
          * @private
          */
@@ -19748,14 +20140,15 @@ joint.dia.Paper = joint.mvc.View.extend({
          */
         _createPortElement: function(port) {
 
-
             var portElement;
             var labelElement;
+
+            var portContainerElement = V(this.portContainerMarkup).addClass('joint-port');
 
             var portMarkup = this._getPortMarkup(port);
             var portSelectors;
             if (Array.isArray(portMarkup)) {
-                var portDoc = util.parseDOMJSON(portMarkup);
+                var portDoc = this.parseDOMJSON(portMarkup, portContainerElement.node);
                 var portFragment = portDoc.fragment;
                 if (portFragment.childNodes.length > 1) {
                     portElement = V('g').append(portFragment);
@@ -19782,7 +20175,7 @@ joint.dia.Paper = joint.mvc.View.extend({
             var labelMarkup = this._getPortLabelMarkup(port.label);
             var labelSelectors;
             if (Array.isArray(labelMarkup)) {
-                var labelDoc = util.parseDOMJSON(labelMarkup);
+                var labelDoc = this.parseDOMJSON(labelMarkup, portContainerElement.node);
                 var labelFragment = labelDoc.fragment;
                 if (labelFragment.childNodes.length > 1) {
                     labelElement = V('g').append(labelFragment);
@@ -19804,19 +20197,17 @@ joint.dia.Paper = joint.mvc.View.extend({
             var portContainerSelectors;
             if (portSelectors && labelSelectors) {
                 for (var key in labelSelectors) {
-                    if (portSelectors[key]) throw new Error('ElementView: selectors within port must be unique.');
+                    if (portSelectors[key] && key !== this.selector) throw new Error('ElementView: selectors within port must be unique.');
                 }
                 portContainerSelectors = util.assign({}, portSelectors, labelSelectors);
             } else {
                 portContainerSelectors = portSelectors || labelSelectors;
             }
 
-            var portContainerElement = V(this.portContainerMarkup)
-                .addClass('joint-port')
-                .append([
-                    portElement.addClass('joint-port-body'),
-                    labelElement.addClass('joint-port-label')
-                ]);
+            portContainerElement.append([
+                portElement.addClass('joint-port-body'),
+                labelElement.addClass('joint-port-label')
+            ]);
 
             this._portElementsCache[port.id] = {
                 portElement: portContainerElement,
@@ -20215,7 +20606,7 @@ joint.shapes.basic.PortsViewInterface = {
 
         var portTemplate = joint.util.template(this.model.portMarkup);
 
-        var ports = this.model.ports || [];
+        var ports = joint.util.toArray(this.model.ports);
         ports.filter(function(p) {
             return p.type === 'in';
         }).forEach(function(port, index) {
@@ -20598,6 +20989,13 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
                 stroke: '#333333',
                 strokeWidth: 2
             },
+            background: {
+                refWidth: -1,
+                refHeight: -1,
+                x: 0.5,
+                y: 0.5,
+                fill: '#FFFFFF'
+            },
             image: {
                 // xlinkHref: '[URL]'
                 refWidth: -1,
@@ -20617,6 +21015,12 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         }
     }, {
         markup: [{
+            tagName: 'rect',
+            selector: 'background',
+            attributes: {
+                'stroke': 'none'
+            }
+        }, {
             tagName: 'image',
             selector: 'image'
         }, {
@@ -21055,7 +21459,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         maximumLoops: 2000,
 
         // the number of decimal places to round floating point coordinates
-        precision: 10,
+        precision: 1,
 
         // maximum change of direction
         maxAllowedDirectionChange: 90,
@@ -21197,12 +21601,12 @@ joint.routers.manhattan = (function(g, joint, util) {
 
         var source = graph.getCell(link.get('source').id);
         if (source) {
-            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id }));
+            excludedAncestors = util.union(excludedAncestors, source.getAncestors().map(function(cell) { return cell.id; }));
         }
 
         var target = graph.getCell(link.get('target').id);
         if (target) {
-            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id }));
+            excludedAncestors = util.union(excludedAncestors, target.getAncestors().map(function(cell) { return cell.id; }));
         }
 
         // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
@@ -21215,7 +21619,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         graph.getElements().reduce(function(map, element) {
 
             var isExcludedType = util.toArray(opt.excludeTypes).includes(element.get('type'));
-            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id });
+            var isExcludedEnd = excludedEnds.find(function(excluded) { return excluded.id === element.id; });
             var isExcludedAncestor = excludedAncestors.includes(element.id);
 
             var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
@@ -21367,7 +21771,7 @@ joint.routers.manhattan = (function(g, joint, util) {
         var diffY = end.y - start.y;
 
         var gridStepsX = diffX / grid.x;
-        var gridStepsY = diffY / grid.y
+        var gridStepsY = diffY / grid.y;
 
         var distanceX = gridStepsX * step;
         var distanceY = gridStepsY * step;
@@ -21401,7 +21805,7 @@ joint.routers.manhattan = (function(g, joint, util) {
             source: source.clone(),
             x: getGridDimension(target.x - source.x, step),
             y: getGridDimension(target.y - source.y, step)
-        }
+        };
     }
 
     // helper function for getGrid()
@@ -21436,18 +21840,22 @@ joint.routers.manhattan = (function(g, joint, util) {
     }
 
     // round the point to opt.precision
-    function round(point, opt) {
+    function round(point, precision) {
 
-        if (!point) return point;
+        return point.round(precision);
+    }
 
-        return point.round(opt.precision);
+    // snap to grid and then round the point
+    function align(point, grid, precision) {
+
+        return round(snapToGrid(point.clone(), grid), precision);
     }
 
     // return a string representing the point
-    // string is rounded to nearest int in both dimensions
+    // string is rounded in both dimensions
     function getKey(point) {
 
-        return point.clone().round().toString();
+        return point.clone().toString();
     }
 
     // return a normalized vector from given point
@@ -21463,31 +21871,35 @@ joint.routers.manhattan = (function(g, joint, util) {
     // PATHFINDING //
 
     // reconstructs a route by concatenating points with their parents
-    function reconstructRoute(parents, points, tailPoint, from, to, opt) {
+    function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
 
         var route = [];
 
         var prevDiff = normalizePoint(to.difference(tailPoint));
 
+        // tailPoint is assumed to be aligned already
         var currentKey = getKey(tailPoint);
         var parent = parents[currentKey];
 
         var point;
         while (parent) {
 
-            point = round(points[currentKey], opt);
+            // point is assumed to be aligned already
+            point = points[currentKey];
 
-            var diff = normalizePoint(point.difference(round(parent.clone(), opt)));
+            var diff = normalizePoint(point.difference(parent));
             if (!diff.equals(prevDiff)) {
                 route.unshift(point);
                 prevDiff = diff;
             }
 
+            // parent is assumed to be aligned already
             currentKey = getKey(parent);
             parent = parents[currentKey];
         }
 
-        var leadPoint = round(points[currentKey], opt);
+        // leadPoint is assumed to be aligned already
+        var leadPoint = points[currentKey];
 
         var fromDiff = normalizePoint(leadPoint.difference(from));
         if (!fromDiff.equals(prevDiff)) {
@@ -21517,11 +21929,10 @@ joint.routers.manhattan = (function(g, joint, util) {
     // (since those directions are unobstructed by the bbox)
     function getRectPoints(anchor, bbox, directionList, grid, opt) {
 
+        var precision = opt.precision;
         var directionMap = opt.directionMap;
 
-        var snappedAnchor = round(snapToGrid(anchor, grid), opt);
-        var snappedCenter = round(snapToGrid(bbox.center(), grid), opt);
-        var anchorCenterVector = snappedAnchor.difference(snappedCenter);
+        var anchorCenterVector = anchor.difference(bbox.center());
 
         var keys = util.isObject(directionMap) ? Object.keys(directionMap) : [];
         var dirList = util.toArray(directionList);
@@ -21533,8 +21944,8 @@ joint.routers.manhattan = (function(g, joint, util) {
                 // create a line that is guaranteed to intersect the bbox if bbox is in the direction
                 // even if anchor lies outside of bbox
                 var endpoint = new g.Point(
-                    snappedAnchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
-                    snappedAnchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
+                    anchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
+                    anchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
                 );
                 var intersectionLine = new g.Line(anchor, endpoint);
 
@@ -21546,22 +21957,24 @@ joint.routers.manhattan = (function(g, joint, util) {
                 var farthestIntersection = null;
                 for (var i = 0; i < numIntersections; i++) {
                     var currentIntersection = intersections[i];
-                    var distance = snappedAnchor.squaredDistance(currentIntersection);
-                    if (farthestIntersectionDistance === undefined || (distance > farthestIntersectionDistance)) {
+                    var distance = anchor.squaredDistance(currentIntersection);
+                    if ((farthestIntersectionDistance === undefined) || (distance > farthestIntersectionDistance)) {
                         farthestIntersectionDistance = distance;
-                        farthestIntersection = snapToGrid(currentIntersection, grid);
+                        farthestIntersection = currentIntersection;
                     }
                 }
-                var point = round(farthestIntersection, opt);
 
                 // if an intersection was found in this direction, it is our rectPoint
-                if (point) {
+                if (farthestIntersection) {
+                    var point = align(farthestIntersection, grid, precision);
+
                     // if the rectPoint lies inside the bbox, offset it by one more step
                     if (bbox.containsPoint(point)) {
-                        round(point.offset(direction.x * grid.x, direction.y * grid.y), opt);
+                        point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
                     }
 
                     // then add the point to the result array
+                    // aligned
                     res.push(point);
                 }
             }
@@ -21570,7 +21983,10 @@ joint.routers.manhattan = (function(g, joint, util) {
         }, []);
 
         // if anchor lies outside of bbox, add it to the array of points
-        if (!bbox.containsPoint(snappedAnchor)) rectPoints.push(snappedAnchor);
+        if (!bbox.containsPoint(anchor)) {
+            // aligned
+            rectPoints.push(align(anchor, grid, precision));
+        }
 
         return rectPoints;
     }
@@ -21579,46 +21995,48 @@ joint.routers.manhattan = (function(g, joint, util) {
     // rectangles get rect points assigned by getRectPoints()
     function findRoute(from, to, map, opt) {
 
+        var precision = opt.precision;
+
         // Get grid for this route.
 
         var sourceAnchor, targetAnchor;
 
         if (from instanceof g.Rect) { // `from` is sourceBBox
-            sourceAnchor = getSourceAnchor(this, opt).clone();
+            sourceAnchor = round(getSourceAnchor(this, opt).clone(), precision);
         } else {
-            sourceAnchor = from.clone();
+            sourceAnchor = round(from.clone(), precision);
         }
 
         if (to instanceof g.Rect) { // `to` is targetBBox
-            targetAnchor = getTargetAnchor(this, opt).clone();
+            targetAnchor = round(getTargetAnchor(this, opt).clone(), precision);
         } else {
-            targetAnchor = to.clone();
+            targetAnchor = round(to.clone(), precision);
         }
 
         var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
 
         // Get pathfinding points.
 
-        var start, end;
-        var startPoints, endPoints;
+        var start, end; // aligned with grid by definition
+        var startPoints, endPoints; // assumed to be aligned with grid already
 
         // set of points we start pathfinding from
         if (from instanceof g.Rect) { // `from` is sourceBBox
-            start = round(snapToGrid(sourceAnchor, grid), opt);
+            start = sourceAnchor;
             startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
 
         } else {
-            start = round(snapToGrid(sourceAnchor, grid), opt);
+            start = sourceAnchor;
             startPoints = [start];
         }
 
         // set of points we want the pathfinding to finish at
         if (to instanceof g.Rect) { // `to` is targetBBox
-            end = round(snapToGrid(targetAnchor, grid), opt);
+            end = targetAnchor;
             endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
 
         } else {
-            end = round(snapToGrid(targetAnchor, grid), opt);
+            end = targetAnchor;
             endPoints = [end];
         }
 
@@ -21641,11 +22059,13 @@ joint.routers.manhattan = (function(g, joint, util) {
             var costs = {};
 
             for (var i = 0, n = startPoints.length; i < n; i++) {
-                var point = startPoints[i];
+                // startPoint is assumed to be aligned already
+                var startPoint = startPoints[i];
 
-                var key = getKey(point);
-                openSet.add(key, estimateCost(point, endPoints));
-                points[key] = point;
+                var key = getKey(startPoint);
+
+                openSet.add(key, estimateCost(startPoint, endPoints));
+                points[key] = startPoint;
                 costs[key] = 0;
             }
 
@@ -21660,6 +22080,7 @@ joint.routers.manhattan = (function(g, joint, util) {
             var numDirections = directions.length;
 
             var endPointsKeys = util.toArray(endPoints).reduce(function(res, endPoint) {
+                // endPoint is assumed to be aligned already
 
                 var key = getKey(endPoint);
                 res.push(key);
@@ -21688,7 +22109,7 @@ joint.routers.manhattan = (function(g, joint, util) {
                 // check if we reached any endpoint
                 if (endPointsKeys.indexOf(currentKey) >= 0) {
                     opt.previousDirectionAngle = previousDirectionAngle;
-                    return reconstructRoute(parents, points, currentPoint, start, end, opt);
+                    return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
                 }
 
                 // go over all possible directions and find neighbors
@@ -21702,7 +22123,7 @@ joint.routers.manhattan = (function(g, joint, util) {
                     // any direction is allowed for starting points
                     if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) continue;
 
-                    var neighborPoint = currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY);
+                    var neighborPoint = align(currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY), grid, precision);
                     var neighborKey = getKey(neighborPoint);
 
                     // Closed points from the openSet were already evaluated.
@@ -21710,7 +22131,6 @@ joint.routers.manhattan = (function(g, joint, util) {
 
                     // We can only enter end points at an acceptable angle.
                     if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
-                        round(neighborPoint, opt); // remove rounding errors
 
                         var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
 
@@ -21754,6 +22174,18 @@ joint.routers.manhattan = (function(g, joint, util) {
         opt.directions = util.result(opt, 'directions');
         opt.penalties = util.result(opt, 'penalties');
         opt.paddingBox = util.result(opt, 'paddingBox');
+        opt.padding = util.result(opt, 'padding');
+
+        if (opt.padding) {
+            // if both provided, opt.padding wins over opt.paddingBox
+            var sides = util.normalizeSides(opt.padding);
+            opt.paddingBox = {
+                x: -sides.left,
+                y: -sides.top,
+                width: sides.left + sides.right,
+                height: sides.top + sides.bottom
+            };
+        }
 
         util.toArray(opt.directions).forEach(function(direction) {
 
@@ -21786,12 +22218,14 @@ joint.routers.manhattan = (function(g, joint, util) {
 
         // find a route by concatenating all partial routes (routes need to pass through vertices)
         // source -> vertex[1] -> ... -> vertex[n] -> target
+        var to, from;
+
         for (var i = 0, len = oldVertices.length; i <= len; i++) {
 
             var partialRoute = null;
 
-            var from = to || sourceBBox;
-            var to = oldVertices[i];
+            from = to || sourceBBox;
+            to = oldVertices[i];
 
             if (!to) {
                 // this is the last iteration
@@ -21949,7 +22383,7 @@ joint.routers.normal = function(vertices, opt, linkView) {
 joint.routers.oneSide = function(vertices, opt, linkView) {
 
     var side = opt.side || 'bottom';
-    var padding = opt.padding || 40;
+    var padding = joint.util.normalizeSides(opt.padding || 40);
 
     // LinkView contains cached source an target bboxes.
     // Note that those are Geometry rectangle objects.
@@ -21986,11 +22420,11 @@ joint.routers.oneSide = function(vertices, opt, linkView) {
     }
 
     // move the points from the center of the element to outside of it.
-    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding);
-    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding);
+    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding[side]);
+    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding[side]);
 
     // make link orthogonal (at least the first and last vertex).
-    if (direction * (sourcePoint[coordinate] - targetPoint[coordinate]) > 0) {
+    if ((direction * (sourcePoint[coordinate] - targetPoint[coordinate])) > 0) {
         targetPoint[coordinate] = sourcePoint[coordinate];
     } else {
         sourcePoint[coordinate] = targetPoint[coordinate];
@@ -22051,18 +22485,29 @@ joint.routers.orthogonal = (function(util) {
         return new g.Rect(p.x, p.y, 0, 0);
     }
 
+    function getPaddingBox(opt) {
+
+        // if both provided, opt.padding wins over opt.elementPadding
+        var sides = util.normalizeSides(opt.padding || opt.elementPadding || 20);
+
+        return {
+            x: -sides.left,
+            y: -sides.top,
+            width: sides.left + sides.right,
+            height: sides.top + sides.bottom
+        };
+    }
+
     // return source bbox
     function getSourceBBox(linkView, opt) {
 
-        var padding = (opt && opt.elementPadding) || 20;
-        return linkView.sourceBBox.clone().inflate(padding);
+        return linkView.sourceBBox.clone().moveAndExpand(getPaddingBox(opt));
     }
 
     // return target bbox
     function getTargetBBox(linkView, opt) {
 
-        var padding = (opt && opt.elementPadding) || 20;
-        return linkView.targetBBox.clone().inflate(padding);
+        return linkView.targetBBox.clone().moveAndExpand(getPaddingBox(opt));
     }
 
     // return source anchor
@@ -22219,8 +22664,6 @@ joint.routers.orthogonal = (function(util) {
     // routing from source to target going through `vertices`.
     function router(vertices, opt, linkView) {
 
-        var padding = opt.elementPadding || 20;
-
         var sourceBBox = getSourceBBox(linkView, opt);
         var targetBBox = getTargetBBox(linkView, opt);
 
@@ -22263,7 +22706,7 @@ joint.routers.orthogonal = (function(util) {
                 } else { // route source -> vertex
 
                     if (sourceBBox.containsPoint(to)) {
-                        route = insideElement(from, to, sourceBBox, getPointBox(to).inflate(padding));
+                        route = insideElement(from, to, sourceBBox, getPointBox(to).moveAndExpand(getPaddingBox(opt)));
 
                     } else if (!isOrthogonal) {
                         route = elementVertex(from, to, sourceBBox);
@@ -22276,7 +22719,7 @@ joint.routers.orthogonal = (function(util) {
                 var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
 
                 if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
-                    route = insideElement(from, to, getPointBox(from).inflate(padding), targetBBox, bearing);
+                    route = insideElement(from, to, getPointBox(from).moveAndExpand(getPaddingBox(opt)), targetBBox, bearing);
 
                 } else if (!isOrthogonal) {
                     route = vertexElement(from, to, targetBBox, bearing);
@@ -23406,7 +23849,7 @@ joint.highlighters.stroke = {
             }
 
             return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
-        }
+        };
     }
 
     function resolveRefAsBBoxCenter(fn) {
@@ -23417,13 +23860,13 @@ joint.highlighters.stroke = {
                 var refView = this.paper.findView(ref);
                 var refPoint = (refView)
                     ? refView.getNodeBBox(ref).center()
-                    : new g.Point()
+                    : new g.Point();
 
-                return fn.call(this, view, magnet, refPoint, opt)
+                return fn.call(this, view, magnet, refPoint, opt);
             }
 
             return fn.apply(this, arguments);
-        }
+        };
     }
 
     function perpendicular(view, magnet, refPoint, opt) {
@@ -23434,7 +23877,7 @@ joint.highlighters.stroke = {
         var topLeft = bbox.origin();
         var bottomRight = bbox.corner();
 
-        var padding = opt.padding
+        var padding = opt.padding;
         if (!isFinite(padding)) padding = 0;
 
         if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
@@ -23513,7 +23956,7 @@ joint.highlighters.stroke = {
         perpendicular: resolveRefAsBBoxCenter(perpendicular),
         midSide: resolveRefAsBBoxCenter(midSide),
         modelCenter: modelCenter
-    }
+    };
 
 })(joint, joint.util);
 
@@ -23522,7 +23965,7 @@ joint.highlighters.stroke = {
     function closestIntersection(intersections, refPoint) {
 
         if (intersections.length === 1) return intersections[0];
-        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint) })[0];
+        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint); })[0];
     }
 
     function offset(p1, p2, offset) {
@@ -23576,6 +24019,22 @@ joint.highlighters.stroke = {
         return offset(cp, line.start, opt.offset);
     }
 
+    function findShapeNode(magnet) {
+        if (!magnet) return null;
+        var node = magnet;
+        do {
+            var tagName = node.tagName;
+            if (typeof tagName !== 'string') return null;
+            tagName = tagName.toUpperCase();
+            if (tagName === 'G') {
+                node = node.firstElementChild;
+            } else if (tagName === 'TITLE') {
+                node = node.nextElementSibling;
+            } else break;
+        } while (node);
+        return node;
+    }
+
     var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
     var BNDR_SHAPE_BBOX = 'shapeBBox';
 
@@ -23590,19 +24049,13 @@ joint.highlighters.stroke = {
         } else if (Array.isArray(selector)) {
             node = util.getByPath(magnet, selector);
         } else {
-            // Find the closest non-group descendant
-            node = magnet;
-            do {
-                var tagName = node.tagName.toUpperCase();
-                if (tagName === 'G') {
-                    node = node.firstChild;
-                } else if (tagName === 'TITLE') {
-                    node = node.nextSibling;
-                } else break;
-            } while (node)
+            node = findShapeNode(magnet);
         }
 
-        if (!(node instanceof Element)) return anchor;
+        if (!V.isSVGGraphicsElement(node)) {
+            if (node === magnet || !V.isSVGGraphicsElement(magnet)) return anchor;
+            node = magnet;
+        }
 
         var localShape = view.getNodeShape(node);
         var magnetMatrix = view.getNodeMatrix(node);
@@ -23621,14 +24074,14 @@ joint.highlighters.stroke = {
         }
 
         // Caching segment subdivisions for paths
-        var pathOpt
+        var pathOpt;
         if (localShape instanceof g.Path) {
             var precision = opt.precision || 2;
             if (!data[BNDR_SUBDIVISIONS]) data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision });
             pathOpt = {
                 precision: precision,
                 segmentSubdivisions: data[BNDR_SUBDIVISIONS]
-            }
+            };
         }
 
         if (opt.extrapolate === true) localLine.setLength(1e6);
@@ -23660,7 +24113,7 @@ joint.highlighters.stroke = {
         bbox: bboxIntersection,
         rectangle: rectangleIntersection,
         boundary: boundaryIntersection
-    }
+    };
 
 })(joint, joint.util, g, V);
 
@@ -23698,14 +24151,14 @@ joint.highlighters.stroke = {
             };
 
             return end;
-        }
+        };
     }
 
     joint.connectionStrategies = {
         useDefaults: util.noop,
         pinAbsolute: pin(false),
         pinRelative: pin(true)
-    }
+    };
 
 })(joint, joint.util);
 
@@ -23753,7 +24206,8 @@ joint.highlighters.stroke = {
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         attributes: {
             'r': 6,
@@ -23767,6 +24221,7 @@ joint.highlighters.stroke = {
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             this.options.paper.undelegateEvents();
             this.delegateDocumentEvents(null, evt.data);
             this.trigger('will-change');
@@ -23805,7 +24260,8 @@ joint.highlighters.stroke = {
         }],
         handles: null,
         events: {
-            'mousedown .joint-vertices-path': 'onPathPointerDown'
+            'mousedown .joint-vertices-path': 'onPathPointerDown',
+            'touchstart .joint-vertices-path': 'onPathPointerDown'
         },
         onRender: function() {
             this.resetHandles();
@@ -23863,7 +24319,7 @@ joint.highlighters.stroke = {
             return {
                 prev: new g.Point(prev),
                 next: new g.Point(next)
-            }
+            };
         },
         onHandleWillChange: function(handle, evt) {
             this.focus();
@@ -23873,7 +24329,8 @@ joint.highlighters.stroke = {
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index;
-            var vertex = paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            var normalizedEvent = util.normalizeEvent(evt);
+            var vertex = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
             this.snapVertex(vertex, index);
             relatedView.model.vertex(index, vertex, { ui: true, tool: this.cid });
             handle.position(vertex.x, vertex.y);
@@ -23914,7 +24371,9 @@ joint.highlighters.stroke = {
         },
         onPathPointerDown: function(evt) {
             evt.stopPropagation();
-            var vertex = this.paper.snapToGrid(evt.clientX, evt.clientY).toJSON();
+            evt.preventDefault();
+            var normalizedEvent = util.normalizeEvent(evt);
+            var vertex = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
             var relatedView = this.relatedView;
             relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
             var index = relatedView.getVertexIndex(vertex.x, vertex.y);
@@ -23944,7 +24403,8 @@ joint.highlighters.stroke = {
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         children: [{
             tagName: 'line',
@@ -23990,6 +24450,7 @@ joint.highlighters.stroke = {
         onPointerDown: function(evt) {
             this.trigger('change:start', this, evt);
             evt.stopPropagation();
+            evt.preventDefault();
             this.options.paper.undelegateEvents();
             this.delegateDocumentEvents(null, evt.data);
         },
@@ -24106,7 +24567,8 @@ joint.highlighters.stroke = {
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
             var index = handle.options.index - 1;
-            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
             var position = this.snapHandle(handle, coords.clone(), data);
             var axis = handle.options.axis;
             var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
@@ -24206,7 +24668,7 @@ joint.highlighters.stroke = {
             var handles = this.handles;
             if (!Array.isArray(handles)) return;
             for (var i = 0, n = handles.length; i < n; i++) {
-                if (i !== index) handles[i].hide()
+                if (i !== index) handles[i].hide();
             }
             this.focus();
             var relatedView = this.relatedView;
@@ -24237,7 +24699,7 @@ joint.highlighters.stroke = {
                 if (length < this.options.segmentLengthThreshold) {
                     handle.hide();
                 } else {
-                    var position = segmentLine.midpoint()
+                    var position = segmentLine.midpoint();
                     var axis = (vertical) ? 'x' : 'y';
                     position[axis] += offset || 0;
                     var angle = segmentLine.vector().vectorAngle(new g.Point(1, 0));
@@ -24268,10 +24730,11 @@ joint.highlighters.stroke = {
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         onRender: function() {
-            this.update()
+            this.update();
         },
         update: function() {
             var ratio = this.ratio;
@@ -24291,6 +24754,7 @@ joint.highlighters.stroke = {
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             var relatedView = this.relatedView;
             relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
             if (relatedView.can('arrowheadMove')) {
@@ -24302,15 +24766,17 @@ joint.highlighters.stroke = {
             this.el.style.pointerEvents = 'none';
         },
         onPointerMove: function(evt) {
-            var coords = this.paper.snapToGrid(evt.clientX, evt.clientY);
-            this.relatedView.pointermove(evt, coords.x, coords.y);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+            this.relatedView.pointermove(normalizedEvent, coords.x, coords.y);
         },
         onPointerUp: function(evt) {
             this.undelegateDocumentEvents();
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
-            var coords = paper.snapToGrid(evt.clientX, evt.clientY);
-            relatedView.pointerup(evt, coords.x, coords.y);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+            relatedView.pointerup(normalizedEvent, coords.x, coords.y);
             paper.delegateEvents();
             this.blur();
             this.el.style.pointerEvents = '';
@@ -24359,7 +24825,7 @@ joint.highlighters.stroke = {
         },
         onRender: function() {
             this.renderChildren(this.options.markup);
-            this.update()
+            this.update();
         },
         update: function() {
             var tangent, position, angle;
@@ -24367,7 +24833,7 @@ joint.highlighters.stroke = {
             if (util.isPercentage(distance)) {
                 tangent = this.relatedView.getTangentAtRatio(parseFloat(distance) / 100);
             } else {
-                tangent = this.relatedView.getTangentAtLength(distance)
+                tangent = this.relatedView.getTangentAtLength(distance);
             }
             if (tangent) {
                 position = tangent.start;
@@ -24386,6 +24852,7 @@ joint.highlighters.stroke = {
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             var actionFn = this.options.action;
             if (typeof actionFn === 'function') {
                 actionFn.call(this.relatedView, evt, this.relatedView);
@@ -24478,7 +24945,8 @@ joint.highlighters.stroke = {
             mousemove: 'onPointerMove',
             touchmove: 'onPointerMove',
             mouseup: 'onPointerUp',
-            touchend: 'onPointerUp'
+            touchend: 'onPointerUp',
+            touchcancel: 'onPointerUp'
         },
         options: {
             snap: snapAnchor,
@@ -24552,7 +25020,7 @@ joint.highlighters.stroke = {
             areaNode.setAttribute('width', bbox.width);
             areaNode.setAttribute('height', bbox.height);
             var origin = view.model.getBBox().center();
-            var center = bbox.center().rotate(origin, -angle)
+            var center = bbox.center().rotate(origin, -angle);
             areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle +')');
         },
         toggleArea: function(visible) {
@@ -24560,6 +25028,7 @@ joint.highlighters.stroke = {
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
+            evt.preventDefault();
             this.paper.undelegateEvents();
             this.delegateDocumentEvents();
             this.focus();
@@ -24588,8 +25057,8 @@ joint.highlighters.stroke = {
             var type = this.type;
             var view = relatedView.getEndView(type);
             var magnet = relatedView.getEndMagnet(type);
-
-            var coords = this.paper.clientToLocalPoint(evt.clientX, evt.clientY);
+            var normalizedEvent = util.normalizeEvent(evt);
+            var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
             var snapFn = this.options.snap;
             if (typeof snapFn === 'function') {
                 coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView, this);
@@ -24990,7 +25459,7 @@ joint.shapes.basic.Generic.define('pn.Place', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({}, {
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
 
     initialize: function() {
 

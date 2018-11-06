@@ -752,6 +752,12 @@ export namespace dia {
         getVertexIndex(x: number, y: number): number;
         getVertexIndex(point: Point): number;
 
+        getEndView(type: 'source' | 'target'): ElementView | null;
+        
+        getEndAnchor(type: 'source' | 'target'): g.Point;
+        
+        getEndMagnet(type: 'source' | 'target'): SVGElement | null;
+
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
         setInteractivity(value: boolean | LinkView.InteractivityOptions): void;

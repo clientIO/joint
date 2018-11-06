@@ -1,4 +1,4 @@
-/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-11-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -927,6 +927,8 @@ export class Vectorizer {
 
     static isVElement(value: any): boolean;
 
+    static isSVGGraphicsElement(value: any): boolean;
+
     static createSVGMatrix(matrix: SVGMatrix | Vectorizer.Matrix): SVGMatrix;
 
     static createSVGTransform(matrix?: SVGMatrix | Vectorizer.Matrix): SVGTransform;
@@ -987,26 +989,45 @@ export namespace dia {
     type Size = Pick<BBox, 'width' | 'height'>;
 
     type PaddingJSON = {
+        left?: number;
         top?: number;
         right?: number;
         bottom?: number;
-        left?: number
     };
 
     type Padding = number | PaddingJSON;
 
+    type SidesJSON = {
+        left?: number;
+        top?: number;
+        right?: number;
+        bottom?: number;
+        horizontal?: number;
+        vertical?: number;
+    }
+
+    type Sides = number | SidesJSON;
+
+    type OrthogonalDirection =
+        'left' | 'top' | 'right' | 'bottom';
+
     type Direction =
-        'left' | 'right' | 'top' | 'bottom' | 'top-right' |
-        'top-left' | 'bottom-left' | 'bottom-right';
+        OrthogonalDirection |
+        'top-left' | 'top-right' | 'bottom-right' | 'bottom-left';
+
+    type LinkEnd =
+        'source' | 'target';
 
     type MarkupNodeJSON = {
         tagName: string;
         selector?: string;
+        groupSelector?: string;
         namespaceUri?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
         style?: { [key: string]: any };
-        children?: MarkupJSON
+        children?: MarkupJSON;
+        textContent?: string;
     }
 
     type MarkupJSON = MarkupNodeJSON[];
@@ -1339,6 +1360,9 @@ export namespace dia {
 
         removePort(port: string | Element.Port, opt?: Cell.Options): this;
 
+        removePorts(opt?: Cell.Options): this;
+        removePorts(ports: Array<Element.Port|string>, opt?: Cell.Options): this;
+
         hasPorts(): boolean;
 
         hasPort(id: string): boolean;
@@ -1525,8 +1549,6 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
-        findAttribute(attributeName: string, node: Element): string | null;
-
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         getStrokeBBox(el?: SVGElement): g.Rect;
@@ -1603,6 +1625,8 @@ export namespace dia {
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
+        getDelegatedView(): ElementView | null;
+
         protected renderMarkup(): void;
 
         protected renderJSONMarkup(markup: MarkupJSON): void;
@@ -1620,6 +1644,10 @@ export namespace dia {
         protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected dragLinkStart(evt: JQuery.Event, magnet: SVGElement, x: number, y: number): void;
+
+        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
     }
 
     // dia.LinkView
@@ -1642,7 +1670,7 @@ export namespace dia {
                 view: ElementView,
                 magnet: SVGElement,
                 reference: Point,
-                end: 'source' | 'target'
+                end: LinkEnd
             ): Point;
         }
 
@@ -1705,6 +1733,12 @@ export namespace dia {
 
         getVertexIndex(x: number, y: number): number;
         getVertexIndex(point: Point): number;
+
+        getEndView(type: 'source' | 'target'): ElementView | null;
+        
+        getEndAnchor(type: 'source' | 'target'): g.Point;
+        
+        getEndMagnet(type: 'source' | 'target'): SVGElement | null;
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
@@ -1785,10 +1819,12 @@ export namespace dia {
             waterMarkAngle?: number;
         }
 
+        type Dimension = number | string | null;
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
-            width?: number;
-            height?: number;
+            width?: Dimension;
+            height?: Dimension;
             origin?: Point;
             perpendicularLinks?: boolean;
             linkConnectionPoint?: LinkView.GetConnectionPoint;
@@ -1803,7 +1839,7 @@ export namespace dia {
             markAvailable?: boolean;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
-            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: 'source' | 'target', linkView: LinkView) => boolean;
+            validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
             linkPinning?: boolean;
@@ -1814,6 +1850,7 @@ export namespace dia {
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
             moveThreshold?: number;
+            magnetThreshold?: number | string;
             // views
             elementView?: typeof ElementView | ((element: Element) => typeof ElementView);
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
@@ -1856,7 +1893,6 @@ export namespace dia {
             maxWidth?: number;
             maxHeight?: number;
         }
-
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1924,6 +1960,8 @@ export namespace dia {
 
         isDefined(defId: string): boolean;
 
+        getComputedSize(): Size;
+
         getArea(): g.Rect;
 
         getRestrictedArea(): g.Rect | undefined;
@@ -1957,7 +1995,7 @@ export namespace dia {
 
         getModelById(id: string | number | Cell): Cell;
 
-        setDimensions(width: number, height: number): void;
+        setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
 
         setGridSize(gridSize: number): this;
 
@@ -2213,6 +2251,7 @@ export namespace shapes {
         interface BorderedImageSelectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGRectAttributes;
+            background?: attributes.SVGRectAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
         }
@@ -2951,9 +2990,14 @@ export namespace util {
 
     export function isPercentage(val: any): boolean;
 
-    export function parseCssNumber(str: string, restrictUnits?: string[]): { value: number; unit?: string; };
+    export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: { svgDocument?: SVGElement; separator: string | any; eol: string }): string;
+    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
+        svgDocument?: SVGElement;
+        separator?: string | any;
+        eol?: string;
+        ellipsis?: boolean | string;
+    }): string;
 
     export function sanitizeHTML(html: string): string;
 
@@ -2974,11 +3018,19 @@ export namespace util {
 
     export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
 
-    export function normalizeSides(sides: number | { top?: number, bottom?: number, left?: number, right?: number }): dia.PaddingJSON;
+    export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
     export function template(html: string): (data: any) => string;
 
     export function toggleFullScreen(el?: Element): void;
+
+    interface DOMJSONDocument {
+        fragment: DocumentFragment,
+        selectors: { [key: string]: Element },
+        groupSelectors: { [key: string]: Element[] }
+    }
+
+    export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
 
     export namespace timing {
 
@@ -3098,20 +3150,113 @@ export namespace util {
         export function prefix(value: number, precision: number): { scale: (d: number) => number; symbol: string; } | undefined
     }
 
-    // Not documented but used in examples
-    /** @deprecated use lodash _.defaultsDeep */
-    export function deepSupplement(objects: any, defaultIndicator?: any): any;
+    // LODASH FUNCTIONS:
 
-    // Private functions
-    /** @deprecated use lodash _.assign */
-    export function mixin(objects: any[]): any;
+    type NotVoid = {} | null | undefined; // the `any` type without `void` and `never`
 
-    /** @deprecated use lodash _.defaults */
-    export function supplement(objects: any[]): any;
+    type Collection = object | any[]; // an object or an array
 
-    /** @deprecated use lodash _.mixin  */
-    export function deepMixin(objects: any[]): any;
+    type PropertyPath = string | string[];
 
+    type Iteratee = IterateeFunction | IterateeShorthand;
+    type IterateeFunction = (value: any) => NotVoid;
+    type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
+
+    type SourceObjectsOptionalFinalCustomizer = Array<object | CustomizerFunction>; // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
+    type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
+
+    /** @deprecated do not use */
+    export function mixin(destinationObject: object, ...sourceObjects: object[]): object;
+
+    /** @deprecated do not use */
+    export function deepMixin(destinationObject: object, sourceObject: object, options?: object): object;
+
+    /** @deprecated do not use */
+    export function assign(destinationObject: object, ...sourceObjects: object[]): object;
+
+    /** @deprecated use joint.util.defaults */
+    export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
+
+    /** @deprecated use joint.util.defaultsDeep */
+    export function deepSupplement(destionationObject: object, ...sourceObjects: object[]): object;
+
+    export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
+
+    export function defaultsDeep(destinationObject: object, ...sourceObjects: object[]): object;
+
+    export function invoke(collection: Collection, methodPath: PropertyPath, args?: any[]): any[];
+    export function invoke(collection: Collection, functionToInvokeForAll: IterateeFunction, args?: any[]): any[];
+
+    export function sortedIndex(sortedArray: any[], valueToInsert: any, iteratee?: Iteratee): number;
+
+    export function uniq(array: any[], iteratee?: Iteratee): any[];
+
+    export function clone<T>(value: T): T;
+
+    export function cloneDeep<T>(value: T): T;
+
+    export function isEmpty(value: any): boolean;
+
+    export function isEqual(value: any, otherValue: any): boolean;
+
+    export function isFunction(value: any): boolean;
+
+    export function isPlainObject(value: any): boolean;
+
+    export function toArray(value: any): any[];
+
+    export function debounce(func: Function, wait?: number, options?: object): Function;
+
+    export function groupBy(collection: Collection, iteratee?: Iteratee): object;
+
+    export function sortBy(collection: Collection, iterateesArray: Iteratee[]): any[];
+
+    export function flattenDeep(array: any[]): any[];
+
+    export function without(array: any[], ...values: any[]): any[];
+
+    export function difference(array: any[], ...excludedValuesArrays: any[][]): any[];
+
+    export function intersection(...arrays: any[][]): any[];
+
+    export function union(...arrays: any[][]): any[];
+
+    export function has(object: object, path: PropertyPath): boolean;
+
+    export function result(object: object, propertyPath: PropertyPath, defaultValue?: any): any;
+
+    export function omit(object: object, ...propertyPathsToOmit: PropertyPath[]): object;
+
+    export function pick(object: object, ...propertyPathsToPick: PropertyPath[]): object;
+
+    export function bindAll(object: object, methodNames: PropertyPath[]): object;
+
+    export function forIn(object: object, iteratee?: Iteratee): object;
+
+    export function camelCase(string: string): string;
+
+    export function uniqueId(prefix?: string): string;
+
+    // `merge` has a weird signature
+    // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
+    export function merge(destinationObject: object, sourceObject: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, customizer?: CustomizerFunction): object;
+    export function merge(destinationObject: object, sourceObject1: object, sourceObject2: object, sourceObject3: object, sourceObject4: object, customizer?: CustomizerFunction): object;
+    // generic but less precise signature for `merge`
+    export function merge(destinationObject: object, ...sourceObjectsOptionalFinalCustomizer: SourceObjectsOptionalFinalCustomizer): object;
+
+    // ADDITIONAL SIMPLE UTIL FUNCTIONS:
+
+    export function isBoolean(value: any): boolean;
+
+    export function isObject(value: any): boolean;
+
+    export function isNumber(value: any): boolean;
+
+    export function isString(value: any): boolean;
+
+    export function noop(): void;
 }
 
 // env
@@ -3208,6 +3353,8 @@ export namespace mvc {
 
         renderChildren(children?: dia.MarkupJSON): this;
 
+        findAttribute(attributeName: string, node: Element): string | null;
+
         protected init(): void;
 
         protected onRender(): void;
@@ -3227,21 +3374,25 @@ export namespace routers {
     }
 
     interface ManhattanRouterArguments {
-        excludeTypes?: string[];
-        excludeEnds?: 'source' | 'target';
-        startDirections?: ['left' | 'right' | 'top' | 'bottom'];
-        endDirections?: ['left' | 'right' | 'top' | 'bottom'];
         step?: number;
+        padding?: dia.Sides;
         maximumLoops?: number;
+        maxAllowedDirectionChange?: number;
+        perpendicular?: boolean;
+        excludeEnds?: dia.LinkEnd[];
+        excludeTypes?: string[];
+        startDirections?: dia.OrthogonalDirection[];
+        endDirections?: dia.OrthogonalDirection[];
     }
 
     interface OrthogonalRouterArguments {
         elementPadding?: number;
+        padding?: dia.Sides;
     }
 
     interface OneSideRouterArguments {
-        side?: 'bottom' | 'top' | 'left' | 'right';
-        padding?: number;
+        side?: dia.OrthogonalDirection;
+        padding?: dia.Sides;
     }
 
     interface RouterArgumentsMap {
@@ -3656,6 +3807,7 @@ export namespace attributes {
         text?: string;
         width?: string | number;
         height?: string | number;
+        ellipsis?: boolean | string;
         [key: string]: any
     }
 
@@ -3938,7 +4090,7 @@ export namespace linkTools {
         type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
 
         interface Options extends dia.ToolView.Options {
-            distance?: number;
+            distance?: number | string;
             offset?: number;
             rotate?: boolean;
             action?: ActionCallback;

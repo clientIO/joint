@@ -1,4 +1,4 @@
-/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-11-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -45,7 +45,7 @@ joint.shapes.basic.Generic.define('pn.Place', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({}, {
+joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
 
     initialize: function() {
 

@@ -1,4 +1,4 @@
-/*! JointJS v2.1.4 (2018-08-01) - JavaScript diagramming library
+/*! JointJS v2.1.4 (2018-11-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -142,6 +142,35 @@ var g = {};
             return [firstControlPoints, secondControlPoints];
         },
 
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @deprecated
+        // @param control points (start, control start, control end, end)
+        // @return a function that accepts t and returns 2 curves.
+        getCurveDivider: function(p0, p1, p2, p3) {
+
+            console.warn('deprecated');
+
+            var curve = new Curve(p0, p1, p2, p3);
+
+            return function divideCurve(t) {
+
+                var divided = curve.divide(t);
+
+                return [{
+                    p0: divided[0].start,
+                    p1: divided[0].controlPoint1,
+                    p2: divided[0].controlPoint2,
+                    p3: divided[0].end
+                }, {
+                    p0: divided[1].start,
+                    p1: divided[1].controlPoint1,
+                    p2: divided[1].controlPoint2,
+                    p3: divided[1].end
+                }];
+            };
+        },
+
         // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
         // @deprecated
         // @param rhs Right hand side vector.
@@ -171,35 +200,6 @@ var g = {};
             }
 
             return x;
-        },
-
-        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
-        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
-        // @deprecated
-        // @param control points (start, control start, control end, end)
-        // @return a function that accepts t and returns 2 curves.
-        getCurveDivider: function(p0, p1, p2, p3) {
-
-            console.warn('deprecated');
-
-            var curve = new Curve(p0, p1, p2, p3);
-
-            return function divideCurve(t) {
-
-                var divided = curve.divide(t);
-
-                return [{
-                    p0: divided[0].start,
-                    p1: divided[0].controlPoint1,
-                    p2: divided[0].controlPoint2,
-                    p3: divided[0].end
-                }, {
-                    p0: divided[1].start,
-                    p1: divided[1].controlPoint1,
-                    p2: divided[1].controlPoint2,
-                    p3: divided[1].end
-                }];
-            };
         },
 
         // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
@@ -242,34 +242,6 @@ var g = {};
     // @param {array} points Array of points through which the smooth line will go.
     // @return {array} curves.
     Curve.throughPoints = (function() {
-
-        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
-        // @param rhs Right hand side vector.
-        // @return Solution vector.
-        function getFirstControlPoints(rhs) {
-
-            var n = rhs.length;
-            // `x` is a solution vector.
-            var x = [];
-            var tmp = [];
-            var b = 2.0;
-
-            x[0] = rhs[0] / b;
-
-            // Decomposition and forward substitution.
-            for (var i = 1; i < n; i++) {
-                tmp[i] = 1 / b;
-                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
-                x[i] = (rhs[i] - x[i - 1]) / b;
-            }
-
-            for (i = 1; i < n; i++) {
-                // Backsubstitution.
-                x[n - i - 1] -= tmp[n - i] * x[n - i];
-            }
-
-            return x;
-        }
 
         // Get open-ended Bezier Spline Control Points.
         // @param knots Input Knot Bezier spline points (At least two points!).
@@ -346,6 +318,34 @@ var g = {};
             }
 
             return [firstControlPoints, secondControlPoints];
+        }
+
+        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
+        // @param rhs Right hand side vector.
+        // @return Solution vector.
+        function getFirstControlPoints(rhs) {
+
+            var n = rhs.length;
+            // `x` is a solution vector.
+            var x = [];
+            var tmp = [];
+            var b = 2.0;
+
+            x[0] = rhs[0] / b;
+
+            // Decomposition and forward substitution.
+            for (var i = 1; i < n; i++) {
+                tmp[i] = 1 / b;
+                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
+                x[i] = (rhs[i] - x[i - 1]) / b;
+            }
+
+            for (i = 1; i < n; i++) {
+                // Backsubstitution.
+                x[n - i - 1] -= tmp[n - i] * x[n - i];
+            }
+
+            return x;
         }
 
         return function(points) {
@@ -1038,15 +1038,6 @@ var g = {};
             }
         },
 
-        translate: function(tx, ty) {
-
-            this.start.translate(tx, ty);
-            this.controlPoint1.translate(tx, ty);
-            this.controlPoint2.translate(tx, ty);
-            this.end.translate(tx, ty);
-            return this;
-        },
-
         // Returns an array of points that represents the curve when flattened, up to `opt.precision`; or using `opt.subdivisions` provided.
         // Flattened length is no more than 10^(-precision) away from real curve length.
         toPoints: function(opt) {
@@ -1077,6 +1068,15 @@ var g = {};
         toString: function() {
 
             return this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.translate(tx, ty);
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
@@ -1110,25 +1110,35 @@ var g = {};
             return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
         },
 
+        /**
+         * @returns {g.Point}
+         */
+        center: function() {
+
+            return new Point(this.x, this.y);
+        },
+
         clone: function() {
 
             return new Ellipse(this);
         },
 
         /**
-         * @param {g.Point} point
-         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         * @param {g.Point} p
+         * @returns {boolean}
          */
-        normalizedDistance: function(point) {
+        containsPoint: function(p) {
 
-            var x0 = point.x;
-            var y0 = point.y;
-            var a = this.a;
-            var b = this.b;
-            var x = this.x;
-            var y = this.y;
+            return this.normalizedDistance(p) <= 1;
+        },
 
-            return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
+        equals: function(ellipse) {
+
+            return !!ellipse &&
+                    ellipse.x === this.x &&
+                    ellipse.y === this.y &&
+                    ellipse.a === this.a &&
+                    ellipse.b === this.b;
         },
 
         // inflate by dx and dy
@@ -1148,65 +1158,6 @@ var g = {};
             this.b += 2 * dy;
 
             return this;
-        },
-
-
-        /**
-         * @param {g.Point} p
-         * @returns {boolean}
-         */
-        containsPoint: function(p) {
-
-            return this.normalizedDistance(p) <= 1;
-        },
-
-        /**
-         * @returns {g.Point}
-         */
-        center: function() {
-
-            return new Point(this.x, this.y);
-        },
-
-        /** Compute angle between tangent and x axis
-         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
-         * @returns {number} angle between tangent and x axis
-         */
-        tangentTheta: function(p) {
-
-            var refPointDelta = 30;
-            var x0 = p.x;
-            var y0 = p.y;
-            var a = this.a;
-            var b = this.b;
-            var center = this.bbox().center();
-            var m = center.x;
-            var n = center.y;
-
-            var q1 = x0 > center.x + a / 2;
-            var q3 = x0 < center.x - a / 2;
-
-            var y, x;
-            if (q1 || q3) {
-                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
-                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
-
-            } else {
-                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
-                y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
-            }
-
-            return (new Point(x, y)).theta(p);
-
-        },
-
-        equals: function(ellipse) {
-
-            return !!ellipse &&
-                    ellipse.x === this.x &&
-                    ellipse.y === this.y &&
-                    ellipse.a === this.a &&
-                    ellipse.b === this.b;
         },
 
         intersectionWithLine: function(line) {
@@ -1285,6 +1236,54 @@ var g = {};
 
             if (angle) return result.rotate(new Point(this.x, this.y), -angle);
             return result;
+        },
+
+        /**
+         * @param {g.Point} point
+         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         */
+        normalizedDistance: function(point) {
+
+            var x0 = point.x;
+            var y0 = point.y;
+            var a = this.a;
+            var b = this.b;
+            var x = this.x;
+            var y = this.y;
+
+            return ((x0 - x) * (x0 - x)) / (a * a ) + ((y0 - y) * (y0 - y)) / (b * b);
+        },
+
+        /** Compute angle between tangent and x axis
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
+         * @returns {number} angle between tangent and x axis
+         */
+        tangentTheta: function(p) {
+
+            var refPointDelta = 30;
+            var x0 = p.x;
+            var y0 = p.y;
+            var a = this.a;
+            var b = this.b;
+            var center = this.bbox().center();
+            var m = center.x;
+            var n = center.y;
+
+            var q1 = x0 > center.x + a / 2;
+            var q3 = x0 < center.x - a / 2;
+
+            var y, x;
+            if (q1 || q3) {
+                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
+                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
+
+            } else {
+                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
+                y = ( b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
+            }
+
+            return (new Point(x, y)).theta(p);
+
         },
 
         toString: function() {
@@ -1386,6 +1385,30 @@ var g = {};
                     this.end.y === l.end.y;
         },
 
+        // @return {point} Point where I'm intersecting a line.
+        // @return [point] Points where I'm intersecting a rectangle.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersect: function(shape, opt) {
+
+            if (shape instanceof Line ||
+                shape instanceof Rect ||
+                shape instanceof Polyline ||
+                shape instanceof Ellipse ||
+                shape instanceof Path
+            ) {
+                var intersection = shape.intersectionWithLine(this, opt);
+
+                // Backwards compatibility
+                if (intersection && (shape instanceof Line)) {
+                    intersection = intersection[0];
+                }
+
+                return intersection;
+            }
+
+            return null;
+        },
+
         intersectionWithLine: function(line) {
 
             var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
@@ -1415,30 +1438,6 @@ var g = {};
                 this.start.x + (alpha * pt1Dir.x / det),
                 this.start.y + (alpha * pt1Dir.y / det)
             )];
-        },
-
-        // @return {point} Point where I'm intersecting a line.
-        // @return [point] Points where I'm intersecting a rectangle.
-        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersect: function(shape, opt) {
-
-            if (shape instanceof Line ||
-                shape instanceof Rect ||
-                shape instanceof Polyline ||
-                shape instanceof Ellipse ||
-                shape instanceof Path
-            ) {
-                var intersection = shape.intersectionWithLine(this, opt);
-
-                // Backwards compatibility
-                if (intersection && (shape instanceof Line)) {
-                    intersection = intersection[0];
-                }
-
-                return intersection;
-            }
-
-            return null;
         },
 
         isDifferentiable: function() {
@@ -1577,6 +1576,11 @@ var g = {};
             return tangentLine;
         },
 
+        toString: function() {
+
+            return this.start.toString() + ' ' + this.end.toString();
+        },
+
         translate: function(tx, ty) {
 
             this.start.translate(tx, ty);
@@ -1588,11 +1592,6 @@ var g = {};
         vector: function() {
 
             return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-        },
-
-        toString: function() {
-
-            return this.start.toString() + ' ' + this.end.toString();
         }
     };
 
@@ -1945,7 +1944,7 @@ var g = {};
 
             var segments = this.segments;
             var numSegments = segments.length;
-            if (!numSegments === 0) throw new Error('Path has no segments.');
+            if (numSegments === 0) throw new Error('Path has no segments.');
 
             if (index < 0) index = numSegments + index; // convert negative indices to positive
             if (index >= numSegments || index < 0) throw new Error('Index out of range.');
@@ -2028,6 +2027,27 @@ var g = {};
                     previousSegment = currentSegment;
                 }
             }
+        },
+
+        intersectionWithLine: function(line, opt) {
+
+            var intersection = null;
+            var polylines = this.toPolylines(opt);
+            if (!polylines) return null;
+            for (var i = 0, n = polylines.length; i < n; i++) {
+                var polyline = polylines[i];
+                var polylineIntersection = line.intersect(polyline);
+                if (polylineIntersection) {
+                    intersection || (intersection = []);
+                    if (Array.isArray(polylineIntersection)) {
+                        Array.prototype.push.apply(intersection, polylineIntersection);
+                    } else {
+                        intersection.push(polylineIntersection);
+                    }
+                }
+            }
+
+            return intersection;
         },
 
         isDifferentiable: function() {
@@ -2205,6 +2225,9 @@ var g = {};
             return segments[segmentIndex].pointAtT(tValue);
         },
 
+        // Default precision
+        PRECISION: 3,
+
         // Helper method for adding segments.
         prepareSegment: function(segment, previousSegment, nextSegment) {
 
@@ -2225,9 +2248,6 @@ var g = {};
 
             return segment;
         },
-
-        // Default precision
-        PRECISION: 3,
 
         // Remove the segment at `index`.
         // Accepts negative indices, from `-1` to `-segments.length`.
@@ -2357,77 +2377,6 @@ var g = {};
             return this.segmentIndexAtLength(length, localOpt);
         },
 
-        toPoints: function(opt) {
-
-            var segments = this.segments;
-            var numSegments = segments.length;
-            if (numSegments === 0) return null; // if segments is an empty array
-
-            opt = opt || {};
-            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
-            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
-
-            var points = [];
-            var partialPoints = [];
-            for (var i = 0; i < numSegments; i++) {
-                var segment = segments[i];
-                if (segment.isVisible) {
-                    var currentSegmentSubdivisions = segmentSubdivisions[i];
-                    if (currentSegmentSubdivisions.length > 0) {
-                        var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
-                            return curve.start;
-                        });
-                        Array.prototype.push.apply(partialPoints, subdivisionPoints);
-                    } else {
-                        partialPoints.push(segment.start);
-                    }
-                } else if (partialPoints.length > 0) {
-                    partialPoints.push(segments[i - 1].end);
-                    points.push(partialPoints);
-                    partialPoints = [];
-                }
-            }
-
-            if (partialPoints.length > 0) {
-                partialPoints.push(this.end);
-                points.push(partialPoints);
-            }
-            return points;
-        },
-
-        toPolylines: function(opt) {
-
-            var polylines = [];
-            var points = this.toPoints(opt);
-            if (!points) return null;
-            for (var i = 0, n = points.length; i < n; i++) {
-                polylines.push(new Polyline(points[i]));
-            }
-
-            return polylines;
-        },
-
-        intersectionWithLine: function(line, opt) {
-
-            var intersection = null;
-            var polylines = this.toPolylines(opt);
-            if (!polylines) return null;
-            for (var i = 0, n = polylines.length; i < n; i++) {
-                var polyline = polylines[i];
-                var polylineIntersection = line.intersect(polyline);
-                if (polylineIntersection) {
-                    intersection || (intersection = []);
-                    if (Array.isArray(polylineIntersection)) {
-                        Array.prototype.push.apply(intersection, polylineIntersection);
-                    } else {
-                        intersection.push(polylineIntersection);
-                    }
-                }
-            }
-
-            return intersection;
-        },
-
         // Accepts negative length.
         segmentIndexAtLength: function(length, opt) {
 
@@ -2465,6 +2414,15 @@ var g = {};
             // if length requested is higher than the length of the path, return last visible segment index
             // if no visible segment, return null
             return lastVisibleSegmentIndex;
+        },
+
+        // Returns a string that can be used to reconstruct the path.
+        // Additional error checking compared to toString (must start with M segment).
+        serialize: function() {
+
+            if (!this.isValid()) throw new Error('Invalid path segments.');
+
+            return this.toString();
         },
 
         // Returns tangent line at requested `ratio` between 0 and 1, with precision better than requested `opt.precision`; optionally using `opt.segmentSubdivisions` provided.
@@ -2554,6 +2512,71 @@ var g = {};
             return segments[segmentIndex].tangentAtT(tValue);
         },
 
+        toPoints: function(opt) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+            if (numSegments === 0) return null; // if segments is an empty array
+
+            opt = opt || {};
+            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+
+            var points = [];
+            var partialPoints = [];
+            for (var i = 0; i < numSegments; i++) {
+                var segment = segments[i];
+                if (segment.isVisible) {
+                    var currentSegmentSubdivisions = segmentSubdivisions[i];
+                    if (currentSegmentSubdivisions.length > 0) {
+                        var subdivisionPoints = currentSegmentSubdivisions.map(function(curve) {
+                            return curve.start;
+                        });
+                        Array.prototype.push.apply(partialPoints, subdivisionPoints);
+                    } else {
+                        partialPoints.push(segment.start);
+                    }
+                } else if (partialPoints.length > 0) {
+                    partialPoints.push(segments[i - 1].end);
+                    points.push(partialPoints);
+                    partialPoints = [];
+                }
+            }
+
+            if (partialPoints.length > 0) {
+                partialPoints.push(this.end);
+                points.push(partialPoints);
+            }
+            return points;
+        },
+
+        toPolylines: function(opt) {
+
+            var polylines = [];
+            var points = this.toPoints(opt);
+            if (!points) return null;
+            for (var i = 0, n = points.length; i < n; i++) {
+                polylines.push(new Polyline(points[i]));
+            }
+
+            return polylines;
+        },
+
+        toString: function() {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            var pathData = '';
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                pathData += segment.serialize() + ' ';
+            }
+
+            return pathData.trim();
+        },
+
         translate: function(tx, ty) {
 
             var segments = this.segments;
@@ -2581,30 +2604,6 @@ var g = {};
                 previousSegment = segment;
                 segment = segment.nextSegment; // move on to the segment after etc.
             }
-        },
-
-        // Returns a string that can be used to reconstruct the path.
-        // Additional error checking compared to toString (must start with M segment).
-        serialize: function() {
-
-            if (!this.isValid()) throw new Error('Invalid path segments.');
-
-            return this.toString();
-        },
-
-        toString: function() {
-
-            var segments = this.segments;
-            var numSegments = segments.length;
-
-            var pathData = '';
-            for (var i = 0; i < numSegments; i++) {
-
-                var segment = segments[i];
-                pathData += segment.serialize() + ' ';
-            }
-
-            return pathData.trim();
         }
     };
 
@@ -2732,6 +2731,23 @@ var g = {};
             return this;
         },
 
+        // Compute the angle between vector from me to p1 and the vector from me to p2.
+        // ordering of points p1 and p2 is important!
+        // theta function's angle convention:
+        // returns angles between 0 and 180 when the angle is counterclockwise
+        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
+        // returns NaN if any of the points p1, p2 is coincident with this point
+        angleBetween: function(p1, p2) {
+
+            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
+
+            if (angleBetween < 0) {
+                angleBetween += 360; // correction to keep angleBetween between 0 and 360
+            }
+
+            return angleBetween;
+        },
+
         // Return the bearing between me and the given point.
         bearing: function(point) {
 
@@ -2751,6 +2767,19 @@ var g = {};
             return new Point(this);
         },
 
+        // Returns the cross product of this point relative to two other points
+        // this point is the common point
+        // point p1 lies on the first vector, point p2 lies on the second vector
+        // watch out for the ordering of points p1 and p2!
+        // positive result indicates a clockwise ("right") turn from first to second vector
+        // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // note that the above directions are reversed from the usual answer on the Internet
+        // that is because we are in a left-handed coord system (because the y-axis points downward)
+        cross: function(p1, p2) {
+
+            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
+        },
+
         difference: function(dx, dy) {
 
             if ((Object(dx) === dx)) {
@@ -2767,9 +2796,10 @@ var g = {};
             return (new Line(this, p)).length();
         },
 
-        squaredDistance: function(p) {
+        // Returns the dot product of this point with given other point
+        dot: function(p) {
 
-            return (new Line(this, p)).squaredLength();
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
         },
 
         equals: function(p) {
@@ -2777,6 +2807,14 @@ var g = {};
             return !!p &&
                 this.x === p.x &&
                 this.y === p.y;
+        },
+
+        // Linear interpolation
+        lerp: function(p, t) {
+
+            var x = this.x;
+            var y = this.y;
+            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
         },
 
         magnitude: function() {
@@ -2868,6 +2906,11 @@ var g = {};
             return this;
         },
 
+        squaredDistance: function(p) {
+
+            return (new Line(this, p)).squaredLength();
+        },
+
         // Compute the angle between me and `p` and the x axis.
         // (cartesian-to-polar coordinates conversion)
         // Return theta angle in degrees.
@@ -2886,31 +2929,6 @@ var g = {};
             }
 
             return 180 * rad / PI;
-        },
-
-        // Compute the angle between vector from me to p1 and the vector from me to p2.
-        // ordering of points p1 and p2 is important!
-        // theta function's angle convention:
-        // returns angles between 0 and 180 when the angle is counterclockwise
-        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
-        // returns NaN if any of the points p1, p2 is coincident with this point
-        angleBetween: function(p1, p2) {
-
-            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
-
-            if (angleBetween < 0) {
-                angleBetween += 360; // correction to keep angleBetween between 0 and 360
-            }
-
-            return angleBetween;
-        },
-
-        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
-        // Returns NaN if p is at 0,0.
-        vectorAngle: function(p) {
-
-            var zero = new Point(0,0);
-            return zero.angleBetween(this, p);
         },
 
         toJSON: function() {
@@ -2942,497 +2960,16 @@ var g = {};
             return this;
         },
 
-        // Returns the dot product of this point with given other point
-        dot: function(p) {
+        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
+        // Returns NaN if p is at 0,0.
+        vectorAngle: function(p) {
 
-            return p ? (this.x * p.x + this.y * p.y) : NaN;
-        },
-
-        // Returns the cross product of this point relative to two other points
-        // this point is the common point
-        // point p1 lies on the first vector, point p2 lies on the second vector
-        // watch out for the ordering of points p1 and p2!
-        // positive result indicates a clockwise ("right") turn from first to second vector
-        // negative result indicates a counterclockwise ("left") turn from first to second vector
-        // note that the above directions are reversed from the usual answer on the Internet
-        // that is because we are in a left-handed coord system (because the y-axis points downward)
-        cross: function(p1, p2) {
-
-            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
-        },
-
-
-        // Linear interpolation
-        lerp: function(p, t) {
-
-            var x = this.x;
-            var y = this.y;
-            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
+            var zero = new Point(0,0);
+            return zero.angleBetween(this, p);
         }
     };
 
     Point.prototype.translate = Point.prototype.offset;
-
-    var Rect = g.Rect = function(x, y, w, h) {
-
-        if (!(this instanceof Rect)) {
-            return new Rect(x, y, w, h);
-        }
-
-        if ((Object(x) === x)) {
-            y = x.y;
-            w = x.width;
-            h = x.height;
-            x = x.x;
-        }
-
-        this.x = x === undefined ? 0 : x;
-        this.y = y === undefined ? 0 : y;
-        this.width = w === undefined ? 0 : w;
-        this.height = h === undefined ? 0 : h;
-    };
-
-    Rect.fromEllipse = function(e) {
-
-        e = new Ellipse(e);
-        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
-    };
-
-    Rect.prototype = {
-
-        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
-        // @return r {rectangle} representing a bounding box
-        bbox: function(angle) {
-
-            if (!angle) return this.clone();
-
-            var theta = toRad(angle || 0);
-            var st = abs(sin(theta));
-            var ct = abs(cos(theta));
-            var w = this.width * ct + this.height * st;
-            var h = this.width * st + this.height * ct;
-            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
-        },
-
-        bottomLeft: function() {
-
-            return new Point(this.x, this.y + this.height);
-        },
-
-        bottomLine: function() {
-
-            return new Line(this.bottomLeft(), this.bottomRight());
-        },
-
-        bottomMiddle: function() {
-
-            return new Point(this.x + this.width / 2, this.y + this.height);
-        },
-
-        center: function() {
-
-            return new Point(this.x + this.width / 2, this.y + this.height / 2);
-        },
-
-        clone: function() {
-
-            return new Rect(this);
-        },
-
-        // @return {bool} true if point p is insight me
-        containsPoint: function(p) {
-
-            p = new Point(p);
-            return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
-        },
-
-        // @return {bool} true if rectangle `r` is inside me.
-        containsRect: function(r) {
-
-            var r0 = new Rect(this).normalize();
-            var r1 = new Rect(r).normalize();
-            var w0 = r0.width;
-            var h0 = r0.height;
-            var w1 = r1.width;
-            var h1 = r1.height;
-
-            if (!w0 || !h0 || !w1 || !h1) {
-                // At least one of the dimensions is 0
-                return false;
-            }
-
-            var x0 = r0.x;
-            var y0 = r0.y;
-            var x1 = r1.x;
-            var y1 = r1.y;
-
-            w1 += x1;
-            w0 += x0;
-            h1 += y1;
-            h0 += y0;
-
-            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
-        },
-
-        corner: function() {
-
-            return new Point(this.x + this.width, this.y + this.height);
-        },
-
-        // @return {boolean} true if rectangles are equal.
-        equals: function(r) {
-
-            var mr = (new Rect(this)).normalize();
-            var nr = (new Rect(r)).normalize();
-            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
-        },
-
-        // @return {rect} if rectangles intersect, {null} if not.
-        intersect: function(r) {
-
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = r.origin();
-            var rCorner = r.corner();
-
-            // No intersection found
-            if (rCorner.x <= myOrigin.x ||
-                rCorner.y <= myOrigin.y ||
-                rOrigin.x >= myCorner.x ||
-                rOrigin.y >= myCorner.y) return null;
-
-            var x = max(myOrigin.x, rOrigin.x);
-            var y = max(myOrigin.y, rOrigin.y);
-
-            return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
-        },
-
-        intersectionWithLine: function(line) {
-
-            var r = this;
-            var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
-            var points = [];
-            var dedupeArr = [];
-            var pt, i;
-
-            var n = rectLines.length;
-            for (i = 0; i < n; i ++) {
-
-                pt = line.intersect(rectLines[i]);
-                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
-                    points.push(pt);
-                    dedupeArr.push(pt.toString());
-                }
-            }
-
-            return points.length > 0 ? points : null;
-        },
-
-        // Find point on my boundary where line starting
-        // from my center ending in point p intersects me.
-        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
-        intersectionWithLineFromCenterToPoint: function(p, angle) {
-
-            p = new Point(p);
-            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
-            var result;
-
-            if (angle) p.rotate(center, angle);
-
-            // (clockwise, starting from the top side)
-            var sides = [
-                this.topLine(),
-                this.rightLine(),
-                this.bottomLine(),
-                this.leftLine()
-            ];
-            var connector = new Line(center, p);
-
-            for (var i = sides.length - 1; i >= 0; --i) {
-                var intersection = sides[i].intersection(connector);
-                if (intersection !== null) {
-                    result = intersection;
-                    break;
-                }
-            }
-            if (result && angle) result.rotate(center, -angle);
-            return result;
-        },
-
-        leftLine: function() {
-
-            return new Line(this.topLeft(), this.bottomLeft());
-        },
-
-        leftMiddle: function() {
-
-            return new Point(this.x , this.y + this.height / 2);
-        },
-
-        // Move and expand me.
-        // @param r {rectangle} representing deltas
-        moveAndExpand: function(r) {
-
-            this.x += r.x || 0;
-            this.y += r.y || 0;
-            this.width += r.width || 0;
-            this.height += r.height || 0;
-            return this;
-        },
-
-        // Offset me by the specified amount.
-        offset: function(dx, dy) {
-
-            // pretend that this is a point and call offset()
-            // rewrites x and y according to dx and dy
-            return Point.prototype.offset.call(this, dx, dy);
-        },
-
-        // inflate by dx and dy, recompute origin [x, y]
-        // @param dx {delta_x} representing additional size to x
-        // @param dy {delta_y} representing additional size to y -
-        // dy param is not required -> in that case y is sized by dx
-        inflate: function(dx, dy) {
-
-            if (dx === undefined) {
-                dx = 0;
-            }
-
-            if (dy === undefined) {
-                dy = dx;
-            }
-
-            this.x -= dx;
-            this.y -= dy;
-            this.width += 2 * dx;
-            this.height += 2 * dy;
-
-            return this;
-        },
-
-        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
-        // If width < 0 the function swaps the left and right corners,
-        // and it swaps the top and bottom corners if height < 0
-        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
-        normalize: function() {
-
-            var newx = this.x;
-            var newy = this.y;
-            var newwidth = this.width;
-            var newheight = this.height;
-            if (this.width < 0) {
-                newx = this.x + this.width;
-                newwidth = -this.width;
-            }
-            if (this.height < 0) {
-                newy = this.y + this.height;
-                newheight = -this.height;
-            }
-            this.x = newx;
-            this.y = newy;
-            this.width = newwidth;
-            this.height = newheight;
-            return this;
-        },
-
-        origin: function() {
-
-            return new Point(this.x, this.y);
-        },
-
-        // @return {point} a point on my boundary nearest to the given point.
-        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
-        pointNearestToPoint: function(point) {
-
-            point = new Point(point);
-            if (this.containsPoint(point)) {
-                var side = this.sideNearestToPoint(point);
-                switch (side){
-                    case 'right': return new Point(this.x + this.width, point.y);
-                    case 'left': return new Point(this.x, point.y);
-                    case 'bottom': return new Point(point.x, this.y + this.height);
-                    case 'top': return new Point(point.x, this.y);
-                }
-            }
-            return point.adhereToRect(this);
-        },
-
-        rightLine: function() {
-
-            return new Line(this.topRight(), this.bottomRight());
-        },
-
-        rightMiddle: function() {
-
-            return new Point(this.x + this.width, this.y + this.height / 2);
-        },
-
-        round: function(precision) {
-
-            var f = pow(10, precision || 0);
-            this.x = round(this.x * f) / f;
-            this.y = round(this.y * f) / f;
-            this.width = round(this.width * f) / f;
-            this.height = round(this.height * f) / f;
-            return this;
-        },
-
-        // Scale rectangle with origin.
-        scale: function(sx, sy, origin) {
-
-            origin = this.origin().scale(sx, sy, origin);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width *= sx;
-            this.height *= sy;
-            return this;
-        },
-
-        maxRectScaleToFit: function(rect, origin) {
-
-            rect = new Rect(rect);
-            origin || (origin = rect.center());
-
-            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
-            var ox = origin.x;
-            var oy = origin.y;
-
-            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
-            // so when the scale is applied the point is still inside the rectangle.
-
-            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
-
-            // Top Left
-            var p1 = rect.topLeft();
-            if (p1.x < ox) {
-                sx1 = (this.x - ox) / (p1.x - ox);
-            }
-            if (p1.y < oy) {
-                sy1 = (this.y - oy) / (p1.y - oy);
-            }
-            // Bottom Right
-            var p2 = rect.bottomRight();
-            if (p2.x > ox) {
-                sx2 = (this.x + this.width - ox) / (p2.x - ox);
-            }
-            if (p2.y > oy) {
-                sy2 = (this.y + this.height - oy) / (p2.y - oy);
-            }
-            // Top Right
-            var p3 = rect.topRight();
-            if (p3.x > ox) {
-                sx3 = (this.x + this.width - ox) / (p3.x - ox);
-            }
-            if (p3.y < oy) {
-                sy3 = (this.y - oy) / (p3.y - oy);
-            }
-            // Bottom Left
-            var p4 = rect.bottomLeft();
-            if (p4.x < ox) {
-                sx4 = (this.x - ox) / (p4.x - ox);
-            }
-            if (p4.y > oy) {
-                sy4 = (this.y + this.height - oy) / (p4.y - oy);
-            }
-
-            return {
-                sx: min(sx1, sx2, sx3, sx4),
-                sy: min(sy1, sy2, sy3, sy4)
-            };
-        },
-
-        maxRectUniformScaleToFit: function(rect, origin) {
-
-            var scale = this.maxRectScaleToFit(rect, origin);
-            return min(scale.sx, scale.sy);
-        },
-
-        // @return {string} (left|right|top|bottom) side which is nearest to point
-        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
-        sideNearestToPoint: function(point) {
-
-            point = new Point(point);
-            var distToLeft = point.x - this.x;
-            var distToRight = (this.x + this.width) - point.x;
-            var distToTop = point.y - this.y;
-            var distToBottom = (this.y + this.height) - point.y;
-            var closest = distToLeft;
-            var side = 'left';
-
-            if (distToRight < closest) {
-                closest = distToRight;
-                side = 'right';
-            }
-            if (distToTop < closest) {
-                closest = distToTop;
-                side = 'top';
-            }
-            if (distToBottom < closest) {
-                closest = distToBottom;
-                side = 'bottom';
-            }
-            return side;
-        },
-
-        snapToGrid: function(gx, gy) {
-
-            var origin = this.origin().snapToGrid(gx, gy);
-            var corner = this.corner().snapToGrid(gx, gy);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width = corner.x - origin.x;
-            this.height = corner.y - origin.y;
-            return this;
-        },
-
-        topLine: function() {
-
-            return new Line(this.topLeft(), this.topRight());
-        },
-
-        topMiddle: function() {
-
-            return new Point(this.x + this.width / 2, this.y);
-        },
-
-        topRight: function() {
-
-            return new Point(this.x + this.width, this.y);
-        },
-
-        toJSON: function() {
-
-            return { x: this.x, y: this.y, width: this.width, height: this.height };
-        },
-
-        toString: function() {
-
-            return this.origin().toString() + ' ' + this.corner().toString();
-        },
-
-        // @return {rect} representing the union of both rectangles.
-        union: function(rect) {
-
-            rect = new Rect(rect);
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = rect.origin();
-            var rCorner = rect.corner();
-
-            var originX = min(myOrigin.x, rOrigin.x);
-            var originY = min(myOrigin.y, rOrigin.y);
-            var cornerX = max(myCorner.x, rCorner.x);
-            var cornerY = max(myCorner.y, rCorner.y);
-
-            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
-        }
-    };
-
-    Rect.prototype.bottomRight = Rect.prototype.corner;
-
-    Rect.prototype.topLeft = Rect.prototype.origin;
-
-    Rect.prototype.translate = Rect.prototype.offset;
 
     var Polyline = g.Polyline = function(points) {
 
@@ -3798,6 +3335,20 @@ var g = {};
             return true;
         },
 
+        intersectionWithLine: function(l) {
+            var line = new Line(l);
+            var intersections = [];
+            var points = this.points;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i+1];
+                var l2 = new Line(a, b);
+                var int = line.intersectionWithLine(l2);
+                if (int) intersections.push(int[0]);
+            }
+            return (intersections.length > 0) ? intersections : null;
+        },
+
         isDifferentiable: function() {
 
             var points = this.points;
@@ -3957,18 +3508,9 @@ var g = {};
             return null;
         },
 
-        intersectionWithLine: function(l) {
-            var line = new Line(l);
-            var intersections = [];
-            var points = this.points;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i+1];
-                var l2 = new Line(a, b);
-                var int = line.intersectionWithLine(l2);
-                if (int) intersections.push(int[0]);
-            }
-            return (intersections.length > 0) ? intersections : null;
+        toString: function() {
+
+            return this.points + '';
         },
 
         translate: function(tx, ty) {
@@ -3999,11 +3541,6 @@ var g = {};
             }
 
             return output.trim();
-        },
-
-        toString: function() {
-
-            return this.points + '';
         }
     };
 
@@ -4040,6 +3577,467 @@ var g = {};
             return this.points[numPoints - 1];
         },
     });
+
+    var Rect = g.Rect = function(x, y, w, h) {
+
+        if (!(this instanceof Rect)) {
+            return new Rect(x, y, w, h);
+        }
+
+        if ((Object(x) === x)) {
+            y = x.y;
+            w = x.width;
+            h = x.height;
+            x = x.x;
+        }
+
+        this.x = x === undefined ? 0 : x;
+        this.y = y === undefined ? 0 : y;
+        this.width = w === undefined ? 0 : w;
+        this.height = h === undefined ? 0 : h;
+    };
+
+    Rect.fromEllipse = function(e) {
+
+        e = new Ellipse(e);
+        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
+    };
+
+    Rect.prototype = {
+
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+
+            if (!angle) return this.clone();
+
+            var theta = toRad(angle);
+            var st = abs(sin(theta));
+            var ct = abs(cos(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        },
+
+        bottomLeft: function() {
+
+            return new Point(this.x, this.y + this.height);
+        },
+
+        bottomLine: function() {
+
+            return new Line(this.bottomLeft(), this.bottomRight());
+        },
+
+        bottomMiddle: function() {
+
+            return new Point(this.x + this.width / 2, this.y + this.height);
+        },
+
+        center: function() {
+
+            return new Point(this.x + this.width / 2, this.y + this.height / 2);
+        },
+
+        clone: function() {
+
+            return new Rect(this);
+        },
+
+        // @return {bool} true if point p is insight me
+        containsPoint: function(p) {
+
+            p = new Point(p);
+            return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
+        },
+
+        // @return {bool} true if rectangle `r` is inside me.
+        containsRect: function(r) {
+
+            var r0 = new Rect(this).normalize();
+            var r1 = new Rect(r).normalize();
+            var w0 = r0.width;
+            var h0 = r0.height;
+            var w1 = r1.width;
+            var h1 = r1.height;
+
+            if (!w0 || !h0 || !w1 || !h1) {
+                // At least one of the dimensions is 0
+                return false;
+            }
+
+            var x0 = r0.x;
+            var y0 = r0.y;
+            var x1 = r1.x;
+            var y1 = r1.y;
+
+            w1 += x1;
+            w0 += x0;
+            h1 += y1;
+            h0 += y0;
+
+            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
+        },
+
+        corner: function() {
+
+            return new Point(this.x + this.width, this.y + this.height);
+        },
+
+        // @return {boolean} true if rectangles are equal.
+        equals: function(r) {
+
+            var mr = (new Rect(this)).normalize();
+            var nr = (new Rect(r)).normalize();
+            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
+        },
+
+        // inflate by dx and dy, recompute origin [x, y]
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.x -= dx;
+            this.y -= dy;
+            this.width += 2 * dx;
+            this.height += 2 * dy;
+
+            return this;
+        },
+
+        // @return {rect} if rectangles intersect, {null} if not.
+        intersect: function(r) {
+
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = r.origin();
+            var rCorner = r.corner();
+
+            // No intersection found
+            if (rCorner.x <= myOrigin.x ||
+                rCorner.y <= myOrigin.y ||
+                rOrigin.x >= myCorner.x ||
+                rOrigin.y >= myCorner.y) return null;
+
+            var x = max(myOrigin.x, rOrigin.x);
+            var y = max(myOrigin.y, rOrigin.y);
+
+            return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
+        },
+
+        intersectionWithLine: function(line) {
+
+            var r = this;
+            var rectLines = [ r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine() ];
+            var points = [];
+            var dedupeArr = [];
+            var pt, i;
+
+            var n = rectLines.length;
+            for (i = 0; i < n; i ++) {
+
+                pt = line.intersect(rectLines[i]);
+                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                    points.push(pt);
+                    dedupeArr.push(pt.toString());
+                }
+            }
+
+            return points.length > 0 ? points : null;
+        },
+
+        // Find point on my boundary where line starting
+        // from my center ending in point p intersects me.
+        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+
+            p = new Point(p);
+            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
+            var result;
+
+            if (angle) p.rotate(center, angle);
+
+            // (clockwise, starting from the top side)
+            var sides = [
+                this.topLine(),
+                this.rightLine(),
+                this.bottomLine(),
+                this.leftLine()
+            ];
+            var connector = new Line(center, p);
+
+            for (var i = sides.length - 1; i >= 0; --i) {
+                var intersection = sides[i].intersection(connector);
+                if (intersection !== null) {
+                    result = intersection;
+                    break;
+                }
+            }
+            if (result && angle) result.rotate(center, -angle);
+            return result;
+        },
+
+        leftLine: function() {
+
+            return new Line(this.topLeft(), this.bottomLeft());
+        },
+
+        leftMiddle: function() {
+
+            return new Point(this.x , this.y + this.height / 2);
+        },
+
+        maxRectScaleToFit: function(rect, origin) {
+
+            rect = new Rect(rect);
+            origin || (origin = rect.center());
+
+            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
+            var ox = origin.x;
+            var oy = origin.y;
+
+            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
+            // so when the scale is applied the point is still inside the rectangle.
+
+            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
+
+            // Top Left
+            var p1 = rect.topLeft();
+            if (p1.x < ox) {
+                sx1 = (this.x - ox) / (p1.x - ox);
+            }
+            if (p1.y < oy) {
+                sy1 = (this.y - oy) / (p1.y - oy);
+            }
+            // Bottom Right
+            var p2 = rect.bottomRight();
+            if (p2.x > ox) {
+                sx2 = (this.x + this.width - ox) / (p2.x - ox);
+            }
+            if (p2.y > oy) {
+                sy2 = (this.y + this.height - oy) / (p2.y - oy);
+            }
+            // Top Right
+            var p3 = rect.topRight();
+            if (p3.x > ox) {
+                sx3 = (this.x + this.width - ox) / (p3.x - ox);
+            }
+            if (p3.y < oy) {
+                sy3 = (this.y - oy) / (p3.y - oy);
+            }
+            // Bottom Left
+            var p4 = rect.bottomLeft();
+            if (p4.x < ox) {
+                sx4 = (this.x - ox) / (p4.x - ox);
+            }
+            if (p4.y > oy) {
+                sy4 = (this.y + this.height - oy) / (p4.y - oy);
+            }
+
+            return {
+                sx: min(sx1, sx2, sx3, sx4),
+                sy: min(sy1, sy2, sy3, sy4)
+            };
+        },
+
+        maxRectUniformScaleToFit: function(rect, origin) {
+
+            var scale = this.maxRectScaleToFit(rect, origin);
+            return min(scale.sx, scale.sy);
+        },
+
+        // Move and expand me.
+        // @param r {rectangle} representing deltas
+        moveAndExpand: function(r) {
+
+            this.x += r.x || 0;
+            this.y += r.y || 0;
+            this.width += r.width || 0;
+            this.height += r.height || 0;
+            return this;
+        },
+
+        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
+        // If width < 0 the function swaps the left and right corners,
+        // and it swaps the top and bottom corners if height < 0
+        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
+        normalize: function() {
+
+            var newx = this.x;
+            var newy = this.y;
+            var newwidth = this.width;
+            var newheight = this.height;
+            if (this.width < 0) {
+                newx = this.x + this.width;
+                newwidth = -this.width;
+            }
+            if (this.height < 0) {
+                newy = this.y + this.height;
+                newheight = -this.height;
+            }
+            this.x = newx;
+            this.y = newy;
+            this.width = newwidth;
+            this.height = newheight;
+            return this;
+        },
+
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+
+            // pretend that this is a point and call offset()
+            // rewrites x and y according to dx and dy
+            return Point.prototype.offset.call(this, dx, dy);
+        },
+
+        origin: function() {
+
+            return new Point(this.x, this.y);
+        },
+
+        // @return {point} a point on my boundary nearest to the given point.
+        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
+        pointNearestToPoint: function(point) {
+
+            point = new Point(point);
+            if (this.containsPoint(point)) {
+                var side = this.sideNearestToPoint(point);
+                switch (side){
+                    case 'right': return new Point(this.x + this.width, point.y);
+                    case 'left': return new Point(this.x, point.y);
+                    case 'bottom': return new Point(point.x, this.y + this.height);
+                    case 'top': return new Point(point.x, this.y);
+                }
+            }
+            return point.adhereToRect(this);
+        },
+
+        rightLine: function() {
+
+            return new Line(this.topRight(), this.bottomRight());
+        },
+
+        rightMiddle: function() {
+
+            return new Point(this.x + this.width, this.y + this.height / 2);
+        },
+
+        round: function(precision) {
+
+            var f = pow(10, precision || 0);
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
+            this.width = round(this.width * f) / f;
+            this.height = round(this.height * f) / f;
+            return this;
+        },
+
+        // Scale rectangle with origin.
+        scale: function(sx, sy, origin) {
+
+            origin = this.origin().scale(sx, sy, origin);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width *= sx;
+            this.height *= sy;
+            return this;
+        },
+
+        // @return {string} (left|right|top|bottom) side which is nearest to point
+        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
+        sideNearestToPoint: function(point) {
+
+            point = new Point(point);
+            var distToLeft = point.x - this.x;
+            var distToRight = (this.x + this.width) - point.x;
+            var distToTop = point.y - this.y;
+            var distToBottom = (this.y + this.height) - point.y;
+            var closest = distToLeft;
+            var side = 'left';
+
+            if (distToRight < closest) {
+                closest = distToRight;
+                side = 'right';
+            }
+            if (distToTop < closest) {
+                closest = distToTop;
+                side = 'top';
+            }
+            if (distToBottom < closest) {
+                // closest = distToBottom;
+                side = 'bottom';
+            }
+            return side;
+        },
+
+        snapToGrid: function(gx, gy) {
+
+            var origin = this.origin().snapToGrid(gx, gy);
+            var corner = this.corner().snapToGrid(gx, gy);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width = corner.x - origin.x;
+            this.height = corner.y - origin.y;
+            return this;
+        },
+
+        toJSON: function() {
+
+            return { x: this.x, y: this.y, width: this.width, height: this.height };
+        },
+
+        topLine: function() {
+
+            return new Line(this.topLeft(), this.topRight());
+        },
+
+        topMiddle: function() {
+
+            return new Point(this.x + this.width / 2, this.y);
+        },
+
+        topRight: function() {
+
+            return new Point(this.x + this.width, this.y);
+        },
+
+        toString: function() {
+
+            return this.origin().toString() + ' ' + this.corner().toString();
+        },
+
+        // @return {rect} representing the union of both rectangles.
+        union: function(rect) {
+
+            rect = new Rect(rect);
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = rect.origin();
+            var rCorner = rect.corner();
+
+            var originX = min(myOrigin.x, rOrigin.x);
+            var originY = min(myOrigin.y, rOrigin.y);
+            var cornerX = max(myCorner.x, rCorner.x);
+            var cornerY = max(myCorner.y, rCorner.y);
+
+            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
+        }
+    };
+
+    Rect.prototype.bottomRight = Rect.prototype.corner;
+
+    Rect.prototype.topLeft = Rect.prototype.origin;
+
+    Rect.prototype.translate = Rect.prototype.offset;
 
     g.scale = {
 
@@ -4177,6 +4175,36 @@ var g = {};
     // Path segment interface:
     var segmentPrototype = {
 
+        // virtual
+        bbox: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        clone: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPoint: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPointLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        closestPointNormalizedLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         // Redirect calls to closestPointNormalizedLength() function if closestPointT() is not defined for segment.
         closestPointT: function(p) {
 
@@ -4185,13 +4213,41 @@ var g = {};
             throw new Error('Neither closestPointT() nor closestPointNormalizedLength() function is implemented.');
         },
 
+        // virtual
+        closestPointTangent: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        equals: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        getSubdivisions: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        isDifferentiable: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         isSegment: true,
 
         isSubpathStart: false, // true for Moveto segments
 
         isVisible: true, // false for Moveto segments
 
-        nextSegment: null, // needed for subpath start segment updating
+        // virtual
+        length: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
 
         // Return a fraction of result of length() function if lengthAtT() is not defined for segment.
         lengthAtT: function(t) {
@@ -4205,6 +4261,20 @@ var g = {};
             return length * t;
         },
 
+        nextSegment: null, // needed for subpath start segment updating
+
+        // virtual
+        pointAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        pointAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         // Redirect calls to pointAt() function if pointAtT() is not defined for segment.
         pointAtT: function(t) {
 
@@ -4215,7 +4285,31 @@ var g = {};
 
         previousSegment: null, // needed to get segment start property
 
-        subpathStartSegment: null, // needed to get closepath segment end property
+        subpathStartSegment: null, // needed to get Closepath segment end property
+
+        // virtual
+        scale: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        serialize: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        tangentAt: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        tangentAtLength: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
 
         // Redirect calls to tangentAt() function if tangentAtT() is not defined for segment.
         tangentAtT: function(t) {
@@ -4225,104 +4319,59 @@ var g = {};
             throw new Error('Neither tangentAtT() nor tangentAt() function is implemented.');
         },
 
-        // VIRTUAL PROPERTIES (must be overriden by actual Segment implementations):
-
-        // type
-
-        // start // getter, always throws error for Moveto
-
-        // end // usually directly assigned, getter for Closepath
-
-        bbox: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        clone: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPoint: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointNormalizedLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        closestPointTangent: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        equals: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        getSubdivisions: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        isDifferentiable: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        length: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        pointAt: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        pointAtLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        scale: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        tangentAt: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        tangentAtLength: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        translate: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
-        serialize: function() {
-
-            throw new Error('Declaration missing for virtual function.');
-        },
-
+        // virtual
         toString: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
+        // virtual
+        translate: function() {
 
             throw new Error('Declaration missing for virtual function.');
         }
     };
+
+    // usually directly assigned
+    // getter for Closepath
+    Object.defineProperty(segmentPrototype, 'end', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        writable: true
+    });
+
+    // always a getter
+    // always throws error for Moveto
+    Object.defineProperty(segmentPrototype, 'start', {
+        // get a reference to the end point of previous segment
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
+
+            return this.previousSegment.end;
+        }
+    });
+
+    // virtual
+    Object.defineProperty(segmentPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            throw new Error('Bad segment declaration. No type specified.');
+        }
+    });
 
     // Path segment implementations:
     var Lineto = function() {
@@ -4405,14 +4454,6 @@ var g = {};
             return this;
         },
 
-        translate: function(tx, ty) {
-
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        type: 'L',
-
         serialize: function() {
 
             var end = this.end;
@@ -4422,22 +4463,22 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
-    Object.defineProperty(linetoPrototype, 'start', {
-        // get a reference to the end point of previous segment
+    Object.defineProperty(linetoPrototype, 'type', {
 
         configurable: true,
 
         enumerable: true,
 
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
+        value: 'L'
     });
 
     Lineto.prototype = extend(segmentPrototype, Line.prototype, linetoPrototype);
@@ -4531,16 +4572,6 @@ var g = {};
             return this;
         },
 
-        translate: function(tx, ty) {
-
-            this.controlPoint1.translate(tx, ty);
-            this.controlPoint2.translate(tx, ty);
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        type: 'C',
-
         serialize: function() {
 
             var c1 = this.controlPoint1;
@@ -4552,22 +4583,24 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.controlPoint1 + ' ' + this.controlPoint2 + ' ' + this.end;
+        },
+
+        translate: function(tx, ty) {
+
+            this.controlPoint1.translate(tx, ty);
+            this.controlPoint2.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
         }
     };
 
-    Object.defineProperty(curvetoPrototype, 'start', {
-        // get a reference to the end point of previous segment
+    Object.defineProperty(curvetoPrototype, 'type', {
 
         configurable: true,
 
         enumerable: true,
 
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
+        value: 'C'
     });
 
     Curveto.prototype = extend(segmentPrototype, Curve.prototype, curvetoPrototype);
@@ -4716,6 +4749,12 @@ var g = {};
             return this;
         },
 
+        serialize: function() {
+
+            var end = this.end;
+            return this.type + ' ' + end.x + ' ' + end.y;
+        },
+
         tangentAt: function() {
 
             return null;
@@ -4731,23 +4770,15 @@ var g = {};
             return null;
         },
 
+        toString: function() {
+
+            return this.type + ' ' + this.end;
+        },
+
         translate: function(tx, ty) {
 
             this.end.translate(tx, ty);
             return this;
-        },
-
-        type: 'M',
-
-        serialize: function() {
-
-            var end = this.end;
-            return this.type + ' ' + end.x + ' ' + end.y;
-        },
-
-        toString: function() {
-
-            return this.type + ' ' + this.end;
         }
     };
 
@@ -4761,7 +4792,16 @@ var g = {};
 
             throw new Error('Illegal access. Moveto segments should not need a start property.');
         }
-    })
+    });
+
+    Object.defineProperty(movetoPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        value: 'M'
+    });
 
     Moveto.prototype = extend(segmentPrototype, movetoPrototype); // does not inherit from any other geometry object
 
@@ -4808,13 +4848,6 @@ var g = {};
             return this;
         },
 
-        translate: function() {
-
-            return this;
-        },
-
-        type: 'Z',
-
         serialize: function() {
 
             return this.type;
@@ -4823,23 +4856,13 @@ var g = {};
         toString: function() {
 
             return this.type + ' ' + this.start + ' ' + this.end;
+        },
+
+        translate: function() {
+
+            return this;
         }
     };
-
-    Object.defineProperty(closepathPrototype, 'start', {
-        // get a reference to the end point of previous segment
-
-        configurable: true,
-
-        enumerable: true,
-
-        get: function() {
-
-            if (!this.previousSegment) throw new Error('Missing previous segment. (This segment cannot be the first segment of a path; OR segment has not yet been added to a path.)');
-
-            return this.previousSegment.end;
-        }
-    });
 
     Object.defineProperty(closepathPrototype, 'end', {
         // get a reference to the end point of subpath start segment
@@ -4854,7 +4877,16 @@ var g = {};
 
             return this.subpathStartSegment.end;
         }
-    })
+    });
+
+    Object.defineProperty(closepathPrototype, 'type', {
+
+        configurable: true,
+
+        enumerable: true,
+
+        value: 'Z'
+    });
 
     Closepath.prototype = extend(segmentPrototype, Line.prototype, closepathPrototype);
 
@@ -4868,10 +4900,11 @@ var g = {};
 
     Path.regexSupportedData = new RegExp('^[\\s\\d' + Object.keys(segmentTypes).join('') + ',.]*$');
 
-    Path.isDataSupported = function(d) {
-        if (typeof d !== 'string') return false;
-        return this.regexSupportedData.test(d);
-    }
+    Path.isDataSupported = function(data) {
+
+        if (typeof data !== 'string') return false;
+        return this.regexSupportedData.test(data);
+    };
 
 })(g);
 
