@@ -70,6 +70,12 @@ export namespace g {
 
         closestPointTangent(p: Point): Line | null;
 
+        divideAt(ratio: number, opt?: SubdivisionsOpt): [Segment, Segment];
+
+        divideAtLength(length: number, opt?: SubdivisionsOpt): [Segment, Segment];
+
+        divideAtT(t: number): [Segment, Segment];
+
         equals(segment: Segment): boolean;
 
         getSubdivisions(): Curve[];
@@ -111,7 +117,11 @@ export namespace g {
 
     type RectangleSide = 'left' | 'right' | 'top' | 'bottom';
 
-    type SegmentType = 'L' | 'C' | 'M' | 'Z';
+    type PathSegmentUnit = Segment | Segment[];
+
+    type PathObjectUnit = Line | Line[] | Curve | Curve[];
+
+    type SegmentType = 'L' | 'C' | 'M' | 'Z' | 'z';
 
     export function normalizeAngle(angle: number): number;
 
@@ -311,15 +321,11 @@ export namespace g {
 
         constructor();
         constructor(pathData: string);
-        constructor(segments: Segment[]);
-        constructor(objects: (Line | Curve)[]);
-        constructor(segment: Segment);
-        constructor(line: Line);
-        constructor(curve: Curve);
+        constructor(segments: PathSegmentUnit | PathSegmentUnit[]);
+        constructor(objects: PathObjectUnit | PathObjectUnit[]);
         constructor(polyline: Polyline);
 
-        appendSegment(segment: Segment): void;
-        appendSegment(segments: Segment[]): void;
+        appendSegment(segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         bbox(): Rect | null;
 
@@ -343,8 +349,7 @@ export namespace g {
 
         getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
-        insertSegment(index: number, segment: Segment): void;
-        insertSegment(index: number, segments: Segment[]): void;
+        insertSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         intersectionWithLine(l: Line, opt?: SegmentSubdivisionsOpt): Point[] | null;
 
@@ -360,8 +365,7 @@ export namespace g {
 
         removeSegment(index: number): void;
 
-        replaceSegment(index: number, segment: Segment): void;
-        replaceSegment(index: number, segments: Segment[]): void;
+        replaceSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
@@ -400,7 +404,7 @@ export namespace g {
 
         private updateSubpathStartSegment(segment: Segment): void;
 
-        static createSegment(type: SegmentType, ...args: any[]): Segment;
+        static createSegment(type: SegmentType, ...args: any[]): PathSegmentUnit;
 
         static parse(pathData: string): Path;
 

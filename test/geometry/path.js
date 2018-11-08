@@ -18,6 +18,8 @@ QUnit.module('path', function(hooks) {
 
         QUnit.test('creates a new Path object', function(assert) {
 
+            var error;
+
             var path;
 
             // no arguments (invalid)
@@ -33,6 +35,30 @@ QUnit.module('path', function(hooks) {
             path = new g.Path([
                 g.Path.createSegment('M', 0, 100),
                 g.Path.createSegment('L', 100, 100),
+                g.Path.createSegment('C', 150, 150, 250, 50, 300, 100),
+                g.Path.createSegment('Z')
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].end.toString(), '100@100');
+            assert.equal(path.segments[2].start.toString(), '100@100');
+            assert.equal(path.segments[2].controlPoint1.toString(), '150@150');
+            assert.equal(path.segments[2].controlPoint2.toString(), '250@50');
+            assert.equal(path.segments[2].end.toString(), '300@100');
+            assert.equal(path.segments[3].start.toString(), '300@100');
+            assert.equal(path.segments[3].end.toString(), '0@100');
+
+            // path segments nested array
+            path = new g.Path([
+                g.Path.createSegment('M', 0, 100, 100, 100), // creates array - M followed by L
                 g.Path.createSegment('C', 150, 150, 250, 50, 300, 100),
                 g.Path.createSegment('Z')
             ]);
@@ -209,6 +235,92 @@ QUnit.module('path', function(hooks) {
             assert.equal(path.segments[3].start.toString(), '20@20');
             assert.equal(path.segments[3].end.toString(), '21@21');
 
+            // nested array of curves from g.Curve.throughPoints and lines from divideAt (linked)
+            path = new g.Path([
+                g.Curve.throughPoints([
+                    new g.Point(0, 100),
+                    new g.Point(45.3125, 128.125),
+                    new g.Point(154.6875, 71.875),
+                    new g.Point(200, 100)
+                ]),
+                (new g.Line(new g.Point(200, 100), new g.Point(200, 200))).divideAt(0.5)
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 6);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[5] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].controlPoint1.toString(), '7.986111111111107@118.75');
+            assert.equal(path.segments[1].controlPoint2.toString(), '15.972222222222214@137.5');
+            assert.equal(path.segments[1].end.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].start.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].controlPoint1.toString(), '74.65277777777779@118.75');
+            assert.equal(path.segments[2].controlPoint2.toString(), '125.34722222222223@81.25');
+            assert.equal(path.segments[2].end.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].start.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].controlPoint1.toString(), '184.02777777777777@62.49999999999999');
+            assert.equal(path.segments[3].controlPoint2.toString(), '192.01388888888889@81.25');
+            assert.equal(path.segments[3].end.toString(), '200@100');
+            assert.equal(path.segments[4].start.toString(), '200@100');
+            assert.equal(path.segments[4].end.toString(), '200@150');
+            assert.equal(path.segments[5].start.toString(), '200@150');
+            assert.equal(path.segments[5].end.toString(), '200@200');
+
+            // nested array of curves from g.Curve.throughPoints and lines from divideAt (unlinked)
+            path = new g.Path([
+                g.Curve.throughPoints([
+                    new g.Point(0, 100),
+                    new g.Point(45.3125, 128.125),
+                    new g.Point(154.6875, 71.875),
+                    new g.Point(200, 100)
+                ]),
+                (new g.Line(new g.Point(200, 200), new g.Point(200, 300))).divideAt(0.5)
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 7);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[5] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[6] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].controlPoint1.toString(), '7.986111111111107@118.75');
+            assert.equal(path.segments[1].controlPoint2.toString(), '15.972222222222214@137.5');
+            assert.equal(path.segments[1].end.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].start.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].controlPoint1.toString(), '74.65277777777779@118.75');
+            assert.equal(path.segments[2].controlPoint2.toString(), '125.34722222222223@81.25');
+            assert.equal(path.segments[2].end.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].start.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].controlPoint1.toString(), '184.02777777777777@62.49999999999999');
+            assert.equal(path.segments[3].controlPoint2.toString(), '192.01388888888889@81.25');
+            assert.equal(path.segments[3].end.toString(), '200@100');
+            assert.equal(path.segments[4].end.toString(), '200@200');
+            assert.equal(path.segments[5].start.toString(), '200@200');
+            assert.equal(path.segments[5].end.toString(), '200@250');
+            assert.equal(path.segments[6].start.toString(), '200@250');
+            assert.equal(path.segments[6].end.toString(), '200@300');
+
+            // array of unexpected objects (error)
+            try {
+                new g.Path([new g.Point(100, 100), new g.Point(200, 200)]);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when constructor called with an array of unexpected objects.');
+
             // single segment
             path = new g.Path(g.Path.createSegment('L', 100, 100));
             assert.ok(path instanceof g.Path, 'returns instance of g.Path');
@@ -273,6 +385,14 @@ QUnit.module('path', function(hooks) {
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
             assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 0);
+
+            // unexpected object (error)
+            try {
+                new g.Path(new g.Point(100, 100));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when constructor called with an unexpected object.');
         });
     });
 
@@ -939,6 +1059,25 @@ QUnit.module('path', function(hooks) {
                 ];
                 path.appendSegment(segment);
                 assert.equal(path.toString(), 'M 100 100 L 200 200');
+            });
+
+            QUnit.test('append a created segment array', function(assert) {
+
+                var path = new g.Path();
+                var segment = g.Path.createSegment('M', 100, 100, 200, 200);
+                path.appendSegment(segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+            });
+
+            QUnit.test('append a nested segment array', function(assert) {
+
+                var path = new g.Path();
+                var segment = [
+                    g.Path.createSegment('M', 100, 100, 200, 200), // creates array - M followed by L
+                    g.Path.createSegment('Z')
+                ];
+                path.appendSegment(segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 Z');
             });
         });
 
@@ -2013,6 +2152,39 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.getSegment(-2).start.toString(), '400@400');
                 assert.equal(path.getSegment(-1).end.toString(), '300@300');
             });
+
+            QUnit.test('insert a created segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 500, 500),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = g.Path.createSegment('M', 300, 300, 400, 400);
+                path.insertSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 L 500 500 Z');
+                assert.equal(path.getSegment(4).start.toString(), '400@400');
+                assert.equal(path.getSegment(5).end.toString(), '300@300');
+            });
+
+            QUnit.test('append a nested segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 500, 500),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = [
+                    g.Path.createSegment('M', 300, 300, 400, 400), // creates array - M followed by L
+                    g.Path.createSegment('C', 400, 300, 400, 500, 400, 400)
+                ];
+                path.insertSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 C 400 300 400 500 400 400 L 500 500 Z');
+                assert.equal(path.getSegment(5).start.toString(), '400@400');
+                assert.equal(path.getSegment(6).end.toString(), '300@300');
+            });
         });
 
         QUnit.module('isDifferentiable()', function() {
@@ -3050,6 +3222,41 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.toString(), 'M 100 100 L 200 200 M 333 333 L 399 399 L 400 400 Z');
                 assert.equal(path.getSegment(-2).start.toString(), '399@399');
                 assert.equal(path.getSegment(-1).end.toString(), '333@333');
+            });
+
+            QUnit.test('replace a segment with a created segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = g.Path.createSegment('L', 333, 333, 399, 399);
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(4).start.toString(), '399@399');
+                assert.equal(path.getSegment(5).end.toString(), '100@100');
+            });
+
+            QUnit.test('replace a segment with a nested segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = [
+                    g.Path.createSegment('L', 333, 333, 399, 399), // creates array - M followed by L
+                    g.Path.createSegment('C', 399, 299, 399, 499, 399, 399)
+                ];
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 399 399 C 399 299 399 499 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(5).start.toString(), '399@399');
+                assert.equal(path.getSegment(6).end.toString(), '100@100');
             });
         });
 

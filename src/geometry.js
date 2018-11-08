@@ -1637,6 +1637,12 @@ var g = {};
             // don't do anything
 
         } else if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
+            // flatten one level deep
+            // so we can chain arbitrary Path.createSegment results
+            arg = arg.reduce(function(acc, val) {
+                return acc.concat(val);
+            }, []);
+
             n = arg.length;
             if (arg[0].isSegment) { // create from an array of segments
                 for (i = 0; i < n; i++) {
@@ -1683,7 +1689,9 @@ var g = {};
             this.appendSegment(Path.createSegment('M', arg.start));
             this.appendSegment(Path.createSegment('C', arg.controlPoint1, arg.controlPoint2, arg.end));
 
-        } else if (arg instanceof Polyline && arg.points && arg.points.length !== 0) { // create from a Polyline
+        } else if (arg instanceof Polyline) { // create from a Polyline
+            if (!(arg.points && (arg.points.length !== 0))) return; // if Polyline has no points, leave Path empty
+
             n = arg.points.length;
             for (i = 0; i < n; i++) {
 
@@ -1692,6 +1700,9 @@ var g = {};
                 if (i === 0) this.appendSegment(Path.createSegment('M', point));
                 else this.appendSegment(Path.createSegment('L', point));
             }
+
+        } else { // unknown object
+            throw new Error('Cannot construct a path from the provided object.');
         }
     };
 
@@ -1764,6 +1775,12 @@ var g = {};
                 segments.push(currentSegment);
 
             } else { // arg is an array of segments
+                // flatten one level deep
+                // so we can chain arbitrary Path.createSegment results
+                arg = arg.reduce(function(acc, val) {
+                    return acc.concat(val);
+                }, []);
+
                 if (!arg[0].isSegment) throw new Error('Segments required.');
 
                 var n = arg.length;
@@ -1954,8 +1971,7 @@ var g = {};
         // Divides the path into two at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
         divideAtLength: function(length, opt) {
 
-            var segments = this.segments;
-            var numSegments = segments.length;
+            var numSegments = this.segments.length;
             if (numSegments === 0) return null; // if segments is an empty array
 
             var fromStart = true;
@@ -1972,6 +1988,8 @@ var g = {};
             var i;
             var segment;
 
+            // identify the segment to divide:
+
             var l = 0; // length so far
             var divided;
             var dividedSegmentIndex;
@@ -1981,7 +1999,7 @@ var g = {};
             for (i = 0; i < numSegments; i++) {
                 var index = (fromStart ? i : (numSegments - 1 - i));
 
-                segment = segments[index];
+                segment = this.getSegment(index);
                 var subdivisions = segmentSubdivisions[index];
                 var d = segment.length({ precision: precision, subdivisions: subdivisions });
 
@@ -2011,76 +2029,53 @@ var g = {};
                 divided = lastValidSegment.divideAtT(t);
             }
 
-            var firstPath = new Path();
-            var secondPath = new Path();
-            for (i = 0; i < numSegments; i++) {
+            // create a copy of this path and replace the identified segment with its two divided parts:
 
-                segment = segments[i].clone();
-                var segmentType = segment.type;
+            var pathCopy = this.clone();
+            pathCopy.replaceSegment(dividedSegmentIndex, divided);
 
-                if (i < dividedSegmentIndex) {
-                    firstPath.appendSegment(segment);
+            var divisionStartIndex = dividedSegmentIndex;
+            var divisionMidIndex = dividedSegmentIndex + 1;
+            var divisionEndIndex = dividedSegmentIndex + 2;
 
-                } else if (i === dividedSegmentIndex) {
-                    // first path is guaranteed to start with a moveto segment (must be valid)
-                    // add the first divided part to first path
-                    // do not add a single-point divided segment at the end of first path
-                    if (divided[0].isDifferentiable()) {
-                        var firstDividedPart;
+            // do not insert the part if it looks like a point
+            if (!divided[0].isDifferentiable()) {
+                pathCopy.removeSegment(divisionStartIndex);
+                divisionMidIndex -= 1;
+                divisionEndIndex -= 1;
+            }
 
-                        if (segmentType === 'Z') {
-                            if (divided[1].isDifferentiable()) {
-                                // Closepath segment is converted into two Lineto segments
-                                firstDividedPart = Path.createSegment('L', divided[0]);
-                            }
+            // insert a Moveto segment to ensure secondPath will be valid:
+            var movetoEnd = pathCopy.getSegment(divisionMidIndex).start;
+            pathCopy.insertSegment(divisionMidIndex, g.Path.createSegment('M', movetoEnd));
+            divisionEndIndex += 1;
 
-                            if (!divided[1].isDifferentiable()) {
-                                // if the second divided part is just a point, keep 'Z'
-                                firstDividedPart = Path.createSegment('Z');
-                            }
+            // do not insert the part if it looks like a point
+            if (!divided[1].isDifferentiable()) {
+                pathCopy.removeSegment(divisionEndIndex - 1);
+                divisionEndIndex -= 1;
+            }
 
-                        } else {
-                            firstDividedPart = Path.createSegment(segmentType, divided[0]);
-                        }
+            // ensure that Closepath segments in secondPath will be assigned correct subpathStartSegment:
 
-                        firstPath.appendSegment(firstDividedPart);
-                    }
+            var secondPathSegmentIndexConversion = divisionEndIndex - divisionStartIndex - 1;
+            for (i = divisionEndIndex; i < pathCopy.segments.length; i++) {
 
-                    // start second path with a Moveto segment (so we end up with a valid path)
-                    var secondPathMoveto = Path.createSegment('M', divided[0]);
-                    secondPath.appendSegment(secondPathMoveto);
-                    // add the second divided part to second path
-                    // do not add a single-point divided segment here
-                    if (divided[1].isDifferentiable()) {
-                        var secondDividedPart;
+                var originalSegment = this.getSegment(i - secondPathSegmentIndexConversion);
+                segment = pathCopy.getSegment(i);
 
-                        if (segmentType === 'Z') {
-                            secondDividedPart = Path.createSegment('L', divided[1]);
-
-                        } else {
-                            secondDividedPart = Path.createSegment(segmentType, divided[1]);
-                        }
-
-                        secondPath.appendSegment(secondDividedPart);
-                    }
-
-                } else { // i > dividedSegmentIndex
-                    secondPath.appendSegment(segment);
-
-                    // check if Closepath segment points to correct subpath start
-                    if (segmentType === 'Z') {
-                        var originalSegment = this.getSegment(i);
-                        var secondPathSegment = secondPath.getSegment(-1);
-
-                        if (!originalSegment.subpathStartSegment.end.equals(secondPathSegment.subpathStartSegment.end)) {
-                            // the reported subpath start is different for original and reproduced segment
-                            // convert original Closepath segment to Lineto and replace the segment in the new path
-                            var convertedSegment = Path.createSegment('L', originalSegment.end);
-                            secondPath.replaceSegment(-1, convertedSegment);
-                        }
-                    }
+                if ((segment.type === 'Z') && !originalSegment.subpathStartSegment.end.equals(segment.subpathStartSegment.end)) {
+                    // pathCopy segment's subpathStartSegment is different from original segment's one
+                    // convert this Closepath segment to a Lineto and replace it in pathCopy
+                    var convertedSegment = g.Path.createSegment('L', originalSegment.end);
+                    pathCopy.replaceSegment(i, convertedSegment);
                 }
             }
+
+            // distribute pathCopy segments into two paths and return those:
+
+            var firstPath = new Path(pathCopy.segments.slice(0, divisionMidIndex));
+            var secondPath = new Path(pathCopy.segments.slice(divisionMidIndex));
 
             return [firstPath, secondPath];
         },
@@ -2189,6 +2184,12 @@ var g = {};
                 segments.splice(index, 0, currentSegment);
 
             } else {
+                // flatten one level deep
+                // so we can chain arbitrary Path.createSegment results
+                arg = arg.reduce(function(acc, val) {
+                    return acc.concat(val);
+                }, []);
+
                 if (!arg[0].isSegment) throw new Error('Segments required.');
 
                 var n = arg.length;
@@ -2480,6 +2481,12 @@ var g = {};
                 if (updateSubpathStart && currentSegment.isSubpathStart) updateSubpathStart = false; // already updated by `prepareSegment`
 
             } else {
+                // flatten one level deep
+                // so we can chain arbitrary Path.createSegment results
+                arg = arg.reduce(function(acc, val) {
+                    return acc.concat(val);
+                }, []);
+
                 if (!arg[0].isSegment) throw new Error('Segments required.');
 
                 segments.splice(index, 1);
@@ -4643,6 +4650,26 @@ var g = {};
             return new Lineto(this.end);
         },
 
+        divideAt: function(ratio) {
+
+            var line = new Line(this.start, this.end);
+            var divided = line.divideAt(ratio);
+            return [
+                new Lineto(divided[0]),
+                new Lineto(divided[1])
+            ];
+        },
+
+        divideAtLength: function(length) {
+
+            var line = new Line(this.start, this.end);
+            var divided = line.divideAtLength(length);
+            return [
+                new Lineto(divided[0]),
+                new Lineto(divided[1])
+            ];
+        },
+
         getSubdivisions: function() {
 
             return [];
@@ -4768,6 +4795,36 @@ var g = {};
         clone: function() {
 
             return new Curveto(this.controlPoint1, this.controlPoint2, this.end);
+        },
+
+        divideAt: function(ratio, opt) {
+
+            var curve = new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end);
+            var divided = curve.divideAt(ratio, opt);
+            return [
+                new Curveto(divided[0]),
+                new Curveto(divided[1])
+            ];
+        },
+
+        divideAtLength: function(length, opt) {
+
+            var curve = new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end);
+            var divided = curve.divideAtLength(length, opt);
+            return [
+                new Curveto(divided[0]),
+                new Curveto(divided[1])
+            ];
+        },
+
+        divideAtT: function(t) {
+
+            var curve = new Curve(this.start, this.controlPoint1, this.controlPoint2, this.end);
+            var divided = curve.divideAtT(t);
+            return [
+                new Curveto(divided[0]),
+                new Curveto(divided[1])
+            ];
         },
 
         isDifferentiable: function() {
@@ -4937,12 +4994,18 @@ var g = {};
 
         divideAt: function() {
 
-            return [this.clone(), this.clone()];
+            return [
+                this.clone(),
+                this.clone()
+            ];
         },
 
         divideAtLength: function() {
 
-            return [this.clone(), this.clone()];
+            return [
+                this.clone(),
+                this.clone()
+            ];
         },
 
         equals: function(m) {
@@ -5075,6 +5138,28 @@ var g = {};
         clone: function() {
 
             return new Closepath();
+        },
+
+        divideAt: function(ratio) {
+
+            var line = new Line(this.start, this.end);
+            var divided = line.divideAt(ratio);
+            return [
+                // if we didn't actually cut into the segment, first divided part can stay as Z
+                (divided[1].isDifferentiable() ? new Lineto(divided[0]) : this.clone()),
+                new Lineto(divided[1])
+            ];
+        },
+
+        divideAtLength: function(length) {
+
+            var line = new Line(this.start, this.end);
+            var divided = line.divideAtLength(length);
+            return [
+                // if we didn't actually cut into the segment, first divided part can stay as Z
+                (divided[1].isDifferentiable() ? new Lineto(divided[0]) : this.clone()),
+                new Lineto(divided[1])
+            ];
         },
 
         getSubdivisions: function() {
