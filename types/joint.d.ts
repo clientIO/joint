@@ -2019,7 +2019,7 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
+    export function breakText(text: string, size: { width: number; height?: number; }, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;
         separator?: string | any;
         eol?: string;
