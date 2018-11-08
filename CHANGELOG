@@ -1,3 +1,10 @@
+8-11-2018 (v2.2.1)
+  * utils - fix breakText() definition in Typescript
+  * dia.CellView - findAttribute() docs
+  * demos - use standard shapes and JSON markup
+  * demos - use CDN for petriNets dependency
+  * scripts - fix parseDocs formatting
+
 30-10-2018 (v2.2.0)
   * update insecure dependencies (mainly Lodash v4.17.11)
   * use Karma+Istanbul to run tests

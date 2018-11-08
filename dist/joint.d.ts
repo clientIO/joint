@@ -1,4 +1,4 @@
-/*! JointJS v2.2.0 (2018-10-30) - JavaScript diagramming library
+/*! JointJS v2.2.1 (2018-11-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3001,7 +3001,7 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
+    export function breakText(text: string, size: { width: number; height?: number; }, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;
         separator?: string | any;
         eol?: string;
