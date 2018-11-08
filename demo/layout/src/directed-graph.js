@@ -1,4 +1,4 @@
-(function() {
+(function(joint) {
 
     var Shape = joint.dia.Element.define('demo.Shape', {
         size: {
@@ -6,7 +6,7 @@
             height: 50
         },
         attrs: {
-            rect: {
+            body: {
                 refWidth: '100%',
                 refHeight: '100%',
                 fill: 'ivory',
@@ -15,7 +15,7 @@
                 rx: 10,
                 ry: 10
             },
-            text: {
+            label: {
                 refX: '50%',
                 refY: '50%',
                 yAlignment: 'middle',
@@ -24,16 +24,23 @@
             }
         }
     }, {
-        markup: '<rect/><text/>',
+        markup: [{
+            tagName: 'rect',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }],
 
         setText: function(text) {
-            return this.attr('text/text', text || '');
+            return this.attr('label/text', text || '');
         }
     });
 
     var Link = joint.dia.Link.define('demo.Link', {
         attrs: {
-            '.connection': {
+            line: {
+                connection: true,
                 stroke: 'gray',
                 strokeWidth: 2,
                 pointerEvents: 'none',
@@ -58,9 +65,15 @@
             height: 30
         },
         labels: [{
-            markup: '<rect/><text/>',
+            markup: [{
+                tagName: 'rect',
+                selector: 'labelBody'
+            }, {
+                tagName: 'text',
+                selector: 'labelText'
+            }],
             attrs: {
-                text: {
+                labelText: {
                     fill: 'gray',
                     textAnchor: 'middle',
                     refY: 5,
@@ -68,7 +81,7 @@
                     fontSize: 20,
                     cursor: 'pointer'
                 },
-                rect: {
+                labelBody: {
                     fill: 'lightgray',
                     stroke: 'gray',
                     strokeWidth: 2,
@@ -86,7 +99,14 @@
         }]
 
     }, {
-        markup: '<path class="connection"/><g class="labels"/>',
+
+        markup: [{
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none'
+            }
+        }],
 
         connect: function(sourceId, targetId) {
             return this.set({
@@ -96,7 +116,7 @@
         },
 
         setLabelText: function(text) {
-            return this.prop('labels/0/attrs/text/text', text || '');
+            return this.prop('labels/0/attrs/labelText/text', text || '');
         }
     });
 
