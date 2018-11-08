@@ -6,7 +6,7 @@ joint.highlighters.stroke = {
         ry: 0,
         attrs: {
             'stroke-width': 3,
-            stroke: '#FEB663'
+            'stroke': '#FEB663'
         }
     },
 
@@ -54,7 +54,7 @@ joint.highlighters.stroke = {
         }
 
         var highlightVel = V('path').attr({
-            d: pathData,
+            'd': pathData,
             'pointer-events': 'none',
             'vector-effect': 'non-scaling-stroke',
             'fill': 'none'

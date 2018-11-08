@@ -1,13 +1,12 @@
 'use strict';
 
-(function() {
+(function(joint) {
 
     var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({
-        el: $('#paper'),
+    new joint.dia.Paper({
+        el: document.getElementById('paper'),
         width: 400,
         height: 400,
-        gridSize: 1,
         model: graph
     });
 
@@ -26,7 +25,9 @@
         graph.resetCells(cells);
 
         joint.layout.DirectedGraph.layout(graph, {
-            setLinkVertices: false
+            setLinkVertices: false,
+            marginX: 5,
+            marginY: 5
         });
     }
 
@@ -56,13 +57,17 @@
 
     function makeLink(parentElementLabel, childElementLabel) {
 
-        return new joint.dia.Link({
+        return new joint.shapes.standard.Link({
             source: { id: parentElementLabel },
             target: { id: childElementLabel },
+            smooth: true,
             attrs: {
-                '.marker-target': { d: 'M 4 0 L 0 2 L 4 4 z' }
+                line: {
+                    targetMarker: {
+                        d: 'M 4 -4 0 0 4 4'
+                    }
+                }
             },
-            smooth: true
         });
     }
 
@@ -74,17 +79,22 @@
 
         // Compute width/height of the rectangle based on the number
         // of lines in the label and the letter size. 0.6 * letterSize is
-            // an approximation of the monospace font letter width.
+        // an approximation of the monospace font letter width.
         var letterSize = 10;
         var width = 2 * (letterSize * (0.6 * maxLineLength + 1));
         var height = 2 * ((label.split('\n').length + 1) * letterSize);
 
-        return new joint.shapes.basic.Rect({
+        return new joint.shapes.standard.Rectangle({
             id: label,
             size: { width: width, height: height },
             attrs: {
-                text: { text: label, 'font-size': letterSize, 'font-family': 'monospace', fill: 'white' },
-                rect: {
+                label: {
+                    text: label,
+                    fontSize: letterSize,
+                    fontFamily: 'monospace',
+                    fill: 'white'
+                },
+                body: {
                     fill: '#FE854F',
                     width: width,
                     height: height,
@@ -98,4 +108,4 @@
 
     layout();
 
-})();
+})(joint);
