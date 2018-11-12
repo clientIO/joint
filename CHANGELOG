@@ -1,12 +1,8 @@
-8-11-2018 (v2.2.1)
+12-11-2018 (v2.2.1)
   * utils - fix breakText() definition in Typescript
   * dia.CellView - findAttribute() docs
   * grunt - wrapper files use file extension .js.partial
-  * demos - use standard shapes
-  * demos - use JSON markup for shapes
-  * demos - use camelCase for attrs
-  * demos - use CDN for petriNets dependency
-  * scripts - fix parseDocs formatting
+  * demos - improvements
 
 30-10-2018 (v2.2.0)
   * update insecure dependencies (mainly Lodash v4.17.11)
