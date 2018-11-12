@@ -1,4 +1,4 @@
-/*! JointJS v2.2.0 (2018-10-30) - JavaScript diagramming library
+/*! JointJS v2.2.1 (2018-11-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -227,23 +227,23 @@ export namespace g {
 
         bbox(): Rect;
 
+        center(): Point;
+
         clone(): Ellipse;
-
-        normalizedDistance(point: PlainPoint): number;
-
-        inflate(dx?: number, dy?: number): this;
 
         containsPoint(p: PlainPoint): boolean;
 
-        center(): Point;
-
-        tangentTheta(p: PlainPoint): number;
-
         equals(ellipse: Ellipse): boolean;
+
+        inflate(dx?: number, dy?: number): this;
 
         intersectionWithLine(l: Line): Point[] | null;
 
         intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
+
+        normalizedDistance(point: PlainPoint): number;
+
+        tangentTheta(p: PlainPoint): number;
 
         toString(): string;
 
@@ -430,18 +430,22 @@ export namespace g {
 
         adhereToRect(r: Rect): this;
 
+        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
+
         bearing(p: Point): CardinalDirection;
 
         changeInAngle(dx: number, dy: number, ref: PlainPoint | string): number;
 
         clone(): Point;
 
+        cross(p1: PlainPoint, p2: PlainPoint) : number;
+
         difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
 
         distance(p: PlainPoint | string): number;
 
-        squaredDistance(p: PlainPoint | string): number;
+        dot(p: PlainPoint): number;
 
         equals(p: Point): boolean;
 
@@ -468,14 +472,9 @@ export namespace g {
 
         snapToGrid(gx: number, gy?: number): this;
 
+        squaredDistance(p: PlainPoint | string): number;
+
         theta(p: PlainPoint | string): number;
-
-        translate(tx?: number, ty?: number): this;
-        translate(tx: PlainPoint): this;
-
-        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
-
-        vectorAngle(p: PlainPoint) : number;
 
         toJSON(): PlainPoint;
 
@@ -483,11 +482,12 @@ export namespace g {
 
         toString(): string;
 
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
         update(x?: number, y?: number): this;
 
-        dot(p: PlainPoint): number;
-
-        cross(p1: PlainPoint, p2: PlainPoint) : number;
+        vectorAngle(p: PlainPoint) : number;
 
         static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
 
@@ -579,6 +579,8 @@ export namespace g {
 
         equals(r: PlainRect): boolean;
 
+        inflate(dx?: number, dy?: number): this;
+
         intersect(r: Rect): Rect | null;
 
         intersectionWithLine(l: Line): Point[] | null;
@@ -589,14 +591,16 @@ export namespace g {
 
         leftMiddle(): Point;
 
+        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
+
+        maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
+
         moveAndExpand(r: PlainRect): this;
+
+        normalize(): this;
 
         offset(dx?: number, dy?: number): this;
         offset(p: PlainPoint): this;
-
-        inflate(dx?: number, dy?: number): this;
-
-        normalize(): this;
 
         origin(): Point;
 
@@ -609,10 +613,6 @@ export namespace g {
         round(precision?: number): this;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
-
-        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
-
-        maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
 
         sideNearestToPoint(point: PlainPoint | string): RectangleSide;
 
@@ -3001,7 +3001,7 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
+    export function breakText(text: string, size: { width: number; height?: number; }, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;
         separator?: string | any;
         eol?: string;

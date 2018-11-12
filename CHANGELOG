@@ -1,3 +1,9 @@
+12-11-2018 (v2.2.1)
+  * utils - fix breakText() definition in Typescript
+  * dia.CellView - findAttribute() docs
+  * grunt - wrapper files use file extension .js.partial
+  * demos - improvements
+
 30-10-2018 (v2.2.0)
   * update insecure dependencies (mainly Lodash v4.17.11)
   * use Karma+Istanbul to run tests

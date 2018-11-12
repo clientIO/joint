@@ -1,4 +1,4 @@
-/*! JointJS v2.2.0 (2018-10-30) - JavaScript diagramming library
+/*! JointJS v2.2.1 (2018-11-12) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7755,7 +7755,7 @@ V = Vectorizer = (function() {
 
 var joint = {
 
-    version: '2.2.0',
+    version: '2.2.1',
 
     config: {
         // The class name prefix config is for advanced use only.
@@ -23717,7 +23717,7 @@ joint.highlighters.stroke = {
         ry: 0,
         attrs: {
             'stroke-width': 3,
-            stroke: '#FEB663'
+            'stroke': '#FEB663'
         }
     },
 
@@ -23765,7 +23765,7 @@ joint.highlighters.stroke = {
         }
 
         var highlightVel = V('path').attr({
-            d: pathData,
+            'd': pathData,
             'pointer-events': 'none',
             'vector-effect': 'non-scaling-stroke',
             'fill': 'none'
