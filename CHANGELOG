@@ -1,7 +1,10 @@
 8-11-2018 (v2.2.1)
   * utils - fix breakText() definition in Typescript
   * dia.CellView - findAttribute() docs
-  * demos - use standard shapes and JSON markup
+  * grunt - wrapper files use file extension .js.partial
+  * demos - use standard shapes
+  * demos - use JSON markup for shapes
+  * demos - use camelCase for attrs
   * demos - use CDN for petriNets dependency
   * scripts - fix parseDocs formatting
 
