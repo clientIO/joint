@@ -2,7 +2,7 @@
 
     var graph = new joint.dia.Graph;
 
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper-events-custom-view-events'),
         model: graph,
         width: 600,
@@ -53,7 +53,7 @@
         line: {
             stroke: 'black'
         }
-    })
+    });
     link.labels([
         {
             markup: [{

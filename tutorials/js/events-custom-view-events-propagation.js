@@ -57,7 +57,7 @@
         line: {
             stroke: 'black'
         }
-    })
+    });
     link.labels([
         {
             markup: [{

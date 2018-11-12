@@ -59,7 +59,7 @@
         new g.Point(280, 70),
         new g.Point(280, 160),
         new g.Point(440, 160)
-    ])
+    ]);
     link.addTo(graph);
 
     joint.linkTools.InfoButton = joint.linkTools.Button.extend({

@@ -71,7 +71,7 @@
     link.vertices([
         new g.Point(130, 180),
         new g.Point(400, 180)
-    ])
+    ]);
     link.addTo(graph);
 
     var verticesTool = new joint.linkTools.Vertices();

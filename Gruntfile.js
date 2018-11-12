@@ -651,7 +651,7 @@ module.exports = function(grunt) {
                 process.exit(1);
                 return;
         }
-        return { dir: `coverage/${name}`, reporters, check }
+        return { dir: `coverage/${name}`, reporters, check };
     }
 
     (function registerPartials(partials) {
@@ -835,7 +835,7 @@ module.exports = function(grunt) {
         'concat:types'
     ]);
 
-    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry'])
+    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry']);
     grunt.registerTask('test:src', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
     grunt.registerTask('test:coverage', ['test:src']);
     grunt.registerTask('test:code-style', ['eslint']);
