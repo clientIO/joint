@@ -232,28 +232,28 @@ module.exports = function(grunt) {
             geometry: {
                 files: {
                     'build/geometry.js': [].concat(
-                        ['wrappers/geometry.head.js'],
+                        ['wrappers/geometry.head.js.partial'],
                         js.geometry,
-                        ['wrappers/geometry.foot.js']
+                        ['wrappers/geometry.foot.js.partial']
                     ),
                     'build/geometry.min.js': [].concat(
-                        ['wrappers/geometry.head.js'],
+                        ['wrappers/geometry.head.js.partial'],
                         ['build/min/geometry.min.js'],
-                        ['wrappers/geometry.foot.js']
+                        ['wrappers/geometry.foot.js.partial']
                     )
                 }
             },
             vectorizer: {
                 files: {
                     'build/vectorizer.js': [].concat(
-                        ['wrappers/vectorizer.head.js'],
+                        ['wrappers/vectorizer.head.js.partial'],
                         js.vectorizer,
-                        ['wrappers/vectorizer.foot.js']
+                        ['wrappers/vectorizer.foot.js.partial']
                     ),
                     'build/vectorizer.min.js': [].concat(
-                        ['wrappers/vectorizer.head.js'],
+                        ['wrappers/vectorizer.head.js.partial'],
                         ['build/min/vectorizer.min.js'],
-                        ['wrappers/vectorizer.foot.js']
+                        ['wrappers/vectorizer.foot.js.partial']
                     )
                 }
             },
@@ -268,20 +268,20 @@ module.exports = function(grunt) {
                 },
                 files: {
                     'build/joint.core.js': [].concat(
-                        ['wrappers/joint.head.js'],
+                        ['wrappers/joint.head.js.partial'],
                         js.polyfills,
                         js.geometry,
                         js.vectorizer,
                         js.core,
-                        ['wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js.partial']
                     ),
                     'build/joint.core.min.js': [].concat(
-                        ['wrappers/joint.head.js'],
+                        ['wrappers/joint.head.js.partial'],
                         ['build/min/polyfills.min.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
-                        ['wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js.partial']
                     ),
                     'build/joint.core.css': [].concat(
                         css.core
@@ -290,22 +290,22 @@ module.exports = function(grunt) {
                         ['build/min/joint.min.css']
                     ),
                     'build/joint.js': [].concat(
-                        ['wrappers/joint.head.js'],
+                        ['wrappers/joint.head.js.partial'],
                         js.polyfills,
                         js.geometry,
                         js.vectorizer,
                         js.core,
                         allJSPlugins(),
-                        ['wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js.partial']
                     ),
                     'build/joint.min.js': [].concat(
-                        ['wrappers/joint.head.js'],
+                        ['wrappers/joint.head.js.partial'],
                         ['build/min/polyfills.min.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins(),
-                        ['wrappers/joint.foot.js']
+                        ['wrappers/joint.foot.js.partial']
                     ),
                     'build/joint.css': [].concat(
                         css.core,
@@ -651,7 +651,7 @@ module.exports = function(grunt) {
                 process.exit(1);
                 return;
         }
-        return { dir: `coverage/${name}`, reporters, check }
+        return { dir: `coverage/${name}`, reporters, check };
     }
 
     (function registerPartials(partials) {
@@ -835,7 +835,7 @@ module.exports = function(grunt) {
         'concat:types'
     ]);
 
-    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry'])
+    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry']);
     grunt.registerTask('test:src', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
     grunt.registerTask('test:coverage', ['test:src']);
     grunt.registerTask('test:code-style', ['eslint']);
