@@ -332,16 +332,16 @@
   <tr>
     <th>cell:highlight</th>
     <td>
-      <p>Triggered when the <code>cellView.highlight</code> <a href="joint.html#dia.CellView.prototype.highlight">method</a> is called on a link or element view.</p>
+      <p>Triggered when the <code>cellView.highlight</code> <a href="#dia.CellView.prototype.highlight">method</a> is called on a link or element view.</p>
       <p>The callback function is passed <code>cellView</code> and <code>el</code> as arguments.</p>
       <p>The default handler method adds the <code data-lang="css">"highlighted"</code> CSS class to the cell, so that it can be targeted in user stylesheets. To use a different method for highlighting cells, first unregister the default handler with <code>paper.off('cell:highlight')</code> and then register a custom handler with <code>paper.on('cell:highlight', myHandler)</code>.</p>
-      <p>This method is also called automatically, in two situations. First, if the user reconnects a link and the connection is valid as determined by the <code>paper.options.validateConnection</code> <a href="joint.html#dia.Paper.prototype.options.validateConnection">method</a>. Second, if <a href="joint.html#dia.Paper.prototype.options.embeddingMode">embedding mode</a> is enabled on the paper and dragged element is above another element it can be dropped onto as determined by the <code>paper.options.validateEmbedding</code> <a href="joint.html#dia.Paper.prototype.options.validateEmbedding">method</a>.</p>
+      <p>This method is also called automatically, in two situations. First, if the user reconnects a link and the connection is valid as determined by the <code>paper.options.validateConnection</code> <a href="#dia.Paper.prototype.options.validateConnection">method</a>. Second, if <a href="#dia.Paper.prototype.options.embeddingMode">embedding mode</a> is enabled on the paper and dragged element is above another element it can be dropped onto as determined by the <code>paper.options.validateEmbedding</code> <a href="#dia.Paper.prototype.options.validateEmbedding">method</a>.</p>
     </td>
   </tr>
   <tr>
     <th>cell:unhighlight</th>
     <td>
-      <p>Triggered when the <code>cellView.unhighlight</code> <a href="joint.html#dia.CellView.prototype.unhighlight">method</a> is called on a link or element view.</p>
+      <p>Triggered when the <code>cellView.unhighlight</code> <a href="#dia.CellView.prototype.unhighlight">method</a> is called on a link or element view.</p>
       <p>The callback function is passed <code>cellView</code> and <code>el</code> as arguments.</p>
       <p>The default handler method removes the <code data-lang="css">"highlighted"</code> CSS class from the cell. To use a different method, first unregister the default handler with <code>paper.off('cell:unhighlight')</code> and then register a custom handler with <code>paper.on('cell:unhighlight', myHandler)</code>.</p>
       <p>It is important to note that if a cell was highlighted using custom options, those exact same options must be provided to the unhighlight handler.</p>

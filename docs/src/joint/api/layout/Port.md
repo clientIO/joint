@@ -288,7 +288,7 @@ function(portsArgs, elBBox, opt) {
 
         var step = -Math.PI / 8;
         var y = Math.sin(index * step) * 50;
-        return g.point({ x: index * 12, y: y + elBBox.height });
+        return g.Point({ x: index * 12, y: y + elBBox.height });
     });
 }
 ```
