@@ -1,5 +1,7 @@
 module.exports = function(grunt) {
 
+    const resources = require('../resources');
+
     return {
         'default': [
             'install',
@@ -48,6 +50,10 @@ module.exports = function(grunt) {
             'syntaxHighlighting:docs',
             'newer:copy:docs'
         ],
+        'concat:plugins': Object.keys(resources.js.plugins).map((name)=> 'newer:concat:' + name),
+        'uglify:plugins': Object.keys(resources.js.plugins).map((name)=> 'newer:uglify:' + name),
+        'cssmin:plugins': Object.keys(resources.css.plugins).map((name)=> 'newer:cssmin:' + name),
+
         // TESTS
         'test:bundles': [
             'qunit:joint',

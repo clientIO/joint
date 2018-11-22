@@ -10,4 +10,4 @@ module.exports = {
     vectorizer: [
         'test/vectorizer/requirejs.html'
     ]
-}
+};

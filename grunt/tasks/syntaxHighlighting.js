@@ -24,15 +24,15 @@ module.exports = function(grunt) {
                     decodeEntities: false
                 });
 
-                const highlighted = false;
+                let highlighted = false;
 
                 $('code:not(.highlighted)').each(function() {
 
-                    var lang = ($(this).attr('data-lang') || 'javascript').toLowerCase();
+                    const lang = ($(this).attr('data-lang') || 'javascript').toLowerCase();
 
                     if (lang) {
-                        var code = decodeHtmlEntities($(this).text());
-                        var highlightedCode = Prism.highlight(code, Prism.languages[lang]);
+                        const code = decodeHtmlEntities($(this).text());
+                        const highlightedCode = Prism.highlight(code, Prism.languages[lang]);
                         $(this).html(highlightedCode);
                         $(this).addClass('highlighted');
                         highlighted = true;
@@ -46,5 +46,4 @@ module.exports = function(grunt) {
             });
         });
     });
-
 };
