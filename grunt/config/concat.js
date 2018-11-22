@@ -71,8 +71,7 @@ module.exports = function(grunt) {
                         ['wrappers/geometry.foot.js.partial']
                     )
             }
-        }
-        ,
+        },
         vectorizer: {
             files: {
                 'build/vectorizer.js':
@@ -88,19 +87,16 @@ module.exports = function(grunt) {
                         ['wrappers/vectorizer.foot.js.partial']
                     )
             }
-        }
-        ,
+        },
         joint: {
             options: {
                 process: {
                     options: {
                         data: utils.pkg
-                    }
-                    ,
+                    },
                     delimiters: 'square'
                 }
-            }
-            ,
+            },
             files: {
                 'build/joint.core.js':
                     [].concat(
