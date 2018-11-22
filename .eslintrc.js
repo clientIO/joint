@@ -22,5 +22,13 @@ module.exports = {
         '$': true,
         'Backbone': true,
         'Uint8Array': true
-    }
+    },
+    'overrides': [{
+        'files': [
+            'grunt/**/*.js'
+        ],
+        'parserOptions': {
+            'ecmaVersion': 6
+        }
+    }]
 };

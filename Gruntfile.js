@@ -1,99 +1,24 @@
 'use strict';
 
 var phantomjs = require('phantomjs-prebuilt');
-var selenium = require('selenium-standalone');
+var path = require('path');
 
 module.exports = function(grunt) {
 
-    var cheerio = require('cheerio');
-    var Handlebars = require('handlebars');
-    var Prism = require('prismjs');
-
     require('time-grunt')(grunt);
     require('load-grunt-tasks')(grunt);
+    var loadedConfig = require('load-grunt-config')(grunt, {
+        configPath: path.join(process.cwd(), 'grunt/config')
+    });
+    grunt.loadTasks('./grunt/tasks');
 
     grunt.template.addDelimiters('square', '[%', '%]');
 
     var pkg = grunt.file.readJSON('package.json');
     var banner = grunt.template.process('/*! <%= pkg.title %> v<%= pkg.version %> (<%= grunt.template.today("yyyy-mm-dd") %>) - <%= pkg.description %>\n\n\nThis Source Code Form is subject to the terms of the Mozilla Public\nLicense, v. 2.0. If a copy of the MPL was not distributed with this\nfile, You can obtain one at http://mozilla.org/MPL/2.0/.\n*/\n', { data: { pkg: pkg }, delimiter: 'default' });
 
-    var js = {
-
-        core: [
-            'src/core.js',
-            'src/joint.mvc.view.js',
-            'src/joint.dia.graph.js',
-            'src/joint.dia.attributes.js',
-            'src/joint.dia.tools.js',
-            'src/joint.dia.cell.js',
-            'src/joint.dia.element.js',
-            'src/joint.dia.link.js',
-            'src/joint.dia.paper.js',
-            'src/ports.js',
-            'plugins/shapes/joint.shapes.basic.js',
-            'plugins/shapes/joint.shapes.standard.js',
-            'plugins/routers/*.js',
-            'plugins/connectors/joint.connectors.normal.js',
-            'plugins/connectors/joint.connectors.rounded.js',
-            'plugins/connectors/joint.connectors.smooth.js',
-            'plugins/connectors/joint.connectors.jumpover.js',
-            'plugins/layout/ports/*.js',
-            'plugins/highlighters/*.js',
-            'plugins/anchors/*.js',
-            'plugins/connectionPoints/*.js',
-            'plugins/connectionStrategies/*.js',
-            'plugins/tools/*.js'
-        ],
-
-        geometry: [
-            'src/geometry.js'
-        ],
-
-        vectorizer: [
-            'src/vectorizer.js'
-        ],
-
-        polyfills: [
-            'plugins/polyfills/base64.js',
-            'plugins/polyfills/typedArray.js',
-            'plugins/polyfills/xhrResponse.js',
-            'plugins/polyfills/array.js',
-            'plugins/polyfills/string.js',
-            'plugins/polyfills/number.js'
-        ],
-
-        plugins: {
-            'shapes.erd': ['plugins/shapes/joint.shapes.erd.js'],
-            'shapes.fsa': ['plugins/shapes/joint.shapes.fsa.js'],
-            'shapes.org': ['plugins/shapes/joint.shapes.org.js'],
-            'shapes.chess': ['plugins/shapes/joint.shapes.chess.js'],
-            'shapes.pn': ['plugins/shapes/joint.shapes.pn.js'],
-            'shapes.devs': ['plugins/shapes/joint.shapes.devs.js'],
-            'shapes.uml': ['plugins/shapes/joint.shapes.uml.js'],
-            'shapes.logic': ['plugins/shapes/joint.shapes.logic.js'],
-            'layout.DirectedGraph': ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
-        },
-
-        dependecies: [
-            'node_modules/jquery/dist/jquery.js',
-            'node_modules/lodash/lodash.js',
-            'node_modules/backbone/backbone.js',
-            'node_modules/graphlib/dist/graphlib.core.js',
-            'node_modules/dagre/dist/dagre.core.js',
-        ]
-    };
-
-    var css = {
-
-        core: [
-            'css/layout.css',
-            'css/themes/*.css'
-        ],
-
-        plugins: {
-
-        }
-    };
+    var js = require('./grunt/resources').js;
+    var css = require('./grunt/resources').css;
 
     function allJSPlugins() {
 
@@ -144,81 +69,6 @@ module.exports = function(grunt) {
 
         pkg: pkg,
 
-        webpack: {
-            joint: {
-                entry: './build/joint.min.js',
-                mode: 'production',
-                output: {
-                    path: __dirname + '/build',
-                    filename: 'joint.webpack-bundle.js',
-                    library: 'joint'
-                },
-                resolve: {
-                    alias: {
-                        underscore: 'lodash',
-                        g: './geometry.min.js',
-                        V: './vectorizer.min.js'
-                    }
-                }
-            }
-        },
-        browserify: {
-            joint: {
-                files: {
-                    'build/joint.browserify-bundle.js': 'build/joint.min.js'
-                },
-                options: {
-                    browserifyOptions: {
-                        standalone: 'joint'
-                    }
-                }
-            }
-        },
-        clean: {
-            build: ['build'],
-            dist: ['dist']
-        },
-        compileDocs: {
-            all: {
-                options: {
-                    template: 'docs/templates/api.html',
-                    compileTemplate: Handlebars.compile,
-                    sortItems: 'js-api'
-                },
-                files: [
-                    {
-                        meta: {
-                            title: 'Geometry API',
-                            searchPlaceholder: 'i.e. point'
-                        },
-                        intro: 'docs/src/geometry/intro.md',
-                        processItems: processItem.bind(undefined, 'docs/src/geometry/api/'),
-                        dest: 'build/docs/geometry.html',
-                        src: 'docs/src/geometry/api/**/*.{md,html}'
-                    },
-                    {
-                        meta: {
-                            title: 'Joint API',
-                            searchPlaceholder: 'i.e. graph'
-                        },
-                        intro: 'docs/src/joint/intro.html',
-                        processItems: processItem.bind(undefined, 'docs/src/joint/api/'),
-                        dest: 'build/docs/joint.html',
-                        src: 'docs/src/joint/api/**/*.{md,html}'
-                    },
-                    {
-                        meta: {
-                            title: 'Vectorizer API',
-                            searchPlaceholder: 'i.e. addClass'
-                        },
-                        intro: 'docs/src/vectorizer/intro.html',
-                        processItems: processItem.bind(undefined, 'docs/src/vectorizer/api/'),
-                        dest: 'build/docs/vectorizer.html',
-                        src: 'docs/src/vectorizer/api/**/*.{md,html}'
-                    }
-                ]
-            }
-        },
         concat: {
             types: {
                 src: [
@@ -425,98 +275,6 @@ module.exports = function(grunt) {
                 ]
             }
         },
-        csslint: {
-            options: {
-                csslintrc: '.csslintrc'
-            },
-            src: [
-                'css/**/*.css',
-                'plugins/**/*.css',
-                '!plugins/**/lib/*.css'
-            ]
-        },
-        cssmin: {
-            joint: {
-                files: {
-                    'build/min/joint.min.css': [].concat(
-                        css.core
-                    )
-                }
-            }
-        },
-        eslint: {
-            joint: {
-                src: [
-                    'src/**/*.js',
-                    'plugins/**/*.js',
-                ],
-                options: {
-                    configFile: '.eslintrc.js'
-                }
-            },
-            test: {
-                src: [
-                    'test/**/*.js',
-                    '!test/**/lodash3/**'
-                ],
-                options: {
-                    configFile: 'test/.eslintrc.js'
-                }
-            }
-        },
-        mochaTest: {
-            e2e: {
-                src: [
-                    'test/e2e/*.js'
-                ],
-                options: {
-                    reporter: 'spec',
-                    timeout: 120000,
-                    clearRequireCache: true
-                }
-            },
-            server: {
-                src: [
-                    'test/*-nodejs/*'
-                ],
-                options: {
-                    reporter: 'spec'
-                }
-            }
-        },
-        syntaxHighlighting: {
-            docs: {
-                src: [
-                    'build/docs/*.html'
-                ]
-            }
-        },
-        uglify: {
-            options: {
-                ASCIIOnly: true
-            },
-            deps: {
-                files: {
-                    'build/min/lodash.min.js': 'node_modules/lodash/lodash.js'
-                }
-            },
-            geometry: {
-                src: js.geometry,
-                dest: 'build/min/geometry.min.js'
-            },
-            joint: {
-                src: js.core,
-                dest: 'build/min/joint.min.js'
-            },
-            polyfills: {
-                src: js.polyfills,
-                dest: 'build/min/polyfills.min.js'
-            },
-            vectorizer: {
-                src: js.vectorizer,
-                dest: 'build/min/vectorizer.min.js'
-            }
-        },
         watch: {
             docs: {
                 files: [
@@ -546,151 +304,10 @@ module.exports = function(grunt) {
                 tasks: ['newer:concat:types']
             }
         },
-        qunit: {
-            joint: [
-                'test/jointjs/requirejs.html',
-                'test/jointjs/browserify.html',
-                'test/jointjs/lodash3/index.html'
-            ],
-            geometry: [
-                'test/geometry/requirejs.html',
-            ],
-            vectorizer: [
-                'test/vectorizer/requirejs.html'
-            ]
-        },
-        karma: {
-            options: {
-                basePath: '',
-                autoWatch: false,
-                frameworks: ['sinon', 'qunit'],
-                browsers: karmaBrowsers(),
-                reporters: ['progress', 'coverage'],
-                singleRun: true,
-                exclude: [
-                    'test/**/require.js',
-                    'test/**/browserify.js'
-                ]
-            },
-            geometry: {
-                options: {
-                    files: [
-                        js.geometry,
-                        'test/geometry/*.js'
-                    ],
-                    preprocessors: karmaPreprocessors(js.geometry),
-                    coverageReporter: karmaCoverageReporters('geometry')
-                },
-            },
-            vectorizer: {
-                options: {
-                    files: [
-                        js.geometry,
-                        js.vectorizer,
-                        'test/vectorizer/*.js',
-                    ],
-                    preprocessors: karmaPreprocessors(js.vectorizer),
-                    coverageReporter: karmaCoverageReporters('vectorizer')
-                }
-            },
-            joint: {
-                options: {
-                    files: [
-                        js.dependecies,
-                        js.geometry,
-                        js.vectorizer,
-                        js.polyfills,
-                        js.core,
-                        allJSPlugins(),
-                        'test/utils.js',
-                        'test/jointjs/**/*.js',
-                    ],
-                    preprocessors: karmaPreprocessors([].concat(js.core, allJSPlugins())),
-                    coverageReporter: karmaCoverageReporters('joint')
-                }
-            }
-        },
         env: {
 
         }
     };
-
-    function karmaBrowsers() {
-        var browser = grunt.option('browser') || 'PhantomJS';
-        return [browser];
-    }
-
-    function karmaPreprocessors(files) {
-        var preprocessors = ['coverage'];
-        return files.reduce(function(files, file) {
-            files[file] = preprocessors;
-            return files;
-        }, {});
-    }
-
-    function karmaCoverageReporters(name) {
-        var reporters;
-        var check;
-        var reporter = grunt.option('reporter') || '';
-        if (!reporter && grunt.cli.tasks.indexOf('test:coverage') !== -1) {
-            reporter = 'html';
-        }
-        switch (reporter) {
-            case 'lcov':
-                reporters = [{ type: 'lcovonly', subdir: '.', file: `${name}.lcov` }];
-                break;
-            case 'html':
-                reporters = [{ type: 'html' }];
-                break;
-            case '':
-                reporters = [{ type: 'text-summary' }];
-                check = grunt.file.readJSON('coverage.json')[name];
-                break;
-            default:
-                grunt.log.error(`Invalid reporter "${reporter}". Use "lcov" or "html".`);
-                process.exit(1);
-                return;
-        }
-        return { dir: `coverage/${name}`, reporters, check };
-    }
-
-    (function registerPartials(partials) {
-
-        partials = grunt.file.expand(partials);
-
-        partials.forEach(function(partial) {
-            var name = partial.split('/').pop().split('.').shift();
-            var html = grunt.file.read(partial);
-            Handlebars.registerPartial(name, html);
-        });
-
-    })('docs/templates/partials/*.html');
-
-    Handlebars.registerHelper('depth', function() {
-        return Math.min(6, this.key.split('.').length + 1);
-    });
-
-    Handlebars.registerHelper('label', function() {
-        return this.key.indexOf('.') === -1 ? this.key : this.key.substr(this.key.lastIndexOf('.') + 1);
-    });
-
-    function processItem(baseDir, item) {
-
-        item.key = docFilePathToKey(item.file, baseDir);
-        item.isIntro = item.key.substr(item.key.lastIndexOf('.') + 1) === 'intro';
-
-        item.title = item.key;
-        if (item.isIntro) {
-            item.title = item.title.substr(0, item.title.lastIndexOf('.'));
-        }
-
-        return item;
-    }
-
-    function docFilePathToKey(filePath, baseDir) {
-
-        return filePath.substr(baseDir.length).split('.').shift().replace(/\//g, '.');
-    }
 
     // Create targets for all the plugins.
     Object.keys(js.plugins).forEach(function(name) {
@@ -711,7 +328,7 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.initConfig(config);
+    grunt.initConfig(Object.assign({}, config, loadedConfig));
 
     var allPluginTasks = {
         concat: [],
@@ -739,112 +356,9 @@ module.exports = function(grunt) {
         grunt.registerTask(name, pluginTasks);
     });
 
-    grunt.registerMultiTask('syntaxHighlighting', function() {
-
-        this.files.forEach(function(file) {
-
-            var files = grunt.file.expand(file.src);
-
-            files.forEach(function(file) {
-
-                var content = grunt.file.read(file);
-
-                var $ = cheerio.load(content, {
-                    normalizeWhitespace: false,
-                    decodeEntities: false
-                });
-
-                var highlighted = false;
-
-                $('code:not(.highlighted)').each(function() {
-
-                    var lang = ($(this).attr('data-lang') || 'javascript').toLowerCase();
-
-                    if (lang) {
-                        var code = decodeHtmlEntities($(this).text());
-                        var highlightedCode = Prism.highlight(code, Prism.languages[lang]);
-                        $(this).html(highlightedCode);
-                        $(this).addClass('highlighted');
-                        highlighted = true;
-                    }
-                });
-
-                if (highlighted) {
-                    grunt.file.write(file, $.html());
-                    grunt.log.writeln('File ' + file['cyan'] + ' highlighted.');
-                }
-            });
-        });
-    });
-
-    function decodeHtmlEntities(str) {
-
-        var $ = cheerio.load('<div></div>');
-        return $('div').html(str).text();
-    }
-
     grunt.registerTask('concat:plugins', allPluginTasks.concat);
     grunt.registerTask('cssmin:plugins', allPluginTasks.cssmin);
     grunt.registerTask('uglify:plugins', allPluginTasks.uglify);
-
-    grunt.registerTask('build:plugins', [
-        'uglify:plugins',
-        'cssmin:plugins',
-        'concat:plugins'
-    ]);
-
-    grunt.registerTask('build:joint', [
-        'build:plugins',
-        'newer:uglify:polyfills',
-        'newer:uglify:deps',
-        'newer:uglify:geometry',
-        'newer:uglify:vectorizer',
-        'newer:uglify:joint',
-        'newer:cssmin:joint',
-        'newer:concat:geometry',
-        'newer:concat:vectorizer',
-        'newer:concat:joint',
-        'newer:concat:types'
-    ]);
-
-    grunt.registerTask('build', ['build:joint']);
-
-    grunt.registerTask('build:bundles', [
-        'newer:browserify',
-        'webpack'
-    ]);
-
-    grunt.registerTask('build:docs', [
-        'compileDocs:all',
-        'syntaxHighlighting:docs',
-        'newer:copy:docs'
-    ]);
-
-    grunt.registerTask('build:all', [
-        'build:joint',
-        'build:bundles',
-        'build:docs',
-        'newer:copy:appsLibs'
-    ]);
-
-    grunt.registerTask('dist', [
-        'clean:dist',
-        'clean:build',
-        'build:all',
-        'copy:dist',
-        'concat:types'
-    ]);
-
-    grunt.registerTask('test:bundles', [ 'qunit:joint', 'qunit:vectorizer', 'qunit:geometry']);
-    grunt.registerTask('test:src', ['karma:geometry', 'karma:vectorizer', 'karma:joint']);
-    grunt.registerTask('test:coverage', ['test:src']);
-    grunt.registerTask('test:code-style', ['eslint']);
-    grunt.registerTask('test:server', ['mochaTest:server']);
-    grunt.registerTask('test:client', ['test:src', 'test:bundles']);
-    grunt.registerTask('test', ['test:server', 'test:client', 'test:code-style']);
-
-    grunt.registerTask('install', ['build:all']);
-    grunt.registerTask('default', ['install', 'build', 'watch']);
 
     var e2eBrowsers = {
         'chrome': {
@@ -904,90 +418,5 @@ module.exports = function(grunt) {
             'env:' + key,
             'mochaTest:e2e'
         ]);
-    });
-
-    grunt.registerTask('test:e2e', ['mochaTest:e2e']);
-
-    grunt.registerTask('test:e2e:all', [
-        'test:e2e:chrome-linux',
-        'test:e2e:chrome-windows7',
-        'test:e2e:chrome-mac',
-        'test:e2e:firefox-linux',
-        'test:e2e:firefox-mac'
-    ]);
-
-    grunt.registerTask('selenium', function(action) {
-
-        var done = this.async();
-
-        switch (action) {
-
-            case 'install':
-                return installSelenium(done);
-
-            case 'start':
-                return installSelenium(function(error) {
-                    if (error) return done(error);
-                    startSelenium(done);
-                });
-
-            case 'stop':
-                return stopSelenium(done);
-
-            // For backwards compatibility (`grunt selenium`).
-            // This task starts the local selenium server and then waits.
-            default:
-                return installSelenium(function(error) {
-                    if (error) return done(error);
-                    startSelenium(function(error) {
-                        if (error) return done(error);
-                        grunt.log.writeln('Selenium started');
-                        grunt.log.writeln('Exit this process ' + '[CTRL+C]'['white'].bold + ' to stop selenium');
-                        // Never call done.
-                        // This allows selenium to continue running until the grunt process is killed.
-                    });
-                });
-        }
-    });
-
-    var seleniumInstalled = (function() {
-        return grunt.file.exists(__dirname + '/node_modules/selenium-standalone/.selenium/selenium-server');
-    }());
-
-    var seleniumChildProcess;
-
-    var seleniumConfig = {
-        drivers: {
-            chrome: {
-                version: 2.29,
-                baseURL: 'https://chromedriver.storage.googleapis.com'
-            }
-        }
-    };
-
-    function startSelenium(cb) {
-        grunt.log.writeln('Starting selenium..');
-        selenium.start(seleniumConfig, function(error, child) {
-            if (error) return cb(error);
-            seleniumChildProcess = child;
-            cb();
-        });
-    }
-
-    function stopSelenium(cb) {
-        if (seleniumChildProcess) seleniumChildProcess.kill();
-        cb();
-    }
-
-    function installSelenium(cb) {
-        if (seleniumInstalled) return cb();
-        grunt.log.writeln('Installing selenium..');
-        seleniumInstalled = true;
-        selenium.install(seleniumConfig, cb);
-    }
-
-    process.on('exit', function() {
-        // Kill selenium server process if it is running.
-        if (seleniumChildProcess) seleniumChildProcess.kill();
     });
 };
