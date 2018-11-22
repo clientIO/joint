@@ -20,7 +20,7 @@ linkView.addTools(toolsView);</code></pre>
 
 <p>Every link view we want to attach to requires its own tools view object (<code>ToolsView</code> objects are automatically reassigned to the last link view they are added to). Similarly, every tools view we create requires its own set of tools (<code>ToolView</code> objects are automatically reassigned to the last <code>toolsView.tools</code> array they were made part of).</p>
 
-<p>The link tools are added in the visible state. Use the <code>linkView.hideTools</code> <a href="#dia.linkView.prototype.hideTools">function</a> if this behavior is not desirable (e.g. if you want the link tools to appear in response to user interaction). Example:</p>
+<p>The link tools are added in the visible state. Use the <code>linkView.hideTools</code> <a href="#dia.LinkView.prototype.hideTools">function</a> if this behavior is not desirable (e.g. if you want the link tools to appear in response to user interaction). Example:</p>
 
 <pre><code>linkView.addTools(toolsView);
 linkView.hideTools();
