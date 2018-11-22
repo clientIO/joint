@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>g.Curve(p1 [, p2, p3, p4])</code></pre>
+<p>Return a new curve object with start at point <code>p1</code>, control points at <code>p2</code> and <code>p3</code>, and end at <code>p4</code>. All points are passed through the <a href="#g.point.constructor"><code>Point</code></a> constructor so they can also be passed in string form. Examples:</p>
+
+<pre><code>var c = new g.Curve(new g.Point(10, 10), new g.Point(10, 40), new g.Point(50, 40), new g.Point(50, 10));
+var c = new g.Curve('10 10', '10 40', '50 40', '50 10');
+var c = new g.Curve('10@10', '10@40', '50@40', '50@10');</code></pre>
+
+<p>The constructor also accepts a single Curve object as an argument; it creates a new curve with points cloned from the provided curve.</p>

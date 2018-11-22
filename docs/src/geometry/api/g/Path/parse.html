@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>g.Path.parse(pathData)</code></pre>
+<p>Return a new path object with path segments created from provided path data string.</p>
+
+<p>The path data string does not require <a href="vectorizer.html#V.normalizePathData">normalization</a>, but it is restricted to subset of SVG path commands (absolute versions of Moveto, Lineto, Curveto and Closepath).</p>
+
+<p>The string does not need to start with a Moveto command. (Empty string is accepted and creates an empty path.) Chaining of coordinates (e.g. providing a Moveto command with 4 parameters) is allowed.</p>
+
+<p>The function throws an error if an unrecognized path command is encountered. Additionally, an error is thrown when an incorrect number of arguments is found with a command (e.g. a Curveto command with 5 coordinates).</p>

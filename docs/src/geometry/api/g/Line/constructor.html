@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>g.Line(p1, p2)</code></pre>
+<p>Return a new line object with start at point <code>p1</code> and end at point <code>p2</code>. <code>p1</code> and <code>p2</code> are first passed through the <a href="#g.point.constructor"><code>Point</code></a> constructor so they can also be passed in string form. Examples:</p>
+
+<pre><code>var l = new g.Line(new g.Point(10, 20), new g.Point(50, 60));
+var l = new g.Line('10 20', '50 60');
+var l = new g.Line('10@20', '50@60');</code></pre>
+
+<p>The constructor also accepts a single Line object as an argument; it creates a new line with points cloned from the provided line.</p>

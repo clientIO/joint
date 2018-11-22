@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>polyline.convexHull()</code></pre>
+<p>Returns a polyline containing the convex hull of this polyline's points.</p>
+
+<p>The output polyline begins with the first point of this polyline that is on the hull. The convex hull points then follow in clockwise order.</p>
+
+<p>The minimum number of points is reported. This means that collinear points lying in the middle of hull edges are not reported. If a group of coincident points is encountered, only the first point (in order of the original polyline) is reported.</p>
+
+<p>If the polyline contains no points, <code>null</code> is returned.</p>
