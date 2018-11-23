@@ -15,6 +15,10 @@ module.exports = {
                 g: './geometry.min.js',
                 V: './vectorizer.min.js'
             }
+        },
+        performance: {
+            maxAssetSize: 700000,
+            maxEntrypointSize: 700000
         }
     }
 };
