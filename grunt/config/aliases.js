@@ -55,28 +55,28 @@ module.exports = function(grunt) {
         'cssmin:plugins': Object.keys(resources.css.plugins).map((name)=> 'newer:cssmin:' + name),
 
         // TESTS
-        'test:bundles': [
-            'qunit:joint',
-            'qunit:vectorizer',
-            'qunit:geometry'
+        'test': [
+            'test:server',
+            'test:client',
+            'test:code-style'
+        ],
+        'test:server': ['mochaTest:server'],
+        'test:client': [
+            'test:src',
+            'test:bundles'
         ],
         'test:src': [
             'karma:geometry',
             'karma:vectorizer',
             'karma:joint'
         ],
-        'test:coverage': ['test:src'],
+        'test:bundles': [
+            'qunit:joint',
+            'qunit:vectorizer',
+            'qunit:geometry'
+        ],
         'test:code-style': ['eslint'],
-        'test:server': ['mochaTest:server'],
-        'test:client': [
-            'test:src',
-            'test:bundles'
-        ],
-        'test': [
-            'test:server',
-            'test:client',
-            'test:code-style'
-        ],
+        'test:coverage': ['test:src'],
         'test:e2e': ['mochaTest:e2e'],
         'test:e2e:all': [
             'test:e2e:chrome-linux',
