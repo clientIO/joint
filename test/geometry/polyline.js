@@ -913,6 +913,12 @@ QUnit.module('polyline', function() {
 
                 assert.ok((new g.Polyline()).simplify() instanceof g.Polyline);
 
+                assert.ok((new g.Polyline(['10 0', '10 5', '10 10', '10 15', '10 20'])).simplify() instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,5 10,10 10,15 10,20')).simplify() instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0', '10 20', '10 10', '10 15', '10 5'])).simplify() instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,20 10,10 10,15 10,5')).simplify() instanceof g.Polyline);
+
                 assert.ok((new g.Polyline(['10 0', '10 0', '10 10', '10 10', '20 10', '20 10'])).simplify() instanceof g.Polyline);
                 assert.ok((new g.Polyline('10,0 10,0 10,10 10,10 20,10 20,10')).simplify() instanceof g.Polyline);
 
@@ -926,6 +932,12 @@ QUnit.module('polyline', function() {
             QUnit.test('should return a simplified version of self', function(assert) {
 
                 assert.equal((new g.Polyline()).simplify().serialize(), '');
+
+                assert.equal((new g.Polyline(['10 0', '10 5', '10 10', '10 15', '10 20'])).simplify().serialize(), '10,0 10,20');
+                assert.equal((new g.Polyline('10,0 10,5 10,10 10,15 10,20')).simplify().serialize(), '10,0 10,20');
+
+                assert.equal((new g.Polyline(['10 0', '10 20', '10 10', '10 15', '10 5'])).simplify().serialize(), '10,0 10,20 10,10 10,15 10,5');
+                assert.equal((new g.Polyline('10,0 10,20 10,10 10,15 10,5')).simplify().serialize(), '10,0 10,20 10,10 10,15 10,5');
 
                 assert.equal((new g.Polyline(['10 0', '10 0', '10 10', '10 10', '20 10', '20 10'])).simplify().serialize(), '10,0 10,10 20,10');
                 assert.equal((new g.Polyline('10,0 10,0 10,10 10,10 20,10 20,10')).simplify().serialize(), '10,0 10,10 20,10');
