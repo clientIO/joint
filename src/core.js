@@ -552,12 +552,19 @@ var joint = {
 
                         } else {
 
-                            // We initiate partitioning
-                            // split the long word into two words
-                            words.splice(i, 1, word.substring(0, p), word.substring(p));
-
-                            // adjust words length
-                            len++;
+                            var splitCharIndex = word.search(/[^\w\s]/);
+                            if (splitCharIndex > -1) {
+                                len = splitCharIndex + 1;
+                                // We initiate partitioning
+                                // split the long word into two words
+                                words.splice(i, 1, word.substring(0, len), word.substring(len));
+                            } else {
+                                // We initiate partitioning
+                                // split the long word into two words
+                                words.splice(i, 1, word.substring(0, p), word.substring(p));
+                                // adjust words length
+                                len++;
+                            }
 
                             if (l && !full[l - 1]) {
                                 // if the previous line is not full, try to fit max part of
