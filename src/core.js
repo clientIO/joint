@@ -552,7 +552,7 @@ var joint = {
 
                         } else {
 
-                            var splitCharIndex = word.search(/[^\w\s]/);
+                            var splitCharIndex = word.search(/[^\w\d]/);
                             if (splitCharIndex > -1) {
                                 len = splitCharIndex + 1;
                                 // We initiate partitioning
