@@ -4,12 +4,9 @@
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-var V; // eslint-disable-line no-unused-vars
-var Vectorizer; // eslint-disable-line no-unused-vars
+import * as g from './geometry';
 
-V = Vectorizer = (function() {
-
-    'use strict';
+export const V = (function() {
 
     var hasSvg = typeof window === 'object' &&
                 !!(
@@ -774,7 +771,7 @@ V = Vectorizer = (function() {
     VPrototype.appendTo = function(node) {
         V.toNode(node).appendChild(this.node);
         return this;
-    },
+    };
 
     VPrototype.svg = function() {
 

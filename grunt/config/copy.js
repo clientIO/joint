@@ -24,6 +24,34 @@ module.exports = function(grunt) {
                 }
             }
         },
+        esm: {
+            options: {
+                process: function(content, path) {
+                    if (path === 'src/core.js') {
+
+                        grunt.template.addDelimiters('square', '[%', '%]');
+                        let opt = {
+                            data: {
+                                pkg: require('../resources/utils')(grunt).pkg
+                            },
+                            delimiters: 'square'
+                        };
+
+                        return grunt.template.process(content, opt);
+                    }
+                    return content;
+                }
+            },
+            files: [
+                {
+                    expand: true,
+                    nonull: true,
+                    cwd: './src',
+                    src: require('../resources/es6').src,
+                    dest: 'build/esm'
+                },
+            ]
+        },
         docs: {
             files: [
                 {

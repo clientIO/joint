@@ -1,16 +1,7 @@
 module.exports = {
 
     js: [
-        'src/core.js',
-        'src/joint.mvc.view.js',
-        'src/joint.dia.graph.js',
-        'src/joint.dia.attributes.js',
-        'src/joint.dia.tools.js',
-        'src/joint.dia.cell.js',
-        'src/joint.dia.element.js',
-        'src/joint.dia.link.js',
-        'src/joint.dia.paper.js',
-        'src/ports.js',
+        'build/iife/core.js',
         'plugins/shapes/joint.shapes.basic.js',
         'plugins/shapes/joint.shapes.standard.js',
         'plugins/routers/*.js',

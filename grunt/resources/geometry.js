@@ -1,3 +1,3 @@
 module.exports = [
-    'src/geometry.js'
+    'build/iife/geometry.js'
 ];

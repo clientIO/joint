@@ -90,13 +90,13 @@ module.exports = function(grunt) {
             options: {
                 files: [
                     dependecies,
-                    geometry,
-                    vectorizer,
                     polyfills,
                     core.js,
                     allJSPlugins,
                     'test/utils.js',
-                    'test/jointjs/**/*.js'
+                    'test/jointjs/**/*.js',
+                    'test/vectorizer/*.js',
+                    'test/geometry/*.js'
                 ],
                 preprocessors: karmaPreprocessors([].concat(core.js, allJSPlugins)),
                 coverageReporter: karmaCoverageReporters('joint')

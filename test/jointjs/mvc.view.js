@@ -4,7 +4,11 @@ QUnit.module('joint.mvc.View', function(hooks) {
 
     var resetViews = function() {
         _.invoke(joint.mvc.views, 'remove');
-        joint.mvc.views = {};
+
+        // we need to keep the reference of joint.mvc.views
+        Object.keys(joint.mvc.views).forEach(function(key) {
+            delete joint.mvc.views[key];
+        });
     };
 
     hooks.beforeEach(resetViews);

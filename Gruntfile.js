@@ -3,6 +3,8 @@
 var path = require('path');
 module.exports = function(grunt) {
 
+    grunt.template.addDelimiters('square', '[%', '%]');
+
     var utils = require('./grunt/resources/utils')(grunt);
 
     require('time-grunt')(grunt);
