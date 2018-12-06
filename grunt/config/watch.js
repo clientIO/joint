@@ -32,7 +32,7 @@ module.exports = function(grunt) {
                 vectorizer,
                 core.js,
                 allJSPlugins,
-                core.css,
+                core.css
             ),
             options: watchOptions,
             tasks: ['build']
