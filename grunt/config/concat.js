@@ -1,25 +1,19 @@
-const res = require('../resources');
-const js = res.js;
-const css = res.css;
+const plugins = require('../resources/plugins');
+const geometry = require('../resources/geometry');
+const vectorizer = require('../resources/vectorizer');
+const core = require('../resources/core');
+const polyfills = require('../resources/polyfills');
 
-const plugins = function() {
+const getPlugins = function() {
 
     const config = {};
 
-    Object.keys(js.plugins).forEach(function(name) {
+    Object.keys(plugins).forEach(function(name) {
 
         config[name] = { files: {} };
 
-        config[name].files['build/joint.' + name + '.js'] = js.plugins[name];
+        config[name].files['build/joint.' + name + '.js'] = plugins[name];
         config[name].files['build/joint.' + name + '.min.js'] = ['build/min/joint.' + name + '.min.js'];
-    });
-
-    Object.keys(css.plugins).forEach(function(name) {
-
-        config[name] = config[name] || { files: {} };
-
-        config[name].files['build/joint.' + name + '.css'] = css.plugins[name];
-        config[name].files['build/joint.' + name + '.min.css'] = ['build/min/joint.' + name + '.min.css'];
     });
 
     return config;
@@ -27,7 +21,7 @@ const plugins = function() {
 
 module.exports = function(grunt) {
 
-    const utils = require('../utils')(grunt);
+    const utils = require('../resources/utils')(grunt);
 
     let allJSPlugins = [];
     let allCSSPlugins = [];
@@ -35,17 +29,12 @@ module.exports = function(grunt) {
     const allMinifiedJSPlugins = [];
     const allMinifiedCSSPlugins = [];
 
-    Object.keys(js.plugins).forEach(function(name) {
-        allJSPlugins = allJSPlugins.concat(js.plugins[name]);
+    Object.keys(plugins).forEach(function(name) {
+        allJSPlugins = allJSPlugins.concat(plugins[name]);
         allMinifiedJSPlugins.push('build/min/joint.' + name + '.min.js');
     });
 
-    Object.keys(css.plugins).forEach(function(name) {
-        allMinifiedCSSPlugins.push('build/min/joint.' + name + '.min.css');
-        allCSSPlugins = allCSSPlugins.concat(css.plugins[name]);
-    });
-
-    return Object.assign({}, plugins(), {
+    return Object.assign({}, getPlugins(), {
         types: {
             src: [
                 'types/joint.head.d.ts',
@@ -61,7 +50,7 @@ module.exports = function(grunt) {
                 'build/geometry.js':
                     [].concat(
                         ['wrappers/geometry.head.js.partial'],
-                        js.geometry,
+                        geometry,
                         ['wrappers/geometry.foot.js.partial']
                     ),
                 'build/geometry.min.js':
@@ -77,7 +66,7 @@ module.exports = function(grunt) {
                 'build/vectorizer.js':
                     [].concat(
                         ['wrappers/vectorizer.head.js.partial'],
-                        js.vectorizer,
+                        vectorizer,
                         ['wrappers/vectorizer.foot.js.partial']
                     ),
                 'build/vectorizer.min.js':
@@ -101,10 +90,10 @@ module.exports = function(grunt) {
                 'build/joint.core.js':
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
-                        js.polyfills,
-                        js.geometry,
-                        js.vectorizer,
-                        js.core,
+                        polyfills,
+                        geometry,
+                        vectorizer,
+                        core.js,
                         ['wrappers/joint.foot.js.partial']
                     ),
                 'build/joint.core.min.js':
@@ -118,7 +107,7 @@ module.exports = function(grunt) {
                     ),
                 'build/joint.core.css':
                     [].concat(
-                        css.core
+                        core.css
                     ),
                 'build/joint.core.min.css':
                     [].concat(
@@ -127,10 +116,10 @@ module.exports = function(grunt) {
                 'build/joint.js':
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
-                        js.polyfills,
-                        js.geometry,
-                        js.vectorizer,
-                        js.core,
+                        polyfills,
+                        geometry,
+                        vectorizer,
+                        core.js,
                         allJSPlugins,
                         ['wrappers/joint.foot.js.partial']
                     ),
@@ -146,7 +135,7 @@ module.exports = function(grunt) {
                     ),
                 'build/joint.css':
                     [].concat(
-                        css.core,
+                        core.css,
                         allCSSPlugins
                     ),
                 'build/joint.min.css':
@@ -156,10 +145,10 @@ module.exports = function(grunt) {
                     ),
                 'build/joint.nowrap.js':
                     [].concat(
-                        js.polyfills,
-                        js.geometry,
-                        js.vectorizer,
-                        js.core,
+                        polyfills,
+                        geometry,
+                        vectorizer,
+                        core.js,
                         allJSPlugins
                     ),
                 'build/joint.nowrap.min.js':

@@ -1,6 +1,8 @@
-const res = require('../resources');
-const js = res.js;
-const css = res.css;
+const plugins = require('../resources/plugins');
+const geometry = require('../resources/geometry');
+const vectorizer = require('../resources/vectorizer');
+const core = require('../resources/core');
+const polyfills = require('../resources/polyfills');
 
 module.exports = function(grunt) {
 
@@ -10,14 +12,9 @@ module.exports = function(grunt) {
     } : {};
 
     let allJSPlugins = [];
-    let allCSSPlugins = [];
 
-    Object.keys(js.plugins).forEach(function(name) {
-        allJSPlugins = allJSPlugins.concat(js.plugins[name]);
-    });
-
-    Object.keys(css.plugins).forEach(function(name) {
-        allCSSPlugins = allCSSPlugins.concat(css.plugins[name]);
+    Object.keys(plugins).forEach(function(name) {
+        allJSPlugins = allJSPlugins.concat(plugins[name]);
     });
 
     return {
@@ -30,13 +27,12 @@ module.exports = function(grunt) {
         },
         joint: {
             files: [].concat(
-                js.polyfills,
-                js.geometry,
-                js.vectorizer,
-                js.core,
+                polyfills,
+                geometry,
+                vectorizer,
+                core.js,
                 allJSPlugins,
-                css.core,
-                allCSSPlugins
+                core.css,
             ),
             options: watchOptions,
             tasks: ['build']

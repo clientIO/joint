@@ -1,12 +1,16 @@
-const js = require('../resources').js;
+const plugins = require('../resources/plugins');
+const geometry = require('../resources/geometry');
+const vectorizer = require('../resources/vectorizer');
+const core = require('../resources/core').js;
+const polyfills = require('../resources/polyfills');
 
 module.exports = function() {
 
     const config = {};
 
-    Object.keys(js.plugins).forEach(function(name) {
+    Object.keys(plugins).forEach(function(name) {
         config[name] = { files: {} };
-        config[name].files['build/min/joint.' + name + '.min.js'] = js.plugins[name];
+        config[name].files['build/min/joint.' + name + '.min.js'] = plugins[name];
     });
 
     return Object.assign({}, config, {
@@ -20,19 +24,19 @@ module.exports = function() {
             }
         },
         geometry: {
-            src: js.geometry,
+            src: geometry,
             dest: 'build/min/geometry.min.js'
         },
         joint: {
-            src: js.core,
+            src: core,
             dest: 'build/min/joint.min.js'
         },
         polyfills: {
-            src: js.polyfills,
+            src: polyfills,
             dest: 'build/min/polyfills.min.js'
         },
         vectorizer: {
-            src: js.vectorizer,
+            src: vectorizer,
             dest: 'build/min/vectorizer.min.js'
         }
     });

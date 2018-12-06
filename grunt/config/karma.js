@@ -1,11 +1,16 @@
-const js = require('../resources').js;
+const plugins = require('../resources/plugins');
+const geometry = require('../resources/geometry');
+const vectorizer = require('../resources/vectorizer');
+const core = require('../resources/core');
+const polyfills = require('../resources/polyfills');
+const dependecies = require('../resources/dependencies');
 
 module.exports = function(grunt) {
 
     let allJSPlugins = [];
 
-    Object.keys(js.plugins).forEach(function(name) {
-        allJSPlugins = allJSPlugins.concat(js.plugins[name]);
+    Object.keys(plugins).forEach(function(name) {
+        allJSPlugins = allJSPlugins.concat(plugins[name]);
     });
 
     function karmaBrowsers() {
@@ -63,37 +68,37 @@ module.exports = function(grunt) {
         geometry: {
             options: {
                 files: [
-                    js.geometry,
+                    geometry,
                     'test/geometry/*.js'
                 ],
-                preprocessors: karmaPreprocessors(js.geometry),
+                preprocessors: karmaPreprocessors(geometry),
                 coverageReporter: karmaCoverageReporters('geometry')
             },
         },
         vectorizer: {
             options: {
                 files: [
-                    js.geometry,
-                    js.vectorizer,
+                    geometry,
+                    vectorizer,
                     'test/vectorizer/*.js',
                 ],
-                preprocessors: karmaPreprocessors(js.vectorizer),
+                preprocessors: karmaPreprocessors(vectorizer),
                 coverageReporter: karmaCoverageReporters('vectorizer')
             }
         },
         joint: {
             options: {
                 files: [
-                    js.dependecies,
-                    js.geometry,
-                    js.vectorizer,
-                    js.polyfills,
-                    js.core,
+                    dependecies,
+                    geometry,
+                    vectorizer,
+                    polyfills,
+                    core.js,
                     allJSPlugins,
                     'test/utils.js',
                     'test/jointjs/**/*.js'
                 ],
-                preprocessors: karmaPreprocessors([].concat(js.core, allJSPlugins)),
+                preprocessors: karmaPreprocessors([].concat(core.js, allJSPlugins)),
                 coverageReporter: karmaCoverageReporters('joint')
             }
         }

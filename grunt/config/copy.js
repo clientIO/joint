@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
 
-    const banner = require('../banner')(grunt);
+    const banner = require('../resources/banner')(grunt);
 
     return {
         dist: {

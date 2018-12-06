@@ -1,4 +1,4 @@
-const e2eBrowsers = require('../resources').e2eBrowsers;
+const e2eBrowsers = require('../resources/e2eBrowsers');
 
 module.exports = function(grunt) {
 

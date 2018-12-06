@@ -1,21 +1,14 @@
-const css = require('../resources').css;
+const core = require('../resources/core');
 
 module.exports = function() {
 
     const config = {
         joint: {
             files: {
-                'build/min/joint.min.css':
-                    [].concat(css.core)
+                'build/min/joint.min.css': core.css
             }
         }
     };
-
-    Object.keys(css.plugins).forEach(function(name) {
-
-        config[name] = { files: {} };
-        config[name].files['build/min/joint.' + name + '.min.css'] = css.plugins[name];
-    });
 
     return config;
 };

@@ -3,7 +3,7 @@
 var path = require('path');
 module.exports = function(grunt) {
 
-    var utils = require('./grunt/utils')(grunt);
+    var utils = require('./grunt/resources/utils')(grunt);
 
     require('time-grunt')(grunt);
     require('load-grunt-config')(grunt, {

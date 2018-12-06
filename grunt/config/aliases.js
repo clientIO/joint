@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
 
-    const resources = require('../resources');
+    const plugins = require('../resources/plugins');
 
     return {
         'default': [
@@ -38,7 +38,6 @@ module.exports = function(grunt) {
         ],
         'build:plugins': [
             'uglify:plugins',
-            'cssmin:plugins',
             'concat:plugins'
         ],
         'build:bundles': [
@@ -50,9 +49,8 @@ module.exports = function(grunt) {
             'syntaxHighlighting:docs',
             'newer:copy:docs'
         ],
-        'concat:plugins': Object.keys(resources.js.plugins).map((name)=> 'newer:concat:' + name),
-        'uglify:plugins': Object.keys(resources.js.plugins).map((name)=> 'newer:uglify:' + name),
-        'cssmin:plugins': Object.keys(resources.css.plugins).map((name)=> 'newer:cssmin:' + name),
+        'concat:plugins': Object.keys(plugins).map((name)=> 'newer:concat:' + name),
+        'uglify:plugins': Object.keys(plugins).map((name)=> 'newer:uglify:' + name),
 
         // TESTS
         'test': [
