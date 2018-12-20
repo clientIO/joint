@@ -1,6 +1,0 @@
-<pre class="docs-method-signature"><code>polyline.closestPointTangent(point)</code></pre>
-<p>Return a line tangent to the polyline at the point that lies closest to <code>point</code>.</p>
-
-<p>The tangent line starts at the identified closest point. The direction from <code>start</code> to <code>end</code> is the same as the direction of the polyline segment at the identified point. If the identified closest point is a point of discontinuity (e.g. it is a point shared by two polyline segments with different slopes), the tangent line is constructed for the earlier segment (i.e. the segment closer to the beginning of the polyline).</p>
-
-<p>The algorithm ignores polyline segments that have zero length. If the polyline contains no valid segments (i.e. all polyline points are coincident), <code>null</code> is returned. If the polyline has fewer than two points (exclusive), <code>null</code> is returned, as well. The <code>polyline.isDifferentiable()</code> <a href="geometry.html#g.polyline.prototype.isDifferentiable">function</a> may be used in advance to determine whether the polyline contains at least one valid segment for wich a tangent may be found.</p>

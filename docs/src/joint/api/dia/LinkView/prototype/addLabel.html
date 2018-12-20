@@ -1,7 +1,7 @@
 <pre class="docs-method-signature"><code>linkView.addLabel(x, y [, opt])</code></pre>
-<p>Add a new <a href="joint.html#dia.Link.prototype.label">default label</a> to the link at the coordinates provided. If you need to add a label with custom markup or properties, use the <code>link.addLabel()</code> <a href="joint.html#dia.Link.prototype.addLabel">function</a> instead.</p>
+<p>Add a new <a href="#dia.Link.prototype.label">default label</a> to the link at the coordinates provided. If you need to add a label with custom markup or properties, use the <code>link.addLabel()</code> <a href="#dia.Link.prototype.addLabel">function</a> instead.</p>
 
-<p>This method uses the <code>linkView.getLabelPosition()</code> <a href="joint.html#dia.LinkView.prototype.getLabelPosition">function</a> to determine the new label's <code>position</code>. By default, <code>position.distance</code> is recorded relative to connection length (as a number in the <code>[0,1]</code> range), and <code>position.offset</code> is set relative to the connection (as a number). This behavior may be changed by providing an <code>opt</code> object with some of the accepted boolean flags:</p>
+<p>This method uses the <code>linkView.getLabelPosition()</code> <a href="#dia.LinkView.prototype.getLabelPosition">function</a> to determine the new label's <code>position</code>. By default, <code>position.distance</code> is recorded relative to connection length (as a number in the <code>[0,1]</code> range), and <code>position.offset</code> is set relative to the connection (as a number). This behavior may be changed by providing an <code>opt</code> object with some of the accepted boolean flags:</p>
 
 <ul>
     <li><code>absoluteDistance: true</code> records <code>distance</code> absolutely (as distance from beginning of link)</li>

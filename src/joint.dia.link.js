@@ -566,6 +566,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _V: null,
     _dragData: null, // deprecated
 
+    sourcePoint: null,
+    targetPoint: null,
+    sourceAnchor: null,
+    targetAnchor: null,
     metrics: null,
     decimalsRounding: 2,
 

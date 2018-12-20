@@ -1,8 +1,0 @@
-<pre class="docs-method-signature"><code>curve.toPoints([opt])</code></pre>
-<p>Return an array of points that approximate the curve at given precision.</p>
-
-<p>The points obtained are endpoints of curve subdivisions whose flattened length is up to the specified precision level away from actual curve length. Refer to <code>curve.length()</code> <a href="geometry.html#g.curve.prototype.length">documentation</a> for more information about precision and curve flattening.</p>
-
-<p>The default value for <code>opt.precision</code> is 3; this corresponds to maximum observed error of 0.1% in flattened curve length.</p>
-
-<p>Instead of <code>opt.precision</code>, the <code>opt.subdivisions</code> property may be specified, directly providing an array of pre-computed curve subdivisions from which to obtain the array of points. Use the <code>curve.getSubdivisions()</code> <a href="geometry.html#g.curve.prototype.getSubdivisions">function</a> to obtain an array of curve subdivisions.</p>

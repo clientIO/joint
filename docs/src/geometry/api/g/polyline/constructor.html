@@ -1,8 +1,0 @@
-<pre class="docs-method-signature"><code>g.Polyline(points)</code></pre>
-<p>Return a new polyline object with points given by the <code>points</code> array.</p>
-
-<p>The array can hold anything that can be understood by the Point constructor; Point objects, objects with <code>x</code> and <code>y</code> attributes, or strings in one of the two valid formats (<code>"x y"</code> or <code>"x@y"</code>). Array elements that cannot be understood as Points are replaced by 0,0 points.</p>
-
-<p>If <code>points</code> are not provided, an empty Polyline is created.</p>
-
-<p>Also accepts a polyline SVG string as an argument; then the <code>g.Polyline.parse()</code> <a href="geometry.html#g.polyline.parse">function</a> is used to generate points for the polyline.</p>

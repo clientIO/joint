@@ -2,7 +2,7 @@
 
 Many diagramming applications deal with elements with ports. Ports are usually displayed as circles inside diagram elements and are used not only as "sticky" points for connected links but they also further structure the linking information. It is common that certain elements have lists of input and output ports. A link might then point not to the element as a whole but to a certain port instead.
 
-It's easy to add ports to arbitrary shapes in JointJS. This can be done either by passing a ports definition as an `option` in the constructor or using the ports API to get/add/remove single or multiple ports. For more information on how to define ports please see [Port configuration](#portinterface) section.
+It's easy to add ports to arbitrary shapes in JointJS. This can be done either by passing a ports definition as an `option` in the constructor or using the ports API to get/add/remove single or multiple ports. For more information on how to define ports please see [Port configuration](#dia.Element.ports.interface) section.
 
 
 ##### Port API on `joint.dia.Element`
@@ -13,9 +13,9 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 [`removePorts`](#dia.Element.prototype.removePorts)
 * [`getPort`](#dia.Element.prototype.getPort) / [`getPorts`](#dia.Element.prototype.getPorts)
 * [`portProp`](#dia.Element.prototype.portProp)
-* [`getPortPositions`](#dia.Element.prototype.getPortPositions)
+* [`getPortsPositions`](#dia.Element.prototype.getPortsPositions)
 
-##### <a name="portinterface"></a> Port configuration
+##### <a name="dia.Element.ports.interface"></a> Port configuration
 
 ```javascript
 // Single port definition
