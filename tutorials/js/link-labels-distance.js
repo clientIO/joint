@@ -18,7 +18,7 @@
     var link = new joint.shapes.standard.Link();
     link.source(new g.Point(100, 110));
     link.target(new g.Point(500, 110));
-    link.vertices([new g.Point(300, 190)]);
+    link.vertices([{ x: 300, y: 190 }]);
     link.appendLabel({
         attrs: {
             text: {
