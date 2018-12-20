@@ -315,8 +315,12 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (arguments.length <= 1) return this.prop(['vertices', idx]);
+
         // setter
-        return this.prop(['vertices', idx], vertex, opt);
+        var setVertex = vertex;
+        var isPointProvided = vertex instanceof g.Point;
+        if (isPointProvided) setVertex = vertex.toJSON();
+        return this.prop(['vertices', idx], setVertex, opt);
     },
 
     vertices: function(vertices, opt) {
@@ -327,9 +331,18 @@ joint.dia.Link = joint.dia.Cell.extend({
             if (!Array.isArray(vertices)) return [];
             return vertices.slice();
         }
+
         // setter
         if (!Array.isArray(vertices)) vertices = [];
-        return this.set('vertices', vertices, opt);
+        var setVertices = [];
+        for (var i = 0; i < vertices.length; i++) {
+            var vertex = vertices[i];
+            var setVertex = vertex;
+            var isPointProvided = vertex instanceof g.Point;
+            if (isPointProvided) setVertex = vertex.toJSON();
+            setVertices.push(setVertex);
+        }
+        return this.set('vertices', setVertices, opt);
     },
 
     insertVertex: function(idx, vertex, opt) {
@@ -341,7 +354,11 @@ joint.dia.Link = joint.dia.Cell.extend({
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
 
-        vertices.splice(idx, 0, vertex);
+        var setVertex = vertex;
+        var isPointProvided = vertex instanceof g.Point;
+        if (isPointProvided) setVertex = vertex.toJSON();
+
+        vertices.splice(idx, 0, setVertex);
         return this.vertices(vertices, opt);
     },
 
