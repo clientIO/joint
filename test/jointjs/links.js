@@ -1616,7 +1616,7 @@ QUnit.module('links', function(hooks) {
 
             QUnit.test('getter', function(assert) {
                 var link = new joint.dia.Link();
-                assert.deepEqual(link.get('vertices'), []);
+                assert.deepEqual(link.get('vertices'), undefined);
                 assert.deepEqual(link.vertices(), []);
 
                 var link2 = new joint.dia.Link();
