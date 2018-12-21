@@ -159,7 +159,9 @@ joint.dia.Paper = joint.mvc.View.extend({
         cellViewNamespace: joint.shapes,
 
         // The namespace, where all the cell views are defined.
-        highlighterNamespace: joint.highlighters
+        highlighterNamespace: joint.highlighters,
+
+        sorting: 'pivots'
     },
 
     events: {
@@ -213,7 +215,8 @@ joint.dia.Paper = joint.mvc.View.extend({
             .listenTo(model, 'remove', this.removeView)
             .listenTo(model, 'reset', this.resetViews)
             .listenTo(model, 'sort', this._onSort)
-            .listenTo(model, 'batch:stop', this._onBatchStop);
+            .listenTo(model, 'batch:stop', this._onBatchStop)
+            .listenTo(model, 'change', this._onCellChange);
 
         this.on('cell:highlight', this.onCellHighlight)
             .on('cell:unhighlight', this.onCellUnhighlight)
@@ -221,6 +224,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // Hash of all cell views.
         this._views = {};
+        // z-index pivots
+        this._zPivots = {};
         // Reference to the paper owner document
         this.$document = $(this.el.ownerDocument);
     },
@@ -334,16 +339,109 @@ joint.dia.Paper = joint.mvc.View.extend({
     _sortDelayingBatches: ['add', 'to-front', 'to-back'],
 
     _onSort: function() {
-        if (!this.model.hasActiveBatch(this._sortDelayingBatches)) {
-            this.sortViews();
+        var sorting = this.options.sorting;
+        if (sorting === 'none' || sorting === 'pivots') return;
+        if (this.model.hasActiveBatch(this._sortDelayingBatches)) return;
+        this.sortViews();
+    },
+
+    _onCellChange: function(cell) {
+        if (cell === this.model.attributes.cells) return;
+        if (cell.hasChanged('z')) {
+            var cellView = this.findViewByModel(cell);
+            if (cellView) this.insertView(cellView);
         }
     },
 
     _onBatchStop: function(data) {
+        var sorting = this.options.sorting;
+        if (sorting === 'none' || sorting === 'pivots') return;
         var name = data && data.batchName;
-        if (this._sortDelayingBatches.includes(name) &&
-            !this.model.hasActiveBatch(this._sortDelayingBatches)) {
-            this.sortViews();
+        if (!this._sortDelayingBatches.includes(name) || this.model.hasActiveBatch(this._sortDelayingBatches)) return;
+        this.sortViews();
+    },
+
+    pendingElementsUpdates: {},
+    pendingLinksUpdates: {},
+
+    requestCellUpdate: function(cell, type) {
+        var updates = (cell.isLink()) ? this.pendingLinksUpdates : this.pendingElementsUpdates;
+        var id = cell.id;
+        var currentType = updates[id] || 0;
+        //if (currentType & type) return this;
+        updates[id] = currentType | type;
+        var links = this.model.getConnectedLinks(cell);
+        for (var i = 0, n = links.length; i < n; i++) {
+            this.requestCellUpdate(links[i], 32);
+        }
+        return this;
+    },
+
+    requestCellRemoval: function() {
+
+    },
+
+    awaitingCellUpdate: function(id) {
+        return this.pendingLinksUpdates[id] || this.pendingElementsUpdates[id] || 0;
+    },
+
+    asyncDumpId: null,
+
+    asyncDump: function() {
+        if (this.asyncDumpId) this.dump();
+        this.asyncDumpId = joint.util.nextFrame(this.asyncDump, this);
+    },
+
+    dumpCells: function(updates, batchSize) {
+        if (!updates) return;
+        var i = 0;
+        for (var id in updates) {
+            if (i >= batchSize) return i;
+            var view = this._views[id];
+            if (view) {
+                var type = updates[id];
+                //if (type <= 0) continue;
+                var viewportFn = this.options.viewport;
+                if (typeof viewportFn === 'function') {
+                    if (!viewportFn.call(this, view)) {
+                        view.vel.empty();
+                        updates[id] |= 64;
+                        continue;
+                    }
+                }
+                updates[id] = view.confirmUpdate(type);
+                i++;
+            }
+        }
+        return i;
+    },
+
+    dumpElements: function(batchSize) {
+        return this.dumpCells(this.pendingElementsUpdates, batchSize);
+    },
+
+    dumpLinks: function(batchSize) {
+        return this.dumpCells(this.pendingLinksUpdates, batchSize);
+    },
+
+    dump: function() {
+        var batchSize = Infinity;
+        var processed = this.dumpElements(batchSize);
+        if (batchSize > processed) this.dumpLinks(batchSize - processed);
+        this.insertViews();
+        // clean pivots
+    },
+
+    freeze: function() {
+        if (this.asyncDumpId) {
+            joint.util.cancelFrame(this.asyncDumpId);
+            this.asyncDumpId = null;
+        }
+    },
+
+    unfreeze: function() {
+        if (!this.asyncDumpId) {
+            this.asyncDump();
         }
     },
 
@@ -667,10 +765,18 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this._views[cell.id] = this.createViewForModel(cell);
 
-        this.viewport.appendChild(view.el);
+        switch (this.options.sorting) {
+            case 'pivots':
+                this.insertView(view);
+                break;
+            case 'exact':
+            default:
+                this.viewport.appendChild(view.el);
+                break;
+        }
+
         view.paper = this;
         view.render();
-
         return view;
     },
 
@@ -790,6 +896,42 @@ joint.dia.Paper = joint.mvc.View.extend({
 
             return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
         });
+    },
+
+
+    insertView: function(view) {
+        var z = view.model.get('z');
+        var pivot = this.addZPivot(z);
+        this.viewport.insertBefore(view.el, pivot);
+    },
+
+    zPivots: null,
+
+    addZPivot: function(z) {
+        z = +z;
+        z || (z = 0);
+        var pivots = this._zPivots;
+        var pivot = pivots[z];
+        if (pivot) return pivot;
+        pivot = pivots[z] = document.createComment('z-index:' + (z + 1));
+        var neighborZ = -Infinity;
+        for (var currentZ in pivots) {
+            currentZ = +currentZ;
+            if (currentZ < z && currentZ > neighborZ) {
+                neighborZ = currentZ;
+                if (neighborZ === z - 1) continue;
+            }
+        }
+        var viewport = this.viewport;
+        if (neighborZ !== -Infinity) {
+            var neighborPivot = pivots[neighborZ];
+            // Insert After
+            viewport.insertBefore(pivot, neighborPivot.nextSibling);
+        } else {
+            // First Child
+            viewport.insertBefore(pivot, viewport.firstChild);
+        }
+        return pivot;
     },
 
     MIN_SCALE: 1e-6,
