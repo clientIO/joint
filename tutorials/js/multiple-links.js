@@ -110,7 +110,7 @@
 
                     // we found the vertex
                     var angle = g.toRad(theta + (sign * reverse * 90));
-                    var vertex = g.Point.fromPolar(offset, angle, midPoint);
+                    var vertex = g.Point.fromPolar(offset, angle, midPoint).toJSON();
 
                     // replace vertices array with `vertex`
                     sibling.vertices([vertex]);

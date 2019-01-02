@@ -18,9 +18,7 @@
     var link = new joint.shapes.standard.Link();
     link.source(new g.Point(228.84550125020417, 100.76702664502545));
     link.target(new g.Point(416.2834258874138, 72.03741369165368));
-    link.vertices([
-        new g.Point(300, 150)
-    ]);
+    link.vertices([{ x: 300, y: 150 }]);
     link.attr({
         line: {
             sourceMarker: {

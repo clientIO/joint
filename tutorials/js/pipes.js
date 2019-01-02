@@ -32,7 +32,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         // make sure that pattern doesn't already exist
         if (!this.pattern) {
-            
+
             this.pattern = V(_.template(this.patternMarkup)({ id: this.id }));
             this.patternImage = this.pattern.findOne('image');
 
@@ -59,7 +59,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         this.pattern.remove();
     },
-    
+
     update: function() {
 
         joint.dia.LinkView.prototype.update.apply(this, arguments);
@@ -111,12 +111,12 @@ var PatternLinkView = joint.dia.LinkView.extend({
         for (var i=0, pointsCount = points.length - 1; i < pointsCount; i++) {
 
             ctx.save();
-            
+
             var gradientPoints = this.gradientPoints(points[i], points[i+1], strokeWidth);
             var gradient = ctx.createLinearGradient.apply(ctx, gradientPoints);
 
             this.drawPattern.call(this, ctx, points[i], points[i+1], strokeWidth, gradient);
-            
+
             ctx.restore();
         }
 
@@ -143,7 +143,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
     drawPattern: function(ctx, from, to, width, gradient) {
 
         var innerWidth = width - 4;
-        var outerWidth = width;            
+        var outerWidth = width;
         var buttFrom = g.point(from).move(to, -outerWidth / 2);
         var buttTo = g.point(to).move(from, -outerWidth / 2);
 
@@ -159,12 +159,12 @@ var PatternLinkView = joint.dia.LinkView.extend({
         gradient.addColorStop(0.000, 'rgba(86, 170, 255, 1)');
         gradient.addColorStop(0.500, 'rgba(255, 255, 255, 1)');
         gradient.addColorStop(1.000, 'rgba(86, 170, 255, 1)');
-        
+
         ctx.beginPath();
         ctx.lineWidth = innerWidth;
         ctx.strokeStyle = gradient;
         ctx.moveTo(from.x, from.y);
-        
+
         ctx.lineTo(to.x, to.y);
         ctx.stroke();
         ctx.closePath();
@@ -239,7 +239,7 @@ var link2 = link1.clone().prop({
     source: { id: rect1.id },
     target: { id: rect2.id },
     attrs: { '.connection': { 'stroke-width': 30 }},
-    vertices: [g.point(450,150)]
+    vertices: [{ x: 450, y: 150 }]
 });
 
 var link3 = link1.clone().prop({
