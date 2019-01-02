@@ -709,6 +709,16 @@ joint.dia.Cell = Backbone.Model.extend({
 
         if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
+    },
+
+    getChangeFlag: function(attributes) {
+        var flag = 0;
+        if (!attributes) return flag;
+        for (var key in attributes) {
+            if (!attributes.hasOwnProperty(key) || !this.hasChanged(key)) continue;
+            flag |= attributes[key];
+        }
+        return flag;
     }
 
 }, {
@@ -778,17 +788,22 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
+        var model = this.model;
+
         joint.util.bindAll(this, 'remove', 'update');
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
         // Add the cell's type to the view's element as a data attribute.
-        this.$el.attr('data-type', this.model.get('type'));
+        this.$el.attr('data-type', model.get('type'));
 
-        this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
+        this.listenTo(model, 'change', this.onAttributesChange);
     },
 
+    onAttributesChange: function() {
+        // to be overriden
+    },
 
     parseDOMJSON: function(markup, root) {
 
@@ -807,17 +822,17 @@ joint.dia.CellView = joint.mvc.View.extend({
         return { fragment: doc.fragment, selectors: selectors };
     },
 
-    onChangeAttrs: function(cell, attrs, opt) {
+    // onChangeAttrs: function(cell, attrs, opt) {
 
-        if (opt.dirty) {
+    //     if (opt.dirty) {
 
-            // dirty flag could be set when a model attribute was removed and it needs to be cleared
-            // also from the DOM element. See cell.removeAttr().
-            return this.render();
-        }
+    //         // dirty flag could be set when a model attribute was removed and it needs to be cleared
+    //         // also from the DOM element. See cell.removeAttr().
+    //         return this.render();
+    //     }
 
-        return this.update(cell, attrs, opt);
-    },
+    //     return this.update(cell, attrs, opt);
+    // },
 
     // Return `true` if cell link is allowed to perform a certain UI `feature`.
     // Example: `can('vertexMove')`, `can('labelMove')`.

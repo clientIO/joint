@@ -386,6 +386,13 @@ joint.dia.Element = joint.dia.Cell.extend({
     }
 });
 
+var FLAG_RENDER = 1;
+var FLAG_UPDATE = 2;
+var FLAG_TRANSLATE = 4;
+var FLAG_ROTATE = 8;
+var FLAG_RESIZE = 16; // ?
+var FLAG_PORTS = 32;
+
 // joint.dia.Element base view and controller.
 // -------------------------------------------
 
@@ -421,17 +428,53 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
         joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-        var model = this.model;
-
-        this.listenTo(model, 'change:position', this.translate);
-        this.listenTo(model, 'change:size', this.resize);
-        this.listenTo(model, 'change:angle', this.rotate);
-        this.listenTo(model, 'change:markup', this.render);
-
-        this._initializePorts();
+        // this._initializePorts();
 
         this.metrics = {};
     },
+
+    presentationAttributes: {
+        'attrs': FLAG_UPDATE,
+        'position': FLAG_TRANSLATE,
+        'size': FLAG_UPDATE, // resize
+        'angle': FLAG_ROTATE,
+        'markup': FLAG_RENDER,
+        'ports': FLAG_PORTS
+    },
+
+    onAttributesChange: function(model, opt) {
+        var flag = model.getChangeFlag(this.presentationAttributes);
+        if (!flag) return;
+        if (paper.renderer) {
+            // todo: dry flag
+            return paper.rendered.schedule(flag);
+        }
+        this.flagUpdate(flag, opt);
+        // todo: ports
+    },
+
+    flagUpdate: function(flag, opt) {
+        if (flag & FLAG_RENDER) {
+            this.render();
+            return;
+        }
+        if (flag & FLAG_UPDATE) {
+            if (opt.dirty) {
+                this.render();
+            } else {
+                this.update(model, null, opt);
+            }
+            flag ^= FLAG_UPDATE;
+        }
+        if (flag & FLAG_TRANSLATE) {
+            this.translate();
+            flag ^= FLAG_TRANSLATE;
+        }
+        if (flag & FLAG_ROTATE) {
+            this.rotate();
+            flag ^= FLAG_ROTATE;
+        }
+    }
 
     /**
      * @abstract
