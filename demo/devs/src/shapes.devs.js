@@ -7,11 +7,12 @@ var paper = new joint.dia.Paper({
     height: 400,
     gridSize: 1,
     model: graph,
-    snapLinks: true,
+    // snapLinks: true,
     linkPinning: false,
     embeddingMode: true,
     clickThreshold: 5,
     defaultConnectionPoint: { name: 'boundary' },
+    defaultAnchor: { name: 'modelCenter' },
     highlighting: {
         'default': {
             name: 'stroke',
@@ -137,3 +138,31 @@ toggleDelegation(a1);
 function toggleDelegation(element) {
     element.attr(strokeDasharrayPath, element.attr(strokeDasharrayPath) ? '' : '15,1');
 }
+
+
+// var ngRect = new joint.shapes.standard.Rectangle({
+//     size: { width: 300, height: 300 },
+//     position: { x: 50, y: 50 },
+//     attrs: {
+//         body: {
+//             strokeWidth: 10,
+//             fill: 'none'
+//         }
+//     }
+// });
+
+// ngRect.addTo(graph);
+
+
+// paper.options.viewport = function(view) {
+//     var model = view.model;
+//     if (model === ngRect) return true;
+//     if (model.isElement()) return ngRect.getBBox().intersect(view.model.getBBox());
+//     var path = view.getConnection();
+//     if (!path) {
+//         view.updateConnection();
+//         path = view.getConnection();
+//     }
+//     return ngRect.getBBox().intersect(path.bbox());
+//     //return !this.awaitingCellUpdate(model.attributes.source.id) && !this.awaitingCellUpdate(model.attributes.target.id);
+// };

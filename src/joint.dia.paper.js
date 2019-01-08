@@ -161,7 +161,22 @@ joint.dia.Paper = joint.mvc.View.extend({
         // The namespace, where all the cell views are defined.
         highlighterNamespace: joint.highlighters,
 
-        sorting: 'pivots'
+        sorting: 'pivots',
+
+        rendering: 'async',
+
+        onViewUpdate: function(view, flag, priority) {
+            if (view instanceof joint.dia.CellView) {
+                var links = this.model.getConnectedLinks(view.model, { deep: true });
+                for (var j = 0, n = links.length; j < n; j++) {
+                    var linkView = this.findViewByModel(links[j]);
+                    // TODO: prevent cycling
+                    if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE || linkView.FLAG_SOURCE || linkView.FLAG_TARGET, 1);
+                }
+            }
+        },
+
+        viewport: null
     },
 
     events: {
@@ -210,9 +225,10 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.cloneOptions();
         this.render();
         this.setDimensions();
+        this.unfreeze();
 
         this.listenTo(model, 'add', this.onCellAdded)
-            .listenTo(model, 'remove', this.removeView)
+            .listenTo(model, 'remove', this.onCellRemoved)
             .listenTo(model, 'reset', this.resetViews)
             .listenTo(model, 'sort', this._onSort)
             .listenTo(model, 'batch:stop', this._onBatchStop)
@@ -228,6 +244,12 @@ joint.dia.Paper = joint.mvc.View.extend({
         this._zPivots = {};
         // Reference to the paper owner document
         this.$document = $(this.el.ownerDocument);
+
+        this._updates = [{}, {}, {}];
+    },
+
+    onCellRemoved: function(cell) {
+        this.requestViewUpdate(this.findViewByModel(cell), 256, 0);
     },
 
     cloneOptions: function() {
@@ -361,92 +383,112 @@ joint.dia.Paper = joint.mvc.View.extend({
         this.sortViews();
     },
 
-    pendingElementsUpdates: {},
-    pendingLinksUpdates: {},
+    _updates: null,
+    _asyncDumpId: null,
 
-    requestCellUpdate: function(cell, type) {
-        var updates = (cell.isLink()) ? this.pendingLinksUpdates : this.pendingElementsUpdates;
-        var id = cell.id;
-        var currentType = updates[id] || 0;
-        //if (currentType & type) return this;
-        updates[id] = currentType | type;
-        var links = this.model.getConnectedLinks(cell);
-        for (var i = 0, n = links.length; i < n; i++) {
-            this.requestCellUpdate(links[i], 32);
+    requestViewUpdate: function(view, flag, priority, opt) {
+
+        this.scheduleViewUpdate(view, flag, priority, opt);
+
+        switch (this.options.rendering) {
+            case 'async':
+                break;
+            default:
+                this.dumpViews(opt);
+                break;
         }
-        return this;
     },
 
-    requestCellRemoval: function() {
-
+    scheduleViewUpdate: function(view, type, priority) {
+        var priorityUpdates = this._updates[priority];
+        if (!priorityUpdates) priorityUpdates = this._updates[priority] = {};
+        var currentType = priorityUpdates[view.cid];
+        // prevent cycling?
+        if ((currentType & type) === type) return;
+        priorityUpdates[view.cid] |= type;
+        var viewUpdateFn = this.options.onViewUpdate;
+        if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, priority);
     },
 
-    awaitingCellUpdate: function(id) {
-        return this.pendingLinksUpdates[id] || this.pendingElementsUpdates[id] || 0;
-    },
-
-    asyncDumpId: null,
-
-    asyncDump: function() {
-        if (this.asyncDumpId) this.dump();
-        this.asyncDumpId = joint.util.nextFrame(this.asyncDump, this);
-    },
-
-    dumpCells: function(updates, batchSize) {
-        if (!updates) return;
+    dumpViews: function(opt) {
+        var batchSize = Infinity;
         var i = 0;
-        for (var id in updates) {
-            if (i >= batchSize) return i;
-            var view = this._views[id];
-            if (view) {
-                var type = updates[id];
-                //if (type <= 0) continue;
+        for (var priority = 0; priority <= 2; priority++) {
+            i++;
+            if (i > batchSize) break;
+            var priorityUpdates = this._updates[priority];
+            for (var cid in priorityUpdates) {
+                var view = joint.mvc.views[cid];
                 var viewportFn = this.options.viewport;
                 if (typeof viewportFn === 'function') {
                     if (!viewportFn.call(this, view)) {
-                        view.vel.empty();
-                        updates[id] |= 64;
+                        view.vel.remove();
+                        priorityUpdates[cid] |= 128;
                         continue;
                     }
                 }
-                updates[id] = view.confirmUpdate(type);
-                i++;
+                var type = priorityUpdates[cid] = this.dumpView(view, priorityUpdates[cid], opt);
+                if (type === 0) delete priorityUpdates[cid];
             }
         }
-        return i;
     },
 
-    dumpElements: function(batchSize) {
-        return this.dumpCells(this.pendingElementsUpdates, batchSize);
+    dumpView: function(view, flag, opt) {
+        if (!view) return;
+        if (flag & 256) {
+            this.removeView(view.model);
+            return 0;
+        }
+        if (flag & 128) this.insertView(view);
+        flag ^= 128;
+        return view.confirmUpdate(flag, opt || {});
     },
 
-    dumpLinks: function(batchSize) {
-        return this.dumpCells(this.pendingLinksUpdates, batchSize);
-    },
-
-    dump: function() {
-        var batchSize = Infinity;
-        var processed = this.dumpElements(batchSize);
-        if (batchSize > processed) this.dumpLinks(batchSize - processed);
-        this.insertViews();
-        // clean pivots
+    asyncDump: function() {
+        if (this._asyncDumpId) this.dumpViews();
+        this._asyncDumpId = joint.util.nextFrame(this.asyncDump, this);
     },
 
     freeze: function() {
-        if (this.asyncDumpId) {
-            joint.util.cancelFrame(this.asyncDumpId);
-            this.asyncDumpId = null;
-        }
+        if (!this._asyncDumpId) return;
+        joint.util.cancelFrame(this._asyncDumpId);
+        this._asyncDumpId = null;
     },
 
     unfreeze: function() {
-        if (!this.asyncDumpId) {
-            this.asyncDump();
-        }
+        if (this._asyncDumpId) return;
+        this.asyncDump();
     },
+
+
+
+    // dumpCells: function(updates, batchSize) {
+    //     if (!updates) return;
+    //     var i = 0;
+    //     for (var id in updates) {
+    //         if (i >= batchSize) return i;
+    //         var view = this._views[id];
+    //         if (view) {
+    //             var type = updates[id];
+    //             //if (type <= 0) continue;
+    //             var viewportFn = this.options.viewport;
+    //             if (typeof viewportFn === 'function') {
+    //                 if (!viewportFn.call(this, view)) {
+    //                     view.vel.empty();
+    //                     updates[id] |= 64;
+    //                     continue;
+    //                 }
+    //             }
+    //             updates[id] = view.confirmUpdate(type);
+    //             i++;
+    //         }
+    //     }
+    //     return i;
+    // },
 
     onRemove: function() {
 
+        this.freeze();
         //clean up all DOM elements/views to prevent memory leaks
         this.removeViews();
     },
@@ -765,18 +807,19 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         var view = this._views[cell.id] = this.createViewForModel(cell);
 
-        switch (this.options.sorting) {
-            case 'pivots':
-                this.insertView(view);
-                break;
-            case 'exact':
-            default:
-                this.viewport.appendChild(view.el);
-                break;
-        }
+        // switch (this.options.sorting) {
+        //     case 'pivots':
+        //         this.insertView(view);
+        //         break;
+        //     case 'exact':
+        //     default:
+        //         this.viewport.appendChild(view.el);
+        //         break;
+        // }
 
         view.paper = this;
-        view.render();
+        //this.requestViewUpdate(view, view.FLAG_INIT, 0);
+        this.requestViewUpdate(view, 128 | view.FLAG_INIT, 0);
         return view;
     },
 
