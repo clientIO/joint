@@ -109,12 +109,12 @@ joint.mvc.View = Backbone.View.extend({
 
     init: function() {
         // Intentionally empty.
-        // This method is meant to be overriden.
+        // This method is meant to be overridden.
     },
 
     onRender: function() {
         // Intentionally empty.
-        // This method is meant to be overriden.
+        // This method is meant to be overridden.
     },
 
     setTheme: function(theme, opt) {
@@ -167,7 +167,7 @@ joint.mvc.View = Backbone.View.extend({
 
     onSetTheme: function(oldTheme, newTheme) {
         // Intentionally empty.
-        // This method is meant to be overriden.
+        // This method is meant to be overridden.
     },
 
     remove: function() {
@@ -184,7 +184,7 @@ joint.mvc.View = Backbone.View.extend({
 
     onRemove: function() {
         // Intentionally empty.
-        // This method is meant to be overriden.
+        // This method is meant to be overridden.
     },
 
     getEventNamespace: function() {

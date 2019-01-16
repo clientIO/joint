@@ -4452,7 +4452,7 @@ function extend(obj) {
     // - Therefore, to continue with the example above:
     //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
     //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
-    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overriden methods from `g.GeometryObject.prototype`.
+    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
     //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
     // - Multiple inheritance is also possible, if multiple arguments are provided.
     // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?

@@ -457,7 +457,7 @@
         // 'ref-width'/'ref-height' defines the width/height of the subelement relatively to
         // the reference element size
         // val in 0..1         ref-width = 0.75 sets the width to 75% of the ref. el. width
-        // val < 0 || val > 1  ref-height = -20 sets the height to the the ref. el. height shorter by 20
+        // val < 0 || val > 1  ref-height = -20 sets the height to the ref. el. height shorter by 20
 
         refWidth: {
             set: setWrapper('width', 'width')
