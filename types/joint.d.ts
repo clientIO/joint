@@ -2355,6 +2355,8 @@ export namespace mvc {
 
         constructor(opt?: ViewOptions<T>);
 
+        options: ViewOptions<T>;
+
         theme: string;
 
         themeClassNamePrefix: string
