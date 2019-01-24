@@ -78,7 +78,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
         if (!options || !options.id) {
 
-            this.set('id', joint.util.uuid(), { silent: true });
+            this.set('id', this.generateId(), { silent: true });
         }
 
         this._transitionIds = {};
@@ -86,6 +86,10 @@ joint.dia.Cell = Backbone.Model.extend({
         // Collect ports defined in `attrs` and keep collecting whenever `attrs` object changes.
         this.processPorts();
         this.on('change:attrs', this.processPorts, this);
+    },
+
+    generateId: function() {
+        return joint.util.uuid();
     },
 
     /**
@@ -425,7 +429,7 @@ joint.dia.Cell = Backbone.Model.extend({
 
             var clone = Backbone.Model.prototype.clone.apply(this, arguments);
             // We don't want the clone to have the same ID as the original.
-            clone.set('id', joint.util.uuid());
+            clone.set('id', this.generateId());
             // A shallow cloned element does not carry over the original embeds.
             clone.unset('embeds');
             // And can not be embedded in any cell

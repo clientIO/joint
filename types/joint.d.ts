@@ -221,6 +221,8 @@ export namespace dia {
 
         graph: Graph;
 
+        protected generateId(): string | number;
+
         toJSON(): any;
 
         remove(opt?: Cell.DisconnectableOptions): this;
@@ -394,6 +396,8 @@ export namespace dia {
         getPortIndex(port: string | Element.Port): number;
 
         portProp(portId: string, path: any, value?: any, opt?: Cell.Options): Element;
+
+        protected generatePortId(): string | number;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Element>;
     }
