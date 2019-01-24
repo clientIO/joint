@@ -701,18 +701,20 @@ export namespace dia {
         interface VertexOptions extends Cell.Options {
 
         }
-    }
 
-    class LinkView extends CellViewGeneric<Link> {
-
-        options: {
+        interface Options extends mvc.ViewOptions<Link> {
             shortLinkLength?: number,
             doubleLinkTools?: boolean,
             longLinkLength?: number,
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
             sampleInterval?: number
-        };
+        }
+    }
+
+    class LinkView extends CellViewGeneric<Link> {
+
+        options: LinkView.Options;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
@@ -1101,7 +1103,7 @@ export namespace dia {
 
     namespace ToolsView {
 
-        interface Options {
+        interface Options extends mvc.ViewOptions<undefined> {
             tools?: dia.ToolView[];
             name?: string | null;
             relatedView?: dia.CellView;
