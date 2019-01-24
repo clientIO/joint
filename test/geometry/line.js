@@ -151,6 +151,136 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('divideAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                var lineDivide;
+
+                lineDivide = line.divideAt(0.5); // normal
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAt(0); // minimum
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAt(-1); // too little
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAt(1); // maximum
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAt(10); // too much
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+            });
+
+            QUnit.test('returns an array with two curves, divided at provided `ratio`', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                var lineDivide;
+
+                lineDivide = line.divideAt(0.5);
+                assert.equal(lineDivide[0].toString(), '10@0 15@0');
+                assert.equal(lineDivide[1].toString(), '15@0 20@0');
+
+                lineDivide = line.divideAt(0);
+                assert.equal(lineDivide[0].toString(), '10@0 10@0');
+                assert.equal(lineDivide[1].toString(), '10@0 20@0');
+
+                lineDivide = line.divideAt(-1);
+                assert.equal(lineDivide[0].toString(), '10@0 10@0');
+                assert.equal(lineDivide[1].toString(), '10@0 20@0');
+
+                lineDivide = line.divideAt(1);
+                assert.equal(lineDivide[0].toString(), '10@0 20@0');
+                assert.equal(lineDivide[1].toString(), '20@0 20@0');
+
+                lineDivide = line.divideAt(10);
+                assert.equal(lineDivide[0].toString(), '10@0 20@0');
+                assert.equal(lineDivide[1].toString(), '20@0 20@0');
+            });
+        });
+
+        QUnit.module('divideAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                var lineDivide;
+
+                lineDivide = line.divideAtLength(5); // normal
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAtLength(-5); // normal negative
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAtLength(0); // minimum
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAtLength(100); // too much
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+
+                lineDivide = line.divideAtLength(-100); // too much negative
+                assert.ok(Array.isArray(lineDivide));
+                assert.equal(lineDivide.length, 2);
+                assert.ok(lineDivide[0] instanceof g.Line);
+                assert.ok(lineDivide[1] instanceof g.Line);
+            });
+
+            QUnit.test('returns an array with two curves, divided at provided `length`', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                var lineDivide;
+
+                lineDivide = line.divideAtLength(5);
+                assert.equal(lineDivide[0].toString(), '10@0 15@0');
+                assert.equal(lineDivide[1].toString(), '15@0 20@0');
+
+                lineDivide = line.divideAtLength(-5);
+                assert.equal(lineDivide[0].toString(), '10@0 15@0');
+                assert.equal(lineDivide[1].toString(), '15@0 20@0');
+
+                lineDivide = line.divideAtLength(0);
+                assert.equal(lineDivide[0].toString(), '10@0 10@0');
+                assert.equal(lineDivide[1].toString(), '10@0 20@0');
+
+                lineDivide = line.divideAtLength(100);
+                assert.equal(lineDivide[0].toString(), '10@0 20@0');
+                assert.equal(lineDivide[1].toString(), '20@0 20@0');
+
+                lineDivide = line.divideAtLength(-100);
+                assert.equal(lineDivide[0].toString(), '10@0 10@0');
+                assert.equal(lineDivide[1].toString(), '10@0 20@0');
+            });
+        });
+
         QUnit.module('equals()', function() {
 
             QUnit.test('checks whether two lines are exactly the same', function(assert) {
