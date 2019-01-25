@@ -1390,7 +1390,7 @@ joint.dia.CellView = joint.mvc.View.extend({
                 // we need to take the rotatable node transformation into account
                 var vRotatable = V(rotatableNode);
                 if (vRotatable.contains(refNode) && !vRotatable.contains(node)) {
-                    if (!rotatableMatrix) rotatableMatrix = V.transformStringToMatrix(rotatableNode.attr('transform'));
+                    if (!rotatableMatrix) rotatableMatrix = V.transformStringToMatrix(vRotatable.attr('transform'));
                     refBBox = V.transformRect(unrotatedRefBBox, rotatableMatrix);
                 }
             }
