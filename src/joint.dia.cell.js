@@ -1353,6 +1353,7 @@ joint.dia.CellView = joint.mvc.View.extend({
             }
         }
 
+        var rotatedRefBBox, unrotatedRefBBox, refBBox;
         for (var i = 0, n = relativeItems.length; i < n; i++) {
             item = relativeItems[i];
             node = item.node;
@@ -1360,14 +1361,15 @@ joint.dia.CellView = joint.mvc.View.extend({
 
             // Find the reference element bounding box. If no reference was provided, we
             // use the optional bounding box.
+            var rotatableNode = opt.rotatableNode;
             var refNodeId = refNode ? V.ensureId(refNode) : '';
-            var refBBox = bboxCache[refNodeId];
-            if (!refBBox) {
+            unrotatedRefBBox = bboxCache[refNodeId];
+            if (!unrotatedRefBBox) {
                 // Get the bounding box of the reference element relative to the `rotatable` `<g>` (without rotation)
                 // or to the root `<g>` element if no rotatable group present if reference node present.
                 // Uses the bounding box provided.
-                refBBox = bboxCache[refNodeId] = (refNode)
-                    ? V(refNode).getBBox({ target: (opt.rotatableNode || rootNode) })
+                unrotatedRefBBox = bboxCache[refNodeId] = (refNode)
+                    ? V(refNode).getBBox({ target: (rotatableNode || rootNode) })
                     : opt.rootBBox;
             }
 
@@ -1380,6 +1382,20 @@ joint.dia.CellView = joint.mvc.View.extend({
 
             } else {
                 processedAttrs = item.processedAttributes;
+            }
+
+            refBBox = unrotatedRefBBox;
+            if (rotatableNode && refNode) {
+                // if the referenced node is inside the rotatable while the updated node is outside,
+                // we need to take the rotatable node transformation into account
+                var vRotatable = V(rotatableNode);
+                if (vRotatable.contains(refNode) && !vRotatable.contains(node)) {
+                    if (!rotatedRefBBox) {
+                        var rotatableMatrix = V.transformStringToMatrix(rotatableNode.attr('transform'));
+                        rotatedRefBBox = V.transformRect(unrotatedRefBBox, rotatableMatrix);
+                    }
+                    refBBox = rotatedRefBBox;
+                }
             }
 
             this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
