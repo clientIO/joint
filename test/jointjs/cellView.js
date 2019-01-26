@@ -300,7 +300,6 @@ QUnit.module('cellView', function(hooks) {
 
             QUnit.test('With Ref and Rotatable Group', function(assert) {
                 var REF_DY = 10;
-                //cell.set('angle', 45);
                 cell.set('markup', [{
                     tagName: 'g',
                     selector: 'rotatable',
