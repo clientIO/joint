@@ -535,7 +535,13 @@ joint.dia.ElementView = joint.dia.CellView.extend({
 
     rotate: function() {
 
-        if (this.rotatableNode) return this.rgRotate();
+        if (this.rotatableNode) {
+            this.rgRotate();
+            // It's necessary to call the update for the nodes outside
+            // the rotatable group referencing nodes inside the group
+            this.update();
+            return;
+        }
         this.updateTransformation();
     },
 

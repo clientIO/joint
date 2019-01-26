@@ -10,8 +10,9 @@ QUnit.module('cellView', function(hooks) {
         // !! TODO !!
         // Should be able to create a CellView instance without the graph or paper.
 
+        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
         paper = new joint.dia.Paper;
-        paper.render().$el.appendTo('#qunit-fixture');
+        paper.render().$el.appendTo($fixture);
 
         var cell = new joint.dia.Element({
             type: 'element',
@@ -295,6 +296,47 @@ QUnit.module('cellView', function(hooks) {
 
                 assert.deepEqual(rectA.bbox().toString(), '10@10 110@110');
                 assert.deepEqual(rectB.bbox().toString(), '60@60 110@110');
+            });
+
+            QUnit.test('With Ref and Rotatable Group', function(assert) {
+                var REF_DY = 10;
+                //cell.set('angle', 45);
+                cell.set('markup', [{
+                    tagName: 'g',
+                    selector: 'rotatable',
+                    children: [{
+                        tagName: 'rect',
+                        selector: '.a',
+                        className: 'a'
+                    }]
+                }, {
+                    tagName: 'rect',
+                    selector: '.b',
+                    className: 'b'
+                }]);
+                cell.attr({
+                    '.a': {
+                        width: 100,
+                        height: 100,
+                        x: 0,
+                        y: 0
+                    },
+                    '.b': {
+                        width: 50,
+                        height: 50,
+                        ref: '.a',
+                        refDy: REF_DY,
+                        refX: 0.5
+                    }
+                });
+                cell.set('angle', 45);
+
+                rectA = cellView.vel.findOne('.a');
+                rectB = cellView.vel.findOne('.b');
+                var bboxA = rectA.getBBox({ target: paper.svg });
+                var bboxB = rectB.getBBox({ target: paper.svg });
+
+                assert.equal(Math.round(bboxB.y - bboxA.y - bboxA.height), REF_DY);
             });
 
             QUnit.test('Position stacking', function(assert) {
