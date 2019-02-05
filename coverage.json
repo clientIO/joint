@@ -1,0 +1,26 @@
+{
+    "joint": {
+        "global": {
+            "statements": 72,
+            "branches": 66,
+            "functions": 71,
+            "lines": 73
+        }
+    },
+    "vectorizer": {
+        "global": {
+            "statements": 73,
+            "branches": 62,
+            "functions": 74,
+            "lines": 74
+        }
+    },
+    "geometry": {
+        "global": {
+            "statements": 81,
+            "branches": 78,
+            "functions": 75,
+            "lines": 82
+        }
+    }
+}

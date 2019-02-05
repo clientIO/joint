@@ -1,6 +1,8 @@
 # JointJS - JavaScript diagramming library
 
 [![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)
+[![Code Quality: Javascript](https://img.shields.io/lgtm/grade/javascript/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/context:javascript)
+[![Total Alerts](https://img.shields.io/lgtm/alerts/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/alerts)
 
 JointJS is a JavaScript diagramming library. It can be used to create either static diagrams or, and more
 importantly, fully interactive diagramming tools and application builders.
@@ -30,13 +32,15 @@ Please see [http://jointjs.com](http://jointjs.com) for more information, demos 
 
 ## Supported browsers
 
-Only the good ones (those that support SVG):
-
 * Latest Google Chrome (including mobile)
 * Latest Firefox
-* Safari (including mobile)
-* IE 9+
+* Latest Safari (including mobile)
+* Latest MSEdge
+* Latest Opera
+* IE 10+
+* PhantomJS
 
+Any problem with JointJS in the above browsers should be reported as a bug in JointJS.
 
 ## Development Environment
 
@@ -47,7 +51,6 @@ If you want to work on JointJS locally, use the following guidelines to get star
 Make sure you have the following dependencies installed on your system:
 * [Node.js](https://nodejs.org/)
 * [grunt-cli](http://gruntjs.com/using-the-cli)
-* [bower](http://bower.io/)
 * git
 
 ### Setup
@@ -65,9 +68,8 @@ cd joint
 Run installation
 ```
 npm install
-bower install
 ```
-This will install all npm and bower dependencies as well as run a full build.
+This will install all npm dependencies as well as run a full build.
 
 ### Tests
 
@@ -91,14 +93,19 @@ To run code style checks:
 grunt test:code-style
 ```
 
+### Code Coverage Reports
 
-### Code Coverage
+To output a code coverage report in HTML:
+```
+grunt test:coverage"
+```
 
-To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php) for all unit tests:
+To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
 ```
 grunt test:coverage --reporter="lcov"
 ```
-The output will be saved to a new file named `coverage.info` at the root of the project directory.
+
+The output for all unit tests will be saved in the `coverage` directory.
 
 
 ### Building Distribution Files

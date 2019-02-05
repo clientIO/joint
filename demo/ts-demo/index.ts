@@ -26,7 +26,7 @@ const paper = new joint.dia.Paper({
 let rect = new joint.shapes.standard.Rectangle()
     .position(40, 20)
     .size(100, 100)
-    .addTo(graph)
+    .addTo(graph);
 
 // declare a new shape using the `define`
 const Circle = joint.shapes.standard.Circle.define('CustomCircle', {

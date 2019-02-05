@@ -6,12 +6,11 @@ var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 695,
     height: 600,
-    gridSize: 1,
     model: graph,
     linkPinning: false,
-    linkConnectionPoint: function(linkView, elementView, magnet, reference) {
-        var element = elementView.model;
-        return element.getConnectionPoint(reference) || element.getBBox().center();
+    defaultConnectionPoint: function(line, view) {
+        var element = view.model;
+        return element.getConnectionPoint(line.start) || element.getBBox().center();
     }
 });
 
@@ -61,23 +60,23 @@ erd.Entity.prototype.getConnectionPoint = function(referencePoint) {
 erd.Relationship.prototype.getConnectionPoint = function(referencePoint) {
     // Intersection with a rhomb
     var bbox = this.getBBox();
-    var line = g.Line(bbox.center(), referencePoint);
+    var line = new g.Line(bbox.center(), referencePoint);
     return (
-        line.intersection(g.Line(bbox.topMiddle(), bbox.leftMiddle())) ||
-        line.intersection(g.Line(bbox.leftMiddle(), bbox.bottomMiddle())) ||
-        line.intersection(g.Line(bbox.bottomMiddle(), bbox.rightMiddle())) ||
-        line.intersection(g.Line(bbox.rightMiddle(), bbox.topMiddle()))
+        line.intersection(new g.Line(bbox.topMiddle(), bbox.leftMiddle())) ||
+        line.intersection(new g.Line(bbox.leftMiddle(), bbox.bottomMiddle())) ||
+        line.intersection(new g.Line(bbox.bottomMiddle(), bbox.rightMiddle())) ||
+        line.intersection(new g.Line(bbox.rightMiddle(), bbox.topMiddle()))
     );
 };
 
 erd.ISA.prototype.getConnectionPoint = function(referencePoint) {
     // Intersection with a triangle
     var bbox = this.getBBox();
-    var line = g.Line(bbox.center(), referencePoint);
+    var line = new g.Line(bbox.center(), referencePoint);
     return (
-        line.intersection(g.Line(bbox.origin(), bbox.topRight())) ||
-        line.intersection(g.Line(bbox.origin(), bbox.bottomMiddle())) ||
-        line.intersection(g.Line(bbox.topRight(), bbox.bottomMiddle()))
+        line.intersection(new g.Line(bbox.origin(), bbox.topRight())) ||
+        line.intersection(new g.Line(bbox.origin(), bbox.bottomMiddle())) ||
+        line.intersection(new g.Line(bbox.topRight(), bbox.bottomMiddle()))
     );
 };
 
@@ -89,13 +88,7 @@ paper.off('cell:highlight cell:unhighlight');
 paper.on('cell:highlight', function(cellView) {
 
     var padding = 5;
-
-    var bbox = g.rect(cellView.getBBox({ useModelGeometry: true })).moveAndExpand({
-        x: -padding,
-        y: -padding,
-        width: 2 * padding,
-        height: 2 * padding
-    });
+    var bbox = cellView.getBBox({ useModelGeometry: true }).inflate(padding);
 
     highlighter.translate(bbox.x, bbox.y, { absolute: true });
     highlighter.attr('d', cellView.model.getHighlighterPath(bbox.width, bbox.height));
@@ -117,10 +110,15 @@ var employee = new erd.Entity({
         text: {
             fill: '#ffffff',
             text: 'Employee',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
-        '.outer, .inner': {
+        '.outer': {
+            fill: '#31d0c6',
+            stroke: 'none',
+            filter: { name: 'dropShadow',  args: { dx: 0.5, dy: 2, blur: 2, color: '#333333' }}
+        },
+        '.inner': {
             fill: '#31d0c6',
             stroke: 'none',
             filter: { name: 'dropShadow',  args: { dx: 0.5, dy: 2, blur: 2, color: '#333333' }}
@@ -135,8 +133,8 @@ var wage = new erd.WeakEntity({
         text: {
             fill: '#ffffff',
             text: 'Wage',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
         '.inner': {
             fill: '#31d0c6',
@@ -159,8 +157,8 @@ var paid = new erd.IdentifyingRelationship({
         text: {
             fill: '#ffffff',
             text: 'Gets paid',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
         '.inner': {
             fill: '#7c68fd',
@@ -181,7 +179,7 @@ var isa = new erd.ISA({
         text: {
             text: 'ISA',
             fill: '#ffffff',
-            'letter-spacing': 0,
+            letterSpacing: 0,
             style: { 'text-shadow': '1px 0 1px #333333' }
         },
         polygon: {
@@ -194,20 +192,22 @@ var isa = new erd.ISA({
 
 var number = new erd.Key({
 
-    position: { x: 1, y: 90 },
+    position: { x: 10, y: 90 },
     attrs: {
         text: {
             fill: '#ffffff',
             text: 'Number',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
-        },
-        '.outer, .inner': {
-            fill: '#feb662',
-            stroke: 'none'
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
         '.outer': {
+            fill: '#feb662',
+            stroke: 'none',
             filter: { name: 'dropShadow',  args: { dx: 0, dy: 2, blur: 2, color: '#222138' }}
+        },
+        '.inner': {
+            fill: '#feb662',
+            stroke: 'none'
         }
     }
 });
@@ -219,8 +219,8 @@ var employeeName = new erd.Normal({
         text: {
             fill: '#ffffff',
             text: 'Name',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
         '.outer': {
             fill: '#fe8550',
@@ -237,7 +237,7 @@ var skills = new erd.Multivalued({
         text: {
             fill: '#ffffff',
             text: 'Skills',
-            'letter-spacing': 0,
+            letterSpacing: 0,
             style: { 'text-shadow': '1px 0px 1px #333333' }
         },
         '.inner': {
@@ -262,13 +262,13 @@ var amount = new erd.Derived({
         text: {
             fill: '#ffffff',
             text: 'Amount',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
         '.inner': {
             fill: '#fca079',
             stroke: 'none',
-            'display': 'block'
+            display: 'block'
         },
         '.outer': {
             fill: '#464a65',
@@ -286,8 +286,8 @@ var uses = new erd.Relationship({
         text: {
             fill: '#ffffff',
             text: 'Uses',
-            'letter-spacing': 0,
-            style: { 'text-shadow': '1px 0 1px #333333' }
+            letterSpacing: 0,
+            style: { textShadow: '1px 0 1px #333333' }
         },
         '.outer': {
             fill: '#797d9a',
@@ -301,7 +301,7 @@ var uses = new erd.Relationship({
 
 var salesman = employee.clone().translate(0, 200).attr('text/text', 'Salesman');
 
-var date = employeeName.clone().position(590, 80).attr('text/text', 'Date');
+var date = employeeName.clone().position(585, 80).attr('text/text', 'Date');
 
 var car = employee.clone().position(430, 400).attr('text/text', 'Company car');
 

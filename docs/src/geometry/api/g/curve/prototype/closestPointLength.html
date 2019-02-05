@@ -1,8 +1,0 @@
-<pre class="docs-method-signature"><code>curve.closestPointLength(point [, opt])</code></pre>
-<p>Return the length of the curve up to the point that lies closest to <code>point</code>.</p>
-
-<p>The function uses the same algorithm as the <code>curve.closestPointT()</code> <a href="geometry.html#g.curve.prototype.closestPointT">function</a>. The length of the curve at <code>t</code> closest to <code>point</code> is returned.</p>
-
-<p>The default value for <code>opt.precision</code> is 3; this corresponds to maximum observed error of 0.1%.</p>
-
-<p>The <code>opt.subdivisions</code> property may be specified, directly providing an array of pre-computed curve subdivisions with which to begin the algorithm. Use the <code>curve.getSubdivisions()</code> <a href="geometry.html#g.curve.prototype.getSubdivisions">function</a> to obtain an array of curve subdivisions. The <code>opt.precision</code> property is still necessary, however; it determines the precision of the point search algorithm.</p>

@@ -28,7 +28,6 @@ QUnit.module('Attributes', function() {
         var HEIGHT = 97;
 
         var paper, graph, cell, cellView, node, refBBox;
-        var ns = joint.dia.attributes;
 
         hooks.beforeEach(function() {
             graph = new joint.dia.Graph;
@@ -48,12 +47,15 @@ QUnit.module('Attributes', function() {
         QUnit.module('textWrap', function() {
 
             QUnit.test('qualify', function(assert) {
+
+                var ns = joint.dia.attributes;
                 assert.notOk(ns.textWrap.qualify.call(cellView, 'string', node, {}));
                 assert.ok(ns.textWrap.qualify.call(cellView, { 'plainObject': true }, node, {}));
             });
 
             QUnit.test('set', function(assert) {
 
+                var ns = joint.dia.attributes;
                 var bbox = refBBox.clone();
                 var spy = sinon.spy(joint.util, 'breakText');
 

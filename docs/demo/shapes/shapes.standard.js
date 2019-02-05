@@ -10,12 +10,12 @@ dia.attributes.placeholderURL = {
         return typeof url === 'string';
     },
     set: function(url, refBBox) {
-        return { 'xlink:href': util.template(url)(refBBox.round().toJSON()) }
+        return { 'xlink:href': util.template(url)(refBBox.round().toJSON()) };
     }
 };
 
 var graph = new dia.Graph();
-var paper = new dia.Paper({
+new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
@@ -119,19 +119,32 @@ borderedImage.addTo(graph);
 
 var embeddedImage = new standard.EmbeddedImage();
 embeddedImage.resize(150, 100);
-embeddedImage.position(425, 410);
+embeddedImage.position(425, 340);
 embeddedImage.attr('root/tabindex', 10);
 embeddedImage.attr('root/title', 'joint.shapes.standard.EmbeddedImage');
 embeddedImage.attr('label/text', 'Embedded\nImage');
 embeddedImage.attr('body/fill', '#fe854f');
 embeddedImage.attr('body/fillOpacity', 0.5);
+embeddedImage.attr('body/stroke', '#fe854f');
 embeddedImage.attr('image/xlinkHref', 'http://via.placeholder.com/60x80');
 embeddedImage.addTo(graph);
+
+var inscribedImage = new standard.InscribedImage();
+inscribedImage.resize(100, 100);
+inscribedImage.position(450, 450);
+inscribedImage.attr('root/tabindex', 11);
+inscribedImage.attr('root/title', 'joint.shapes.standard.InscribedImage');
+inscribedImage.attr('label/text', 'Inscribed\nImage');
+inscribedImage.attr('background/fill', '#fe854f');
+inscribedImage.attr('background/fillOpacity', 0.5);
+inscribedImage.attr('border/stroke', '#fe854f');
+inscribedImage.attr('image/xlinkHref', 'http://via.placeholder.com/80x80');
+inscribedImage.addTo(graph);
 
 var headeredRectangle = new standard.HeaderedRectangle();
 headeredRectangle.resize(150, 100);
 headeredRectangle.position(25, 610);
-headeredRectangle.attr('root/tabindex', 11);
+headeredRectangle.attr('root/tabindex', 12);
 headeredRectangle.attr('root/title', 'joint.shapes.standard.HeaderedRectangle');
 headeredRectangle.attr('header/fill', '#000000');
 headeredRectangle.attr('header/fillOpacity', 0.1);
@@ -144,7 +157,7 @@ headeredRectangle.addTo(graph);
 var textBlock = new standard.TextBlock();
 textBlock.resize(100, 100);
 textBlock.position(250, 610);
-textBlock.attr('root/tabindex', 12);
+textBlock.attr('root/tabindex', 13);
 textBlock.attr('root/title', 'joint.shapes.standard.TextBlock');
 textBlock.attr('body/fill', '#5654a0');
 textBlock.attr('body/fillOpacity', 0.5);
@@ -155,7 +168,7 @@ textBlock.addTo(graph);
 var link = new standard.Link();
 link.prop('source', { x: 450, y: 600 });
 link.prop('target', { x: 400, y: 750 });
-link.attr('root/tabindex', 13);
+link.attr('root/tabindex', 14);
 link.attr('root/title', 'joint.shapes.standard.Link');
 link.attr('line/stroke', '#fe854f');
 link.vertices([{ x: 450, y: 700 }]);
@@ -164,7 +177,7 @@ link.addTo(graph);
 var doubleLink = new standard.DoubleLink();
 doubleLink.prop('source', { x: 500, y: 600 });
 doubleLink.prop('target', { x: 450, y: 750 });
-doubleLink.attr('root/tabindex', 14);
+doubleLink.attr('root/tabindex', 15);
 doubleLink.attr('root/title', 'joint.shapes.standard.DoubleLink');
 doubleLink.attr('line/stroke', '#30d0c6');
 doubleLink.vertices([{ x: 500, y: 700 }]);
@@ -173,7 +186,7 @@ doubleLink.addTo(graph);
 var shadowLink = new standard.ShadowLink();
 shadowLink.prop('source', { x: 550, y: 600 });
 shadowLink.prop('target', { x: 500, y: 750 });
-shadowLink.attr('root/tabindex', 15);
+shadowLink.attr('root/tabindex', 16);
 shadowLink.attr('root/title', 'joint.shapes.standard.ShadowLink');
 shadowLink.attr('line/stroke', '#5654a0');
 shadowLink.vertices([{ x: 550, y: 700 }]);

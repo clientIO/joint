@@ -26,11 +26,11 @@
 
 <h5 id="shapes.devs.Model.changeInGroup">shapes.devs.Model.changeInGroup</h5>
 <pre class="docs-method-signature"><code>element.changeInGroup(properties, [opt])</code></pre>
-<p>Change the settings for the input ports, where `properties` is an object with a <a href="#portinterface">group configuration</a>. It extends the previous settings with the new configuration by default. Pass <code>{ rewrite: true }</code> via <code>opt</code> to invalidate the previous settings.</p>
+<p>Change the settings for the input ports, where `properties` is an object with a <a href="#dia.Element.ports.interface">group configuration</a>. It extends the previous settings with the new configuration by default. Pass <code>{ rewrite: true }</code> via <code>opt</code> to invalidate the previous settings.</p>
 
 <h5 id="shapes.devs.Model.changeOutGroup">shapes.devs.Model.changeOutGroup</h5>
 <pre class="docs-method-signature"><code>element.changeOutGroup(properties, [opt])</code></pre>
-<p>Change the settings for the output ports, where `properties` is an object with a <a href="#portinterface">group configuration</a>. It extends the previous settings with the new configuration by default. Pass <code>{ rewrite: true }</code> via <code>opt</code> to invalidate the previous settings.</p>
+<p>Change the settings for the output ports, where `properties` is an object with a <a href="#dia.Element.ports.interface">group configuration</a>. It extends the previous settings with the new configuration by default. Pass <code>{ rewrite: true }</code> via <code>opt</code> to invalidate the previous settings.</p>
 
 <h5 id="shapes.devs.Model.removeInPort">shapes.devs.Model.removeInPort</h5>
 <pre class="docs-method-signature"><code>element.removeInPort(port, [opt])</code></pre>
@@ -80,7 +80,7 @@ shape.changeInGroup({ position: 'top' });
 shape.changeOutGroup({ position: 'bottom' });
 </code></pre>
 
-<h4 id="hierarchical_diagrams">Hierarchical diagrams</h4>
+<h4 id="shapes.devs.hierarchical_diagrams">Hierarchical diagrams</h4>
 
 <p>There are two more shapes designed for hierarchical diagrams as part of the plugin - <code>devs.Atomic</code> and <code>devs.Coupled</code>. They inherit from the <code>devs.Model</code> and differ only in the color and size. The purpose of these shapes is to enable you to implement a custom logic in your application based on their type.
 For instance a <code>devs.Coupled</code> can embed <code>devs.Atomic</code>'s but not the other way round as shown in the demo below.</p>

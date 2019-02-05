@@ -1,3 +1,43 @@
+12-11-2018 (v2.2.1)
+  * utils - fix breakText() definition in Typescript
+  * dia.CellView - findAttribute() docs
+  * grunt - wrapper files use file extension .js.partial
+  * demos - improvements
+
+30-10-2018 (v2.2.0)
+  * update insecure dependencies (mainly Lodash v4.17.11)
+  * use Karma+Istanbul to run tests
+  * dia.Graph - getCellsBBox() takes cells' rotation into account
+  * dia.Graph - fix cell removal after dry flag passed
+  * dia.Paper - support relative dimensions (e.g. width='100%')
+  * dia.Paper - add stopDelegation interactive option
+  * dia.Paper - add magnetThreshold option (create a link when the pointer leaves the magnet)
+  * dia.Paper - allow to stop propagation of paper events
+  * dia.Element - add removePorts()
+  * dia.ElementView - add element:magnet:pointerclick, element:magnet:dblpointerclick, element:magnet:contextmenu events
+  * dia.ElementView - fix embeddingMode for Lodash v4+
+  * dia.ElementView - fix cell:pointerclick in Chrome after DOM change
+  * dia.LinkView - prevent multiple validate connections for already snapped magnets
+  * dia.LinkView - fix label rendering in IE
+  * dia.Cell - JSON Markup accepts textContent and groupSelector properties
+  * dia.CellView - presentaion attributes (attrs) are now applied in the order given
+  * mvc.View - prevent multiple onRender() calls
+  * mvc.View - add findAttribute()
+  * mvc.View - prevent className undefined
+  * dia.attributes - add ellipsis option for textWrap
+  * dia.atributes - add refWidth2 and refHeight2
+  * shapes.standard - add background to BorderedImage
+  * shapes.standard - add InscribedImage shape
+  * shapes.pn - fix PlaceView
+  * connectionPoints.Boundary - fix for non-graphical elements
+  * routers.manhattan - prevent rounding errors, add padding option
+  * routers.orthogonal - add padding option
+  * linkTools - fix touch interactions
+  * utils - normalize event.target in normalizeEvent() for <use> tag in IE
+  * utils - improve parseCssNumeric() for restrictUnit parameter
+  * Vectorizer - add isSVGGraphicsElement()
+  * fix legacy PortsViewInterface
+
 1-8-2018 (v2.1.4)
   * reconfigure eslint
   * add .editorconfig

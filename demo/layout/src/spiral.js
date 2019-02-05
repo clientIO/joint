@@ -1,7 +1,7 @@
-(function() {
+(function(joint) {
 
     var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper'),
         width: 700,
         height: 700,
@@ -25,14 +25,14 @@
 
     var Ellipse = joint.dia.Element.define('Ellipse', {
         attrs: {
-            ellipse: {
+            body: {
                 refRx: '50%',
                 refRy: '50%',
                 refCx: '50%',
                 refCy: '50%',
                 stroke: '#333'
             },
-            text: {
+            label: {
                 fontSize: 8,
                 refX: '50%',
                 refY: '50%',
@@ -41,7 +41,13 @@
             }
         }
     }, {
-        markup: '<ellipse/><text/>'
+        markup: [{
+            tagName: 'ellipse',
+            selector: 'body'
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
     });
 
     function addNode(graph, opt) {
@@ -51,11 +57,11 @@
         var node = new Ellipse({
             size: { width: radius, height: radius },
             attrs: {
-                text: {
+                label: {
                     text: label,
                     fill: color[1]
                 },
-                ellipse: {
+                body: {
                     fill: color[0]
                 }
             }
@@ -65,10 +71,14 @@
     }
 
     function addLink(graph, a, b, opt) {
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { id: a.id },
             target: { id: b.id },
-            markup: '<path class="connection" stroke="black" d="M 0 0 0 0"/>'
+            attrs: {
+                line: {
+                    targetMarker: null
+                }
+            }
         });
         graph.addCell(link, opt);
     }

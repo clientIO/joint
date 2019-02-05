@@ -8,10 +8,10 @@
     <li><code>offset</code> - the distance between the closest point and the point <code>x,y</code>.</li>
 </ul>
 
-<p>By default, <code>position.distance</code> is set relative to <a href="joint.html#dia.LinkView.prototype.getConnectionLength">connection length</a> (as a number in the <code>[0,1]</code> range that records the <a href="joint.html#dia.LinkView.prototype.getClosestPointRatio">length ratio</a>), and <code>position.offset</code> is set relative to the connection (as a number recording the <a href="geometry.html#g.line.prototype.pointOffset">perpendicular distance</a>). The user may change this behavior by providing an <code>opt</code> object with some of the following accepted boolean flags:</p>
+<p>By default, <code>position.distance</code> is set relative to <a href="#dia.LinkView.prototype.getConnectionLength">connection length</a> (as a number in the <code>[0,1]</code> range that records the <a href="#dia.LinkView.prototype.getClosestPointRatio">length ratio</a>), and <code>position.offset</code> is set relative to the connection (as a number recording the <a href="geometry.html#g.Line.prototype.pointOffset">perpendicular distance</a>). The user may change this behavior by providing an <code>opt</code> object with some of the following accepted boolean flags:</p>
 
 <ul>
-    <li><code>absoluteDistance: true</code> - record <code>distance</code> absolutely (as <a href="joint.html#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number).</li>
+    <li><code>absoluteDistance: true</code> - record <code>distance</code> absolutely (as <a href="#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number).</li>
     <li><code>reverseDistance: true</code> - if <code>absoluteDistance: true</code>, record <code>distance</code> absolutely from end of link (as a negative number).</li>
     <li><code>absoluteOffset: true</code> - record <code>offset</code> absolutely (as <code>x</code> and <code>y</code> distance from closest point).</li>
 </ul>
@@ -32,9 +32,9 @@
     }
 }</code></pre>
 
-<p>See <code>link.label()</code> <a href="joint.html#dia.Link.prototype.label">documentation</a> for more information about the <code>position</code> object.</p>
+<p>See <code>link.label()</code> <a href="#dia.Link.prototype.label">documentation</a> for more information about the <code>position</code> object.</p>
 
-<p>This function can be used to add a custom label to the <code>link.labels</code> <a href="joint.html#dia.Link.prototype.labels">array</a>, in situations when the <code>linkView.addLabel()</code> <a href="joint.html#dia.LinkView.prototype.addLabel">function</a> is not sufficient. For example:</p>
+<p>This function can be used to add a custom label to the <code>link.labels</code> <a href="#dia.Link.prototype.labels">array</a>, in situations when the <code>linkView.addLabel()</code> <a href="#dia.LinkView.prototype.addLabel">function</a> is not sufficient. For example:</p>
 
 <pre><code>var CustomLinkView = joint.dia.LinkView.extend({
     contextmenu: function(evt, x, y) {

@@ -56,10 +56,10 @@
         }
     });
     link.vertices([
-        new g.Point(280, 70),
-        new g.Point(280, 160),
-        new g.Point(440, 160)
-    ])
+        { x: 280, y: 70 },
+        { x: 280, y: 160 },
+        { x: 440, y: 160 }
+    ]);
     link.addTo(graph);
 
     var verticesTool = new joint.linkTools.Vertices();
@@ -68,7 +68,7 @@
 
     var toolsView = new joint.dia.ToolsView({
         tools: [verticesTool, segmentsTool, boundaryTool]
-    })
+    });
 
     var linkView = link.findView(paper);
     linkView.addTools(toolsView);

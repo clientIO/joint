@@ -2,20 +2,23 @@
 
 QUnit.module('path', function(hooks) {
 
-    var $fixture = $('#qunit-fixture');
+    var fixture = document.createElement('div');
+    fixture.id = 'qunit-fixture';
 
     var getSvg = function() {
-        var svg = V('svg');
-        svg.attr('width', 600);
-        svg.attr('height', 800);
-        $fixture.append(svg.node);
-
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svg.setAttribute('width',  600);
+        svg.setAttribute('height',  800);
+        document.body.appendChild(fixture);
+        fixture.appendChild(svg);
         return svg;
     };
 
     QUnit.module('constructor', function() {
 
         QUnit.test('creates a new Path object', function(assert) {
+
+            var error;
 
             var path;
 
@@ -32,6 +35,30 @@ QUnit.module('path', function(hooks) {
             path = new g.Path([
                 g.Path.createSegment('M', 0, 100),
                 g.Path.createSegment('L', 100, 100),
+                g.Path.createSegment('C', 150, 150, 250, 50, 300, 100),
+                g.Path.createSegment('Z')
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 4);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.Z);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].end.toString(), '100@100');
+            assert.equal(path.segments[2].start.toString(), '100@100');
+            assert.equal(path.segments[2].controlPoint1.toString(), '150@150');
+            assert.equal(path.segments[2].controlPoint2.toString(), '250@50');
+            assert.equal(path.segments[2].end.toString(), '300@100');
+            assert.equal(path.segments[3].start.toString(), '300@100');
+            assert.equal(path.segments[3].end.toString(), '0@100');
+
+            // path segments nested array
+            path = new g.Path([
+                g.Path.createSegment('M', 0, 100, 100, 100), // creates array - M followed by L
                 g.Path.createSegment('C', 150, 150, 250, 50, 300, 100),
                 g.Path.createSegment('Z')
             ]);
@@ -208,6 +235,92 @@ QUnit.module('path', function(hooks) {
             assert.equal(path.segments[3].start.toString(), '20@20');
             assert.equal(path.segments[3].end.toString(), '21@21');
 
+            // nested array of curves from g.Curve.throughPoints and lines from divideAt (linked)
+            path = new g.Path([
+                g.Curve.throughPoints([
+                    new g.Point(0, 100),
+                    new g.Point(45.3125, 128.125),
+                    new g.Point(154.6875, 71.875),
+                    new g.Point(200, 100)
+                ]),
+                (new g.Line(new g.Point(200, 100), new g.Point(200, 200))).divideAt(0.5)
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 6);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[5] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].controlPoint1.toString(), '7.986111111111107@118.75');
+            assert.equal(path.segments[1].controlPoint2.toString(), '15.972222222222214@137.5');
+            assert.equal(path.segments[1].end.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].start.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].controlPoint1.toString(), '74.65277777777779@118.75');
+            assert.equal(path.segments[2].controlPoint2.toString(), '125.34722222222223@81.25');
+            assert.equal(path.segments[2].end.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].start.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].controlPoint1.toString(), '184.02777777777777@62.49999999999999');
+            assert.equal(path.segments[3].controlPoint2.toString(), '192.01388888888889@81.25');
+            assert.equal(path.segments[3].end.toString(), '200@100');
+            assert.equal(path.segments[4].start.toString(), '200@100');
+            assert.equal(path.segments[4].end.toString(), '200@150');
+            assert.equal(path.segments[5].start.toString(), '200@150');
+            assert.equal(path.segments[5].end.toString(), '200@200');
+
+            // nested array of curves from g.Curve.throughPoints and lines from divideAt (unlinked)
+            path = new g.Path([
+                g.Curve.throughPoints([
+                    new g.Point(0, 100),
+                    new g.Point(45.3125, 128.125),
+                    new g.Point(154.6875, 71.875),
+                    new g.Point(200, 100)
+                ]),
+                (new g.Line(new g.Point(200, 200), new g.Point(200, 300))).divideAt(0.5)
+            ]);
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 7);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.C);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[5] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[6] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '0@100');
+            assert.equal(path.segments[1].start.toString(), '0@100');
+            assert.equal(path.segments[1].controlPoint1.toString(), '7.986111111111107@118.75');
+            assert.equal(path.segments[1].controlPoint2.toString(), '15.972222222222214@137.5');
+            assert.equal(path.segments[1].end.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].start.toString(), '45.3125@128.125');
+            assert.equal(path.segments[2].controlPoint1.toString(), '74.65277777777779@118.75');
+            assert.equal(path.segments[2].controlPoint2.toString(), '125.34722222222223@81.25');
+            assert.equal(path.segments[2].end.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].start.toString(), '154.6875@71.875');
+            assert.equal(path.segments[3].controlPoint1.toString(), '184.02777777777777@62.49999999999999');
+            assert.equal(path.segments[3].controlPoint2.toString(), '192.01388888888889@81.25');
+            assert.equal(path.segments[3].end.toString(), '200@100');
+            assert.equal(path.segments[4].end.toString(), '200@200');
+            assert.equal(path.segments[5].start.toString(), '200@200');
+            assert.equal(path.segments[5].end.toString(), '200@250');
+            assert.equal(path.segments[6].start.toString(), '200@250');
+            assert.equal(path.segments[6].end.toString(), '200@300');
+
+            // array of unexpected objects (error)
+            try {
+                new g.Path([new g.Point(100, 100), new g.Point(200, 200)]);
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when constructor called with an array of unexpected objects.');
+
             // single segment
             path = new g.Path(g.Path.createSegment('L', 100, 100));
             assert.ok(path instanceof g.Path, 'returns instance of g.Path');
@@ -272,6 +385,14 @@ QUnit.module('path', function(hooks) {
             assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
             assert.ok(Array.isArray(path.segments));
             assert.equal(path.segments.length, 0);
+
+            // unexpected object (error)
+            try {
+                new g.Path(new g.Point(100, 100));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when constructor called with an unexpected object.');
         });
     });
 
@@ -432,6 +553,22 @@ QUnit.module('path', function(hooks) {
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
 
+            // moveto -> 1 plain object (correct)
+            segment = g.Path.createSegment('M', { x: 10, y: 10 });
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10');
+
+            // moveto -> 2 plain objects (correct)
+            segment = g.Path.createSegment('M', { x: 10, y: 10 }, { x: 11, y: 11 });
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
+
             // moveto -> 1 string coordinate (incorrect)
             try {
                 segment = g.Path.createSegment('M', '10');
@@ -485,6 +622,41 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'M 10 10 L 11 11');
+
+            // moveto -> 1 line (correct)
+            segment = g.Path.createSegment('M', new g.Line('10 10', '10 20'));
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 10 20');
+
+            // moveto -> 2 lines (incorrect)
+            try {
+                segment = g.Path.createSegment('M', new g.Line('10 10', '10 20'), new g.Line('10 20', '20 20'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 2 lines.');
+
+            // moveto -> 1 curve (correct)
+            segment = g.Path.createSegment('M', new g.Curve('10 10', '10 20', '20 0', '20 10'));
+            assert.ok(segment instanceof g.Path.segmentTypes.M);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'M 20 10');
+
+            // moveto -> 2 curves (incorrect)
+            try {
+                segment = g.Path.createSegment('M', new g.Curve('10 10', '10 20', '20 0', '20 10'), new g.Curve('20 10', '20 20', '30 0', '30 10'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when M called with 2 curves.');
+
+            // moveto functions
+            segment = g.Path.createSegment('M', '10', '10');
+            assert.equal(segment.bbox(), null);
+            assert.equal(segment.closestPoint(new g.Point('20', '20')).toString(), '10@10');
         });
 
         QUnit.test('lineto', function(assert) {
@@ -520,6 +692,22 @@ QUnit.module('path', function(hooks) {
 
             // lineto -> 2 points (correct)
             segment = g.Path.createSegment('L', new g.Point(10, 10), new g.Point(11, 11));
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.L);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
+
+            // lineto -> 1 plain object (correct)
+            segment = g.Path.createSegment('L', { x: 10, y: 10 });
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 10');
+
+            // lineto -> 2 plain objects (correct)
+            segment = g.Path.createSegment('L', { x: 10, y: 10 }, { x: 11, y: 11 });
             assert.ok(Array.isArray(segment));
             assert.ok(segment[0] instanceof g.Path.segmentTypes.L);
             assert.ok(segment[1] instanceof g.Path.segmentTypes.L);
@@ -580,6 +768,21 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'L 10 10 L 11 11');
+
+            // lineto -> 1 line (correct)
+            segment = g.Path.createSegment('L', new g.Line('10 10', '10 20'));
+            assert.ok(segment instanceof g.Path.segmentTypes.L);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'L 10 20');
+
+            // lineto -> 2 lines (incorrect)
+            try {
+                segment = g.Path.createSegment('L', new g.Line('10 10', '10 20'), new g.Line('10 20', '20 20'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when L called with 2 lines.');
         });
 
         QUnit.test('curveto', function(assert) {
@@ -631,6 +834,38 @@ QUnit.module('path', function(hooks) {
 
             // curveto -> 6 points (correct)
             segment = g.Path.createSegment('C', new g.Point(10, 10), new g.Point(11, 11), new g.Point(12, 12), new g.Point(13, 13), new g.Point(14, 14), new g.Point(15, 15));
+            assert.ok(Array.isArray(segment));
+            assert.ok(segment[0] instanceof g.Path.segmentTypes.C);
+            assert.ok(segment[1] instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
+
+            // curveto -> 2 plain objects (incorrect)
+            try {
+                segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 });
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 2 points.');
+
+            // curveto -> 3 plain objects (correct)
+            segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 }, { x: 12, y: 12 });
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12');
+
+            // curveto -> 5 plain objects (incorrect)
+            try {
+                segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 }, { x: 12, y: 12 }, { x: 13, y: 13 }, { x: 14, y: 14 });
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 5 points.');
+
+            // curveto -> 6 plain objects (correct)
+            segment = g.Path.createSegment('C', { x: 10, y: 10 }, { x: 11, y: 11 }, { x: 12, y: 12 }, { x: 13, y: 13 }, { x: 14, y: 14 }, { x: 15, y: 15 });
             assert.ok(Array.isArray(segment));
             assert.ok(segment[0] instanceof g.Path.segmentTypes.C);
             assert.ok(segment[1] instanceof g.Path.segmentTypes.C);
@@ -691,6 +926,21 @@ QUnit.module('path', function(hooks) {
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
             assert.equal(clonedPath.toString(), 'C 10 10 11 11 12 12 C 13 13 14 14 15 15');
+
+            // curveto -> 1 curve (correct)
+            segment = g.Path.createSegment('C', new g.Curve('10 10', '10 20', '20 0', '20 10'));
+            assert.ok(segment instanceof g.Path.segmentTypes.C);
+            clonedPath = path.clone();
+            clonedPath.appendSegment(segment);
+            assert.equal(clonedPath.toString(), 'C 10 20 20 0 20 10');
+
+            // curveto -> 2 curves (incorrect)
+            try {
+                segment = g.Path.createSegment('C', new g.Curve('10 10', '10 20', '20 0', '20 10'), new g.Curve('20 10', '20 20', '30 0', '30 10'));
+            } catch (e) {
+                error = e;
+            }
+            assert.ok(typeof error !== 'undefined', 'Should throw an error when C called with 2 curves.');
         });
 
         QUnit.test('closepath', function(assert) {
@@ -809,6 +1059,25 @@ QUnit.module('path', function(hooks) {
                 ];
                 path.appendSegment(segment);
                 assert.equal(path.toString(), 'M 100 100 L 200 200');
+            });
+
+            QUnit.test('append a created segment array', function(assert) {
+
+                var path = new g.Path();
+                var segment = g.Path.createSegment('M', 100, 100, 200, 200);
+                path.appendSegment(segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200');
+            });
+
+            QUnit.test('append a nested segment array', function(assert) {
+
+                var path = new g.Path();
+                var segment = [
+                    g.Path.createSegment('M', 100, 100, 200, 200), // creates array - M followed by L
+                    g.Path.createSegment('Z')
+                ];
+                path.appendSegment(segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 Z');
             });
         });
 
@@ -1193,6 +1462,319 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('divideAt()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var pathDivide;
+
+                path = new g.Path();
+                assert.equal(path.divideAt(0.5), null);
+                assert.equal(path.divideAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.divideAt(-1), null);
+                assert.equal(path.divideAt(10), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.divideAt(0.5), null);
+                assert.equal(path.divideAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.divideAt(-1), null);
+                assert.equal(path.divideAt(10), null);
+
+                path = new g.Path('M 0 0 L 0 0');
+                assert.equal(path.divideAt(0.5), null);
+                assert.equal(path.divideAt(0.5, { precision: 0 }), null);
+
+                assert.equal(path.divideAt(-1), null);
+                assert.equal(path.divideAt(10), null);
+
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAt(0.1);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // point of discontinuity
+                pathDivide = path.divideAt(0.2);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto midpoint
+                pathDivide = path.divideAt(0.4);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto
+                pathDivide = path.divideAt(0.5);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // closepath
+                pathDivide = path.divideAt(0.9);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAt(-1);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAt(10);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+            });
+
+            QUnit.test('returns an array with two paths, divided at provided `ratio`', function(assert) {
+
+                var path;
+                var pathDivide;
+
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAt(0.1);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 100.00383501229652');
+                assert.equal(pathDivide[1].toString(), 'M 0 100.00383501229652 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // point of discontinuity
+                pathDivide = path.divideAt(0.2);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0.007670024593031677');
+                assert.equal(pathDivide[1].toString(), 'M 0 0.007670024593031677 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // curveto midpoint
+                pathDivide = path.divideAt(0.4);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 100 50 150 100 150');
+                assert.equal(pathDivide[1].toString(), 'M 100 150 C 150 150 200 100 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // arbitrary curveto point
+                pathDivide = path.divideAt(0.5);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 159.765625 127.62527465820312 191.90597534179688 178.97450625896454 96.42105102539062');
+                assert.equal(pathDivide[1].toString(), 'M 178.97450625896454 96.42105102539062 C 191.90597534179688 72.37472534179688 200 40.234375 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // closepath
+                pathDivide = path.divideAt(0.9);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 L 99.99616498770342 200');
+                assert.equal(pathDivide[1].toString(), 'M 99.99616498770342 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                pathDivide = path.divideAt(-1);
+                assert.equal(pathDivide[0].toString(), 'M 0 200');
+                assert.equal(pathDivide[1].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+                assert.equal(pathDivide[1].toString(), path.toString());
+
+                pathDivide = path.divideAt(10);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.equal(pathDivide[1].toString(), 'M 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+            });
+        });
+
+        QUnit.module('divideAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var pathDivide;
+
+                path = new g.Path();
+                assert.equal(path.divideAtLength(40), null);
+                assert.equal(path.divideAtLength(40, { precision: 0 }), null);
+                assert.equal(path.divideAtLength(10000), null);
+
+                path = new g.Path('M 0 0 M 100 0');
+                assert.equal(path.divideAtLength(40), null);
+                assert.equal(path.divideAtLength(40, { precision: 0 }), null);
+                assert.equal(path.divideAtLength(10000), null);
+
+                assert.equal(path.divideAtLength(-40), null);
+                assert.equal(path.divideAtLength(-40, { precision: 0 }), null);
+                assert.equal(path.divideAtLength(-10000), null);
+
+                path = new g.Path('M 0 0 L 0 0');
+                assert.equal(path.divideAtLength(10000), null);
+                assert.equal(path.divideAtLength(-10000), null);
+
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAtLength(100);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // point of discontinuity
+                pathDivide = path.divideAtLength(200);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(400);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(500);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // closepath
+                pathDivide = path.divideAtLength(900);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAtLength(10000);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                pathDivide = path.divideAtLength(-10000);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // first lineto
+                pathDivide = path.divideAtLength(-900);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // point of discontinuity
+                pathDivide = path.divideAtLength(-800);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(-600);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(-500);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+
+                // closepath
+                pathDivide = path.divideAtLength(-100);
+                assert.ok(Array.isArray(pathDivide));
+                assert.equal(pathDivide.length, 2);
+                assert.ok(pathDivide[0] instanceof g.Path);
+                assert.ok(pathDivide[1] instanceof g.Path);
+            });
+
+            QUnit.test('returns an array with two paths, divided at provided `length`', function(assert) {
+
+                var path;
+                var pathDivide;
+
+                path = new g.Path('M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z'); // segment length: 0 - 200 - 400 - 200 - 200
+                // first lineto
+                pathDivide = path.divideAtLength(100);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 100');
+                assert.equal(pathDivide[1].toString(), 'M 0 100 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // point of discontinuity
+                pathDivide = path.divideAtLength(200);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0');
+                assert.equal(pathDivide[1].toString(), 'M 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(400);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 100 50 150 100 150');
+                assert.equal(pathDivide[1].toString(), 'M 100 150 C 150 150 200 100 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(500);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 159.765625 127.62527465820312 191.90597534179688 178.97450625896454 96.42105102539062');
+                assert.equal(pathDivide[1].toString(), 'M 178.97450625896454 96.42105102539062 C 191.90597534179688 72.37472534179688 200 40.234375 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // closepath
+                pathDivide = path.divideAtLength(900);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 L 99.96164987703469 200');
+                assert.equal(pathDivide[1].toString(), 'M 99.96164987703469 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                pathDivide = path.divideAtLength(10000);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.equal(pathDivide[1].toString(), 'M 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                pathDivide = path.divideAtLength(-10000);
+                assert.equal(pathDivide[0].toString(), 'M 0 200');
+                assert.equal(pathDivide[1].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 Z');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // first lineto
+                pathDivide = path.divideAtLength(-900);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 100.03835012296531');
+                assert.equal(pathDivide[1].toString(), 'M 0 100.03835012296531 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // point of discontinuity
+                pathDivide = path.divideAtLength(-800);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0.038350122965313815');
+                assert.equal(pathDivide[1].toString(), 'M 0 0.038350122965313815 L 0 0 C 0 200 200 200 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // curveto midpoint
+                pathDivide = path.divideAtLength(-600);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 100 50 150 100 150');
+                assert.equal(pathDivide[1].toString(), 'M 100 150 C 150 150 200 100 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // arbitrary curveto point
+                pathDivide = path.divideAtLength(-500);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 159.765625 127.62527465820312 191.90597534179688 178.97450625896454 96.42105102539062');
+                assert.equal(pathDivide[1].toString(), 'M 178.97450625896454 96.42105102539062 C 191.90597534179688 72.37472534179688 200 40.234375 200 0 L 200 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+
+                // closepath
+                pathDivide = path.divideAtLength(-100);
+                assert.equal(pathDivide[0].toString(), 'M 0 200 L 0 0 C 0 200 200 200 200 0 L 200 200 L 100 200');
+                assert.equal(pathDivide[1].toString(), 'M 100 200 L 0 200');
+                assert.ok(pathDivide[0].end.equals(pathDivide[1].start));
+            });
+        });
+
         QUnit.module('equals()', function() {
 
             QUnit.test('checks whether two paths are exactly the same', function(assert) {
@@ -1570,6 +2152,39 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.getSegment(-2).start.toString(), '400@400');
                 assert.equal(path.getSegment(-1).end.toString(), '300@300');
             });
+
+            QUnit.test('insert a created segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 500, 500),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = g.Path.createSegment('M', 300, 300, 400, 400);
+                path.insertSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 L 500 500 Z');
+                assert.equal(path.getSegment(4).start.toString(), '400@400');
+                assert.equal(path.getSegment(5).end.toString(), '300@300');
+            });
+
+            QUnit.test('append a nested segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('L', 500, 500),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = [
+                    g.Path.createSegment('M', 300, 300, 400, 400), // creates array - M followed by L
+                    g.Path.createSegment('C', 400, 300, 400, 500, 400, 400)
+                ];
+                path.insertSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 M 300 300 L 400 400 C 400 300 400 500 400 400 L 500 500 Z');
+                assert.equal(path.getSegment(5).start.toString(), '400@400');
+                assert.equal(path.getSegment(6).end.toString(), '300@300');
+            });
         });
 
         QUnit.module('isDifferentiable()', function() {
@@ -1838,10 +2453,11 @@ QUnit.module('path', function(hooks) {
                 var svg = getSvg();
 
                 var gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                var path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+                var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
-                assert.equal(Math.round(gPath.length({ precision: 3 })), Math.round(path.node.getTotalLength()));
+                assert.equal(Math.round(gPath.length({ precision: 3 })), Math.round(path.getTotalLength()));
 
                 svg.remove();
             });
@@ -2177,13 +2793,15 @@ QUnit.module('path', function(hooks) {
                 var svg = getSvg();
 
                 gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
                 p1 = gPath.pointAtLength(250, { precision: 4 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = path.node.getPointAtLength(250);
+                p2 = path.getPointAtLength(250);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
 
@@ -2191,26 +2809,28 @@ QUnit.module('path', function(hooks) {
 
                 // browser implementation is wrong
                 /*gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
                 p1 = gPath.pointAtLength(-1, { precision: 1 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = path.node.getPointAtLength(-1);
+                p2 = path.getPointAtLength(-1);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
 
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);*/
 
                 gPath = new g.Path('M 0 0 C 0 200 200 200 200 0');
-                path = V('path', { d: gPath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(path);
+                path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d',  gPath.serialize());
+                svg.appendChild(path);
 
                 p1 = gPath.pointAtLength(10000, { precision: 1 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = path.node.getPointAtLength(10000);
+                p2 = path.getPointAtLength(10000);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
 
@@ -2602,6 +3222,41 @@ QUnit.module('path', function(hooks) {
                 assert.equal(path.toString(), 'M 100 100 L 200 200 M 333 333 L 399 399 L 400 400 Z');
                 assert.equal(path.getSegment(-2).start.toString(), '399@399');
                 assert.equal(path.getSegment(-1).end.toString(), '333@333');
+            });
+
+            QUnit.test('replace a segment with a created segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = g.Path.createSegment('L', 333, 333, 399, 399);
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(4).start.toString(), '399@399');
+                assert.equal(path.getSegment(5).end.toString(), '100@100');
+            });
+
+            QUnit.test('replace a segment with a nested segment array', function(assert) {
+
+                var path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 200, 200),
+                    g.Path.createSegment('M', 300, 300),
+                    g.Path.createSegment('L', 400, 400),
+                    g.Path.createSegment('Z')
+                ]);
+                var segment = [
+                    g.Path.createSegment('L', 333, 333, 399, 399), // creates array - M followed by L
+                    g.Path.createSegment('C', 399, 299, 399, 499, 399, 399)
+                ];
+                path.replaceSegment(2, segment);
+                assert.equal(path.toString(), 'M 100 100 L 200 200 L 333 333 L 399 399 C 399 299 399 499 399 399 L 400 400 Z');
+                assert.equal(path.getSegment(5).start.toString(), '399@399');
+                assert.equal(path.getSegment(6).end.toString(), '100@100');
             });
         });
 

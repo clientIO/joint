@@ -16,7 +16,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'joint' },
-            body: { d: 'M 0 0 L 100 0 80 20 100 40 0 40 Z' }
+            body: { refD: 'M 0 0 L 100 0 80 20 100 40 0 40 Z' }
         }
     }),
 
@@ -25,7 +25,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'dia' },
-            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -34,7 +34,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'util' },
-            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -43,7 +43,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'shapes' },
-            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -52,7 +52,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'basic' },
-            body: { d: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 80 20 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -61,7 +61,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Path' },
-            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -70,7 +70,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Text' },
-            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -79,7 +79,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Paper' },
-            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -88,7 +88,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'Graph' },
-            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -97,7 +97,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'getByPath' },
-            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     }),
 
@@ -106,7 +106,7 @@ var elements = [
         size: { width: 100, height: 40 },
         attrs: {
             label: { text: 'setByPath' },
-            body: { d: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
+            body: { refD: 'M 20 0 L 100 0 100 40 20 40 0 20 Z' }
         }
     })
 ];

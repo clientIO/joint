@@ -69,9 +69,9 @@
         }
     });
     link.vertices([
-        new g.Point(130, 180),
-        new g.Point(400, 180)
-    ])
+        { x: 130, y: 180 },
+        { x: 400, y: 180 }
+    ]);
     link.addTo(graph);
 
     var verticesTool = new joint.linkTools.Vertices();

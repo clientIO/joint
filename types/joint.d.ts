@@ -701,18 +701,20 @@ export namespace dia {
         interface VertexOptions extends Cell.Options {
 
         }
-    }
 
-    class LinkView extends CellViewGeneric<Link> {
-
-        options: {
+        interface Options extends mvc.ViewOptions<Link> {
             shortLinkLength?: number,
             doubleLinkTools?: boolean,
             longLinkLength?: number,
             linkToolsOffset?: number,
             doubleLinkToolsOffset?: number,
             sampleInterval?: number
-        };
+        }
+    }
+
+    class LinkView extends CellViewGeneric<Link> {
+
+        options: LinkView.Options;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
@@ -1107,7 +1109,7 @@ export namespace dia {
 
     namespace ToolsView {
 
-        interface Options {
+        interface Options extends mvc.ViewOptions<undefined> {
             tools?: dia.ToolView[];
             name?: string | null;
             relatedView?: dia.CellView;
@@ -1291,6 +1293,21 @@ export namespace shapes {
         class EmbeddedImage extends dia.Element {
             constructor(
                 attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
+                opt?: dia.Graph.Options
+            )
+        }
+
+        interface InscribedImageSelectors {
+            root?: attributes.SVGAttributes;
+            border?: attributes.SVGEllipseAttributes;
+            background?: attributes.SVGEllipseAttributes;
+            image?: attributes.SVGImageAttributes;
+            label?: attributes.SVGTextAttributes;
+        }
+
+        class InscribedImage extends dia.Element {
+            constructor(
+                attributes?: dia.Element.GenericAttributes<InscribedImageSelectors>,
                 opt?: dia.Graph.Options
             )
         }
@@ -2010,7 +2027,7 @@ export namespace util {
 
     export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
 
-    export function breakText(text: string, size: dia.Size, attrs?: attributes.NativeSVGAttributes, opt?: {
+    export function breakText(text: string, size: { width: number; height?: number; }, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;
         separator?: string | any;
         eol?: string;
@@ -2345,6 +2362,8 @@ export namespace mvc {
     class View<T extends Backbone.Model> extends Backbone.View<T> {
 
         constructor(opt?: ViewOptions<T>);
+
+        options: ViewOptions<T>;
 
         theme: string;
 

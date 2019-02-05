@@ -2,7 +2,7 @@
 
     var graph = new joint.dia.Graph;
 
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper-filters'),
         model: graph,
         width: 660,
@@ -245,6 +245,6 @@
                 text: 'dropShadow(2,2,3)'
             },
         }
-    })
+    });
     graph.addCell(link);
 }());

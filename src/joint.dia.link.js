@@ -132,36 +132,37 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         // setter
-        var localSource;
-        var localOpt;
+        var setSource;
+        var setOpt;
 
         // `source` is a cell
         // take only its `id` and combine with `args`
         var isCellProvided = source instanceof joint.dia.Cell;
         if (isCellProvided) { // three arguments
-            localSource = joint.util.clone(args) || {};
-            localSource.id = source.id;
-            localOpt = opt;
-            return this.set('source', localSource, localOpt);
+            setSource = joint.util.clone(args) || {};
+            setSource.id = source.id;
+            setOpt = opt;
+            return this.set('source', setSource, setOpt);
         }
 
-        // `source` is a g.Point
+        // `source` is a point-like object
+        // for example, a g.Point
         // take only its `x` and `y` and combine with `args`
-        var isPointProvided = source instanceof g.Point;
+        var isPointProvided = !joint.util.isPlainObject(source);
         if (isPointProvided) { // three arguments
-            localSource = joint.util.clone(args) || {};
-            localSource.x = source.x;
-            localSource.y = source.y;
-            localOpt = opt;
-            return this.set('source', localSource, localOpt);
+            setSource = joint.util.clone(args) || {};
+            setSource.x = source.x;
+            setSource.y = source.y;
+            setOpt = opt;
+            return this.set('source', setSource, setOpt);
         }
 
         // `source` is an object
         // no checking
         // two arguments
-        localSource = source;
-        localOpt = args;
-        return this.set('source', localSource, localOpt);
+        setSource = source;
+        setOpt = args;
+        return this.set('source', setSource, setOpt);
     },
 
     target: function(target, args, opt) {
@@ -172,36 +173,37 @@ joint.dia.Link = joint.dia.Cell.extend({
         }
 
         // setter
-        var localTarget;
-        var localOpt;
+        var setTarget;
+        var setOpt;
 
         // `target` is a cell
         // take only its `id` argument and combine with `args`
         var isCellProvided = target instanceof joint.dia.Cell;
         if (isCellProvided) { // three arguments
-            localTarget = joint.util.clone(args) || {};
-            localTarget.id = target.id;
-            localOpt = opt;
-            return this.set('target', localTarget, localOpt);
+            setTarget = joint.util.clone(args) || {};
+            setTarget.id = target.id;
+            setOpt = opt;
+            return this.set('target', setTarget, setOpt);
         }
 
-        // `target` is a g.Point
+        // `target` is a point-like object
+        // for example, a g.Point
         // take only its `x` and `y` and combine with `args`
-        var isPointProvided = target instanceof g.Point;
+        var isPointProvided = !joint.util.isPlainObject(target);
         if (isPointProvided) { // three arguments
-            localTarget = joint.util.clone(args) || {};
-            localTarget.x = target.x;
-            localTarget.y = target.y;
-            localOpt = opt;
-            return this.set('target', localTarget, localOpt);
+            setTarget = joint.util.clone(args) || {};
+            setTarget.x = target.x;
+            setTarget.y = target.y;
+            setOpt = opt;
+            return this.set('target', setTarget, setOpt);
         }
 
         // `target` is an object
         // no checking
         // two arguments
-        localTarget = target;
-        localOpt = args;
-        return this.set('target', localTarget, localOpt);
+        setTarget = target;
+        setOpt = args;
+        return this.set('target', setTarget, setOpt);
     },
 
     router: function(name, args, opt) {
@@ -315,8 +317,10 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         // getter
         if (arguments.length <= 1) return this.prop(['vertices', idx]);
+
         // setter
-        return this.prop(['vertices', idx], vertex, opt);
+        var setVertex = this._normalizeVertex(vertex);
+        return this.prop(['vertices', idx], setVertex, opt);
     },
 
     vertices: function(vertices, opt) {
@@ -327,9 +331,16 @@ joint.dia.Link = joint.dia.Cell.extend({
             if (!Array.isArray(vertices)) return [];
             return vertices.slice();
         }
+
         // setter
         if (!Array.isArray(vertices)) vertices = [];
-        return this.set('vertices', vertices, opt);
+        var setVertices = [];
+        for (var i = 0; i < vertices.length; i++) {
+            var vertex = vertices[i];
+            var setVertex = this._normalizeVertex(vertex);
+            setVertices.push(setVertex);
+        }
+        return this.set('vertices', setVertices, opt);
     },
 
     insertVertex: function(idx, vertex, opt) {
@@ -341,7 +352,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         idx = (isFinite(idx) && idx !== null) ? (idx | 0) : n;
         if (idx < 0) idx = n + idx + 1;
 
-        vertices.splice(idx, 0, vertex);
+        var setVertex = this._normalizeVertex(vertex);
+        vertices.splice(idx, 0, setVertex);
         return this.vertices(vertices, opt);
     },
 
@@ -352,6 +364,17 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         vertices.splice(idx, 1);
         return this.vertices(vertices, opt);
+    },
+
+    _normalizeVertex: function(vertex) {
+
+        // is vertex a point-like object?
+        // for example, a g.Point
+        var isPointProvided = !joint.util.isPlainObject(vertex);
+        if (isPointProvided) return { x: vertex.x, y: vertex.y };
+
+        // else: return vertex unchanged
+        return vertex;
     },
 
     // Transformations
@@ -566,6 +589,10 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     _V: null,
     _dragData: null, // deprecated
 
+    sourcePoint: null,
+    targetPoint: null,
+    sourceAnchor: null,
+    targetAnchor: null,
     metrics: null,
     decimalsRounding: 2,
 

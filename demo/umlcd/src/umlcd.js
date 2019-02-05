@@ -24,7 +24,12 @@ var classes = {
                 stroke: '#ffffff',
                 'stroke-width': 0.5
             },
-            '.uml-class-attrs-rect, .uml-class-methods-rect': {
+            '.uml-class-attrs-rect': {
+                fill: '#fdc886',
+                stroke: '#fff',
+                'stroke-width': 0.5
+            },
+            '.uml-class-methods-rect': {
                 fill: '#fdc886',
                 stroke: '#fff',
                 'stroke-width': 0.5
@@ -55,7 +60,12 @@ var classes = {
                 stroke: '#ffffff',
                 'stroke-width': 0.5
             },
-            '.uml-class-attrs-rect, .uml-class-methods-rect': {
+            '.uml-class-attrs-rect': {
+                fill: '#9687fe',
+                stroke: '#fff',
+                'stroke-width': 0.5
+            },
+            '.uml-class-methods-rect': {
                 fill: '#9687fe',
                 stroke: '#fff',
                 'stroke-width': 0.5
@@ -78,7 +88,12 @@ var classes = {
                 stroke: '#fff',
                 'stroke-width': 0.5,
             },
-            '.uml-class-attrs-rect, .uml-class-methods-rect': {
+            '.uml-class-attrs-rect': {
+                fill: '#fe976a',
+                stroke: '#fff',
+                'stroke-width': 0.5
+            },
+            '.uml-class-methods-rect': {
                 fill: '#fe976a',
                 stroke: '#fff',
                 'stroke-width': 0.5
@@ -108,7 +123,12 @@ var classes = {
                 stroke: '#fff',
                 'stroke-width': 0.5
             },
-            '.uml-class-attrs-rect, .uml-class-methods-rect': {
+            '.uml-class-attrs-rect': {
+                fill: '#fe976a',
+                stroke: '#fff',
+                'stroke-width': 0.5
+            },
+            '.uml-class-methods-rect': {
                 fill: '#fe976a',
                 stroke: '#fff',
                 'stroke-width': 0.5
@@ -131,7 +151,12 @@ var classes = {
                 stroke: '#fff',
                 'stroke-width': 0.5
             },
-            '.uml-class-attrs-rect, .uml-class-methods-rect': {
+            '.uml-class-attrs-rect': {
+                fill: '#fe976a',
+                stroke: '#fff',
+                'stroke-width': 0.5
+            },
+            '.uml-class-methods-rect': {
                 fill: '#fe976a',
                 stroke: '#fff',
                 'stroke-width': 0.5
@@ -150,7 +175,12 @@ var classes = {
                 stroke: '#fff',
                 'stroke-width': 0.5
             },
-            '.uml-class-attrs-rect, .uml-class-methods-rect': {
+            '.uml-class-attrs-rect': {
+                fill: '#fe976a',
+                stroke: '#fff',
+                'stroke-width': 0.5
+            },
+            '.uml-class-methods-rect': {
                 fill: '#fe976a',
                 stroke: '#fff',
                 'stroke-width': 0.5

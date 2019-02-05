@@ -2,7 +2,9 @@
 
 QUnit.module('vectorizer', function(hooks) {
 
-    var $fixture = $('#qunit-fixture');
+    var fixture = document.createElement('div');
+    fixture.id = 'qunit-fixture';
+
     var svgContainer;
     var svgPath;
     var svgGroup;
@@ -47,7 +49,8 @@ QUnit.module('vectorizer', function(hooks) {
                 '<path id="svg-path-3"/>' +
                 '<linearGradient id= "svg-linear-gradient"><stop/></linearGradient>';
 
-        $fixture.append(V('svg', { id: 'svg-container' }, V(svgContent)).node);
+        document.body.appendChild(fixture);
+        fixture.appendChild(V('svg', { id: 'svg-container' }, V(svgContent)).node);
 
         svgContainer = document.getElementById('svg-container');
         svgPath = document.getElementById('svg-path');
@@ -191,8 +194,7 @@ QUnit.module('vectorizer', function(hooks) {
             var svg = V('svg');
             svg.attr('width', 600);
             svg.attr('height', 800);
-            $fixture.append(svg.node);
-
+            fixture.appendChild(svg.node);
             return svg;
         };
 

@@ -1,20 +1,19 @@
 QUnit.module('routers', function(hooks) {
 
-    hooks.beforeEach(
-        function() {
+    hooks.beforeEach(function() {
 
-            var $fixture = $('#qunit-fixture');
-            var $paper = $('<div/>');
-            $fixture.append($paper);
+        var $fixture = $('<div>', { id: 'qunit-fixture' }).appendTo(document.body);
+        var $paper = $('<div/>');
+        $fixture.append($paper);
 
-            this.graph = new joint.dia.Graph;
-            this.paper = new joint.dia.Paper({
+        this.graph = new joint.dia.Graph;
+        this.paper = new joint.dia.Paper({
 
-                el: $paper,
-                gridSize: 10,
-                model: this.graph
-            });
+            el: $paper,
+            gridSize: 10,
+            model: this.graph
         });
+    });
 
     hooks.afterEach(function() {
 

@@ -70,6 +70,12 @@ export namespace g {
 
         closestPointTangent(p: Point): Line | null;
 
+        divideAt(ratio: number, opt?: SubdivisionsOpt): [Segment, Segment];
+
+        divideAtLength(length: number, opt?: SubdivisionsOpt): [Segment, Segment];
+
+        divideAtT(t: number): [Segment, Segment];
+
         equals(segment: Segment): boolean;
 
         getSubdivisions(): Curve[];
@@ -111,7 +117,11 @@ export namespace g {
 
     type RectangleSide = 'left' | 'right' | 'top' | 'bottom';
 
-    type SegmentType = 'L' | 'C' | 'M' | 'Z';
+    type PathSegmentUnit = Segment | Segment[];
+
+    type PathObjectUnit = Line | Line[] | Curve | Curve[];
+
+    type SegmentType = 'L' | 'C' | 'M' | 'Z' | 'z';
 
     export function normalizeAngle(angle: number): number;
 
@@ -145,7 +155,12 @@ export namespace g {
 
         closestPointTangent(p: PlainPoint, opt?: SubdivisionsOpt): Line | null;
 
-        divide(t: number): [Curve, Curve];
+        divideAt(ratio: number, opt?: SubdivisionsOpt): [Curve, Curve];
+
+        divideAtLength(length: number, opt?: SubdivisionsOpt): [Curve, Curve];
+
+        divideAtT(t: number): [Curve, Curve];
+        divide(t: number): [Curve, Curve]; // alias to `divideAtT`
 
         endpointDistance(): number;
 
@@ -203,23 +218,23 @@ export namespace g {
 
         bbox(): Rect;
 
+        center(): Point;
+
         clone(): Ellipse;
-
-        normalizedDistance(point: PlainPoint): number;
-
-        inflate(dx?: number, dy?: number): this;
 
         containsPoint(p: PlainPoint): boolean;
 
-        center(): Point;
-
-        tangentTheta(p: PlainPoint): number;
-
         equals(ellipse: Ellipse): boolean;
+
+        inflate(dx?: number, dy?: number): this;
 
         intersectionWithLine(l: Line): Point[] | null;
 
         intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
+
+        normalizedDistance(point: PlainPoint): number;
+
+        tangentTheta(p: PlainPoint): number;
 
         toString(): string;
 
@@ -248,6 +263,10 @@ export namespace g {
         closestPointNormalizedLength(p: PlainPoint | string): number;
 
         closestPointTangent(p: PlainPoint | string): Line | null;
+
+        divideAt(t: number): [Line, Line];
+
+        divideAtLength(length: number): [Line, Line];
 
         equals(line: Line): boolean;
 
@@ -302,15 +321,11 @@ export namespace g {
 
         constructor();
         constructor(pathData: string);
-        constructor(segments: Segment[]);
-        constructor(objects: (Line | Curve)[]);
-        constructor(segment: Segment);
-        constructor(line: Line);
-        constructor(curve: Curve);
+        constructor(segments: PathSegmentUnit | PathSegmentUnit[]);
+        constructor(objects: PathObjectUnit | PathObjectUnit[]);
         constructor(polyline: Polyline);
 
-        appendSegment(segment: Segment): void;
-        appendSegment(segments: Segment[]): void;
+        appendSegment(segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         bbox(): Rect | null;
 
@@ -324,14 +339,17 @@ export namespace g {
 
         closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
 
+        divideAt(ratio: number, opt?: SegmentSubdivisionsOpt): [Path, Path] | null;
+
+        divideAtLength(length: number, opt?: SegmentSubdivisionsOpt): [Path, Path] | null;
+
         equals(p: Path): boolean;
 
         getSegment(index: number): Segment | null;
 
         getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
-        insertSegment(index: number, segment: Segment): void;
-        insertSegment(index: number, segments: Segment[]): void;
+        insertSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         intersectionWithLine(l: Line, opt?: SegmentSubdivisionsOpt): Point[] | null;
 
@@ -347,8 +365,7 @@ export namespace g {
 
         removeSegment(index: number): void;
 
-        replaceSegment(index: number, segment: Segment): void;
-        replaceSegment(index: number, segments: Segment[]): void;
+        replaceSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
@@ -387,7 +404,7 @@ export namespace g {
 
         private updateSubpathStartSegment(segment: Segment): void;
 
-        static createSegment(type: SegmentType, ...args: any[]): Segment;
+        static createSegment(type: SegmentType, ...args: any[]): PathSegmentUnit;
 
         static parse(pathData: string): Path;
 
@@ -406,18 +423,22 @@ export namespace g {
 
         adhereToRect(r: Rect): this;
 
+        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
+
         bearing(p: Point): CardinalDirection;
 
         changeInAngle(dx: number, dy: number, ref: PlainPoint | string): number;
 
         clone(): Point;
 
+        cross(p1: PlainPoint, p2: PlainPoint) : number;
+
         difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
 
         distance(p: PlainPoint | string): number;
 
-        squaredDistance(p: PlainPoint | string): number;
+        dot(p: PlainPoint): number;
 
         equals(p: Point): boolean;
 
@@ -444,14 +465,9 @@ export namespace g {
 
         snapToGrid(gx: number, gy?: number): this;
 
+        squaredDistance(p: PlainPoint | string): number;
+
         theta(p: PlainPoint | string): number;
-
-        translate(tx?: number, ty?: number): this;
-        translate(tx: PlainPoint): this;
-
-        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
-
-        vectorAngle(p: PlainPoint) : number;
 
         toJSON(): PlainPoint;
 
@@ -459,11 +475,12 @@ export namespace g {
 
         toString(): string;
 
+        translate(tx?: number, ty?: number): this;
+        translate(tx: PlainPoint): this;
+
         update(x?: number, y?: number): this;
 
-        dot(p: PlainPoint): number;
-
-        cross(p1: PlainPoint, p2: PlainPoint) : number;
+        vectorAngle(p: PlainPoint) : number;
 
         static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
 
@@ -555,6 +572,8 @@ export namespace g {
 
         equals(r: PlainRect): boolean;
 
+        inflate(dx?: number, dy?: number): this;
+
         intersect(r: Rect): Rect | null;
 
         intersectionWithLine(l: Line): Point[] | null;
@@ -565,14 +584,16 @@ export namespace g {
 
         leftMiddle(): Point;
 
+        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
+
+        maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
+
         moveAndExpand(r: PlainRect): this;
+
+        normalize(): this;
 
         offset(dx?: number, dy?: number): this;
         offset(p: PlainPoint): this;
-
-        inflate(dx?: number, dy?: number): this;
-
-        normalize(): this;
 
         origin(): Point;
 
@@ -585,10 +606,6 @@ export namespace g {
         round(precision?: number): this;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
-
-        maxRectScaleToFit(rect: PlainRect, origin?: PlainPoint): Scale;
-
-        maxRectUniformScaleToFit(rect: PlainRect, origin?: PlainPoint): number;
 
         sideNearestToPoint(point: PlainPoint | string): RectangleSide;
 

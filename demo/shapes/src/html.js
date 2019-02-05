@@ -67,7 +67,7 @@
 
             // Update the box size and position whenever the paper transformation changes.
             // Note: there is no paper yet on `init` method.
-            this.listenTo(this.paper, 'scale', this.updateBox);
+            this.listenTo(this.paper, 'scale translate', this.updateBox);
 
             $box.appendTo(this.paper.el);
             this.updateBox();
@@ -151,12 +151,16 @@
 
     $('#zoom-in').on('click', function() {
         zoomLevel = Math.min(3, zoomLevel + 0.2);
-        paper.scale(zoomLevel, zoomLevel);
+        var size = paper.getComputedSize();
+        paper.translate(0,0);
+        paper.scale(zoomLevel, zoomLevel, size.width / 2, size.height / 2);
     });
 
     $('#zoom-out').on('click', function() {
         zoomLevel = Math.max(0.2, zoomLevel - 0.2);
-        paper.scale(zoomLevel, zoomLevel);
+        var size = paper.getComputedSize();
+        paper.translate(0,0);
+        paper.scale(zoomLevel, zoomLevel, size.width / 2, size.height / 2);
     });
 
 })(joint, $);

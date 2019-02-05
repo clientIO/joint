@@ -41,7 +41,7 @@
         }
 
         // identify link siblings
-        var siblings = _.filter(graph.getLinks(), function(sibling) {
+        var siblings = graph.getLinks().filter(function(sibling) {
 
             var siblingSourceId = sibling.source().id;
             var siblingTargetId = sibling.target().id;
@@ -58,14 +58,15 @@
             case 0: {
                 // the link has no siblings
                 break;
+            }
+            default: {
 
-            } case 1: {
-                // there is only one link
-                // no vertices needed
-                cell.unset('vertices');
-                // fall through
+                if (numSiblings === 1) {
+                    // there is only one link
+                    // no vertices needed
+                    cell.unset('vertices');
+                }
 
-            } default: {
                 // there are multiple siblings
                 // we need to create vertices
 
@@ -109,7 +110,7 @@
 
                     // we found the vertex
                     var angle = g.toRad(theta + (sign * reverse * 90));
-                    var vertex = g.Point.fromPolar(offset, angle, midPoint);
+                    var vertex = g.Point.fromPolar(offset, angle, midPoint).toJSON();
 
                     // replace vertices array with `vertex`
                     sibling.vertices([vertex]);
@@ -146,7 +147,7 @@
         // show link tools
         paper.on('link:mouseover', function(linkView) {
             linkView.showTools();
-        })
+        });
 
         // hide link tools
         paper.on('link:mouseout', function(linkView) {
@@ -202,7 +203,7 @@
             fill: '#e97bc4',
             stroke: '#ee99cf',
         }
-    })
+    });
     rect3.addTo(graph);
 
     // create links

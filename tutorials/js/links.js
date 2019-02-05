@@ -117,9 +117,9 @@
     link2.source(rect3);
     link2.target(rect4);
     link2.vertices([
-        new g.Point(250, 100),
-        new g.Point(300, 150),
-        new g.Point(350, 200)
+        { x: 250, y: 100 },
+        { x: 300, y: 150 },
+        { x: 350, y: 200 }
     ]);
     link2.router('orthogonal');
     link2.connector('rounded');

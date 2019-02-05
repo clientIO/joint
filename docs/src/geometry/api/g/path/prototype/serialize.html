@@ -1,4 +1,0 @@
-<pre class="docs-method-signature"><code>path.serialize()</code></pre>
-<p>Return the path represented as a path data string.</p>
-
-<p>Whenever a Path object needs to be converted to a string for the SVG <code>d</code> attribute, this function should be used. Unlike the <code>path.toString()</code> <a href="geometry.html#g.path.prototype.toString">function</a>, this function checks whether the path data string is <a href="geometry.html#g.path.prototype.isValid">valid</a>. The function throws an error if the path is not valid. This happens if the path has segments but does not start with a Moveto segment. Note that an empty string is valid, according to the SVG specification.</p>

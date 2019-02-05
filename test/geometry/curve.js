@@ -2,14 +2,15 @@
 
 QUnit.module('curve', function() {
 
-    var $fixture = $('#qunit-fixture');
+    var fixture = document.createElement('div');
+    fixture.id = 'qunit-fixture';
 
     var getSvg = function() {
-        var svg = V('svg');
-        svg.attr('width', 600);
-        svg.attr('height', 800);
-        $fixture.append(svg.node);
-
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        svg.setAttribute('width',  600);
+        svg.setAttribute('height',  800);
+        document.body.appendChild(fixture);
+        fixture.appendChild(svg);
         return svg;
     };
 
@@ -341,38 +342,168 @@ QUnit.module('curve', function() {
             });
         });
 
-        QUnit.module('divide()', function() {
+        QUnit.module('divideAt()', function() {
 
             QUnit.test('sanity', function(assert) {
 
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
                 var curveDivide;
 
-                curveDivide = curve.divide(0.5); // normal
+                curveDivide = curve.divideAt(0.5); // normal
                 assert.ok(Array.isArray(curveDivide));
                 assert.equal(curveDivide.length, 2);
                 assert.ok(curveDivide[0] instanceof g.Curve);
                 assert.ok(curveDivide[1] instanceof g.Curve);
 
-                curveDivide = curve.divide(0); // minimum
+                curveDivide = curve.divideAt(0); // minimum
                 assert.ok(Array.isArray(curveDivide));
                 assert.equal(curveDivide.length, 2);
                 assert.ok(curveDivide[0] instanceof g.Curve);
                 assert.ok(curveDivide[1] instanceof g.Curve);
 
-                curveDivide = curve.divide(-1); // too little
+                curveDivide = curve.divideAt(-1); // too little
                 assert.ok(Array.isArray(curveDivide));
                 assert.equal(curveDivide.length, 2);
                 assert.ok(curveDivide[0] instanceof g.Curve);
                 assert.ok(curveDivide[1] instanceof g.Curve);
 
-                curveDivide = curve.divide(1); // maximum
+                curveDivide = curve.divideAt(1); // maximum
                 assert.ok(Array.isArray(curveDivide));
                 assert.equal(curveDivide.length, 2);
                 assert.ok(curveDivide[0] instanceof g.Curve);
                 assert.ok(curveDivide[1] instanceof g.Curve);
 
-                curveDivide = curve.divide(10); // too much
+                curveDivide = curve.divideAt(10); // too much
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+            });
+
+            QUnit.test('returns an array with two curves, divided at provided `ratio`', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curveDivide;
+
+                curveDivide = curve.divideAt(0.5);
+                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
+                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+
+                curveDivide = curve.divideAt(0);
+                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
+                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+
+                curveDivide = curve.divideAt(-1);
+                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
+                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+
+                curveDivide = curve.divideAt(1);
+                assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
+                assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
+
+                curveDivide = curve.divideAt(10);
+                assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
+                assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
+            });
+        });
+
+        QUnit.module('divideAtLength()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curveDivide;
+
+                curveDivide = curve.divideAtLength(120); // normal
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(-120); // normal negative
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(0); // minimum
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(1000); // too much
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtLength(-1000); // too much negative
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+            });
+
+            QUnit.test('returns an array with two curves, divided at provided `length`', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curveDivide;
+
+                curveDivide = curve.divideAtLength(120);
+                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
+                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+
+                curveDivide = curve.divideAtLength(-120);
+                assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
+                assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
+
+                curveDivide = curve.divideAtLength(0);
+                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
+                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+
+                curveDivide = curve.divideAtLength(1000);
+                assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
+                assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
+
+                curveDivide = curve.divideAtLength(-1000);
+                assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
+                assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
+            });
+        });
+
+        QUnit.module('divideAtT()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curveDivide;
+
+                curveDivide = curve.divideAtT(0.5); // normal
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtT(0); // minimum
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtT(-1); // too little
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtT(1); // maximum
+                assert.ok(Array.isArray(curveDivide));
+                assert.equal(curveDivide.length, 2);
+                assert.ok(curveDivide[0] instanceof g.Curve);
+                assert.ok(curveDivide[1] instanceof g.Curve);
+
+                curveDivide = curve.divideAtT(10); // too much
                 assert.ok(Array.isArray(curveDivide));
                 assert.equal(curveDivide.length, 2);
                 assert.ok(curveDivide[0] instanceof g.Curve);
@@ -384,23 +515,23 @@ QUnit.module('curve', function() {
                 var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
                 var curveDivide;
 
-                curveDivide = curve.divide(0.5);
+                curveDivide = curve.divideAtT(0.5);
                 assert.equal(curveDivide[0].toString(), '0@100 25@150 62.5@125 100@100');
                 assert.equal(curveDivide[1].toString(), '100@100 137.5@75 175@50 200@100');
 
-                curveDivide = curve.divide(0);
+                curveDivide = curve.divideAtT(0);
                 assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
                 assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
 
-                curveDivide = curve.divide(-1);
+                curveDivide = curve.divideAtT(-1);
                 assert.equal(curveDivide[0].toString(), '0@100 0@100 0@100 0@100');
                 assert.equal(curveDivide[1].toString(), '0@100 50@200 150@0 200@100');
 
-                curveDivide = curve.divide(1);
+                curveDivide = curve.divideAtT(1);
                 assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
                 assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
 
-                curveDivide = curve.divide(10);
+                curveDivide = curve.divideAtT(10);
                 assert.equal(curveDivide[0].toString(), '0@100 50@200 150@0 200@100');
                 assert.equal(curveDivide[1].toString(), '200@100 200@100 200@100 200@100');
             });
@@ -656,10 +787,11 @@ QUnit.module('curve', function() {
 
                 var gCurve = new g.Curve('0 0', '0 200', '200 200', '200 0');
                 var gCurvePath = new g.Path(gCurve);
-                var curvePath = V('path', { d: gCurvePath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(curvePath);
+                var curvePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                curvePath.setAttribute('d',  gCurvePath.serialize());
+                svg.appendChild(curvePath);
 
-                assert.equal(Math.round(gCurve.length({ precision: 3 })), Math.round(curvePath.node.getTotalLength()));
+                assert.equal(Math.round(gCurve.length({ precision: 3 })), Math.round(curvePath.getTotalLength()));
 
                 svg.remove();
             });
@@ -820,13 +952,14 @@ QUnit.module('curve', function() {
 
                 var gCurve = new g.Curve('0 0', '0 200', '200 200', '200 0');
                 var gCurvePath = new g.Path(gCurve);
-                var curvePath = V('path', { d: gCurvePath.serialize(), stroke: 'green', fill: 'none' });
-                svg.append(curvePath);
+                var curvePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                curvePath.setAttribute('d',  gCurvePath.serialize());
+                svg.appendChild(curvePath);
 
                 p1 = gCurve.pointAtLength(250, { precision: 4 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = curvePath.node.getPointAtLength(250);
+                p2 = curvePath.getPointAtLength(250);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);
@@ -834,7 +967,7 @@ QUnit.module('curve', function() {
                 /*p1 = gCurve.pointAtLength(-1, { precision: 1 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = curvePath.node.getPointAtLength(-1);
+                p2 = curvePath.getPointAtLength(-1);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);*/
@@ -842,7 +975,7 @@ QUnit.module('curve', function() {
                 p1 = gCurve.pointAtLength(10000, { precision: 1 });
                 x1 = Math.round(p1.x);
                 y1 = Math.round(p1.y);
-                p2 = curvePath.node.getPointAtLength(10000);
+                p2 = curvePath.getPointAtLength(10000);
                 x2 = Math.round(p2.x);
                 y2 = Math.round(p2.y);
                 assert.equal(x1 + '@' + y1, x2 + '@' + y2);

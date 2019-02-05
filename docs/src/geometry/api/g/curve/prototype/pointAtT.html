@@ -1,6 +1,0 @@
-<pre class="docs-method-signature"><code>curve.pointAtT(t)</code></pre>
-<p>Return a point on the curve at a point specified by <code>t</code>.</p>
-
-<p>The function expects <code>t</code> to lie between 0 and 1; values outside the range are constrained to 0 and 1, respectively.</p>
-
-<p>This function is not a counterpart to the <code>line.pointAt()</code> <a href="geometry.html#g.line.prototype.pointAt">function</a>. The relationship between <code>t</code> and distance along a curve is complex and non-linear. If a point at a certain <code>ratio</code> (normalized length) away from beginning of the curve is needed, use the <code>curve.pointAt()</code> <a href="geometry.html#g.curve.prototype.pointAt">function</a>.</p>

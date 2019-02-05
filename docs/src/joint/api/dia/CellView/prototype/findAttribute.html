@@ -1,0 +1,4 @@
+<pre class="docs-method-signature"><code>cellView.findAttribute(attribute, node)</code></pre>
+<p>Return the value of the specified <code>attribute</code> of <code>node</code>.</p>
+
+<p>If <code>node</code> does not set a value for <code>attribute</code>, start recursing up the DOM tree from <code>node</code> to look for <code>attribute</code> at the ancestors of <code>node</code>. If the recursion reaches CellView's own node and <code>attribute</code> is not found even there, return <code>null</code>.</p>

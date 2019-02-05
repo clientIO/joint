@@ -1,4 +1,4 @@
-<p>The view for the <a href="joint.html#dia.Link">joint.dia.Link</a> model. It inherits from <a href="joint.html#dia.CellView">joint.dia.CellView</a> and is responsible for:</p>
+<p>The view for the <a href="#dia.Link">joint.dia.Link</a> model. It inherits from <a href="#dia.CellView">joint.dia.CellView</a> and is responsible for:</p>
 
 <ul>
   <li>Rendering a link inside a paper</li>
@@ -6,13 +6,13 @@
   <li>Providing various methods for working with the link (visually)</li>
 </ul>
 
-<p>To find the view associated with a specific link model, use the <code>paper.findViewByModel()</code> <a href="joint.html#dia.Paper.prototype.findViewByModel">method</a>:</p>
+<p>To find the view associated with a specific link model, use the <code>paper.findViewByModel()</code> <a href="#dia.Paper.prototype.findViewByModel">method</a>:</p>
 
 <pre><code>var linkView = paper.findViewByModel(link);</code></pre>
 
 <h4>Custom LinkView</h4>
 
-<p>It is possible to use a custom default link view for all your links in a paper. This can be set up via the <code>linkView</code> option on the <a href="joint.html#dia.Paper.prototype.options">paper object</a>. Several options in <code>joint.dia.LinkView</code> may be overridden in a custom LinkView:</p>
+<p>It is possible to use a custom default link view for all your links in a paper. This can be set up via the <code>linkView</code> option on the <a href="#dia.Paper.prototype.options">paper object</a>. Several options in <code>joint.dia.LinkView</code> may be overridden in a custom LinkView:</p>
 
 <ul>
   <li><b>shortLinkLength</b> - if link is shorter than the length specified, the size of link tools is scaled down by half. Defaults to <code>105</code>.</li>
@@ -22,7 +22,7 @@
   <li><b>doubleLinkToolsOffset</b> - the offset of duplicate link tools from the end of the link, if length is longer than <code>longLinkLength</code> and <code>doubleLinkTools: true</code>. Defaults to <code>65</code>.</li>
 </ul>
 
-<p>A custom LinkView type may also override default LinkView event handlers, or provide new ones. It may be necessary to modify the <code>interactive</code> <a href="joint.html#dia.Paper.prototype.options.interactive">paper option</a> to prevent interference from builtin event handlers (most notably <code>vertexAdd</code> which listens for pointerdown events).</p>
+<p>A custom LinkView type may also override default LinkView event handlers, or provide new ones. It may be necessary to modify the <code>interactive</code> <a href="#dia.Paper.prototype.options.interactive">paper option</a> to prevent interference from builtin event handlers (most notably <code>vertexAdd</code> which listens for pointerdown events).</p>
 
 <p>Example:</p>
 
