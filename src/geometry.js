@@ -1718,14 +1718,14 @@ var g = {};
 
         var path = new Path();
 
-        var commandRe = /(?:[a-zA-Z] *)(?:(?:-?\d+(?:\.\d+)? *,? *)|(?:-?\.\d+ *,? *))+|(?:[a-zA-Z] *)(?! |\d|-|\.)/g;
+        var commandRe = /(?:[a-zA-Z] *)(?:(?:-?\d+(?:\.\d+)?(?:e[-+]?\d+)? *,? *)|(?:-?\.\d+ *,? *))+|(?:[a-zA-Z] *)(?! |\d|-|\.)/g;
         var commands = pathData.match(commandRe);
 
         var numCommands = commands.length;
         for (var i = 0; i < numCommands; i++) {
 
             var command = commands[i];
-            var argRe = /(?:[a-zA-Z])|(?:(?:-?\d+(?:\.\d+)?))|(?:(?:-?\.\d+))/g;
+            var argRe = /(?:[a-zA-Z])|(?:(?:-?\d+(?:\.\d+)?(?:e[-+]?\d+)?))|(?:(?:-?\.\d+))/g;
             var args = command.match(argRe);
 
             var segment = Path.createSegment.apply(this, args); // args = [type, coordinate1, coordinate2...]
