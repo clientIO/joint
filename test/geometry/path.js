@@ -487,6 +487,40 @@ QUnit.module('path', function(hooks) {
             assert.equal(path.segments[4].end.toString(), '51@51');
             assert.equal(path.segments[5].start.toString(), '51@51');
             assert.equal(path.segments[5].end.toString(), '52@52');
+
+            // scientific notation
+            path = new g.Path('M 0 0 L 9.02e-17 -9.02e-7 L 1e-7 -1e-17 L 12.3e55 -12.3e+5 L 12e+55 -12e55');
+            assert.ok(path instanceof g.Path, 'returns instance of g.Path');
+            assert.ok(typeof path.segments !== 'undefined', 'has "segments" property');
+            assert.ok(Array.isArray(path.segments));
+            assert.equal(path.segments.length, 5);
+            assert.ok(path.segments[0] instanceof g.Path.segmentTypes.M);
+            assert.ok(path.segments[1] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[2] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[3] instanceof g.Path.segmentTypes.L);
+            assert.ok(path.segments[4] instanceof g.Path.segmentTypes.L);
+            assert.equal(path.segments[0].end.toString(), '0@0');
+            assert.equal(path.segments[1].start.toString(), '0@0');
+
+            var coords = path.segments[1].end.toString().split('@');
+            assert.equal(coords.length, 2);
+            assert.equal(Number(coords[0]), 9.02e-17);
+            assert.equal(Number(coords[1]), -9.02e-7);
+
+            coords = path.segments[2].end.toString().split('@');
+            assert.equal(coords.length, 2);
+            assert.equal(Number(coords[0]), 1e-7);
+            assert.equal(Number(coords[1]), -1e-17);
+
+            coords = path.segments[3].end.toString().split('@');
+            assert.equal(coords.length, 2);
+            assert.equal(Number(coords[0]), 12.3e55);
+            assert.equal(Number(coords[1]), -12.3e5);
+
+            coords = path.segments[4].end.toString().split('@');
+            assert.equal(coords.length, 2);
+            assert.equal(Number(coords[0]), 12e55);
+            assert.equal(Number(coords[1]), -12e55);
         });
     });
 
