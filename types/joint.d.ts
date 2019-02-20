@@ -3136,7 +3136,7 @@ export namespace linkTools {
         protected onPointerDown(evt: JQuery.Event): void;
     }
 
-    class Remove extends dia.ToolView {
+    class Remove extends Button {
 
     }
 
