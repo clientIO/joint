@@ -300,6 +300,7 @@ QUnit.module('cellView', function(hooks) {
 
             QUnit.test('With Ref and Rotatable Group', function(assert) {
                 var REF_DY = 10;
+                var RECT_WIDTH = 50;
                 cell.set('markup', [{
                     tagName: 'g',
                     selector: 'rotatable',
@@ -312,6 +313,10 @@ QUnit.module('cellView', function(hooks) {
                     tagName: 'rect',
                     selector: '.b',
                     className: 'b'
+                }, {
+                    tagName: 'rect',
+                    selector: '.c',
+                    className: 'c'
                 }]);
                 cell.attr({
                     '.a': {
@@ -321,9 +326,16 @@ QUnit.module('cellView', function(hooks) {
                         y: 0
                     },
                     '.b': {
-                        width: 50,
+                        width: RECT_WIDTH,
                         height: 50,
                         ref: '.a',
+                        refDy: REF_DY,
+                        refX: 0.5
+                    },
+                    '.c': {
+                        width: RECT_WIDTH,
+                        height: 50,
+                        ref: '.b',
                         refDy: REF_DY,
                         refX: 0.5
                     }
@@ -332,10 +344,14 @@ QUnit.module('cellView', function(hooks) {
 
                 rectA = cellView.vel.findOne('.a');
                 rectB = cellView.vel.findOne('.b');
+                var rectC = cellView.vel.findOne('.c');
                 var bboxA = rectA.getBBox({ target: paper.svg });
                 var bboxB = rectB.getBBox({ target: paper.svg });
+                var bboxC = rectC.getBBox({ target: paper.svg });
 
                 assert.equal(Math.round(bboxB.y - bboxA.y - bboxA.height), REF_DY);
+                assert.equal(Math.round(bboxC.y - bboxB.y - bboxB.height), REF_DY);
+                assert.equal(Math.round(bboxC.x - bboxB.x), RECT_WIDTH / 2);
             });
 
             QUnit.test('Position stacking', function(assert) {
