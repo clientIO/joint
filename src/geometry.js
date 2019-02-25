@@ -576,6 +576,16 @@ var g = {};
             return this.tangentAtT(this.closestPointT(p, opt));
         },
 
+        // Returns `true` if the area surrounded by the curve contains the point `p`.
+        // Implements the even-odd algorithm (self-intersections are "outside").
+        // Closes open curves (always imagines a closing segment).
+        // Precision may be adjusted by passing an `opt` object.
+        containsPoint: function(p, opt) {
+
+            var polyline = this.toPolyline(opt);
+            return polyline.containsPoint(p);
+        },
+
         // Divides the curve into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
         // For a function that uses `t`, use Curve.divideAtT().
         divideAt: function(ratio, opt) {
@@ -1963,7 +1973,7 @@ var g = {};
             return null;
         },
 
-        // Returns `true` if the path contains the point `p`.
+        // Returns `true` if the area surrounded by the path contains the point `p`.
         // Implements the even-odd algorithm (self-intersections are "outside").
         // Closes open paths (always imagines a final closing segment).
         // Precision may be adjusted by passing an `opt` object.
@@ -3324,7 +3334,7 @@ var g = {};
             return this.tangentAtLength(cpLength);
         },
 
-        // Returns `true` if the polyline contains the point `p`.
+        // Returns `true` if the area surrounded by the polyline contains the point `p`.
         // Implements the even-odd SVG algorithm (self-intersections are "outside").
         // (Uses horizontal rays to the right of `p` to look for intersections.)
         // Closes open polylines (always imagines a final closing segment).
@@ -3925,7 +3935,7 @@ var g = {};
             return new Rect(this);
         },
 
-        // @return {bool} true if point p is insight me
+        // @return {bool} true if point p is inside me.
         containsPoint: function(p) {
 
             p = new Point(p);
