@@ -45,7 +45,6 @@ module.exports = function(grunt) {
             dest:
                 'build/joint.d.ts'
         },
-        //TODO v.talas es6 - use the UMD module in rollup instead
         geometry: {
             files: {
                 'build/geometry.js':
@@ -62,7 +61,6 @@ module.exports = function(grunt) {
                     )
             }
         },
-        //TODO v.talas es6 - use the UMD module in rollup instead
         vectorizer: {
             files: {
                 'build/vectorizer.js':
@@ -93,6 +91,8 @@ module.exports = function(grunt) {
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
                         polyfills,
+                        geometry,
+                        vectorizer,
                         core.js,
                         ['wrappers/joint.foot.js.partial']
                     ),
@@ -100,6 +100,8 @@ module.exports = function(grunt) {
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
                         ['build/min/polyfills.min.js'],
+                        ['build/min/geometry.min.js'],
+                        ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         ['wrappers/joint.foot.js.partial']
                     ),
@@ -115,6 +117,8 @@ module.exports = function(grunt) {
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
                         polyfills,
+                        geometry,
+                        vectorizer,
                         core.js,
                         allJSPlugins,
                         ['wrappers/joint.foot.js.partial']
@@ -123,6 +127,8 @@ module.exports = function(grunt) {
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
                         ['build/min/polyfills.min.js'],
+                        ['build/min/geometry.min.js'],
+                        ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins,
                         ['wrappers/joint.foot.js.partial']
@@ -140,12 +146,16 @@ module.exports = function(grunt) {
                 'build/joint.nowrap.js':
                     [].concat(
                         polyfills,
+                        geometry,
+                        vectorizer,
                         core.js,
                         allJSPlugins
                     ),
                 'build/joint.nowrap.min.js':
                     [].concat(
                         ['build/min/polyfills.min.js'],
+                        ['build/min/geometry.min.js'],
+                        ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins
                     )

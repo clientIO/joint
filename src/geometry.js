@@ -2,19 +2,19 @@
 // -----------------
 
 // Declare shorthands to the most used math functions.
-var math = Math;
-var abs = math.abs;
-var cos = math.cos;
-var sin = math.sin;
-var sqrt = math.sqrt;
-var min = math.min;
-var max = math.max;
-var atan2 = math.atan2;
-var round = math.round;
-var floor = math.floor;
-var PI = math.PI;
-var random = math.random;
-var pow = math.pow;
+const math = Math;
+const abs = math.abs;
+const cos = math.cos;
+const sin = math.sin;
+const sqrt = math.sqrt;
+const min = math.min;
+const max = math.max;
+const atan2 = math.atan2;
+const round = math.round;
+const floor = math.floor;
+const PI = math.PI;
+const random = math.random;
+const pow = math.pow;
 
 export const bezier = {
 
