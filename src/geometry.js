@@ -3282,6 +3282,61 @@ var g = {};
             return this.tangentAtLength(cpLength);
         },
 
+        // Returns `true` if the polyline contains the point `p`.
+        // Implements the even-odd SVG algorithm (self-intersections are "outside").
+        // (Uses horizontal rays to the right of `p` to look for intersections.)
+        // Closes open polylines (always imagines a final closing segment).
+        containsPoint: function(p) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return false; // shortcut (this polyline has no points)
+
+            var x = p.x;
+            var y = p.y;
+
+            // initialize a final closing segment by creating one from last-first points on polyline
+            var startIndex = numPoints - 1; // start of current polyline segment
+            var endIndex = 0; // end of current polyline segment
+            var numIntersections = 0;
+            for (; endIndex < numPoints; endIndex++) {
+                var start = points[startIndex];
+                var end = points[endIndex];
+                if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
+
+                var segment = new Line(start, end); // current polyline segment
+                if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
+
+                // do we have an intersection?
+                if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
+                    // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
+                    // (when `y === start.y === end.y`)
+                    // this conditional branch IS entered when `segment` touches `ray` at only one point
+                    // (e.g. when `y === start.y !== end.y`)
+                    // since this branch is entered again for the following segment, the two touches cancel out
+
+                    var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
+                    if (xDifference >= 0) {
+                        // segment lies at least partially to the right of `p`
+                        var rayEnd = new Point((x + xDifference), y); // right
+                        var ray = new Line(p, rayEnd);
+
+                        if (segment.intersect(ray)) {
+                            // an intersection was detected to the right of `p`
+                            numIntersections++;
+                        }
+                    } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
+                }
+
+                // move to check the next polyline segment
+                startIndex = endIndex;
+            }
+
+            // returns `true` for odd numbers of intersections (even-odd algorithm)
+            return ((numIntersections % 2) === 1);
+            // return (numIntersections > 0); // (non-zero algorithm)
+        },
+
         // Returns a convex-hull polyline from this polyline.
         // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
         // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
