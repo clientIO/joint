@@ -1947,6 +1947,32 @@ var g = {};
             return null;
         },
 
+        // Returns `true` if the path contains the point `p`.
+        // Implements the even-odd algorithm (self-intersections are "outside").
+        // Closes open paths (always imagines a final closing segment).
+        // Precision may be adjusted by passing an `opt` object.
+        containsPoint: function(p, opt) {
+
+            var polylines = this.toPolylines(opt);
+            if (!polylines) return false; // shortcut (this path has no polylines)
+
+            var numPolylines = polylines.length;
+
+            // how many component polylines does `p` lie within?
+            var numIntersections = 0;
+            for (var i = 0; i < numPolylines; i++) {
+                var polyline = polylines[i];
+                if (polyline.containsPoint(p)) {
+                    // `p` lies within this polyline
+                    numIntersections++;
+                }
+            }
+
+            // returns `true` for odd numbers of intersections (even-odd algorithm)
+            return ((numIntersections % 2) === 1);
+            // return (numIntersections > 0); // (non-zero algorithm)
+        },
+
         // Divides the path into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
         divideAt: function(ratio, opt) {
 
