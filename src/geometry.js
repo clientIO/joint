@@ -1370,6 +1370,20 @@ var g = {};
             return this.tangentAt(this.closestPointNormalizedLength(p));
         },
 
+        // Returns `true` if the point lies on the line.
+        containsPoint: function(p) {
+
+
+            if (this.start.cross(p, this.end) !== 0) return false;
+            // cross product of 0 indicates that this line and the vector to `p` are collinear
+
+            if ((new g.Line(this.start, p)).length() > this.length()) return false;
+            if ((new g.Line(p, this.end)).length() > this.length()) return false;
+            // `p` lies between start and end of the line
+
+            return true;
+        },
+
         // Divides the line into two at requested `ratio` between 0 and 1.
         divideAt: function(ratio) {
 
@@ -1970,7 +1984,6 @@ var g = {};
 
             // returns `true` for odd numbers of intersections (even-odd algorithm)
             return ((numIntersections % 2) === 1);
-            // return (numIntersections > 0); // (non-zero algorithm)
         },
 
         // Divides the path into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
@@ -2982,6 +2995,7 @@ var g = {};
         // watch out for the ordering of points p1 and p2!
         // positive result indicates a clockwise ("right") turn from first to second vector
         // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // zero indicates that the first and second vector are collinear
         // note that the above directions are reversed from the usual answer on the Internet
         // that is because we are in a left-handed coord system (because the y-axis points downward)
         cross: function(p1, p2) {
@@ -3360,7 +3374,6 @@ var g = {};
 
             // returns `true` for odd numbers of intersections (even-odd algorithm)
             return ((numIntersections % 2) === 1);
-            // return (numIntersections > 0); // (non-zero algorithm)
         },
 
         // Returns a convex-hull polyline from this polyline.
