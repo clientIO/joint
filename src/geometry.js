@@ -1373,12 +1373,14 @@ var g = {};
         // Returns `true` if the point lies on the line.
         containsPoint: function(p) {
 
+            var start = this.start;
+            var end = this.end;
 
-            if (this.start.cross(p, this.end) !== 0) return false;
+            if (start.cross(p, end) !== 0) return false;
             // cross product of 0 indicates that this line and the vector to `p` are collinear
 
-            if ((new g.Line(this.start, p)).length() > this.length()) return false;
-            if ((new g.Line(p, this.end)).length() > this.length()) return false;
+            if ((new g.Line(start, p)).length() > this.length()) return false;
+            if ((new g.Line(p, end)).length() > this.length()) return false;
             // `p` lies between start and end of the line
 
             return true;
