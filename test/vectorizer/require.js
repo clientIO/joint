@@ -4,7 +4,7 @@ require.config({
         'qunit': 'node_modules/qunit/qunit/qunit',
 
         // Dependencies for Vectorizer:
-        'g': 'src/geometry'
+        'g': 'build/iife/geometry'
     }
 });
 
