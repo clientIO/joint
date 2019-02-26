@@ -576,6 +576,16 @@ var g = {};
             return this.tangentAtT(this.closestPointT(p, opt));
         },
 
+        // Returns `true` if the area surrounded by the curve contains the point `p`.
+        // Implements the even-odd algorithm (self-intersections are "outside").
+        // Closes open curves (always imagines a closing segment).
+        // Precision may be adjusted by passing an `opt` object.
+        containsPoint: function(p, opt) {
+
+            var polyline = this.toPolyline(opt);
+            return polyline.containsPoint(p);
+        },
+
         // Divides the curve into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
         // For a function that uses `t`, use Curve.divideAtT().
         divideAt: function(ratio, opt) {
@@ -1370,6 +1380,23 @@ var g = {};
             return this.tangentAt(this.closestPointNormalizedLength(p));
         },
 
+        // Returns `true` if the point lies on the line.
+        containsPoint: function(p) {
+
+            var start = this.start;
+            var end = this.end;
+
+            if (start.cross(p, end) !== 0) return false;
+            // else: cross product of 0 indicates that this line and the vector to `p` are collinear
+
+            var length = this.length();
+            if ((new g.Line(start, p)).length() > length) return false;
+            if ((new g.Line(p, end)).length() > length) return false;
+            // else: `p` lies between start and end of the line
+
+            return true;
+        },
+
         // Divides the line into two at requested `ratio` between 0 and 1.
         divideAt: function(ratio) {
 
@@ -1945,6 +1972,31 @@ var g = {};
 
             // if no valid segment, return null
             return null;
+        },
+
+        // Returns `true` if the area surrounded by the path contains the point `p`.
+        // Implements the even-odd algorithm (self-intersections are "outside").
+        // Closes open paths (always imagines a final closing segment).
+        // Precision may be adjusted by passing an `opt` object.
+        containsPoint: function(p, opt) {
+
+            var polylines = this.toPolylines(opt);
+            if (!polylines) return false; // shortcut (this path has no polylines)
+
+            var numPolylines = polylines.length;
+
+            // how many component polylines does `p` lie within?
+            var numIntersections = 0;
+            for (var i = 0; i < numPolylines; i++) {
+                var polyline = polylines[i];
+                if (polyline.containsPoint(p)) {
+                    // `p` lies within this polyline
+                    numIntersections++;
+                }
+            }
+
+            // returns `true` for odd numbers of intersections (even-odd algorithm)
+            return ((numIntersections % 2) === 1);
         },
 
         // Divides the path into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
@@ -2956,6 +3008,7 @@ var g = {};
         // watch out for the ordering of points p1 and p2!
         // positive result indicates a clockwise ("right") turn from first to second vector
         // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // zero indicates that the first and second vector are collinear
         // note that the above directions are reversed from the usual answer on the Internet
         // that is because we are in a left-handed coord system (because the y-axis points downward)
         cross: function(p1, p2) {
@@ -3280,6 +3333,60 @@ var g = {};
             var cpLength = this.closestPointLength(p);
 
             return this.tangentAtLength(cpLength);
+        },
+
+        // Returns `true` if the area surrounded by the polyline contains the point `p`.
+        // Implements the even-odd SVG algorithm (self-intersections are "outside").
+        // (Uses horizontal rays to the right of `p` to look for intersections.)
+        // Closes open polylines (always imagines a final closing segment).
+        containsPoint: function(p) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) return false; // shortcut (this polyline has no points)
+
+            var x = p.x;
+            var y = p.y;
+
+            // initialize a final closing segment by creating one from last-first points on polyline
+            var startIndex = numPoints - 1; // start of current polyline segment
+            var endIndex = 0; // end of current polyline segment
+            var numIntersections = 0;
+            for (; endIndex < numPoints; endIndex++) {
+                var start = points[startIndex];
+                var end = points[endIndex];
+                if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
+
+                var segment = new Line(start, end); // current polyline segment
+                if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
+
+                // do we have an intersection?
+                if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
+                    // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
+                    // (when `y === start.y === end.y`)
+                    // this conditional branch IS entered when `segment` touches `ray` at only one point
+                    // (e.g. when `y === start.y !== end.y`)
+                    // since this branch is entered again for the following segment, the two touches cancel out
+
+                    var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
+                    if (xDifference >= 0) {
+                        // segment lies at least partially to the right of `p`
+                        var rayEnd = new Point((x + xDifference), y); // right
+                        var ray = new Line(p, rayEnd);
+
+                        if (segment.intersect(ray)) {
+                            // an intersection was detected to the right of `p`
+                            numIntersections++;
+                        }
+                    } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
+                }
+
+                // move to check the next polyline segment
+                startIndex = endIndex;
+            }
+
+            // returns `true` for odd numbers of intersections (even-odd algorithm)
+            return ((numIntersections % 2) === 1);
         },
 
         // Returns a convex-hull polyline from this polyline.
@@ -3829,7 +3936,7 @@ var g = {};
             return new Rect(this);
         },
 
-        // @return {bool} true if point p is insight me
+        // @return {bool} true if point p is inside me.
         containsPoint: function(p) {
 
             p = new Point(p);

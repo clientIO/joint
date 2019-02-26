@@ -1,0 +1,4 @@
+<pre class="docs-method-signature"><code>curve.containsPoint(p [, opt])</code></pre>
+<p>Return <code>true</code> if the point <code>p</code> is inside the area surrounded by the curve (inclusive). Return <code>false</code> otherwise. Uses the <a href="https://en.wikipedia.org/wiki/Even–odd_rule" target="_blank">even-odd algorithm</a> to resolve self-intersections.</p>
+
+<p>Uses the <code>curve.toPolyline()</code> <a href="#g.Curve.prototype.toPolyline">function</a> in the background. The precision of the calculation may be adjusted by passing the <code>opt.precision</code> and <code>opt.subdivisions</code> properties.</p>

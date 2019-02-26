@@ -151,6 +151,33 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('containsPoint()', function() {
+
+            QUnit.test('returns true if point lies on the line', function(assert) {
+
+                var line = new g.Line('10 0', '20 0');
+                var point;
+
+                point = new g.Point(10, 0);
+                assert.equal(line.containsPoint(point), true);
+
+                point = new g.Point(15, 0);
+                assert.equal(line.containsPoint(point), true);
+
+                point = new g.Point(20, 0);
+                assert.equal(line.containsPoint(point), true);
+
+                point = new g.Point(5, 0);
+                assert.equal(line.containsPoint(point), false);
+
+                point = new g.Point(15, 10);
+                assert.equal(line.containsPoint(point), false);
+
+                point = new g.Point(25, 0);
+                assert.equal(line.containsPoint(point), false);
+            });
+        });
+
         QUnit.module('divideAt()', function() {
 
             QUnit.test('sanity', function(assert) {

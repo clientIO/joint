@@ -342,6 +342,27 @@ QUnit.module('curve', function() {
             });
         });
 
+        QUnit.module('containsPoint()', function() {
+
+            QUnit.test('returns true if point lies within the curve according to even-odd rule', function(assert) {
+
+                var curve = new g.Curve('40 0', '100 50', '0 50', '60 0');
+                var point;
+
+                point = new g.Point(40, 0);
+                assert.equal(curve.containsPoint(point), true, 'endpoint = inside');
+
+                point = new g.Point(50, 20);
+                assert.equal(curve.containsPoint(point), true, 'inside');
+
+                point = new g.Point(100, 50);
+                assert.equal(curve.containsPoint(point), false, 'control point = outside');
+
+                point = new g.Point(70, 0);
+                assert.equal(curve.containsPoint(point), false, 'outside');
+            });
+        });
+
         QUnit.module('divideAt()', function() {
 
             QUnit.test('sanity', function(assert) {

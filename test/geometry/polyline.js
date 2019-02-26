@@ -474,6 +474,61 @@ QUnit.module('polyline', function() {
             });
         });
 
+        QUnit.module('containsPoint()', function(assert) {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline;
+                var point = new g.Point(10, 10);
+
+                polyline = new g.Polyline();
+                assert.equal(polyline.containsPoint(point), false);
+
+                polyline = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(10, 10)
+                ]);
+                assert.equal(polyline.containsPoint(point), true);
+
+                polyline = new g.Polyline([
+                    new g.Point(0, 0),
+                    new g.Point(20, 20)
+                ]);
+                assert.equal(polyline.containsPoint(point), true);
+            });
+
+            QUnit.test('returns true if point lies within polyline according to even-odd rule', function(assert) {
+
+                var polyline = new g.Polyline([
+                    new g.Point(10, 0),
+                    new g.Point(10, 30),
+                    new g.Point(30, 10),
+                    new g.Point(0, 10),
+                    new g.Point(20, 30),
+                    new g.Point(30, 20)
+                ]);
+                var point;
+
+                point = new g.Point(10, 0);
+                assert.equal(polyline.containsPoint(point), true, 'point on vertex = inside');
+
+                point = new g.Point(15, 5);
+                assert.equal(polyline.containsPoint(point), true, 'point on line = inside');
+
+                point = new g.Point(10, 10);
+                assert.equal(polyline.containsPoint(point), true, 'point on line intersection = inside');
+
+                point = new g.Point(13, 7);
+                assert.equal(polyline.containsPoint(point), true, 'point inside');
+
+                point = new g.Point(5, 5);
+                assert.equal(polyline.containsPoint(point), false, 'point outside');
+
+                point = new g.Point(15, 15);
+                assert.equal(polyline.containsPoint(point), false, 'point in self-intersection = outside');
+            });
+        });
+
         QUnit.module('convexHull()', function(assert) {
 
             QUnit.test('sanity', function(assert) {

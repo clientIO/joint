@@ -1496,6 +1496,105 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('containsPoint()', function(assert) {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var point = new g.Point(10, 10);
+
+                path = new g.Path();
+                assert.equal(path.containsPoint(point), false);
+            });
+
+            QUnit.test('returns true if point lies within simple path according to even-odd rule', function(assert) {
+
+                var path = new g.Path('M 0 0 L 100 0 L 100 100 Z');
+                var point;
+
+                point = new g.Point(0, 0);
+                assert.equal(path.containsPoint(point), true, 'point on vertex = inside');
+
+                point = new g.Point(50, 0);
+                assert.equal(path.containsPoint(point), true, 'point on line = inside');
+
+                point = new g.Point(75, 25);
+                assert.equal(path.containsPoint(point), true, 'point inside');
+
+                point = new g.Point(25, 75);
+                assert.equal(path.containsPoint(point), false, 'point outside');
+            });
+
+            QUnit.test('returns true if point lies within disjoint path according to even-odd rule', function(assert) {
+
+                var path = new g.Path('M 0 0 L 100 0 L 100 100 M 200 0 L 300 0 L 300 100');
+                var point;
+
+                point = new g.Point(200, 0);
+                assert.equal(path.containsPoint(point), true, 'point on vertex = inside');
+
+                point = new g.Point(250, 0);
+                assert.equal(path.containsPoint(point), true, 'point on line = inside');
+
+                point = new g.Point(275, 25);
+                assert.equal(path.containsPoint(point), true, 'point inside');
+
+                point = new g.Point(225, 75);
+                assert.equal(path.containsPoint(point), false, 'point outside');
+
+                point = new g.Point(150, 0);
+                assert.equal(path.containsPoint(point), false, 'point between subpaths = outside');
+            });
+
+            QUnit.test('returns true if point lies within self-intersecting path according to even-odd rule', function(assert) {
+
+                var path = new g.Path('M 10 0 L 10 30 L 30 10 L 0 10 L 20 30 L 30 20');
+                var point;
+
+                point = new g.Point(10, 0);
+                assert.equal(path.containsPoint(point), true, 'point on vertex = inside');
+
+                point = new g.Point(15, 5);
+                assert.equal(path.containsPoint(point), true, 'point on line = inside');
+
+                point = new g.Point(10, 10);
+                assert.equal(path.containsPoint(point), true, 'point on line intersection = inside');
+
+                point = new g.Point(13, 7);
+                assert.equal(path.containsPoint(point), true, 'point inside');
+
+                point = new g.Point(5, 5);
+                assert.equal(path.containsPoint(point), false, 'point outside');
+
+                point = new g.Point(15, 15);
+                assert.equal(path.containsPoint(point), false, 'point in self-intersection = outside');
+            });
+
+            QUnit.test('returns true if point lies within self-contained path according to even-odd rule', function(assert) {
+
+                var path = new g.Path('M 100 0 L 100 300 L 300 100 L 0 100 L 200 300 L 300 200 M 120 110 L 120 140 L 140 120 L 110 120 L 130 140 L 140 130');
+                var point;
+
+                point = new g.Point(120, 110);
+                assert.equal(path.containsPoint(point), true, 'point on contained vertex = inside');
+
+                point = new g.Point(125, 115);
+                assert.equal(path.containsPoint(point), true, 'point on contained line = inside');
+
+                point = new g.Point(120, 120);
+                assert.equal(path.containsPoint(point), true, 'point on contained line intersection = inside');
+
+                point = new g.Point(123, 117);
+                assert.equal(path.containsPoint(point), true, 'contained point inside');
+
+                point = new g.Point(115, 115);
+                assert.equal(path.containsPoint(point), false, 'contained point outside');
+
+                point = new g.Point(125, 125);
+                assert.equal(path.containsPoint(point), false, 'point in contained self-intersection = outside');
+            });
+        });
+
         QUnit.module('divideAt()', function() {
 
             QUnit.test('sanity', function(assert) {
