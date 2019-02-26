@@ -1387,11 +1387,12 @@ var g = {};
             var end = this.end;
 
             if (start.cross(p, end) !== 0) return false;
-            // cross product of 0 indicates that this line and the vector to `p` are collinear
+            // else: cross product of 0 indicates that this line and the vector to `p` are collinear
 
-            if ((new g.Line(start, p)).length() > this.length()) return false;
-            if ((new g.Line(p, end)).length() > this.length()) return false;
-            // `p` lies between start and end of the line
+            var length = this.length();
+            if ((new g.Line(start, p)).length() > length) return false;
+            if ((new g.Line(p, end)).length() > length) return false;
+            // else: `p` lies between start and end of the line
 
             return true;
         },
