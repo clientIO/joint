@@ -155,6 +155,8 @@ export namespace g {
 
         closestPointTangent(p: PlainPoint, opt?: SubdivisionsOpt): Line | null;
 
+        containsPoint(p: PlainPoint, opt?: SubdivisionsOpt): boolean;
+
         divideAt(ratio: number, opt?: SubdivisionsOpt): [Curve, Curve];
 
         divideAtLength(length: number, opt?: SubdivisionsOpt): [Curve, Curve];
@@ -264,6 +266,8 @@ export namespace g {
 
         closestPointTangent(p: PlainPoint | string): Line | null;
 
+        containsPoint(p: PlainPoint): boolean;
+
         divideAt(t: number): [Line, Line];
 
         divideAtLength(length: number): [Line, Line];
@@ -338,6 +342,8 @@ export namespace g {
         closestPointNormalizedLength(p: Point, opt?: SegmentSubdivisionsOpt): number;
 
         closestPointTangent(p: Point, opt?: SegmentSubdivisionsOpt): Line | null;
+
+        containsPoint(p: PlainPoint, opt?: SegmentSubdivisionsOpt): boolean;
 
         divideAt(ratio: number, opt?: SegmentSubdivisionsOpt): [Path, Path] | null;
 
@@ -509,6 +515,8 @@ export namespace g {
         closestPointNormalizedLength(p: PlainPoint | string): number;
 
         closestPointTangent(p: PlainPoint | string): Line | null;
+
+        containsPoint(p: PlainPoint): boolean;
 
         convexHull(): Polyline;
 
