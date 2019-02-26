@@ -1,0 +1,8 @@
+<pre class="docs-method-signature"><code>path.toPoints([opt])</code></pre>
+<p>Return an array of arrays of points that approximate the path at given precision. If there are no segments, <code>null</code> is returned.</p>
+
+<p>Every Moveto segment starts a new subpath within the path. Every subpath has a separate array of points in the returned array. If there is only one subpath, an array with one array of points is returned.</p>
+
+<p>The points are found as endpoints of Lineto and Closepath segments and as endpoints of curve subdivisions whose flattened length is up to the specified precision level away from actual curved length. Refer to <code>path.length()</code> <a href="#g.Path.prototype.length">documentation</a> for more information about precision and curve flattening.</p>
+
+<p>The <code>opt</code> argument is optional. Two properties may be specified, <code>opt.precision</code> and <code>opt.segmentSubdivisions</code>, which determine maximum error allowed in the calculation (default precision is 3; this corresponds to maximum observed error of 0.1% in flattened curve length). The <code>opt.segmentSubdivisions</code> property is an array of individual segments' <a href="#g.Curve.prototype.getSubdivisions">subdivision arrays</a>. The <code>path.getSegmentSubdivisions()</code> <a href="#g.Path.prototype.getSegmentSubdivisions">function</a> may be used to obtain the <code>segmentSubdivisions</code> array.</p>
