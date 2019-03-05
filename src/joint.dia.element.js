@@ -1040,7 +1040,7 @@ joint.dia.ElementView = joint.dia.CellView.extend({
         var linkView = this.addLinkFromMagnet(magnet, x, y);
 
         // backwards compatiblity events
-        joint.dia.CellView.prototype.pointerdown.apply(linkView, arguments);
+        joint.dia.CellView.prototype.pointerdown.apply(linkView, [evt, x, y]);
         linkView.notify('link:pointerdown', evt, x, y);
 
         linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
