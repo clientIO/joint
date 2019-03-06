@@ -958,20 +958,20 @@ joint.dia.Graph = Backbone.Model.extend({
     findModelsFromPoint: function(p) {
 
         return this.getElements().filter(function(el) {
-            return el.getBBox().containsPoint(p);
+            return el.getBBox({ rotate: true }).containsPoint(p);
         });
     },
 
     // Find all elements in given area
     findModelsInArea: function(rect, opt) {
 
-        rect = g.rect(rect);
+        rect = new g.Rect(rect);
         opt = joint.util.defaults(opt || {}, { strict: false });
 
         var method = opt.strict ? 'containsRect' : 'intersect';
 
         return this.getElements().filter(function(el) {
-            return rect[method](el.getBBox());
+            return rect[method](el.getBBox({ rotate: true }));
         });
     },
 
@@ -980,7 +980,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
 
-        var bbox = element.getBBox();
+        var bbox = element.getBBox({ rotate: true });
         var elements = (opt.searchBy === 'bbox')
             ? this.findModelsInArea(bbox)
             : this.findModelsFromPoint(bbox[opt.searchBy]());
