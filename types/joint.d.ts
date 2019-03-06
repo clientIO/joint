@@ -342,6 +342,10 @@ export namespace dia {
             restrictedArea?: BBox;
             transition?: Cell.TransitionOptions;
         }
+
+        interface BBoxOptions extends EmbeddableOptions {
+            rotate?: boolean;
+        }
     }
 
     class Element extends Cell {
@@ -370,7 +374,7 @@ export namespace dia {
 
         fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
 
-        getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
+        getBBox(opt?: Element.BBoxOptions): g.Rect;
 
         addPort(port: Element.Port, opt?: Cell.Options): this;
 

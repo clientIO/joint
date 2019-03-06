@@ -381,8 +381,12 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         var position = this.get('position');
         var size = this.get('size');
-
-        return new g.Rect(position.x, position.y, size.width, size.height);
+        var bbox = new g.Rect(position.x, position.y, size.width, size.height);
+        if (opt.rotate) {
+            var angle = this.angle();
+            if (angle) return bbox.bbox(angle);
+        }
+        return bbox;
     }
 });
 
