@@ -791,6 +791,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         this.renderVertexMarkers();
         this.renderArrowheadMarkers();
         this.vel.append(children);
+
+        var selectors = this.selectors = {};
+        selectors[this.selector] = this.el;
     },
 
     _getLabelMarkup: function(labelMarkup) {
