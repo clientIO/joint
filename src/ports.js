@@ -373,7 +373,7 @@
                 }
 
                 if (!this._isValidPortId(p.id)) {
-                    p.id = util.uuid();
+                    p.id = this.generatePortId();
                 }
             }, this);
 
@@ -382,6 +382,10 @@
             }
 
             return errorMessages;
+        },
+
+        generatePortId: function() {
+            return this.generateId();
         },
 
         /**
