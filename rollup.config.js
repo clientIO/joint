@@ -19,8 +19,7 @@ export default [
         ]
     },
     {
-        // input: './wrappers/vectorizer.iife.js',
-        input: './src/vectorizer.js',
+        input: './wrappers/vectorizer.iife.js',
         external: [
             './geometry.js'
         ],
