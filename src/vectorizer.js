@@ -4,18 +4,15 @@
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-var V; // eslint-disable-line no-unused-vars
-var Vectorizer; // eslint-disable-line no-unused-vars
+import * as g from './geometry.js';
 
-V = Vectorizer = (function() {
-
-    'use strict';
+export const V = (function() {
 
     var hasSvg = typeof window === 'object' &&
-                !!(
-                    window.SVGAngle ||
-                    document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
-                );
+        !!(
+            window.SVGAngle ||
+            document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')
+        );
 
     // SVG support is required.
     if (!hasSvg) {
@@ -353,8 +350,7 @@ V = Vectorizer = (function() {
                 // if currentChild is not a group element, get its bbox with a nonrecursive call
                 if (currentChild.children().length === 0) {
                     childBBox = currentChild.getBBox({ target: options.target, recursive: false });
-                }
-                else {
+                } else {
                     // if currentChild is a group element (determined by checking the number of children), enter it with a recursive call
                     childBBox = currentChild.getBBox({ target: options.target, recursive: true });
                 }
@@ -774,7 +770,7 @@ V = Vectorizer = (function() {
     VPrototype.appendTo = function(node) {
         V.toNode(node).appendChild(this.node);
         return this;
-    },
+    };
 
     VPrototype.svg = function() {
 
@@ -1152,7 +1148,7 @@ V = Vectorizer = (function() {
 
         // Anything else is a rectangle
         return this.getBBox();
-    },
+    };
 
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
@@ -1551,7 +1547,7 @@ V = Vectorizer = (function() {
     // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
     V.matrixToScale = function(matrix) {
 
-        var a,b,c,d;
+        var a, b, c, d;
         if (matrix) {
             a = V.isUndefined(matrix.a) ? 1 : matrix.a;
             d = V.isUndefined(matrix.d) ? 1 : matrix.d;
@@ -1564,7 +1560,7 @@ V = Vectorizer = (function() {
             sx: b ? sqrt(a * a + b * b) : a,
             sy: c ? sqrt(c * c + d * d) : d
         };
-    },
+    };
 
     // Return the `rotate` transformation from the following equation:
     // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
@@ -1572,13 +1568,13 @@ V = Vectorizer = (function() {
 
         var p = { x: 0, y: 1 };
         if (matrix) {
-            p =  V.deltaTransformPoint(matrix, p);
+            p = V.deltaTransformPoint(matrix, p);
         }
 
         return {
             angle: g.normalizeAngle(g.toDeg(atan2(p.y, p.x)) - 90)
         };
-    },
+    };
 
     // Return the `translate` transformation from the following equation:
     // `translate(tx, ty) . rotate(angle) . scale(sx, sy) === matrix(a,b,c,d,e,f)`
@@ -1588,7 +1584,7 @@ V = Vectorizer = (function() {
             tx: (matrix && matrix.e) || 0,
             ty: (matrix && matrix.f) || 0
         };
-    },
+    };
 
     V.isV = function(object) {
 
@@ -1689,7 +1685,7 @@ V = Vectorizer = (function() {
         var outPoints = [];
         for (var i = 0, n = inPoints.length; i < n; i++) outPoints[i] = V.transformPoint(inPoints[i], matrix);
         return new g.Polyline(outPoints);
-    },
+    };
 
     // Convert a style represented as string (e.g. `'fill="blue"; stroke="red"'`) to
     // an object (`{ fill: 'blue', stroke: 'red' }`).
@@ -2359,8 +2355,7 @@ V = Vectorizer = (function() {
                         if (pcom === 'C' || pcom === 'S') { // In 'S' case we have to take into account, if the previous command is C/S.
                             nx = (d.x * 2) - d.bx;          // And reflect the previous
                             ny = (d.y * 2) - d.by;          // command's control point relative to the current point.
-                        }
-                        else {                            // or some else or nothing
+                        } else {                            // or some else or nothing
                             nx = d.x;
                             ny = d.y;
                         }
@@ -2371,8 +2366,7 @@ V = Vectorizer = (function() {
                         if (pcom === 'Q' || pcom === 'T') { // In 'T' case we have to take into account, if the previous command is Q/T.
                             d.qx = (d.x * 2) - d.qx;        // And make a reflection similar
                             d.qy = (d.y * 2) - d.qy;        // to case 'S'.
-                        }
-                        else {                            // or something else or nothing
+                        } else {                            // or something else or nothing
                             d.qx = d.x;
                             d.qy = d.y;
                         }

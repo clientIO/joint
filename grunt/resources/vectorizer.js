@@ -1,3 +1,3 @@
 module.exports = [
-    'src/vectorizer.js'
+    'build/iife/vectorizer.js'
 ];

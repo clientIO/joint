@@ -1,5 +1,6 @@
 import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
+import path from 'path';
 
 export default [
     {
@@ -16,5 +17,30 @@ export default [
             }),
             commonjs()
         ]
-    }
+    },
+    {
+        // input: './wrappers/vectorizer.iife.js',
+        input: './src/vectorizer.js',
+        external: [
+            './geometry.js'
+        ],
+        output: [{
+            file: './build/iife/vectorizer.js',
+            format: 'iife',
+            name: 'V',
+            freeze: false,
+            globals: function(resource) {
+                const localDependencies = {};
+                localDependencies[path.resolve('./src/geometry.js')] = 'g';
+                return localDependencies[path.resolve(resource)];
+            }
+        }],
+        plugins: [
+            babel({
+                exclude: 'node_modules/**'
+            }),
+            commonjs()
+        ]
+    },
+
 ]
