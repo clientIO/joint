@@ -388,9 +388,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     requestViewUpdate: function(view, flag, priority, opt) {
 
+        opt || (opt = {});
+
         this.scheduleViewUpdate(view, flag, priority, opt);
 
-        switch (this.options.rendering) {
+        switch (opt.rendering || this.options.rendering) {
             case 'async':
                 break;
             default:

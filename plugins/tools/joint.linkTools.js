@@ -100,11 +100,38 @@
             'touchstart .joint-vertices-path': 'onPathPointerDown'
         },
         onRender: function() {
-            this.resetHandles();
             if (this.options.vertexAdding) {
                 this.renderChildren();
                 this.updatePath();
             }
+            this.resetHandles();
+            this.renderHandles();
+            return this;
+        },
+        update: function() {
+            var relatedView = this.relatedView;
+            var vertices = relatedView.model.vertices();
+            if (vertices.length === this.handles.length) {
+                this.updateHandles();
+            } else {
+                this.resetHandles();
+                this.renderHandles();
+            }
+            if (this.options.vertexAdded) {
+                this.updatePath();
+            }
+            return this;
+        },
+        resetHandles: function() {
+            var handles = this.handles;
+            this.handles = [];
+            this.stopListening();
+            if (!Array.isArray(handles)) return;
+            for (var i = 0, n = handles.length; i < n; i++) {
+                handles[i].remove();
+            }
+        },
+        renderHandles: function() {
             var relatedView = this.relatedView;
             var vertices = relatedView.model.vertices();
             for (var i = 0, n = vertices.length; i < n; i++) {
@@ -117,15 +144,20 @@
                 this.handles.push(handle);
                 this.startHandleListening(handle);
             }
-            return this;
         },
-        update: function() {
-            this.render();
-            return this;
+        updateHandles: function() {
+            var relatedView = this.relatedView;
+            var vertices = relatedView.model.vertices();
+            for (var i = 0, n = vertices.length; i < n; i++) {
+                var vertex = vertices[i];
+                var handle = this.handles[i];
+                if (!handle) return;
+                handle.position(vertex.x, vertex.y);
+            }
         },
         updatePath: function() {
             var connection = this.childNodes.connection;
-            if (connection) connection.setAttribute('d', this.relatedView.getConnection().serialize());
+            if (connection) connection.setAttribute('d', this.relatedView.getSerializedConnection());
         },
         startHandleListening: function(handle) {
             var relatedView = this.relatedView;
@@ -136,15 +168,6 @@
             }
             if (relatedView.can('vertexRemove')) {
                 this.listenTo(handle, 'remove', this.onHandleRemove);
-            }
-        },
-        resetHandles: function() {
-            var handles = this.handles;
-            this.handles = [];
-            this.stopListening();
-            if (!Array.isArray(handles)) return;
-            for (var i = 0, n = handles.length; i < n; i++) {
-                handles[i].remove();
             }
         },
         getNeighborPoints: function(index) {
@@ -584,6 +607,7 @@
                 position = view.getPointAtRatio(ratio);
                 angle = 0;
             }
+            if (!position) return this;
             var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
             this.vel.transform(matrix, { absolute: true });
             return this;

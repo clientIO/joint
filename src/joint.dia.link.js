@@ -676,6 +676,9 @@ joint.dia.Link = joint.dia.Cell.extend({
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);
             if (!flag) return;
+            // TODO: tool changes does not need to be immediate
+            // Fix Segments tools
+            if (opt.tool) opt.rendering = 'immediate';
             this.paper.requestViewUpdate(this, flag, 1, opt);
         },
 
