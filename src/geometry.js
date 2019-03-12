@@ -572,40 +572,40 @@ Curve.prototype = {
         return this.tangentAtT(this.closestPointT(p, opt));
     },
 
-        // Returns `true` if the area surrounded by the curve contains the point `p`.
-        // Implements the even-odd algorithm (self-intersections are "outside").
-        // Closes open curves (always imagines a closing segment).
-        // Precision may be adjusted by passing an `opt` object.
-        containsPoint: function(p, opt) {
+    // Returns `true` if the area surrounded by the curve contains the point `p`.
+    // Implements the even-odd algorithm (self-intersections are "outside").
+    // Closes open curves (always imagines a closing segment).
+    // Precision may be adjusted by passing an `opt` object.
+    containsPoint: function(p, opt) {
 
-            var polyline = this.toPolyline(opt);
-            return polyline.containsPoint(p);
-        },
+        var polyline = this.toPolyline(opt);
+        return polyline.containsPoint(p);
+    },
 
-        // Divides the curve into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
-        // For a function that uses `t`, use Curve.divideAtT().
-        divideAt: function(ratio, opt) {
+    // Divides the curve into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
+    // For a function that uses `t`, use Curve.divideAtT().
+    divideAt: function(ratio, opt) {
 
-            if (ratio <= 0) return this.divideAtT(0);
-            if (ratio >= 1) return this.divideAtT(1);
+        if (ratio <= 0) return this.divideAtT(0);
+        if (ratio >= 1) return this.divideAtT(1);
 
-            var t = this.tAt(ratio, opt);
+        var t = this.tAt(ratio, opt);
 
-            return this.divideAtT(t);
-        },
+        return this.divideAtT(t);
+    },
 
-        // Divides the curve into two at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
-        divideAtLength: function(length, opt) {
+    // Divides the curve into two at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+    divideAtLength: function(length, opt) {
 
-            var t = this.tAtLength(length, opt);
+        var t = this.tAtLength(length, opt);
 
-            return this.divideAtT(t);
-        },
+        return this.divideAtT(t);
+    },
 
-        // Divides the curve into two at point defined by `t` between 0 and 1.
-        // Using de Casteljau's algorithm (http://math.stackexchange.com/a/317867).
-        // Additional resource: https://pomax.github.io/bezierinfo/#decasteljau
-        divideAtT: function(t) {
+    // Divides the curve into two at point defined by `t` between 0 and 1.
+    // Using de Casteljau's algorithm (http://math.stackexchange.com/a/317867).
+    // Additional resource: https://pomax.github.io/bezierinfo/#decasteljau
+    divideAtT: function(t) {
 
         var start = this.start;
         var controlPoint1 = this.controlPoint1;
@@ -950,19 +950,19 @@ Curve.prototype = {
         var subdivisions = (opt.subdivisions === undefined) ? this.getSubdivisions({ precision: precision }) : opt.subdivisions;
         var localOpt = { precision: precision, subdivisions: subdivisions };
 
-            // identify the subdivision that contains the point at requested `length`:
-            var investigatedSubdivision;
-            var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
-            var investigatedSubdivisionEndT;
-            //var baseline; // straightened version of subdivision to investigate
-            //var baselinePoint; // point on the baseline that is the requested distance away from start
-            var baselinePointDistFromStart; // distance of baselinePoint from start of baseline
-            var baselinePointDistFromEnd; // distance of baselinePoint from end of baseline
-            var l = 0; // length so far
-            var n = subdivisions.length;
-            var subdivisionSize = 1 / n;
-            for (var i = 0; i < n; i++) {
-                var index = (fromStart ? i : (n - 1 - i));
+        // identify the subdivision that contains the point at requested `length`:
+        var investigatedSubdivision;
+        var investigatedSubdivisionStartT; // assume that subdivisions are evenly spaced
+        var investigatedSubdivisionEndT;
+        //var baseline; // straightened version of subdivision to investigate
+        //var baselinePoint; // point on the baseline that is the requested distance away from start
+        var baselinePointDistFromStart; // distance of baselinePoint from start of baseline
+        var baselinePointDistFromEnd; // distance of baselinePoint from end of baseline
+        var l = 0; // length so far
+        var n = subdivisions.length;
+        var subdivisionSize = 1 / n;
+        for (var i = 0; i < n; i++) {
+            var index = (fromStart ? i : (n - 1 - i));
 
             var currentSubdivision = subdivisions[i];
             var d = currentSubdivision.endpointDistance(); // length of current subdivision
@@ -970,8 +970,8 @@ Curve.prototype = {
             if (length <= (l + d)) {
                 investigatedSubdivision = currentSubdivision;
 
-                    investigatedSubdivisionStartT = index * subdivisionSize;
-                    investigatedSubdivisionEndT = (index + 1) * subdivisionSize;
+                investigatedSubdivisionStartT = index * subdivisionSize;
+                investigatedSubdivisionEndT = (index + 1) * subdivisionSize;
 
                 baselinePointDistFromStart = (fromStart ? (length - l) : ((d + l) - length));
                 baselinePointDistFromEnd = (fromStart ? ((d + l) - length) : (length - l));
@@ -1078,9 +1078,9 @@ Curve.prototype = {
     }
 };
 
-    Curve.prototype.divide = Curve.prototype.divideAtT;
+Curve.prototype.divide = Curve.prototype.divideAtT;
 
-    export const Ellipse = function(c, a, b) {
+export const Ellipse = function(c, a, b) {
 
     if (!(this instanceof Ellipse)) {
         return new Ellipse(c, a, b);
@@ -1376,22 +1376,22 @@ Line.prototype = {
         return this.tangentAt(this.closestPointNormalizedLength(p));
     },
 
-        // Returns `true` if the point lies on the line.
-        containsPoint: function(p) {
+    // Returns `true` if the point lies on the line.
+    containsPoint: function(p) {
 
-            var start = this.start;
-            var end = this.end;
+        var start = this.start;
+        var end = this.end;
 
-            if (start.cross(p, end) !== 0) return false;
-            // else: cross product of 0 indicates that this line and the vector to `p` are collinear
+        if (start.cross(p, end) !== 0) return false;
+        // else: cross product of 0 indicates that this line and the vector to `p` are collinear
 
-            var length = this.length();
-            if ((new g.Line(start, p)).length() > length) return false;
-            if ((new g.Line(p, end)).length() > length) return false;
-            // else: `p` lies between start and end of the line
+        var length = this.length();
+        if ((new g.Line(start, p)).length() > length) return false;
+        if ((new g.Line(p, end)).length() > length) return false;
+        // else: `p` lies between start and end of the line
 
-            return true;
-        },
+        return true;
+    },
 
     // Divides the line into two at requested `ratio` between 0 and 1.
     divideAt: function(ratio) {
@@ -1976,167 +1976,170 @@ Path.prototype = {
         return null;
     },
 
-        // Returns `true` if the area surrounded by the path contains the point `p`.
-        // Implements the even-odd algorithm (self-intersections are "outside").
-        // Closes open paths (always imagines a final closing segment).
-        // Precision may be adjusted by passing an `opt` object.
-        containsPoint: function(p, opt) {
+    // Returns `true` if the area surrounded by the path contains the point `p`.
+    // Implements the even-odd algorithm (self-intersections are "outside").
+    // Closes open paths (always imagines a final closing segment).
+    // Precision may be adjusted by passing an `opt` object.
+    containsPoint: function(p, opt) {
 
-            var polylines = this.toPolylines(opt);
-            if (!polylines) return false; // shortcut (this path has no polylines)
+        var polylines = this.toPolylines(opt);
+        if (!polylines) return false; // shortcut (this path has no polylines)
 
-            var numPolylines = polylines.length;
+        var numPolylines = polylines.length;
 
-            // how many component polylines does `p` lie within?
-            var numIntersections = 0;
-            for (var i = 0; i < numPolylines; i++) {
-                var polyline = polylines[i];
-                if (polyline.containsPoint(p)) {
-                    // `p` lies within this polyline
-                    numIntersections++;
+        // how many component polylines does `p` lie within?
+        var numIntersections = 0;
+        for (var i = 0; i < numPolylines; i++) {
+            var polyline = polylines[i];
+            if (polyline.containsPoint(p)) {
+                // `p` lies within this polyline
+                numIntersections++;
+            }
+        }
+
+        // returns `true` for odd numbers of intersections (even-odd algorithm)
+        return ((numIntersections % 2) === 1);
+    },
+
+    // Divides the path into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
+    divideAt: function(ratio, opt) {
+
+        var segments = this.segments;
+        var numSegments = segments.length;
+        if (numSegments === 0) return null; // if segments is an empty array
+
+        if (ratio < 0) ratio = 0;
+        if (ratio > 1) ratio = 1;
+
+        opt = opt || {};
+        var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+        var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+        var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+
+        var pathLength = this.length(localOpt);
+        var length = pathLength * ratio;
+
+        return this.divideAtLength(length, localOpt);
+    },
+
+    // Divides the path into two at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
+    divideAtLength: function(length, opt) {
+
+        var numSegments = this.segments.length;
+        if (numSegments === 0) return null; // if segments is an empty array
+
+        var fromStart = true;
+        if (length < 0) {
+            fromStart = false; // negative lengths mean start calculation from end point
+            length = -length; // absolute value
+        }
+
+        opt = opt || {};
+        var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
+        var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
+        // not using localOpt
+
+        var i;
+        var segment;
+
+        // identify the segment to divide:
+
+        var l = 0; // length so far
+        var divided;
+        var dividedSegmentIndex;
+        var lastValidSegment; // visible AND differentiable
+        var lastValidSegmentIndex;
+        var t;
+        for (i = 0; i < numSegments; i++) {
+            var index = (fromStart ? i : (numSegments - 1 - i));
+
+            segment = this.getSegment(index);
+            var subdivisions = segmentSubdivisions[index];
+            var d = segment.length({ precision: precision, subdivisions: subdivisions });
+
+            if (segment.isDifferentiable()) { // segment is not just a point
+                lastValidSegment = segment;
+                lastValidSegmentIndex = index;
+
+                if (length <= (l + d)) {
+                    dividedSegmentIndex = index;
+                    divided = segment.divideAtLength(((fromStart ? 1 : -1) * (length - l)), {
+                        precision: precision,
+                        subdivisions: subdivisions
+                    });
+                    break;
                 }
             }
 
-            // returns `true` for odd numbers of intersections (even-odd algorithm)
-            return ((numIntersections % 2) === 1);
-        },
+            l += d;
+        }
 
-        // Divides the path into two at requested `ratio` between 0 and 1 with precision better than `opt.precision`; optionally using `opt.subdivisions` provided.
-        divideAt: function(ratio, opt) {
+        if (!lastValidSegment) { // no valid segment found
+            return null;
+        }
 
-            var segments = this.segments;
-            var numSegments = segments.length;
-            if (numSegments === 0) return null; // if segments is an empty array
+        // else: the path contains at least one valid segment
 
-            if (ratio < 0) ratio = 0;
-            if (ratio > 1) ratio = 1;
+        if (!divided) { // the desired length is greater than the length of the path
+            dividedSegmentIndex = lastValidSegmentIndex;
+            t = (fromStart ? 1 : 0);
+            divided = lastValidSegment.divideAtT(t);
+        }
 
-            opt = opt || {};
-            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
-            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
-            var localOpt = { precision: precision, segmentSubdivisions: segmentSubdivisions };
+        // create a copy of this path and replace the identified segment with its two divided parts:
 
-            var pathLength = this.length(localOpt);
-            var length = pathLength * ratio;
+        var pathCopy = this.clone();
+        pathCopy.replaceSegment(dividedSegmentIndex, divided);
 
-            return this.divideAtLength(length, localOpt);
-        },
+        var divisionStartIndex = dividedSegmentIndex;
+        var divisionMidIndex = dividedSegmentIndex + 1;
+        var divisionEndIndex = dividedSegmentIndex + 2;
 
-        // Divides the path into two at requested `length` with precision better than requested `opt.precision`; optionally using `opt.subdivisions` provided.
-        divideAtLength: function(length, opt) {
+        // do not insert the part if it looks like a point
+        if (!divided[0].isDifferentiable()) {
+            pathCopy.removeSegment(divisionStartIndex);
+            divisionMidIndex -= 1;
+            divisionEndIndex -= 1;
+        }
 
-            var numSegments = this.segments.length;
-            if (numSegments === 0) return null; // if segments is an empty array
+        // insert a Moveto segment to ensure secondPath will be valid:
+        var movetoEnd = pathCopy.getSegment(divisionMidIndex).start;
+        pathCopy.insertSegment(divisionMidIndex, g.Path.createSegment('M', movetoEnd));
+        divisionEndIndex += 1;
 
-            var fromStart = true;
-            if (length < 0) {
-                fromStart = false; // negative lengths mean start calculation from end point
-                length = -length; // absolute value
+        // do not insert the part if it looks like a point
+        if (!divided[1].isDifferentiable()) {
+            pathCopy.removeSegment(divisionEndIndex - 1);
+            divisionEndIndex -= 1;
+        }
+
+        // ensure that Closepath segments in secondPath will be assigned correct subpathStartSegment:
+
+        var secondPathSegmentIndexConversion = divisionEndIndex - divisionStartIndex - 1;
+        for (i = divisionEndIndex; i < pathCopy.segments.length; i++) {
+
+            var originalSegment = this.getSegment(i - secondPathSegmentIndexConversion);
+            segment = pathCopy.getSegment(i);
+
+            if ((segment.type === 'Z') && !originalSegment.subpathStartSegment.end.equals(segment.subpathStartSegment.end)) {
+                // pathCopy segment's subpathStartSegment is different from original segment's one
+                // convert this Closepath segment to a Lineto and replace it in pathCopy
+                var convertedSegment = g.Path.createSegment('L', originalSegment.end);
+                pathCopy.replaceSegment(i, convertedSegment);
             }
+        }
 
-            opt = opt || {};
-            var precision = (opt.precision === undefined) ? this.PRECISION : opt.precision;
-            var segmentSubdivisions = (opt.segmentSubdivisions === undefined) ? this.getSegmentSubdivisions({ precision: precision }) : opt.segmentSubdivisions;
-            // not using localOpt
+        // distribute pathCopy segments into two paths and return those:
 
-            var i;
-            var segment;
+        var firstPath = new Path(pathCopy.segments.slice(0, divisionMidIndex));
+        var secondPath = new Path(pathCopy.segments.slice(divisionMidIndex));
 
-            // identify the segment to divide:
+        return [firstPath, secondPath];
+    },
 
-            var l = 0; // length so far
-            var divided;
-            var dividedSegmentIndex;
-            var lastValidSegment; // visible AND differentiable
-            var lastValidSegmentIndex;
-            var t;
-            for (i = 0; i < numSegments; i++) {
-                var index = (fromStart ? i : (numSegments - 1 - i));
-
-                segment = this.getSegment(index);
-                var subdivisions = segmentSubdivisions[index];
-                var d = segment.length({ precision: precision, subdivisions: subdivisions });
-
-                if (segment.isDifferentiable()) { // segment is not just a point
-                    lastValidSegment = segment;
-                    lastValidSegmentIndex = index;
-
-                    if (length <= (l + d)) {
-                        dividedSegmentIndex = index;
-                        divided = segment.divideAtLength(((fromStart ? 1 : -1) * (length - l)), { precision: precision, subdivisions: subdivisions });
-                        break;
-                    }
-                }
-
-                l += d;
-            }
-
-            if (!lastValidSegment) { // no valid segment found
-                return null;
-            }
-
-            // else: the path contains at least one valid segment
-
-            if (!divided) { // the desired length is greater than the length of the path
-                dividedSegmentIndex = lastValidSegmentIndex;
-                t = (fromStart ? 1 : 0);
-                divided = lastValidSegment.divideAtT(t);
-            }
-
-            // create a copy of this path and replace the identified segment with its two divided parts:
-
-            var pathCopy = this.clone();
-            pathCopy.replaceSegment(dividedSegmentIndex, divided);
-
-            var divisionStartIndex = dividedSegmentIndex;
-            var divisionMidIndex = dividedSegmentIndex + 1;
-            var divisionEndIndex = dividedSegmentIndex + 2;
-
-            // do not insert the part if it looks like a point
-            if (!divided[0].isDifferentiable()) {
-                pathCopy.removeSegment(divisionStartIndex);
-                divisionMidIndex -= 1;
-                divisionEndIndex -= 1;
-            }
-
-            // insert a Moveto segment to ensure secondPath will be valid:
-            var movetoEnd = pathCopy.getSegment(divisionMidIndex).start;
-            pathCopy.insertSegment(divisionMidIndex, g.Path.createSegment('M', movetoEnd));
-            divisionEndIndex += 1;
-
-            // do not insert the part if it looks like a point
-            if (!divided[1].isDifferentiable()) {
-                pathCopy.removeSegment(divisionEndIndex - 1);
-                divisionEndIndex -= 1;
-            }
-
-            // ensure that Closepath segments in secondPath will be assigned correct subpathStartSegment:
-
-            var secondPathSegmentIndexConversion = divisionEndIndex - divisionStartIndex - 1;
-            for (i = divisionEndIndex; i < pathCopy.segments.length; i++) {
-
-                var originalSegment = this.getSegment(i - secondPathSegmentIndexConversion);
-                segment = pathCopy.getSegment(i);
-
-                if ((segment.type === 'Z') && !originalSegment.subpathStartSegment.end.equals(segment.subpathStartSegment.end)) {
-                    // pathCopy segment's subpathStartSegment is different from original segment's one
-                    // convert this Closepath segment to a Lineto and replace it in pathCopy
-                    var convertedSegment = g.Path.createSegment('L', originalSegment.end);
-                    pathCopy.replaceSegment(i, convertedSegment);
-                }
-            }
-
-            // distribute pathCopy segments into two paths and return those:
-
-            var firstPath = new Path(pathCopy.segments.slice(0, divisionMidIndex));
-            var secondPath = new Path(pathCopy.segments.slice(divisionMidIndex));
-
-            return [firstPath, secondPath];
-        },
-
-        // Checks whether two paths are exactly the same.
-        // If `p` is undefined or null, returns false.
-        equals: function(p) {
+    // Checks whether two paths are exactly the same.
+    // If `p` is undefined or null, returns false.
+    equals: function(p) {
 
         if (!p) return false;
 
@@ -3015,7 +3018,7 @@ Point.prototype = {
     // watch out for the ordering of points p1 and p2!
     // positive result indicates a clockwise ("right") turn from first to second vector
     // negative result indicates a counterclockwise ("left") turn from first to second vector
-        // zero indicates that the first and second vector are collinear
+    // zero indicates that the first and second vector are collinear
     // note that the above directions are reversed from the usual answer on the Internet
     // that is because we are in a left-handed coord system (because the y-axis points downward)
     cross: function(p1, p2) {
@@ -3342,59 +3345,59 @@ Polyline.prototype = {
         return this.tangentAtLength(cpLength);
     },
 
-        // Returns `true` if the area surrounded by the polyline contains the point `p`.
-        // Implements the even-odd SVG algorithm (self-intersections are "outside").
-        // (Uses horizontal rays to the right of `p` to look for intersections.)
-        // Closes open polylines (always imagines a final closing segment).
-        containsPoint: function(p) {
+    // Returns `true` if the area surrounded by the polyline contains the point `p`.
+    // Implements the even-odd SVG algorithm (self-intersections are "outside").
+    // (Uses horizontal rays to the right of `p` to look for intersections.)
+    // Closes open polylines (always imagines a final closing segment).
+    containsPoint: function(p) {
 
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) return false; // shortcut (this polyline has no points)
+        var points = this.points;
+        var numPoints = points.length;
+        if (numPoints === 0) return false; // shortcut (this polyline has no points)
 
-            var x = p.x;
-            var y = p.y;
+        var x = p.x;
+        var y = p.y;
 
-            // initialize a final closing segment by creating one from last-first points on polyline
-            var startIndex = numPoints - 1; // start of current polyline segment
-            var endIndex = 0; // end of current polyline segment
-            var numIntersections = 0;
-            for (; endIndex < numPoints; endIndex++) {
-                var start = points[startIndex];
-                var end = points[endIndex];
-                if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
+        // initialize a final closing segment by creating one from last-first points on polyline
+        var startIndex = numPoints - 1; // start of current polyline segment
+        var endIndex = 0; // end of current polyline segment
+        var numIntersections = 0;
+        for (; endIndex < numPoints; endIndex++) {
+            var start = points[startIndex];
+            var end = points[endIndex];
+            if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
 
-                var segment = new Line(start, end); // current polyline segment
-                if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
+            var segment = new Line(start, end); // current polyline segment
+            if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
 
-                // do we have an intersection?
-                if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
-                    // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
-                    // (when `y === start.y === end.y`)
-                    // this conditional branch IS entered when `segment` touches `ray` at only one point
-                    // (e.g. when `y === start.y !== end.y`)
-                    // since this branch is entered again for the following segment, the two touches cancel out
+            // do we have an intersection?
+            if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
+                // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
+                // (when `y === start.y === end.y`)
+                // this conditional branch IS entered when `segment` touches `ray` at only one point
+                // (e.g. when `y === start.y !== end.y`)
+                // since this branch is entered again for the following segment, the two touches cancel out
 
-                    var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
-                    if (xDifference >= 0) {
-                        // segment lies at least partially to the right of `p`
-                        var rayEnd = new Point((x + xDifference), y); // right
-                        var ray = new Line(p, rayEnd);
+                var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
+                if (xDifference >= 0) {
+                    // segment lies at least partially to the right of `p`
+                    var rayEnd = new Point((x + xDifference), y); // right
+                    var ray = new Line(p, rayEnd);
 
-                        if (segment.intersect(ray)) {
-                            // an intersection was detected to the right of `p`
-                            numIntersections++;
-                        }
-                    } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
-                }
-
-                // move to check the next polyline segment
-                startIndex = endIndex;
+                    if (segment.intersect(ray)) {
+                        // an intersection was detected to the right of `p`
+                        numIntersections++;
+                    }
+                } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
             }
 
-            // returns `true` for odd numbers of intersections (even-odd algorithm)
-            return ((numIntersections % 2) === 1);
-        },
+            // move to check the next polyline segment
+            startIndex = endIndex;
+        }
+
+        // returns `true` for odd numbers of intersections (even-odd algorithm)
+        return ((numIntersections % 2) === 1);
+    },
 
     // Returns a convex-hull polyline from this polyline.
     // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
@@ -3943,7 +3946,7 @@ Rect.prototype = {
         return new Rect(this);
     },
 
-        // @return {bool} true if point p is inside me.
+    // @return {bool} true if point p is inside me.
     containsPoint: function(p) {
 
         p = new Point(p);
@@ -4847,9 +4850,9 @@ var Curveto = function() {
         return applyToNew(Curveto, args);
     }
 
-        if (n === 0) {
-            throw new Error('Curveto constructor expects a curve, 3 points, or 6 coordinates (none provided).');
-        }
+    if (n === 0) {
+        throw new Error('Curveto constructor expects a curve, 3 points, or 6 coordinates (none provided).');
+    }
 
     var outputArray;
 
