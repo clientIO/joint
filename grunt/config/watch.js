@@ -16,7 +16,8 @@ module.exports = function(grunt) {
         joint: {
             files: [
                 './plugins/**/*.js',
-                './src/**/*.js'
+                './src/**/*.js',
+                './css/**/*.css'
             ],
             options: watchOptions,
             tasks: ['build']

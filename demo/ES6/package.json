@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start": "http-server ../../ -c-1 -p 8082 -o http://localhost:8082/demo/ES6"
+  },
+  "devDependencies": {
+    "http-server": "^0.11.1"
+  }
+}
