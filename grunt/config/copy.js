@@ -41,16 +41,7 @@ module.exports = function(grunt) {
                     }
                     return content;
                 }
-            },
-            files: [
-                {
-                    expand: true,
-                    nonull: true,
-                    cwd: './src',
-                    src: require('../resources/es6').src,
-                    dest: 'build/esm'
-                },
-            ]
+            }
         },
         docs: {
             files: [
