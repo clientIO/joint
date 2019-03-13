@@ -6,7 +6,7 @@
 
 import * as g from './geometry.js';
 
-export const V = (function() {
+const V = (function() {
 
     var hasSvg = typeof window === 'object' &&
         !!(
@@ -2463,3 +2463,5 @@ export const V = (function() {
     return V;
 
 })();
+
+export default V;

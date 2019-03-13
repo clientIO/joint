@@ -4,9 +4,6 @@ var joint = {
 
     version: '[%= pkg.version %]',
 
-
-    config: {},
-
     // `joint.dia` namespace.
     dia: {},
 

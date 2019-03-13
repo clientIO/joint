@@ -1,7 +1,7 @@
 import _ from 'lodash';
-import { V } from './vectorizer.js';
 import $ from 'jquery';
-import { config } from './config.js';
+import V from './vectorizer.js';
+import * as config from './config.js';
 
 export const addClassNamePrefix = function(className) {
 
@@ -1579,7 +1579,46 @@ export const wrapWith = function(object, methods, wrapper) {
     });
 };
 
-export const wrappers = {};
+export const wrappers = {
+
+    /*
+                Prepares a function with the following usage:
+
+                    fn([cell, cell, cell], opt);
+                    fn([cell, cell, cell]);
+                    fn(cell, cell, cell, opt);
+                    fn(cell, cell, cell);
+                    fn(cell);
+            */
+    cells: function(fn) {
+
+        return function() {
+
+            var args = Array.from(arguments);
+            var n = args.length;
+            var cells = n > 0 && args[0] || [];
+            var opt = n > 1 && args[n - 1] || {};
+
+            if (!Array.isArray(cells)) {
+
+                if (opt instanceof joint.dia.Cell) {
+                    cells = args;
+                } else if (cells instanceof joint.dia.Cell) {
+                    if (args.length > 1) {
+                        args.pop();
+                    }
+                    cells = args;
+                }
+            }
+
+            if (opt instanceof joint.dia.Cell) {
+                opt = {};
+            }
+
+            return fn.call(this, cells, opt);
+        };
+    }
+};
 
 /* global _:true */
 
