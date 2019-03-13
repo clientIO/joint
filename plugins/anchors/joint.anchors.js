@@ -154,6 +154,7 @@
         perpendicular: resolveRefAsBBoxCenter(perpendicular),
         midSide: resolveRefAsBBoxCenter(midSide),
         modelCenter: modelCenter,
+        // TODO: move to a dedicated namespace?
         connectionRatio: connectionRatio,
         connectionLength: connectionLength
     };

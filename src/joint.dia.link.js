@@ -1394,9 +1394,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
 
-            if (cellView instanceof joint.dia.LinkView) {
-                return cellView.getPointAtRatio(0.5);
-            }
+            // if (cellView.model.isLink()) {
+            //     return cellView.getPointAtRatio(0.5);
+            // }
 
             if (!anchorDef) {
                 var paperOptions = this.paper.options;
@@ -1428,9 +1428,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
 
-            if (view instanceof joint.dia.LinkView) {
-                return line.end.clone();
-            }
+            // if (view.model.isLink()) {
+            //     return line.end.clone();
+            // }
 
             var connectionPoint;
             var anchor = line.end;
