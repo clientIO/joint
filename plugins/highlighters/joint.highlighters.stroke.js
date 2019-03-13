@@ -1,6 +1,7 @@
 joint.highlighters.stroke = {
 
     defaultOptions: {
+
         padding: 3,
         rx: 0,
         ry: 0,
@@ -60,37 +61,45 @@ joint.highlighters.stroke = {
             'fill': 'none'
         }).attr(options.attrs);
 
-        var highlightMatrix = magnetVel.getTransformToElement(cellView.el);
+        // TODO: conditional
+        if (cellView.model.isLink()) {
 
-        // Add padding to the highlight element.
-        var padding = options.padding;
-        if (padding) {
+            highlightVel.attr('d', cellView.getSerializedConnection());
 
-            magnetBBox || (magnetBBox = magnetVel.bbox(true));
+        } else {
 
-            var cx = magnetBBox.x + (magnetBBox.width / 2);
-            var cy = magnetBBox.y + (magnetBBox.height / 2);
+            var highlightMatrix = magnetVel.getTransformToElement(cellView.el);
 
-            magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
+            // Add padding to the highlight element.
+            var padding = options.padding;
+            if (padding) {
 
-            var width = Math.max(magnetBBox.width, 1);
-            var height = Math.max(magnetBBox.height, 1);
-            var sx = (width + padding) / width;
-            var sy = (height + padding) / height;
+                magnetBBox || (magnetBBox = magnetVel.bbox(true));
 
-            var paddingMatrix = V.createSVGMatrix({
-                a: sx,
-                b: 0,
-                c: 0,
-                d: sy,
-                e: cx - sx * cx,
-                f: cy - sy * cy
-            });
+                var cx = magnetBBox.x + (magnetBBox.width / 2);
+                var cy = magnetBBox.y + (magnetBBox.height / 2);
 
-            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
+                magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
+
+                var width = Math.max(magnetBBox.width, 1);
+                var height = Math.max(magnetBBox.height, 1);
+                var sx = (width + padding) / width;
+                var sy = (height + padding) / height;
+
+                var paddingMatrix = V.createSVGMatrix({
+                    a: sx,
+                    b: 0,
+                    c: 0,
+                    d: sy,
+                    e: cx - sx * cx,
+                    f: cy - sy * cy
+                });
+
+                highlightMatrix = highlightMatrix.multiply(paddingMatrix);
+            }
+
+            highlightVel.transform(highlightMatrix);
         }
-
-        highlightVel.transform(highlightMatrix);
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
         var highlightView = this._views[id] = new joint.mvc.View({

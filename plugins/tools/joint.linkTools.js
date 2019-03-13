@@ -870,17 +870,25 @@
             var relatedView = this.relatedView;
             var type = this.type;
             var view = relatedView.getEndView(type);
+            var model = view.model;
             var magnet = relatedView.getEndMagnet(type);
             var padding = this.options.areaPadding;
             if (!isFinite(padding)) padding = 0;
-            var bbox = view.getNodeUnrotatedBBox(magnet).inflate(padding);
-            var angle = view.model.angle();
+            var bbox, angle, center;
+            if (model.isLink()) {
+                bbox = view.getBBox().inflate(padding);
+                angle = 0;
+                center = bbox.center();
+            } else {
+                bbox = view.getNodeUnrotatedBBox(magnet).inflate(padding);
+                angle = model.angle();
+                var origin = model.getBBox().center();
+                center = bbox.center().rotate(origin, -angle);
+            }
             areaNode.setAttribute('x', -bbox.width / 2);
             areaNode.setAttribute('y', -bbox.height / 2);
             areaNode.setAttribute('width', bbox.width);
             areaNode.setAttribute('height', bbox.height);
-            var origin = view.model.getBBox().center();
-            var center = bbox.center().rotate(origin, -angle);
             areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle +')');
         },
         toggleArea: function(visible) {
@@ -916,6 +924,7 @@
             var relatedView = this.relatedView;
             var type = this.type;
             var view = relatedView.getEndView(type);
+            var model = view.model;
             var magnet = relatedView.getEndMagnet(type);
             var normalizedEvent = util.normalizeEvent(evt);
             var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
@@ -926,13 +935,18 @@
             }
 
             if (this.options.restrictArea) {
-                // snap coords within node bbox
-                var bbox = view.getNodeUnrotatedBBox(magnet);
-                var angle = view.model.angle();
-                var origin = view.model.getBBox().center();
-                var rotatedCoords = coords.clone().rotate(origin, angle);
-                if (!bbox.containsPoint(rotatedCoords)) {
-                    coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+                if (model.isLink()) {
+                    // snap coords to the link's connection
+                    coords = view.getClosestPoint(coords);
+                } else {
+                    // snap coords within node bbox
+                    var bbox = view.getNodeUnrotatedBBox(magnet);
+                    var angle = model.angle();
+                    var origin = model.getBBox().center();
+                    var rotatedCoords = coords.clone().rotate(origin, angle);
+                    if (!bbox.containsPoint(rotatedCoords)) {
+                        coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+                    }
                 }
             }
 
