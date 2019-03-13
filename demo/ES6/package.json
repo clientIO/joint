@@ -1,12 +1,10 @@
 {
   "scripts": {
-    "start": "http-server ../../ -c-1 -p 8082 -o http://localhost:8082/demo/ES6"
+    "serve": "concurrently \"http-server -c-1\" \"webpack --watch\" "
   },
   "devDependencies": {
-    "http-server": "^0.11.1"
-  },
-  "dependencies": {
-    "jquery": "^3.3.1",
-    "lodash": "^4.17.11"
+    "webpack": "4.29.6",
+    "webpack-cli": "3.2.3",
+    "concurrently": "4.1.0"
   }
 }

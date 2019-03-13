@@ -1,4 +1,4 @@
-import {V} from '../../../src/vectorizer.js';
+import V from '../../src/vectorizer.js';
 
 const svg = V('svg');
 svg.attr('width', 500);
