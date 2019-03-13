@@ -1,3 +1,5 @@
+const modules = require('../resources/es6');
+
 module.exports = [
-    'build/iife/geometry.js'
+    modules.geometry.iife
 ];

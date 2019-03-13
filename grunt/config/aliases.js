@@ -38,8 +38,7 @@ module.exports = function(grunt) {
             'newer:concat:geometry',
             'newer:concat:vectorizer',
             'newer:concat:joint',
-            'newer:concat:types',
-            'newer:copy:esm'
+            'newer:concat:types'
         ],
         'build:plugins': [
             'uglify:plugins',
