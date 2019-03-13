@@ -1,7 +1,11 @@
+const modules = require('../resources/es6');
+
 module.exports = {
 
     js: [
         'src/core.js',
+        modules.config.iife,
+        modules.util.iife,
         'src/joint.mvc.view.js',
         'src/joint.dia.graph.js',
         'src/joint.dia.attributes.js',

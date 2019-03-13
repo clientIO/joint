@@ -1,3 +1,5 @@
+const modules = require('../resources/es6');
+
 module.exports = [
-    'src/vectorizer.js'
+    modules.vectorizer.iife
 ];

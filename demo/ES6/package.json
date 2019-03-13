@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "serve": "concurrently \"http-server -c-1\" \"webpack --watch\" "
+  },
+  "devDependencies": {
+    "webpack": "4.29.6",
+    "webpack-cli": "3.2.3",
+    "concurrently": "4.1.0"
+  }
+}

@@ -9,7 +9,10 @@ module.exports = function(grunt) {
             'watch'
         ],
         'install': ['build:all'],
-        'build': ['build:joint'],
+        'build': [
+            'shell:rollup',
+            'build:joint'
+        ],
         'dist': [
             'clean:dist',
             'clean:build',
@@ -18,6 +21,7 @@ module.exports = function(grunt) {
             'concat:types'
         ],
         'build:all': [
+            'shell:rollup',
             'build:joint',
             'build:bundles',
             'build:docs',
@@ -49,8 +53,8 @@ module.exports = function(grunt) {
             'syntaxHighlighting:docs',
             'newer:copy:docs'
         ],
-        'concat:plugins': Object.keys(plugins).map((name)=> 'newer:concat:' + name),
-        'uglify:plugins': Object.keys(plugins).map((name)=> 'newer:uglify:' + name),
+        'concat:plugins': Object.keys(plugins).map((name) => 'newer:concat:' + name),
+        'uglify:plugins': Object.keys(plugins).map((name) => 'newer:uglify:' + name),
 
         // TESTS
         'test': [
