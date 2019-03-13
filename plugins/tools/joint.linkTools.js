@@ -876,15 +876,15 @@
             if (!isFinite(padding)) padding = 0;
             var bbox, angle, center;
             if (model.isLink()) {
-                bbox = view.getBBox().inflate(padding);
+                bbox = view.getBBox();
                 angle = 0;
                 center = bbox.center();
             } else {
-                bbox = view.getNodeUnrotatedBBox(magnet).inflate(padding);
+                bbox = view.getNodeUnrotatedBBox(magnet);
                 angle = model.angle();
-                var origin = model.getBBox().center();
-                center = bbox.center().rotate(origin, -angle);
+                center = bbox.center().rotate(model.getBBox().center(), -angle);
             }
+            bbox.inflate(padding);
             areaNode.setAttribute('x', -bbox.width / 2);
             areaNode.setAttribute('y', -bbox.height / 2);
             areaNode.setAttribute('width', bbox.width);
@@ -937,7 +937,8 @@
             if (this.options.restrictArea) {
                 if (model.isLink()) {
                     // snap coords to the link's connection
-                    coords = view.getClosestPoint(coords);
+                    var pointAtConnection = view.getClosestPoint(coords);
+                    if (pointAtConnection) coords = pointAtConnection;
                 } else {
                     // snap coords within node bbox
                     var bbox = view.getNodeUnrotatedBBox(magnet);
