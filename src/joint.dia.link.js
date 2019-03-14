@@ -2864,13 +2864,16 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         get: function() {
             var sourceView = this.sourceView;
-            var sourceMagnet = this.sourceMagnet;
-            if (sourceView) {
-                if (!sourceMagnet) sourceMagnet = sourceView.el;
-                return sourceView.getNodeBBox(sourceMagnet);
+            if (!sourceView) {
+                var sourceDef = this.model.source();
+                return new g.Rect(sourceDef.x, sourceDef.y).inflate(0.5);
             }
-            var sourceDef = this.model.source();
-            return new g.Rect(sourceDef.x, sourceDef.y, 1, 1);
+            if (sourceView.model.isLink()) {
+                return new g.Rect(this.sourcePoint).inflate(0.5);
+            }
+            var sourceMagnet = this.sourceMagnet;
+            if (!sourceMagnet) sourceMagnet = sourceView.el;
+            return sourceView.getNodeBBox(sourceMagnet);
         }
 
     });
@@ -2881,13 +2884,16 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         get: function() {
             var targetView = this.targetView;
-            var targetMagnet = this.targetMagnet;
-            if (targetView) {
-                if (!targetMagnet) targetMagnet = targetView.el;
-                return targetView.getNodeBBox(targetMagnet);
+            if (!targetView) {
+                var targetDef = this.model.target();
+                return new g.Rect(targetDef.x, targetDef.y).inflate(0.5);
             }
-            var targetDef = this.model.target();
-            return new g.Rect(targetDef.x, targetDef.y, 1, 1);
+            if (targetView.model.isLink()) {
+                return new g.Rect(this.targetPoint).inflate(0.5);
+            }
+            var targetMagnet = this.targetMagnet;
+            if (!targetMagnet) targetMagnet = targetView.el;
+            return targetView.getNodeBBox(targetMagnet);
         }
     });
 
