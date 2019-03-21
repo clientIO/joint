@@ -7,7 +7,7 @@ module.exports = {
         modules.config.iife,
         modules.util.iife,
         'src/joint.mvc.view.js',
-        'src/joint.dia.graph.js',
+        modules.graph.iife,
         'src/joint.dia.attributes.js',
         'src/joint.dia.tools.js',
         'src/joint.dia.cell.js',

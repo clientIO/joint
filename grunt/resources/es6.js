@@ -24,6 +24,10 @@ const modules = {
         src: 'src/util.js',
         iife: 'build/iife/util.js',
     },
+    graph: {
+        src: 'src/graph.js',
+        iife: 'build/iife/graph.js',
+    },
 };
 
 module.exports = Object.assign(

@@ -2,6 +2,7 @@ import _ from 'lodash';
 import $ from 'jquery';
 import V from './vectorizer.js';
 import * as config from './config.js';
+import { Cell } from './joint.dia.cell.js';
 
 export const addClassNamePrefix = function(className) {
 
@@ -1582,14 +1583,14 @@ export const wrapWith = function(object, methods, wrapper) {
 export const wrappers = {
 
     /*
-                Prepares a function with the following usage:
+        Prepares a function with the following usage:
 
-                    fn([cell, cell, cell], opt);
-                    fn([cell, cell, cell]);
-                    fn(cell, cell, cell, opt);
-                    fn(cell, cell, cell);
-                    fn(cell);
-            */
+        fn([cell, cell, cell], opt);
+        fn([cell, cell, cell]);
+        fn(cell, cell, cell, opt);
+        fn(cell, cell, cell);
+        fn(cell);
+    */
     cells: function(fn) {
 
         return function() {
@@ -1601,9 +1602,9 @@ export const wrappers = {
 
             if (!Array.isArray(cells)) {
 
-                if (opt instanceof joint.dia.Cell) {
+                if (opt instanceof Cell) {
                     cells = args;
-                } else if (cells instanceof joint.dia.Cell) {
+                } else if (cells instanceof Cell) {
                     if (args.length > 1) {
                         args.pop();
                     }
@@ -1611,7 +1612,7 @@ export const wrappers = {
                 }
             }
 
-            if (opt instanceof joint.dia.Cell) {
+            if (opt instanceof Cell) {
                 opt = {};
             }
 
@@ -1619,8 +1620,6 @@ export const wrappers = {
         };
     }
 };
-
-/* global _:true */
 
 // Deprecated
 // Copy all the properties to the first argument from the following arguments.

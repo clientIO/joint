@@ -1,7 +1,16 @@
+//TODO !!! v.talas only for the IIFE build, not a valid ESM module
+import Backbone from 'backbone';
+import * as util from './util.js';
+import * as g from './geometry.js';
 
-joint.dia.GraphCells = Backbone.Collection.extend({
+//TODO v.talas not a ES6 module yet
+import { Element } from './joint.dia.element.js';
+import { Link } from './joint.dia.link.js';
+import shapes from '../plugins/shapes.js';
 
-    cellNamespace: joint.shapes,
+const GraphCells = Backbone.Collection.extend({
+
+    cellNamespace: shapes,
 
     initialize: function(models, opt) {
 
@@ -20,8 +29,8 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 
         // Find the model class in the namespace or use the default one.
         var ModelClass = (attrs.type === 'link')
-            ? joint.dia.Link
-            : joint.util.getByPath(namespace, attrs.type, '.') || joint.dia.Element;
+            ? Link
+            : util.getByPath(namespace, attrs.type, '.') || Element;
 
         var cell = new ModelClass(attrs, opt);
         // Add a reference to the graph. It is necessary to do this here because this is the earliest place
@@ -41,7 +50,7 @@ joint.dia.GraphCells = Backbone.Collection.extend({
 });
 
 
-joint.dia.Graph = Backbone.Model.extend({
+export const Graph = Backbone.Model.extend({
 
     _batches: {},
 
@@ -52,7 +61,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Passing `cellModel` function in the options object to graph allows for
         // setting models based on attribute objects. This is especially handy
         // when processing JSON graphs that are in a different than JointJS format.
-        var cells = new joint.dia.GraphCells([], {
+        var cells = new GraphCells([], {
             model: opt.cellModel,
             cellNamespace: opt.cellNamespace,
             graph: this
@@ -221,7 +230,7 @@ joint.dia.Graph = Backbone.Model.extend({
         // Make sure that `cells` attribute is handled separately via resetCells().
         if (attrs.hasOwnProperty('cells')) {
             this.resetCells(attrs.cells, opt);
-            attrs = joint.util.omit(attrs, 'cells');
+            attrs = util.omit(attrs, 'cells');
         }
 
         // The rest of the attributes are applied via original set method.
@@ -230,7 +239,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
     clear: function(opt) {
 
-        opt = joint.util.assign({}, opt, { clear: true });
+        opt = util.assign({}, opt, { clear: true });
 
         var collection = this.get('cells');
 
@@ -275,7 +284,7 @@ joint.dia.Graph = Backbone.Model.extend({
             attrs = cell;
         }
 
-        if (!joint.util.isString(attrs.type)) {
+        if (!util.isString(attrs.type)) {
             throw new TypeError('dia.Graph: cell type must be a string.');
         }
 
@@ -321,7 +330,7 @@ joint.dia.Graph = Backbone.Model.extend({
 
         if (cells.length) {
 
-            cells = joint.util.flattenDeep(cells);
+            cells = util.flattenDeep(cells);
             opt.position = cells.length;
 
             this.startBatch('add');
@@ -340,7 +349,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Useful for bulk operations and optimizations.
     resetCells: function(cells, opt) {
 
-        var preparedCells = joint.util.toArray(cells).map(function(cell) {
+        var preparedCells = util.toArray(cells).map(function(cell) {
             return this._prepareCell(cell, opt);
         }, this);
         this.get('cells').reset(preparedCells, opt);
@@ -353,7 +362,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (cells.length) {
 
             this.startBatch('remove');
-            joint.util.invoke(cells, 'remove', opt);
+            util.invoke(cells, 'remove', opt);
             this.stopBatch('remove');
         }
 
@@ -438,7 +447,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            joint.util.forIn(this.getOutboundEdges(model.id), function(exists, edge) {
+            util.forIn(this.getOutboundEdges(model.id), function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
@@ -446,7 +455,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }.bind(this));
         }
         if (inbound) {
-            joint.util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
+            util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
@@ -473,7 +482,7 @@ joint.dia.Graph = Backbone.Model.extend({
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    joint.util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var sourceId = edgeCell.source().id;
@@ -492,7 +501,7 @@ joint.dia.Graph = Backbone.Model.extend({
                     }.bind(this));
                 }
                 if (inbound) {
-                    joint.util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
+                    util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var sourceId = edgeCell.source().id;
@@ -533,7 +542,7 @@ joint.dia.Graph = Backbone.Model.extend({
             var loop = link.hasLoop(opt);
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (inbound && joint.util.has(source, 'id') && !res[source.id]) {
+            if (inbound && util.has(source, 'id') && !res[source.id]) {
 
                 var sourceElement = this.getCell(source.id);
 
@@ -543,7 +552,7 @@ joint.dia.Graph = Backbone.Model.extend({
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && joint.util.has(target, 'id') && !res[target.id]) {
+            if (outbound && util.has(target, 'id') && !res[target.id]) {
 
                 var targetElement = this.getCell(target.id);
 
@@ -555,7 +564,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return res;
         }.bind(this), {});
 
-        return joint.util.toArray(neighbors);
+        return util.toArray(neighbors);
     },
 
     getCommonAncestor: function(/* cells */) {
@@ -579,7 +588,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return a.length - b.length;
         });
 
-        var commonAncestor = joint.util.toArray(cellsAncestors.shift()).find(function(ancestor) {
+        var commonAncestor = util.toArray(cellsAncestors.shift()).find(function(ancestor) {
             return cellsAncestors.every(function(cellAncestors) {
                 return cellAncestors.includes(ancestor);
             });
@@ -600,74 +609,11 @@ joint.dia.Graph = Backbone.Model.extend({
             if (el !== element) {
                 res.push(el);
             }
-        }, joint.util.assign({}, opt, { outbound: true }));
+        }, util.assign({}, opt, { outbound: true }));
         return res;
     },
 
-    // Clone `cells` returning an object that maps the original cell ID to the clone. The number
-    // of clones is exactly the same as the `cells.length`.
-    // This function simply clones all the `cells`. However, it also reconstructs
-    // all the `source/target` and `parent/embed` references within the `cells`.
-    // This is the main difference from the `cell.clone()` method. The
-    // `cell.clone()` method works on one single cell only.
-    // For example, for a graph: `A --- L ---> B`, `cloneCells([A, L, B])`
-    // returns `[A2, L2, B2]` resulting to a graph: `A2 --- L2 ---> B2`, i.e.
-    // the source and target of the link `L2` is changed to point to `A2` and `B2`.
-    cloneCells: function(cells) {
-
-        cells = joint.util.uniq(cells);
-
-        // A map of the form [original cell ID] -> [clone] helping
-        // us to reconstruct references for source/target and parent/embeds.
-        // This is also the returned value.
-        var cloneMap = joint.util.toArray(cells).reduce(function(map, cell) {
-            map[cell.id] = cell.clone();
-            return map;
-        }, {});
-
-        joint.util.toArray(cells).forEach(function(cell) {
-
-            var clone = cloneMap[cell.id];
-            // assert(clone exists)
-
-            if (clone.isLink()) {
-                var source = clone.source();
-                var target = clone.target();
-                if (source.id && cloneMap[source.id]) {
-                    // Source points to an element and the element is among the clones.
-                    // => Update the source of the cloned link.
-                    clone.prop('source/id', cloneMap[source.id].id);
-                }
-                if (target.id && cloneMap[target.id]) {
-                    // Target points to an element and the element is among the clones.
-                    // => Update the target of the cloned link.
-                    clone.prop('target/id', cloneMap[target.id].id);
-                }
-            }
-
-            // Find the parent of the original cell
-            var parent = cell.get('parent');
-            if (parent && cloneMap[parent]) {
-                clone.set('parent', cloneMap[parent].id);
-            }
-
-            // Find the embeds of the original cell
-            var embeds = joint.util.toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
-                // Embedded cells that are not being cloned can not be carried
-                // over with other embedded cells.
-                if (cloneMap[embed]) {
-                    newEmbeds.push(cloneMap[embed].id);
-                }
-                return newEmbeds;
-            }, []);
-
-            if (!joint.util.isEmpty(embeds)) {
-                clone.set('embeds', embeds);
-            }
-        });
-
-        return cloneMap;
-    },
+    cloneCells: util.cloneCells,
 
     // Clone the whole subgraph (including all the connected links whose source/target is in the subgraph).
     // If `opt.deep` is `true`, also take into account all the embedded cells of all the subgraph cells.
@@ -694,7 +640,7 @@ joint.dia.Graph = Backbone.Model.extend({
         var elements = [];
         var links = [];
 
-        joint.util.toArray(cells).forEach(function(cell) {
+        util.toArray(cells).forEach(function(cell) {
             if (!cellMap[cell.id]) {
                 subgraph.push(cell);
                 cellMap[cell.id] = cell;
@@ -767,7 +713,7 @@ joint.dia.Graph = Backbone.Model.extend({
             if (el !== element) {
                 res.push(el);
             }
-        }, joint.util.assign({}, opt, { inbound: true }));
+        }, util.assign({}, opt, { inbound: true }));
         return res;
     },
 
@@ -843,8 +789,8 @@ joint.dia.Graph = Backbone.Model.extend({
     getSources: function() {
 
         var sources = [];
-        joint.util.forIn(this._nodes, function(exists, node) {
-            if (!this._in[node] || joint.util.isEmpty(this._in[node])) {
+        util.forIn(this._nodes, function(exists, node) {
+            if (!this._in[node] || util.isEmpty(this._in[node])) {
                 sources.push(this.getCell(node));
             }
         }.bind(this));
@@ -855,8 +801,8 @@ joint.dia.Graph = Backbone.Model.extend({
     getSinks: function() {
 
         var sinks = [];
-        joint.util.forIn(this._nodes, function(exists, node) {
-            if (!this._out[node] || joint.util.isEmpty(this._out[node])) {
+        util.forIn(this._nodes, function(exists, node) {
+            if (!this._out[node] || util.isEmpty(this._out[node])) {
                 sinks.push(this.getCell(node));
             }
         }.bind(this));
@@ -866,13 +812,13 @@ joint.dia.Graph = Backbone.Model.extend({
     // Return `true` if `element` is a root. Time complexity: O(1).
     isSource: function(element) {
 
-        return !this._in[element.id] || joint.util.isEmpty(this._in[element.id]);
+        return !this._in[element.id] || util.isEmpty(this._in[element.id]);
     },
 
     // Return `true` if `element` is a leaf. Time complexity: O(1).
     isSink: function(element) {
 
-        return !this._out[element.id] || joint.util.isEmpty(this._out[element.id]);
+        return !this._out[element.id] || util.isEmpty(this._out[element.id]);
     },
 
     // Return `true` is `elementB` is a successor of `elementA`. Return `false` otherwise.
@@ -924,13 +870,13 @@ joint.dia.Graph = Backbone.Model.extend({
             var target = link.target();
 
             // Discard if it is a point.
-            if (inbound && joint.util.has(source, 'id') && (source.id === elementB.id)) {
+            if (inbound && util.has(source, 'id') && (source.id === elementB.id)) {
                 isNeighbor = true;
                 return false;
             }
 
             // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && joint.util.has(target, 'id') && (target.id === elementB.id)) {
+            if (outbound && util.has(target, 'id') && (target.id === elementB.id)) {
                 isNeighbor = true;
                 return false;
             }
@@ -951,7 +897,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Remove links connected to the cell `model` completely.
     removeLinks: function(model, opt) {
 
-        joint.util.invoke(this.getConnectedLinks(model), 'remove', opt);
+        util.invoke(this.getConnectedLinks(model), 'remove', opt);
     },
 
     // Find all elements at given point
@@ -966,7 +912,7 @@ joint.dia.Graph = Backbone.Model.extend({
     findModelsInArea: function(rect, opt) {
 
         rect = g.rect(rect);
-        opt = joint.util.defaults(opt || {}, { strict: false });
+        opt = util.defaults(opt || {}, { strict: false });
 
         var method = opt.strict ? 'containsRect' : 'intersect';
 
@@ -978,7 +924,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Find all elements under the given element.
     findModelsUnderElement: function(element, opt) {
 
-        opt = joint.util.defaults(opt || {}, { searchBy: 'bbox' });
+        opt = util.defaults(opt || {}, { searchBy: 'bbox' });
 
         var bbox = element.getBBox();
         var elements = (opt.searchBy === 'bbox')
@@ -1002,7 +948,7 @@ joint.dia.Graph = Backbone.Model.extend({
     // Links are being ignored.
     getCellsBBox: function(cells, opt) {
 
-        return joint.util.toArray(cells).reduce(function(memo, cell) {
+        return util.toArray(cells).reduce(function(memo, cell) {
             if (cell.isLink()) return memo;
             var rect = cell.getBBox(opt);
             var angle = cell.angle();
@@ -1022,7 +968,7 @@ joint.dia.Graph = Backbone.Model.extend({
             return !cell.isEmbedded();
         });
 
-        joint.util.invoke(cells, 'translate', dx, dy, opt);
+        util.invoke(cells, 'translate', dx, dy, opt);
 
         return this;
     },
@@ -1040,7 +986,7 @@ joint.dia.Graph = Backbone.Model.extend({
         if (bbox) {
             var sx = Math.max(width / bbox.width, 0);
             var sy = Math.max(height / bbox.height, 0);
-            joint.util.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
+            util.invoke(cells, 'scale', sx, sy, bbox.origin(), opt);
         }
 
         return this;
@@ -1051,7 +997,7 @@ joint.dia.Graph = Backbone.Model.extend({
         data = data || {};
         this._batches[name] = (this._batches[name] || 0) + 1;
 
-        return this.trigger('batch:start', joint.util.assign({}, data, { batchName: name }));
+        return this.trigger('batch:start', util.assign({}, data, { batchName: name }));
     },
 
     stopBatch: function(name, data) {
@@ -1059,13 +1005,13 @@ joint.dia.Graph = Backbone.Model.extend({
         data = data || {};
         this._batches[name] = (this._batches[name] || 0) - 1;
 
-        return this.trigger('batch:stop', joint.util.assign({}, data, { batchName: name }));
+        return this.trigger('batch:stop', util.assign({}, data, { batchName: name }));
     },
 
     hasActiveBatch: function(name) {
 
         if (arguments.length === 0) {
-            return joint.util.toArray(this._batches).some(function(batches) {
+            return util.toArray(this._batches).some(function(batches) {
                 return batches > 0;
             });
         }
@@ -1121,4 +1067,4 @@ joint.dia.Graph = Backbone.Model.extend({
 
 });
 
-joint.util.wrapWith(joint.dia.Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
+util.wrapWith(Graph.prototype, ['resetCells', 'addCells', 'removeCells'], 'cells');
