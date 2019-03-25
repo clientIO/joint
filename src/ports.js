@@ -191,7 +191,6 @@ util.assign(Element.prototype, {
 
     _initializePorts: function() {
 
-        console.log("askdjbaksjbdkjbsad");
         this._createPortData();
         this.on('change:ports', function() {
 
