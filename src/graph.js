@@ -5,7 +5,7 @@ import * as g from './geometry.js';
 
 //TODO v.talas not a ES6 module yet
 import { Element } from './element.js';
-import { Link } from './joint.dia.link.js';
+import { Link } from './link.js';
 import shapes from '../plugins/shapes.js';
 
 const GraphCells = Backbone.Collection.extend({

@@ -5,14 +5,15 @@ import V from './vectorizer.js';
 import * as g from './geometry.js';
 import { Element } from './element.js';
 import { ElementView } from './elementView.js';
+import { Port, PortLabel } from '../plugins/layout/layout.ports.js';
 
 var PortData = function(data) {
 
     var clonedData = util.cloneDeep(data) || {};
     this.ports = [];
     this.groups = {};
-    this.portLayoutNamespace = joint.layout.Port;
-    this.portLabelLayoutNamespace = joint.layout.PortLabel;
+    this.portLayoutNamespace = Port;
+    this.portLabelLayoutNamespace = PortLabel;
 
     this._init(clonedData);
 };

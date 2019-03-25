@@ -2,7 +2,7 @@ import _ from 'lodash';
 import $ from 'jquery';
 import V from './vectorizer.js';
 import * as config from './config.js';
-import { Cell } from './joint.dia.cell.js';
+import { Cell } from './cell.js';
 
 export const addClassNamePrefix = function(className) {
 

@@ -28,7 +28,7 @@ const GLOBALS_ALL_MAP = {
     // not es6 modules, yet. We are pretending they are there already
     cell: {
         name: 'joint.dia',
-        destination: path.resolve('./src/joint.dia.cell.js')
+        destination: path.resolve('./src/cell.js')
     },
     element: {
         name: 'joint.dia',
@@ -40,12 +40,16 @@ const GLOBALS_ALL_MAP = {
     },
     link: {
         name: 'joint.dia',
-        destination: path.resolve('./src/joint.dia.link.js')
+        destination: path.resolve('./src/link.js')
     },
     shapes: {
         name: 'joint.shapes',
         destination: path.resolve('./plugins/shapes.js')
     },
+    'layout/ports': {
+        name: 'joint.layout',
+        destination: path.resolve('./plugins/layout/layout.ports.js')
+    }
 };
 
 const resolveGlobals = function(externals) {
@@ -81,7 +85,7 @@ export const geometry = {
 
 export const util = {
     input: modules.util.src,
-    external: ['jquery', 'lodash', './vectorizer.js', './joint.dia.cell.js'],
+    external: ['jquery', 'lodash', './vectorizer.js', './cell.js'],
     output: [{
         file: modules.util.iife,
         format: 'iife',
@@ -120,7 +124,7 @@ export const vectorizer = {
 
 export const graph = {
     input: modules.graph.src,
-    external: ['backbone', './util.js', './joint.dia.cell.js', './element.js', './joint.dia.link.js', './geometry.js', '../plugins/shapes.js'],
+    external: ['backbone', './util.js', './cell.js', './element.js', './link.js', './geometry.js', '../plugins/shapes.js'],
     output: [{
         file: modules.graph.iife,
         format: 'iife',
@@ -134,13 +138,13 @@ export const graph = {
 
 export const ports = {
     input: modules.ports.src,
-    external: ['./util.js', './elementView.js', './element.js', './geometry.js', './vectorizer.js'],
+    external: ['./util.js', './elementView.js', './element.js', './geometry.js', './vectorizer.js', '../plugins/layout/layout.ports.js'],
     output: [{
         file: modules.ports.iife,
         format: 'iife',
         name: 'joint_ports',
         freeze: false,
-        globals: resolveGlobals(['util', 'element', 'elementView', 'geometry', 'vectorizer'])
+        globals: resolveGlobals(['util', 'element', 'elementView', 'geometry', 'vectorizer', 'layout/ports'])
     }],
     plugins: plugins
 };
