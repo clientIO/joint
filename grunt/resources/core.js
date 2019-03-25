@@ -14,7 +14,7 @@ module.exports = {
         'src/joint.dia.element.js',
         'src/joint.dia.link.js',
         'src/joint.dia.paper.js',
-        'src/ports.js',
+        modules.ports.iife,
         'plugins/shapes/joint.shapes.basic.js',
         'plugins/shapes/joint.shapes.standard.js',
         'plugins/routers/*.js',

@@ -25,14 +25,18 @@ const GLOBALS_ALL_MAP = {
         name: 'joint.util',
         destination: path.resolve(modules.util.src)
     },
-    // not es6 modules, yet
+    // not es6 modules, yet. We are pretending they are there already
     cell: {
         name: 'joint.dia',
         destination: path.resolve('./src/joint.dia.cell.js')
     },
     element: {
         name: 'joint.dia',
-        destination: path.resolve('./src/joint.dia.element.js')
+        destination: path.resolve('./src/element.js')
+    },
+    elementView: {
+        name: 'joint.dia',
+        destination: path.resolve('./src/elementView.js')
     },
     link: {
         name: 'joint.dia',
@@ -49,6 +53,10 @@ const resolveGlobals = function(externals) {
     return externals.reduce((res, item) => {
 
         const module = GLOBALS_ALL_MAP[item];
+
+        if (!module) {
+            throw new Error(`Local module ${item} is not defined`)
+        }
 
         if (module.name) {
             res[module.destination] = module.name;
@@ -112,7 +120,7 @@ export const vectorizer = {
 
 export const graph = {
     input: modules.graph.src,
-    external: ['backbone', './util.js', './joint.dia.cell.js', './joint.dia.element.js', './joint.dia.link.js', './geometry.js', '../plugins/shapes.js'],
+    external: ['backbone', './util.js', './joint.dia.cell.js', './element.js', './joint.dia.link.js', './geometry.js', '../plugins/shapes.js'],
     output: [{
         file: modules.graph.iife,
         format: 'iife',
@@ -120,6 +128,19 @@ export const graph = {
         freeze: false,
         globals: resolveGlobals(['backbone', 'util', 'cell', 'element', 'link', 'geometry', 'shapes']),
         footer: 'joint.dia.Graph = joint_graph_module.Graph;'
+    }],
+    plugins: plugins
+};
+
+export const ports = {
+    input: modules.ports.src,
+    external: ['./util.js', './elementView.js', './element.js', './geometry.js', './vectorizer.js'],
+    output: [{
+        file: modules.ports.iife,
+        format: 'iife',
+        name: 'joint_ports',
+        freeze: false,
+        globals: resolveGlobals(['util', 'element', 'elementView', 'geometry', 'vectorizer'])
     }],
     plugins: plugins
 };
