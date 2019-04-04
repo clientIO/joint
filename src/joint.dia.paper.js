@@ -155,12 +155,6 @@ joint.dia.Paper = joint.mvc.View.extend({
         // Or string `onleave` so the link is created when the pointer leaves the magnet
         magnetThreshold: 0,
 
-        // The namespace, where all the cell views are defined.
-        cellViewNamespace: joint.shapes,
-
-        // The namespace, where all the cell views are defined.
-        highlighterNamespace: joint.highlighters,
-
         sorting: 'pivots',
 
         rendering: 'async',
@@ -176,7 +170,17 @@ joint.dia.Paper = joint.mvc.View.extend({
             }
         },
 
-        viewport: null
+        viewport: null,
+
+        // Default namespaces
+
+        cellViewNamespace: joint.shapes,
+
+        highlighterNamespace: joint.highlighters,
+
+        anchorNamespace: joint.anchors,
+
+        connectionPointNamespace: joint.connectionPoints
     },
 
     events: {
@@ -552,8 +556,8 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         padding = joint.util.normalizeSides(padding);
 
-        // Calculate the paper size to accommodate all the graph's elements.
-        var bbox = V(this.viewport).getBBox();
+        // Calculate the paper size to accomodate all the graph's elements.
+        var bbox = this.getContentArea(opt);
 
         var currentScale = this.scale();
         var currentTranslate = this.translate();
@@ -607,11 +611,11 @@ joint.dia.Paper = joint.mvc.View.extend({
 
     scaleContentToFit: function(opt) {
 
-        var contentBBox = this.getContentBBox();
+        opt = opt || {};
+
+        var contentBBox = this.getContentBBox(opt);
 
         if (!contentBBox.width || !contentBBox.height) return;
-
-        opt = opt || {};
 
         joint.util.defaults(opt, {
             padding: 0,
@@ -673,7 +677,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         this.scale(newSx, newSy);
 
-        var contentTranslation = this.getContentBBox();
+        var contentTranslation = this.getContentBBox(opt);
 
         var newOx = fittingBBox.x - contentTranslation.x;
         var newOy = fittingBBox.y - contentTranslation.y;
@@ -682,29 +686,36 @@ joint.dia.Paper = joint.mvc.View.extend({
     },
 
     // Return the dimensions of the content area in local units (without transformations).
-    getContentArea: function() {
+    getContentArea: function(opt) {
+
+        if (opt && opt.useModelGeometry) {
+            return this.model.getBBox() || new g.Rect();
+        }
 
         return V(this.viewport).getBBox();
     },
 
-    // Return the dimensions of the content bbox in client units (as it appears on screen).
-    getContentBBox: function() {
+    // Return the dimensions of the content bbox in the paper units (as it appears on screen).
+    getContentBBox: function(opt) {
 
-        var crect = this.viewport.getBoundingClientRect();
+        // if (opt && opt.useModelGeometry) {
+        return this.localToPaperRect(this.getContentArea(opt));
+        // }
+        // var crect = this.viewport.getBoundingClientRect();
 
-        // Using Screen CTM was the only way to get the real viewport bounding box working in both
-        // Google Chrome and Firefox.
-        var clientCTM = this.clientMatrix();
+        // // Using Screen CTM was the only way to get the real viewport bounding box working in both
+        // // Google Chrome and Firefox.
+        // var clientCTM = this.clientMatrix();
 
-        // for non-default origin we need to take the viewport translation into account
-        var currentTranslate = this.translate();
+        // // for non-default origin we need to take the viewport translation into account
+        // var currentTranslate = this.translate();
 
-        return new g.Rect({
-            x: crect.left - clientCTM.e + currentTranslate.tx,
-            y: crect.top - clientCTM.f + currentTranslate.ty,
-            width: crect.width,
-            height: crect.height
-        });
+        // return new g.Rect({
+        //     x: crect.left - clientCTM.e + currentTranslate.tx,
+        //     y: crect.top - clientCTM.f + currentTranslate.ty,
+        //     width: crect.width,
+        //     height: crect.height
+        // });
     },
 
     // Returns a geometry rectangle represeting the entire
@@ -2108,6 +2119,17 @@ joint.dia.Paper = joint.mvc.View.extend({
         return markerId;
     }
 }, {
+
+    sorting: {
+        NONE: 0,
+        PIVOTS: 1,
+        EXACT: 2
+    },
+
+    rendering: {
+        SYNC: 0,
+        ASYNC: 1
+    },
 
     backgroundPatterns: {
 

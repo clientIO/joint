@@ -425,6 +425,33 @@ joint.dia.Link = joint.dia.Cell.extend({
         return this.set(attrs, opt);
     },
 
+    getSourcePoint: function() {
+        // TODO: port center
+        var sourceElement = this.getSourceElement();
+        if (sourceElement) return sourceElement.getBBox().center();
+        return new g.Point(this.source());
+    },
+
+    getTargetPoint: function() {
+        // TODO: port center
+        var targetElement = this.getTargetElement();
+        if (targetElement) return targetElement.getBBox().center();
+        return new g.Point(this.target());
+    },
+
+    getPolyline: function() {
+        var points = [this.getSourcePoint(), this.getTargetPoint()];
+        var vertices = this.vertices();
+        if (vertices.length > 0) {
+            Array.prototype.push.apply(points, vertices.map(g.Point));
+        }
+        return new g.Polyline(points);
+    },
+
+    getBBox: function() {
+        return this.getPolyline().bbox();
+    },
+
     reparent: function(opt) {
 
         var newParent;
@@ -1397,9 +1424,8 @@ joint.dia.Link = joint.dia.Cell.extend({
             // if (cellView.model.isLink()) {
             //     return cellView.getPointAtRatio(0.5);
             // }
-
+            var paperOptions = this.paper.options;
             if (!anchorDef) {
-                var paperOptions = this.paper.options;
                 if (paperOptions.perpendicularLinks || this.options.perpendicular) {
                     // Backwards compatibility
                     // If `perpendicularLinks` flag is set on the paper and there are vertices
@@ -1417,7 +1443,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 anchorFn = anchorDef;
             } else {
                 var anchorName = anchorDef.name;
-                anchorFn = joint.anchors[anchorName];
+                anchorFn = paperOptions.anchorNamespace[anchorName];
                 if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
             }
             var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
@@ -1434,8 +1460,9 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             var connectionPoint;
             var anchor = line.end;
-            // Backwards compatibility
             var paperOptions = this.paper.options;
+
+            // Backwards compatibility
             if (typeof paperOptions.linkConnectionPoint === 'function') {
                 var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
                 connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
@@ -1448,7 +1475,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 connectionPointFn = connectionPointDef;
             } else {
                 var connectionPointName = connectionPointDef.name;
-                connectionPointFn = joint.connectionPoints[connectionPointName];
+                connectionPointFn = paperOptions.connectionPointNamespace[connectionPointName];
                 if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
             }
             connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);

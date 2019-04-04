@@ -13,6 +13,8 @@ module.exports = {
         'src/joint.dia.cell.js',
         'src/joint.dia.element.js',
         'src/joint.dia.link.js',
+        'plugins/anchors/*.js',
+        'plugins/connectionPoints/*.js',
         'src/joint.dia.paper.js',
         modules.ports.iife,
         'plugins/shapes/joint.shapes.basic.js',
@@ -24,8 +26,6 @@ module.exports = {
         'plugins/connectors/joint.connectors.jumpover.js',
         'plugins/layout/ports/*.js',
         'plugins/highlighters/*.js',
-        'plugins/anchors/*.js',
-        'plugins/connectionPoints/*.js',
         'plugins/connectionStrategies/*.js',
         'plugins/tools/*.js'
     ],
