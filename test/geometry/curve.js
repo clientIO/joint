@@ -251,6 +251,7 @@ QUnit.module('curve', function() {
         });
 
         QUnit.module('closestPointT()', function() {
+            // this method uses `while (true)` so it has a potential for an infinite loop
 
             QUnit.test('sanity', function(assert) {
 
@@ -267,9 +268,21 @@ QUnit.module('curve', function() {
 
             QUnit.test('returns t closest to a given point up to precision', function(assert) {
 
-                var curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                var curve;
                 var point;
 
+                curve = new g.Curve('0 100', '50 200', '150 0', '200 100');
+                // test for a curve endpoint
+                point = new g.Point(0, 100);
+                assert.equal(curve.closestPointT(point), 0);
+                assert.equal(curve.closestPointT(point, { precision: 0 }), 0);
+                assert.equal(curve.closestPointT(point, { precision: 1 }), 0);
+                assert.equal(curve.closestPointT(point, { precision: 2 }), 0);
+                assert.equal(curve.closestPointT(point, { precision: 3 }), 0);
+                assert.equal(curve.closestPointT(point, { precision: 4 }), 0);
+                assert.equal(curve.closestPointT(point, { precision: 5 }), 0);
+
+                // test for a point lying exactly on the curve
                 point = new g.Point(100, 100);
                 assert.equal(curve.closestPointT(point), 0.5);
                 assert.equal(curve.closestPointT(point, { precision: 0 }), 0);
@@ -279,6 +292,7 @@ QUnit.module('curve', function() {
                 assert.equal(curve.closestPointT(point, { precision: 4 }), 0.5);
                 assert.equal(curve.closestPointT(point, { precision: 5 }), 0.5);
 
+                // tests the minimal-precision (first) criterion to exit the loop
                 point = new g.Point(125, 0);
                 assert.equal(curve.closestPointT(point), 0.71875);
                 assert.equal(curve.closestPointT(point, { precision: 0 }), 1);
@@ -287,6 +301,17 @@ QUnit.module('curve', function() {
                 assert.equal(curve.closestPointT(point, { precision: 3 }), 0.71875);
                 assert.equal(curve.closestPointT(point, { precision: 4 }), 0.71875);
                 assert.equal(curve.closestPointT(point, { precision: 5 }), 0.716796875);
+
+                curve = new g.Curve('150 350', '203.68888888888887 344', '267.91111111111115 294', '318 275');
+                // tests the minimal-distance (second) criterion to exit the loop
+                point = new g.Point(174.8537225276232, 344.5625875517726);
+                assert.equal(curve.closestPointT(point), 0.150390625);
+                assert.equal(curve.closestPointT(point, { precision: 0 }), 0);
+                assert.equal(curve.closestPointT(point, { precision: 1 }), 0.15625);
+                assert.equal(curve.closestPointT(point, { precision: 2 }), 0.1484375);
+                assert.equal(curve.closestPointT(point, { precision: 3 }), 0.150390625);
+                assert.equal(curve.closestPointT(point, { precision: 4 }), 0.150390625);
+                assert.equal(curve.closestPointT(point, { precision: 5 }), 0.150390625);
             });
 
             QUnit.test('assert precision compared to pointAtT', function(assert) {

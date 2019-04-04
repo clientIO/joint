@@ -494,6 +494,7 @@ Curve.prototype = {
         var investigatedSubdivisionEndT;
         var distFromStart; // distance of point from start of baseline
         var distFromEnd; // distance of point from end of baseline
+        var chordLength; // distance between start and end of the subdivision
         var minSumDist; // lowest observed sum of the two distances
         var n = subdivisions.length;
         var subdivisionSize = (n ? (1 / n) : 0);
@@ -515,6 +516,8 @@ Curve.prototype = {
                 distFromStart = startDist;
                 distFromEnd = endDist;
 
+                chordLength = currentSubdivision.start.distance(currentSubdivision.end);
+
                 minSumDist = sumDist;
             }
         }
@@ -526,13 +529,25 @@ Curve.prototype = {
         // then return the closest endpoint of that final subdivision
         while (true) {
 
-            // check if we have reached required observed precision
-            var startPrecisionRatio;
-            var endPrecisionRatio;
+            // check if we have reached at least one required observed precision
+            // - calculated as: the difference in distances from point to start and end divided by the distance
+            // - note that this function is not monotonic = it doesn't converge stably but has "teeth"
+            // - the function decreases while one of the endpoints is fixed but "jumps" whenever we switch
+            // - this criterion works well for points lying far away from the curve
+            var startPrecisionRatio = (distFromStart ? (abs(distFromStart - distFromEnd) / distFromStart) : 0);
+            var endPrecisionRatio = (distFromEnd ? (abs(distFromStart - distFromEnd) / distFromEnd) : 0);
+            var hasRequiredPrecision = ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio < precisionRatio));
 
-            startPrecisionRatio = (distFromStart ? (abs(distFromStart - distFromEnd) / distFromStart) : 0);
-            endPrecisionRatio = (distFromEnd ? (abs(distFromStart - distFromEnd) / distFromEnd) : 0);
-            if ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio) < precisionRatio) {
+            // check if we have reached at least one required minimal distance
+            // - calculated as: the subdivision chord length multiplied by precisionRatio
+            // - calculation is relative so it will work for arbitrarily large/small curves and their subdivisions
+            // - this is a backup criterion that works well for points lying "almost at" the curve
+            var hasMinimalStartDistance = (distFromStart ? (distFromStart < (chordLength * precisionRatio)) : true);
+            var hasMinimalEndDistance = (distFromEnd ? (distFromEnd < (chordLength * precisionRatio)) : true);
+            var hasMinimalDistance = (hasMinimalStartDistance || hasMinimalEndDistance);
+
+            // do we stop now?
+            if (hasRequiredPrecision || hasMinimalDistance) {
                 return ((distFromStart <= distFromEnd) ? investigatedSubdivisionStartT : investigatedSubdivisionEndT);
             }
 
