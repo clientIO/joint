@@ -200,7 +200,12 @@ var link7 = new joint.shapes.standard.Link({
                 ry: 5
             }
         },
-        position: 0.3
+        position: {
+            distance: 0.3,
+            args: {
+                keepGradient: true
+            }
+        }
     }, {
         markup: [{
             tagName: 'ellipse',
@@ -226,7 +231,12 @@ var link7 = new joint.shapes.standard.Link({
                 strokeWidth: 2
             }
         },
-        position: 0.7
+        position: {
+            distance: 0.7,
+            args: {
+                keepGradient: true
+            }
+        }
     }]
 });
 

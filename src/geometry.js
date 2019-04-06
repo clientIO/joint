@@ -1308,6 +1308,13 @@ export const Line = function(p1, p2) {
 
 Line.prototype = {
 
+    // @returns the angle of incline of the line.
+    angle: function() {
+
+        var horizontalPoint = new g.Point(this.start.x + 1, this.start.y);
+        return this.start.angleBetween(this.end, horizontalPoint);
+    },
+
     bbox: function() {
 
         var left = min(this.start.x, this.end.x);

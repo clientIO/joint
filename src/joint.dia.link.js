@@ -876,6 +876,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
+
             var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
             var labelNode;
             var selectors;
@@ -1454,7 +1455,13 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var position = joint.util.merge({}, defaultPosition, labelPosition);
 
             var labelPoint = this.getLabelCoordinates(position);
-            this._labelCache[idx].setAttribute('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
+            var labelAngle = this.getLabelAngle(position, labelPoint);
+
+            var transformString = '';
+            if (labelAngle) transformString += 'rotate(' + labelAngle + ', ' + labelPoint.x + ', ' + labelPoint.y + ') ';
+            transformString += 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')';
+
+            this._labelCache[idx].setAttribute('transform', transformString);
         }
 
         return this;
@@ -1716,6 +1723,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // `opt.absoluteDistance` forces absolute coordinates.
     // `opt.reverseDistance` forces reverse absolute coordinates (if absoluteDistance = true).
     // `opt.absoluteOffset` forces absolute coordinates for offset.
+    // `opt.keepGradient` auto-adjusts the angle of the label to match path gradient at position.
     addLabel: function(x, y, opt) {
 
         // accept input in form `{ x, y }, opt` or `x, y, opt`
@@ -1985,7 +1993,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    // accepts options `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`
+    // accepts options `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`, `keepGradient: boolean`
     // to move beyond connection endpoints, absoluteOffset has to be set
     getLabelPosition: function(x, y, opt) {
 
@@ -2081,6 +2089,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
 
         return point;
+    },
+
+    getLabelAngle: function(labelPosition, labelPoint) {
+
+        if (typeof labelPosition === 'number') return 0;
+        if (!labelPosition.args) return 0;
+        if (!labelPosition.args.keepGradient) return 0;
+
+        //var isDistanceAbsolute = labelPosition.args.absoluteDistance;
+        //var isDistanceReverse = isDistanceAbsolute && labelPosition.args.reverseDistance;
+
+        var path = this.path;
+        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
+
+        var tangent = path.closestPointTangent(labelPoint, pathOpt);
+        return tangent.angle();
+
     },
 
     getVertexIndex: function(x, y) {
