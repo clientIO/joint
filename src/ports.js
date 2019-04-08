@@ -1,5 +1,3 @@
-//TODO !!! v.talas only for the IIFE build, not a valid ESM module, yet
-
 import * as  util from './util.js';
 import V from './vectorizer.js';
 import * as g from './geometry.js';
