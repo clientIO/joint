@@ -627,12 +627,12 @@ export const Graph = Backbone.Model.extend({
         // A map of the form [original cell ID] -> [clone] helping
         // us to reconstruct references for source/target and parent/embeds.
         // This is also the returned value.
-        const cloneMap = toArray(cells).reduce(function(map, cell) {
+        const cloneMap = util.toArray(cells).reduce(function(map, cell) {
             map[cell.id] = cell.clone();
             return map;
         }, {});
 
-        toArray(cells).forEach(function(cell) {
+        util.toArray(cells).forEach(function(cell) {
 
             const clone = cloneMap[cell.id];
             // assert(clone exists)
@@ -659,7 +659,7 @@ export const Graph = Backbone.Model.extend({
             }
 
             // Find the embeds of the original cell
-            const embeds = toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
+            const embeds = util.toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
                 // Embedded cells that are not being cloned can not be carried
                 // over with other embedded cells.
                 if (cloneMap[embed]) {
