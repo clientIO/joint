@@ -13,12 +13,15 @@
         } | null
     },
     position?: number | {
-        distance?: number,
+        distance: number,
         offset?: number | { x: number, y: number },
+        angle?: number,
         args?: {
             absoluteDistance?: boolean,
             reverseDistance?: boolean,
-            absoluteOffset?: boolean
+            absoluteOffset?: boolean,
+            keepGradient?: boolean,
+            ensureLegibility?: boolean
         }
     }
 }</code></pre>
@@ -119,6 +122,12 @@
                     </td>
                 </tr>
                 <tr>
+                    <th>angle</th>
+                    <td>
+                        Optional. A number specifying the rotation of the label along the <code>.connection</code> path, in degrees. Angles 0-180 cause the label to rotate clockwise, angles 360-180 cause the label to rotate couterclockwise. This rotation is added on top of any rotation due to the <code>args.keepGradient</code> option. (Note that the <code>args.ensureLegibility</code> option is evaluated only after all these calculations are finished.)
+                    </td>
+                </tr>
+                <tr>
                     <th>args</th>
                     <td>
                         <p>Optional. An object with boolean options for the <code>linkView.getLabelPosition()</code> <a href="#dia.LinkView.prototype.getLabelPosition">function</a>.</p>
@@ -144,7 +153,13 @@
                             <tr>
                                 <th>keepGradient</th>
                                 <td>
-                                    Adjust the rotation <code>angle</code> of the label to match the angle of incline of the path. (Labels are always horizontal by default and do not match the angle of incline of the path.)
+                                    Adjust the base rotation angle of the label (i.e. the "zero angle" before rotation due to the <code>angle</code> setting is applied) to match the angle of incline of the path at given <code>distance</code>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>ensureLegibility</th>
+                                <td>
+                                    If the label ends up rotated so that its text is upside-down, rotate the label by additional 180 degrees so it becomes legible for the users. This happens after <code>angle</code> and <code>args.keepGradient</code> calculations.
                                 </td>
                             </tr>
                         </table>

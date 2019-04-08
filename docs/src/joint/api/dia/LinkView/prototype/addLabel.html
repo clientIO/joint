@@ -1,12 +1,23 @@
-<pre class="docs-method-signature"><code>linkView.addLabel(x, y [, opt])</code></pre>
-<p>Add a new <a href="#dia.Link.prototype.label">default label</a> to the link at the coordinates provided. If you need to add a label with custom markup or properties, use the <code>link.addLabel()</code> <a href="#dia.Link.prototype.addLabel">function</a> instead.</p>
+<pre class="docs-method-signature"><code>linkView.addLabel(x, y [, angle, opt])</code></pre>
+<p>Add a new <a href="#dia.Link.prototype.label">default label</a> to the link at the (x,y) coordinates provided. See also the <code>link.appendLabel()</code> <a href="#dia.Link.prototype.appendLabel">function</a>.</p>
 
-<p>This method uses the <code>linkView.getLabelPosition()</code> <a href="#dia.LinkView.prototype.getLabelPosition">function</a> to determine the new label's <code>position</code>. By default, <code>position.distance</code> is recorded relative to connection length (as a number in the <code>[0,1]</code> range), and <code>position.offset</code> is set relative to the connection (as a number). This behavior may be changed by providing an <code>opt</code> object with some of the accepted boolean flags:</p>
+<pre class="docs-method-signature"><code>linkView.addLabel(point [, angle, opt])</code></pre>
+
+<p>Add a new <a href="#dia.Link.prototype.label">default label</a> to the link at the coordinates specified by <code>point</code>. See also the <code>link.appendLabel()</code> <a href="#dia.Link.prototype.appendLabel">function</a>.</p>
+
+<p>In either case, this method uses the <code>linkView.getLabelPosition()</code> <a href="#dia.LinkView.prototype.getLabelPosition">function</a> to determine the new label's <code>position</code>. By default, <code>position.distance</code> is recorded relative to connection length (as a number in the <code>[0,1]</code> range), and <code>position.offset</code> is set relative to the connection (as a number). This behavior may be changed by providing an <code>opt</code> object with some of the accepted boolean flags:</p>
 
 <ul>
     <li><code>absoluteDistance: true</code> records <code>distance</code> absolutely (as distance from beginning of link)</li>
     <li><code>reverseDistance: true</code> switches <code>distance</code> to be calculated from end of link, if <code>absoluteDistance</code></li>
     <li><code>absoluteOffset: true</code> records <code>offset</code> absolutely (as <code>x</code> and <code>y</code> from connection)</li>
+</ul>
+
+<p>The <code>angle</code> parameter, if provided, is saved as <code>position.angle</code> attribute inside the returned object. Two additional flags, which may be passed in the <code>opt</code> object, provide more control over label rotation:</p>
+
+<ul>
+    <li><code>keepGradient: true</code> - adjust the rotation of the label to match the angle of incline of the path at <code>position.distance</code>.</li>
+    <li><code>ensureLegible: true</code> - if the label text ends up being upside-down, rotate the label by additional 180 degrees to ensure that the text stays legible.</li>
 </ul>
 
 <p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
@@ -15,10 +26,12 @@
 
 <pre><code>var CustomLinkView = joint.dia.LinkView.extend({
     contextmenu: function(evt, x, y) {
-        this.addLabel(x, y, {
+        this.addLabel(x, y, 45, {
             absoluteDistance: true,
             reverseDistance: true,
-            absoluteOffset: true
+            absoluteOffset: true,
+            keepGradient: true,
+            ensureLegibility: true
         });
     }
 });
