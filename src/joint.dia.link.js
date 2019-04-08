@@ -2097,15 +2097,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         if (!labelPosition.args) return 0;
         if (!labelPosition.args.keepGradient) return 0;
 
-        //var isDistanceAbsolute = labelPosition.args.absoluteDistance;
-        //var isDistanceReverse = isDistanceAbsolute && labelPosition.args.reverseDistance;
-
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
 
         var tangent = path.closestPointTangent(labelPoint, pathOpt);
+        if (!tangent.isDifferentiable()) return 0;
         return tangent.angle();
-
     },
 
     getVertexIndex: function(x, y) {
