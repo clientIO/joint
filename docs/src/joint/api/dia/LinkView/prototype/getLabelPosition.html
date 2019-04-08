@@ -18,6 +18,12 @@
 
 <p>Please note that if <code>absoluteOffset</code> is not set (i.e. the default option), label can only be placed/moved in the area that is reachable by lines perpendicular to the link (that is, the label cannot be moved beyond link endpoints).</p>
 
+<p>Additionally, the user may send another flag inside the <code>opt</code> object:</p>
+
+<ul>
+    <li><code>keepGradient: true</code> - adjust the rotation of the label to match the angle of incline of the path at <code>distance</code>.</li>
+</ul>
+
 <p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
 
 <p>An object in the following format is returned:</p>
@@ -28,7 +34,8 @@
     args?: {
         absoluteDistance?: boolean,
         reverseDistance?: boolean,
-        absoluteOffset?: boolean
+        absoluteOffset?: boolean,
+        keepGradient?: boolean
     }
 }</code></pre>
 

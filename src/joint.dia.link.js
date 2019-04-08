@@ -1458,8 +1458,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
             var labelAngle = this.getLabelAngle(position, labelPoint);
 
             var transformString = '';
-            if (labelAngle) transformString += 'rotate(' + labelAngle + ', ' + labelPoint.x + ', ' + labelPoint.y + ') ';
             transformString += 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')';
+            if (labelAngle) transformString += ' rotate(' + labelAngle + ')';
 
             this._labelCache[idx].setAttribute('transform', transformString);
         }
