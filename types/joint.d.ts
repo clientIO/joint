@@ -452,6 +452,7 @@ export namespace dia {
         interface LabelPosition {
             distance?: number; // optional for default labels
             offset?: number | { x: number; y: number; };
+            angle?: number;
             args?: LinkView.LabelOptions;
         }
 
@@ -700,6 +701,8 @@ export namespace dia {
             absoluteDistance?: boolean;
             reverseDistance?: boolean;
             absoluteOffset?: boolean;
+            keepGradient?: boolean;
+            ensureLegibility?: boolean;
         }
 
         interface VertexOptions extends Cell.Options {
@@ -724,7 +727,9 @@ export namespace dia {
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
 
         addLabel(coordinates: Point, opt?: LinkView.LabelOptions): number;
+        addLabel(coordinates: Point, angle: number, opt?: LinkView.LabelOptions): number;
         addLabel(x: number, y: number, opt?: LinkView.LabelOptions): number;
+        addLabel(x: number, y: number, angle: number, opt?: LinkView.LabelOptions): number;
 
         addVertex(coordinates: Point, opt?: LinkView.VertexOptions): number;
         addVertex(x: number, y: number, opt?: LinkView.VertexOptions): number;
@@ -752,6 +757,7 @@ export namespace dia {
         getClosestPointRatio(point: Point): number;
 
         getLabelPosition(x: number, y: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
+        getLabelPosition(x: number, y: number, angle: number, opt?: LinkView.LabelOptions): Link.LabelPosition;
 
         getLabelCoordinates(labelPosition: Link.LabelPosition): g.Point;
 
