@@ -5,5 +5,7 @@ export default [
     modules.geometry,
     modules.vectorizer,
     modules.util,
+    modules.graph,
+    modules.ports
 ]
 

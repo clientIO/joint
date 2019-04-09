@@ -2,6 +2,7 @@ import _ from 'lodash';
 import $ from 'jquery';
 import V from './vectorizer.js';
 import * as config from './config.js';
+import { Cell } from './cell.js';
 
 export const addClassNamePrefix = function(className) {
 
@@ -1582,14 +1583,14 @@ export const wrapWith = function(object, methods, wrapper) {
 export const wrappers = {
 
     /*
-                Prepares a function with the following usage:
+        Prepares a function with the following usage:
 
-                    fn([cell, cell, cell], opt);
-                    fn([cell, cell, cell]);
-                    fn(cell, cell, cell, opt);
-                    fn(cell, cell, cell);
-                    fn(cell);
-            */
+        fn([cell, cell, cell], opt);
+        fn([cell, cell, cell]);
+        fn(cell, cell, cell, opt);
+        fn(cell, cell, cell);
+        fn(cell);
+    */
     cells: function(fn) {
 
         return function() {
@@ -1601,9 +1602,9 @@ export const wrappers = {
 
             if (!Array.isArray(cells)) {
 
-                if (opt instanceof joint.dia.Cell) {
+                if (opt instanceof Cell) {
                     cells = args;
-                } else if (cells instanceof joint.dia.Cell) {
+                } else if (cells instanceof Cell) {
                     if (args.length > 1) {
                         args.pop();
                     }
@@ -1611,7 +1612,7 @@ export const wrappers = {
                 }
             }
 
-            if (opt instanceof joint.dia.Cell) {
+            if (opt instanceof Cell) {
                 opt = {};
             }
 
@@ -1619,8 +1620,6 @@ export const wrappers = {
         };
     }
 };
-
-/* global _:true */
 
 // Deprecated
 // Copy all the properties to the first argument from the following arguments.
@@ -1720,69 +1719,4 @@ export const isString = function(value) {
 };
 
 export const noop = function() {
-};
-
-// Clone `cells` returning an object that maps the original cell ID to the clone. The number
-// of clones is exactly the same as the `cells.length`.
-// This function simply clones all the `cells`. However, it also reconstructs
-// all the `source/target` and `parent/embed` references within the `cells`.
-// This is the main difference from the `cell.clone()` method. The
-// `cell.clone()` method works on one single cell only.
-// For example, for a graph: `A --- L ---> B`, `cloneCells([A, L, B])`
-// returns `[A2, L2, B2]` resulting to a graph: `A2 --- L2 ---> B2`, i.e.
-// the source and target of the link `L2` is changed to point to `A2` and `B2`.
-export const cloneCells = function(cells) {
-
-    cells = uniq(cells);
-
-    // A map of the form [original cell ID] -> [clone] helping
-    // us to reconstruct references for source/target and parent/embeds.
-    // This is also the returned value.
-    const cloneMap = toArray(cells).reduce(function(map, cell) {
-        map[cell.id] = cell.clone();
-        return map;
-    }, {});
-
-    toArray(cells).forEach(function(cell) {
-
-        const clone = cloneMap[cell.id];
-        // assert(clone exists)
-
-        if (clone.isLink()) {
-            const source = clone.source();
-            const target = clone.target();
-            if (source.id && cloneMap[source.id]) {
-                // Source points to an element and the element is among the clones.
-                // => Update the source of the cloned link.
-                clone.prop('source/id', cloneMap[source.id].id);
-            }
-            if (target.id && cloneMap[target.id]) {
-                // Target points to an element and the element is among the clones.
-                // => Update the target of the cloned link.
-                clone.prop('target/id', cloneMap[target.id].id);
-            }
-        }
-
-        // Find the parent of the original cell
-        const parent = cell.get('parent');
-        if (parent && cloneMap[parent]) {
-            clone.set('parent', cloneMap[parent].id);
-        }
-
-        // Find the embeds of the original cell
-        const embeds = toArray(cell.get('embeds')).reduce(function(newEmbeds, embed) {
-            // Embedded cells that are not being cloned can not be carried
-            // over with other embedded cells.
-            if (cloneMap[embed]) {
-                newEmbeds.push(cloneMap[embed].id);
-            }
-            return newEmbeds;
-        }, []);
-
-        if (!isEmpty(embeds)) {
-            clone.set('embeds', embeds);
-        }
-    });
-
-    return cloneMap;
 };
