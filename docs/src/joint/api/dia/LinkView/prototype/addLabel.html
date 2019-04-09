@@ -16,8 +16,8 @@
 <p>The <code>angle</code> parameter, if provided, is saved as <code>position.angle</code> attribute inside the returned object. Two additional flags, which may be passed in the <code>opt</code> object, provide more control over label rotation:</p>
 
 <ul>
-    <li><code>keepGradient: true</code> - adjust the rotation of the label to match the angle of incline of the path at <code>position.distance</code>.</li>
-    <li><code>ensureLegible: true</code> - if the label text ends up being upside-down, rotate the label by additional 180 degrees to ensure that the text stays legible.</li>
+    <li><code>keepGradient: true</code> - adjust the rotation of the label to match the angle of incline of the path at <code>position.distance</code></li>
+    <li><code>ensureLegible: true</code> - if the label text ends up being upside-down, rotate the label by additional 180 degrees to ensure that the text stays legible, if <code>keepGradient</code></li>
 </ul>
 
 <p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
@@ -28,10 +28,10 @@
     contextmenu: function(evt, x, y) {
         this.addLabel(x, y, 45, {
             absoluteDistance: true,
-            reverseDistance: true,
+            reverseDistance: true, // applied only when absoluteDistance is set
             absoluteOffset: true,
             keepGradient: true,
-            ensureLegibility: true
+            ensureLegibility: true // applied only when keepGradient is set
         });
     }
 });

@@ -235,10 +235,7 @@ var link7 = new joint.shapes.standard.Link({
         },
         position: {
             distance: 0.7,
-            angle: 45,
-            args: {
-                keepGradient: true
-            }
+            angle: 45
         }
     }]
 });
