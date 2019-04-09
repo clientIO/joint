@@ -1448,20 +1448,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var defaultPosition = joint.util.merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
-
             var label = labels[idx];
             var labelPosition = this._normalizeLabelPosition(label.position);
-
             var position = joint.util.merge({}, defaultPosition, labelPosition);
-
-            var labelPoint = this.getLabelCoordinates(position);
-            var labelAngle = this.getLabelAngle(position, labelPoint);
-
-            var transformString = '';
-            transformString += 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')';
-            if (labelAngle) transformString += ' rotate(' + labelAngle + ')';
-
-            this._labelCache[idx].setAttribute('transform', transformString);
+            var transformationMatrix = this._getLabelTransformationMatrix(position);
+            this._labelCache[idx].setAttribute('transform', V.matrixToTransformString(transformationMatrix));
         }
 
         return this;
@@ -2093,12 +2084,20 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return position;
     },
 
-    getLabelCoordinates: function(labelPosition) {
+    _getLabelTransformationMatrix: function(labelPosition) {
 
         var labelDistance;
-        if (typeof labelPosition === 'number') labelDistance = labelPosition;
-        else if (typeof labelPosition.distance === 'number') labelDistance = labelPosition.distance;
-        else throw new Error('dia.LinkView: invalid label position distance.');
+        var labelAngle = 0;
+        var args = {};
+        if (typeof labelPosition === 'number') {
+            labelDistance = labelPosition;
+        } else if (typeof labelPosition.distance === 'number') {
+            args = labelPosition.args || {};
+            labelDistance = labelPosition.distance;
+            labelAngle = labelPosition.angle || 0;
+        } else {
+            throw new Error('dia.LinkView: invalid label position distance.');
+        }
 
         var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
 
@@ -2113,56 +2112,48 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var isOffsetAbsolute = ((labelOffsetCoordinates.x !== 0) || (labelOffsetCoordinates.y !== 0) || labelOffset === 0);
 
+        var isKeepGradient = args.keepGradient;
+        var isEnsureLegibility = args.ensureLegibility;
+
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
 
         var distance = isDistanceRelative ? (labelDistance * this.getConnectionLength()) : labelDistance;
+        var tangent = path.tangentAtLength(distance, pathOpt);
 
-        var point;
-
-        if (isOffsetAbsolute) {
-            point = path.pointAtLength(distance, pathOpt);
-            point.offset(labelOffsetCoordinates);
-
-        } else {
-            var tangent = path.tangentAtLength(distance, pathOpt);
-
-            if (tangent) {
-                tangent.rotate(tangent.start, -90);
-                tangent.setLength(labelOffset);
-                point = tangent.end;
-
+        var translation;
+        var angle = labelAngle;
+        if (tangent) {
+            if (isOffsetAbsolute) {
+                translation = tangent.start;
+                translation.offset(labelOffsetCoordinates);
             } else {
-                // fallback - the connection has zero length
-                point = path.start;
+                var normal = tangent.clone();
+                normal.rotate(tangent.start, -90);
+                normal.setLength(labelOffset);
+                translation = normal.end;
             }
+            if (isKeepGradient) {
+                angle = (tangent.angle() + labelAngle);
+                if (isEnsureLegibility) {
+                    angle = g.normalizeAngle(((angle + 90) % 180) - 90);
+                }
+            }
+        } else {
+            // fallback - the connection has zero length
+            translation = path.start;
+            if (isOffsetAbsolute) translation.offset(labelOffsetCoordinates);
         }
 
-        return point;
+        return V.createSVGMatrix()
+            .translate(translation.x, translation.y)
+            .rotate(angle);
     },
 
-    getLabelAngle: function(labelPosition, labelPoint) {
+    getLabelCoordinates: function(labelPosition) {
 
-        if (typeof labelPosition === 'number') return 0;
-
-        var startAngle = 0;
-
-        var userAngle = labelPosition.angle;
-        if (typeof userAngle === 'number') startAngle = userAngle;
-
-        if (!labelPosition.args) return startAngle;
-        if (!labelPosition.args.keepGradient) return startAngle;
-
-        var path = this.path;
-        var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
-
-        var tangent = path.closestPointTangent(labelPoint, pathOpt);
-        if (!tangent) return startAngle;
-
-        var tangentAngle = tangent.angle() + startAngle;
-        if (!labelPosition.args.ensureLegibility) return tangentAngle;
-
-        return g.normalizeAngle(((tangentAngle + 90) % 180) - 90);
+        var transformationMatrix = this._getLabelTransformationMatrix(labelPosition);
+        return new g.Point(transformationMatrix.e, transformationMatrix.f);
     },
 
     getVertexIndex: function(x, y) {
