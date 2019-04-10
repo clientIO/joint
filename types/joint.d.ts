@@ -470,7 +470,7 @@ export namespace dia {
 
     class Link extends Cell {
 
-        markup: string;
+        markup: string | MarkupJSON;
         toolMarkup: string;
         doubleToolMarkup?: string;
         vertexMarkup: string;
