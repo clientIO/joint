@@ -1,22 +1,30 @@
-<pre class="docs-method-signature"><code>linkView.getLabelPosition(x, y [, opt])</code></pre>
+<pre class="docs-method-signature"><code>linkView.getLabelPosition(x, y [, angle, opt])</code></pre>
 <p>Return a label <code>position</code> object based on the <code>x</code> and <code>y</code> coordinates provided.</p>
 
-<p>The function translates the provided coordinates into an object with two fields:</p>
+<p>The function translates the provided coordinates and <code>angle</code> into an object with three fields:</p>
 
 <ul>
     <li><code>distance</code> - the distance (following the line) of the point on the line that is closest to point <code>x,y</code>.</li>
     <li><code>offset</code> - the distance between the closest point and the point <code>x,y</code>.</li>
+    <li><code>angle</code> - the angle of the label relative to the connection line, as determined by the <code>angle</code> parameter, or <code>0</code> if <code>angle</code> was not specified.
 </ul>
 
-<p>By default, <code>position.distance</code> is set relative to <a href="#dia.LinkView.prototype.getConnectionLength">connection length</a> (as a number in the <code>[0,1]</code> range that records the <a href="#dia.LinkView.prototype.getClosestPointRatio">length ratio</a>), and <code>position.offset</code> is set relative to the connection (as a number recording the <a href="geometry.html#g.Line.prototype.pointOffset">perpendicular distance</a>). The user may change this behavior by providing an <code>opt</code> object with some of the following accepted boolean flags:</p>
+<p>By default, <code>position.distance</code> is calculated as relative to <a href="#dia.LinkView.prototype.getConnectionLength">connection length</a> (as a number in the <code>[0,1]</code> range that records the <a href="#dia.LinkView.prototype.getClosestPointRatio">length ratio</a>), and <code>position.offset</code> is calculated as relative to the connection (as a number recording the <a href="geometry.html#g.Line.prototype.pointOffset">perpendicular distance</a>). The user may change this behavior by providing an <code>opt</code> object with some of the following accepted boolean flags:</p>
 
 <ul>
-    <li><code>absoluteDistance: true</code> - record <code>distance</code> absolutely (as <a href="#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number).</li>
-    <li><code>reverseDistance: true</code> - if <code>absoluteDistance: true</code>, record <code>distance</code> absolutely from end of link (as a negative number).</li>
-    <li><code>absoluteOffset: true</code> - record <code>offset</code> absolutely (as <code>x</code> and <code>y</code> distance from closest point).</li>
+    <li><code>absoluteDistance: true</code> - record <code>distance</code> absolutely (as <a href="#dia.LinkView.prototype.getClosestPointLength">absolute distance</a> from beginning of link, a positive number)</li>
+    <li><code>reverseDistance: true</code> - if <code>absoluteDistance: true</code>, record <code>distance</code> absolutely from end of link (as a negative number)</li>
+    <li><code>absoluteOffset: true</code> - record <code>offset</code> absolutely (as <code>x</code> and <code>y</code> distance from closest point)</li>
 </ul>
 
-<p>Please note that if <code>absoluteOffset</code> is not set (i.e. the default option), label can only be placed/moved in the area that is reachable by lines perpendicular to the link (that is, the label cannot be moved beyond link endpoints).</p>
+<p>Please note that if the <code>absoluteOffset</code> flag is not set, label can only be placed/moved in the area that is reachable by lines perpendicular to the link (that is, the label can never be moved beyond link endpoints).</p>
+
+<p>Two additional flags, which may be passed in the <code>opt</code> object, provide control over label rotation:</p>
+
+<ul>
+    <li><code>keepGradient: true</code> - adjust the rotation of the label to match the angle of incline of the path at <code>position.distance</code></li>
+    <li><code>ensureLegible: true</code> - if the label text ends up being upside-down, rotate the label by additional 180 degrees to ensure that the text stays legible, if <code>keepGradient</code></li>
+</ul>
 
 <p>The <code>opt</code> object passed to the label is recorded as <code>label.position.args</code>. The label uses these options during subsequent labelMove interactions.</p>
 
@@ -25,10 +33,13 @@
 <pre><code>{
     distance: number,
     offset: number | { x: number, y: number },
+    angle: number,
     args?: {
         absoluteDistance?: boolean,
-        reverseDistance?: boolean,
-        absoluteOffset?: boolean
+        reverseDistance?: boolean, // applied only when absoluteDistance is set
+        absoluteOffset?: boolean,
+        keepGradient?: boolean,
+        ensureLegible?: boolean // applied only when keepGradient is set
     }
 }</code></pre>
 
@@ -41,7 +52,6 @@
         var idx = -1; // add at end of `labels`
         var label = {
             markup: '&lt;g class="label"&gt;&lt;circle /&gt;&lt;path /&gt;&lt;/g&gt;',
-            position: this.getLabelPosition(x, y, { absoluteOffset: true }),
             attrs: {
                 circle: {
                     r: 15,
@@ -55,14 +65,19 @@
                     strokeWidth: 2,
                     fill: 'none'
                 }
-            }
+            },
+            position: this.getLabelPosition(x, y, 45, {
+                absoluteOffset: true,
+                keepGradient: true,
+                ensureLegible: true
+            })
         }
         this.model.addLabel(idx, label);
     }
 });
 
 var paper = new joint.dia.Paper({
-    //...
+    // ...
     linkView: CustomLinkView,
-    interactive: { vertexAdd: false }
+    interactive: { vertexAdd: false } // disable default vertexAdd interaction
 });</code></pre>

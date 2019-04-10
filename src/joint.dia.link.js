@@ -876,6 +876,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         for (var i = 0; i < labelsCount; i++) {
 
             var label = labels[i];
+
             var labelMarkup = this._normalizeLabelMarkup(this._getLabelMarkup(label.markup));
             var labelNode;
             var selectors;
@@ -1420,7 +1421,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     // this makes sure that label positions can be merged properly
     _normalizeLabelPosition: function(labelPosition) {
 
-        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, args: null };
+        if (typeof labelPosition === 'number') return { distance: labelPosition, offset: null, angle: 0, args: null };
         return labelPosition;
     },
 
@@ -1447,14 +1448,11 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var defaultPosition = joint.util.merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
-
             var label = labels[idx];
             var labelPosition = this._normalizeLabelPosition(label.position);
-
             var position = joint.util.merge({}, defaultPosition, labelPosition);
-
-            var labelPoint = this.getLabelCoordinates(position);
-            this._labelCache[idx].setAttribute('transform', 'translate(' + labelPoint.x + ', ' + labelPoint.y + ')');
+            var transformationMatrix = this._getLabelTransformationMatrix(position);
+            this._labelCache[idx].setAttribute('transform', V.matrixToTransformString(transformationMatrix));
         }
 
         return this;
@@ -1712,23 +1710,58 @@ joint.dia.LinkView = joint.dia.CellView.extend({
     },
 
     // Add default label at given position at end of `labels` array.
-    // Assigns relative coordinates by default.
+    // Four signatures:
+    // - obj, obj = point, opt
+    // - obj, num, obj = point, angle, opt
+    // - num, num, obj = x, y, opt
+    // - num, num, num, obj = x, y, angle, opt
+    // Assigns relative coordinates by default:
     // `opt.absoluteDistance` forces absolute coordinates.
     // `opt.reverseDistance` forces reverse absolute coordinates (if absoluteDistance = true).
     // `opt.absoluteOffset` forces absolute coordinates for offset.
-    addLabel: function(x, y, opt) {
+    // Additional args:
+    // `opt.keepGradient` auto-adjusts the angle of the label to match path gradient at position.
+    // `opt.ensureLegibility` rotates labels so they are never upside-down.
+    addLabel: function(p1, p2, p3, p4) {
 
-        // accept input in form `{ x, y }, opt` or `x, y, opt`
-        var isPointProvided = (typeof x !== 'number');
-        var localX = isPointProvided ? x.x : x;
-        var localY = isPointProvided ? x.y : y;
-        var localOpt = isPointProvided ? y : opt;
+        // normalize data from the four possible signatures
+        var localX;
+        var localY;
+        var localAngle = 0;
+        var localOpt;
+        if (typeof p1 !== 'number') {
+            // {x, y} object provided as first parameter
+            localX = p1.x;
+            localY = p1.y;
+            if (typeof p2 === 'number') {
+                // angle and opt provided as second and third parameters
+                localAngle = p2;
+                localOpt = p3;
+            } else {
+                // opt provided as second parameter
+                localOpt = p2;
+            }
+        } else {
+            // x and y provided as first and second parameters
+            localX = p1;
+            localY = p2;
+            if (typeof p3 === 'number') {
+                // angle and opt provided as third and fourth parameters
+                localAngle = p3;
+                localOpt = p4;
+            } else {
+                // opt provided as third parameter
+                localOpt = p3;
+            }
+        }
 
+        // merge label position arguments
         var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
         var labelPositionArgs = localOpt;
         var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
-        var label = { position: this.getLabelPosition(localX, localY, positionArgs) };
+        // append label to labels array
+        var label = { position: this.getLabelPosition(localX, localY, localAngle, positionArgs) };
         var idx = -1;
         this.model.insertLabel(idx, label, localOpt);
         return idx;
@@ -1985,62 +2018,86 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 
-    // accepts options `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`
-    // to move beyond connection endpoints, absoluteOffset has to be set
-    getLabelPosition: function(x, y, opt) {
+    // Get label position object based on two provided coordinates, x and y.
+    // (Used behind the scenes when user moves labels around.)
+    // Two signatures:
+    // - num, num, obj = x, y, options
+    // - num, num, num, obj = x, y, angle, options
+    // Accepts distance/offset options = `absoluteDistance: boolean`, `reverseDistance: boolean`, `absoluteOffset: boolean`
+    // - `absoluteOffset` is necessary in order to move beyond connection endpoints
+    // Additional options = `keepGradient: boolean`, `ensureLegibility: boolean`
+    getLabelPosition: function(x, y, p3, p4) {
 
         var position = {};
 
-        var localOpt = opt || {};
-        if (opt) position.args = opt;
+        // normalize data from the two possible signatures
+        var localAngle = 0;
+        var localOpt;
+        if (typeof p3 === 'number') {
+            // angle and opt provided as third and fourth argument
+            localAngle = p3;
+            localOpt = p4;
+        } else {
+            // opt provided as third argument
+            localOpt = p3;
+        }
 
-        var isDistanceRelative = !localOpt.absoluteDistance; // relative by default
-        var isDistanceAbsoluteReverse = (localOpt.absoluteDistance && localOpt.reverseDistance); // non-reverse by default
-        var isOffsetAbsolute = localOpt.absoluteOffset; // offset is non-absolute by default
+        // save localOpt as `args` of the position object that is passed along
+        if (localOpt) position.args = localOpt;
 
+        // identify distance/offset settings
+        var isDistanceRelative = !(localOpt && localOpt.absoluteDistance); // relative by default
+        var isDistanceAbsoluteReverse = (localOpt && localOpt.absoluteDistance && localOpt.reverseDistance); // non-reverse by default
+        var isOffsetAbsolute = localOpt && localOpt.absoluteOffset; // offset is non-absolute by default
+
+        // find closest point t
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
-
         var labelPoint = new g.Point(x, y);
         var t = path.closestPointT(labelPoint, pathOpt);
 
-        // GET DISTANCE:
-
+        // DISTANCE:
         var labelDistance = path.lengthAtT(t, pathOpt);
         if (isDistanceRelative) labelDistance = (labelDistance / this.getConnectionLength()) || 0; // fix to prevent NaN for 0 length
         if (isDistanceAbsoluteReverse) labelDistance = (-1 * (this.getConnectionLength() - labelDistance)) || 1; // fix for end point (-0 => 1)
-
         position.distance = labelDistance;
 
-        // GET OFFSET:
+        // OFFSET:
         // use absolute offset if:
         // - opt.absoluteOffset is true,
         // - opt.absoluteOffset is not true but there is no tangent
-
         var tangent;
         if (!isOffsetAbsolute) tangent = path.tangentAtT(t);
-
         var labelOffset;
         if (tangent) {
             labelOffset = tangent.pointOffset(labelPoint);
-
         } else {
             var closestPoint = path.pointAtT(t);
             var labelOffsetDiff = labelPoint.difference(closestPoint);
             labelOffset = { x: labelOffsetDiff.x, y: labelOffsetDiff.y };
         }
-
         position.offset = labelOffset;
+
+        // ANGLE:
+        position.angle = localAngle;
 
         return position;
     },
 
-    getLabelCoordinates: function(labelPosition) {
+    _getLabelTransformationMatrix: function(labelPosition) {
 
         var labelDistance;
-        if (typeof labelPosition === 'number') labelDistance = labelPosition;
-        else if (typeof labelPosition.distance === 'number') labelDistance = labelPosition.distance;
-        else throw new Error('dia.LinkView: invalid label position distance.');
+        var labelAngle = 0;
+        var args = {};
+        if (typeof labelPosition === 'number') {
+            labelDistance = labelPosition;
+        } else if (typeof labelPosition.distance === 'number') {
+            args = labelPosition.args || {};
+            labelDistance = labelPosition.distance;
+            labelAngle = labelPosition.angle || 0;
+        } else {
+            throw new Error('dia.LinkView: invalid label position distance.');
+        }
 
         var isDistanceRelative = ((labelDistance > 0) && (labelDistance <= 1));
 
@@ -2055,32 +2112,48 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var isOffsetAbsolute = ((labelOffsetCoordinates.x !== 0) || (labelOffsetCoordinates.y !== 0) || labelOffset === 0);
 
+        var isKeepGradient = args.keepGradient;
+        var isEnsureLegibility = args.ensureLegibility;
+
         var path = this.path;
         var pathOpt = { segmentSubdivisions: this.getConnectionSubdivisions() };
 
         var distance = isDistanceRelative ? (labelDistance * this.getConnectionLength()) : labelDistance;
+        var tangent = path.tangentAtLength(distance, pathOpt);
 
-        var point;
-
-        if (isOffsetAbsolute) {
-            point = path.pointAtLength(distance, pathOpt);
-            point.offset(labelOffsetCoordinates);
-
-        } else {
-            var tangent = path.tangentAtLength(distance, pathOpt);
-
-            if (tangent) {
-                tangent.rotate(tangent.start, -90);
-                tangent.setLength(labelOffset);
-                point = tangent.end;
-
+        var translation;
+        var angle = labelAngle;
+        if (tangent) {
+            if (isOffsetAbsolute) {
+                translation = tangent.start;
+                translation.offset(labelOffsetCoordinates);
             } else {
-                // fallback - the connection has zero length
-                point = path.start;
+                var normal = tangent.clone();
+                normal.rotate(tangent.start, -90);
+                normal.setLength(labelOffset);
+                translation = normal.end;
             }
+            if (isKeepGradient) {
+                angle = (tangent.angle() + labelAngle);
+                if (isEnsureLegibility) {
+                    angle = g.normalizeAngle(((angle + 90) % 180) - 90);
+                }
+            }
+        } else {
+            // fallback - the connection has zero length
+            translation = path.start;
+            if (isOffsetAbsolute) translation.offset(labelOffsetCoordinates);
         }
 
-        return point;
+        return V.createSVGMatrix()
+            .translate(translation.x, translation.y)
+            .rotate(angle);
+    },
+
+    getLabelCoordinates: function(labelPosition) {
+
+        var transformationMatrix = this._getLabelTransformationMatrix(labelPosition);
+        return new g.Point(transformationMatrix.e, transformationMatrix.f);
     },
 
     getVertexIndex: function(x, y) {

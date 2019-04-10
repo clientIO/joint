@@ -519,11 +519,11 @@ link.attr({
 
             <h3 id="link-subelement-labels">Link Subelement Labels</h3>
 
-            <p>An even more advanced application of special attributes uses them at link subelements to construct fake
-                <a href="link-labels.html">link labels</a> that rotate according to the slope of the link.
-                However, keep in mind that link subelements are more difficult to set up and use dynamically than link
-                labels (JointJS does not come with a built-in API to do this), and that they have a very important
-                limitation when used this way:</p>
+            <p>Special attributes also allow us to create custom labeling subelements - both those that adjust their
+                rotation according to the underlying link path and those that always keep the same angle.
+                However, keep in mind that link subelements are more difficult to set up and use dynamically than
+                <a href="link-labels.html">link labels</a> (JointJS does not come with a built-in API to do this), and
+                that they have a very important limitation when used this way:</p>
 
             <ul>
                 <li>They cannot use the <code>ref</code> attribute.
@@ -533,13 +533,10 @@ link.attr({
                     text.</li>
             </ul>
 
-            <p>We encourage you to take advantage of our easy-to-use <a href="link-labels.html">link label API</a>
-                unless you need label rotation.</p>
+            <p>For this reason, we recommend everyone to use the <a href="link-labels.html">link label API</a>.</p>
 
-            <p>It is also possible to create link subelement labels that do not rotate according to the slope of the
-                link; this is useful for absolutely-offset link labels.
-                (Note that this functionality is very similar to the functionality of link labels.)
-                There are two special attributes that do this:</p>
+            <p>Link subelement labels that do not keep link connection gradient are enabled with the following two
+                special attributes:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.atConnectionLengthIgnoreGradient" target="_blank"><code>atConnectionLengthIgnoreGradient</code></a>
@@ -554,11 +551,9 @@ link.attr({
                     Does not rotate subelement according to path gradient.</li>
             </ul>
 
-            <p>(The <a href="#link-relative-position">previously mentioned</a>
-                <code>atConnectionLength</code>/<code>atConnectionRattio</code> attributes are actually aliases for more
-                verbose names <code>atConnectionLengthKeepGradient</code>/<code>atConnectionRatioKeepGradient</code>.
-                You should see that these names were designed to complement the names of the two attributes newly
-                introduced above.)
+            <p>(The <a href="#link-relative-position">previously introduced</a>
+                <code>atConnectionLength</code>/<code>atConnectionRatio</code> attributes are actually aliases for more
+                verbose names <code>atConnectionLengthKeepGradient</code>/<code>atConnectionRatioKeepGradient</code>.)
                 In both cases (that is, whether we keep link gradient or not), offsetting of link subelement labels is
                 achieved by clever use of the native <code>x</code> and <code>y</code> SVG attributes.</p>
 
@@ -763,11 +758,6 @@ link.attr({
 });</code></pre>
 
             <p>JointJS source code: <a href="js/special-attributes-link-subelement-labels.js" target="_blank">special-attributes-link-subelement-labels.js</a></p>
-
-            <p>Notice that we had to write much more complex code than in the link labels demo, and that if we wanted
-                to add more <q>labels</q>, we would have to manipulate <code>link.markup</code> and
-                <code>link.attrs</code> directly.
-                We do not recommend this approach to beginner users of JointJS.</p>
 
             <p><a href="events.html">In the next section of the intermediate tutorial, we will find out how to make use
                 of JointJS events to support user interaction.</a></p>

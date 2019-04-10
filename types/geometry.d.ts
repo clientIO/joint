@@ -252,6 +252,8 @@ export namespace g {
         constructor(line: Line);
         constructor();
 
+        angle(): number;
+
         bbox(): Rect;
 
         bearing(): CardinalDirection;

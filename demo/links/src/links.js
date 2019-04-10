@@ -162,6 +162,7 @@ var link6 = new joint.shapes.standard.DoubleLink({
 var link7 = new joint.shapes.standard.Link({
     source: { x: 400, y: 200 },
     target: { x: 740, y: 200 },
+    connector: { name: 'smooth' },
     attrs: {
         line: {
             targetMarker: {
@@ -200,7 +201,13 @@ var link7 = new joint.shapes.standard.Link({
                 ry: 5
             }
         },
-        position: 0.3
+        position: {
+            distance: 0.3,
+            args: {
+                keepGradient: true,
+                ensureLegibility: true,
+            }
+        }
     }, {
         markup: [{
             tagName: 'ellipse',
@@ -226,7 +233,10 @@ var link7 = new joint.shapes.standard.Link({
                 strokeWidth: 2
             }
         },
-        position: 0.7
+        position: {
+            distance: 0.7,
+            angle: 45
+        }
     }]
 });
 
