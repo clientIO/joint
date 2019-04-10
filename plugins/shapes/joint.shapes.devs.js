@@ -1,5 +1,5 @@
 /**
- * @deprecated use the port api insteac
+ * @deprecated use the port api instead
  */
 joint.shapes.basic.Generic.define('devs.Model', {
     inPorts: [],
