@@ -197,7 +197,7 @@ export const Graph = Backbone.Model.extend({
     toJSON: function() {
 
         // Backbone does not recursively call `toJSON()` on attributes that are themselves models/collections.
-        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitely.
+        // It just clones the attributes. Therefore, we must call `toJSON()` on the cells collection explicitly.
         var json = Backbone.Model.prototype.toJSON.apply(this, arguments);
         json.cells = this.get('cells').toJSON();
         return json;
@@ -696,7 +696,7 @@ export const Graph = Backbone.Model.extend({
         opt = opt || {};
 
         var subgraph = [];
-        // `cellMap` is used for a quick lookup of existance of a cell in the `cells` array.
+        // `cellMap` is used for a quick lookup of existence of a cell in the `cells` array.
         var cellMap = {};
         var elements = [];
         var links = [];
@@ -783,7 +783,7 @@ export const Graph = Backbone.Model.extend({
     // By setting `opt.inbound` to `true`, you can reverse the direction of the search.
     // If `opt.deep` is `true`, take into account embedded elements too.
     // `iteratee` is a function of the form `function(element) {}`.
-    // If `iteratee` explicitely returns `false`, the searching stops.
+    // If `iteratee` explicitly returns `false`, the searching stops.
     search: function(element, iteratee, opt) {
 
         opt = opt || {};
@@ -802,7 +802,7 @@ export const Graph = Backbone.Model.extend({
     // from the root `element` passed the `bfs()`, i.e. the element we started the search from.
     // Note that the `distance` is not the shortest or longest distance, it is simply the number of levels
     // crossed till we visited the `element` for the first time. It is especially useful for tree graphs.
-    // If `iteratee` explicitely returns `false`, the searching stops.
+    // If `iteratee` explicitly returns `false`, the searching stops.
     bfs: function(element, iteratee, opt) {
 
         opt = opt || {};
@@ -830,7 +830,7 @@ export const Graph = Backbone.Model.extend({
     // If `opt.deep` is `true`, take into account embedded elements too.
     // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
     // `iteratee` is a function of the form `function(element, distance) {}`.
-    // If `iteratee` explicitely returns `false`, the search stops.
+    // If `iteratee` explicitly returns `false`, the search stops.
     dfs: function(element, iteratee, opt, _visited, _distance) {
 
         opt = opt || {};

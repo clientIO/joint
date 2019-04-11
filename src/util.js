@@ -337,7 +337,7 @@ export const shapePerimeterConnectionPoint = function(linkView, view, magnet, re
         // wrapping SVG element. This is because we want this "smart"
         // connection points to work out of the box without the
         // programmer to put magnet marks to any of the subelements.
-        // For example, we want the functoin to work on basic.Path elements
+        // For example, we want the function to work on basic.Path elements
         // without any special treatment of such elements.
         // The code below guesses the wrapping element based on
         // one simple assumption. The wrapping elemnet is the
@@ -1407,23 +1407,23 @@ export const format = {
 
         while ((fieldDelimiterIndex = formatString.indexOf(fieldDelimiter)) !== -1) {
 
-            var pieceFormatedString, formatSpec, fieldName;
+            var pieceFormattedString, formatSpec, fieldName;
 
-            pieceFormatedString = formatString.slice(0, fieldDelimiterIndex);
+            pieceFormattedString = formatString.slice(0, fieldDelimiterIndex);
 
             if (endPlaceholder) {
-                formatSpec = pieceFormatedString.split(':');
+                formatSpec = pieceFormattedString.split(':');
                 fieldName = formatSpec.shift().split('.');
-                pieceFormatedString = value;
+                pieceFormattedString = value;
 
                 for (var i = 0; i < fieldName.length; i++)
-                    pieceFormatedString = pieceFormatedString[fieldName[i]];
+                    pieceFormattedString = pieceFormattedString[fieldName[i]];
 
                 if (formatSpec.length)
-                    pieceFormatedString = this.number(formatSpec, pieceFormatedString);
+                    pieceFormattedString = this.number(formatSpec, pieceFormattedString);
             }
 
-            formattedStringArray.push(pieceFormatedString);
+            formattedStringArray.push(pieceFormattedString);
 
             formatString = formatString.slice(fieldDelimiterIndex + 1);
             endPlaceholder = !endPlaceholder;

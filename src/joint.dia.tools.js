@@ -54,7 +54,7 @@
         },
 
         update: function() {
-            // to be overriden
+            // to be overridden
         }
     });
 

@@ -2739,7 +2739,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         data.z = this.model.get('z');
         this.model.toFront();
 
-        // Let the pointer propagate throught the link view elements so that
+        // Let the pointer propagate through the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
         this.el.style.pointerEvents = 'none';
 

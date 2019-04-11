@@ -982,7 +982,7 @@ const V = (function() {
             animateMotion.node.beginElement();
         } catch (e) {
             // Fallback for IE 9.
-            // Run the animation programatically if FakeSmile (`http://leunen.me/fakesmile/`) present
+            // Run the animation programmatically if FakeSmile (`http://leunen.me/fakesmile/`) present
             if (document.documentElement.getAttribute('smiling') === 'fake') {
                 /* global getTargets:true, Animator:true, animators:true id2anim:true */
                 // Register the animation. (See `https://answers.launchpad.net/smil/+question/203333`)

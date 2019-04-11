@@ -410,7 +410,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         padding = joint.util.normalizeSides(padding);
 
-        // Calculate the paper size to accomodate all the graph's elements.
+        // Calculate the paper size to accommodate all the graph's elements.
         var bbox = V(this.viewport).getBBox();
 
         var currentScale = this.scale();
@@ -842,7 +842,7 @@ joint.dia.Paper = joint.mvc.View.extend({
 
         // setter
 
-        // If the origin is not set explicitely, rotate around the center. Note that
+        // If the origin is not set explicitly, rotate around the center. Note that
         // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
         // the real bounding box (`bbox()`) including transformations).
         if (cx === undefined) {
