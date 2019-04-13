@@ -2324,7 +2324,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                     }
                 }
 
-                joint.dia.CellView.prototype.pointerdown.apply(this, arguments);
+                joint.dia.CellView.prototype.pointerdown.apply(this, [evt, x, y]);
                 this.notify('link:pointerdown', evt, x, y);
 
             } else {
