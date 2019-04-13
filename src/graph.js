@@ -1002,7 +1002,7 @@ export const Graph = Backbone.Model.extend({
     // Return bounding box of all elements.
     getBBox: function(cells, opt) {
 
-        return this.getCellsBBox(cells || this.getElements(), opt);
+        return this.getCellsBBox(cells || this.getCells(), opt);
     },
 
     // Return the bounding box of all cells in array provided.
