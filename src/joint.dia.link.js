@@ -651,28 +651,10 @@ joint.dia.Link = joint.dia.Cell.extend({
             this._markerCache = {};
 
             // cache of default markup nodes
-            this._V = {},
+            this._V = {};
 
             // connection path metrics
-            this.metrics = {},
-
-            // bind events
-            this.startListening();
-        },
-
-        startListening: function() {
-
-            var model = this.model;
-
-            // this.listenTo(model, 'change:markup', this.render);
-            // this.listenTo(model, 'change:smooth change:manhattan change:router change:connector', this.update);
-            // this.listenTo(model, 'change:toolMarkup', this.onToolsChange);
-            // this.listenTo(model, 'change:labels change:labelMarkup', this.onLabelsChange);
-            // this.listenTo(model, 'change:vertices change:vertexMarkup', this.onVerticesChange);
-            // this.listenTo(model, 'change:source', this.onSourceChange);
-            // this.listenTo(model, 'change:target', this.onTargetChange);
-
-            this.listenTo(model, 'change', this.onAttributesChange);
+            this.metrics = {};
         },
 
         presentationAttributes: {

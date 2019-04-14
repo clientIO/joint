@@ -798,7 +798,11 @@ joint.dia.CellView = joint.mvc.View.extend({
         // Add the cell's type to the view's element as a data attribute.
         this.$el.attr('data-type', model.get('type'));
 
-        this.listenTo(model, 'change', this.onAttributesChange);
+        this.startListening();
+    },
+
+    startListening: function() {
+        this.listenTo(this.model, 'change', this.onAttributesChange);
     },
 
     onAttributesChange: function() {

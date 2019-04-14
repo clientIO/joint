@@ -135,13 +135,16 @@ joint.dia.Element = joint.dia.Cell.extend({
                 valueFunction: joint.util.interpolate.object
             }));
 
+            // Recursively call `translate()` on all the embeds cells.
+            joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+
         } else {
 
+            this.startBatch('translate');
             this.set('position', translatedPosition, opt);
+            joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
+            this.stopBatch('translate');
         }
-
-        // Recursively call `translate()` on all the embeds cells.
-        joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
 
         return this;
     },
@@ -438,25 +441,25 @@ joint.dia.Element = joint.dia.Cell.extend({
         presentationAttributes: {
             'attrs': FLAG_UPDATE,
             'position': FLAG_TRANSLATE,
-            'size': FLAG_UPDATE, // resize
+            'size': FLAG_RESIZE,
             'angle': FLAG_ROTATE,
             'markup': FLAG_RENDER,
             'ports': FLAG_PORTS
         },
 
+        FLAG_INIT: FLAG_RENDER,
         FLAG_RENDER: FLAG_RENDER,
         FLAG_UPDATE: FLAG_UPDATE,
         FLAG_TRANSLATE: FLAG_TRANSLATE,
         FLAG_ROTATE: FLAG_ROTATE,
         FLAG_RESIZE: FLAG_RESIZE,
         FLAG_PORTS: FLAG_PORTS,
-        FLAG_INIT: FLAG_RENDER,
 
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);
             if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
             if (!flag) return;
-            this.paper.requestViewUpdate(this, flag, 0);
+            if (this.paper) this.paper.requestViewUpdate(this, flag, 0, opt);
             // todo: ports
         },
 
@@ -464,6 +467,10 @@ joint.dia.Element = joint.dia.Cell.extend({
             if (flag & FLAG_RENDER) {
                 this.render();
                 return 0;
+            }
+            if (flag & FLAG_RESIZE) {
+                this.resize();
+                flag ^= FLAG_RESIZE | FLAG_UPDATE;
             }
             if (flag & FLAG_UPDATE) {
                 this.update(this.model, null, {});

@@ -172,12 +172,13 @@
             rendering: renderingTypes.SYNC,
 
             onViewUpdate: function(view, flag, priority) {
+                if (flag & 128) return;
                 if (view instanceof joint.dia.CellView) {
                     var links = this.model.getConnectedLinks(view.model, { deep: true });
                     for (var j = 0, n = links.length; j < n; j++) {
                         var linkView = this.findViewByModel(links[j]);
                         // TODO: prevent cycling
-                        if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, 1);
+                        if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, priority + 1);
                     }
                 }
             },
@@ -374,12 +375,12 @@
             return V.createSVGMatrix(this.viewport.getScreenCTM());
         },
 
-        _sortDelayingBatches: ['add', 'to-front', 'to-back'],
+        UPDATE_DELAYING_BATCHES: ['add', 'to-front', 'to-back', 'translate'],
 
         _onSort: function() {
             var sorting = this.options.sorting;
             if (sorting === sortingTypes.NONE || sorting === sortingTypes.APPROX) return;
-            if (this.model.hasActiveBatch(this._sortDelayingBatches)) return;
+            if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
             this.sortViews();
         },
 
@@ -392,11 +393,13 @@
         },
 
         _onBatchStop: function(data) {
-            var sorting = this.options.sorting;
-            if (sorting === sortingTypes.NONE || sorting === sortingTypes.APPROX) return;
             var name = data && data.batchName;
-            if (!this._sortDelayingBatches.includes(name) || this.model.hasActiveBatch(this._sortDelayingBatches)) return;
-            this.sortViews();
+            var graph = this.model;
+            var batchNames = this.UPDATE_DELAYING_BATCHES;
+            if (!batchNames.includes(name) || graph.hasActiveBatch(batchNames)) return;
+            if (graph.isParentBatch(name)) this.dumpViews();
+            var sorting = this.options.sorting;
+            if (sorting !== sortingTypes.NONE && sorting !== sortingTypes.APPROX) this.sortViews();
         },
 
         _updates: null,
@@ -412,7 +415,7 @@
                 case renderingTypes.ASYNC:
                     break;
                 default:
-                    this.dumpViews(opt);
+                    if (!this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) this.dumpViews(opt);
                     break;
             }
         },
@@ -444,6 +447,7 @@
                             priorityUpdates[cid] |= 128;
                             continue;
                         }
+                        priorityUpdates[cid] |= 512;
                     }
                     var type = priorityUpdates[cid] = this.dumpView(view, priorityUpdates[cid], opt);
                     if (type > 0) continue;
@@ -458,9 +462,12 @@
                 this.removeView(view.model);
                 return 0;
             }
-            if (flag & 128) this.insertView(view);
-            flag ^= 128;
-            return view.confirmUpdate(flag, opt || {});
+            if (flag & 128) {
+                this.insertView(view);
+                flag ^= 128;
+            }
+            var xorFlag = (flag & 512) ? 512 : 0;
+            return view.confirmUpdate(flag, opt || {}) | xorFlag;
         },
 
         asyncDump: function() {
@@ -478,32 +485,6 @@
             if (this._asyncDumpId) return;
             this.asyncDump();
         },
-
-
-
-        // dumpCells: function(updates, batchSize) {
-        //     if (!updates) return;
-        //     var i = 0;
-        //     for (var id in updates) {
-        //         if (i >= batchSize) return i;
-        //         var view = this._views[id];
-        //         if (view) {
-        //             var type = updates[id];
-        //             //if (type <= 0) continue;
-        //             var viewportFn = this.options.viewport;
-        //             if (typeof viewportFn === 'function') {
-        //                 if (!viewportFn.call(this, view)) {
-        //                     view.vel.empty();
-        //                     updates[id] |= 64;
-        //                     continue;
-        //                 }
-        //             }
-        //             updates[id] = view.confirmUpdate(type);
-        //             i++;
-        //         }
-        //     }
-        //     return i;
-        // },
 
         onRemove: function() {
 
@@ -709,24 +690,7 @@
         // Return the dimensions of the content bbox in the paper units (as it appears on screen).
         getContentBBox: function(opt) {
 
-            // if (opt && opt.useModelGeometry) {
             return this.localToPaperRect(this.getContentArea(opt));
-            // }
-            // var crect = this.viewport.getBoundingClientRect();
-
-            // // Using Screen CTM was the only way to get the real viewport bounding box working in both
-            // // Google Chrome and Firefox.
-            // var clientCTM = this.clientMatrix();
-
-            // // for non-default origin we need to take the viewport translation into account
-            // var currentTranslate = this.translate();
-
-            // return new g.Rect({
-            //     x: crect.left - clientCTM.e + currentTranslate.tx,
-            //     y: crect.top - clientCTM.f + currentTranslate.ty,
-            //     width: crect.width,
-            //     height: crect.height
-            // });
         },
 
         // Returns a geometry rectangle represeting the entire

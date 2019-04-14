@@ -1081,6 +1081,10 @@ export const Graph = Backbone.Model.extend({
             }, this);
         }
         return !!this._batches[name];
+    },
+
+    isParentBatch: function(name) {
+        return this._batches[name] === 0;
     }
 
 }, {
