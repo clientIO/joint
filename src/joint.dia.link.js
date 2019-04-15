@@ -2453,9 +2453,12 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     dragLabel: function(evt, x, y) {
 
+        var model = this.model;
         var data = this.eventData(evt);
-        var label = { position: this.getLabelPosition(x, y, data.positionArgs) };
-        this.model.label(data.labelIdx, label);
+        var labelAngle = model.label(data.labelIdx).position.angle;
+
+        var label = { position: this.getLabelPosition(x, y, labelAngle, data.positionArgs) };
+        model.label(data.labelIdx, label);
     },
 
     dragVertex: function(evt, x, y) {
