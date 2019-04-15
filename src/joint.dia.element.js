@@ -447,6 +447,8 @@ joint.dia.Element = joint.dia.Cell.extend({
             'ports': FLAG_PORTS
         },
 
+        UPDATE_PRIORITY: 0,
+
         FLAG_INIT: FLAG_RENDER,
         FLAG_RENDER: FLAG_RENDER,
         FLAG_UPDATE: FLAG_UPDATE,
@@ -459,7 +461,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             var flag = model.getChangeFlag(this.presentationAttributes);
             if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
             if (!flag) return;
-            if (this.paper) this.paper.requestViewUpdate(this, flag, 0, opt);
+            if (this.paper) this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
             // todo: ports
         },
 

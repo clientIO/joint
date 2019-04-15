@@ -387,9 +387,12 @@ joint.dia.Link = joint.dia.Cell.extend({
         opt.tx = tx;
         opt.ty = ty;
 
-        return this.applyToPoints(function(p) {
+        this.startBatch('translate');
+        this.applyToPoints(function(p) {
             return { x: (p.x || 0) + tx, y: (p.y || 0) + ty };
         }, opt);
+        this.stopBatch('translate');
+        return this;
     },
 
     scale: function(sx, sy, origin, opt) {
@@ -673,6 +676,8 @@ joint.dia.Link = joint.dia.Cell.extend({
             target: FLAG_TARGET
         },
 
+        UPDATE_PRIORITY: 1,
+
         FLAG_RENDER: FLAG_RENDER,
         FLAG_UPDATE: FLAG_UPDATE,
         FLAG_TOOLS: FLAG_TOOLS,
@@ -688,7 +693,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             // TODO: tool changes does not need to be immediate
             // Fix Segments tools
             if (opt.tool) opt.rendering = 'immediate';
-            this.paper.requestViewUpdate(this, flag, 1, opt);
+            this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
         },
 
         confirmUpdate: function(flag, opt) {

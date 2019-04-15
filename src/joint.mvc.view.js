@@ -9,6 +9,8 @@ joint.mvc.View = Backbone.View.extend({
     children: null,
     childNodes: null,
 
+    UPDATE_PRIORITY: 2,
+
     constructor: function(options) {
 
         this.requireSetThemeOverride = options && !!options.theme;

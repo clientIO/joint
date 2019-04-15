@@ -178,7 +178,7 @@
                     for (var j = 0, n = links.length; j < n; j++) {
                         var linkView = this.findViewByModel(links[j]);
                         // TODO: prevent cycling
-                        if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, priority + 1);
+                        if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, linkView.UPDATE_PRIORITY);
                     }
                 }
             },
@@ -375,31 +375,41 @@
             return V.createSVGMatrix(this.viewport.getScreenCTM());
         },
 
-        UPDATE_DELAYING_BATCHES: ['add', 'to-front', 'to-back', 'translate'],
+        SORTING_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
+        //DUMPING_DELAYING_BATCHES: ['translate'],
 
         _onSort: function() {
             var sorting = this.options.sorting;
             if (sorting === sortingTypes.NONE || sorting === sortingTypes.APPROX) return;
-            if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
+            if (this.model.hasActiveBatch(this.SORTING_DELAYING_BATCHES)) return;
             this.sortViews();
         },
 
-        _onCellChange: function(cell) {
-            if (cell === this.model.attributes.cells) return;
-            if (cell.hasChanged('z')) {
-                var cellView = this.findViewByModel(cell);
-                if (cellView) this.insertView(cellView);
-            }
-        },
+        // _onCellChange: function(cell) {
+        //     if (cell === this.model.attributes.cells) return;
+        //     if (cell.hasChanged('z') && !this.model.hasActiveBatch(this.SORTING_DELAYING_BATCHES)) {
+        //         var cellView = this.findViewByModel(cell);
+        //         if (cellView) {
+        //             if (this.options.sorting === sortingTypes.EXACT) {
+        //                 this.sortViews();
+        //             } else {
+        //                 this.insertView(cellView);
+        //             }
+        //         }
+        //     }
+        // },
 
         _onBatchStop: function(data) {
             var name = data && data.batchName;
             var graph = this.model;
-            var batchNames = this.UPDATE_DELAYING_BATCHES;
-            if (!batchNames.includes(name) || graph.hasActiveBatch(batchNames)) return;
-            if (graph.isParentBatch(name)) this.dumpViews();
-            var sorting = this.options.sorting;
-            if (sorting !== sortingTypes.NONE && sorting !== sortingTypes.APPROX) this.sortViews();
+            if (name === 'translate' && !graph.hasActiveBatch(name)) {
+                this.dumpViews();
+            }
+            var batchNames = this.SORTING_DELAYING_BATCHES;
+            if (!batchNames.includes(name) || !graph.hasActiveBatch(batchNames)) {
+                var sorting = this.options.sorting;
+                if (sorting !== sortingTypes.NONE && sorting !== sortingTypes.APPROX) this.sortViews();
+            }
         },
 
         _updates: null,
@@ -415,7 +425,7 @@
                 case renderingTypes.ASYNC:
                     break;
                 default:
-                    if (!this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) this.dumpViews(opt);
+                    if (!this.model.hasActiveBatch('translate')) this.dumpViews(opt);
                     break;
             }
         },
@@ -432,7 +442,7 @@
         },
 
         dumpViews: function(opt) {
-            var batchSize = Infinity;
+            var batchSize = 20; // TODO
             var i = 0;
             for (var priority = 0; priority <= 2; priority++) {
                 i++;
@@ -447,7 +457,7 @@
                             priorityUpdates[cid] |= 128;
                             continue;
                         }
-                        priorityUpdates[cid] |= 512;
+                        //priorityUpdates[cid] |= 512;
                     }
                     var type = priorityUpdates[cid] = this.dumpView(view, priorityUpdates[cid], opt);
                     if (type > 0) continue;
@@ -466,8 +476,8 @@
                 this.insertView(view);
                 flag ^= 128;
             }
-            var xorFlag = (flag & 512) ? 512 : 0;
-            return view.confirmUpdate(flag, opt || {}) | xorFlag;
+            //var xorFlag = (flag & 512) ? 512 : 0;
+            return view.confirmUpdate(flag, opt || {}); // | xorFlag;
         },
 
         asyncDump: function() {
