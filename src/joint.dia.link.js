@@ -2455,7 +2455,8 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
         var link = this.model;
         var data = this.eventData(evt);
-        var labelAngle = link.label(data.labelIdx).position.angle;
+        var labelPosition = link.label(data.labelIdx).position || {};
+        var labelAngle = labelPosition.angle || 0;
 
         var label = { position: this.getLabelPosition(x, y, labelAngle, data.positionArgs) };
         link.label(data.labelIdx, label);
