@@ -1682,17 +1682,23 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         }
     },
 
-    _getDefaultLabelPositionArgs: function() {
+    _getLabelPositionAngle: function(idx) {
 
-        var defaultLabel = this.model._getDefaultLabel();
-        var defaultLabelPosition = defaultLabel.position || {};
-        return defaultLabelPosition.args;
+        var labelPosition = this.model.label(idx).position || {};
+        return (labelPosition.angle || 0);
     },
 
     _getLabelPositionArgs: function(idx) {
 
         var labelPosition = this.model.label(idx).position || {};
         return labelPosition.args;
+    },
+
+    _getDefaultLabelPositionArgs: function() {
+
+        var defaultLabel = this.model._getDefaultLabel();
+        var defaultLabelPosition = defaultLabel.position || {};
+        return defaultLabelPosition.args;
     },
 
     // merge default label position args into label position args
@@ -2392,13 +2398,15 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         var labelNode = evt.currentTarget;
         var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
 
-        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+        var positionAngle = this._getLabelPositionAngle(labelIdx);
         var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
+        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
         var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
 
         this.eventData(evt, {
             action: 'label-move',
             labelIdx: labelIdx,
+            positionAngle: positionAngle,
             positionArgs: positionArgs,
             stopPropagation: true
         });
@@ -2453,13 +2461,9 @@ joint.dia.LinkView = joint.dia.CellView.extend({
 
     dragLabel: function(evt, x, y) {
 
-        var link = this.model;
         var data = this.eventData(evt);
-        var labelPosition = link.label(data.labelIdx).position || {};
-        var labelAngle = labelPosition.angle || 0;
-
-        var label = { position: this.getLabelPosition(x, y, labelAngle, data.positionArgs) };
-        link.label(data.labelIdx, label);
+        var label = { position: this.getLabelPosition(x, y, data.positionAngle, data.positionArgs) };
+        this.model.label(data.labelIdx, label);
     },
 
     dragVertex: function(evt, x, y) {
