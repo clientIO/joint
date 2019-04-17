@@ -562,6 +562,8 @@ export namespace dia {
 
         constructor(opt?: CellView.Options<T>);
 
+        paper: Paper | null;
+
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
         unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
