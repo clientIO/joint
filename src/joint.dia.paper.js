@@ -691,7 +691,8 @@
         getContentArea: function(opt) {
 
             if (opt && opt.useModelGeometry) {
-                return this.model.getBBox() || new g.Rect();
+                var graph = this.model;
+                return graph.getCellsBBox(graph.getCells(), { inludeLinks: true }) || new g.Rect();
             }
 
             return V(this.viewport).getBBox();
