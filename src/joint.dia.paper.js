@@ -105,6 +105,13 @@
 
             defaultAnchor: { name: 'center' },
 
+            defaultLinkAnchor: {
+                name: 'connectionLength',
+                args: {
+                    length: 5
+                }
+            },
+
             defaultConnectionPoint: { name: 'bbox' },
 
             /* CONNECTING */
@@ -192,6 +199,8 @@
             highlighterNamespace: joint.highlighters,
 
             anchorNamespace: joint.anchors,
+
+            linkAnchorNamespace: joint.linkAnchors,
 
             connectionPointNamespace: joint.connectionPoints
         },

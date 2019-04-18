@@ -426,17 +426,35 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getSourcePoint: function() {
-        // TODO: port center
-        var sourceElement = this.getSourceElement();
-        if (sourceElement) return sourceElement.getBBox().center();
-        return new g.Point(this.source());
+        return this.getEndPoint('source');
     },
 
     getTargetPoint: function() {
-        // TODO: port center
-        var targetElement = this.getTargetElement();
-        if (targetElement) return targetElement.getBBox().center();
-        return new g.Point(this.target());
+        return this.getEndPoint('target');
+    },
+
+    getEndPoint: function(endName) {
+        var endDef = this.get(endName);
+        if (!endDef.id) return new g.Point(endDef);
+        var graph = this.graph;
+        var model;
+        if (graph) model = graph.getCell(endDef.id);
+        if (!model) return new g.Point();
+        // Center of a Link
+        // TODO:
+        if (model.isLink()) return new g.Point();
+        // Center of an Element
+        var bbox = model.getBBox();
+        var center = bbox.center();
+        // Center of a Port
+        var portId = endDef.port;
+        if (!portId) return center;
+        var portGroup = model.portProp(portId, ['group']);
+        var portsPositions = model.getPortsPositions(portGroup);
+        var portCenter = new g.Point(portsPositions[portId]).offset(bbox.origin());
+        var angle = model.angle();
+        if (angle) portCenter.rotate(center, -angle);
+        return portCenter;
     },
 
     getPolyline: function() {
@@ -680,9 +698,9 @@ joint.dia.Link = joint.dia.Cell.extend({
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);
             if (!flag) return;
-            // TODO: tool changes does not need to be immediate
+            // TODO: tool changes does not need to be sync
             // Fix Segments tools
-            if (opt.tool) opt.rendering = 'immediate';
+            if (opt.tool) opt.rendering = joint.dia.Paper.rendering.SYNC;
             this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
         },
 
@@ -1365,7 +1383,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             // Connection Point Source
             var sourcePoint;
-            if (sourceView) {
+            if (sourceView && sourceView.model.isElement()) {
                 sourceMagnet = (this.sourceMagnet || sourceView.el);
                 var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
                 var sourcePointRef = firstWaypoint || targetAnchor;
@@ -1376,7 +1394,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
             // Connection Point Target
             var targetPoint;
-            if (targetView) {
+            if (targetView && targetView.model.isElement()) {
                 targetMagnet = (this.targetMagnet || targetView.el);
                 var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
                 var targetPointRef = lastWaypoint || sourceAnchor;
@@ -1394,19 +1412,21 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
 
-            // if (cellView.model.isLink()) {
-            //     return cellView.getPointAtRatio(0.5);
-            // }
+            var isLink = cellView.model.isLink();
             var paperOptions = this.paper.options;
             if (!anchorDef) {
-                if (paperOptions.perpendicularLinks || this.options.perpendicular) {
-                    // Backwards compatibility
-                    // If `perpendicularLinks` flag is set on the paper and there are vertices
-                    // on the link, then try to find a connection point that makes the link perpendicular
-                    // even though the link won't point to the center of the targeted object.
-                    anchorDef = { name: 'perpendicular' };
+                if (isLink) {
+                    anchorDef = paperOptions.defaultLinkAnchor;
                 } else {
-                    anchorDef = paperOptions.defaultAnchor;
+                    if (paperOptions.perpendicularLinks || this.options.perpendicular) {
+                        // Backwards compatibility
+                        // If `perpendicularLinks` flag is set on the paper and there are vertices
+                        // on the link, then try to find a connection point that makes the link perpendicular
+                        // even though the link won't point to the center of the targeted object.
+                        anchorDef = { name: 'perpendicular' };
+                    } else {
+                        anchorDef = paperOptions.defaultAnchor;
+                    }
                 }
             }
 
@@ -1416,20 +1436,17 @@ joint.dia.Link = joint.dia.Cell.extend({
                 anchorFn = anchorDef;
             } else {
                 var anchorName = anchorDef.name;
-                anchorFn = paperOptions.anchorNamespace[anchorName];
+                var anchorNamespace = isLink ? 'linkAnchorNamespace' : 'anchorNamespace';
+                anchorFn = paperOptions[anchorNamespace][anchorName];
                 if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
             }
             var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
-            if (anchor) return anchor.round(this.decimalsRounding);
-            return new g.Point();
+            if (!anchor) return new g.Point();
+            return anchor.round(this.decimalsRounding);
         },
 
 
         getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
-
-            // if (view.model.isLink()) {
-            //     return line.end.clone();
-            // }
 
             var connectionPoint;
             var anchor = line.end;
@@ -1452,8 +1469,8 @@ joint.dia.Link = joint.dia.Cell.extend({
                 if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
             }
             connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
-            if (connectionPoint) return connectionPoint.round(this.decimalsRounding);
-            return anchor;
+            if (!connectionPoint) anchor;
+            return connectionPoint.round(this.decimalsRounding);
         },
 
         _translateConnectionPoints: function(tx, ty) {

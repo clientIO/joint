@@ -129,6 +129,21 @@
         return center;
     }
 
+    joint.anchors = {
+        center: bboxWrapper('center'),
+        top: bboxWrapper('topMiddle'),
+        bottom: bboxWrapper('bottomMiddle'),
+        left: bboxWrapper('leftMiddle'),
+        right: bboxWrapper('rightMiddle'),
+        topLeft: bboxWrapper('origin'),
+        topRight: bboxWrapper('topRight'),
+        bottomLeft: bboxWrapper('bottomLeft'),
+        bottomRight: bboxWrapper('corner'),
+        perpendicular: resolveRefAsBBoxCenter(perpendicular),
+        midSide: resolveRefAsBBoxCenter(midSide),
+        modelCenter: modelCenter
+    };
+
     function connectionRatio(view, _magnet, _refPoint, opt) {
 
         if (!view.model.isLink()) return view.model.getBBox().center();
@@ -198,20 +213,7 @@
         };
     }
 
-    joint.anchors = {
-        center: bboxWrapper('center'),
-        top: bboxWrapper('topMiddle'),
-        bottom: bboxWrapper('bottomMiddle'),
-        left: bboxWrapper('leftMiddle'),
-        right: bboxWrapper('rightMiddle'),
-        topLeft: bboxWrapper('origin'),
-        topRight: bboxWrapper('topRight'),
-        bottomLeft: bboxWrapper('bottomLeft'),
-        bottomRight: bboxWrapper('corner'),
-        perpendicular: resolveRefAsBBoxCenter(perpendicular),
-        midSide: resolveRefAsBBoxCenter(midSide),
-        modelCenter: modelCenter,
-        // TODO: move to a dedicated namespace?
+    joint.linkAnchors = {
         connectionRatio: connectionRatio,
         connectionLength: connectionLength,
         connectionPerpendicular: resolveRefAsConnectionCenter(connectionPerpendicular),
