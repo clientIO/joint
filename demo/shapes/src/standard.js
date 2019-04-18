@@ -15,7 +15,7 @@ dia.attributes.placeholderURL = {
 };
 
 var graph = new dia.Graph();
-var paper = new dia.Paper({
+new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
@@ -31,7 +31,6 @@ rectangle.attr('root/title', 'joint.shapes.standard.Rectangle');
 rectangle.attr('body/fill', '#30d0c6');
 rectangle.attr('body/fillOpacity', 0.5);
 rectangle.attr('label/text', 'Rectangle');
-rectangle.set('z', 3);
 rectangle.addTo(graph);
 
 var circle = new standard.Circle();
@@ -42,7 +41,6 @@ circle.attr('root/title', 'joint.shapes.standard.Circle');
 circle.attr('body/fill', '#30d0c6');
 circle.attr('body/fillOpacity', 0.5);
 circle.attr('label/text', 'Circle');
-circle.set('z', 3);
 circle.addTo(graph);
 
 var ellipse = new standard.Ellipse();
