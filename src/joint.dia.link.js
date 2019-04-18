@@ -632,13 +632,6 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             joint.dia.CellView.prototype.initialize.apply(this, arguments);
 
-            // create methods in prototype, so they can be accessed from any instance and
-            // don't need to be create over and over
-            // if (typeof this.constructor.prototype.watchSource !== 'function') {
-            //     this.constructor.prototype.watchSource = this.createWatcher('source');
-            //     this.constructor.prototype.watchTarget = this.createWatcher('target');
-            // }
-
             // `_.labelCache` is a mapping of indexes of labels in the `this.get('labels')` array to
             // `<g class="label">` nodes wrapped by Vectorizer. This allows for quick access to the
             // nodes in `updateLabelPosition()` in order to update the label positions.
@@ -795,10 +788,6 @@ joint.dia.Link = joint.dia.Cell.extend({
             // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
             // returns zero values)
             this.renderLabels();
-            // start watching the ends of the link for changes
-            // var model = this.model;
-            // this.watchSource(model, model.source())
-            //     .watchTarget(model, model.target())
             this.update();
 
             return this;
@@ -1710,11 +1699,10 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
         },
 
-        _getDefaultLabelPositionArgs: function() {
+        _getLabelPositionAngle: function(idx) {
 
-            var defaultLabel = this.model._getDefaultLabel();
-            var defaultLabelPosition = defaultLabel.position || {};
-            return defaultLabelPosition.args;
+            var labelPosition = this.model.label(idx).position || {};
+            return (labelPosition.angle || 0);
         },
 
         _getLabelPositionArgs: function(idx) {
@@ -1723,10 +1711,11 @@ joint.dia.Link = joint.dia.Cell.extend({
             return labelPosition.args;
         },
 
-        _getLabelPositionAngle: function(idx) {
+        _getDefaultLabelPositionArgs: function() {
 
-            var labelPosition = this.model.label(idx).position || {};
-            return (labelPosition.angle || 0);
+            var defaultLabel = this.model._getDefaultLabel();
+            var defaultLabelPosition = defaultLabel.position || {};
+            return defaultLabelPosition.args;
         },
 
         // merge default label position args into label position args
@@ -2949,10 +2938,10 @@ joint.dia.Link = joint.dia.Cell.extend({
             var sourceView = this.sourceView;
             if (!sourceView) {
                 var sourceDef = this.model.source();
-                return new g.Rect(sourceDef.x, sourceDef.y).inflate(0.5);
+                return new g.Rect(sourceDef.x, sourceDef.y);
             }
             if (sourceView.model.isLink()) {
-                return new g.Rect(this.sourcePoint).inflate(0.5);
+                return new g.Rect(this.sourcePoint);
             }
             var sourceMagnet = this.sourceMagnet;
             if (!sourceMagnet) sourceMagnet = sourceView.el;
@@ -2969,10 +2958,10 @@ joint.dia.Link = joint.dia.Cell.extend({
             var targetView = this.targetView;
             if (!targetView) {
                 var targetDef = this.model.target();
-                return new g.Rect(targetDef.x, targetDef.y).inflate(0.5);
+                return new g.Rect(targetDef.x, targetDef.y);
             }
             if (targetView.model.isLink()) {
-                return new g.Rect(this.targetPoint).inflate(0.5);
+                return new g.Rect(this.targetPoint);
             }
             var targetMagnet = this.targetMagnet;
             if (!targetMagnet) targetMagnet = targetView.el;

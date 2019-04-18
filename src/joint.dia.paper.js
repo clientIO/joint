@@ -425,7 +425,8 @@
                 case renderingTypes.ASYNC:
                     break;
                 default:
-                    if (!this.model.hasActiveBatch(this.DUMP_DELAYING_BATCHES)) this.dumpViews(opt);
+                    if (this.model.hasActiveBatch(this.DUMP_DELAYING_BATCHES)) break;
+                    this.dumpViews(opt);
                     break;
             }
         },
@@ -434,7 +435,7 @@
             var priorityUpdates = this._updates[priority];
             if (!priorityUpdates) priorityUpdates = this._updates[priority] = {};
             var currentType = priorityUpdates[view.cid];
-            // prevent cycling?
+            // prevent cycling
             if ((currentType & type) === type) return;
             priorityUpdates[view.cid] |= type;
             var viewUpdateFn = this.options.onViewUpdate;
