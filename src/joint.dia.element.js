@@ -140,10 +140,10 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         } else {
 
-            this.startBatch('translate');
+            this.startBatch('translate', opt);
             this.set('position', translatedPosition, opt);
             joint.util.invoke(this.getEmbeddedCells(), 'translate', tx, ty, opt);
-            this.stopBatch('translate');
+            this.stopBatch('translate', opt);
         }
 
         return this;
@@ -460,22 +460,23 @@ joint.dia.Element = joint.dia.Cell.extend({
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);
             if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
-            if (!flag) return;
+            if (opt.updateHandled || !flag) return;
             if (this.paper) this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
             // todo: ports
         },
 
-        confirmUpdate: function(flag) {
+        confirmUpdate: function(flag, opt) {
+            var model = this.model;
             if (flag & FLAG_RENDER) {
                 this.render();
                 return 0;
             }
             if (flag & FLAG_RESIZE) {
-                this.resize();
+                this.resize(model, null, opt);
                 flag ^= FLAG_RESIZE | FLAG_UPDATE;
             }
             if (flag & FLAG_UPDATE) {
-                this.update(this.model, null, {});
+                this.update(model, null, opt);
                 flag ^= FLAG_UPDATE;
             }
             if (flag & FLAG_TRANSLATE) {
@@ -776,7 +777,8 @@ joint.dia.Element = joint.dia.Cell.extend({
                 var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
 
                 // Store new x, y and perform rotate() again against the new rotation origin.
-                model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, opt);
+                model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, joint.util.assign({ updateHandled: true }, opt));
+                this.translate();
                 this.rotate();
             }
 

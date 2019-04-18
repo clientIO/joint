@@ -387,12 +387,9 @@ joint.dia.Link = joint.dia.Cell.extend({
         opt.tx = tx;
         opt.ty = ty;
 
-        this.startBatch('translate');
-        this.applyToPoints(function(p) {
+        return this.applyToPoints(function(p) {
             return { x: (p.x || 0) + tx, y: (p.y || 0) + ty };
         }, opt);
-        this.stopBatch('translate');
-        return this;
     },
 
     scale: function(sx, sy, origin, opt) {

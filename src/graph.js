@@ -1007,11 +1007,18 @@ export const Graph = Backbone.Model.extend({
 
     // Return the bounding box of all cells in array provided.
     getCellsBBox: function(cells, opt) {
-
+        opt || (opt = {});
         return util.toArray(cells).reduce(function(memo, cell) {
-            var rect = cell.getBBox(opt);
+            var angle, rect;
+            var isLink = cell.isLink();
+            if (isLink) {
+                if (!opt.includeLinks) return memo;
+                angle = 0;
+            } else {
+                angle = cell.angle();
+            }
+            rect = cell.getBBox(opt);
             if (!rect) return memo;
-            var angle = cell.isLink() ? 0 : cell.angle();
             if (angle) rect = rect.bbox(angle);
             if (memo) {
                 return memo.union(rect);

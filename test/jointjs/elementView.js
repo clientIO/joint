@@ -101,7 +101,7 @@ QUnit.module('elementView', function(hooks) {
 
         QUnit.test('resizing a rotated element with options passed will trigger all subsequent events with this option.', function(assert) {
 
-            assert.expect(5);
+            assert.expect(6);
 
             elementView.model.set({
                 markup: '<g class="rotatable"><g class="scalable"><rect class="body"/><text class="label"/></g></g>'

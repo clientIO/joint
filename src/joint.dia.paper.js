@@ -375,19 +375,19 @@
             return V.createSVGMatrix(this.viewport.getScreenCTM());
         },
 
-        SORTING_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
-        //DUMPING_DELAYING_BATCHES: ['translate'],
+        SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
+        DUMP_DELAYING_BATCHES: ['translate'],
 
         _onSort: function() {
             var sorting = this.options.sorting;
             if (sorting === sortingTypes.NONE || sorting === sortingTypes.APPROX) return;
-            if (this.model.hasActiveBatch(this.SORTING_DELAYING_BATCHES)) return;
+            if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sortViews();
         },
 
         // _onCellChange: function(cell) {
         //     if (cell === this.model.attributes.cells) return;
-        //     if (cell.hasChanged('z') && !this.model.hasActiveBatch(this.SORTING_DELAYING_BATCHES)) {
+        //     if (cell.hasChanged('z') && !this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) {
         //         var cellView = this.findViewByModel(cell);
         //         if (cellView) {
         //             if (this.options.sorting === sortingTypes.EXACT) {
@@ -402,10 +402,10 @@
         _onBatchStop: function(data) {
             var name = data && data.batchName;
             var graph = this.model;
-            if (name === 'translate' && !graph.hasActiveBatch(name)) {
-                this.dumpViews();
+            if (this.DUMP_DELAYING_BATCHES.includes(name) && !graph.hasActiveBatch(name)) {
+                this.dumpViews(data);
             }
-            var batchNames = this.SORTING_DELAYING_BATCHES;
+            var batchNames = this.SORT_DELAYING_BATCHES;
             if (!batchNames.includes(name) || !graph.hasActiveBatch(batchNames)) {
                 var sorting = this.options.sorting;
                 if (sorting !== sortingTypes.NONE && sorting !== sortingTypes.APPROX) this.sortViews();
@@ -425,7 +425,7 @@
                 case renderingTypes.ASYNC:
                     break;
                 default:
-                    if (!this.model.hasActiveBatch('translate')) this.dumpViews(opt);
+                    if (!this.model.hasActiveBatch(this.DUMP_DELAYING_BATCHES)) this.dumpViews(opt);
                     break;
             }
         },
