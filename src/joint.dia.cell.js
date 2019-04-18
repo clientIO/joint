@@ -791,8 +791,6 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
-        joint.util.bindAll(this, 'remove', 'update');
-
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
