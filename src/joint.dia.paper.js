@@ -108,12 +108,7 @@
 
             defaultAnchor: { name: 'center' },
 
-            defaultLinkAnchor: {
-                name: 'connectionLength',
-                args: {
-                    length: 5
-                }
-            },
+            defaultLinkAnchor: { name: 'connectionRatio' },
 
             defaultConnectionPoint: { name: 'bbox' },
 
