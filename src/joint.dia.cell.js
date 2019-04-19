@@ -719,6 +719,10 @@ joint.dia.Cell = Backbone.Model.extend({
             flag |= attributes[key];
         }
         return flag;
+    },
+
+    angle: function() {
+        return 0;
     }
 
 }, {
@@ -755,6 +759,8 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     selector: 'root',
 
+    metrics: null,
+
     className: function() {
 
         var classNames = ['cell'];
@@ -790,6 +796,8 @@ joint.dia.CellView = joint.mvc.View.extend({
     },
 
     init: function() {
+
+        this.metrics = {};
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
@@ -1215,6 +1223,79 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return { sx: sx, sy: sy };
+    },
+
+    cleanNodesCache: function() {
+        this.metrics = {};
+    },
+
+    nodeCache: function(magnet) {
+
+        var metrics = this.metrics;
+        if (!metrics) {
+            // don't use cache
+            // it most likely a custom view with overridden update
+            return {};
+        }
+        var id = V.ensureId(magnet);
+        var value = metrics[id];
+        if (!value) value = metrics[id] = {};
+        return value;
+    },
+
+    getNodeData: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (!metrics.data) metrics.data = {};
+        return metrics.data;
+    },
+
+    getNodeBoundingRect: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
+        return new g.Rect(metrics.boundingRect);
+    },
+
+    getNodeMatrix: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.magnetMatrix === undefined) {
+            var target = this.rotatableNode || this.el;
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
+        }
+        return V.createSVGMatrix(metrics.magnetMatrix);
+    },
+
+    getNodeShape: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
+        return metrics.geometryShape.clone();
+    },
+
+    getNodeBBox: function(magnet) {
+
+        return V.transformRect(this.getNodeBoundingRect(magnet), this.getNodeMatrix(magnet));
+    },
+
+    getNodeUnrotatedBBox: function(magnet) {
+
+        return this.getNodeBBox(magnet);
+    },
+
+    getRootTranslateMatrix: function() {
+
+        return V.createSVGMatrix();
+    },
+
+    getRootRotateMatrix: function() {
+
+        return V.createSVGMatrix();
+    },
+
+    isNodeConnection: function(node) {
+        return this.model.isLink() && (!node || node === this.el);
     },
 
     findNodesAttributes: function(attrs, root, selectorCache, selectors) {

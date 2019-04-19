@@ -1128,6 +1128,8 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             opt || (opt = {});
 
+            this.cleanNodesCache();
+
             // update the link path
             this.updateConnection(opt);
 
@@ -1142,6 +1144,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             this.updateArrowheadMarkers();
 
             this.updateTools(opt);
+
             // Local perpendicular flag (as opposed to one defined on paper).
             // Could be enabled inside a connector/router. It's valid only
             // during the update execution.
@@ -1383,7 +1386,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             // Connection Point Source
             var sourcePoint;
-            if (sourceView && sourceView.model.isElement()) {
+            if (sourceView && !sourceView.isNodeConnection(this.sourceMagnet)) {
                 sourceMagnet = (this.sourceMagnet || sourceView.el);
                 var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
                 var sourcePointRef = firstWaypoint || targetAnchor;
@@ -1394,7 +1397,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
             // Connection Point Target
             var targetPoint;
-            if (targetView && targetView.model.isElement()) {
+            if (targetView && !targetView.isNodeConnection(this.targetMagnet)) {
                 targetMagnet = (this.targetMagnet || targetView.el);
                 var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
                 var targetPointRef = lastWaypoint || sourceAnchor;
@@ -1412,10 +1415,10 @@ joint.dia.Link = joint.dia.Cell.extend({
 
         getAnchor: function(anchorDef, cellView, magnet, ref, endType) {
 
-            var isLink = cellView.model.isLink();
+            var isConnection = cellView.isNodeConnection(magnet);
             var paperOptions = this.paper.options;
             if (!anchorDef) {
-                if (isLink) {
+                if (isConnection) {
                     anchorDef = paperOptions.defaultLinkAnchor;
                 } else {
                     if (paperOptions.perpendicularLinks || this.options.perpendicular) {
@@ -1436,7 +1439,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 anchorFn = anchorDef;
             } else {
                 var anchorName = anchorDef.name;
-                var anchorNamespace = isLink ? 'linkAnchorNamespace' : 'anchorNamespace';
+                var anchorNamespace = isConnection ? 'linkAnchorNamespace' : 'anchorNamespace';
                 anchorFn = paperOptions[anchorNamespace][anchorName];
                 if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
             }
@@ -2853,7 +2856,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
 
             var paper = this.paper;
-            var elements = paper.model.getElements();
+            var elements = paper.model.getCells();
             data.marked = {};
 
             for (var i = 0, n = elements.length; i < n; i++) {

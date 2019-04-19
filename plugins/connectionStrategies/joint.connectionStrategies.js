@@ -9,7 +9,7 @@
     function pin(relative) {
 
         return function(end, view, magnet, coords) {
-            var fn = (view.model.isLink()) ? pinnedLinkEnd : pinnedElementEnd;
+            var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
             return fn(relative, end, view, magnet, coords);
         };
     }

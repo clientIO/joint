@@ -61,8 +61,7 @@ joint.highlighters.stroke = {
             'fill': 'none'
         }).attr(options.attrs);
 
-        // TODO: conditional
-        if (cellView.model.isLink()) {
+        if (cellView.isNodeConnection(magnetEl)) {
 
             highlightVel.attr('d', cellView.getSerializedConnection());
 
