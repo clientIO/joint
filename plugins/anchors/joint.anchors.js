@@ -38,23 +38,6 @@
         };
     }
 
-    function resolveRefAsBBoxCenter(fn) {
-
-        return function(view, magnet, ref, opt) {
-
-            if (ref instanceof Element) {
-                var refView = this.paper.findView(ref);
-                var refPoint = (refView)
-                    ? refView.getNodeBBox(ref).center()
-                    : new g.Point();
-
-                return fn.call(this, view, magnet, refPoint, opt);
-            }
-
-            return fn.apply(this, arguments);
-        };
-    }
-
     function perpendicular(view, magnet, refPoint, opt) {
 
         var angle = view.model.angle();
@@ -139,8 +122,8 @@
         topRight: bboxWrapper('topRight'),
         bottomLeft: bboxWrapper('bottomLeft'),
         bottomRight: bboxWrapper('corner'),
-        perpendicular: resolveRefAsBBoxCenter(perpendicular),
-        midSide: resolveRefAsBBoxCenter(midSide),
+        perpendicular: resolveRef(perpendicular),
+        midSide: resolveRef(midSide),
         modelCenter: modelCenter
     };
 
@@ -177,14 +160,8 @@
         if (verticalIntersections) Array.prototype.push.apply(intersections, verticalIntersections);
         if (horizontalIntersections) Array.prototype.push.apply(intersections, horizontalIntersections);
         if (intersections.length > 0) return closestIntersection(intersections, refPoint);
-        // fallback
         if ('fallbackAt' in opt) {
-            var atValue = parseFloat(opt.fallbackAt);
-            if (util.isPercentage(opt.fallbackAt)) {
-                return view.getPointAtRatio(atValue / 100);
-            } else {
-                return view.getPointAtLength(atValue);
-            }
+            return getPointAtLink(view, opt.fallbackAt);
         }
         return connectionClosest(view, _magnet, refPoint, opt);
     }
@@ -196,28 +173,41 @@
         return view.getConnection().start;
     }
 
-    function resolveRefAsConnectionCenter(fn) {
+    joint.linkAnchors = {
+        connectionRatio: connectionRatio,
+        connectionLength: connectionLength,
+        connectionPerpendicular: resolveRef(connectionPerpendicular),
+        connectionClosest: resolveRef(connectionClosest)
+    };
 
+    function resolveRef(fn) {
         return function(view, magnet, ref, opt) {
-
             if (ref instanceof Element) {
                 var refView = this.paper.findView(ref);
-                var refPoint = (refView)
-                    ? refView.getPointAtRatio(0.5)
-                    : new g.Point();
-
+                var refPoint;
+                if (refView) {
+                    if (refView.model.isLink()) {
+                        var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
+                        refPoint = getPointAtLink(view, distance);
+                    } else {
+                        refPoint = refView.getNodeBBox(ref).center();
+                    }
+                } else {
+                    refPoint = new g.Point();
+                }
                 return fn.call(this, view, magnet, refPoint, opt);
             }
-
             return fn.apply(this, arguments);
         };
     }
 
-    joint.linkAnchors = {
-        connectionRatio: connectionRatio,
-        connectionLength: connectionLength,
-        connectionPerpendicular: resolveRefAsConnectionCenter(connectionPerpendicular),
-        connectionClosest: resolveRefAsConnectionCenter(connectionClosest)
-    };
+    function getPointAtLink(view, value) {
+        var parsedValue = parseFloat(value);
+        if (util.isPercentage(value)) {
+            return view.getPointAtRatio(parsedValue / 100);
+        } else {
+            return view.getPointAtLength(parsedValue);
+        }
+    }
 
 })(joint, joint.util);
