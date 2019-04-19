@@ -11,6 +11,9 @@
         ASYNC: 'rendering-async'
     };
 
+    var FLAG_INSERT = 128;
+    var FLAG_REMOVE = 256;
+
     joint.dia.Paper = joint.mvc.View.extend({
 
         className: 'paper',
@@ -178,13 +181,12 @@
 
             rendering: renderingTypes.SYNC,
 
-            onViewUpdate: function(view, flag, priority) {
-                if (flag & 128) return;
+            onViewUpdate: function(view, flag, _priority) {
+                if (flag & FLAG_INSERT) return;
                 if (view instanceof joint.dia.CellView) {
-                    var links = this.model.getConnectedLinks(view.model, { deep: true });
+                    var links = this.model.getConnectedLinks(view.model);
                     for (var j = 0, n = links.length; j < n; j++) {
                         var linkView = this.findViewByModel(links[j]);
-                        // TODO: prevent cycling
                         if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, linkView.UPDATE_PRIORITY);
                     }
                 }
@@ -255,10 +257,10 @@
 
             this.listenTo(model, 'add', this.onCellAdded)
                 .listenTo(model, 'remove', this.onCellRemoved)
+                .listenTo(model, 'change', this.onCellChange)
                 .listenTo(model, 'reset', this.resetViews)
                 .listenTo(model, 'sort', this._onSort)
-                .listenTo(model, 'batch:stop', this._onBatchStop)
-                .listenTo(model, 'change', this._onCellChange);
+                .listenTo(model, 'batch:stop', this._onBatchStop);
 
             this.on('cell:highlight', this.onCellHighlight)
                 .on('cell:unhighlight', this.onCellUnhighlight)
@@ -275,7 +277,15 @@
         },
 
         onCellRemoved: function(cell) {
-            this.requestViewUpdate(this.findViewByModel(cell), 256, 0);
+            this.requestViewUpdate(this.findViewByModel(cell), FLAG_REMOVE, 0);
+        },
+
+        onCellChange: function(cell) {
+            if (cell === this.model.attributes.cells) return;
+            if (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX) {
+                var view = this.findViewByModel(cell);
+                if (view) this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY);
+            }
         },
 
         cloneOptions: function() {
@@ -388,36 +398,25 @@
         DUMP_DELAYING_BATCHES: ['translate'],
 
         _onSort: function() {
-            var sorting = this.options.sorting;
-            if (sorting === sortingTypes.NONE || sorting === sortingTypes.APPROX) return;
+            if (this.options.sorting !== sortingTypes.EXACT) return;
             if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sortViews();
         },
 
-        // _onCellChange: function(cell) {
-        //     if (cell === this.model.attributes.cells) return;
-        //     if (cell.hasChanged('z') && !this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) {
-        //         var cellView = this.findViewByModel(cell);
-        //         if (cellView) {
-        //             if (this.options.sorting === sortingTypes.EXACT) {
-        //                 this.sortViews();
-        //             } else {
-        //                 this.insertView(cellView);
-        //             }
-        //         }
-        //     }
-        // },
-
         _onBatchStop: function(data) {
             var name = data && data.batchName;
             var graph = this.model;
-            if (this.DUMP_DELAYING_BATCHES.includes(name) && !graph.hasActiveBatch(name)) {
+
+            var dumpDelayingBatches = this.DUMP_DELAYING_BATCHES;
+            if (dumpDelayingBatches.includes(name) && !graph.hasActiveBatch(dumpDelayingBatches)) {
                 this.dumpViews(data);
             }
-            var batchNames = this.SORT_DELAYING_BATCHES;
-            if (!batchNames.includes(name) || !graph.hasActiveBatch(batchNames)) {
-                var sorting = this.options.sorting;
-                if (sorting !== sortingTypes.NONE && sorting !== sortingTypes.APPROX) this.sortViews();
+
+            if (this.options.sorting === sortingTypes.EXACT) {
+                var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
+                if (!sortDelayingBatches.includes(name) || !graph.hasActiveBatch(sortDelayingBatches)) {
+                    this.sortViews();
+                }
             }
         },
 
@@ -464,7 +463,7 @@
                     if (typeof viewportFn === 'function') {
                         if (!viewportFn.call(this, view)) {
                             view.vel.remove();
-                            priorityUpdates[cid] |= 128;
+                            priorityUpdates[cid] |= FLAG_INSERT;
                             continue;
                         }
                         //priorityUpdates[cid] |= 512;
@@ -478,13 +477,13 @@
 
         dumpView: function(view, flag, opt) {
             if (!view) return;
-            if (flag & 256) {
+            if (flag & FLAG_REMOVE) {
                 this.removeView(view.model);
                 return 0;
             }
-            if (flag & 128) {
+            if (flag & FLAG_INSERT) {
                 this.insertView(view);
-                flag ^= 128;
+                flag ^= FLAG_INSERT;
             }
             //var xorFlag = (flag & 512) ? 512 : 0;
             return view.confirmUpdate(flag, opt || {}); // | xorFlag;
@@ -817,8 +816,7 @@
             var view = this._views[cell.id] = this.createViewForModel(cell);
 
             view.paper = this;
-            //this.requestViewUpdate(view, view.FLAG_INIT, 0);
-            this.requestViewUpdate(view, 128 | view.FLAG_INIT, 0);
+            this.requestViewUpdate(view, FLAG_INSERT | view.FLAG_INIT, view.UPDATE_PRIORITY);
             return view;
         },
 
