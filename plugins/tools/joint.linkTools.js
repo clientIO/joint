@@ -715,7 +715,7 @@
             evt.preventDefault();
             var actionFn = this.options.action;
             if (typeof actionFn === 'function') {
-                actionFn.call(this.relatedView, evt, this.relatedView);
+                actionFn.call(this.relatedView, evt, this.relatedView, this);
             }
         }
     });
@@ -744,8 +744,8 @@
         options: {
             distance: 60,
             offset: 0,
-            action: function(evt) {
-                this.model.remove({ ui: true, tool: this.cid });
+            action: function(evt, view, tool) {
+                view.model.remove({ ui: true, tool: tool.cid });
             }
         }
     });
