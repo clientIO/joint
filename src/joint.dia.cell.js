@@ -797,7 +797,7 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
-        this.metrics = {};
+        this.cleanNodesCache();
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
@@ -1180,9 +1180,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         var offseted = false;
         if (offsetAttrs) {
             // Check if the node is visible
-            var nodeClientRect = node.getBoundingClientRect();
-            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
-                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
+            var nodeBoundingRect = this.getNodeBoundingRect(node);
+            if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
+                var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
                 for (attrName in offsetAttrs) {
                     attrVal = offsetAttrs[attrName];
                     def = this.getAttributeDefinition(attrName);
@@ -1232,11 +1232,8 @@ joint.dia.CellView = joint.mvc.View.extend({
     nodeCache: function(magnet) {
 
         var metrics = this.metrics;
-        if (!metrics) {
-            // don't use cache
-            // it most likely a custom view with overridden update
-            return {};
-        }
+        // Don't use cache? It most likely a custom view with overridden update.
+        if (!metrics) return {};
         var id = V.ensureId(magnet);
         var value = metrics[id];
         if (!value) value = metrics[id] = {};

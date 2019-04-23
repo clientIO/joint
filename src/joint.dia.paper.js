@@ -177,14 +177,7 @@
             rendering: renderingTypes.SYNC,
 
             onViewUpdate: function(view, flag, _priority) {
-                if (flag & FLAG_INSERT) return;
-                if (view instanceof joint.dia.CellView) {
-                    var links = this.model.getConnectedLinks(view.model);
-                    for (var j = 0, n = links.length; j < n; j++) {
-                        var linkView = this.findViewByModel(links[j]);
-                        if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, linkView.UPDATE_PRIORITY);
-                    }
-                }
+                this.requestConnectedLinksUpdate(view, flag);
             },
 
             viewport: null,
@@ -417,6 +410,17 @@
 
         _updates: null,
         _asyncDumpId: null,
+
+        requestConnectedLinksUpdate: function(view, flag) {
+            if (flag & FLAG_INSERT) return;
+            if (view instanceof joint.dia.CellView) {
+                var links = this.model.getConnectedLinks(view.model);
+                for (var j = 0, n = links.length; j < n; j++) {
+                    var linkView = this.findViewByModel(links[j]);
+                    if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, linkView.UPDATE_PRIORITY);
+                }
+            }
+        },
 
         requestViewUpdate: function(view, flag, priority, opt) {
 

@@ -525,42 +525,43 @@ export const Graph = Backbone.Model.extend({
 
     getNeighbors: function(model, opt) {
 
-        opt = opt || {};
+        opt || (opt = {});
 
+        var deep = opt.deep;
         var inbound = opt.inbound;
         var outbound = opt.outbound;
         if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
+        var visited = { source: {}, target: {}};
+
         var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
-
-            var source = link.source();
-            var target = link.target();
             var loop = link.hasLoop(opt);
-
-            // Discard if it is a point, or if the neighbor was already added.
-            if (inbound && util.has(source, 'id') && !res[source.id]) {
-
-                var sourceElement = this.getCell(source.id);
-
-                if (loop || (sourceElement && sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
-                    res[source.id] = sourceElement;
-                }
-            }
-
-            // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && util.has(target, 'id') && !res[target.id]) {
-
-                var targetElement = this.getCell(target.id);
-
-                if (loop || (targetElement && targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model)))) {
-                    res[target.id] = targetElement;
-                }
-            }
-
+            if (inbound) getNeighbor.call(this, res, link, 'source', loop);
+            if (outbound) getNeighbor.call(this, res, link, 'target', loop);
             return res;
         }.bind(this), {});
+
+        function getNeighbor(res, link, endName, loop) {
+            var endDef = link.get(endName);
+            // Discard if it is a point
+            if (!util.has(endDef, 'id')) return;
+            var id = endDef.id;
+            // Discard if the neighbor was already added.
+            if (res[id]) return;
+            // Discard if we already visited the cell within the same direction
+            if (visited[endName][id]) return;
+            var cell = this.getCell(id);
+            if (!cell) return;
+            if (!loop && (cell === model || (deep && cell.isEmbeddedIn(model)))) return;
+            if (cell.isElement()) {
+                res[id] = cell;
+                return;
+            }
+            visited[endName][id] = true;
+            getNeighbor(cell, endName, res, cell.hasLoop(opt));
+        }
 
         return util.toArray(neighbors);
     },

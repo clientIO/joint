@@ -710,24 +710,30 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             var model = this.model;
             var attributes = model.attributes;
+            var leftoverFlag = 0;
 
             if (flag & FLAG_SOURCE) {
-                this.onEndModelChange('source', this.paper.getModelById(attributes.source.id), opt);
+                if (!this.updateEndProperties('source')) {
+                    leftoverFlag |= FLAG_SOURCE;
+                    flag ^= FLAG_SOURCE;
+                }
             }
 
             if (flag & FLAG_TARGET) {
-                this.onEndModelChange('target', this.paper.getModelById(attributes.target.id), opt);
+                if (!this.updateEndProperties('target')) {
+                    leftoverFlag |= FLAG_TARGET;
+                    flag ^= FLAG_TARGET;
+                }
             }
 
             if (flag & FLAG_RENDER) {
                 this.render();
-                return 0;
+                return leftoverFlag;
             }
 
             if (flag & FLAG_VERTICES) {
                 this.renderVertexMarkers();
                 flag ^= FLAG_VERTICES;
-                if (opt.translateBy) opt.cacheOnly = true;
             }
 
             if (flag & FLAG_UPDATE) {
@@ -736,7 +742,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 } else {
                     this.update(model, null, opt);
                 }
-                return 0;
+                return leftoverFlag;
             }
 
             if (flag & FLAG_TOOLS) {
@@ -753,7 +759,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 this.update(model, null, opt);
             }
 
-            return 0;
+            return leftoverFlag;
         },
 
         onLabelsChange: function(link, labels, opt) {
@@ -1145,12 +1151,11 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             this.updateTools(opt);
 
+            // *Deprecated*
             // Local perpendicular flag (as opposed to one defined on paper).
             // Could be enabled inside a connector/router. It's valid only
             // during the update execution.
             this.options.perpendicular = null;
-            // Mark that postponed update has been already executed.
-            this.updatePostponed = false;
 
             return this;
         },
@@ -1589,112 +1594,36 @@ joint.dia.Link = joint.dia.Cell.extend({
             return this;
         },
 
-        onEndModelChange: function(endType, endModel, opt) {
+        updateEndProperties: function(endType) {
 
-            var doUpdate = !opt.cacheOnly;
-            var model = this.model;
-            var end = model.get(endType) || {};
+            var endViewProperty = endType + 'View';
+            var endMagnetProperty = endType + 'Magnet';
+            var endDef = this.model.get(endType);
+            var endId = endDef && endDef.id;
 
-            if (endModel) {
-
-                var selector = this.constructor.makeSelector(end);
-                var oppositeEndType = endType == 'source' ? 'target' : 'source';
-                var oppositeEnd = model.get(oppositeEndType) || {};
-                var endId = end.id;
-                var oppositeEndId = oppositeEnd.id;
-                var oppositeSelector = oppositeEndId && this.constructor.makeSelector(oppositeEnd);
-
-                // Caching end models bounding boxes.
-                // If `opt.handleBy` equals the client-side ID of this link view and it is a loop link, then we already cached
-                // the bounding boxes in the previous turn (e.g. for loop link, the change:source event is followed
-                // by change:target and so on change:source, we already chached the bounding boxes of - the same - element).
-                if (opt.handleBy === this.cid && (endId === oppositeEndId) && selector == oppositeSelector) {
-
-                    // Source and target elements are identical. We're dealing with a loop link. We are handling `change` event for the
-                    // second time now. There is no need to calculate bbox and find magnet element again.
-                    // It was calculated already for opposite link end.
-                    this[endType + 'View'] = this[oppositeEndType + 'View'];
-                    this[endType + 'Magnet'] = this[oppositeEndType + 'Magnet'];
-
-                } else if (opt.translateBy) {
-                    // `opt.translateBy` optimizes the way we calculate bounding box of the source/target element.
-                    // If `opt.translateBy` is an ID of the element that was originally translated.
-
-                    // Noop
-
-                } else {
-                    // The slowest path, source/target could have been rotated or resized or any attribute
-                    // that affects the bounding box of the view might have been changed.
-
-                    var connectedModel = this.paper.model.getCell(endId);
-                    if (!connectedModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
-                    var connectedView = connectedModel.findView(this.paper);
-                    if (connectedView) {
-                        var connectedMagnet = connectedView.getMagnetFromLinkEnd(end);
-                        if (connectedMagnet === connectedView.el) connectedMagnet = null;
-                        this[endType + 'View'] = connectedView;
-                        this[endType + 'Magnet'] = connectedMagnet;
-                    } else {
-                        // the view is not rendered yet
-                        this[endType + 'View'] = this[endType + 'Magnet'] = null;
-                    }
-                }
-
-                if (opt.handleBy === this.cid && opt.translateBy &&
-                    model.isEmbeddedIn(endModel) &&
-                    !joint.util.isEmpty(model.get('vertices'))) {
-                    // Loop link whose element was translated and that has vertices (that need to be translated with
-                    // the parent in which my element is embedded).
-                    // If the link is embedded, has a loop and vertices and the end model
-                    // has been translated, do not update yet. There are vertices still to be updated (change:vertices
-                    // event will come in the next turn).
-                    doUpdate = false;
-                }
-
-                if (!this.updatePostponed && oppositeEndId) {
-                    // The update was not postponed (that can happen e.g. on the first change event) and the opposite
-                    // end is a model (opposite end is the opposite end of the link we're just updating, e.g. if
-                    // we're reacting on change:source event, the oppositeEnd is the target model).
-
-                    var oppositeEndModel = this.paper.getModelById(oppositeEndId);
-
-                    // Passing `handleBy` flag via event option.
-                    // Note that if we are listening to the same model for event 'change' twice.
-                    // The same event will be handled by this method also twice.
-                    if (end.id === oppositeEnd.id) {
-                        // We're dealing with a loop link. Tell the handlers in the next turn that they should update
-                        // the link instead of me. (We know for sure there will be a next turn because
-                        // loop links react on at least two events: change on the source model followed by a change on
-                        // the target model).
-                        if (!opt.translateBy || joint.util.isEmpty(model.get('vertices')) || !model.isEmbeddedIn(opt.translateBy)) {
-                            opt.handleBy = this.cid;
-                        } else {
-                            doUpdate = false;
-                        }
-                    }
-
-                    if (doUpdate && (opt.handleBy === this.cid || (opt.translateBy && oppositeEndModel.isEmbeddedIn(opt.translateBy)))) {
-
-                        // Here are two options:
-                        // - Source and target are connected to the same model (not necessarily the same port).
-                        // - Both end models are translated by the same ancestor. We know that opposite end
-                        //   model will be translated in the next turn as well.
-                        // In both situations there will be more changes on the model that trigger an
-                        // update. So there is no need to update the linkView yet.
-                        this.updatePostponed = true;
-                        doUpdate = false;
-                    }
-                }
-
-            } else {
-
-                // the link end is a point ~ rect 1x1
-                this[endType + 'View'] = this[endType + 'Magnet'] = null;
+            if (!endId) {
+                // the link end is a point ~ rect 0x0
+                this[endViewProperty] = this[endMagnetProperty] = null;
+                return true;
             }
 
-            if (doUpdate) {
-                //this.paper.requestViewUpdate(this, FLAG_UPDATE, 1);
+            var paper = this.paper;
+            var endModel = paper.getModelById(endId);
+            if (!endModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
+
+            var endView = endModel.findView(paper);
+            if (!endView) {
+                // the view is not rendered yet
+                // this[endViewProperty] = this[endMagnetProperty] = null;
+                // TODO: Test this
+                return false;
             }
+
+            this[endViewProperty] = endView;
+            var connectedMagnet = endView.getMagnetFromLinkEnd(endDef);
+            if (connectedMagnet === endView.el) connectedMagnet = null;
+            this[endMagnetProperty] = connectedMagnet;
+            return true;
         },
 
         _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
@@ -2960,12 +2889,11 @@ joint.dia.Link = joint.dia.Cell.extend({
                 var sourceDef = this.model.source();
                 return new g.Rect(sourceDef.x, sourceDef.y);
             }
-            if (sourceView.model.isLink()) {
+            var sourceMagnet = this.sourceMagnet;
+            if (sourceView.isNodeConnection(sourceMagnet)) {
                 return new g.Rect(this.sourcePoint);
             }
-            var sourceMagnet = this.sourceMagnet;
-            if (!sourceMagnet) sourceMagnet = sourceView.el;
-            return sourceView.getNodeBBox(sourceMagnet);
+            return sourceView.getNodeBBox(sourceMagnet || sourceView.el);
         }
 
     });
@@ -2980,12 +2908,11 @@ joint.dia.Link = joint.dia.Cell.extend({
                 var targetDef = this.model.target();
                 return new g.Rect(targetDef.x, targetDef.y);
             }
-            if (targetView.model.isLink()) {
+            var targetMagnet = this.targetMagnet;
+            if (targetView.isNodeConnection(targetMagnet)) {
                 return new g.Rect(this.targetPoint);
             }
-            var targetMagnet = this.targetMagnet;
-            if (!targetMagnet) targetMagnet = targetView.el;
-            return targetView.getNodeBBox(targetMagnet);
+            return targetView.getNodeBBox(targetMagnet || targetView.el);
         }
     });
 
