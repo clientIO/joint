@@ -680,8 +680,8 @@ joint.dia.Link = joint.dia.Cell.extend({
             labelMarkup: FLAG_LABELS,
             vertices: FLAG_VERTICES | FLAG_UPDATE,
             vertexMarkup: FLAG_VERTICES,
-            source: FLAG_SOURCE,
-            target: FLAG_TARGET
+            source: FLAG_SOURCE | FLAG_UPDATE,
+            target: FLAG_TARGET | FLAG_UPDATE
         },
 
         UPDATE_PRIORITY: 1,
@@ -713,17 +713,13 @@ joint.dia.Link = joint.dia.Cell.extend({
             var leftoverFlag = 0;
 
             if (flag & FLAG_SOURCE) {
-                if (!this.updateEndProperties('source')) {
-                    leftoverFlag |= FLAG_SOURCE;
-                    flag ^= FLAG_SOURCE;
-                }
+                if (!this.updateEndProperties('source')) return flag;
+                flag ^= FLAG_SOURCE;
             }
 
             if (flag & FLAG_TARGET) {
-                if (!this.updateEndProperties('target')) {
-                    leftoverFlag |= FLAG_TARGET;
-                    flag ^= FLAG_TARGET;
-                }
+                if (!this.updateEndProperties('target')) return flag;
+                flag ^= FLAG_TARGET;
             }
 
             if (flag & FLAG_RENDER) {
@@ -753,10 +749,6 @@ joint.dia.Link = joint.dia.Cell.extend({
             if (flag & FLAG_LABELS) {
                 this.onLabelsChange(model, attributes.labels, opt);
                 flag ^= FLAG_LABELS;
-            }
-
-            if (flag) {
-                this.update(model, null, opt);
             }
 
             return leftoverFlag;
