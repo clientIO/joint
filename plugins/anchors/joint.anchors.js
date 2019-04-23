@@ -129,14 +129,12 @@
 
     function connectionRatio(view, _magnet, _refPoint, opt) {
 
-        if (!view.model.isLink()) return view.model.getBBox().center();
         var ratio = ('ratio' in opt) ? opt.ratio : 0.5;
         return view.getPointAtRatio(ratio);
     }
 
     function connectionLength(view, _magnet, _refPoint, opt) {
 
-        if (!view.model.isLink()) return view.model.getBBox().center();
         var length = ('length' in opt) ? opt.length : 20;
         return view.getPointAtLength(length);
     }
