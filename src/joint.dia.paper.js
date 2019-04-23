@@ -395,9 +395,11 @@
             var name = data && data.batchName;
             var graph = this.model;
 
-            var dumpDelayingBatches = this.DUMP_DELAYING_BATCHES;
-            if (dumpDelayingBatches.includes(name) && !graph.hasActiveBatch(dumpDelayingBatches)) {
-                this.dumpViews(data);
+            if (this.options.rendering === renderingTypes.SYNC) {
+                var dumpDelayingBatches = this.DUMP_DELAYING_BATCHES;
+                if (dumpDelayingBatches.includes(name) && !graph.hasActiveBatch(dumpDelayingBatches)) {
+                    this.dumpViews(data);
+                }
             }
 
             if (this.options.sorting === sortingTypes.EXACT) {
@@ -444,13 +446,18 @@
             var currentType = priorityUpdates[view.cid];
             // prevent cycling
             if ((currentType & type) === type) return;
+            if (type & FLAG_REMOVE && currentType & FLAG_INSERT) {
+                priorityUpdates[view.cid] ^= FLAG_INSERT;
+            } else if (type & FLAG_INSERT && currentType & FLAG_REMOVE) {
+                priorityUpdates[view.cid] ^= FLAG_REMOVE;
+            }
             priorityUpdates[view.cid] |= type;
             var viewUpdateFn = this.options.onViewUpdate;
             if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, priority);
         },
 
         dumpViews: function(opt) {
-            var batchSize = 20; // TODO
+            var batchSize = 1000; // TODO
             var i = 0;
             for (var priority = 0; priority <= 2; priority++) {
                 i++;
@@ -458,6 +465,11 @@
                 var priorityUpdates = this._updates[priority];
                 for (var cid in priorityUpdates) {
                     var view = joint.mvc.views[cid];
+                    if (!view) {
+                        // This should not happen
+                        delete priorityUpdates[cid];
+                        continue;
+                    }
                     var viewportFn = this.options.viewport;
                     if (typeof viewportFn === 'function') {
                         if (!viewportFn.call(this, view)) {
@@ -465,7 +477,6 @@
                             priorityUpdates[cid] |= FLAG_INSERT;
                             continue;
                         }
-                        //priorityUpdates[cid] |= 512;
                     }
                     var type = priorityUpdates[cid] = this.dumpView(view, priorityUpdates[cid], opt);
                     if (type > 0) continue;
@@ -484,8 +495,7 @@
                 this.insertView(view);
                 flag ^= FLAG_INSERT;
             }
-            //var xorFlag = (flag & 512) ? 512 : 0;
-            return view.confirmUpdate(flag, opt || {}); // | xorFlag;
+            return view.confirmUpdate(flag, opt || {});
         },
 
         asyncDump: function() {
@@ -812,10 +822,18 @@
 
         renderView: function(cell) {
 
-            var view = this._views[cell.id] = this.createViewForModel(cell);
-
-            view.paper = this;
-            this.requestViewUpdate(view, FLAG_INSERT | view.FLAG_INIT, view.UPDATE_PRIORITY);
+            var id = cell.id;
+            var views = this._views;
+            var view, flag;
+            if (id in views) {
+                view = views[id];
+                flag = FLAG_INSERT;
+            } else {
+                view = views[cell.id] = this.createViewForModel(cell);
+                view.paper = this;
+                flag = FLAG_INSERT | view.FLAG_INIT;
+            }
+            this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY);
             return view;
         },
 

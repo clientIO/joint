@@ -722,6 +722,11 @@ joint.dia.Link = joint.dia.Cell.extend({
                 flag ^= FLAG_TARGET;
             }
 
+            if (this.sourceView && !this.sourceView.el.firstChild || this.targetView && !this.targetView.el.firstChild) {
+                // Wait for the sourceView and targeView to be rendered
+                return flag;
+            }
+
             if (flag & FLAG_RENDER) {
                 this.render();
                 return leftoverFlag;
