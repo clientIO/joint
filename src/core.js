@@ -1,104 +1,73 @@
-// Global namespace.
+import { invoke } from './util.js';
+import { View, views } from './view.js';
 
-var joint = {
+export const version = '[%= pkg.version %]';
+export const dia = {};
+export const ui = {};
+export const layout = {};
+export const shapes = {};
+export const format = {};
+export const connectors = {};
+export const highlighters = {};
+export const routers = {};
+export const anchors = {};
+export const connectionPoints = {};
+export const connectionStrategies = {};
+export const linkTools = {};
+export const mvc = {};
+export const util = {};
 
-    version: '[%= pkg.version %]',
+export const setTheme = function(theme, opt) {
 
-    // `joint.dia` namespace.
-    dia: {},
+    opt = opt || {};
 
-    // `joint.ui` namespace.
-    ui: {},
+    invoke(views, 'setTheme', theme, opt);
 
-    // `joint.layout` namespace.
-    layout: {},
+    // Update the default theme on the view prototype.
+    View.prototype.defaultTheme = theme;
+};
 
-    // `joint.shapes` namespace.
-    shapes: {},
+export const env = {
 
-    // `joint.format` namespace.
-    format: {},
+    _results: {},
 
-    // `joint.connectors` namespace.
-    connectors: {},
+    _tests: {
 
-    // `joint.highlighters` namespace.
-    highlighters: {},
-
-    // `joint.routers` namespace.
-    routers: {},
-
-    // `joint.anchors` namespace.
-    anchors: {},
-
-    // `joint.connectionPoints` namespace.
-    connectionPoints: {},
-
-    // `joint.connectionStrategies` namespace.
-    connectionStrategies: {},
-
-    // `joint.linkTools` namespace.
-    linkTools: {},
-
-    // `joint.mvc` namespace.
-    mvc: {
-        views: {}
-    },
-
-    setTheme: function(theme, opt) {
-
-        opt = opt || {};
-
-        joint.util.invoke(joint.mvc.views, 'setTheme', theme, opt);
-
-        // Update the default theme on the view prototype.
-        joint.mvc.View.prototype.defaultTheme = theme;
-    },
-
-    // `joint.env` namespace.
-    env: {
-
-        _results: {},
-
-        _tests: {
-
-            svgforeignobject: function() {
-                return !!document.createElementNS &&
-              /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
-            }
-        },
-
-        addTest: function(name, fn) {
-
-            return joint.env._tests[name] = fn;
-        },
-
-        test: function(name) {
-
-            var fn = joint.env._tests[name];
-
-            if (!fn) {
-                throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
-            }
-
-            var result = joint.env._results[name];
-
-            if (typeof result !== 'undefined') {
-                return result;
-            }
-
-            try {
-                result = fn();
-            } catch (error) {
-                result = false;
-            }
-
-            // Cache the test result.
-            joint.env._results[name] = result;
-
-            return result;
+        svgforeignobject: function() {
+            return !!document.createElementNS &&
+                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
         }
     },
 
-    util: {}
+    addTest: function(name, fn) {
+
+        return this._tests[name] = fn;
+    },
+
+    test: function(name) {
+
+        var fn = this._tests[name];
+
+        if (!fn) {
+            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
+        }
+
+        var result = this._results[name];
+
+        if (typeof result !== 'undefined') {
+            return result;
+        }
+
+        try {
+            result = fn();
+        } catch (error) {
+            result = false;
+        }
+
+        // Cache the test result.
+        this._results[name] = result;
+
+        return result;
+    }
 };
+

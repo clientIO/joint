@@ -1,4 +1,7 @@
-joint.highlighters.opacity = {
+import * as util from '../../src/util.js';
+import V from '../../src/vectorizer.js';
+
+export const opacity = {
 
     /**
      * @param {joint.dia.CellView} cellView
@@ -6,7 +9,7 @@ joint.highlighters.opacity = {
      */
     highlight: function(cellView, magnetEl) {
 
-        V(magnetEl).addClass(joint.util.addClassNamePrefix('highlight-opacity'));
+        V(magnetEl).addClass(util.addClassNamePrefix('highlight-opacity'));
     },
 
     /**
@@ -15,6 +18,6 @@ joint.highlighters.opacity = {
      */
     unhighlight: function(cellView, magnetEl) {
 
-        V(magnetEl).removeClass(joint.util.addClassNamePrefix('highlight-opacity'));
+        V(magnetEl).removeClass(util.addClassNamePrefix('highlight-opacity'));
     }
 };

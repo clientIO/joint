@@ -8,29 +8,23 @@ const getAllSources = function(modules) {
 };
 
 const modules = {
-    config: {
-        src: 'src/config.js',
-        iife: 'build/iife/config.js',
-    },
     geometry: {
         src: 'src/geometry.js',
         iife: 'build/iife/geometry.js',
+        umd: 'build/geometry.js',
     },
     vectorizer: {
         src: 'src/vectorizer.js',
         iife: 'build/iife/vectorizer.js',
+        umd: 'build/vectorizer.js',
     },
-    util: {
-        src: 'src/util.js',
-        iife: 'build/iife/util.js',
+    joint: {
+        src: 'index.mjs',
+        iife: 'build/iife/joint.js',
     },
-    graph: {
-        src: 'src/graph.js',
-        iife: 'build/iife/graph.js',
-    },
-    ports: {
-        src: 'src/ports.js',
-        iife: 'build/iife/ports.js',
+    jointCore: {
+        src: 'wrappers/joint.core.js',
+        iife: 'build/iife/joint.core.js',
     },
 };
 

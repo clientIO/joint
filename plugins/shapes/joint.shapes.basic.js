@@ -1,10 +1,16 @@
-joint.dia.Element.define('basic.Generic', {
+import { Element } from '../../src/joint.dia.element.js';
+import { ElementView } from '../../src/elementView.mjs';
+import V from '../../src/vectorizer.js';
+import { toArray, omit, assign, template, sanitizeHTML, merge, has, breakText, setByPath } from '../../src/util.js';
+import { env } from '../../src/core.js';
+
+export const Generic = Element.define('basic.Generic', {
     attrs: {
         '.': { fill: '#ffffff', stroke: 'none' }
     }
 });
 
-joint.shapes.basic.Generic.define('basic.Rect', {
+export const Rect = Generic.define('basic.Rect', {
     attrs: {
         'rect': {
             fill: '#ffffff',
@@ -27,17 +33,17 @@ joint.shapes.basic.Generic.define('basic.Rect', {
     markup: '<g class="rotatable"><g class="scalable"><rect/></g><text/></g>'
 });
 
-joint.shapes.basic.TextView = joint.dia.ElementView.extend({
+export const TextView = ElementView.extend({
 
     initialize: function() {
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        ElementView.prototype.initialize.apply(this, arguments);
         // The element view is not automatically rescaled to fit the model size
         // when the attribute 'attrs' is changed.
         this.listenTo(this.model, 'change:attrs', this.resize);
     }
 });
 
-joint.shapes.basic.Generic.define('basic.Text', {
+export const Text = Generic.define('basic.Text', {
     attrs: {
         'text': {
             'font-size': 18,
@@ -48,7 +54,7 @@ joint.shapes.basic.Generic.define('basic.Text', {
     markup: '<g class="rotatable"><g class="scalable"><text/></g></g>',
 });
 
-joint.shapes.basic.Generic.define('basic.Circle', {
+export const Circle = Generic.define('basic.Circle', {
     size: { width: 60, height: 60 },
     attrs: {
         'circle': {
@@ -73,7 +79,7 @@ joint.shapes.basic.Generic.define('basic.Circle', {
     markup: '<g class="rotatable"><g class="scalable"><circle/></g><text/></g>',
 });
 
-joint.shapes.basic.Generic.define('basic.Ellipse', {
+export const Ellipse = Generic.define('basic.Ellipse', {
     size: { width: 60, height: 40 },
     attrs: {
         'ellipse': {
@@ -99,7 +105,7 @@ joint.shapes.basic.Generic.define('basic.Ellipse', {
     markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
 });
 
-joint.shapes.basic.Generic.define('basic.Polygon', {
+export const Polygon = Generic.define('basic.Polygon', {
     size: { width: 60, height: 40 },
     attrs: {
         'polygon': {
@@ -121,7 +127,7 @@ joint.shapes.basic.Generic.define('basic.Polygon', {
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
 });
 
-joint.shapes.basic.Generic.define('basic.Polyline', {
+export const Polyline = Generic.define('basic.Polyline', {
     size: { width: 60, height: 40 },
     attrs: {
         'polyline': {
@@ -143,7 +149,7 @@ joint.shapes.basic.Generic.define('basic.Polyline', {
     markup: '<g class="rotatable"><g class="scalable"><polyline/></g><text/></g>',
 });
 
-joint.shapes.basic.Generic.define('basic.Image', {
+export const Image = Generic.define('basic.Image', {
     attrs: {
         'text': {
             'font-size': 14,
@@ -160,7 +166,7 @@ joint.shapes.basic.Generic.define('basic.Image', {
     markup: '<g class="rotatable"><g class="scalable"><image/></g><text/></g>',
 });
 
-joint.shapes.basic.Generic.define('basic.Path', {
+export const Path = Generic.define('basic.Path', {
     size: { width: 60, height: 60 },
     attrs: {
         'path': {
@@ -183,7 +189,7 @@ joint.shapes.basic.Generic.define('basic.Path', {
     markup: '<g class="rotatable"><g class="scalable"><path/></g><text/></g>',
 });
 
-joint.shapes.basic.Path.define('basic.Rhombus', {
+export const Rhombus = Path.define('basic.Rhombus', {
     attrs: {
         'path': {
             d: 'M 30 0 L 60 30 30 60 0 30 z'
@@ -224,7 +230,7 @@ joint.shapes.basic.Path.define('basic.Rhombus', {
 //         return attrs;
 //     }
 //}));
-joint.shapes.basic.PortsModelInterface = {
+export const PortsModelInterface = {
 
     initialize: function() {
 
@@ -239,7 +245,7 @@ joint.shapes.basic.PortsModelInterface = {
 
         if (this._portSelectors) {
 
-            var newAttrs = joint.util.omit(this.get('attrs'), this._portSelectors);
+            var newAttrs = omit(this.get('attrs'), this._portSelectors);
             this.set('attrs', newAttrs, { silent: true });
         }
 
@@ -250,16 +256,16 @@ joint.shapes.basic.PortsModelInterface = {
 
         var attrs = {};
 
-        joint.util.toArray(this.get('inPorts')).forEach(function(portName, index, ports) {
+        toArray(this.get('inPorts')).forEach(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
             this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
-            joint.util.assign(attrs, portAttributes);
+            assign(attrs, portAttributes);
         }, this);
 
-        joint.util.toArray(this.get('outPorts')).forEach(function(portName, index, ports) {
+        toArray(this.get('outPorts')).forEach(function(portName, index, ports) {
             var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
             this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
-            joint.util.assign(attrs, portAttributes);
+            assign(attrs, portAttributes);
         }, this);
 
         // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
@@ -288,14 +294,14 @@ joint.shapes.basic.PortsModelInterface = {
     }
 };
 
-joint.shapes.basic.PortsViewInterface = {
+export const PortsViewInterface = {
 
     initialize: function() {
 
         // `Model` emits the `process:ports` whenever it's done configuring the `attrs` object for ports.
         this.listenTo(this.model, 'process:ports', this.update);
 
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        ElementView.prototype.initialize.apply(this, arguments);
     },
 
     update: function() {
@@ -303,7 +309,7 @@ joint.shapes.basic.PortsViewInterface = {
         // First render ports so that `attrs` can be applied to those newly created DOM elements
         // in `ElementView.prototype.update()`.
         this.renderPorts();
-        joint.dia.ElementView.prototype.update.apply(this, arguments);
+        ElementView.prototype.update.apply(this, arguments);
     },
 
     renderPorts: function() {
@@ -311,9 +317,9 @@ joint.shapes.basic.PortsViewInterface = {
         var $inPorts = this.$('.inPorts').empty();
         var $outPorts = this.$('.outPorts').empty();
 
-        var portTemplate = joint.util.template(this.model.portMarkup);
+        var portTemplate = template(this.model.portMarkup);
 
-        var ports = joint.util.toArray(this.model.ports);
+        var ports = toArray(this.model.ports);
         ports.filter(function(p) {
             return p.type === 'in';
         }).forEach(function(port, index) {
@@ -330,7 +336,7 @@ joint.shapes.basic.PortsViewInterface = {
     }
 };
 
-joint.shapes.basic.Generic.define('basic.TextBlock', {
+export const TextBlock = Generic.define('basic.TextBlock', {
     // see joint.css for more element styles
     attrs: {
         rect: {
@@ -358,7 +364,7 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable"><rect/></g>',
-        joint.env.test('svgforeignobject') ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>' : '<text class="content"/>',
+        env.test('svgforeignobject') ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>' : '<text class="content"/>',
         '</g>'
     ].join(''),
 
@@ -368,7 +374,7 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
         this.listenTo(this, 'change:content', this.updateContent);
         this.updateSize(this, this.get('size'));
         this.updateContent(this, this.get('content'));
-        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+        Generic.prototype.initialize.apply(this, arguments);
     },
 
     updateSize: function(cell, size) {
@@ -376,21 +382,21 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
         // Selector `foreignObject' doesn't work across all browsers, we're using class selector instead.
         // We have to clone size as we don't want attributes.div.style to be same object as attributes.size.
         this.attr({
-            '.fobj': joint.util.assign({}, size),
+            '.fobj': assign({}, size),
             div: {
-                style: joint.util.assign({}, size)
+                style: assign({}, size)
             }
         });
     },
 
     updateContent: function(cell, content) {
 
-        if (joint.env.test('svgforeignobject')) {
+        if (env.test('svgforeignobject')) {
 
             // Content element is a <div> element.
             this.attr({
                 '.content': {
-                    html: joint.util.sanitizeHTML(content)
+                    html: sanitizeHTML(content)
                 }
             });
 
@@ -421,16 +427,16 @@ joint.shapes.basic.Generic.define('basic.TextBlock', {
 
 // TextBlockView implements the fallback for IE when no foreignObject exists and
 // the text needs to be manually broken.
-joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
+export const TextBlockView = ElementView.extend({
 
     initialize: function() {
 
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        ElementView.prototype.initialize.apply(this, arguments);
 
         // Keep this for backwards compatibility:
-        this.noSVGForeignObjectElement = !joint.env.test('svgforeignobject');
+        this.noSVGForeignObjectElement = !env.test('svgforeignobject');
 
-        if (!joint.env.test('svgforeignobject')) {
+        if (!env.test('svgforeignobject')) {
 
             this.listenTo(this.model, 'change:content change:size', function(cell) {
                 // avoiding pass of extra parameters
@@ -443,44 +449,44 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
         var model = this.model;
 
-        if (!joint.env.test('svgforeignobject')) {
+        if (!env.test('svgforeignobject')) {
 
             // Update everything but the content first.
-            var noTextAttrs = joint.util.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
-            joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
+            var noTextAttrs = omit(renderingOnlyAttrs || model.get('attrs'), '.content');
+            ElementView.prototype.update.call(this, model, noTextAttrs);
 
-            if (!renderingOnlyAttrs || joint.util.has(renderingOnlyAttrs, '.content')) {
+            if (!renderingOnlyAttrs || has(renderingOnlyAttrs, '.content')) {
                 // Update the content itself.
                 this.updateContent(model, renderingOnlyAttrs);
             }
 
         } else {
 
-            joint.dia.ElementView.prototype.update.call(this, model, renderingOnlyAttrs);
+            ElementView.prototype.update.call(this, model, renderingOnlyAttrs);
         }
     },
 
     updateContent: function(cell, renderingOnlyAttrs) {
 
         // Create copy of the text attributes
-        var textAttrs = joint.util.merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
+        var textAttrs = merge({}, (renderingOnlyAttrs || cell.get('attrs'))['.content']);
 
-        textAttrs = joint.util.omit(textAttrs, 'text');
+        textAttrs = omit(textAttrs, 'text');
 
         // Break the content to fit the element size taking into account the attributes
         // set on the model.
-        var text = joint.util.breakText(cell.get('content'), cell.get('size'), textAttrs, {
+        var text = breakText(cell.get('content'), cell.get('size'), textAttrs, {
             // measuring sandbox svg document
             svgDocument: this.paper.svg
         });
 
         // Create a new attrs with same structure as the model attrs { text: { *textAttributes* }}
-        var attrs = joint.util.setByPath({}, '.content', textAttrs, '/');
+        var attrs = setByPath({}, '.content', textAttrs, '/');
 
         // Replace text attribute with the one we just processed.
         attrs['.content'].text = text;
 
         // Update the view using renderingOnlyAttributes parameter.
-        joint.dia.ElementView.prototype.update.call(this, cell, attrs);
+        ElementView.prototype.update.call(this, cell, attrs);
     }
 });

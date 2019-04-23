@@ -1,3 +1,5 @@
+import * as joint from '../../src/core.js';
+
 joint.shapes.basic.Generic.define('uml.Class', {
     attrs: {
         rect: { 'width': 200 },
@@ -248,3 +250,5 @@ joint.dia.Link.define('uml.Transition', {
         '.connection': { stroke: '#2c3e50' }
     }
 });
+
+export const uml = joint.shapes.uml;

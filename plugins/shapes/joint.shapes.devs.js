@@ -1,7 +1,11 @@
+import { Generic } from './joint.shapes.basic.js';
+import { Link as LinkBase } from '../../src/joint.dia.link.js';
+import { uniq, difference, assign, toArray, without, isObject } from '../../src/util.js';
+
 /**
  * @deprecated use the port api instead
  */
-joint.shapes.basic.Generic.define('devs.Model', {
+export const Model = Generic.define('devs.Model', {
     inPorts: [],
     outPorts: [],
     size: {
@@ -85,7 +89,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     initialize: function() {
 
-        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+        Generic.prototype.initialize.apply(this, arguments);
 
         this.on('change:inPorts change:outPorts', this.updatePortItems, this);
         this.updatePortItems();
@@ -94,13 +98,13 @@ joint.shapes.basic.Generic.define('devs.Model', {
     updatePortItems: function(model, changed, opt) {
 
         // Make sure all ports are unique.
-        var inPorts = joint.util.uniq(this.get('inPorts'));
-        var outPorts = joint.util.difference(joint.util.uniq(this.get('outPorts')), inPorts);
+        var inPorts = uniq(this.get('inPorts'));
+        var outPorts = difference(uniq(this.get('outPorts')), inPorts);
 
         var inPortItems = this.createPortItems('in', inPorts);
         var outPortItems = this.createPortItems('out', outPorts);
 
-        this.prop('ports/items', inPortItems.concat(outPortItems), joint.util.assign({ rewrite: true }, opt));
+        this.prop('ports/items', inPortItems.concat(outPortItems), assign({ rewrite: true }, opt));
     },
 
     createPortItem: function(group, port) {
@@ -118,7 +122,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     createPortItems: function(group, ports) {
 
-        return joint.util.toArray(ports).map(this.createPortItem.bind(this, group));
+        return toArray(ports).map(this.createPortItem.bind(this, group));
     },
 
     _addGroupPort: function(port, group, opt) {
@@ -139,7 +143,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     _removeGroupPort: function(port, group, opt) {
 
-        return this.set(group, joint.util.without(this.get(group), port), opt);
+        return this.set(group, without(this.get(group), port), opt);
     },
 
     removeOutPort: function(port, opt) {
@@ -154,7 +158,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
 
     _changeGroup: function(group, properties, opt) {
 
-        return this.prop('ports/groups/' + group, joint.util.isObject(properties) ? properties : {}, opt);
+        return this.prop('ports/groups/' + group, isObject(properties) ? properties : {}, opt);
     },
 
     changeInGroup: function(properties, opt) {
@@ -168,7 +172,7 @@ joint.shapes.basic.Generic.define('devs.Model', {
     }
 });
 
-joint.shapes.devs.Model.define('devs.Atomic', {
+export const Atomic = Model.define('devs.Atomic', {
     size: {
         width: 80,
         height: 80
@@ -180,7 +184,7 @@ joint.shapes.devs.Model.define('devs.Atomic', {
     }
 });
 
-joint.shapes.devs.Model.define('devs.Coupled', {
+export const Coupled = Model.define('devs.Coupled', {
     size: {
         width: 200,
         height: 300
@@ -192,10 +196,11 @@ joint.shapes.devs.Model.define('devs.Coupled', {
     }
 });
 
-joint.dia.Link.define('devs.Link', {
+export const Link = LinkBase.define('devs.Link', {
     attrs: {
         '.connection': {
             'stroke-width': 2
         }
     }
 });
+

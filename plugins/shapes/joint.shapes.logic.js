@@ -1,3 +1,5 @@
+import * as joint from '../../src/core.js';
+
 joint.shapes.basic.Generic.define('logic.Gate', {
     size: { width: 80, height: 40 },
     attrs: {
@@ -157,3 +159,6 @@ joint.dia.Link.define('logic.Wire', {
         '</g>'
     ].join('')
 });
+
+export const logic = joint.shapes.logic;
+

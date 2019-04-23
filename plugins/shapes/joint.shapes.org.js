@@ -1,3 +1,5 @@
+import * as joint from '../../src/core.js';
+
 joint.dia.Element.define('org.Member', {
     size: { width: 180, height: 70 },
     attrs: {
@@ -36,3 +38,5 @@ joint.dia.Link.define('org.Arrow', {
     attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
     z: -1
 });
+
+export const org = joint.shapes.org;

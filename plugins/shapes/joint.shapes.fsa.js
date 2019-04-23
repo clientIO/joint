@@ -1,3 +1,5 @@
+import * as joint from '../../src/core.js';
+
 joint.shapes.basic.Circle.define('fsa.State', {
     attrs: {
         circle: { 'stroke-width': 3 },
@@ -42,3 +44,6 @@ joint.dia.Link.define('fsa.Arrow', {
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
     smooth: true
 });
+
+export const fsa = joint.shapes.fsa;
+

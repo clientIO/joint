@@ -1,4 +1,6 @@
-joint.connectors.normal = function(sourcePoint, targetPoint, route, opt) {
+import * as g from '../../src/geometry.js';
+
+export const normal = function(sourcePoint, targetPoint, route, opt) {
 
     var raw = opt && opt.raw;
     var points = [sourcePoint].concat(route).concat([targetPoint]);

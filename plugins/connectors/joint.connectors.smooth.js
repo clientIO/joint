@@ -1,4 +1,6 @@
-joint.connectors.smooth = function(sourcePoint, targetPoint, route, opt) {
+import * as g from '../../src/geometry.js';
+
+export const smooth = function(sourcePoint, targetPoint, route, opt) {
 
     var raw = opt && opt.raw;
     var path;

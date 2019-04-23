@@ -1,14 +1,14 @@
-(function(joint, util) {
+import * as util from '../../src/util.js';
 
-    function abs2rel(value, max) {
+function abs2rel(value, max) {
 
-        if (max === 0) return '0%';
-        return Math.round(value / max * 100) + '%';
-    }
+    if (max === 0) return '0%';
+    return Math.round(value / max * 100) + '%';
+}
 
-    function pin(relative) {
+function pin(relative) {
 
-        return function(end, view, magnet, coords) {
+    return function(end, view, magnet, coords) {
             var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
             return fn(relative, end, view, magnet, coords);
         };
@@ -62,12 +62,9 @@
             };
         }
         return end;
-    }
+}
 
-    joint.connectionStrategies = {
-        useDefaults: util.noop,
-        pinAbsolute: pin(false),
-        pinRelative: pin(true)
-    };
+export const useDefaults = util.noop;
+export const pinAbsolute = pin(false);
+export const pinRelative = pin(true);
 
-})(joint, joint.util);

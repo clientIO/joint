@@ -8,7 +8,10 @@ module.exports = function(grunt) {
             'build',
             'watch'
         ],
-        'install': ['build:all'],
+        'install': [
+            'shell:libs-esm',
+            'build:all'
+        ],
         'build': [
             'shell:rollup',
             'build:joint'
@@ -21,7 +24,6 @@ module.exports = function(grunt) {
             'concat:types'
         ],
         'build:all': [
-            'shell:rollup',
             'build:joint',
             'build:bundles',
             'build:docs',
@@ -41,7 +43,7 @@ module.exports = function(grunt) {
             'newer:concat:types'
         ],
         'build:plugins': [
-            'uglify:plugins',
+            // 'uglify:plugins',
             'concat:plugins'
         ],
         'build:bundles': [

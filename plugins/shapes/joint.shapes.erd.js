@@ -1,3 +1,5 @@
+import * as joint from '../../src/core.js';
+
 joint.dia.Element.define('erd.Entity', {
     size: { width: 150, height: 60 },
     attrs: {
@@ -133,3 +135,5 @@ joint.dia.Link.define('erd.Line', {}, {
         this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
     }
 });
+
+export const erd = joint.shapes.erd;

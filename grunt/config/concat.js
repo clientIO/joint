@@ -3,6 +3,7 @@ const geometry = require('../resources/geometry');
 const vectorizer = require('../resources/vectorizer');
 const core = require('../resources/core');
 const polyfills = require('../resources/polyfills');
+const modules = require('../resources/es6');
 
 const getPlugins = function() {
 
@@ -47,12 +48,6 @@ module.exports = function(grunt) {
         },
         geometry: {
             files: {
-                'build/geometry.js':
-                    [].concat(
-                        ['wrappers/geometry.head.js.partial'],
-                        geometry,
-                        ['wrappers/geometry.foot.js.partial']
-                    ),
                 'build/geometry.min.js':
                     [].concat(
                         ['wrappers/geometry.head.js.partial'],
@@ -63,12 +58,6 @@ module.exports = function(grunt) {
         },
         vectorizer: {
             files: {
-                'build/vectorizer.js':
-                    [].concat(
-                        ['wrappers/vectorizer.head.js.partial'],
-                        vectorizer,
-                        ['wrappers/vectorizer.foot.js.partial']
-                    ),
                 'build/vectorizer.min.js':
                     [].concat(
                         ['wrappers/vectorizer.head.js.partial'],
@@ -93,7 +82,7 @@ module.exports = function(grunt) {
                         polyfills,
                         geometry,
                         vectorizer,
-                        core.js,
+                        modules.jointCore.iife,
                         ['wrappers/joint.foot.js.partial']
                     ),
                 'build/joint.core.min.js':
@@ -119,8 +108,7 @@ module.exports = function(grunt) {
                         polyfills,
                         geometry,
                         vectorizer,
-                        core.js,
-                        allJSPlugins,
+                        modules.joint.iife,
                         ['wrappers/joint.foot.js.partial']
                     ),
                 'build/joint.min.js':
@@ -148,8 +136,7 @@ module.exports = function(grunt) {
                         polyfills,
                         geometry,
                         vectorizer,
-                        core.js,
-                        allJSPlugins
+                        modules.joint.iife
                     ),
                 'build/joint.nowrap.min.js':
                     [].concat(

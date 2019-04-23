@@ -1,6 +1,9 @@
-joint.highlighters.addClass = {
+import * as util from '../../src/util.js';
+import V from '../../src/vectorizer.js';
 
-    className: joint.util.addClassNamePrefix('highlighted'),
+export const addClass = {
+
+    className: util.addClassNamePrefix('highlighted'),
 
     /**
      * @param {joint.dia.CellView} cellView
