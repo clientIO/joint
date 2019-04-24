@@ -262,6 +262,7 @@
             this.$document = $(this.el.ownerDocument);
 
             this._updates = [{}, {}, {}];
+            this._unmounted = [{}, {}, {}];
         },
 
         onCellRemoved: function(cell) {
@@ -411,6 +412,7 @@
         },
 
         _updates: null,
+        _unmounted: null,
         _asyncDumpId: null,
 
         requestConnectedLinksUpdate: function(view, flag) {
@@ -443,12 +445,14 @@
         scheduleViewUpdate: function(view, type, priority) {
             var priorityUpdates = this._updates[priority];
             if (!priorityUpdates) priorityUpdates = this._updates[priority] = {};
-            var currentType = priorityUpdates[view.cid];
+            var currentType = priorityUpdates[view.cid] || 0;
             // prevent cycling
             if ((currentType & type) === type) return;
             if (type & FLAG_REMOVE && currentType & FLAG_INSERT) {
+                // When a view is removed we need to remove the insert flag as this is a reinsert
                 priorityUpdates[view.cid] ^= FLAG_INSERT;
             } else if (type & FLAG_INSERT && currentType & FLAG_REMOVE) {
+                // When a view is added we need to remove the remove flag as this is view was previously removed
                 priorityUpdates[view.cid] ^= FLAG_REMOVE;
             }
             priorityUpdates[view.cid] |= type;
@@ -457,28 +461,42 @@
         },
 
         dumpViews: function(opt) {
-            var batchSize = 1000; // TODO
+            opt || (opt = {});
+            var updates = opt.updates || this._updates;
+            var postponed = (updates !== this._updates);
+            var batchSize = opt.batchSize || Infinity; // TODO
             var i = 0;
             for (var priority = 0; priority <= 2; priority++) {
-                i++;
-                if (i > batchSize) break;
-                var priorityUpdates = this._updates[priority];
+                var priorityUpdates = updates[priority];
                 for (var cid in priorityUpdates) {
+                    if (i > batchSize) return;
                     var view = joint.mvc.views[cid];
                     if (!view) {
-                        // This should not happen
+                        // This should not occur
                         delete priorityUpdates[cid];
                         continue;
                     }
+                    var currentFlag = priorityUpdates[cid];
                     var viewportFn = this.options.viewport;
                     if (typeof viewportFn === 'function') {
-                        if (!viewportFn.call(this, view)) {
-                            view.vel.remove();
-                            priorityUpdates[cid] |= FLAG_INSERT;
+                        if (!viewportFn.call(this, view, !postponed && view.el.parentElement)) {
+                            if (!postponed) {
+                                view.vel.remove();
+                                this._unmounted[priority][cid] |= currentFlag;
+                                delete priorityUpdates[cid];
+                            }
                             continue;
                         }
+                        if (postponed) {
+                            this._updates[priority][cid] |= currentFlag | FLAG_INSERT;
+                            delete priorityUpdates[cid];
+                            continue;
+                        } else {
+                            this._unmounted[priority][cid] |= 1024;
+                        }
                     }
-                    var type = priorityUpdates[cid] = this.dumpView(view, priorityUpdates[cid], opt);
+                    i++;
+                    var type = priorityUpdates[cid] = this.dumpView(view, currentFlag, opt);
                     if (type > 0) continue;
                     delete priorityUpdates[cid];
                 }
@@ -499,7 +517,10 @@
         },
 
         asyncDump: function() {
-            if (this._asyncDumpId) this.dumpViews();
+            if (this._asyncDumpId) {
+                this.dumpViews({ update: this._updates });
+                this.dumpViews({ updates: this._unmounted, batchSize: 50 });
+            }
             this._asyncDumpId = util.nextFrame(this.asyncDump, this);
         },
 
@@ -810,13 +831,12 @@
 
         removeView: function(cell) {
 
-            var view = this._views[cell.id];
-
+            var id = cell.id;
+            var view = this._views[id];
             if (view) {
                 view.remove();
-                delete this._views[cell.id];
+                delete this._views[id];
             }
-
             return view;
         },
 
