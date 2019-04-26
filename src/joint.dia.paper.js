@@ -229,7 +229,26 @@
             'touchcancel': 'pointerup'
         },
 
-        _highlights: {},
+        $document: null,
+
+        _updates: null,
+        _unmounted: null,
+        _unmountedViews: null,
+        _mountedViews: null,
+        _views: null,
+        _asyncUpdateId: null,
+        _freezed: false,
+        _highlights: null,
+        _zPivots: null,
+        // For storing the current transformation matrix (CTM) of the paper's viewport.
+        _viewportMatrix: null,
+        // For verifying whether the CTM is up-to-date. The viewport transform attribute
+        // could have been manipulated directly.
+        _viewportTransformString: null,
+
+        SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
+        UPDATE_DELAYING_BATCHES: ['translate'],
+        MIN_SCALE: 1e-6,
 
         init: function() {
 
@@ -241,7 +260,7 @@
             this.cloneOptions();
             this.render();
             this.setDimensions();
-            this.unfreeze();
+            if (this.isAsync()) this.unfreeze();
 
             this.listenTo(model, 'add', this.onCellAdded)
                 .listenTo(model, 'remove', this.onCellRemoved)
@@ -260,7 +279,13 @@
             this._zPivots = {};
             // Reference to the paper owner document
             this.$document = $(this.el.ownerDocument);
+            // Highliters references
+            this._highlights = {};
+            // Rendering
+            this.resetUpdates();
+        },
 
+        resetUpdates: function() {
             this._updates = [{}, {}, {}];
             this._unmountedViews = [];
             this._mountedViews = [];
@@ -336,13 +361,6 @@
             return this;
         },
 
-        // For storing the current transformation matrix (CTM) of the paper's viewport.
-        _viewportMatrix: null,
-
-        // For verifying whether the CTM is up-to-date. The viewport transform attribute
-        // could have been manipulated directly.
-        _viewportTransformString: null,
-
         matrix: function(ctm) {
 
             var viewport = this.viewport;
@@ -385,23 +403,25 @@
             return V.createSVGMatrix(this.viewport.getScreenCTM());
         },
 
-        SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
-        DUMP_DELAYING_BATCHES: ['translate'],
-
         _onSort: function() {
+
+            if (this.isFreezed()) return;
             if (this.options.sorting !== sortingTypes.EXACT) return;
             if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sortViews();
         },
 
         _onBatchStop: function(data) {
+
+            if (this.isFreezed()) return;
+
             var name = data && data.batchName;
             var graph = this.model;
 
-            if (this.options.rendering === renderingTypes.SYNC) {
-                var dumpDelayingBatches = this.DUMP_DELAYING_BATCHES;
-                if (dumpDelayingBatches.includes(name) && !graph.hasActiveBatch(dumpDelayingBatches)) {
-                    this.dumpViews(data);
+            if (!this.isAsync()) {
+                var updateDelayingBatches = this.UPDATE_DELAYING_BATCHES;
+                if (updateDelayingBatches.includes(name) && !graph.hasActiveBatch(updateDelayingBatches)) {
+                    this.updateViews(data);
                 }
             }
 
@@ -412,10 +432,6 @@
                 }
             }
         },
-
-        _updates: null,
-        _unmounted: null,
-        _asyncDumpId: null,
 
         requestConnectedLinksUpdate: function(view, flag) {
             if (flag & FLAG_INSERT) return;
@@ -434,12 +450,15 @@
 
             this.scheduleViewUpdate(view, flag, priority, opt);
 
+            if (this.isFreezed()) return;
+
             switch (opt.rendering || this.options.rendering) {
-                case renderingTypes.ASYNC:
+                case renderingTypes.SYNC:
+                    if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) break;
+                    this.updateViews(opt);
                     break;
+                case renderingTypes.ASYNC:
                 default:
-                    if (this.model.hasActiveBatch(this.DUMP_DELAYING_BATCHES)) break;
-                    this.dumpViews(opt);
                     break;
             }
         },
@@ -462,7 +481,7 @@
             if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, priority);
         },
 
-        dumpViews: function(opt) {
+        updateViews: function(opt) {
             opt || (opt = {});
             var batchSize = opt.batchSize || Infinity;
             var i = 0;
@@ -488,7 +507,7 @@
                         }
                         this._mountedViews.push(cid);
                     }
-                    var type = this.dumpView(view, currentFlag, opt);
+                    var type = this.updateView(view, currentFlag, opt);
                     if (type > 0) {
                         priorityUpdates[cid] = type;
                         continue;
@@ -551,7 +570,7 @@
             this._mountedViews = mountedIds.slice(i);
         },
 
-        dumpView: function(view, flag, opt) {
+        updateView: function(view, flag, opt) {
             if (!view) return;
             if (flag & FLAG_REMOVE) {
                 this.removeView(view.model);
@@ -564,32 +583,40 @@
             return view.confirmUpdate(flag, opt || {});
         },
 
-        _triggered: false,
-
-        asyncDump: function() {
-            if (this._asyncDumpId) {
-                var processedCount = this.dumpViews();
-                if (processedCount === 0 && !this._triggered) {
-                    this.trigger('queue:empty');
-                    this._triggered = true;
-                } else if (processedCount > 0) {
-                    this._triggered = false;
-                }
+        asyncUpdate: function() {
+            if (this._asyncUpdateId) {
+                this.updateViews();
                 this.checkUnmountedViews();
                 this.checkMountedViews();
             }
-            this._asyncDumpId = util.nextFrame(this.asyncDump, this);
+            this._asyncUpdateId = util.nextFrame(this.asyncUpdate, this);
         },
 
         freeze: function() {
-            if (!this._asyncDumpId) return;
-            util.cancelFrame(this._asyncDumpId);
-            this._asyncDumpId = null;
+            this._freezed = true;
+            if (this.isAsync()) {
+                if (!this._asyncUpdateId) return;
+                util.cancelFrame(this._asyncUpdateId);
+                this._asyncUpdateId = null;
+            }
         },
 
         unfreeze: function() {
-            if (this._asyncDumpId) return;
-            this.asyncDump();
+            this._freezed = false;
+            if (this.isAsync()) {
+                if (this._asyncUpdateId) return;
+                this.asyncUpdate();
+            } else {
+                this.updateViews();
+            }
+        },
+
+        isAsync: function() {
+            return this.options.rendering === renderingTypes.ASYNC;
+        },
+
+        isFreezed: function() {
+            return this._freezed;
         },
 
         onRemove: function() {
@@ -937,6 +964,8 @@
 
         resetViews: function(cellsCollection, opt) {
 
+            this.resetUpdates();
+
             // clearing views removes any event listeners
             this.removeViews();
 
@@ -960,7 +989,7 @@
 
                 // Sort the cells in the DOM manually as we might have changed the order they
                 // were added to the DOM (see above).
-                this.sortViews();
+                if (!this.isFreezed()) this.sortViews();
             }
         },
 
@@ -1047,8 +1076,6 @@
             }
         },
 
-        zPivots: null,
-
         addZPivot: function(z) {
             z = +z;
             z || (z = 0);
@@ -1075,8 +1102,6 @@
             }
             return pivot;
         },
-
-        MIN_SCALE: 1e-6,
 
         scale: function(sx, sy, ox, oy) {
 
