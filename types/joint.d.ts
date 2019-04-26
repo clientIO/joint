@@ -2369,6 +2369,8 @@ export namespace mvc {
 
         constructor(opt?: ViewOptions<T>);
 
+        vel: Vectorizer | null;
+
         options: ViewOptions<T>;
 
         theme: string;

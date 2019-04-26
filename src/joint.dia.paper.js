@@ -262,7 +262,9 @@
             this.$document = $(this.el.ownerDocument);
 
             this._updates = [{}, {}, {}];
-            this._unmounted = [{}, {}, {}];
+            this._unmountedViews = [];
+            this._mountedViews = [];
+            this._unmounted = {};
         },
 
         onCellRemoved: function(cell) {
@@ -462,12 +464,10 @@
 
         dumpViews: function(opt) {
             opt || (opt = {});
-            var updates = opt.updates || this._updates;
-            var postponed = (updates !== this._updates);
-            var batchSize = opt.batchSize || Infinity; // TODO
+            var batchSize = opt.batchSize || Infinity;
             var i = 0;
             for (var priority = 0; priority <= 2; priority++) {
-                var priorityUpdates = updates[priority];
+                var priorityUpdates = this._updates[priority];
                 for (var cid in priorityUpdates) {
                     if (i > batchSize) return;
                     var view = joint.mvc.views[cid];
@@ -479,28 +479,76 @@
                     var currentFlag = priorityUpdates[cid];
                     var viewportFn = this.options.viewport;
                     if (typeof viewportFn === 'function') {
-                        if (!viewportFn.call(this, view, !postponed && view.el.parentElement)) {
-                            if (!postponed) {
-                                view.vel.remove();
-                                this._unmounted[priority][cid] |= currentFlag;
-                                delete priorityUpdates[cid];
-                            }
-                            continue;
-                        }
-                        if (postponed) {
-                            this._updates[priority][cid] |= currentFlag | FLAG_INSERT;
+                        var unmounted = !!this._unmounted[cid];
+                        if (!viewportFn.call(this, view, unmounted)) {
+                            if (!unmounted) this.unmountView(view);
+                            this._unmounted[cid] |= currentFlag;
                             delete priorityUpdates[cid];
                             continue;
-                        } else {
-                            this._unmounted[priority][cid] |= 1024;
                         }
+                        this._mountedViews.push(cid);
+                    }
+                    var type = this.dumpView(view, currentFlag, opt);
+                    if (type > 0) {
+                        priorityUpdates[cid] = type;
+                        continue;
                     }
                     i++;
-                    var type = priorityUpdates[cid] = this.dumpView(view, currentFlag, opt);
-                    if (type > 0) continue;
                     delete priorityUpdates[cid];
                 }
             }
+            return i;
+        },
+
+        unmountView: function(view) {
+            view.vel.remove();
+            this._unmountedViews.push(view.cid);
+        },
+
+        mountView: function(view) {
+            var cid = view.cid;
+            this.scheduleViewUpdate(view, this._unmounted[cid] | FLAG_INSERT, view.UPDATE_PRIORITY);
+            delete this._unmounted[cid];
+        },
+
+        checkUnmountedViews: function(opt) {
+            opt || (opt  = {});
+            var batchSize = opt.batchSize || 1000;
+            var viewportFn = this.options.viewport;
+            if (typeof viewportFn !== 'function') return;
+            var unmountedIds = this._unmountedViews;
+            for (var i = 0, n = Math.min(unmountedIds.length, batchSize); i < n; i++) {
+                var cid = unmountedIds[i];
+                var view = joint.mvc.views[cid];
+                if (!view) continue;
+                if (!viewportFn.call(this, view, true)) {
+                    // Push at the end of all unmounted idsm so this can be check later again
+                    unmountedIds.push(cid);
+                    continue;
+                }
+                this.mountView(view);
+            }
+            this._unmountedViews = unmountedIds.slice(i);
+        },
+
+        checkMountedViews: function(opt) {
+            opt || (opt = {});
+            var batchSize = opt.batchSize || 1000;
+            var viewportFn = this.options.viewport;
+            if (typeof viewportFn !== 'function') return;
+            var mountedIds = this._mountedViews;
+            for (var i = 0, n = Math.min(mountedIds.length, batchSize); i < n; i++) {
+                var cid = mountedIds[i];
+                var view = joint.mvc.views[cid];
+                if (!view) continue;
+                if (viewportFn.call(this, view, true)) {
+                    // Push at the end of all mounted ids, so this can be check later again
+                    mountedIds.push(cid);
+                    continue;
+                }
+                this.unmountView(view);
+            }
+            this._mountedViews = mountedIds.slice(i);
         },
 
         dumpView: function(view, flag, opt) {
@@ -516,10 +564,19 @@
             return view.confirmUpdate(flag, opt || {});
         },
 
+        _triggered: false,
+
         asyncDump: function() {
             if (this._asyncDumpId) {
-                this.dumpViews({ update: this._updates });
-                this.dumpViews({ updates: this._unmounted, batchSize: 50 });
+                var processedCount = this.dumpViews();
+                if (processedCount === 0 && !this._triggered) {
+                    this.trigger('queue:empty');
+                    this._triggered = true;
+                } else if (processedCount > 0) {
+                    this._triggered = false;
+                }
+                this.checkUnmountedViews();
+                this.checkMountedViews();
             }
             this._asyncDumpId = util.nextFrame(this.asyncDump, this);
         },
