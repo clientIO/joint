@@ -182,8 +182,6 @@
 
             viewport: null,
 
-            useModelGeometry: false,
-
             // Default namespaces
 
             cellViewNamespace: joint.shapes,
@@ -815,7 +813,7 @@
         // Return the dimensions of the content area in local units (without transformations).
         getContentArea: function(opt) {
 
-            if (this.options.useModelGeometry || (opt && opt.useModelGeometry)) {
+            if (opt && opt.useModelGeometry) {
                 var graph = this.model;
                 return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new g.Rect();
             }
