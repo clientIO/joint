@@ -232,13 +232,6 @@
 
         $document: null,
 
-        _updates: null,
-        _unmounted: null,
-        _unmountedViews: null,
-        _mountedViews: null,
-        _views: null,
-        _asyncUpdateId: null,
-        _freezed: false,
         _highlights: null,
         _zPivots: null,
         // For storing the current transformation matrix (CTM) of the paper's viewport.
@@ -246,6 +239,8 @@
         // For verifying whether the CTM is up-to-date. The viewport transform attribute
         // could have been manipulated directly.
         _viewportTransformString: null,
+        // Updates data (priorities, umnounted views etc.)
+        _updates: null,
 
         SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
         UPDATE_DELAYING_BATCHES: ['translate'],
@@ -261,6 +256,9 @@
             this.cloneOptions();
             this.render();
             this.setDimensions();
+
+            // Rendering
+            this.resetUpdates();
             if (this.isAsync()) this.unfreeze();
 
             this.listenTo(model, 'add', this.onCellAdded)
@@ -282,16 +280,17 @@
             this.$document = $(this.el.ownerDocument);
             // Highliters references
             this._highlights = {};
-            // Rendering
-            this.resetUpdates();
         },
 
         resetUpdates: function() {
-            this._updates = [{}, {}, {}];
-            this._unmountedViews = [];
-            this._mountedViews = [];
-            this._unmounted = {};
-            this._updatesCount = 0;
+            this._updates = {
+                id: null,
+                priorities: [{}, {}, {}],
+                unmountedViews: [],
+                mountedViews: [],
+                unmounted: [],
+                count: 0
+            };
         },
 
         onCellRemoved: function(cell) {
@@ -466,12 +465,13 @@
         },
 
         scheduleViewUpdate: function(view, type, priority) {
-            var priorityUpdates = this._updates[priority];
-            if (!priorityUpdates) priorityUpdates = this._updates[priority] = {};
+            var updates = this._updates;
+            var priorityUpdates = updates.priorities[priority];
+            if (!priorityUpdates) priorityUpdates = updates.priorities[priority] = {};
             var currentType = priorityUpdates[view.cid] || 0;
             // prevent cycling
             if ((currentType & type) === type) return;
-            if (!currentType) this._updatesCount++;
+            if (!currentType) updates.count++;
             if (type & FLAG_REMOVE && currentType & FLAG_INSERT) {
                 // When a view is removed we need to remove the insert flag as this is a reinsert
                 priorityUpdates[view.cid] ^= FLAG_INSERT;
@@ -487,13 +487,15 @@
         updateViews: function(opt) {
             opt || (opt = {});
             var batchSize = opt.batchSize || Infinity;
+            var updates = this._updates;
             var i = 0;
             var j = 0;
             var k = 0;
-            priorities: for (var priority = 0; priority <= 2; priority++) {
-                var priorityUpdates = this._updates[priority];
+            var priorities = updates.priorities;
+            main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
+                var priorityUpdates = priorities[priority];
                 for (var cid in priorityUpdates) {
-                    if (i > batchSize) break priorities;
+                    if (i > batchSize) break main;
                     var view = joint.mvc.views[cid];
                     if (!view) {
                         // This should not occur
@@ -503,18 +505,19 @@
                     var currentFlag = priorityUpdates[cid];
                     var viewportFn = this.options.viewport;
                     if (typeof viewportFn === 'function') {
-                        var unmounted = !!this._unmounted[cid];
+                        var unmounted = !!updates.unmounted[cid];
                         if (!viewportFn.call(this, view, unmounted)) {
                             if (!unmounted) this.unmountView(view);
-                            this._unmounted[cid] |= currentFlag;
+                            updates.unmounted[cid] |= currentFlag;
                             delete priorityUpdates[cid];
                             k++;
                             continue;
                         }
-                        this._mountedViews.push(cid);
+                        updates.mountedViews.push(cid);
                     }
                     var type = this.updateView(view, currentFlag, opt);
                     if (type > 0) {
+                        // View update has not finished completely
                         priorityUpdates[cid] = type;
                         j++;
                         continue;
@@ -528,21 +531,23 @@
 
         unmountView: function(view) {
             view.vel.remove();
-            this._unmountedViews.push(view.cid);
+            this._updates.mountedViews.push(view.cid);
         },
 
         mountView: function(view) {
             var cid = view.cid;
-            this.scheduleViewUpdate(view, this._unmounted[cid] | FLAG_INSERT, view.UPDATE_PRIORITY);
-            delete this._unmounted[cid];
+            var updates = this._updates;
+            this.scheduleViewUpdate(view, updates.unmounted[cid] | FLAG_INSERT, view.UPDATE_PRIORITY);
+            delete updates.unmounted[cid];
         },
 
         checkUnmountedViews: function(opt) {
             opt || (opt  = {});
             var batchSize = opt.batchSize || 1000;
+            var updates = this._updates;
             var viewportFn = this.options.viewport;
             if (typeof viewportFn !== 'function') return;
-            var unmountedIds = this._unmountedViews;
+            var unmountedIds = updates.unmountedViews;
             for (var i = 0, n = Math.min(unmountedIds.length, batchSize); i < n; i++) {
                 var cid = unmountedIds[i];
                 var view = joint.mvc.views[cid];
@@ -555,15 +560,16 @@
                 this.mountView(view);
             }
             // Get rid of views, that have been mounted
-            this._unmountedViews = unmountedIds.slice(i);
+            updates.unmountedViews = unmountedIds.slice(i);
         },
 
         checkMountedViews: function(opt) {
             opt || (opt = {});
             var batchSize = opt.batchSize || 1000;
+            var updates = this._updates;
             var viewportFn = this.options.viewport;
             if (typeof viewportFn !== 'function') return;
-            var mountedIds = this._mountedViews;
+            var mountedIds = updates.mountedViews;
             for (var i = 0, n = Math.min(mountedIds.length, batchSize); i < n; i++) {
                 var cid = mountedIds[i];
                 var view = joint.mvc.views[cid];
@@ -576,7 +582,7 @@
                 this.unmountView(view);
             }
             // Get rid of views, that have been unmounted
-            this._mountedViews = mountedIds.slice(i);
+            updates.mountedViews = mountedIds.slice(i);
         },
 
         updateView: function(view, flag, opt) {
@@ -595,25 +601,24 @@
         asyncUpdateViews: function(opt, data) {
             opt || (opt = {});
             data || (data = { processed: 0, triggered: false });
-            var canceled = false;
-            var asyncUpdateId = this._asyncUpdateId;
-            if (asyncUpdateId) {
+            var updates = this._updates;
+            var id = updates.id;
+            if (id) {
                 var stats = this.updateViews(opt);
                 this.checkUnmountedViews({ batchSize: opt.unmountBatchSize });
                 this.checkMountedViews({ batchSize: opt.mountBatchSize });
                 var triggered = data.triggered;
                 var processed = data.processed;
-                var total = this._updatesCount;
+                var total = updates.count;
                 if (stats.updated === 0 && !triggered) {
                     data.triggered = true;
                     data.processed = 0;
                     this.trigger('queue:empty');
-                    this._updatesCount = 0;
+                    updates.count = 0;
                 } else if (stats.updated > 0) {
                     // Some updates have been just processed
                     if (triggered) data.triggered = false;
-                    processed += stats.updated + stats.unmounted;
-                    data.processed = processed;
+                    data.processed = processed += stats.updated + stats.unmounted;
                 }
                 // Progress callback
                 var progressFn = opt.progress;
@@ -621,24 +626,25 @@
                     progressFn.call(this, processed, total, data.triggered, this);
                 }
                 // The current frame could have been canceled in a callback
-                canceled = this._asyncUpdateId !== asyncUpdateId;
+                if (updates.id !== id) return;
             }
-            if (canceled) return;
-            this._asyncUpdateId = util.nextFrame(this.asyncUpdateViews, this, opt, data);
+            updates.id = util.nextFrame(this.asyncUpdateViews, this, opt, data);
         },
 
         freeze: function() {
-            this._freezed = true;
+            var updates = this._updates;
+            updates.freezed = true;
             if (this.isAsync()) {
-                var asyncUpdateId = this._asyncUpdateId;
-                if (!asyncUpdateId) return;
-                util.cancelFrame(asyncUpdateId);
-                this._asyncUpdateId = null;
+                var id = updates.id;
+                if (!id) return;
+                util.cancelFrame(id);
+                updates.id = null;
             }
         },
 
         unfreeze: function(opt) {
-            this._freezed = false;
+            var updates = this._updates;
+            updates.freezed = false;
             if (this.isAsync()) {
                 this.freeze();
                 this.asyncUpdateViews(opt);
@@ -654,7 +660,7 @@
         },
 
         isFreezed: function() {
-            return this._freezed;
+            return this._updates.freezed;
         },
 
         onRemove: function() {
