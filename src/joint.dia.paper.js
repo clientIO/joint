@@ -178,6 +178,7 @@
 
             onViewUpdate: function(view, flag, _priority) {
                 this.requestConnectedLinksUpdate(view, flag);
+                // PaperScroller resize?
             },
 
             viewport: null,
@@ -290,6 +291,7 @@
             this._unmountedViews = [];
             this._mountedViews = [];
             this._unmounted = {};
+            this._updatesCount = 0;
         },
 
         onCellRemoved: function(cell) {
@@ -469,6 +471,7 @@
             var currentType = priorityUpdates[view.cid] || 0;
             // prevent cycling
             if ((currentType & type) === type) return;
+            if (!currentType) this._updatesCount++;
             if (type & FLAG_REMOVE && currentType & FLAG_INSERT) {
                 // When a view is removed we need to remove the insert flag as this is a reinsert
                 priorityUpdates[view.cid] ^= FLAG_INSERT;
@@ -485,10 +488,12 @@
             opt || (opt = {});
             var batchSize = opt.batchSize || Infinity;
             var i = 0;
-            for (var priority = 0; priority <= 2; priority++) {
+            var j = 0;
+            var k = 0;
+            priorities: for (var priority = 0; priority <= 2; priority++) {
                 var priorityUpdates = this._updates[priority];
                 for (var cid in priorityUpdates) {
-                    if (i > batchSize) return;
+                    if (i > batchSize) break priorities;
                     var view = joint.mvc.views[cid];
                     if (!view) {
                         // This should not occur
@@ -503,6 +508,7 @@
                             if (!unmounted) this.unmountView(view);
                             this._unmounted[cid] |= currentFlag;
                             delete priorityUpdates[cid];
+                            k++;
                             continue;
                         }
                         this._mountedViews.push(cid);
@@ -510,13 +516,14 @@
                     var type = this.updateView(view, currentFlag, opt);
                     if (type > 0) {
                         priorityUpdates[cid] = type;
+                        j++;
                         continue;
                     }
                     i++;
                     delete priorityUpdates[cid];
                 }
             }
-            return i;
+            return { updated: i, postponed: j, unmounted: k };
         },
 
         unmountView: function(view) {
@@ -547,6 +554,7 @@
                 }
                 this.mountView(view);
             }
+            // Get rid of views, that have been mounted
             this._unmountedViews = unmountedIds.slice(i);
         },
 
@@ -567,6 +575,7 @@
                 }
                 this.unmountView(view);
             }
+            // Get rid of views, that have been unmounted
             this._mountedViews = mountedIds.slice(i);
         },
 
@@ -583,31 +592,60 @@
             return view.confirmUpdate(flag, opt || {});
         },
 
-        asyncUpdate: function() {
-            if (this._asyncUpdateId) {
-                this.updateViews();
-                this.checkUnmountedViews();
-                this.checkMountedViews();
+        asyncUpdateViews: function(opt, data) {
+            opt || (opt = {});
+            data || (data = { processed: 0, triggered: false });
+            var canceled = false;
+            var asyncUpdateId = this._asyncUpdateId;
+            if (asyncUpdateId) {
+                var stats = this.updateViews(opt);
+                this.checkUnmountedViews({ batchSize: opt.unmountBatchSize });
+                this.checkMountedViews({ batchSize: opt.mountBatchSize });
+                var triggered = data.triggered;
+                var processed = data.processed;
+                var total = this._updatesCount;
+                if (stats.updated === 0 && !triggered) {
+                    data.triggered = true;
+                    data.processed = 0;
+                    this.trigger('queue:empty');
+                    this._updatesCount = 0;
+                } else if (stats.updated > 0) {
+                    // Some updates have been just processed
+                    if (triggered) data.triggered = false;
+                    processed += stats.updated + stats.unmounted;
+                    data.processed = processed;
+                }
+                // Progress callback
+                var progressFn = opt.progress;
+                if (total && typeof progressFn === 'function') {
+                    progressFn.call(this, processed, total, data.triggered, this);
+                }
+                // The current frame could have been canceled in a callback
+                canceled = this._asyncUpdateId !== asyncUpdateId;
             }
-            this._asyncUpdateId = util.nextFrame(this.asyncUpdate, this);
+            if (canceled) return;
+            this._asyncUpdateId = util.nextFrame(this.asyncUpdateViews, this, opt, data);
         },
 
         freeze: function() {
             this._freezed = true;
             if (this.isAsync()) {
-                if (!this._asyncUpdateId) return;
-                util.cancelFrame(this._asyncUpdateId);
+                var asyncUpdateId = this._asyncUpdateId;
+                if (!asyncUpdateId) return;
+                util.cancelFrame(asyncUpdateId);
                 this._asyncUpdateId = null;
             }
         },
 
-        unfreeze: function() {
+        unfreeze: function(opt) {
             this._freezed = false;
             if (this.isAsync()) {
-                if (this._asyncUpdateId) return;
-                this.asyncUpdate();
+                this.freeze();
+                this.asyncUpdateViews(opt);
             } else {
-                this.updateViews();
+                this.updateViews(opt);
+                // TODO: only if this is needed?
+                if (this.options.sorting === sortingTypes.EXACT) this.sortViews();
             }
         },
 
@@ -1063,15 +1101,16 @@
 
 
         insertView: function(view) {
+            var container = this.viewport;
             switch (this.options.sorting) {
                 case sortingTypes.APPROX:
                     var z = view.model.get('z');
                     var pivot = this.addZPivot(z);
-                    this.viewport.insertBefore(view.el, pivot);
+                    container.insertBefore(view.el, pivot);
                     break;
                 case sortingTypes.EXACT:
                 default:
-                    this.viewport.appendChild(view.el);
+                    container.appendChild(view.el);
                     break;
             }
         },
