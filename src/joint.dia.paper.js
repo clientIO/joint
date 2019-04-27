@@ -288,7 +288,7 @@
                 priorities: [{}, {}, {}],
                 unmountedViews: [],
                 mountedViews: [],
-                unmounted: [],
+                unmounted: {},
                 count: 0
             };
         },
@@ -491,11 +491,17 @@
             var i = 0;
             var j = 0;
             var k = 0;
+            var l = true;
             var priorities = updates.priorities;
+            var viewportFn = this.options.viewport;
+            if (typeof viewportFn !== 'function') viewportFn = null;
             main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
                 var priorityUpdates = priorities[priority];
                 for (var cid in priorityUpdates) {
-                    if (i > batchSize) break main;
+                    if (i > batchSize) {
+                        l = false;
+                        break main;
+                    }
                     var view = joint.mvc.views[cid];
                     if (!view) {
                         // This should not occur
@@ -503,8 +509,7 @@
                         continue;
                     }
                     var currentFlag = priorityUpdates[cid];
-                    var viewportFn = this.options.viewport;
-                    if (typeof viewportFn === 'function') {
+                    if (viewportFn) {
                         var unmounted = !!updates.unmounted[cid];
                         if (!viewportFn.call(this, view, unmounted)) {
                             if (!unmounted) this.unmountView(view);
@@ -526,12 +531,12 @@
                     delete priorityUpdates[cid];
                 }
             }
-            return { updated: i, postponed: j, unmounted: k };
+            return { updated: i, postponed: j, unmounted: k, empty: l };
         },
 
         unmountView: function(view) {
             view.vel.remove();
-            this._updates.mountedViews.push(view.cid);
+            this._updates.unmountedViews.push(view.cid);
         },
 
         mountView: function(view) {
@@ -591,7 +596,7 @@
                 this.removeView(view.model);
                 return 0;
             }
-            if (flag & FLAG_INSERT) {
+            if (flag & FLAG_INSERT && view instanceof joint.dia.CellView) {
                 this.insertView(view);
                 flag ^= FLAG_INSERT;
             }
@@ -600,30 +605,30 @@
 
         asyncUpdateViews: function(opt, data) {
             opt || (opt = {});
-            data || (data = { processed: 0, triggered: false });
+            data || (data = { processed: 0 });
             var updates = this._updates;
             var id = updates.id;
             if (id) {
                 var stats = this.updateViews(opt);
                 this.checkUnmountedViews({ batchSize: opt.unmountBatchSize });
                 this.checkMountedViews({ batchSize: opt.mountBatchSize });
-                var triggered = data.triggered;
                 var processed = data.processed;
                 var total = updates.count;
-                if (stats.updated === 0 && !triggered) {
-                    data.triggered = true;
-                    data.processed = 0;
-                    this.trigger('queue:empty');
-                    updates.count = 0;
-                } else if (stats.updated > 0) {
+                if (stats.updated > 0) {
                     // Some updates have been just processed
-                    if (triggered) data.triggered = false;
-                    data.processed = processed += stats.updated + stats.unmounted;
+                    processed += stats.updated + stats.unmounted;
+                    if (stats.empty) {
+                        this.trigger('queue:empty');
+                        data.processed = 0;
+                        updates.count = 0;
+                    } else {
+                        data.processed = processed;
+                    }
                 }
                 // Progress callback
                 var progressFn = opt.progress;
                 if (total && typeof progressFn === 'function') {
-                    progressFn.call(this, processed, total, data.triggered, this);
+                    progressFn.call(this, processed, total, stats.empty, this);
                 }
                 // The current frame could have been canceled in a callback
                 if (updates.id !== id) return;
