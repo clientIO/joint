@@ -428,7 +428,7 @@
 
             if (this.options.sorting === sortingTypes.EXACT) {
                 var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-                if (!sortDelayingBatches.includes(name) || !graph.hasActiveBatch(sortDelayingBatches)) {
+                if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
                     this.sortViews();
                 }
             }
