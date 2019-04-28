@@ -289,7 +289,10 @@
                 unmountedViews: [],
                 mountedViews: [],
                 unmounted: {},
-                count: 0
+                count: 0,
+                freezed: false,
+                keyFreezed: false,
+                freezeKey: null
             };
         },
 
@@ -636,8 +639,14 @@
             updates.id = util.nextFrame(this.asyncUpdateViews, this, opt, data);
         },
 
-        freeze: function() {
+        freeze: function(opt) {
+            opt || (opt = {});
             var updates = this._updates;
+            var key = opt.key;
+            if (key && key !== updates.freezeKey)  {
+                updates.freezeKey = key;
+                updates.keyFreezed = updates.freezed;
+            }
             updates.freezed = true;
             if (this.isAsync()) {
                 var id = updates.id;
@@ -648,15 +657,20 @@
         },
 
         unfreeze: function(opt) {
+            opt || (opt = {});
             var updates = this._updates;
+            var key = opt.key;
+            if (key && key === updates.freezeKey && updates.keyFreezed) return;
             updates.freezed = false;
+            updates.freezeKey = null;
+            updates.keyFreezed = false;
             if (this.isAsync()) {
-                this.freeze();
+                this.freeze(opt);
                 this.asyncUpdateViews(opt);
             } else {
                 this.updateViews(opt);
                 // TODO: only if this is needed?
-                if (this.options.sorting === sortingTypes.EXACT) this.sortViews();
+                // if (this.options.sorting === sortingTypes.EXACT) this.sortViews();
             }
         },
 
@@ -941,24 +955,33 @@
             });
         },
 
-        onCellAdded: function(cell, graph, opt) {
+        onCellAdded: function(cell, _, opt) {
 
-            if (this.options.async && opt.async !== false && util.isNumber(opt.position)) {
+            var position = opt.position;
+            var multiple = util.isNumber(position);
+
+            // Deprecated
+            if (this.options.async && opt.async !== false && multiple) {
 
                 this._asyncCells = this._asyncCells || [];
                 this._asyncCells.push(cell);
 
-                if (opt.position == 0) {
+                if (position == 0) {
 
                     if (this._frameId) throw new Error('another asynchronous rendering in progress');
 
                     this.asyncRenderViews(this._asyncCells, opt);
                     delete this._asyncCells;
                 }
+                return;
+            }
 
-            } else {
-
+            if (this.isAsync() || !multiple) {
                 this.renderView(cell);
+            } else {
+                if (opt.maxPosition === position) this.freeze({ key: 'addCells' });
+                this.renderView(cell);
+                if (position === 0) this.unfreeze({ key: 'addCells' });
             }
         },
 
@@ -1102,11 +1125,11 @@
             var cells = this.model.get('cells');
 
             util.sortElements($cells, function(a, b) {
-
-                var cellA = cells.get($(a).attr('model-id'));
-                var cellB = cells.get($(b).attr('model-id'));
-
-                return (cellA.get('z') || 0) > (cellB.get('z') || 0) ? 1 : -1;
+                var cellA = cells.get(a.getAttribute('model-id'));
+                var cellB = cells.get(b.getAttribute('model-id'));
+                var zA = cellA.attributes.z || 0;
+                var zB = cellB.attributes.z || 0;
+                return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
             });
         },
 

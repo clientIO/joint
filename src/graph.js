@@ -326,18 +326,17 @@ export const Graph = Backbone.Model.extend({
 
     addCells: function(cells, opt) {
 
-        if (cells.length) {
+        if (cells.length === 0) return this;
 
-            cells = util.flattenDeep(cells);
-            opt.position = cells.length;
+        cells = util.flattenDeep(cells);
+        opt.maxPosition = opt.position = cells.length - 1;
 
-            this.startBatch('add');
-            cells.forEach(function(cell) {
-                opt.position--;
-                this.addCell(cell, opt);
-            }, this);
-            this.stopBatch('add');
-        }
+        this.startBatch('add', opt);
+        cells.forEach(function(cell) {
+            this.addCell(cell, opt);
+            opt.position--;
+        }, this);
+        this.stopBatch('add', opt);
 
         return this;
     },
