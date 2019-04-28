@@ -176,9 +176,10 @@
 
             rendering: renderingTypes.SYNC,
 
+            frozen: false,
+
             onViewUpdate: function(view, flag, _priority) {
                 this.requestConnectedLinksUpdate(view, flag);
-                // PaperScroller resize?
             },
 
             viewport: null,
@@ -257,10 +258,6 @@
             this.render();
             this.setDimensions();
 
-            // Rendering
-            this.resetUpdates();
-            if (this.isAsync()) this.unfreeze();
-
             this.listenTo(model, 'add', this.onCellAdded)
                 .listenTo(model, 'remove', this.onCellRemoved)
                 .listenTo(model, 'change', this.onCellChange)
@@ -280,9 +277,15 @@
             this.$document = $(this.el.ownerDocument);
             // Highliters references
             this._highlights = {};
+            // Updates data
+            this._resetUpdates();
+            // Render existing cells in the graph
+            this.resetViews(model.get('cells'));
+            // Start the Rendering Loop
+            if (!this.isFrozen() && this.isAsync()) this.asyncUpdateViews();
         },
 
-        resetUpdates: function() {
+        _resetUpdates: function() {
             this._updates = {
                 id: null,
                 priorities: [{}, {}, {}],
@@ -290,8 +293,7 @@
                 mountedViews: [],
                 unmounted: {},
                 count: 0,
-                freezed: false,
-                keyFreezed: false,
+                keyFrozen: false,
                 freezeKey: null
             };
         },
@@ -409,15 +411,15 @@
 
         _onSort: function() {
 
-            if (this.isFreezed()) return;
-            if (this.options.sorting !== sortingTypes.EXACT) return;
+            if (this.isFrozen()) return;
+            if (!this.isExactSorting()) return;
             if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sortViews();
         },
 
         _onBatchStop: function(data) {
 
-            if (this.isFreezed()) return;
+            if (this.isFrozen()) return;
 
             var name = data && data.batchName;
             var graph = this.model;
@@ -429,7 +431,7 @@
                 }
             }
 
-            if (this.options.sorting === sortingTypes.EXACT) {
+            if (this.isExactSorting()) {
                 var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
                 if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
                     this.sortViews();
@@ -454,7 +456,7 @@
 
             this.scheduleViewUpdate(view, flag, priority, opt);
 
-            if (this.isFreezed()) return;
+            if (this.isFrozen()) return;
 
             switch (opt.rendering || this.options.rendering) {
                 case renderingTypes.SYNC:
@@ -645,9 +647,9 @@
             var key = opt.key;
             if (key && key !== updates.freezeKey)  {
                 updates.freezeKey = key;
-                updates.keyFreezed = updates.freezed;
+                updates.keyFrozen = this.options.frozen;
             }
-            updates.freezed = true;
+            this.options.frozen = true;
             if (this.isAsync()) {
                 var id = updates.id;
                 if (!id) return;
@@ -660,10 +662,10 @@
             opt || (opt = {});
             var updates = this._updates;
             var key = opt.key;
-            if (key && key === updates.freezeKey && updates.keyFreezed) return;
-            updates.freezed = false;
+            if (key && key === updates.freezeKey && updates.keyFrozen) return;
+            this.options.frozen = false;
             updates.freezeKey = null;
-            updates.keyFreezed = false;
+            updates.keyFrozen = false;
             if (this.isAsync()) {
                 this.freeze(opt);
                 this.asyncUpdateViews(opt);
@@ -678,8 +680,12 @@
             return this.options.rendering === renderingTypes.ASYNC;
         },
 
-        isFreezed: function() {
-            return this._updates.freezed;
+        isFrozen: function() {
+            return !!this.options.frozen;
+        },
+
+        isExactSorting: function() {
+            return this.options.sorting === sortingTypes.EXACT;
         },
 
         onRemove: function() {
@@ -1020,23 +1026,11 @@
             return false;
         },
 
-        beforeRenderViews: function(cells) {
-
-            // Make sure links are always added AFTER elements.
-            // They wouldn't find their sources/targets in the DOM otherwise.
-            cells.sort(function(a) { return (a.isLink()) ? 1 : -1; });
-
-            return cells;
-        },
-
-        afterRenderViews: function() {
-
-            this.sortViews();
-        },
-
         resetViews: function(cellsCollection, opt) {
 
-            this.resetUpdates();
+            opt || (opt = {});
+
+            this._resetUpdates();
 
             // clearing views removes any event listeners
             this.removeViews();
@@ -1046,30 +1040,27 @@
             // `beforeRenderViews()` can return changed cells array (e.g sorted).
             cells = this.beforeRenderViews(cells, opt) || cells;
 
-            this.cancelRenderViews();
-
+            // Deprecated
             if (this.options.async) {
+
+                this.cancelRenderViews();
 
                 this.asyncRenderViews(cells, opt);
                 // Sort the cells once all elements rendered (see asyncRenderViews()).
-
-            } else {
-
-                for (var i = 0, n = cells.length; i < n; i++) {
-                    this.renderView(cells[i]);
-                }
-
-                // Sort the cells in the DOM manually as we might have changed the order they
-                // were added to the DOM (see above).
-                if (!this.isFreezed()) this.sortViews();
+                return;
             }
-        },
 
-        cancelRenderViews: function() {
-            if (this._frameId) {
-                util.cancelFrame(this._frameId);
-                delete this._frameId;
+            this.freeze({ key: 'reset' });
+
+            for (var i = 0, n = cells.length; i < n; i++) {
+                this.renderView(cells[i]);
             }
+
+            this.unfreeze({ key: 'reset' });
+
+            // Sort the cells in the DOM manually as we might have changed the order they
+            // were added to the DOM (see above).
+            if (!this.isFrozen() && this.isExactSorting()) this.sortViews();
         },
 
         removeViews: function() {
@@ -1077,43 +1068,6 @@
             util.invoke(this._views, 'remove');
 
             this._views = {};
-        },
-
-        asyncBatchAdded: util.noop,
-
-        asyncRenderViews: function(cells, opt) {
-
-            if (this._frameId) {
-
-                var batchSize = (this.options.async && this.options.async.batchSize) || 50;
-                var batchCells = cells.splice(0, batchSize);
-
-                batchCells.forEach(function(cell) {
-
-                    // The cell has to be part of the graph.
-                    // There is a chance in asynchronous rendering
-                    // that a cell was removed before it's rendered to the paper.
-                    if (cell.graph === this.model) this.renderView(cell);
-
-                }, this);
-
-                this.asyncBatchAdded();
-            }
-
-            if (!cells.length) {
-
-                // No cells left to render.
-                delete this._frameId;
-                this.afterRenderViews(opt);
-                this.trigger('render:done', opt);
-
-            } else {
-
-                // Schedule a next batch to render.
-                this._frameId = util.nextFrame(function() {
-                    this.asyncRenderViews(cells, opt);
-                }, this);
-            }
         },
 
         sortViews: function() {
@@ -2301,7 +2255,72 @@
             }
 
             return markerId;
+        },
+
+        // DEPRECATED
+
+        asyncBatchAdded: util.noop,
+
+        asyncRenderViews: function(cells, opt) {
+
+            if (this._frameId) {
+
+                var batchSize = (this.options.async && this.options.async.batchSize) || 50;
+                var batchCells = cells.splice(0, batchSize);
+
+                batchCells.forEach(function(cell) {
+
+                    // The cell has to be part of the graph.
+                    // There is a chance in asynchronous rendering
+                    // that a cell was removed before it's rendered to the paper.
+                    if (cell.graph === this.model) this.renderView(cell);
+
+                }, this);
+
+                this.asyncBatchAdded();
+            }
+
+            if (!cells.length) {
+
+                // No cells left to render.
+                delete this._frameId;
+                this.afterRenderViews(opt);
+                this.trigger('render:done', opt);
+
+            } else {
+
+                // Schedule a next batch to render.
+                this._frameId = util.nextFrame(function() {
+                    this.asyncRenderViews(cells, opt);
+                }, this);
+            }
+        },
+
+        cancelRenderViews: function() {
+            if (this._frameId) {
+                util.cancelFrame(this._frameId);
+                delete this._frameId;
+            }
+        },
+
+        beforeRenderViews: function(cells) {
+
+            // Make sure links are always added AFTER elements.
+            // They wouldn't find their sources/targets in the DOM otherwise.
+            if (this.options.async) {
+                // NOTE: not depracated-async and sync reseting views happening while the paper is frozen
+                // i.e. no need to sort links
+                cells.sort(function(a) { return (a.isLink()) ? 1 : -1; });
+            }
+
+            return cells;
+        },
+
+        afterRenderViews: function() {
+
+            this.sortViews();
         }
+
     }, {
 
         sorting: sortingTypes,
