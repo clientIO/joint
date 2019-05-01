@@ -663,17 +663,16 @@
             var updates = this._updates;
             var key = opt.key;
             if (key && key === updates.freezeKey && updates.keyFrozen) return;
-            this.options.frozen = false;
-            updates.freezeKey = null;
-            updates.keyFrozen = false;
             if (this.isAsync()) {
-                this.freeze(opt);
+                this.freeze();
                 this.asyncUpdateViews(opt);
             } else {
                 this.updateViews(opt);
                 // TODO: only if this is needed?
                 // if (this.options.sorting === sortingTypes.EXACT) this.sortViews();
             }
+            updates.freezeKey = null;
+            this.options.frozen = updates.keyFrozen = false;
         },
 
         isAsync: function() {
