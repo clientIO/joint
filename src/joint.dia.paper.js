@@ -294,7 +294,8 @@
                 unmounted: {},
                 count: 0,
                 keyFrozen: false,
-                freezeKey: null
+                freezeKey: null,
+                sort: false
             };
         },
 
@@ -411,8 +412,6 @@
 
         _onSort: function() {
 
-            if (this.isFrozen()) return;
-            if (!this.isExactSorting()) return;
             if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
             this.sortViews();
         },
@@ -431,11 +430,9 @@
                 }
             }
 
-            if (this.isExactSorting()) {
-                var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-                if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-                    this.sortViews();
-                }
+            var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
+            if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
+                this.sortViews();
             }
         },
 
@@ -668,11 +665,13 @@
                 this.asyncUpdateViews(opt);
             } else {
                 this.updateViews(opt);
-                // TODO: only if this is needed?
-                // if (this.options.sorting === sortingTypes.EXACT) this.sortViews();
             }
             updates.freezeKey = null;
             this.options.frozen = updates.keyFrozen = false;
+            if (updates.sort) {
+                this.sortViews();
+                updates.sort = false;
+            }
         },
 
         isAsync: function() {
@@ -1059,7 +1058,7 @@
 
             // Sort the cells in the DOM manually as we might have changed the order they
             // were added to the DOM (see above).
-            if (!this.isFrozen() && this.isExactSorting()) this.sortViews();
+            this.sortViews();
         },
 
         removeViews: function() {
@@ -1070,6 +1069,20 @@
         },
 
         sortViews: function() {
+
+            if (!this.isExactSorting()) {
+                // noop
+                return;
+            }
+            if (this.isFrozen()) {
+                // sort views once unfrozen
+                this._updates.sort = true;
+                return;
+            }
+            this.exactSortViews();
+        },
+
+        exactSortViews: function() {
 
             // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
             // associated model `z` attribute.
