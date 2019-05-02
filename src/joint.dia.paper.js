@@ -594,13 +594,15 @@
 
         updateView: function(view, flag, opt) {
             if (!view) return;
-            if (flag & FLAG_REMOVE) {
-                this.removeView(view.model);
-                return 0;
-            }
-            if (flag & FLAG_INSERT && view instanceof joint.dia.CellView) {
-                this.insertView(view);
-                flag ^= FLAG_INSERT;
+            if (view instanceof joint.dia.CellView) {
+                if (flag & FLAG_REMOVE) {
+                    this.removeView(view.model);
+                    return 0;
+                }
+                if (flag & FLAG_INSERT) {
+                    this.insertView(view);
+                    flag ^= FLAG_INSERT;
+                }
             }
             return view.confirmUpdate(flag, opt || {});
         },

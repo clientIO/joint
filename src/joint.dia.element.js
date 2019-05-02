@@ -23,6 +23,10 @@ joint.dia.Element = joint.dia.Cell.extend({
         // implemented in ports.js
     },
 
+    _refreshPorts: function() {
+        // implemented in ports.js
+    },
+
     isElement: function() {
 
         return true;
@@ -473,7 +477,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             }
             if (flag & FLAG_UPDATE) {
                 this.update(model, null, opt);
-                flag ^= FLAG_UPDATE;
+                flag ^= FLAG_UPDATE | FLAG_PORTS;
             }
             if (flag & FLAG_TRANSLATE) {
                 this.translate();
@@ -482,6 +486,10 @@ joint.dia.Element = joint.dia.Cell.extend({
             if (flag & FLAG_ROTATE) {
                 this.rotate();
                 flag ^= FLAG_ROTATE;
+            }
+            if (flag & FLAG_PORTS) {
+                this._refreshPorts();
+                flag ^= FLAG_PORTS;
             }
             return 0;
         },
