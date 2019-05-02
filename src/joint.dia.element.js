@@ -441,7 +441,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         presentationAttributes: {
             'attrs': FLAG_UPDATE,
             'position': FLAG_TRANSLATE,
-            'size': FLAG_RESIZE,
+            'size': FLAG_RESIZE | FLAG_PORTS,
             'angle': FLAG_ROTATE,
             'markup': FLAG_RENDER,
             'ports': FLAG_PORTS
@@ -473,11 +473,11 @@ joint.dia.Element = joint.dia.Cell.extend({
             }
             if (flag & FLAG_RESIZE) {
                 this.resize(model, null, opt);
-                flag ^= FLAG_RESIZE | FLAG_UPDATE | FLAG_PORTS;
+                flag ^= FLAG_RESIZE | FLAG_UPDATE;
             }
             if (flag & FLAG_UPDATE) {
-                this.update(model, null, opt);
-                flag ^= FLAG_UPDATE | FLAG_PORTS;
+                this.updateAttributes();
+                flag ^= FLAG_UPDATE;
             }
             if (flag & FLAG_TRANSLATE) {
                 this.translate();
@@ -501,11 +501,18 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         },
 
-        update: function(cell, renderingOnlyAttrs) {
-
-            this.cleanNodesCache();
+        update: function(_, renderingOnlyAttrs) {
 
             this._removePorts();
+
+            this.updateAttributes(renderingOnlyAttrs);
+
+            this._renderPorts();
+        },
+
+        updateAttributes: function(renderingOnlyAttrs) {
+
+            this.cleanNodesCache();
 
             var model = this.model;
             var modelAttrs = model.attr();
@@ -517,8 +524,6 @@ joint.dia.Element = joint.dia.Cell.extend({
                 // Use rendering only attributes if they differs from the model attributes
                 roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
             });
-
-            this._renderPorts();
         },
 
         rotatableSelector: 'rotatable',
@@ -567,7 +572,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             if (this.scalableNode) {
                 // Double update is necessary for elements with the scalable group only
                 // Note the resize() triggers the other `update`.
-                this.update();
+                this.updateAttributes();
             }
             this.resize();
             if (this.rotatableNode) {
@@ -575,9 +580,11 @@ joint.dia.Element = joint.dia.Cell.extend({
                 // on `this.rotatableNode`
                 this.rotate();
                 this.translate();
+                this._refreshPorts();
                 return this;
             }
             this.updateTransformation();
+            this._refreshPorts();
             return this;
         },
 
@@ -585,7 +592,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (this.scalableNode) return this.sgResize.apply(this, arguments);
             if (this.model.attributes.angle) this.rotate();
-            this.update();
+            this.updateAttributes();
         },
 
         translate: function() {
@@ -600,7 +607,7 @@ joint.dia.Element = joint.dia.Cell.extend({
                 this.rgRotate();
                 // It's necessary to call the update for the nodes outside
                 // the rotatable group referencing nodes inside the group
-                this.update();
+                this.updateAttributes();
                 return;
             }
             this.updateTransformation();
@@ -741,7 +748,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Update must always be called on non-rotated element. Otherwise, relative positioning
             // would work with wrong (rotated) bounding boxes.
-            this.update();
+            this.updateAttributes();
         },
 
         // Embedding mode methods.
