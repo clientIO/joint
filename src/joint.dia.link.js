@@ -608,13 +608,13 @@ joint.dia.Link = joint.dia.Cell.extend({
 // ----------------------------------------
 (function() {
 
-    var FLAG_RENDER = 1;
-    var FLAG_UPDATE = 2;
-    var FLAG_TOOLS = 4;
-    var FLAG_LABELS = 8;
-    var FLAG_VERTICES = 16;
-    var FLAG_SOURCE = 32;
-    var FLAG_TARGET = 64;
+    var FLAG_RENDER = 1<<0;
+    var FLAG_UPDATE = 1<<1;
+    var FLAG_SOURCE = 1<<2;
+    var FLAG_TARGET = 1<<3;
+    var FLAG_LABELS = 1<<4;
+    var FLAG_VERTICES = 1<<5;
+    var FLAG_TOOLS = 1<<6;
 
     joint.dia.LinkView = joint.dia.CellView.extend({
 

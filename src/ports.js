@@ -554,8 +554,6 @@ util.assign(ElementView.prototype, {
     _refreshPorts: function() {
 
         this._removePorts();
-        this._portElementsCache = {};
-
         this._renderPorts();
     },
 
@@ -660,6 +658,7 @@ util.assign(ElementView.prototype, {
      */
     _removePorts: function() {
         util.invoke(this._portElementsCache, 'portElement.remove');
+        this._portElementsCache = {};
     },
 
     /**

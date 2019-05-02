@@ -11,8 +11,8 @@
         ASYNC: 'rendering-async'
     };
 
-    var FLAG_INSERT = 128;
-    var FLAG_REMOVE = 256;
+    var FLAG_INSERT = 1<<30;
+    var FLAG_REMOVE = 1<<29;
 
     joint.dia.Paper = joint.mvc.View.extend({
 

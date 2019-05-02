@@ -393,14 +393,14 @@ joint.dia.Element = joint.dia.Cell.extend({
     }
 });
 
-(function() {
+(function(joint, V) {
 
-    var FLAG_RENDER = 1;
-    var FLAG_UPDATE = 2;
-    var FLAG_TRANSLATE = 4;
-    var FLAG_ROTATE = 8;
-    var FLAG_RESIZE = 16; // ?
-    var FLAG_PORTS = 32;
+    var FLAG_RENDER = 1<<0;
+    var FLAG_UPDATE = 1<<1;
+    var FLAG_TRANSLATE = 1<<2;
+    var FLAG_ROTATE = 1<<3;
+    var FLAG_RESIZE = 1<<4;
+    var FLAG_PORTS = 1<<5;
 
     // joint.dia.Element base view and controller.
     // -------------------------------------------
@@ -459,10 +459,10 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);
-            if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
             if (opt.updateHandled || !flag) return;
-            if (this.paper) this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
-            // todo: ports
+            if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
+            var paper = this.paper;
+            if (paper) paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
         },
 
         confirmUpdate: function(flag, opt) {
@@ -473,7 +473,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             }
             if (flag & FLAG_RESIZE) {
                 this.resize(model, null, opt);
-                flag ^= FLAG_RESIZE | FLAG_UPDATE;
+                flag ^= FLAG_RESIZE | FLAG_UPDATE | FLAG_PORTS;
             }
             if (flag & FLAG_UPDATE) {
                 this.update(model, null, opt);
@@ -1168,4 +1168,4 @@ joint.dia.Element = joint.dia.Cell.extend({
 
     });
 
-})(joint);
+})(joint, V);
