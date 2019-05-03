@@ -466,13 +466,12 @@ joint.dia.Element = joint.dia.Cell.extend({
         },
 
         confirmUpdate: function(flag, opt) {
-            var model = this.model;
             if (flag & FLAG_RENDER) {
                 this.render();
                 return 0;
             }
             if (flag & FLAG_RESIZE) {
-                this.resize(model, null, opt);
+                this.resize(opt);
                 flag ^= FLAG_RESIZE | FLAG_UPDATE;
             }
             if (flag & FLAG_UPDATE) {
@@ -580,17 +579,16 @@ joint.dia.Element = joint.dia.Cell.extend({
                 // on `this.rotatableNode`
                 this.rotate();
                 this.translate();
-                this._refreshPorts();
-                return this;
+            } else {
+                this.updateTransformation();
             }
-            this.updateTransformation();
             this._refreshPorts();
             return this;
         },
 
-        resize: function() {
+        resize: function(opt) {
 
-            if (this.scalableNode) return this.sgResize.apply(this, arguments);
+            if (this.scalableNode) return this.sgResize(opt);
             if (this.model.attributes.angle) this.rotate();
             this.updateAttributes();
         },
@@ -700,11 +698,11 @@ joint.dia.Element = joint.dia.Cell.extend({
             this.vel.attr('transform', this.getTranslateString());
         },
 
-        sgResize: function(cell, changed, opt) {
+        sgResize: function(opt) {
 
             var model = this.model;
-            var angle = model.get('angle') || 0;
-            var size = model.get('size') || { width: 1, height: 1 };
+            var angle = model.angle();
+            var size = model.size();
             var scalable = this.scalableNode;
 
             // Getting scalable group's bbox.

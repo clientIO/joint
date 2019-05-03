@@ -182,6 +182,8 @@
                 this.requestConnectedLinksUpdate(view, flag);
             },
 
+            onViewPostponed: null,
+
             viewport: null,
 
             // Default namespaces
@@ -497,6 +499,8 @@
             var priorities = updates.priorities;
             var viewportFn = this.options.viewport;
             if (typeof viewportFn !== 'function') viewportFn = null;
+            var postponeViewFn = this.options.onViewPostponed;
+            if (typeof postponeViewFn !== 'function') postponeViewFn = null;
             main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
                 var priorityUpdates = priorities[priority];
                 for (var cid in priorityUpdates) {
@@ -527,6 +531,7 @@
                         // View update has not finished completely
                         priorityUpdates[cid] = type;
                         j++;
+                        if (postponeViewFn) postponeViewFn.call(this, view, type, priority);
                         continue;
                     }
                     i++;
@@ -538,13 +543,16 @@
 
         unmountView: function(view) {
             view.vel.remove();
-            this._updates.unmountedViews.push(view.cid);
+            var updates = this._updates;
+            var cid = view.cid;
+            updates.unmountedViews.push(cid);
+            updates.unmounted[cid] |= FLAG_INSERT;
         },
 
         mountView: function(view) {
             var cid = view.cid;
             var updates = this._updates;
-            this.scheduleViewUpdate(view, updates.unmounted[cid] | FLAG_INSERT, view.UPDATE_PRIORITY);
+            this.scheduleViewUpdate(view, updates.unmounted[cid], view.UPDATE_PRIORITY);
             delete updates.unmounted[cid];
         },
 
@@ -604,7 +612,28 @@
                     flag ^= FLAG_INSERT;
                 }
             }
+            if (!flag) return 0;
             return view.confirmUpdate(flag, opt || {});
+        },
+
+        requireView: function(model, opt) {
+
+            var view = this.findViewByModel(model);
+            if (!view) return null;
+            var updates = this._updates;
+            var cid = view.cid;
+            var flag = updates.unmounted[cid];
+            if (flag) {
+                delete updates.unmounted[cid];
+                updates.unmountedViews.splice(updates.unmountedViews.indexOf(cid), 1);
+                updates.mountedViews.push(cid);
+            } else {
+                var priorityUpdates = updates.priorities[view.UPDATE_PRIORITY];
+                flag = priorityUpdates[cid];
+                delete priorityUpdates[cid];
+            }
+            this.updateView(view, flag, opt);
+            return view;
         },
 
         asyncUpdateViews: function(opt, data) {
@@ -666,7 +695,9 @@
                 this.freeze();
                 this.asyncUpdateViews(opt);
             } else {
-                this.updateViews(opt);
+                // SYNC
+                var stats;
+                do { stats = this.updateViews(opt); } while (stats.updated > 0 && stats.postponed > 0);
             }
             updates.freezeKey = null;
             this.options.frozen = updates.keyFrozen = false;
