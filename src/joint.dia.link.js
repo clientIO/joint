@@ -700,7 +700,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             if (!flag) return;
             // TODO: tool changes does not need to be sync
             // Fix Segments tools
-            if (opt.tool) opt.rendering = joint.dia.Paper.rendering.SYNC;
+            if (opt.tool) opt.async = false;
             this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
         },
 
