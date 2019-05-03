@@ -762,7 +762,7 @@ joint.dia.LinkView = joint.dia.CellView.extend({
         // Selectors
         this.selectors = doc.selectors;
         Object.keys(this.selectors).forEach(function(key) {
-          this._V[key] = V(this.selectors[key])
+            this._V[key] = V(this.selectors[key]);
         }, this);
         // Fragment
         this.vel.append(doc.fragment);
