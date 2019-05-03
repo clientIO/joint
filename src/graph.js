@@ -445,7 +445,7 @@ export const Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            util.forIn(this.getOutboundEdges(model.id), function(exists, edge) {
+            util.forEach(this.getOutboundEdges(model.id), function(exists, edge) {
                 if (!edges[edge]) {
                     links.push(this.getCell(edge));
                     edges[edge] = true;
@@ -453,7 +453,7 @@ export const Graph = Backbone.Model.extend({
             }.bind(this));
         }
         if (inbound) {
-            util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
+            util.forEach(this.getInboundEdges(model.id), function(exists, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
@@ -480,7 +480,7 @@ export const Graph = Backbone.Model.extend({
             embeddedCells.forEach(function(cell) {
                 if (cell.isLink()) return;
                 if (outbound) {
-                    util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
+                    util.forEach(this.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var sourceId = edgeCell.source().id;
@@ -499,7 +499,7 @@ export const Graph = Backbone.Model.extend({
                     }.bind(this));
                 }
                 if (inbound) {
-                    util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
+                    util.forEach(this.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
                             var sourceId = edgeCell.source().id;

@@ -1673,6 +1673,7 @@ export const result = _.result;
 export const omit = _.omit;
 export const pick = _.pick;
 export const bindAll = _.bindAll;
+export const forEach = _.forEach;
 export const forIn = _.forIn;
 export const camelCase = _.camelCase;
 export const uniqueId = _.uniqueId;
