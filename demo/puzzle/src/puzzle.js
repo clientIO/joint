@@ -90,7 +90,9 @@ var Jigsaw = {
             el: document.getElementById('paper'),
             gridSize: this.GRID,
             model: graph,
-            clickThreshold: 5
+            clickThreshold: 5,
+            async: true,
+            sorting: joint.dia.Paper.sorting.APPROX
         }).on({
             'cell:pointerdown': function(pieceView) {
                 pieceView.model.toFront();
@@ -124,8 +126,10 @@ var Jigsaw = {
     },
 
     playPuzzle: function() {
+        this.paper.freeze();
         this.generatePuzzle();
         this.shufflePuzzle(3000);
+        this.paper.unfreeze();
     },
 
     shufflePuzzle: function(delay) {
@@ -190,7 +194,8 @@ var Jigsaw = {
                             tabs: tabs,
                             image: [this.IMAGE_ID, c, r]
                         }
-                    }
+                    },
+                    z: 0
                 }).addTo(this.graph));
             }
         }

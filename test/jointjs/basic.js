@@ -104,6 +104,9 @@ QUnit.module('basic', function(hooks) {
 
     QUnit.test('async: addCells', function(assert) {
 
+        this.paper.options.async = true;
+        this.paper.unfreeze();
+
         var done = assert.async();
         var r1 = new joint.shapes.basic.Rect({
             position: { x: 20, y: 30 },
@@ -117,7 +120,6 @@ QUnit.module('basic', function(hooks) {
 
         this.graph.addCells([r1, r2]);
 
-        this.paper.options.async = { batchSize: 1 };
         this.paper.on('render:done', function() {
 
             var textEls = this.paper.svg.getElementsByTagName('text');

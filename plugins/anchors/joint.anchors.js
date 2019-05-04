@@ -184,8 +184,7 @@
                 var refView = this.paper.findView(ref);
                 var refPoint;
                 if (refView) {
-                    if (refView.model.isLink()) {
-                        // TODO: not to ignore `ref` element
+                    if (refView.isNodeConnection(ref)) {
                         var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
                         refPoint = getPointAtLink(view, distance);
                     } else {

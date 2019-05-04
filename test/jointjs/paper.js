@@ -122,14 +122,15 @@ QUnit.module('paper', function(hooks) {
 
     QUnit.test('async paper.addCells() should not throw on non-flat array', function(assert) {
 
+        this.paper.options.async = true;
+        this.paper.unfreeze();
+
         assert.expect(2);
         var done = assert.async();
 
         var a = new joint.shapes.basic.Rect;
         var b = new joint.shapes.basic.Rect;
         var c = new joint.shapes.basic.Rect;
-
-        this.paper.options.async = { batchSize: 1 };
 
         this.paper.on('render:done', function() {
             assert.equal(this.graph.getCells().length, 3);
