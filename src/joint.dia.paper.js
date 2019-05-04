@@ -9,6 +9,9 @@
     var FLAG_INSERT = 1<<30;
     var FLAG_REMOVE = 1<<29;
 
+    var MOUNT_BATCH_SIZE = 1000;
+    var UPDATE_BATCH_SIZE = Infinity;
+
     joint.dia.Paper = joint.mvc.View.extend({
 
         className: 'paper',
@@ -167,15 +170,20 @@
             // Or string `onleave` so the link is created when the pointer leaves the magnet
             magnetThreshold: 0,
 
+            // Rendering Options
+
             sorting: sortingTypes.EXACT,
 
             frozen: false,
 
-            onViewUpdate: function(view, flag, _priority) {
-                this.requestConnectedLinksUpdate(view, flag);
+            onViewUpdate: function(view, flag, opt, paper) {
+                if ((flag & FLAG_INSERT) || opt.mounting) return;
+                paper.requestConnectedLinksUpdate(view);
             },
 
-            onViewPostponed: null,
+            onViewPostponed: function(view, flag /* paper */) {
+                return this.forceViewUpdate(view, flag);
+            },
 
             viewport: null,
 
@@ -431,8 +439,7 @@
             }
         },
 
-        requestConnectedLinksUpdate: function(view, flag) {
-            if (flag & FLAG_INSERT) return;
+        requestConnectedLinksUpdate: function(view) {
             if (view instanceof joint.dia.CellView) {
                 var links = this.model.getConnectedLinks(view.model);
                 for (var j = 0, n = links.length; j < n; j++) {
@@ -448,13 +455,12 @@
 
             this.scheduleViewUpdate(view, flag, priority, opt);
 
-            if (!this.isFrozen() && (!this.isAsync() || opt.async === false)) {
-                if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
-                this.updateViews(opt);
-            }
+            if (this.isFrozen() || (this.isAsync() && opt.async !== false)) return;
+            if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
+            this.updateViews(opt);
         },
 
-        scheduleViewUpdate: function(view, type, priority) {
+        scheduleViewUpdate: function(view, type, priority, opt) {
             var updates = this._updates;
             var priorityUpdates = updates.priorities[priority];
             if (!priorityUpdates) priorityUpdates = updates.priorities[priority] = {};
@@ -471,27 +477,28 @@
             }
             priorityUpdates[view.cid] |= type;
             var viewUpdateFn = this.options.onViewUpdate;
-            if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, priority);
+            if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, opt || {}, this);
         },
 
         updateViews: function(opt) {
             opt || (opt = {});
-            var batchSize = opt.batchSize || Infinity;
+            var batchSize = opt.batchSize || UPDATE_BATCH_SIZE;
             var updates = this._updates;
-            var i = 0;
-            var j = 0;
-            var k = 0;
-            var l = true;
+            var updateCount = 0;
+            var postponeCount = 0;
+            var unmountCount = 0;
+            var empty = true;
+            var options = this.options;
             var priorities = updates.priorities;
-            var viewportFn = this.options.viewport;
+            var viewportFn = options.viewport;
             if (typeof viewportFn !== 'function') viewportFn = null;
-            var postponeViewFn = this.options.onViewPostponed;
+            var postponeViewFn = options.onViewPostponed;
             if (typeof postponeViewFn !== 'function') postponeViewFn = null;
             main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
                 var priorityUpdates = priorities[priority];
                 for (var cid in priorityUpdates) {
-                    if (i > batchSize) {
-                        l = false;
+                    if (updateCount > batchSize) {
+                        empty = false;
                         break main;
                     }
                     var view = joint.mvc.views[cid];
@@ -502,12 +509,12 @@
                     }
                     var currentFlag = priorityUpdates[cid];
                     if (viewportFn) {
-                        var unmounted = !!updates.unmounted[cid];
-                        if (!viewportFn.call(this, view, unmounted)) {
+                        var unmounted = cid in updates.unmounted;
+                        if (!viewportFn.call(this, view, unmounted, this)) {
                             if (!unmounted) this.unmountView(view);
                             updates.unmounted[cid] |= currentFlag;
                             delete priorityUpdates[cid];
-                            k++;
+                            unmountCount++;
                             continue;
                         }
                         updates.mountedViews.push(cid);
@@ -516,19 +523,38 @@
                     if (type > 0) {
                         // View update has not finished completely
                         priorityUpdates[cid] = type;
-                        j++;
-                        if (postponeViewFn) postponeViewFn.call(this, view, type, priority);
+                        postponeCount++;
+                        if (postponeViewFn && postponeViewFn.call(this, view, type, this)) {
+                            // postponed view update was resolved
+                            empty = false;
+                        }
                         continue;
                     }
-                    i++;
+                    updateCount++;
                     delete priorityUpdates[cid];
                 }
             }
-            return { updated: i, postponed: j, unmounted: k, empty: l };
+            return {
+                updated: updateCount,
+                postponed: postponeCount,
+                unmounted: unmountCount,
+                mounted: 0,
+                empty: empty
+            };
+        },
+
+        dumpViews: function(opt) {
+            var stats;
+            var updateCount = 0;
+            do {
+                stats = this.updateViews(opt);
+                updateCount += stats.updated;
+            } while (stats.updated > 0 && stats.postponed > 0);
+            return updateCount;
         },
 
         unmountView: function(view) {
-            view.vel.remove();
+            view.unmount();
             var updates = this._updates;
             var cid = view.cid;
             updates.unmountedViews.push(cid);
@@ -538,38 +564,42 @@
         mountView: function(view) {
             var cid = view.cid;
             var updates = this._updates;
-            this.scheduleViewUpdate(view, updates.unmounted[cid], view.UPDATE_PRIORITY);
+            this.scheduleViewUpdate(view, updates.unmounted[cid], view.UPDATE_PRIORITY, { mounting: true });
             delete updates.unmounted[cid];
         },
 
         checkUnmountedViews: function(opt) {
             opt || (opt  = {});
-            var batchSize = opt.batchSize || 1000;
+            var mountCount = 0;
+            var viewportFn = opt.viewport || this.options.viewport;
+            if (typeof viewportFn !== 'function') return mountCount;
+            var batchSize = opt.batchSize || MOUNT_BATCH_SIZE;
             var updates = this._updates;
-            var viewportFn = this.options.viewport;
-            if (typeof viewportFn !== 'function') return;
             var unmountedIds = updates.unmountedViews;
             for (var i = 0, n = Math.min(unmountedIds.length, batchSize); i < n; i++) {
                 var cid = unmountedIds[i];
                 var view = joint.mvc.views[cid];
                 if (!view) continue;
-                if (!viewportFn.call(this, view, true)) {
+                if (!viewportFn.call(this, view, true, this)) {
                     // Push at the end of all unmounted idsm so this can be check later again
                     unmountedIds.push(cid);
                     continue;
                 }
+                mountCount++;
                 this.mountView(view);
             }
             // Get rid of views, that have been mounted
             updates.unmountedViews = unmountedIds.slice(i);
+            return mountCount;
         },
 
         checkMountedViews: function(opt) {
             opt || (opt = {});
-            var batchSize = opt.batchSize || 1000;
+            var unmountCount = 0;
+            var viewportFn = opt.viewport || this.options.viewport;
+            if (typeof viewportFn !== 'function') return unmountCount;
+            var batchSize = opt.batchSize || MOUNT_BATCH_SIZE;
             var updates = this._updates;
-            var viewportFn = this.options.viewport;
-            if (typeof viewportFn !== 'function') return;
             var mountedIds = updates.mountedViews;
             for (var i = 0, n = Math.min(mountedIds.length, batchSize); i < n; i++) {
                 var cid = mountedIds[i];
@@ -580,14 +610,23 @@
                     mountedIds.push(cid);
                     continue;
                 }
+                unmountCount++;
                 this.unmountView(view);
             }
             // Get rid of views, that have been unmounted
             updates.mountedViews = mountedIds.slice(i);
+            return unmountCount;
+        },
+
+        checkViewport: function(opt) {
+            opt || (opt = {});
+            this.checkMountedViews({ batchSize: opt.mountBatchSize || Infinity });
+            this.checkUnmountedViews({ batchSize: opt.unmountBatchSize || Infinity });
+            if (!this.isFrozen()) this.dumpViews(opt);
         },
 
         updateView: function(view, flag, opt) {
-            if (!view) return;
+            if (!view) return 0;
             if (view instanceof joint.dia.CellView) {
                 if (flag & FLAG_REMOVE) {
                     this.removeView(view.model);
@@ -602,10 +641,8 @@
             return view.confirmUpdate(flag, opt || {});
         },
 
-        requireView: function(model, opt) {
-
-            var view = this.findViewByModel(model);
-            if (!view) return null;
+        dumpViewUpdate: function(view, opt) {
+            if (!view) return 0;
             var updates = this._updates;
             var cid = view.cid;
             var flag = updates.unmounted[cid];
@@ -618,7 +655,30 @@
                 flag = priorityUpdates[cid];
                 delete priorityUpdates[cid];
             }
-            this.updateView(view, flag, opt);
+            if (!flag) return 0;
+            return this.updateView(view, flag, opt);
+        },
+
+        forceViewUpdate: function(view, flag) {
+            if (!view || !(view instanceof joint.dia.CellView)) return false;
+            var model = view.model;
+            if (model.isElement()) return false;
+            if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
+                // LinkView is waiting for the target or the source cellView to be rendered
+                // This can happen when the cells are not in the viewport.
+                var sourceView = this.findViewByModel(model.getSourceElement());
+                var sourceFlag = this.dumpViewUpdate(sourceView);
+                var targetView = this.findViewByModel(model.getTargetElement());
+                var targetFlag = this.dumpViewUpdate(targetView);
+                return sourceFlag === 0 && targetFlag === 0;
+            }
+            return false;
+        },
+
+        requireView: function(model, opt) {
+            var view = this.findViewByModel(model);
+            if (!view) return null;
+            this.dumpViewUpdate(view, opt);
             return view;
         },
 
@@ -629,15 +689,18 @@
             var id = updates.id;
             if (id) {
                 var stats = this.updateViews(opt);
-                this.checkUnmountedViews({ batchSize: opt.unmountBatchSize });
-                this.checkMountedViews({ batchSize: opt.mountBatchSize });
+                var umountCount = this.checkUnmountedViews({ batchSize: opt.unmountBatchSize });
+                var mountCount = this.checkMountedViews({ batchSize: opt.mountBatchSize });
                 var processed = data.processed;
                 var total = updates.count;
                 if (stats.updated > 0) {
                     // Some updates have been just processed
                     processed += stats.updated + stats.unmounted;
-                    if (stats.empty) {
-                        this.trigger('render:done');
+                    if (stats.empty && mountCount === 0) {
+                        stats.processed = processed;
+                        stats.unmounted += umountCount;
+                        stats.mounted += mountCount;
+                        this.trigger('render:done', stats);
                         data.processed = 0;
                         updates.count = 0;
                     } else {
@@ -647,7 +710,7 @@
                 // Progress callback
                 var progressFn = opt.progress;
                 if (total && typeof progressFn === 'function') {
-                    progressFn.call(this, processed, total, stats.empty, this);
+                    progressFn.call(this, stats.empty, processed, total, this);
                 }
                 // The current frame could have been canceled in a callback
                 if (updates.id !== id) return;
@@ -681,9 +744,7 @@
                 this.freeze();
                 this.asyncUpdateViews(opt);
             } else {
-                // SYNC
-                var stats;
-                do { stats = this.updateViews(opt); } while (stats.updated > 0 && stats.postponed > 0);
+                this.dumpViews(opt);
             }
             updates.freezeKey = null;
             this.options.frozen = updates.keyFrozen = false;
@@ -982,10 +1043,10 @@
 
             var position = opt.position;
             if (this.isAsync() || !util.isNumber(position)) {
-                this.renderView(cell);
+                this.renderView(cell, opt);
             } else {
                 if (opt.maxPosition === position) this.freeze({ key: 'addCells' });
-                this.renderView(cell);
+                this.renderView(cell, opt);
                 if (position === 0) this.unfreeze({ key: 'addCells' });
             }
         },
@@ -1001,7 +1062,7 @@
             return view;
         },
 
-        renderView: function(cell) {
+        renderView: function(cell, opt) {
 
             var id = cell.id;
             var views = this._views;
@@ -1014,7 +1075,7 @@
                 view.paper = this;
                 flag = FLAG_INSERT | view.FLAG_INIT;
             }
-            this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY);
+            this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
             return view;
         },
 

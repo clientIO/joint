@@ -19,14 +19,20 @@ joint.mvc.View = Backbone.View.extend({
         Backbone.View.call(this, options);
     },
 
-    initialize: function(options) {
-
-        joint.util.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
+    initialize: function() {
 
         joint.mvc.views[this.cid] = this;
 
         this.setTheme(this.options.theme || this.defaultTheme);
         this.init();
+    },
+
+    unmount: function() {
+        if (this.svgElement) {
+            this.vel.remove();
+        } else {
+            this.$el.remove();
+        }
     },
 
     renderChildren: function(children) {
