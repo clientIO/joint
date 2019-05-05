@@ -280,16 +280,14 @@
             this.$document = $(this.el.ownerDocument);
             // Highliters references
             this._highlights = {};
-            // Updates data
-            this._resetUpdates();
             // Render existing cells in the graph
             this.resetViews(model.get('cells'));
             // Start the Rendering Loop
-            if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync(this.options.async);
+            if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync({} /* this.options.async */);
         },
 
         _resetUpdates: function() {
-            this._updates = {
+            return this._updates = {
                 id: null,
                 priorities: [{}, {}, {}],
                 unmountedCids: [],
@@ -500,16 +498,9 @@
             if (!view) return 0;
             var updates = this._updates;
             var cid = view.cid;
-            var flag = updates.unmounted[cid];
-            if (flag) {
-                delete updates.unmounted[cid];
-                updates.mountedCids.push(cid);
-                updates.mounted[cid] = true;
-            } else {
-                var priorityUpdates = updates.priorities[view.UPDATE_PRIORITY];
-                flag = priorityUpdates[cid];
-                delete priorityUpdates[cid];
-            }
+            var priorityUpdates = updates.priorities[view.UPDATE_PRIORITY];
+            var flag = this.registerMountedView(view) | priorityUpdates[cid];
+            delete priorityUpdates[cid];
             return flag;
         },
 
@@ -542,7 +533,7 @@
             return view;
         },
 
-        unmountView: function(view) {
+        registerUnmountedView: function(view) {
             var cid = view.cid;
             var updates = this._updates;
             if (cid in updates.unmounted) return 0;
@@ -552,13 +543,13 @@
             return flag;
         },
 
-        mountView: function(view) {
+        registerMountedView: function(view) {
             var cid = view.cid;
             var updates = this._updates;
             if (cid in updates.mounted) return 0;
             updates.mounted[cid] = true;
             updates.mountedCids.push(cid);
-            var flag = updates.unmounted[cid];
+            var flag = updates.unmounted[cid] || 0;
             delete updates.unmounted[cid];
             return flag;
         },
@@ -566,6 +557,7 @@
         dumpViews: function(opt) {
             var passingOpt = joint.util.defaults({}, opt, { viewport: null });
             this.checkViewport(passingOpt);
+            this.updateViews(passingOpt);
         },
 
         updateViews: function(opt) {
@@ -584,9 +576,15 @@
             var updates = this._updates;
             var id = updates.id;
             if (id) {
+                util.cancelFrame(id);
                 var stats = this.updateViewsBatch(opt);
-                var umountCount = this.checkUnmountedViews(opt);
-                var mountCount = this.checkMountedViews(opt);
+                var passingOpt = joint.util.defaults({}, opt, {
+                    mountBatchSize: MOUNT_BATCH_SIZE - stats.mounted,
+                    unmountBatchSize: MOUNT_BATCH_SIZE - stats.unmounted
+                });
+                var checkStats = this.checkViewport(passingOpt);
+                var umountCount = checkStats.unmounted;
+                var mountCount = checkStats.mounted;
                 var processed = data.processed;
                 var total = updates.count;
                 if (stats.updated > 0) {
@@ -621,6 +619,7 @@
             var updateCount = 0;
             var postponeCount = 0;
             var unmountCount = 0;
+            var mountCount = 0;
             var empty = true;
             var options = this.options;
             var priorities = updates.priorities;
@@ -642,11 +641,11 @@
                         continue;
                     }
                     var currentFlag = priorityUpdates[cid];
-                    var unmounted = cid in updates.unmounted;
-                    if (viewportFn && !viewportFn.call(this, view, unmounted, this)) {
+                    var isDetached = cid in updates.unmounted;
+                    if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
                         // Unmount View
-                        if (!unmounted) {
-                            this.unmountView(view);
+                        if (!isDetached) {
+                            this.registerUnmountedView(view);
                             view.unmount();
                         }
                         updates.unmounted[cid] |= currentFlag;
@@ -655,8 +654,11 @@
                         continue;
                     }
                     // Mount View
-                    if (unmounted) currentFlag |= FLAG_INSERT;
-                    currentFlag |= this.mountView(view);
+                    if (isDetached) {
+                        currentFlag |= FLAG_INSERT;
+                        mountCount++;
+                    }
+                    currentFlag |= this.registerMountedView(view);
                     var leftoverFlag = this.updateView(view, currentFlag, opt);
                     if (leftoverFlag > 0) {
                         // View update has not finished completely
@@ -676,7 +678,7 @@
                 updated: updateCount,
                 postponed: postponeCount,
                 unmounted: unmountCount,
-                mounted: 0,
+                mounted: mountCount,
                 empty: empty
             };
         },
@@ -686,7 +688,7 @@
             var mountCount = 0;
             var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
             if (typeof viewportFn !== 'function') viewportFn = null;
-            var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : MOUNT_BATCH_SIZE;
+            var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : Infinity;
             var updates = this._updates;
             var unmountedCids = updates.unmountedCids;
             var unmounted = updates.unmounted;
@@ -701,7 +703,7 @@
                     continue;
                 }
                 mountCount++;
-                var flag = this.mountView(view);
+                var flag = this.registerMountedView(view);
                 if (flag) this.scheduleViewUpdate(view, flag, view.UPDATE_PRIORITY, { mounting: true });
             }
             // Get rid of views, that have been mounted
@@ -714,7 +716,7 @@
             var unmountCount = 0;
             var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
             if (typeof viewportFn !== 'function') return unmountCount;
-            var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : MOUNT_BATCH_SIZE;
+            var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
             var updates = this._updates;
             var mountedCids = updates.mountedCids;
             var mounted = updates.mounted;
@@ -729,7 +731,7 @@
                     continue;
                 }
                 unmountCount++;
-                var flag = this.unmountView(view);
+                var flag = this.registerUnmountedView(view);
                 if (flag) view.unmount();
             }
             // Get rid of views, that have been unmounted
@@ -746,15 +748,13 @@
             if (unmountedCount > 0) {
                 // Do not check views, that have been just unmounted and pushed at the end of the cids array
                 var unmountedCids = this._updates.unmountedCids;
-                passingOpt.unmountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.unmountBatchSize);
+                passingOpt.mountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.mountBatchSize);
             }
             var mountedCount = this.checkUnmountedViews(passingOpt);
-            if (mountedCount > 0 && !this.isFrozen()) {
-                // No checks for the viewport
-                passingOpt.viewport = null;
-                this.updateViews(passingOpt);
-            }
-            return mountedCount - unmountedCount;
+            return {
+                mounted: mountedCount,
+                unmounted: unmountedCount
+            };
         },
 
         freeze: function(opt) {
