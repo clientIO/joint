@@ -182,7 +182,7 @@
             },
 
             onViewPostponed: function(view, flag /* paper */) {
-                return this.forceViewUpdate(view, flag);
+                return this.forcePostponedViewUpdate(view, flag);
             },
 
             viewport: null,
@@ -285,16 +285,17 @@
             // Render existing cells in the graph
             this.resetViews(model.get('cells'));
             // Start the Rendering Loop
-            if (!this.isFrozen() && this.isAsync()) this.asyncUpdateViews(this.options.async);
+            if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync(this.options.async);
         },
 
         _resetUpdates: function() {
             this._updates = {
                 id: null,
                 priorities: [{}, {}, {}],
-                unmountedViews: [],
-                mountedViews: [],
+                unmountedCids: [],
+                mountedCids: [],
                 unmounted: {},
+                mounted: {},
                 count: 0,
                 keyFrozen: false,
                 freezeKey: null,
@@ -444,17 +445,32 @@
                 var links = this.model.getConnectedLinks(view.model);
                 for (var j = 0, n = links.length; j < n; j++) {
                     var linkView = this.findViewByModel(links[j]);
-                    if (linkView) this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET, linkView.UPDATE_PRIORITY);
+                    if (!linkView) continue;
+                    var flag = linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET;
+                    this.scheduleViewUpdate(linkView, flag, linkView.UPDATE_PRIORITY);
                 }
             }
         },
 
+        forcePostponedViewUpdate: function(view, flag) {
+            if (!view || !(view instanceof joint.dia.CellView)) return false;
+            var model = view.model;
+            if (model.isElement()) return false;
+            if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
+                // LinkView is waiting for the target or the source cellView to be rendered
+                // This can happen when the cells are not in the viewport.
+                var sourceView = this.findViewByModel(model.getSourceElement());
+                var sourceFlag = this.dumpView(sourceView);
+                var targetView = this.findViewByModel(model.getTargetElement());
+                var targetFlag = this.dumpView(targetView);
+                return sourceFlag === 0 && targetFlag === 0;
+            }
+            return false;
+        },
+
         requestViewUpdate: function(view, flag, priority, opt) {
-
             opt || (opt = {});
-
             this.scheduleViewUpdate(view, flag, priority, opt);
-
             if (this.isFrozen() || (this.isAsync() && opt.async !== false)) return;
             if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
             this.updateViews(opt);
@@ -480,149 +496,27 @@
             if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, opt || {}, this);
         },
 
-        updateViews: function(opt) {
-            opt || (opt = {});
-            var batchSize = opt.batchSize || UPDATE_BATCH_SIZE;
-            var updates = this._updates;
-            var updateCount = 0;
-            var postponeCount = 0;
-            var unmountCount = 0;
-            var empty = true;
-            var options = this.options;
-            var priorities = updates.priorities;
-            var viewportFn = options.viewport;
-            if (typeof viewportFn !== 'function') viewportFn = null;
-            var postponeViewFn = options.onViewPostponed;
-            if (typeof postponeViewFn !== 'function') postponeViewFn = null;
-            main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
-                var priorityUpdates = priorities[priority];
-                for (var cid in priorityUpdates) {
-                    if (updateCount > batchSize) {
-                        empty = false;
-                        break main;
-                    }
-                    var view = joint.mvc.views[cid];
-                    if (!view) {
-                        // This should not occur
-                        delete priorityUpdates[cid];
-                        continue;
-                    }
-                    var currentFlag = priorityUpdates[cid];
-                    if (viewportFn) {
-                        var unmounted = cid in updates.unmounted;
-                        if (!viewportFn.call(this, view, unmounted, this)) {
-                            if (!unmounted) this.unmountView(view);
-                            updates.unmounted[cid] |= currentFlag;
-                            delete priorityUpdates[cid];
-                            unmountCount++;
-                            continue;
-                        }
-                        updates.mountedViews.push(cid);
-                    }
-                    var type = this.updateView(view, currentFlag, opt);
-                    if (type > 0) {
-                        // View update has not finished completely
-                        priorityUpdates[cid] = type;
-                        postponeCount++;
-                        if (postponeViewFn && postponeViewFn.call(this, view, type, this)) {
-                            // postponed view update was resolved
-                            empty = false;
-                        }
-                        continue;
-                    }
-                    updateCount++;
-                    delete priorityUpdates[cid];
-                }
-            }
-            return {
-                updated: updateCount,
-                postponed: postponeCount,
-                unmounted: unmountCount,
-                mounted: 0,
-                empty: empty
-            };
-        },
-
-        dumpViews: function(opt) {
-            var stats;
-            var updateCount = 0;
-            do {
-                stats = this.updateViews(opt);
-                updateCount += stats.updated;
-            } while (stats.updated > 0 && stats.postponed > 0);
-            return updateCount;
-        },
-
-        unmountView: function(view) {
-            view.unmount();
+        dumpViewUpdate: function(view) {
+            if (!view) return 0;
             var updates = this._updates;
             var cid = view.cid;
-            updates.unmountedViews.push(cid);
-            updates.unmounted[cid] |= FLAG_INSERT;
-        },
-
-        mountView: function(view) {
-            var cid = view.cid;
-            var updates = this._updates;
-            this.scheduleViewUpdate(view, updates.unmounted[cid], view.UPDATE_PRIORITY, { mounting: true });
-            delete updates.unmounted[cid];
-        },
-
-        checkUnmountedViews: function(opt) {
-            opt || (opt  = {});
-            var mountCount = 0;
-            var viewportFn = opt.viewport || this.options.viewport;
-            if (typeof viewportFn !== 'function') return mountCount;
-            var batchSize = opt.batchSize || MOUNT_BATCH_SIZE;
-            var updates = this._updates;
-            var unmountedIds = updates.unmountedViews;
-            for (var i = 0, n = Math.min(unmountedIds.length, batchSize); i < n; i++) {
-                var cid = unmountedIds[i];
-                var view = joint.mvc.views[cid];
-                if (!view) continue;
-                if (!viewportFn.call(this, view, true, this)) {
-                    // Push at the end of all unmounted idsm so this can be check later again
-                    unmountedIds.push(cid);
-                    continue;
-                }
-                mountCount++;
-                this.mountView(view);
+            var flag = updates.unmounted[cid];
+            if (flag) {
+                delete updates.unmounted[cid];
+                updates.mountedCids.push(cid);
+                updates.mounted[cid] = true;
+            } else {
+                var priorityUpdates = updates.priorities[view.UPDATE_PRIORITY];
+                flag = priorityUpdates[cid];
+                delete priorityUpdates[cid];
             }
-            // Get rid of views, that have been mounted
-            updates.unmountedViews = unmountedIds.slice(i);
-            return mountCount;
+            return flag;
         },
 
-        checkMountedViews: function(opt) {
-            opt || (opt = {});
-            var unmountCount = 0;
-            var viewportFn = opt.viewport || this.options.viewport;
-            if (typeof viewportFn !== 'function') return unmountCount;
-            var batchSize = opt.batchSize || MOUNT_BATCH_SIZE;
-            var updates = this._updates;
-            var mountedIds = updates.mountedViews;
-            for (var i = 0, n = Math.min(mountedIds.length, batchSize); i < n; i++) {
-                var cid = mountedIds[i];
-                var view = joint.mvc.views[cid];
-                if (!view) continue;
-                if (viewportFn.call(this, view, true)) {
-                    // Push at the end of all mounted ids, so this can be check later again
-                    mountedIds.push(cid);
-                    continue;
-                }
-                unmountCount++;
-                this.unmountView(view);
-            }
-            // Get rid of views, that have been unmounted
-            updates.mountedViews = mountedIds.slice(i);
-            return unmountCount;
-        },
-
-        checkViewport: function(opt) {
-            opt || (opt = {});
-            this.checkMountedViews({ batchSize: opt.mountBatchSize || Infinity });
-            this.checkUnmountedViews({ batchSize: opt.unmountBatchSize || Infinity });
-            if (!this.isFrozen()) this.dumpViews(opt);
+        dumpView: function(view, opt) {
+            var flag = this.dumpViewUpdate(view);
+            if (!flag) return 0;
+            return this.updateView(view, flag, opt);
         },
 
         updateView: function(view, flag, opt) {
@@ -641,63 +535,65 @@
             return view.confirmUpdate(flag, opt || {});
         },
 
-        dumpViewUpdate: function(view, opt) {
-            if (!view) return 0;
-            var updates = this._updates;
-            var cid = view.cid;
-            var flag = updates.unmounted[cid];
-            if (flag) {
-                delete updates.unmounted[cid];
-                updates.unmountedViews.splice(updates.unmountedViews.indexOf(cid), 1);
-                updates.mountedViews.push(cid);
-            } else {
-                var priorityUpdates = updates.priorities[view.UPDATE_PRIORITY];
-                flag = priorityUpdates[cid];
-                delete priorityUpdates[cid];
-            }
-            if (!flag) return 0;
-            return this.updateView(view, flag, opt);
-        },
-
-        forceViewUpdate: function(view, flag) {
-            if (!view || !(view instanceof joint.dia.CellView)) return false;
-            var model = view.model;
-            if (model.isElement()) return false;
-            if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
-                // LinkView is waiting for the target or the source cellView to be rendered
-                // This can happen when the cells are not in the viewport.
-                var sourceView = this.findViewByModel(model.getSourceElement());
-                var sourceFlag = this.dumpViewUpdate(sourceView);
-                var targetView = this.findViewByModel(model.getTargetElement());
-                var targetFlag = this.dumpViewUpdate(targetView);
-                return sourceFlag === 0 && targetFlag === 0;
-            }
-            return false;
-        },
-
         requireView: function(model, opt) {
             var view = this.findViewByModel(model);
             if (!view) return null;
-            this.dumpViewUpdate(view, opt);
+            this.dumpView(view, opt);
             return view;
         },
 
-        asyncUpdateViews: function(opt, data) {
+        unmountView: function(view) {
+            var cid = view.cid;
+            var updates = this._updates;
+            if (cid in updates.unmounted) return 0;
+            var flag = updates.unmounted[cid] |= FLAG_INSERT;
+            updates.unmountedCids.push(cid);
+            delete updates.mounted[cid];
+            return flag;
+        },
+
+        mountView: function(view) {
+            var cid = view.cid;
+            var updates = this._updates;
+            if (cid in updates.mounted) return 0;
+            updates.mounted[cid] = true;
+            updates.mountedCids.push(cid);
+            var flag = updates.unmounted[cid];
+            delete updates.unmounted[cid];
+            return flag;
+        },
+
+        dumpViews: function(opt) {
+            var passingOpt = joint.util.defaults({}, opt, { viewport: null });
+            this.checkViewport(passingOpt);
+        },
+
+        updateViews: function(opt) {
+            var stats;
+            var updateCount = 0;
+            do {
+                stats = this.updateViewsBatch(opt);
+                updateCount += stats.updated;
+            } while (stats.updated > 0 && stats.postponed > 0);
+            return updateCount;
+        },
+
+        updateViewsAsync: function(opt, data) {
             opt || (opt = {});
             data || (data = { processed: 0 });
             var updates = this._updates;
             var id = updates.id;
             if (id) {
-                var stats = this.updateViews(opt);
-                var umountCount = this.checkUnmountedViews({ batchSize: opt.unmountBatchSize });
-                var mountCount = this.checkMountedViews({ batchSize: opt.mountBatchSize });
+                var stats = this.updateViewsBatch(opt);
+                var umountCount = this.checkUnmountedViews(opt);
+                var mountCount = this.checkMountedViews(opt);
                 var processed = data.processed;
                 var total = updates.count;
                 if (stats.updated > 0) {
                     // Some updates have been just processed
                     processed += stats.updated + stats.unmounted;
+                    stats.processed = processed;
                     if (stats.empty && mountCount === 0) {
-                        stats.processed = processed;
                         stats.unmounted += umountCount;
                         stats.mounted += mountCount;
                         this.trigger('render:done', stats);
@@ -710,12 +606,155 @@
                 // Progress callback
                 var progressFn = opt.progress;
                 if (total && typeof progressFn === 'function') {
-                    progressFn.call(this, stats.empty, processed, total, this);
+                    progressFn.call(this, stats.empty, processed, total, stats, this);
                 }
                 // The current frame could have been canceled in a callback
                 if (updates.id !== id) return;
             }
-            updates.id = util.nextFrame(this.asyncUpdateViews, this, opt, data);
+            updates.id = util.nextFrame(this.updateViewsAsync, this, opt, data);
+        },
+
+        updateViewsBatch: function(opt) {
+            opt || (opt = {});
+            var batchSize = opt.batchSize || UPDATE_BATCH_SIZE;
+            var updates = this._updates;
+            var updateCount = 0;
+            var postponeCount = 0;
+            var unmountCount = 0;
+            var empty = true;
+            var options = this.options;
+            var priorities = updates.priorities;
+            var viewportFn = 'viewport' in opt ? opt.viewport : options.viewport;
+            if (typeof viewportFn !== 'function') viewportFn = null;
+            var postponeViewFn = options.onViewPostponed;
+            if (typeof postponeViewFn !== 'function') postponeViewFn = null;
+            main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
+                var priorityUpdates = priorities[priority];
+                for (var cid in priorityUpdates) {
+                    if (updateCount > batchSize) {
+                        empty = false;
+                        break main;
+                    }
+                    var view = joint.mvc.views[cid];
+                    if (!view) {
+                        // This should not occur
+                        delete priorityUpdates[cid];
+                        continue;
+                    }
+                    var currentFlag = priorityUpdates[cid];
+                    var unmounted = cid in updates.unmounted;
+                    if (viewportFn && !viewportFn.call(this, view, unmounted, this)) {
+                        // Unmount View
+                        if (!unmounted) {
+                            this.unmountView(view);
+                            view.unmount();
+                        }
+                        updates.unmounted[cid] |= currentFlag;
+                        delete priorityUpdates[cid];
+                        unmountCount++;
+                        continue;
+                    }
+                    // Mount View
+                    if (unmounted) currentFlag |= FLAG_INSERT;
+                    currentFlag |= this.mountView(view);
+                    var leftoverFlag = this.updateView(view, currentFlag, opt);
+                    if (leftoverFlag > 0) {
+                        // View update has not finished completely
+                        priorityUpdates[cid] = leftoverFlag;
+                        postponeCount++;
+                        if (postponeViewFn && postponeViewFn.call(this, view, leftoverFlag, this)) {
+                            // postponed view update was resolved
+                            empty = false;
+                        }
+                        continue;
+                    }
+                    updateCount++;
+                    delete priorityUpdates[cid];
+                }
+            }
+            return {
+                updated: updateCount,
+                postponed: postponeCount,
+                unmounted: unmountCount,
+                mounted: 0,
+                empty: empty
+            };
+        },
+
+        checkUnmountedViews: function(opt) {
+            opt || (opt  = {});
+            var mountCount = 0;
+            var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
+            if (typeof viewportFn !== 'function') viewportFn = null;
+            var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : MOUNT_BATCH_SIZE;
+            var updates = this._updates;
+            var unmountedCids = updates.unmountedCids;
+            var unmounted = updates.unmounted;
+            for (var i = 0, n = Math.min(unmountedCids.length, batchSize); i < n; i++) {
+                var cid = unmountedCids[i];
+                if (!(cid in unmounted)) continue;
+                var view = joint.mvc.views[cid];
+                if (!view) continue;
+                if (viewportFn && !viewportFn.call(this, view, true, this)) {
+                    // Push at the end of all unmounted ids, so this can be check later again
+                    unmountedCids.push(cid);
+                    continue;
+                }
+                mountCount++;
+                var flag = this.mountView(view);
+                if (flag) this.scheduleViewUpdate(view, flag, view.UPDATE_PRIORITY, { mounting: true });
+            }
+            // Get rid of views, that have been mounted
+            unmountedCids.splice(0, i);
+            return mountCount;
+        },
+
+        checkMountedViews: function(opt) {
+            opt || (opt = {});
+            var unmountCount = 0;
+            var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
+            if (typeof viewportFn !== 'function') return unmountCount;
+            var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : MOUNT_BATCH_SIZE;
+            var updates = this._updates;
+            var mountedCids = updates.mountedCids;
+            var mounted = updates.mounted;
+            for (var i = 0, n = Math.min(mountedCids.length, batchSize); i < n; i++) {
+                var cid = mountedCids[i];
+                if (!(cid in mounted)) continue;
+                var view = joint.mvc.views[cid];
+                if (!view) continue;
+                if (viewportFn.call(this, view, true)) {
+                    // Push at the end of all mounted ids, so this can be check later again
+                    mountedCids.push(cid);
+                    continue;
+                }
+                unmountCount++;
+                var flag = this.unmountView(view);
+                if (flag) view.unmount();
+            }
+            // Get rid of views, that have been unmounted
+            mountedCids.splice(0, i);
+            return unmountCount;
+        },
+
+        checkViewport: function(opt) {
+            var passingOpt = joint.util.defaults({}, opt, {
+                mountBatchSize: Infinity,
+                unmountBatchSize: Infinity
+            });
+            var unmountedCount = this.checkMountedViews(passingOpt);
+            if (unmountedCount > 0) {
+                // Do not check views, that have been just unmounted and pushed at the end of the cids array
+                var unmountedCids = this._updates.unmountedCids;
+                passingOpt.unmountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.unmountBatchSize);
+            }
+            var mountedCount = this.checkUnmountedViews(passingOpt);
+            if (mountedCount > 0 && !this.isFrozen()) {
+                // No checks for the viewport
+                passingOpt.viewport = null;
+                this.updateViews(passingOpt);
+            }
+            return mountedCount - unmountedCount;
         },
 
         freeze: function(opt) {
@@ -742,9 +781,9 @@
             if (key && key === updates.freezeKey && updates.keyFrozen) return;
             if (this.isAsync()) {
                 this.freeze();
-                this.asyncUpdateViews(opt);
+                this.updateViewsAsync(opt);
             } else {
-                this.dumpViews(opt);
+                this.updateViews(opt);
             }
             updates.freezeKey = null;
             this.options.frozen = updates.keyFrozen = false;
