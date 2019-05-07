@@ -178,7 +178,7 @@
 
             onViewUpdate: function(view, flag, opt, paper) {
                 if ((flag & FLAG_INSERT) || opt.mounting) return;
-                paper.requestConnectedLinksUpdate(view);
+                paper.requestConnectedLinksUpdate(view, opt);
             },
 
             onViewPostponed: function(view, flag /* paper */) {
@@ -438,14 +438,14 @@
             }
         },
 
-        requestConnectedLinksUpdate: function(view) {
+        requestConnectedLinksUpdate: function(view, opt) {
             if (view instanceof joint.dia.CellView) {
                 var links = this.model.getConnectedLinks(view.model);
                 for (var j = 0, n = links.length; j < n; j++) {
                     var linkView = this.findViewByModel(links[j]);
                     if (!linkView) continue;
                     var flag = linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET;
-                    this.scheduleViewUpdate(linkView, flag, linkView.UPDATE_PRIORITY);
+                    this.scheduleViewUpdate(linkView, flag, linkView.UPDATE_PRIORITY, opt);
                 }
             }
         },

@@ -23,14 +23,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         paper = null;
     });
 
-    // TODO:
-    // elements and links
-    // onViewUpdate
-    // onViewPostponed
-
     QUnit.module('options', function() {
 
         QUnit.module('viewport', function() {
+
             QUnit.test('sanity', function(assert) {
                 var visible = true;
                 var viewportSpy = sinon.spy(function() { return visible; });
@@ -74,8 +70,23 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
 
             QUnit.test('update connected links', function(assert) {
-
-                assert.ok(true);
+                var rect1 = new joint.shapes.standard.Rectangle();
+                var rect2 = new joint.shapes.standard.Rectangle();
+                var link1 = new joint.shapes.standard.Link();
+                var link2 = new joint.shapes.standard.Link();
+                link1.source(rect1);
+                link1.target(rect2);
+                link2.target(link1);
+                rect1.addTo(graph);
+                rect2.addTo(graph);
+                link1.addTo(graph);
+                link2.addTo(graph);
+                var onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
+                rect1.translate(10, 0, { test: true });
+                assert.ok(onViewUpdateSpy.calledThrice);
+                assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, sinon.match({ test: true }), paper));
+                assert.ok(onViewUpdateSpy.calledWithExactly(link2.findView(paper), sinon.match.number, sinon.match({ test: true }), paper));
+                assert.ok(onViewUpdateSpy.calledWithExactly(rect1.findView(paper), sinon.match.number, sinon.match({ test: true }), paper));
             });
         });
 
@@ -113,9 +124,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 link.source(rect1);
                 link.target(rect2);
                 paper.freeze();
+                link.addTo(graph);
                 rect1.addTo(graph);
                 rect2.addTo(graph);
-                link.addTo(graph);
                 paper.unfreeze();
                 assert.ok(onViewPostponedSpy.calledOnce);
                 assert.ok(onViewPostponedSpy.calledWithExactly(link.findView(paper), sinon.match.number, paper));
