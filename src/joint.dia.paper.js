@@ -770,12 +770,9 @@
                 updates.keyFrozen = isFrozen;
             }
             this.options.frozen = true;
-            if (this.isAsync()) {
-                var id = updates.id;
-                if (!id) return;
-                util.cancelFrame(id);
-                updates.id = null;
-            }
+            var id = updates.id;
+            updates.id = null;
+            if (this.isAsync() && id) util.cancelFrame(id);
         },
 
         unfreeze: function(opt) {
