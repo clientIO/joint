@@ -135,91 +135,105 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
     });
 
-    QUnit.module('API: freeze(), unfreeze(), isFrozen()', function() {
+    QUnit.module('prototype', function() {
 
-        QUnit.test('sanity', function(assert) {
-            assert.equal(paper.viewport.childNodes.length, 0);
-            assert.notOk(paper.isFrozen());
-            paper.freeze();
-            assert.ok(paper.isFrozen());
+        QUnit.test('requireView()', function(assert) {
+            assert.equal(paper.requireView(), null);
+            paper.options.viewport = function() { return false; };
             var rect = new joint.shapes.standard.Rectangle();
-            rect.addTo(graph);
-            assert.ok(paper.isFrozen());
-            assert.equal(paper.viewport.childNodes.length, 0);
-            paper.unfreeze();
-            assert.notOk(paper.isFrozen());
-            assert.equal(paper.viewport.childNodes.length, 1);
-        });
-
-        QUnit.test('add+remove+change+add while frozen', function(assert) {
-            paper.freeze();
-            var rect = new joint.shapes.standard.Rectangle();
-            rect.resize(50, 50);
-            rect.position(0, 0);
-            rect.addTo(graph);
-            rect.remove();
-            rect.resize(101, 102);
             rect.translate(201, 202);
+            rect.resize(101, 102);
             rect.addTo(graph);
-            paper.unfreeze();
-            assert.equal(paper.viewport.childNodes.length, 1);
+            var rectView = rect.findView(paper);
+            assert.notOk(rectView.el.parentNode);
+            rectView = paper.requireView(rect);
+            assert.ok(rectView.el.parentNode, paper.viewport);
             assert.checkBbox(paper, rect, 201, 202, 101, 102);
-            rect.remove();
-            assert.equal(paper.viewport.childNodes.length, 0);
         });
 
-        QUnit.module('option: key', function() {
+        QUnit.module('freeze(), unfreeze(), isFrozen()', function() {
 
-            QUnit.test('keep unfrozen', function(assert) {
+            QUnit.test('sanity', function(assert) {
+                assert.equal(paper.viewport.childNodes.length, 0);
                 assert.notOk(paper.isFrozen());
-                paper.freeze({ key: 'test' });
-                assert.ok(paper.isFrozen());
-                paper.unfreeze({ key: 'test' });
-                assert.notOk(paper.isFrozen());
-            });
-
-            QUnit.test('keep frozen', function(assert) {
                 paper.freeze();
                 assert.ok(paper.isFrozen());
-                paper.freeze({ key: 'test' });
+                var rect = new joint.shapes.standard.Rectangle();
+                rect.addTo(graph);
                 assert.ok(paper.isFrozen());
-                paper.unfreeze({ key: 'test' });
-                assert.ok(paper.isFrozen());
+                assert.equal(paper.viewport.childNodes.length, 0);
+                paper.unfreeze();
+                assert.notOk(paper.isFrozen());
+                assert.equal(paper.viewport.childNodes.length, 1);
             });
 
-            QUnit.test('keep unfrozen - nested', function(assert) {
-                assert.notOk(paper.isFrozen());
-                // UNFROZEN
-                paper.freeze({ key: 'test1' });
-                assert.ok(paper.isFrozen());
-                // < nested
-                paper.freeze({ key: 'test2' });
-                assert.ok(paper.isFrozen());
-                paper.unfreeze({ key: 'test2' });
-                assert.ok(paper.isFrozen());
-                // nested >
-                paper.unfreeze({ key: 'test1' });
-                assert.notOk(paper.isFrozen());
-            });
-
-            QUnit.test('keep frozen - nested', function(assert) {
+            QUnit.test('add+remove+change+add while frozen', function(assert) {
                 paper.freeze();
-                assert.ok(paper.isFrozen());
-                // FROZEN
-                paper.freeze({ key: 'test1' });
-                assert.ok(paper.isFrozen());
-                // < nested
-                paper.freeze({ key: 'test2' });
-                assert.ok(paper.isFrozen());
-                paper.unfreeze({ key: 'test2' });
-                assert.ok(paper.isFrozen());
-                // nested >
-                paper.unfreeze({ key: 'test1' });
-                assert.ok(paper.isFrozen());
+                var rect = new joint.shapes.standard.Rectangle();
+                rect.resize(50, 50);
+                rect.position(0, 0);
+                rect.addTo(graph);
+                rect.remove();
+                rect.resize(101, 102);
+                rect.translate(201, 202);
+                rect.addTo(graph);
+                paper.unfreeze();
+                assert.equal(paper.viewport.childNodes.length, 1);
+                assert.checkBbox(paper, rect, 201, 202, 101, 102);
+                rect.remove();
+                assert.equal(paper.viewport.childNodes.length, 0);
+            });
+
+            QUnit.module('option: key', function() {
+
+                QUnit.test('keep unfrozen', function(assert) {
+                    assert.notOk(paper.isFrozen());
+                    paper.freeze({ key: 'test' });
+                    assert.ok(paper.isFrozen());
+                    paper.unfreeze({ key: 'test' });
+                    assert.notOk(paper.isFrozen());
+                });
+
+                QUnit.test('keep frozen', function(assert) {
+                    paper.freeze();
+                    assert.ok(paper.isFrozen());
+                    paper.freeze({ key: 'test' });
+                    assert.ok(paper.isFrozen());
+                    paper.unfreeze({ key: 'test' });
+                    assert.ok(paper.isFrozen());
+                });
+
+                QUnit.test('keep unfrozen - nested', function(assert) {
+                    assert.notOk(paper.isFrozen());
+                    // UNFROZEN
+                    paper.freeze({ key: 'test1' });
+                    assert.ok(paper.isFrozen());
+                    // < nested
+                    paper.freeze({ key: 'test2' });
+                    assert.ok(paper.isFrozen());
+                    paper.unfreeze({ key: 'test2' });
+                    assert.ok(paper.isFrozen());
+                    // nested >
+                    paper.unfreeze({ key: 'test1' });
+                    assert.notOk(paper.isFrozen());
+                });
+
+                QUnit.test('keep frozen - nested', function(assert) {
+                    paper.freeze();
+                    assert.ok(paper.isFrozen());
+                    // FROZEN
+                    paper.freeze({ key: 'test1' });
+                    assert.ok(paper.isFrozen());
+                    // < nested
+                    paper.freeze({ key: 'test2' });
+                    assert.ok(paper.isFrozen());
+                    paper.unfreeze({ key: 'test2' });
+                    assert.ok(paper.isFrozen());
+                    // nested >
+                    paper.unfreeze({ key: 'test1' });
+                    assert.ok(paper.isFrozen());
+                });
             });
         });
-
-
     });
-
 });
