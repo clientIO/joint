@@ -761,9 +761,13 @@
             opt || (opt = {});
             var updates = this._updates;
             var key = opt.key;
-            if (key && key !== updates.freezeKey)  {
+            var isFrozen = this.options.frozen;
+            var freezeKey = updates.freezeKey;
+            if (key && key !== freezeKey)  {
+                // key passed, but the paper is already freezed with another key
+                if (isFrozen && freezeKey) return;
                 updates.freezeKey = key;
-                updates.keyFrozen = this.options.frozen;
+                updates.keyFrozen = isFrozen;
             }
             this.options.frozen = true;
             if (this.isAsync()) {
@@ -778,14 +782,18 @@
             opt || (opt = {});
             var updates = this._updates;
             var key = opt.key;
-            if (key && key === updates.freezeKey && updates.keyFrozen) return;
+            var freezeKey = updates.freezeKey;
+            // key passed, but the paper is already freezed with another key
+            if (key && freezeKey && key !== freezeKey) return;
+            updates.freezeKey = null;
+            // key passed, but the paper is already freezed
+            if (key && key === freezeKey && updates.keyFrozen) return;
             if (this.isAsync()) {
                 this.freeze();
                 this.updateViewsAsync(opt);
             } else {
                 this.updateViews(opt);
             }
-            updates.freezeKey = null;
             this.options.frozen = updates.keyFrozen = false;
             if (updates.sort) {
                 this.sortViews();
