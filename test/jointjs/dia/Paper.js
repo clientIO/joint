@@ -137,6 +137,35 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     QUnit.module('prototype', function() {
 
+        QUnit.test('dumpViews()', function(assert) {
+            var rect1 = new joint.shapes.standard.Rectangle();
+            var rect2 = new joint.shapes.standard.Rectangle();
+            var link = new joint.shapes.standard.Link();
+            rect1.resize(100, 100);
+            rect2.resize(100, 100);
+            rect2.position(200, 0);
+            link.source(rect1);
+            link.target(rect2);
+            paper.options.viewport = function(view) { return view.model === rect1; };
+            link.source(rect1);
+            link.target(rect2);
+            paper.freeze();
+            link.addTo(graph);
+            rect1.addTo(graph);
+            rect2.addTo(graph);
+            paper.unfreeze();
+            assert.equal(paper.viewport.childNodes.length, 1);
+            paper.dumpViews();
+            assert.equal(paper.viewport.childNodes.length, 3);
+            assert.checkBbox(paper, rect1, 0, 0, 100, 100);
+            assert.checkBbox(paper, rect2, 200, 0, 100, 100);
+            assert.checkBbox(paper, link, 100, 50, 100, 0);
+        });
+
+        QUnit.test('checkViewport()', function(assert) {
+            assert.ok(true);
+        });
+
         QUnit.test('requireView()', function(assert) {
             assert.equal(paper.requireView(), null);
             paper.options.viewport = function() { return false; };
