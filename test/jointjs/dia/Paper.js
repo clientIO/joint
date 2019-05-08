@@ -102,6 +102,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             var rect2 = new joint.shapes.standard.Rectangle({ z: 2 });
                             var rect3 = new joint.shapes.standard.Rectangle({ z: 1 });
                             var sortViewsExactSpy = sinon.spy(paper, 'sortViewsExact');
+                            // RESET CELLS
                             graph.resetCells([rect1, rect2, rect3]);
                             var rect1View = rect1.findView(paper);
                             var rect2View = rect2.findView(paper);
@@ -110,6 +111,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.equal(rect2View.el.previousElementSibling, rect3View.el);
                             assert.equal(rect3View.el.previousElementSibling, rect1View.el);
                             assert.equal(sortViewsExactSpy.callCount, paper.options.sorting === Paper.sorting.EXACT ? 1 : 0);
+                            // CHANGE Z
                             rect3.toFront();
                             assert.equal(sortViewsExactSpy.callCount, paper.options.sorting === Paper.sorting.EXACT ? 2 : 0);
                             if (paper.options.sorting === Paper.sorting.NONE) {
@@ -124,6 +126,18 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             sortViewsExactSpy.resetHistory();
                             rect3.translate(10, 10);
                             assert.ok(sortViewsExactSpy.notCalled);
+                            // ADD CELLS
+                            graph.clear();
+                            graph.addCells([rect1, rect2, rect3]);
+                            assert.equal(sortViewsExactSpy.callCount, paper.options.sorting === Paper.sorting.EXACT ? 1 : 0);
+                            if (paper.options.sorting !== Paper.sorting.NONE) {
+                                rect1View = rect1.findView(paper);
+                                rect2View = rect2.findView(paper);
+                                rect3View = rect3.findView(paper);
+                                assert.equal(rect1View.el.previousElementSibling, null);
+                                assert.equal(rect2View.el.previousElementSibling, rect1View.el);
+                                assert.equal(rect3View.el.previousElementSibling, rect2View.el);
+                            }
                         });
 
                         QUnit.test('frozen', function(assert) {
