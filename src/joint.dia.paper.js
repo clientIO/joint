@@ -683,10 +683,9 @@
             };
         },
 
-        checkUnmountedViews: function(opt) {
+        checkUnmountedViews: function(viewportFn, opt) {
             opt || (opt  = {});
             var mountCount = 0;
-            var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
             if (typeof viewportFn !== 'function') viewportFn = null;
             var batchSize = 'mountBatchSize' in opt ? opt.mountBatchSize : Infinity;
             var updates = this._updates;
@@ -711,10 +710,9 @@
             return mountCount;
         },
 
-        checkMountedViews: function(opt) {
+        checkMountedViews: function(viewportFn, opt) {
             opt || (opt = {});
             var unmountCount = 0;
-            var viewportFn = 'viewport' in opt ? opt.viewport : this.options.viewport;
             if (typeof viewportFn !== 'function') return unmountCount;
             var batchSize = 'unmountBatchSize' in opt ? opt.unmountBatchSize : Infinity;
             var updates = this._updates;
@@ -744,13 +742,14 @@
                 mountBatchSize: Infinity,
                 unmountBatchSize: Infinity
             });
-            var unmountedCount = this.checkMountedViews(passingOpt);
+            var viewportFn = 'viewport' in passingOpt ? passingOpt.viewport : this.options.viewport;
+            var unmountedCount = this.checkMountedViews(viewportFn, passingOpt);
             if (unmountedCount > 0) {
                 // Do not check views, that have been just unmounted and pushed at the end of the cids array
                 var unmountedCids = this._updates.unmountedCids;
                 passingOpt.mountBatchSize = Math.min(unmountedCids.length - unmountedCount, passingOpt.mountBatchSize);
             }
-            var mountedCount = this.checkUnmountedViews(passingOpt);
+            var mountedCount = this.checkUnmountedViews(viewportFn, passingOpt);
             return {
                 mounted: mountedCount,
                 unmounted: unmountedCount
