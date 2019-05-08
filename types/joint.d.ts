@@ -1004,8 +1004,8 @@ export namespace dia {
 
         findViewsInArea(rect: BBox, opt?: { strict?: boolean }): ElementView[];
 
-        fitToContent(opt?: Paper.FitToContentOptions): void;
-        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): void;
+        fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
+        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;
 
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 

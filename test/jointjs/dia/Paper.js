@@ -38,23 +38,23 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
-        QUnit.module('getContentArea() > options > useModelGeometry', function() {
+        function addCells() {
+            var rect1 = new joint.shapes.standard.Rectangle();
+            var rect2 = new joint.shapes.standard.Rectangle();
+            var link = new joint.shapes.standard.Link();
+            rect1.resize(100, 100);
+            rect2.resize(100, 100);
+            rect1.position(-100, -100);
+            rect2.position(100, 100);
+            link.source(rect1);
+            link.target(rect2);
+            link.vertices([{ x: 0, y: 300 }]);
+            rect1.addTo(graph);
+            rect2.addTo(graph);
+            link.addTo(graph);
+        }
 
-            function addCells() {
-                var rect1 = new joint.shapes.standard.Rectangle();
-                var rect2 = new joint.shapes.standard.Rectangle();
-                var link = new joint.shapes.standard.Link();
-                rect1.resize(100, 100);
-                rect2.resize(100, 100);
-                rect1.position(-100, -100);
-                rect2.position(100, 100);
-                link.source(rect1);
-                link.target(rect2);
-                link.vertices([{ x: 0, y: 300 }]);
-                rect1.addTo(graph);
-                rect2.addTo(graph);
-                link.addTo(graph);
-            }
+        QUnit.module('getContentArea() > options > useModelGeometry', function() {
 
             QUnit.test('useModelGeometry = FALSE', function(assert) {
                 var area = paper.getContentArea();
@@ -82,6 +82,56 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 paper.unfreeze();
                 area = paper.getContentArea({ useModelGeometry: true });
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 });
+            });
+        });
+
+        QUnit.module('fitToContent() > options > useModelGeometry', function() {
+
+            [0.5, 1, 2].forEach(function(scale) {
+                QUnit.test('scale = ' + scale + ' > useModelGeometry = TRUE', function(assert) {
+                    paper.scale(scale);
+                    //scale = 1;
+                    var expected;
+                    var area = paper.fitToContent({ useModelGeometry: true });
+                    assert.ok(area instanceof g.Rect);
+                    expected = {
+                        x: 0,
+                        y: 0,
+                        width: 1 / scale,
+                        height: 1 / scale
+                    };
+                    assert.deepEqual(area.toJSON(), expected);
+                    assert.deepEqual(paper.getArea().toJSON(), expected);
+                    addCells();
+                    area = paper.fitToContent({ useModelGeometry: true });
+                    expected = {
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 300
+                    };
+                    assert.deepEqual(area.toJSON(), expected);
+                    assert.deepEqual(paper.getArea().toJSON(), expected);
+                    area = paper.fitToContent({ useModelGeometry: true, allowNewOrigin: 'any' });
+                    expected = {
+                        x: -100,
+                        y: -100,
+                        width: 300,
+                        height: 400
+                    };
+                    assert.deepEqual(area.toJSON(), expected);
+                    assert.deepEqual(paper.getArea().toJSON(), expected);
+                    var padding = 20;
+                    area = paper.fitToContent({ useModelGeometry: true, allowNewOrigin: 'any', padding: padding });
+                    expected = {
+                        x: -100 - padding / scale,
+                        y: - 100  - padding / scale,
+                        width: 300 + 2 * padding / scale,
+                        height: 400 + 2 * padding / scale
+                    };
+                    assert.deepEqual(area.toJSON(), expected);
+                    assert.deepEqual(paper.getArea().toJSON(), expected);
+                });
             });
         });
 
@@ -506,11 +556,69 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     });
                 });
 
+                QUnit.module('prototype', function() {
+
+                    QUnit.module('freeze(), unfreeze(), isFrozen()', function() {
+
+                        QUnit.test('sanity', function(assert) {
+                            var done = assert.async();
+                            assert.expect(5);
+                            paper.on('render:done', function() {
+                                assert.notOk(paper.isFrozen());
+                                assert.equal(cellNodesCount(paper), 1);
+                                done();
+                            });
+                            assert.notOk(paper.isFrozen());
+                            paper.freeze();
+                            assert.ok(paper.isFrozen());
+                            var rect = new joint.shapes.standard.Rectangle();
+                            rect.addTo(graph);
+                            paper.unfreeze();
+                            assert.equal(cellNodesCount(paper), 0);
+                        });
+                    });
+
+                    QUnit.module('options', function() {
+
+                        QUnit.test('progress + batchSize', function(assert) {
+                            var done = assert.async();
+                            assert.expect(11);
+                            var progressCounter = 0;
+                            var progressSpy = sinon.spy(function(finished, processed, total) {
+                                assert.equal(processed, ++progressCounter);
+                                assert.equal(total, graph.getCells().length);
+                                if (finished) {
+                                    assert.ok(paper.isFrozen());
+                                    assert.notOk(paper._updates.id);
+                                    done();
+                                }
+                            });
+                            paper.on('render:done', function() {
+                                assert.equal(progressSpy.callCount, 3);
+                                progressSpy.alwaysCalledWith(sinon.match.boolean, sinon.match.number, sinon.match.number /* stats */);
+                                progressSpy.alwaysCalledOn(paper);
+                                progressSpy.resetHistory();
+                                paper.freeze();
+                            });
+                            paper.freeze();
+                            paper.unfreeze({ batchSize: 1, progress: progressSpy });
+                            graph.resetCells([
+                                new joint.shapes.standard.Rectangle(),
+                                new joint.shapes.standard.Rectangle(),
+                                new joint.shapes.standard.Rectangle(),
+                                new joint.shapes.standard.Rectangle()
+                            ]);
+                        });
+
+                    });
+                });
+
                 QUnit.module('events', function() {
 
                     QUnit.module('render:done', function() {
 
                         QUnit.test('unfrozen', function(assert) {
+                            paper.freeze();
                             paper.unfreeze();
                             var rect1 = new joint.shapes.standard.Rectangle();
                             var rect2 = new joint.shapes.standard.Rectangle();
@@ -526,6 +634,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         });
 
                         QUnit.test('frozen', function(assert) {
+                            paper.unfreeze();
                             paper.freeze();
                             var rect1 = new joint.shapes.standard.Rectangle();
                             var rect2 = new joint.shapes.standard.Rectangle();
@@ -540,10 +649,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             }, 100);
                         });
 
-
                     });
-
-
 
                 });
             });

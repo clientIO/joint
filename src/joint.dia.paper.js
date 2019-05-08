@@ -878,11 +878,13 @@
 
             var currentScale = this.scale();
             var currentTranslate = this.translate();
+            var sx = currentScale.sx;
+            var sy = currentScale.sy;
 
-            bbox.x *= currentScale.sx;
-            bbox.y *= currentScale.sy;
-            bbox.width *= currentScale.sx;
-            bbox.height *= currentScale.sy;
+            bbox.x *= sx;
+            bbox.y *= sy;
+            bbox.width *= sx;
+            bbox.height *= sy;
 
             var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
             var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
@@ -924,6 +926,8 @@
             if (dimensionChange) {
                 this.setDimensions(calcWidth, calcHeight);
             }
+
+            return new g.Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
         },
 
         scaleContentToFit: function(opt) {
