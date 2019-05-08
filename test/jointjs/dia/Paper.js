@@ -8,6 +8,22 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         return V(paper.viewport).children().length;
     }
 
+    function addCells(graph) {
+        var rect1 = new joint.shapes.standard.Rectangle();
+        var rect2 = new joint.shapes.standard.Rectangle();
+        var link = new joint.shapes.standard.Link();
+        rect1.resize(100, 100);
+        rect2.resize(100, 100);
+        rect1.position(-100, -100);
+        rect2.position(100, 100);
+        link.source(rect1);
+        link.target(rect2);
+        link.vertices([{ x: 0, y: 300 }]);
+        rect1.addTo(graph);
+        rect2.addTo(graph);
+        link.addTo(graph);
+    }
+
     hooks.beforeEach(function() {
 
         var fixtureEl = document.getElementById('qunit-fixture') || document.createElement('div');
@@ -38,22 +54,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
-        function addCells() {
-            var rect1 = new joint.shapes.standard.Rectangle();
-            var rect2 = new joint.shapes.standard.Rectangle();
-            var link = new joint.shapes.standard.Link();
-            rect1.resize(100, 100);
-            rect2.resize(100, 100);
-            rect1.position(-100, -100);
-            rect2.position(100, 100);
-            link.source(rect1);
-            link.target(rect2);
-            link.vertices([{ x: 0, y: 300 }]);
-            rect1.addTo(graph);
-            rect2.addTo(graph);
-            link.addTo(graph);
-        }
-
         QUnit.module('getContentArea() > options > useModelGeometry', function() {
 
             QUnit.test('useModelGeometry = FALSE', function(assert) {
@@ -61,7 +61,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(area instanceof g.Rect);
                 assert.deepEqual(area.toJSON(), { x: 0, y: 0, width: 0, height: 0 });
                 paper.freeze();
-                addCells();
+                addCells(graph);
                 area = paper.getContentArea();
                 assert.ok(area instanceof g.Rect);
                 assert.deepEqual(area.toJSON(), { x: 0, y: 0, width: 0, height: 0 });
@@ -75,7 +75,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 assert.ok(area instanceof g.Rect);
                 assert.deepEqual(area.toJSON(), { x: 0, y: 0, width: 0, height: 0 });
                 paper.freeze();
-                addCells();
+                addCells(graph);
                 area = paper.getContentArea({ useModelGeometry: true });
                 assert.ok(area instanceof g.Rect);
                 assert.deepEqual(area.toJSON(), { x: -100, y: -100, width: 300, height: 400 });
@@ -102,7 +102,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     };
                     assert.deepEqual(area.toJSON(), expected);
                     assert.deepEqual(paper.getArea().toJSON(), expected);
-                    addCells();
+                    addCells(graph);
                     area = paper.fitToContent({ useModelGeometry: true });
                     expected = {
                         x: 0,
@@ -543,117 +543,157 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         });
                     });
                 });
-
-            });
-
-            QUnit.module('async = TRUE', function(hooks) {
-
-                hooks.beforeEach(function() {
-                    paper = new joint.dia.Paper({
-                        el: paperEl,
-                        model: graph,
-                        async: true
-                    });
-                });
-
-                QUnit.module('prototype', function() {
-
-                    QUnit.module('freeze(), unfreeze(), isFrozen()', function() {
-
-                        QUnit.test('sanity', function(assert) {
-                            var done = assert.async();
-                            assert.expect(5);
-                            paper.on('render:done', function() {
-                                assert.notOk(paper.isFrozen());
-                                assert.equal(cellNodesCount(paper), 1);
-                                done();
-                            });
-                            assert.notOk(paper.isFrozen());
-                            paper.freeze();
-                            assert.ok(paper.isFrozen());
-                            var rect = new joint.shapes.standard.Rectangle();
-                            rect.addTo(graph);
-                            paper.unfreeze();
-                            assert.equal(cellNodesCount(paper), 0);
-                        });
-                    });
-
-                    QUnit.module('options', function() {
-
-                        QUnit.test('progress + batchSize', function(assert) {
-                            var done = assert.async();
-                            assert.expect(11);
-                            var progressCounter = 0;
-                            var progressSpy = sinon.spy(function(finished, processed, total) {
-                                assert.equal(processed, ++progressCounter);
-                                assert.equal(total, graph.getCells().length);
-                                if (finished) {
-                                    assert.ok(paper.isFrozen());
-                                    assert.notOk(paper._updates.id);
-                                    done();
-                                }
-                            });
-                            paper.on('render:done', function() {
-                                assert.equal(progressSpy.callCount, 3);
-                                progressSpy.alwaysCalledWith(sinon.match.boolean, sinon.match.number, sinon.match.number /* stats */);
-                                progressSpy.alwaysCalledOn(paper);
-                                progressSpy.resetHistory();
-                                paper.freeze();
-                            });
-                            paper.freeze();
-                            paper.unfreeze({ batchSize: 1, progress: progressSpy });
-                            graph.resetCells([
-                                new joint.shapes.standard.Rectangle(),
-                                new joint.shapes.standard.Rectangle(),
-                                new joint.shapes.standard.Rectangle(),
-                                new joint.shapes.standard.Rectangle()
-                            ]);
-                        });
-
-                    });
-                });
-
-                QUnit.module('events', function() {
-
-                    QUnit.module('render:done', function() {
-
-                        QUnit.test('unfrozen', function(assert) {
-                            paper.freeze();
-                            paper.unfreeze();
-                            var rect1 = new joint.shapes.standard.Rectangle();
-                            var rect2 = new joint.shapes.standard.Rectangle();
-                            var done = assert.async();
-                            var renderDoneSpy = sinon.spy(function() { rect2.addTo(graph); });
-                            paper.on('render:done', renderDoneSpy);
-                            graph.resetCells([rect1]);
-                            assert.expect(1);
-                            setTimeout(function() {
-                                assert.equal(renderDoneSpy.callCount, 2);
-                                done();
-                            }, 100);
-                        });
-
-                        QUnit.test('frozen', function(assert) {
-                            paper.unfreeze();
-                            paper.freeze();
-                            var rect1 = new joint.shapes.standard.Rectangle();
-                            var rect2 = new joint.shapes.standard.Rectangle();
-                            var done = assert.async();
-                            var renderDoneSpy = sinon.spy(function() { rect2.addTo(graph); });
-                            assert.expect(1);
-                            paper.on('render:done', renderDoneSpy);
-                            graph.resetCells([rect1]);
-                            setTimeout(function() {
-                                assert.equal(renderDoneSpy.callCount, 0);
-                                done();
-                            }, 100);
-                        });
-
-                    });
-
-                });
             });
         });
 
     });
+    QUnit.module('async = TRUE, frozen = TRUE', function(hooks) {
+
+        hooks.beforeEach(function() {
+            addCells(graph);
+            paper = new joint.dia.Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                frozen: true
+            });
+        });
+
+        QUnit.test('sanity', function(assert) {
+            assert.ok(paper.isFrozen());
+            assert.ok(paper.isAsync());
+            assert.equal(cellNodesCount(paper), 0);
+        });
+
+        QUnit.test('unfreeze existing cells', function(assert) {
+            var done = assert.async();
+            paper.on('render:done', function() {
+                assert.equal(cellNodesCount(paper), 3);
+                done();
+            });
+            paper.unfreeze();
+        });
+
+        QUnit.test('dumping existing cells', function(assert) {
+            paper.dumpViews();
+            assert.equal(cellNodesCount(paper), 3);
+        });
+
+    });
+
+
+    QUnit.module('async = TRUE, frozen = FALSE', function(hooks) {
+
+        hooks.beforeEach(function() {
+            paper = new joint.dia.Paper({
+                el: paperEl,
+                model: graph,
+                async: true,
+                frozen: false
+            });
+        });
+
+        QUnit.test('sanity', function(assert) {
+            assert.notOk(paper.isFrozen());
+            assert.ok(paper.isAsync());
+        });
+
+        QUnit.module('prototype', function() {
+
+            QUnit.module('freeze(), unfreeze(), isFrozen()', function() {
+
+                QUnit.test('sanity', function(assert) {
+                    var done = assert.async();
+                    assert.expect(5);
+                    paper.on('render:done', function() {
+                        assert.notOk(paper.isFrozen());
+                        assert.equal(cellNodesCount(paper), 1);
+                        done();
+                    });
+                    assert.notOk(paper.isFrozen());
+                    paper.freeze();
+                    assert.ok(paper.isFrozen());
+                    var rect = new joint.shapes.standard.Rectangle();
+                    rect.addTo(graph);
+                    paper.unfreeze();
+                    assert.equal(cellNodesCount(paper), 0);
+                });
+            });
+
+            QUnit.module('options', function() {
+
+                QUnit.test('progress + batchSize', function(assert) {
+                    var done = assert.async();
+                    assert.expect(11);
+                    var progressCounter = 0;
+                    var progressSpy = sinon.spy(function(finished, processed, total) {
+                        assert.equal(processed, ++progressCounter);
+                        assert.equal(total, graph.getCells().length);
+                        if (finished) {
+                            assert.ok(paper.isFrozen());
+                            assert.notOk(paper._updates.id);
+                            done();
+                        }
+                    });
+                    paper.on('render:done', function() {
+                        assert.equal(progressSpy.callCount, 3);
+                        progressSpy.alwaysCalledWith(sinon.match.boolean, sinon.match.number, sinon.match.number /* stats */);
+                        progressSpy.alwaysCalledOn(paper);
+                        progressSpy.resetHistory();
+                        paper.freeze();
+                    });
+                    paper.freeze();
+                    paper.unfreeze({ batchSize: 1, progress: progressSpy });
+                    graph.resetCells([
+                        new joint.shapes.standard.Rectangle(),
+                        new joint.shapes.standard.Rectangle(),
+                        new joint.shapes.standard.Rectangle(),
+                        new joint.shapes.standard.Rectangle()
+                    ]);
+                });
+
+            });
+        });
+
+        QUnit.module('events', function() {
+
+            QUnit.module('render:done', function() {
+
+                QUnit.test('unfrozen', function(assert) {
+                    paper.freeze();
+                    paper.unfreeze();
+                    var rect1 = new joint.shapes.standard.Rectangle();
+                    var rect2 = new joint.shapes.standard.Rectangle();
+                    var done = assert.async();
+                    var renderDoneSpy = sinon.spy(function() { rect2.addTo(graph); });
+                    paper.on('render:done', renderDoneSpy);
+                    graph.resetCells([rect1]);
+                    assert.expect(1);
+                    setTimeout(function() {
+                        assert.equal(renderDoneSpy.callCount, 2);
+                        done();
+                    }, 100);
+                });
+
+                QUnit.test('frozen', function(assert) {
+                    paper.unfreeze();
+                    paper.freeze();
+                    var rect1 = new joint.shapes.standard.Rectangle();
+                    var rect2 = new joint.shapes.standard.Rectangle();
+                    var done = assert.async();
+                    var renderDoneSpy = sinon.spy(function() { rect2.addTo(graph); });
+                    assert.expect(1);
+                    paper.on('render:done', renderDoneSpy);
+                    graph.resetCells([rect1]);
+                    setTimeout(function() {
+                        assert.equal(renderDoneSpy.callCount, 0);
+                        done();
+                    }, 100);
+                });
+
+            });
+
+        });
+    });
 });
+
