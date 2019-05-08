@@ -506,7 +506,46 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     });
                 });
 
+                QUnit.module('events', function() {
 
+                    QUnit.module('render:done', function() {
+
+                        QUnit.test('unfrozen', function(assert) {
+                            paper.unfreeze();
+                            var rect1 = new joint.shapes.standard.Rectangle();
+                            var rect2 = new joint.shapes.standard.Rectangle();
+                            var done = assert.async();
+                            var renderDoneSpy = sinon.spy(function() { rect2.addTo(graph); });
+                            paper.on('render:done', renderDoneSpy);
+                            graph.resetCells([rect1]);
+                            assert.expect(1);
+                            setTimeout(function() {
+                                assert.equal(renderDoneSpy.callCount, 2);
+                                done();
+                            }, 100);
+                        });
+
+                        QUnit.test('frozen', function(assert) {
+                            paper.freeze();
+                            var rect1 = new joint.shapes.standard.Rectangle();
+                            var rect2 = new joint.shapes.standard.Rectangle();
+                            var done = assert.async();
+                            var renderDoneSpy = sinon.spy(function() { rect2.addTo(graph); });
+                            assert.expect(1);
+                            paper.on('render:done', renderDoneSpy);
+                            graph.resetCells([rect1]);
+                            setTimeout(function() {
+                                assert.equal(renderDoneSpy.callCount, 0);
+                                done();
+                            }, 100);
+                        });
+
+
+                    });
+
+
+
+                });
             });
         });
 
