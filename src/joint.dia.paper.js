@@ -260,17 +260,7 @@
             this.cloneOptions();
             this.render();
             this.setDimensions();
-
-            this.listenTo(model, 'add', this.onCellAdded)
-                .listenTo(model, 'remove', this.onCellRemoved)
-                .listenTo(model, 'change', this.onCellChange)
-                .listenTo(model, 'reset', this.resetViews)
-                .listenTo(model, 'sort', this._onSort)
-                .listenTo(model, 'batch:stop', this._onBatchStop);
-
-            this.on('cell:highlight', this.onCellHighlight)
-                .on('cell:unhighlight', this.onCellUnhighlight)
-                .on('scale translate', this.update);
+            this.startListening();
 
             // Hash of all cell views.
             this._views = {};
@@ -281,9 +271,9 @@
             // Highliters references
             this._highlights = {};
             // Render existing cells in the graph
-            this.resetViews(model.get('cells'));
+            this.resetViews(model.attributes.cells.models);
             // Start the Rendering Loop
-            if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync({} /* this.options.async */);
+            if (!this.isFrozen() && this.isAsync()) this.updateViewsAsync();
         },
 
         _resetUpdates: function() {
@@ -301,6 +291,30 @@
             };
         },
 
+        startListening: function() {
+            var model = this.model;
+            this.listenTo(model, 'add', this.onCellAdded)
+                .listenTo(model, 'remove', this.onCellRemoved)
+                .listenTo(model, 'change', this.onCellChange)
+                .listenTo(model, 'reset', this.onGraphReset)
+                .listenTo(model, 'sort', this.onGraphSort)
+                .listenTo(model, 'batch:stop', this.onGraphBatchStop);
+            this.on('cell:highlight', this.onCellHighlight)
+                .on('cell:unhighlight', this.onCellUnhighlight)
+                .on('scale translate', this.update);
+        },
+
+        onCellAdded: function(cell, _, opt) {
+            var position = opt.position;
+            if (this.isAsync() || !util.isNumber(position)) {
+                this.renderView(cell, opt);
+            } else {
+                if (opt.maxPosition === position) this.freeze({ key: 'addCells' });
+                this.renderView(cell, opt);
+                if (position === 0) this.unfreeze({ key: 'addCells' });
+            }
+        },
+
         onCellRemoved: function(cell) {
             this.requestViewUpdate(this.findViewByModel(cell), FLAG_REMOVE, 0);
         },
@@ -310,6 +324,31 @@
             if (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX) {
                 var view = this.findViewByModel(cell);
                 if (view) this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY);
+            }
+        },
+
+        onGraphReset: function(collection, opt) {
+            this.resetViews(collection.models, opt);
+        },
+
+        onGraphSort: function() {
+            if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
+            this.sortViews();
+        },
+
+        onGraphBatchStop: function(data) {
+            if (this.isFrozen()) return;
+            var name = data && data.batchName;
+            var graph = this.model;
+            if (!this.isAsync()) {
+                var updateDelayingBatches = this.UPDATE_DELAYING_BATCHES;
+                if (updateDelayingBatches.includes(name) && !graph.hasActiveBatch(updateDelayingBatches)) {
+                    this.updateViews(data);
+                }
+            }
+            var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
+            if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
+                this.sortViews();
             }
         },
 
@@ -410,32 +449,6 @@
         clientMatrix: function() {
 
             return V.createSVGMatrix(this.viewport.getScreenCTM());
-        },
-
-        _onSort: function() {
-
-            if (this.model.hasActiveBatch(this.SORT_DELAYING_BATCHES)) return;
-            this.sortViews();
-        },
-
-        _onBatchStop: function(data) {
-
-            if (this.isFrozen()) return;
-
-            var name = data && data.batchName;
-            var graph = this.model;
-
-            if (!this.isAsync()) {
-                var updateDelayingBatches = this.UPDATE_DELAYING_BATCHES;
-                if (updateDelayingBatches.includes(name) && !graph.hasActiveBatch(updateDelayingBatches)) {
-                    this.updateViews(data);
-                }
-            }
-
-            var sortDelayingBatches = this.SORT_DELAYING_BATCHES;
-            if (sortDelayingBatches.includes(name) && !graph.hasActiveBatch(sortDelayingBatches)) {
-                this.sortViews();
-            }
         },
 
         requestConnectedLinksUpdate: function(view, opt) {
@@ -1088,18 +1101,6 @@
             });
         },
 
-        onCellAdded: function(cell, _, opt) {
-
-            var position = opt.position;
-            if (this.isAsync() || !util.isNumber(position)) {
-                this.renderView(cell, opt);
-            } else {
-                if (opt.maxPosition === position) this.freeze({ key: 'addCells' });
-                this.renderView(cell, opt);
-                if (position === 0) this.unfreeze({ key: 'addCells' });
-            }
-        },
-
         removeView: function(cell) {
 
             var id = cell.id;
@@ -1135,27 +1136,17 @@
             return false;
         },
 
-        resetViews: function(cellsCollection, opt) {
-
+        resetViews: function(cells, opt) {
             opt || (opt = {});
-
+            cells || (cells = []);
             this._resetUpdates();
-
             // clearing views removes any event listeners
             this.removeViews();
-
-            var cells = cellsCollection.models.slice();
-
             this.freeze({ key: 'reset' });
-
             for (var i = 0, n = cells.length; i < n; i++) {
-                this.renderView(cells[i]);
+                this.renderView(cells[i], opt);
             }
-
             this.unfreeze({ key: 'reset' });
-
-            // Sort the cells in the DOM manually as we might have changed the order they
-            // were added to the DOM (see above).
             this.sortViews();
         },
 

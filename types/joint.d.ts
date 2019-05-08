@@ -1106,7 +1106,7 @@ export namespace dia {
 
         protected renderView(cell: Cell): CellView;
 
-        protected resetViews(cellsCollection: Cell[], opt: { [key: string]: any }): void;
+        protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
 
         protected updateBackgroundColor(color: string): void;
 

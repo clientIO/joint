@@ -1,5 +1,6 @@
 QUnit.module('joint.dia.Paper', function(hooks) {
 
+    var Paper = joint.dia.Paper;
     var paper;
     var paperEl;
     var graph;
@@ -43,8 +44,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
     });
 
     QUnit.module('async = FALSE', function(hooks) {
-
-        var Paper = joint.dia.Paper;
 
         hooks.beforeEach(function() {
             paper = new Paper({
@@ -547,15 +546,17 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         });
 
     });
+
     QUnit.module('async = TRUE, frozen = TRUE', function(hooks) {
 
         hooks.beforeEach(function() {
             addCells(graph);
-            paper = new joint.dia.Paper({
+            paper = new Paper({
                 el: paperEl,
                 model: graph,
                 async: true,
-                frozen: true
+                frozen: true,
+                sorting: Paper.sorting.APPROX
             });
         });
 
@@ -581,15 +582,15 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
     });
 
-
     QUnit.module('async = TRUE, frozen = FALSE', function(hooks) {
 
         hooks.beforeEach(function() {
-            paper = new joint.dia.Paper({
+            paper = new Paper({
                 el: paperEl,
                 model: graph,
                 async: true,
-                frozen: false
+                frozen: false,
+                sorting: Paper.sorting.APPROX
             });
         });
 
