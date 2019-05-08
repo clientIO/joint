@@ -305,6 +305,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                 assert.deepEqual(res, { batches: 1, updated: 2 });
                                 assert.equal(cellNodesCount(paper), 2);
                                 assert.ok(viewportSpy.calledTwice);
+                                // Unmount a view because it's not in the viewport and update views with a different viewport
+                                paper.checkViewport({ viewport: function() { return false; } });
+                                rect1.translate(10, 0);
+                                paper.updateViews({ viewport: function() { return true; } });
+                                assert.equal(cellNodesCount(paper), 1);
                             });
                         });
                     });
