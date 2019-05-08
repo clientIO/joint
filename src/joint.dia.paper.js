@@ -563,11 +563,13 @@
         updateViews: function(opt) {
             var stats;
             var updateCount = 0;
+            var batchCount = 0;
             do {
+                batchCount++;
                 stats = this.updateViewsBatch(opt);
                 updateCount += stats.updated;
-            } while (stats.updated > 0 && stats.postponed > 0);
-            return updateCount;
+            } while (!stats.empty);
+            return { updated: updateCount, batches: batchCount };
         },
 
         updateViewsAsync: function(opt, data) {
@@ -630,7 +632,7 @@
             main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
                 var priorityUpdates = priorities[priority];
                 for (var cid in priorityUpdates) {
-                    if (updateCount > batchSize) {
+                    if (updateCount >= batchSize) {
                         empty = false;
                         break main;
                     }
@@ -1171,10 +1173,10 @@
                 this._updates.sort = true;
                 return;
             }
-            this.exactSortViews();
+            this.sortViewsExact();
         },
 
-        exactSortViews: function() {
+        sortViewsExact: function() {
 
             // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
             // associated model `z` attribute.
