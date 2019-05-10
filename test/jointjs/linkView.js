@@ -650,6 +650,118 @@ QUnit.module('linkView', function(hooks) {
         });
     });
 
+    QUnit.module('linkAnchors', function(hooks) {
+
+        QUnit.test('sanity', function(assert) {
+            // Source Anchor
+            var sourceAnchor = new g.Point(1, -1);
+            var sourceAnchorSpy = joint.linkAnchors.test1 = sinon.spy(function() {
+                return sourceAnchor;
+            });
+            linkView.model.source(link2, {
+                anchor: {
+                    name: 'test1',
+                    args: {
+                        testArg1: true
+                    }
+                }
+            });
+            assert.ok(sourceAnchorSpy.calledOnce);
+            assert.ok(sourceAnchorSpy.calledWithExactly(
+                linkView2,
+                linkView2.el,
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+            assert.equal(sourceAnchorSpy.thisValues[0], linkView);
+
+            // // Target Anchor
+            var targetAnchor = new g.Point(-1, 1);
+            var targetAnchorSpy = joint.linkAnchors.test2 = sinon.spy(function() {
+                return targetAnchor;
+            });
+            linkView.model.target(link2, {
+                anchor: {
+                    name: 'test2',
+                    args: {
+                        testArg2: true
+                    }
+                }
+            });
+            assert.ok(targetAnchorSpy.calledOnce);
+            assert.ok(targetAnchorSpy.calledWithExactly(
+                linkView2,
+                linkView2.el,
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+            assert.equal(targetAnchorSpy.thisValues[0], linkView);
+
+            // // Changing target updates both anchors
+            assert.ok(sourceAnchorSpy.calledTwice);
+
+            // // Source Magnet
+            sourceAnchorSpy.resetHistory();
+            var sourceMagnetAnchorSpy = joint.anchors.test1 = sinon.spy(function() {
+                return sourceAnchor;
+            });
+            linkView.model.prop('source/magnet', '.connection');
+            assert.ok(sourceAnchorSpy.notCalled);
+            assert.ok(sourceMagnetAnchorSpy.calledWithExactly(
+                linkView2,
+                // eslint-disable-next-line no-undef
+                linkView2.el.querySelector('.connection'),
+                sinon.match(function(value) {
+                    return value instanceof SVGElement;
+                }), // requires resolving
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+            assert.ok(sourceMagnetAnchorSpy.calledOnce);
+
+            // // Target Magnet
+            targetAnchorSpy.resetHistory();
+            var targetMagnetAnchorSpy = joint.anchors.test2 = sinon.spy(function() {
+                return targetAnchor;
+            });
+            linkView.model.prop('target/magnet', '.connection');
+            assert.ok(targetAnchorSpy.notCalled);
+
+            assert.ok(targetMagnetAnchorSpy.calledWithExactly(
+                linkView2,
+                linkView2.el.querySelector('.connection'),
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+            assert.ok(targetMagnetAnchorSpy.calledOnce);
+
+            assert.ok(sourceAnchor.equals(linkView.sourceAnchor));
+            assert.ok(targetAnchor.equals(linkView.targetAnchor));
+
+            // // Link connected by source to a point does not use anchors
+            sourceAnchorSpy.resetHistory();
+            sourceMagnetAnchorSpy.resetHistory();
+            linkView.model.removeProp('source/id');
+            assert.ok(sourceAnchorSpy.notCalled);
+            assert.ok(sourceMagnetAnchorSpy.notCalled);
+
+            // Link connected by target to a point does not use anchors
+            targetAnchorSpy.resetHistory();
+            targetMagnetAnchorSpy.resetHistory();
+            linkView.model.removeProp('target/id');
+            assert.ok(targetAnchorSpy.notCalled);
+            assert.ok(targetMagnetAnchorSpy.notCalled);
+        });
+
+    });
+
     QUnit.module('anchors', function(hooks) {
 
         var r1, r2, rv1, rv2;
