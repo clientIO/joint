@@ -1610,9 +1610,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             var endView = endModel.findView(paper);
             if (!endView) {
-                // the view is not rendered yet
-                // this[endViewProperty] = this[endMagnetProperty] = null;
-                // TODO: Test this
+                // A view for a model should always exist
                 return false;
             }
 
@@ -2858,23 +2856,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             return data;
         }
-    }, {
-
-        makeSelector: function(end) {
-
-            var selector = '';
-            // `port` has a higher precendence over `selector`. This is because the selector to the magnet
-            // might change while the name of the port can stay the same.
-            if (end.port) {
-                selector += '[port="' + end.port + '"]';
-            } else if (end.selector) {
-                selector +=  end.selector;
-            }
-
-            return selector;
-        }
     });
-
 
     Object.defineProperty(joint.dia.LinkView.prototype, 'sourceBBox', {
 
