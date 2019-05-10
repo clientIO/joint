@@ -675,7 +675,9 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 linkView
             ));
-            assert.equal(sourceAnchorSpy.thisValues[0], linkView);
+            assert.ok(sourceAnchorSpy.calledOn(linkView));
+            assert.deepEqual(linkView.sourceBBox.toJSON(), (new g.Rect(sourceAnchor)).toJSON());
+
 
             // // Target Anchor
             var targetAnchor = new g.Point(-1, 1);
@@ -699,7 +701,8 @@ QUnit.module('linkView', function(hooks) {
                 'target',
                 linkView
             ));
-            assert.equal(targetAnchorSpy.thisValues[0], linkView);
+            assert.ok(targetAnchorSpy.calledOn(linkView));
+            assert.deepEqual(linkView.targetBBox.toJSON(), (new g.Rect(targetAnchor)).toJSON());
 
             // // Changing target updates both anchors
             assert.ok(sourceAnchorSpy.calledTwice);
@@ -798,7 +801,7 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 linkView
             ));
-            assert.equal(sourceAnchorSpy.thisValues[0], linkView);
+            assert.ok(sourceAnchorSpy.calledOn(linkView));
 
             // Target Anchor
             var targetAnchor = new g.Point(-1, 1);
@@ -818,7 +821,7 @@ QUnit.module('linkView', function(hooks) {
                 'target',
                 linkView
             ));
-            assert.equal(targetAnchorSpy.thisValues[0], linkView);
+            assert.ok(targetAnchorSpy.calledOn(linkView));
 
             // Changing target updates both anchors
             assert.ok(sourceAnchorSpy.calledTwice);
@@ -900,7 +903,7 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 linkView
             ));
-            assert.equal(sourceConnectionPointSpy.thisValues[0], linkView);
+            assert.ok(sourceConnectionPointSpy.calledOn(linkView));
             // Target connectionPoint
             var targetPoint = new g.Point(-1, 1);
             var targetConnectionPointSpy = joint.connectionPoints.test2 = sinon.spy(function() {
@@ -919,7 +922,7 @@ QUnit.module('linkView', function(hooks) {
                 'target',
                 linkView
             ));
-            assert.equal(targetConnectionPointSpy.thisValues[0], linkView);
+            assert.ok(targetConnectionPointSpy.calledOn(linkView));
 
             // Changing target updates both connectionPoints
             assert.ok(sourceConnectionPointSpy.calledTwice);
@@ -1007,7 +1010,7 @@ QUnit.module('linkView', function(hooks) {
                 linkView.model,
                 'source'
             ));
-            assert.equal(strategySpy.thisValues[0], paper);
+            assert.ok(strategySpy.calledOn(paper));
             assert.equal(linkView.model.attributes.source.test, true);
 
             // Target
@@ -1037,7 +1040,7 @@ QUnit.module('linkView', function(hooks) {
                 linkView.model,
                 'target'
             ));
-            assert.equal(strategySpy.thisValues[1], paper);
+            assert.ok(strategySpy.alwaysCalledOn(paper));
             assert.equal(linkView.model.attributes.target.test, true);
         });
     });
