@@ -426,20 +426,18 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getSourcePoint: function() {
-        var source = this.source();
         var sourceCell = this.getSourceCell();
-        if (!sourceCell) return new g.Point(source);
-        return sourceCell.getPointFromLinkEnd(source, this, 'source');
+        if (!sourceCell) return new g.Point(this.source());
+        return sourceCell.getPointFromConnectedLink(this, 'source');
     },
 
     getTargetPoint: function() {
-        var target = this.target();
         var targetCell = this.getTargetCell();
-        if (!targetCell) return new g.Point(target);
-        return targetCell.getPointFromLinkEnd(target, this, 'target');
+        if (!targetCell) return new g.Point(this.target());
+        return targetCell.getPointFromConnectedLink(this, 'target');
     },
 
-    getPointFromLink: function(/* link, endType */) {
+    getPointFromConnectedLink: function(/* link, endType */) {
         return this.getPolyline().pointAt(0.5);
     },
 

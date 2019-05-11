@@ -392,7 +392,7 @@ joint.dia.Element = joint.dia.Cell.extend({
         return new g.Rect(position.x, position.y, size.width, size.height);
     },
 
-    getPointFromLink: function(link, endType) {
+    getPointFromConnectedLink: function(link, endType) {
         // Center of the model
         var bbox = this.getBBox();
         var center = bbox.center();

@@ -725,7 +725,7 @@ joint.dia.Cell = Backbone.Model.extend({
         return 0;
     },
 
-    getPointFromLink: function() {
+    getPointFromConnectedLink: function() {
         // To be overridden
         return new g.Point();
     }
