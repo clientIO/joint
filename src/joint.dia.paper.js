@@ -470,9 +470,9 @@
             if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
                 // LinkView is waiting for the target or the source cellView to be rendered
                 // This can happen when the cells are not in the viewport.
-                var sourceView = this.findViewByModel(model.getSourceElement());
+                var sourceView = this.findViewByModel(model.getSourceCell());
                 var sourceFlag = this.dumpView(sourceView);
-                var targetView = this.findViewByModel(model.getTargetElement());
+                var targetView = this.findViewByModel(model.getTargetCell());
                 var targetFlag = this.dumpView(targetView);
                 return sourceFlag === 0 && targetFlag === 0;
             }

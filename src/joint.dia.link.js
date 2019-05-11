@@ -507,8 +507,8 @@ joint.dia.Link = joint.dia.Cell.extend({
         // A loop "target equals source" is valid in both shallow and deep mode.
         if (!loop && opt.deep && this.graph) {
 
-            var sourceElement = this.getSourceElement();
-            var targetElement = this.getTargetElement();
+            var sourceElement = this.getSourceCell();
+            var targetElement = this.getTargetCell();
 
             loop = sourceElement.isEmbeddedIn(targetElement) || targetElement.isEmbeddedIn(sourceElement);
         }

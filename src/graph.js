@@ -1102,7 +1102,7 @@ export const Graph = Backbone.Model.extend({
 
             if (source.id && target.id) {
 
-                var sourceModel = link.getSourceElement();
+                var sourceModel = link.getSourceCell();
                 if (sourceModel) {
 
                     var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });

@@ -881,33 +881,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
-    // ** Deprecated **
-    getStrokeBBox: function(el) {
-        // Return a bounding box rectangle that takes into account stroke.
-        // Note that this is a naive and ad-hoc implementation that does not
-        // works only in certain cases and should be replaced as soon as browsers will
-        // start supporting the getStrokeBBox() SVG method.
-        // @TODO any better solution is very welcome!
-
-        var isMagnet = !!el;
-
-        el = el || this.el;
-        var bbox = V(el).getBBox({ target: this.paper.viewport });
-        var strokeWidth;
-        if (isMagnet) {
-
-            strokeWidth = V(el).attr('stroke-width');
-
-        } else {
-
-            strokeWidth = this.model.attr('rect/stroke-width') || this.model.attr('circle/stroke-width') || this.model.attr('ellipse/stroke-width') || this.model.attr('path/stroke-width');
-        }
-
-        strokeWidth = parseFloat(strokeWidth) || 0;
-
-        return g.rect(bbox).moveAndExpand({ x: -strokeWidth / 2, y: -strokeWidth / 2, width: strokeWidth, height: strokeWidth });
-    },
-
     getBBox: function() {
 
         return this.vel.getBBox({ target: this.paper.svg });

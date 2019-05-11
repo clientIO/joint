@@ -576,8 +576,6 @@ export namespace dia {
 
         getSelector(el: SVGElement, prevSelector?: string): string;
 
-        getStrokeBBox(el?: SVGElement): g.Rect;
-
         notify(eventName: string, ...eventArguments: any[]): void;
 
         addTools(tools: dia.ToolsView): this;
