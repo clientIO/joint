@@ -167,8 +167,8 @@
     function connectionClosest(view, _magnet, refPoint, _opt) {
 
         var closestPoint = view.getClosestPoint(refPoint);
-        if (closestPoint) return closestPoint;
-        return view.getConnection().start;
+        if (!closestPoint) return new g.Point();
+        return closestPoint;
     }
 
     joint.linkAnchors = {
@@ -191,6 +191,7 @@
                         refPoint = refView.getNodeBBox(ref).center();
                     }
                 } else {
+                    // Something went wrong
                     refPoint = new g.Point();
                 }
                 return fn.call(this, view, magnet, refPoint, opt);

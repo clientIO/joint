@@ -650,7 +650,7 @@ QUnit.module('linkView', function(hooks) {
         });
     });
 
-    QUnit.module('linkAnchors', function(hooks) {
+    QUnit.module('linkAnchors', function() {
 
         QUnit.test('sanity', function(assert) {
             // Source Anchor
@@ -761,6 +761,80 @@ QUnit.module('linkView', function(hooks) {
             linkView.model.removeProp('target/id');
             assert.ok(targetAnchorSpy.notCalled);
             assert.ok(targetMagnetAnchorSpy.notCalled);
+        });
+
+        QUnit.test('joint.linkAnchors - source', function(assert) {
+
+            link2.source({ x: 100, y: 100 });
+            link2.target({ x: 200, y: 100 });
+            link.source({ x: 160, y: 200 });
+            // RATIO
+            link.target(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.2 }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 120, y: 100 });
+            //L ENGTH
+            link.target(link2, { anchor: { name: 'connectionLength', args: { length: 40 }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 140, y: 100 });
+            // CLOSEST
+            link.target(link2, { anchor: { name: 'connectionClosest' }});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 160, y: 100 });
+            // PERPENDICULAR
+            link.target(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: '30%' }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 160, y: 100 });
+            link.source({ x: 0, y: 200 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 130, y: 100 });
+            link.target(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: 40 }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 140, y: 100 });
+            link.removeProp('target/anchor/args');
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 100 });
+            link2.target({ x: 100, y: 300 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 200 });
+            link.prop('target/anchor/args', { fixedAt: '40%' });
+            link.source(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.9 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 280 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 }); // perpendicular
+            // Multiple intersections
+            link2.target({ x: 200, y: 100 });
+            link2.vertices([{ x: 100, y: 300 }, { x: 200, y: 300 }]);
+            link.source(link2, { anchor: { name: 'connectionPerpendicular' }});
+            link.target({ x: 0, y: 150 });
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 150 });
+        });
+
+        QUnit.test('joint.linknAchors - target', function(assert) {
+
+            link2.source({ x: 100, y: 100 });
+            link2.target({ x: 200, y: 100 });
+            link.target({ x: 160, y: 200 });
+            // RATIO
+            link.source(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.2 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 120, y: 100 });
+            // LENGTH
+            link.source(link2, { anchor: { name: 'connectionLength', args: { length: 40 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 140, y: 100 });
+            // CLOSEST
+            link.source(link2, { anchor: { name: 'connectionClosest' }});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 160, y: 100 });
+            // PERPENDICULAR
+            link.source(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: '30%' }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 160, y: 100 });
+            link.target({ x: 0, y: 200 });
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 130, y: 100 });
+            link.source(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: 40 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 140, y: 100 });
+            link.removeProp('source/anchor/args');
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 100 });
+            link2.target({ x: 100, y: 300 });
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 200 });
+            link.prop('source/anchor/args', { fixedAt: '40%' });
+            link.target(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.9 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 180 }); // fixedAt
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 });
+            // Multiple intersections
+            link2.target({ x: 200, y: 100 });
+            link2.vertices([{ x: 100, y: 300 }, { x: 200, y: 300 }]);
+            link.target(link2, { anchor: { name: 'connectionPerpendicular' }});
+            link.source({ x: 0, y: 150 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 150 });
         });
 
     });
