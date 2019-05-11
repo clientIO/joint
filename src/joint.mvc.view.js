@@ -132,6 +132,12 @@ joint.mvc.View = Backbone.View.extend({
         // This method is meant to be overridden.
     },
 
+    confirmUpdate: function() {
+        // Intentionally empty.
+        // This method is meant to be overridden.
+        return 0;
+    },
+
     setTheme: function(theme, opt) {
 
         opt = opt || {};
