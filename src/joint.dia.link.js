@@ -426,35 +426,21 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getSourcePoint: function() {
-        return this.getEndPoint('source');
+        var source = this.source();
+        var sourceCell = this.getSourceCell();
+        if (!sourceCell) return new g.Point(source);
+        return sourceCell.getPointFromLinkEnd(source, this, 'source');
     },
 
     getTargetPoint: function() {
-        return this.getEndPoint('target');
+        var target = this.target();
+        var targetCell = this.getTargetCell();
+        if (!targetCell) return new g.Point(target);
+        return targetCell.getPointFromLinkEnd(target, this, 'target');
     },
 
-    getEndPoint: function(endName) {
-        var endDef = this.get(endName);
-        if (!endDef.id) return new g.Point(endDef);
-        var graph = this.graph;
-        var model;
-        if (graph) model = graph.getCell(endDef.id);
-        if (!model) return new g.Point();
-        // Center of a Link
-        // TODO:
-        if (model.isLink()) return new g.Point();
-        // Center of an Element
-        var bbox = model.getBBox();
-        var center = bbox.center();
-        // Center of a Port
-        var portId = endDef.port;
-        if (!portId) return center;
-        var portGroup = model.portProp(portId, ['group']);
-        var portsPositions = model.getPortsPositions(portGroup);
-        var portCenter = new g.Point(portsPositions[portId]).offset(bbox.origin());
-        var angle = model.angle();
-        if (angle) portCenter.rotate(center, -angle);
-        return portCenter;
+    getPointFromLink: function(/* link, endType */) {
+        return this.getPolyline().pointAt(0.5);
     },
 
     getPolyline: function() {
@@ -533,7 +519,7 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     // unlike source(), this method returns null if source is a point
-    getSourceElement: function() {
+    getSourceCell: function() {
 
         var source = this.source();
         var graph = this.graph;
@@ -541,13 +527,23 @@ joint.dia.Link = joint.dia.Cell.extend({
         return (source && source.id && graph && graph.getCell(source.id)) || null;
     },
 
+    getSourceElement: function() {
+        // TODO: closest element
+        return this.getSourceCell();
+    },
+
     // unlike target(), this method returns null if target is a point
-    getTargetElement: function() {
+    getTargetCell: function() {
 
         var target = this.target();
         var graph = this.graph;
 
         return (target && target.id && graph && graph.getCell(target.id)) || null;
+    },
+
+    getTargetElement: function() {
+        // TODO: closest element
+        return this.getTargetCell();
     },
 
     // Returns the common ancestor for the source element,

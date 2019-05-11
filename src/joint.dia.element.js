@@ -390,6 +390,23 @@ joint.dia.Element = joint.dia.Cell.extend({
         var size = this.get('size');
 
         return new g.Rect(position.x, position.y, size.width, size.height);
+    },
+
+    getPointFromLink: function(link, endType) {
+        // Center of the model
+        var bbox = this.getBBox();
+        var center = bbox.center();
+        // Center of a port
+        var endDef = link.get(endType);
+        if (!endDef) return center;
+        var portId = endDef.port;
+        if (!portId) return center;
+        var portGroup = this.portProp(portId, ['group']);
+        var portsPositions = this.getPortsPositions(portGroup);
+        var portCenter = new g.Point(portsPositions[portId]).offset(bbox.origin());
+        var angle = this.angle();
+        if (angle) portCenter.rotate(center, -angle);
+        return portCenter;
     }
 });
 
