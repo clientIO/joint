@@ -532,13 +532,15 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convient way to unset nested properties
     removeProp: function(path, opt) {
 
+        opt = opt || {};
+
+        var pathArray = Array.isArray(path) ? path : path.split('/');
+
         // Once a property is removed from the `attrs` attribute
         // the cellView will recognize a `dirty` flag and rerender itself
         // in order to remove the attribute from SVG element.
-        opt = opt || {};
-        opt.dirty = true;
-
-        var pathArray = Array.isArray(path) ? path : path.split('/');
+        var property = pathArray[0];
+        if (property === 'attrs') opt.dirty = true;
 
         if (pathArray.length === 1) {
             // A top level property
@@ -546,7 +548,6 @@ joint.dia.Cell = Backbone.Model.extend({
         }
 
         // A nested property
-        var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
         var propertyValue = joint.util.cloneDeep(this.get(property));
 
