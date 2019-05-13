@@ -875,7 +875,7 @@
             var padding = this.options.areaPadding;
             if (!isFinite(padding)) padding = 0;
             var bbox, angle, center;
-            if (model.isLink()) {
+            if (view.isNodeConnection(magnet)) {
                 bbox = view.getBBox();
                 angle = 0;
                 center = bbox.center();
@@ -935,7 +935,7 @@
             }
 
             if (this.options.restrictArea) {
-                if (model.isLink()) {
+                if (view.isNodeConnection(magnet)) {
                     // snap coords to the link's connection
                     var pointAtConnection = view.getClosestPoint(coords);
                     if (pointAtConnection) coords = pointAtConnection;
