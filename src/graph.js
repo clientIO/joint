@@ -533,33 +533,39 @@ export const Graph = Backbone.Model.extend({
             inbound = outbound = true;
         }
 
+        var graph = this;
         var visited = { source: {}, target: {}};
+        var neighbors = {};
 
-        var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
-            var loop = link.hasLoop(opt);
-            if (inbound) getNeighbor.call(this, res, link, 'source', loop);
-            if (outbound) getNeighbor.call(this, res, link, 'target', loop);
-            return res;
-        }.bind(this), {});
+        findCellNeighbors(model);
 
-        function getNeighbor(res, link, endName, loop) {
+        function getLinkNeighbor(link, endName, loop) {
             var endDef = link.get(endName);
             // Discard if it is a point
             if (!util.has(endDef, 'id')) return;
             var id = endDef.id;
             // Discard if the neighbor was already added.
-            if (res[id]) return;
+            if (neighbors[id]) return;
             // Discard if we already visited the cell within the same direction
             if (visited[endName][id]) return;
-            var cell = this.getCell(id);
+            var cell = graph.getCell(id);
             if (!cell) return;
             if (!loop && (cell === model || (deep && cell.isEmbeddedIn(model)))) return;
             if (cell.isElement()) {
-                res[id] = cell;
+                neighbors[id] = cell;
                 return;
             }
             visited[endName][id] = true;
-            getNeighbor(cell, endName, res, cell.hasLoop(opt));
+            findCellNeighbors(cell);
+        }
+
+        function findCellNeighbors(cell) {
+            if (cell.isLink()) {
+                var loop = cell.hasLoop(opt);
+                if (inbound) getLinkNeighbor(cell, 'source', loop);
+                if (outbound) getLinkNeighbor(cell, 'target', loop);
+            }
+            graph.getConnectedLinks(cell, opt).forEach(findCellNeighbors);
         }
 
         return util.toArray(neighbors);

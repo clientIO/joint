@@ -842,121 +842,193 @@ QUnit.module('graph', function(hooks) {
 
     });
 
-    QUnit.test('graph.getNeighbors(), graph.isNeighbor()', function(assert) {
+    QUnit.module('graph.getNeighbors(), graph.isNeighbor()', function() {
 
-        var graph = this.graph;
-        var Element = joint.shapes.basic.Rect;
-        var Link = joint.dia.Link;
+        var Element = joint.shapes.standard.Rectangle;
+        var Link = joint.shapes.standard.Link;
 
-        function neighbors(el, opt) { return _.chain(graph.getNeighbors(el, opt)).map('id').sortBy().value(); }
+        function neighbors(graph, cell, opt) {
+            return graph.getNeighbors(cell, opt).map(function(c) { return c.id; }).sort();
+        }
 
-        var r1 = new Element({ id: 'R1' });
-        var r2 = new Element({ id: 'R2' });
-        var r3 = new Element({ id: 'R3' });
-        var r4 = new Element({ id: 'R4' });
-        var r5 = new Element({ id: 'R5' });
-        var r6 = new Element({ id: 'R6' });
-        var l1 = new Link({ id: 'L1' });
-        var l2 = new Link({ id: 'L2' });
-        var l3 = new Link({ id: 'L3' });
-        var l4 = new Link({ id: 'L4' });
+        QUnit.test('graph.getNeighbors(), graph.isNeighbor()', function(assert) {
 
-        graph.addCells([r1, r2, r3, r4, r5, r6, l1, l2]);
-        l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-        l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+            var graph = this.graph;
 
-        //
-        // [R1] --L1--> [R2] --L2--> [R3]
-        //
-        // [R4]
-        //
+            var r1 = new Element({ id: 'R1' });
+            var r2 = new Element({ id: 'R2' });
+            var r3 = new Element({ id: 'R3' });
+            var r4 = new Element({ id: 'R4' });
+            var r5 = new Element({ id: 'R5' });
+            var r6 = new Element({ id: 'R6' });
+            var l1 = new Link({ id: 'L1' });
+            var l2 = new Link({ id: 'L2' });
+            var l3 = new Link({ id: 'L3' });
+            var l4 = new Link({ id: 'L4' });
 
-        assert.deepEqual(neighbors(r4), [], 'Returns an empty array if the element has no neighbors.');
-        assert.deepEqual(neighbors(r1), ['R2'], 'Element has only outbound link. The neighbor was found.');
-        assert.deepEqual(neighbors(r3), ['R2'], 'Element has only inbound link. The neighbor was found.');
-        assert.deepEqual(neighbors(r2), ['R1', 'R3'], 'Element has both outbound an inbound links. The neighbors were found.');
-        assert.equal(graph.isNeighbor(r2, r3), true, 'isNeighbor() returns true if the element in the second argument is a neighbor of the element in the first argument');
-        assert.equal(graph.isNeighbor(r3, r2), true, 'isNeighbor() returns true if the element in the second argument is a neighbor of the element in the first argument');
-        assert.equal(graph.isNeighbor(r1, r3), false, 'isNeighbor() returns true if the element in the second argument is not a neighbor of the element in the first argument');
-        assert.equal(graph.isNeighbor(r3, r1), false, 'isNeighbor() returns false if the element in the second argument is not a neighbor of the element in the first argument');
-        assert.equal(graph.isNeighbor(r2, r3, { outbound: true }), true, 'isNeighbor() with outbound true');
-        assert.equal(graph.isNeighbor(r3, r2, { outbound: true }), false, 'isNeighbor() with outbound true');
-        assert.equal(graph.isNeighbor(r2, r3, { inbound: true }), false, 'isNeighbor() with inbound true');
-        assert.equal(graph.isNeighbor(r3, r2, { inbound: true }), true, 'isNeighbor() with inbound true');
+            graph.addCells([r1, r2, r3, r4, r5, r6, l1, l2]);
+            l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+            l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
 
-        graph.addCells([l3]);
-        l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
-        //
-        //                     L2--> [R3]
-        //                     |
-        // [R1] --L1--> [R2] --|
-        //                     |
-        //                     L3--> [R4]
-        //
+            //
+            // [R1] --L1--> [R2] --L2--> [R3]
+            //
+            // [R4]
+            //
 
-        assert.deepEqual(neighbors(r2, { inbound: true }), ['R1'], 'The inbound links were found.');
-        assert.deepEqual(neighbors(r2, { outbound: true }), ['R3', 'R4'], 'The outbound links were found.');
+            assert.deepEqual(neighbors(graph, r4), [], 'Returns an empty array if the element has no neighbors.');
+            assert.deepEqual(neighbors(graph, r1), ['R2'], 'Element has only outbound link. The neighbor was found.');
+            assert.deepEqual(neighbors(graph, r3), ['R2'], 'Element has only inbound link. The neighbor was found.');
+            assert.deepEqual(neighbors(graph, r2), ['R1', 'R3'], 'Element has both outbound an inbound links. The neighbors were found.');
+            assert.equal(graph.isNeighbor(r2, r3), true, 'isNeighbor() returns true if the element in the second argument is a neighbor of the element in the first argument');
+            assert.equal(graph.isNeighbor(r3, r2), true, 'isNeighbor() returns true if the element in the second argument is a neighbor of the element in the first argument');
+            assert.equal(graph.isNeighbor(r1, r3), false, 'isNeighbor() returns true if the element in the second argument is not a neighbor of the element in the first argument');
+            assert.equal(graph.isNeighbor(r3, r1), false, 'isNeighbor() returns false if the element in the second argument is not a neighbor of the element in the first argument');
+            assert.equal(graph.isNeighbor(r2, r3, { outbound: true }), true, 'isNeighbor() with outbound true');
+            assert.equal(graph.isNeighbor(r3, r2, { outbound: true }), false, 'isNeighbor() with outbound true');
+            assert.equal(graph.isNeighbor(r2, r3, { inbound: true }), false, 'isNeighbor() with inbound true');
+            assert.equal(graph.isNeighbor(r3, r2, { inbound: true }), true, 'isNeighbor() with inbound true');
 
-        graph.addCells([l4]);
-        l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-        l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
-        l3.set('source', { id: 'R2' }).set('target', { id: 'R3' });
-        l4.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-        //
-        // [R1] --L1, L4--> [R2] --L2, L3--> [R3]
-        //
+            graph.addCells([l3]);
+            l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
+            //
+            //                     L2--> [R3]
+            //                     |
+            // [R1] --L1--> [R2] --|
+            //                     |
+            //                     L3--> [R4]
+            //
 
-        assert.deepEqual(neighbors(r2), ['R1', 'R3'], 'There are no duplicates in the result.');
+            assert.deepEqual(neighbors(graph, r2, { inbound: true }), ['R1'], 'The inbound links were found.');
+            assert.deepEqual(neighbors(graph, r2, { outbound: true }), ['R3', 'R4'], 'The outbound links were found.');
 
-        l1.set('source', { id: 'R1' }).set('target', { id: 'R1' });
-        l2.remove();
-        l3.remove();
-        l4.set('source', { id: 'R1' }).set('target', { id: 'R1' });
-        //  [R1] <--L1, L4
-        //    |       |
-        //     -------
+            graph.addCells([l4]);
+            l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+            l2.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+            l3.set('source', { id: 'R2' }).set('target', { id: 'R3' });
+            l4.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+            //
+            // [R1] --L1, L4--> [R2] --L2, L3--> [R3]
+            //
 
-        assert.deepEqual(neighbors(r1), ['R1'], 'Being a self-neighbor is detected.');
-        assert.equal(graph.isNeighbor(r1, r1), true, 'Being a self-neighbor is detected in isNeighbor().');
+            assert.deepEqual(neighbors(graph, r2), ['R1', 'R3'], 'There are no duplicates in the result.');
 
-        graph.addCells([l2, l3]);
-        r1.embed(r2);
-        l1.set('source', { id: 'R1' }).set('target', { id: 'R3' });
-        l2.set('source', { id: 'R5' }).set('target', { id: 'R1' });
-        l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
-        l4.set('source', { id: 'R6' }).set('target', { id: 'R2' });
-        //
-        // ░░░░░░░░░░░<-L2-- [R5]
-        // ░R1░░░░░░░░--L1-> [R3]
-        // ░░░░▓▓▓▓▓▓▓
-        // ░░░░▓▓▓R2▓▓--L3-> [R4]
-        // ░░░░▓▓▓▓▓▓▓<-L4-- [R6]
+            l1.set('source', { id: 'R1' }).set('target', { id: 'R1' });
+            l2.remove();
+            l3.remove();
+            l4.set('source', { id: 'R1' }).set('target', { id: 'R1' });
+            //  [R1] <--L1, L4
+            //    |       |
+            //     -------
 
-        assert.deepEqual(neighbors(r1), ['R3', 'R5'], 'Embedded elements are not taken into account by default.');
-        assert.deepEqual(neighbors(r2), ['R4', 'R6'], 'Parent elements are not taken into account by default.');
-        assert.deepEqual(neighbors(r1, { deep: true }), ['R3', 'R4', 'R5', 'R6'], 'The neighbours of the element and all its embdes were found in the deep mode. But not the embdes themselves.');
-        assert.deepEqual(neighbors(r2, { deep: true }), ['R4', 'R6'], 'Parent elements are not taken into account in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R3', 'R4'], 'The outbound neighbours of the element and all its embdes were found in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R5', 'R6'], 'The inbound neighbours of the element and all its embdes were found in the deep mode.');
-        assert.equal(graph.isNeighbor(r1, r4, { deep: true }), true, 'isNeighbor() with deep true takes into account embedded elements');
-        assert.equal(graph.isNeighbor(r1, r4, { deep: true, inbound: true }), false, 'isNeighbor() with inbound true and deep true takes into account embedded elements');
+            assert.deepEqual(neighbors(graph, r1), ['R1'], 'Being a self-neighbor is detected.');
+            assert.equal(graph.isNeighbor(r1, r1), true, 'Being a self-neighbor is detected in isNeighbor().');
 
-        l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
-        l2.remove();
-        l3.remove();
-        l4.remove();
-        //
-        // ░░░░░░░░░░░
-        // ░R1░░░░░░░░------
-        // ░░░░▓▓▓▓▓▓▓   L1|
-        // ░░░░▓▓▓R2▓▓<-----
-        // ░░░░▓▓▓▓▓▓▓
-        assert.deepEqual(neighbors(r1), ['R2'], 'A connected embedded elements is found in the shallow mode.');
-        assert.deepEqual(neighbors(r1, { deep: true }), ['R1', 'R2'], 'All the connected embedded elements are found in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, inbound: true }), ['R1'], 'All the inbound connected embedded elements are found in the deep mode.');
-        assert.deepEqual(neighbors(r1, { deep: true, outbound: true }), ['R2'], 'All the outbound connected embedded elements are found in the deep mode.');
+            graph.addCells([l2, l3]);
+            r1.embed(r2);
+            l1.set('source', { id: 'R1' }).set('target', { id: 'R3' });
+            l2.set('source', { id: 'R5' }).set('target', { id: 'R1' });
+            l3.set('source', { id: 'R2' }).set('target', { id: 'R4' });
+            l4.set('source', { id: 'R6' }).set('target', { id: 'R2' });
+            //
+            // ░░░░░░░░░░░<-L2-- [R5]
+            // ░R1░░░░░░░░--L1-> [R3]
+            // ░░░░▓▓▓▓▓▓▓
+            // ░░░░▓▓▓R2▓▓--L3-> [R4]
+            // ░░░░▓▓▓▓▓▓▓<-L4-- [R6]
 
+            assert.deepEqual(neighbors(graph, r1), ['R3', 'R5'], 'Embedded elements are not taken into account by default.');
+            assert.deepEqual(neighbors(graph, r2), ['R4', 'R6'], 'Parent elements are not taken into account by default.');
+            assert.deepEqual(neighbors(graph, r1, { deep: true }), ['R3', 'R4', 'R5', 'R6'], 'The neighbours of the element and all its embdes were found in the deep mode. But not the embdes themselves.');
+            assert.deepEqual(neighbors(graph, r2, { deep: true }), ['R4', 'R6'], 'Parent elements are not taken into account in the deep mode.');
+            assert.deepEqual(neighbors(graph, r1, { deep: true, outbound: true }), ['R3', 'R4'], 'The outbound neighbours of the element and all its embdes were found in the deep mode.');
+            assert.deepEqual(neighbors(graph, r1, { deep: true, inbound: true }), ['R5', 'R6'], 'The inbound neighbours of the element and all its embdes were found in the deep mode.');
+            assert.equal(graph.isNeighbor(r1, r4, { deep: true }), true, 'isNeighbor() with deep true takes into account embedded elements');
+            assert.equal(graph.isNeighbor(r1, r4, { deep: true, inbound: true }), false, 'isNeighbor() with inbound true and deep true takes into account embedded elements');
+
+            l1.set('source', { id: 'R1' }).set('target', { id: 'R2' });
+            l2.remove();
+            l3.remove();
+            l4.remove();
+            //
+            // ░░░░░░░░░░░
+            // ░R1░░░░░░░░------
+            // ░░░░▓▓▓▓▓▓▓   L1|
+            // ░░░░▓▓▓R2▓▓<-----
+            // ░░░░▓▓▓▓▓▓▓
+            assert.deepEqual(neighbors(graph, r1), ['R2'], 'A connected embedded elements is found in the shallow mode.');
+            assert.deepEqual(neighbors(graph, r1, { deep: true }), ['R1', 'R2'], 'All the connected embedded elements are found in the deep mode.');
+            assert.deepEqual(neighbors(graph, r1, { deep: true, inbound: true }), ['R1'], 'All the inbound connected embedded elements are found in the deep mode.');
+            assert.deepEqual(neighbors(graph, r1, { deep: true, outbound: true }), ['R2'], 'All the outbound connected embedded elements are found in the deep mode.');
+
+        });
+
+        QUnit.test('getNeighbor() link-link', function(assert) {
+
+            var graph = this.graph;
+
+            var r1 = new Element({ id: 'R1' });
+            var r2 = new Element({ id: 'R2' });
+            var r3 = new Element({ id: 'R3' });
+            var r4 = new Element({ id: 'R4' });
+            var l1 = new Link();
+            var l2 = new Link();
+            var l3 = new Link();
+            var l4 = new Link();
+            l1.source(r1);
+            l1.target(l2);
+            l2.source(r2);
+            l2.target(r3);
+            l3.source(r3);
+            l3.target(r4);
+            l4.source(r2);
+            l4.target(r2);
+            graph.addCells(r1, r2, r3, r4, l1, l2, l3);
+            //
+            //              R3 --l3--> R4
+            //              ^
+            //              |
+            //  R1 --l1--> l2
+            //              |
+            //              R2 ----
+            //              |     |
+            //               --l4--
+            //
+            assert.deepEqual(neighbors(graph, r1), ['R2', 'R3']);
+            assert.deepEqual(neighbors(graph, r1, { inbound: true }), []);
+            assert.deepEqual(neighbors(graph, r1, { outbound: true }), ['R3']);
+
+            assert.deepEqual(neighbors(graph, r2), ['R1', 'R3']);
+            assert.deepEqual(neighbors(graph, r2, { inbound: true }), []);
+            assert.deepEqual(neighbors(graph, r2, { outbound: true }), ['R3']);
+
+
+            assert.deepEqual(neighbors(graph, r3), ['R1', 'R2', 'R4']);
+            assert.deepEqual(neighbors(graph, r3, { inbound: true }), ['R1', 'R2']);
+            assert.deepEqual(neighbors(graph, r3, { outbound: true }), ['R4']);
+
+            assert.deepEqual(neighbors(graph, r4), ['R3']);
+            assert.deepEqual(neighbors(graph, r4, { inbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r4, { outbound: true }), []);
+
+            assert.deepEqual(neighbors(graph, l1), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, l1, { inbound: true }), ['R1']);
+            assert.deepEqual(neighbors(graph, l1, { outbound: true }), ['R3']);
+
+            assert.deepEqual(neighbors(graph, l2), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, l2, { inbound: true }), ['R1', 'R2']);
+            assert.deepEqual(neighbors(graph, l2, { outbound: true }), ['R3']);
+
+            assert.deepEqual(neighbors(graph, l3), ['R3', 'R4']);
+            assert.deepEqual(neighbors(graph, l3, { inbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l3, { outbound: true }), ['R4']);
+
+            assert.deepEqual(neighbors(graph, l4), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { inbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { outbound: true }), ['R2']);
+        });
     });
+
 
     QUnit.module('findModelsInArea(rect[, opt])', function(hooks) {
 
