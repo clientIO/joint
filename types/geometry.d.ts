@@ -131,6 +131,8 @@ export namespace g {
 
     export function toRad(deg: number, over360?: boolean): number;
 
+    export function random(min?: number, max?: number): number;
+
     class Curve {
 
         start: Point;
@@ -428,6 +430,8 @@ export namespace g {
 
         constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
+
+        closestPoint(points: PlainPoint[]): Point | null;
 
         adhereToRect(r: Rect): this;
 

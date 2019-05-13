@@ -124,12 +124,6 @@
         return view.getPointAtLength(length);
     }
 
-    function closestIntersection(intersections, refPoint) {
-
-        if (intersections.length === 1) return intersections[0];
-        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint); })[0];
-    }
-
     function connectionPerpendicular(view, _magnet, refPoint, opt) {
 
         var OFFSET = 1e6;
@@ -142,7 +136,7 @@
         var intersections = [];
         if (verticalIntersections) Array.prototype.push.apply(intersections, verticalIntersections);
         if (horizontalIntersections) Array.prototype.push.apply(intersections, horizontalIntersections);
-        if (intersections.length > 0) return closestIntersection(intersections, refPoint);
+        if (intersections.length > 0) return refPoint.closestPoint(intersections);
         if ('fallbackAt' in opt) {
             return getPointAtLink(view, opt.fallbackAt);
         }

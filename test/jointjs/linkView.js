@@ -1050,7 +1050,7 @@ QUnit.module('linkView', function(hooks) {
             rv1 = r1.findView(paper);
         });
 
-        QUnit.test('sannity', function(assert) {
+        QUnit.test('sanity', function(assert) {
 
             var data;
             var strategySpy = paper.options.connectionStrategy = sinon.spy(function(end) {
@@ -1082,7 +1082,8 @@ QUnit.module('linkView', function(hooks) {
                 rv1.el,
                 sinon.match(function(coords) { return coords.equals(new g.Point(50, 50)); }),
                 linkView.model,
-                'source'
+                'source',
+                paper
             ));
             assert.ok(strategySpy.calledOn(paper));
             assert.equal(linkView.model.attributes.source.test, true);
@@ -1112,7 +1113,8 @@ QUnit.module('linkView', function(hooks) {
                 rv1.el,
                 sinon.match(function(coords) { return coords.equals(new g.Point(40, 40)); }),
                 linkView.model,
-                'target'
+                'target',
+                paper
             ));
             assert.ok(strategySpy.alwaysCalledOn(paper));
             assert.equal(linkView.model.attributes.target.test, true);

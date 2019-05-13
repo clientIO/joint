@@ -68,7 +68,6 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
-        //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
         return attributes;
@@ -989,7 +988,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var paper = this.paper;
         var connectionStrategy = paper.options.connectionStrategy;
         if (typeof connectionStrategy === 'function') {
-            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
+            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType, paper);
             if (strategy) end = strategy;
         }
 
