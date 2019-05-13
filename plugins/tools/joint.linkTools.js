@@ -882,7 +882,9 @@
             } else {
                 bbox = view.getNodeUnrotatedBBox(magnet);
                 angle = model.angle();
-                center = bbox.center().rotate(model.getBBox().center(), -angle);
+                center = bbox.center();
+                if (angle) center.rotate(model.getBBox().center(), -angle);
+                // TODO: get the link's magnet rotation into account
             }
             bbox.inflate(padding);
             areaNode.setAttribute('x', -bbox.width / 2);
