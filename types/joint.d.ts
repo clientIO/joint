@@ -2047,7 +2047,7 @@ export namespace util {
 
     export function normalizeEvent(evt: JQuery.Event): JQuery.Event;
 
-    export function nextFrame(callback: () => void, context?: { [key: string]: any }): number;
+    export function nextFrame(callback: () => void, context?: { [key: string]: any }, ...args: any[]): number;
 
     export function cancelFrame(requestId: number): void;
 
