@@ -2348,7 +2348,14 @@ const V = (function() {
                         break;
 
                     case 'A':
-                        path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+                        if (parseFloat(path[1]) === 0 || parseFloat(path[2]) === 0) {
+                            // https://www.w3.org/TR/SVG/paths.html#ArcOutOfRangeParameters
+                            // "If either rx or ry is 0, then this arc is treated as a
+                            // straight line segment (a "lineto") joining the endpoints."
+                            path = ['L', path[6], path[7]];
+                        } else {
+                            path = ['C'].concat(a2c.apply(0, [d.x, d.y].concat(path.slice(1))));
+                        }
                         break;
 
                     case 'S':
