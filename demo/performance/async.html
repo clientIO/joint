@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Joint JS - Async Rendering</title>
+    <link rel="stylesheet" type="text/css" href="../../build/joint.css" />
+  </head>
+  <body>
+    <style>
+      input { margin: 5px; font-size: 10px }
+      input[type="number"] { width: 40px }
+    </style>
+    <input id="viewport" type="checkbox" checked="true"/>Custom viewport
+    <input id="padding" type="checkbox" checked="true"/>Padding
+    <input id="leave-rendered-in-viewport" type="checkbox"/>Keep rendered in viewport
+    <input id="leave-dragged-in-viewport" type="checkbox"/>Keep dragged in viewport
+    <input id="count" type="number" value="1000"/>Count
+    <input id="column-count" type="number" value="40"/>Columns
+    <input id="batch-size" type="number" value="1000"/>Batch Size
+    <button id="restart">Restart</button>
+    <div id="canvas"></div>
+    <script src="../../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../../node_modules/lodash/lodash.js"></script>
+    <script src="../../node_modules/backbone/backbone.js"></script>
+    <script src="../../build/joint.js"></script>
+    <script src="./async.js"></script>
+  </body>
+</html>

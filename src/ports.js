@@ -535,11 +535,6 @@ util.assign(ElementView.prototype, {
     _initializePorts: function() {
 
         this._portElementsCache = {};
-
-        this.listenTo(this.model, 'change:ports', function() {
-
-            this._refreshPorts();
-        });
     },
 
     /**
@@ -560,7 +555,6 @@ util.assign(ElementView.prototype, {
 
         this._removePorts();
         this._portElementsCache = {};
-
         this._renderPorts();
     },
 

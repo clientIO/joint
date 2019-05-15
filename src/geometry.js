@@ -13,7 +13,6 @@ const atan2 = math.atan2;
 const round = math.round;
 const floor = math.floor;
 const PI = math.PI;
-const random = math.random;
 const pow = math.pow;
 
 export const bezier = {
@@ -2979,10 +2978,27 @@ Point.fromPolar = function(distance, angle, origin) {
 // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
 Point.random = function(x1, x2, y1, y2) {
 
-    return new Point(floor(random() * (x2 - x1 + 1) + x1), floor(random() * (y2 - y1 + 1) + y1));
+    return new Point(random(x1, x2), random(y1, y2));
 };
 
 Point.prototype = {
+
+    closestPoint: function(points) {
+
+        var n = points.length;
+        if (n === 1) return new Point(points[0]);
+        var closestP = null;
+        var minSqrDistance = Infinity;
+        for (var i = 0; i < n; i++) {
+            var p = new Point(points[i]);
+            var sqrDistance = this.squaredDistance(p);
+            if (sqrDistance < minSqrDistance) {
+                closestP = p;
+                minSqrDistance = sqrDistance;
+            }
+        }
+        return closestP;
+    },
 
     // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
     // otherwise return point itself.
@@ -4398,6 +4414,14 @@ export const toRad = function(deg, over360) {
     over360 = over360 || false;
     deg = over360 ? deg : (deg % 360);
     return deg * PI / 180;
+};
+
+export const random = function(min, max) {
+    if (max === undefined) {
+        max = (min === undefined) ? 1 : min;
+        min = 0;
+    }
+    return floor(math.random() * (max - min + 1) + min);
 };
 
 // For backwards compatibility:

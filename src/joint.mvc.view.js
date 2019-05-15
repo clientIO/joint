@@ -9,6 +9,8 @@ joint.mvc.View = Backbone.View.extend({
     children: null,
     childNodes: null,
 
+    UPDATE_PRIORITY: 2,
+
     constructor: function(options) {
 
         this.requireSetThemeOverride = options && !!options.theme;
@@ -17,9 +19,7 @@ joint.mvc.View = Backbone.View.extend({
         Backbone.View.call(this, options);
     },
 
-    initialize: function(options) {
-
-        joint.util.bindAll(this, 'setTheme', 'onSetTheme', 'remove', 'onRemove');
+    initialize: function() {
 
         joint.mvc.views[this.cid] = this;
 
@@ -27,12 +27,21 @@ joint.mvc.View = Backbone.View.extend({
         this.init();
     },
 
+    unmount: function() {
+        if (this.svgElement) {
+            this.vel.remove();
+        } else {
+            this.$el.remove();
+        }
+    },
+
     renderChildren: function(children) {
         children || (children = this.children);
         if (children) {
-            var namespace = V.namespace[this.svgElement ? 'xmlns' : 'xhtml'];
+            var isSVG = this.svgElement;
+            var namespace = V.namespace[isSVG ? 'xmlns' : 'xhtml'];
             var doc = joint.util.parseDOMJSON(children, namespace);
-            this.vel.empty().append(doc.fragment);
+            (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
             this.childNodes = doc.selectors;
         }
         return this;
@@ -62,9 +71,11 @@ joint.mvc.View = Backbone.View.extend({
         if (!this.el) {
             var tagName = joint.util.result(this, 'tagName');
             var attrs = joint.util.assign({}, joint.util.result(this, 'attributes'));
+            var style = joint.util.assign({}, joint.util.result(this, 'style'));
             if (this.id) attrs.id = joint.util.result(this, 'id');
             this.setElement(this._createElement(tagName));
             this._setAttributes(attrs);
+            this._setStyle(style);
         } else {
             this.setElement(joint.util.result(this, 'el'));
         }
@@ -77,6 +88,10 @@ joint.mvc.View = Backbone.View.extend({
         } else {
             this.$el.attr(attrs);
         }
+    },
+
+    _setStyle: function(style) {
+        this.$el.css(style);
     },
 
     _createElement: function(tagName) {
@@ -115,6 +130,12 @@ joint.mvc.View = Backbone.View.extend({
     onRender: function() {
         // Intentionally empty.
         // This method is meant to be overridden.
+    },
+
+    confirmUpdate: function() {
+        // Intentionally empty.
+        // This method is meant to be overridden.
+        return 0;
     },
 
     setTheme: function(theme, opt) {

@@ -38,23 +38,6 @@
         };
     }
 
-    function resolveRefAsBBoxCenter(fn) {
-
-        return function(view, magnet, ref, opt) {
-
-            if (ref instanceof Element) {
-                var refView = this.paper.findView(ref);
-                var refPoint = (refView)
-                    ? refView.getNodeBBox(ref).center()
-                    : new g.Point();
-
-                return fn.call(this, view, magnet, refPoint, opt);
-            }
-
-            return fn.apply(this, arguments);
-        };
-    }
-
     function perpendicular(view, magnet, refPoint, opt) {
 
         var angle = view.model.angle();
@@ -110,23 +93,8 @@
 
     // Can find anchor from model, when there is no selector or the link end
     // is connected to a port
-    function modelCenter(view, magnet) {
-
-        var model = view.model;
-        var bbox = model.getBBox();
-        var center = bbox.center();
-        var angle = model.angle();
-
-        var portId = view.findAttribute('port', magnet);
-        if (portId) {
-            var portGroup = model.portProp(portId, 'group');
-            var portsPositions = model.getPortsPositions(portGroup);
-            var anchor = new g.Point(portsPositions[portId]).offset(bbox.origin());
-            anchor.rotate(center, -angle);
-            return anchor;
-        }
-
-        return center;
+    function modelCenter(view, _magnet, _refPoint, _opt, endType) {
+        return view.model.getPointFromConnectedLink(this.model, endType);
     }
 
     joint.anchors = {
@@ -139,9 +107,85 @@
         topRight: bboxWrapper('topRight'),
         bottomLeft: bboxWrapper('bottomLeft'),
         bottomRight: bboxWrapper('corner'),
-        perpendicular: resolveRefAsBBoxCenter(perpendicular),
-        midSide: resolveRefAsBBoxCenter(midSide),
+        perpendicular: resolveRef(perpendicular),
+        midSide: resolveRef(midSide),
         modelCenter: modelCenter
     };
+
+    function connectionRatio(view, _magnet, _refPoint, opt) {
+
+        var ratio = ('ratio' in opt) ? opt.ratio : 0.5;
+        return view.getPointAtRatio(ratio);
+    }
+
+    function connectionLength(view, _magnet, _refPoint, opt) {
+
+        var length = ('length' in opt) ? opt.length : 20;
+        return view.getPointAtLength(length);
+    }
+
+    function connectionPerpendicular(view, _magnet, refPoint, opt) {
+
+        var OFFSET = 1e6;
+        var path = view.getConnection();
+        var segmentSubdivisions =  view.getConnectionSubdivisions();
+        var verticalLine = new g.Line(refPoint.clone().offset(0, OFFSET), refPoint.clone().offset(0, -OFFSET));
+        var horizontalLine = new g.Line(refPoint.clone().offset(OFFSET, 0), refPoint.clone().offset(-OFFSET, 0));
+        var verticalIntersections = verticalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
+        var horizontalIntersections = horizontalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
+        var intersections = [];
+        if (verticalIntersections) Array.prototype.push.apply(intersections, verticalIntersections);
+        if (horizontalIntersections) Array.prototype.push.apply(intersections, horizontalIntersections);
+        if (intersections.length > 0) return refPoint.closestPoint(intersections);
+        if ('fallbackAt' in opt) {
+            return getPointAtLink(view, opt.fallbackAt);
+        }
+        return connectionClosest(view, _magnet, refPoint, opt);
+    }
+
+    function connectionClosest(view, _magnet, refPoint, _opt) {
+
+        var closestPoint = view.getClosestPoint(refPoint);
+        if (!closestPoint) return new g.Point();
+        return closestPoint;
+    }
+
+    joint.linkAnchors = {
+        connectionRatio: connectionRatio,
+        connectionLength: connectionLength,
+        connectionPerpendicular: resolveRef(connectionPerpendicular),
+        connectionClosest: resolveRef(connectionClosest)
+    };
+
+    function resolveRef(fn) {
+        return function(view, magnet, ref, opt) {
+            if (ref instanceof Element) {
+                var refView = this.paper.findView(ref);
+                var refPoint;
+                if (refView) {
+                    if (refView.isNodeConnection(ref)) {
+                        var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
+                        refPoint = getPointAtLink(view, distance);
+                    } else {
+                        refPoint = refView.getNodeBBox(ref).center();
+                    }
+                } else {
+                    // Something went wrong
+                    refPoint = new g.Point();
+                }
+                return fn.call(this, view, magnet, refPoint, opt);
+            }
+            return fn.apply(this, arguments);
+        };
+    }
+
+    function getPointAtLink(view, value) {
+        var parsedValue = parseFloat(value);
+        if (util.isPercentage(value)) {
+            return view.getPointAtRatio(parsedValue / 100);
+        } else {
+            return view.getPointAtLength(parsedValue);
+        }
+    }
 
 })(joint, joint.util);

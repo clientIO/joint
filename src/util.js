@@ -291,9 +291,9 @@ export const nextFrame = (function() {
         };
     }
 
-    return function(callback, context) {
+    return function(callback, context, ...rest) {
         return context
-            ? raf(callback.bind(context))
+            ? raf(callback.bind(context, ...rest))
             : raf(callback);
     };
 

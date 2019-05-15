@@ -281,6 +281,12 @@ export namespace dia {
 
         stopBatch(name: string, opt?: Graph.Options): this;
 
+        angle(): number;
+
+        getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
+
+        getChangeFlag(attributes: { [key: string]: number }): number;
+
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
 
         /**
@@ -530,6 +536,18 @@ export namespace dia {
 
         getTargetElement(): null | Element;
 
+        getSourceCell(): null | Cell;
+
+        getTargetCell(): null | Cell;
+
+        getPolyline(): g.Polyline;
+
+        getSourcePoint(): g.Point;
+
+        getTargetPoint(): g.Point;
+
+        getBBox(opt?: Cell.Options): g.Rect;
+
         hasLoop(opt?: Cell.EmbeddableOptions): boolean;
 
         getRelationshipAncestor(): undefined | Element;
@@ -562,6 +580,8 @@ export namespace dia {
 
         constructor(opt?: CellView.Options<T>);
 
+        paper: Paper | null;
+
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
         unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
@@ -573,8 +593,6 @@ export namespace dia {
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
         getSelector(el: SVGElement, prevSelector?: string): string;
-
-        getStrokeBBox(el?: SVGElement): g.Rect;
 
         notify(eventName: string, ...eventArguments: any[]): void;
 
@@ -589,6 +607,16 @@ export namespace dia {
         hideTools(): this;
 
         updateTools(opt?: { [key: string]: any }): this;
+
+        getNodeMatrix(node: SVGElement): SVGMatrix;
+
+        getNodeBoundingRect(node: SVGElement): g.Rect;
+
+        getNodeBBox(node: SVGElement): g.Rect;
+
+        getNodeUnrotatedBBox(node: SVGElement): g.Rect;
+
+        isNodeConnection(node: SVGElement): boolean;
 
         protected onToolEvent(eventName: string): void;
 
@@ -640,11 +668,9 @@ export namespace dia {
 
         getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
-        getNodeBBox(magnet: SVGElement): g.Rect;
-
-        getNodeUnrotatedBBox(magnet: SVGElement): g.Rect;
-
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
+
+        updateAttributes(renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
@@ -1002,8 +1028,8 @@ export namespace dia {
 
         findViewsInArea(rect: BBox, opt?: { strict?: boolean }): ElementView[];
 
-        fitToContent(opt?: Paper.FitToContentOptions): void;
-        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): void;
+        fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
+        fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;
 
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
@@ -1104,7 +1130,7 @@ export namespace dia {
 
         protected renderView(cell: Cell): CellView;
 
-        protected resetViews(cellsCollection: Cell[], opt: { [key: string]: any }): void;
+        protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
 
         protected updateBackgroundColor(color: string): void;
 
@@ -2021,7 +2047,7 @@ export namespace util {
 
     export function normalizeEvent(evt: JQuery.Event): JQuery.Event;
 
-    export function nextFrame(callback: () => void, context?: { [key: string]: any }): number;
+    export function nextFrame(callback: () => void, context?: { [key: string]: any }, ...args: any[]): number;
 
     export function cancelFrame(requestId: number): void;
 
@@ -2367,6 +2393,8 @@ export namespace mvc {
 
         constructor(opt?: ViewOptions<T>);
 
+        vel: Vectorizer | null;
+
         options: ViewOptions<T>;
 
         theme: string;
@@ -2395,6 +2423,8 @@ export namespace mvc {
         renderChildren(children?: dia.MarkupJSON): this;
 
         findAttribute(attributeName: string, node: Element): string | null;
+
+        confirmUpdate(flag: number, opt: { [key: string]: any }): number;
 
         protected init(): void;
 

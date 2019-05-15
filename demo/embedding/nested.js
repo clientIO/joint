@@ -23,7 +23,7 @@ r11.resize(300, 150).attr({ body: { fill: 'yellow' }}).translate(10, 10).addTo(g
 var r12 = r11.clone();
 r12.resize(200, 150).attr({ body: { fill: 'yellow' }}).translate(400).addTo(graph);
 
-var l1 = new joint.dia.Link({
+var l1 = new joint.shapes.standard.Link({
     source: { id: r11.id },
     target: { id: r12.id }
 }).addTo(graph);
@@ -40,7 +40,4 @@ r1.embed(l2);
 
 var r1clones = r1.clone({ deep: true });
 
-Object.keys(r1clones).forEach(function(id) {
-    graph.addCell(r1clones[id]);
-});
-
+graph.addCells(r1clones);

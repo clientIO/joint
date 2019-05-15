@@ -1,11 +1,5 @@
 (function(joint, util, g, V) {
 
-    function closestIntersection(intersections, refPoint) {
-
-        if (intersections.length === 1) return intersections[0];
-        return util.sortBy(intersections, function(i) { return i.squaredDistance(refPoint); })[0];
-    }
-
     function offset(p1, p2, offset) {
 
         if (!isFinite(offset)) return p1;
@@ -34,7 +28,7 @@
         if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
         var intersections = line.intersect(bbox);
         var cp = (intersections)
-            ? closestIntersection(intersections, line.start)
+            ? line.start.closestPoint(intersections)
             : line.end;
         return offset(cp, line.start, opt.offset);
     }
@@ -52,7 +46,7 @@
         var lineWORotation = line.clone().rotate(center, angle);
         var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
         var cp = (intersections)
-            ? closestIntersection(intersections, lineWORotation.start).rotate(center, -angle)
+            ? lineWORotation.start.closestPoint(intersections).rotate(center, -angle)
             : line.end;
         return offset(cp, line.start, opt.offset);
     }
@@ -127,7 +121,7 @@
         intersection = localLine.intersect(localShape, pathOpt);
         if (intersection) {
             // More than one intersection
-            if (V.isArray(intersection)) intersection = closestIntersection(intersection, localRef);
+            if (V.isArray(intersection)) intersection = localRef.closestPoint(intersection);
         } else if (opt.sticky === true) {
             // No intersection, find the closest point instead
             if (localShape instanceof g.Rect) {

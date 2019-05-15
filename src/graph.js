@@ -326,18 +326,17 @@ export const Graph = Backbone.Model.extend({
 
     addCells: function(cells, opt) {
 
-        if (cells.length) {
+        if (cells.length === 0) return this;
 
-            cells = util.flattenDeep(cells);
-            opt.position = cells.length;
+        cells = util.flattenDeep(cells);
+        opt.maxPosition = opt.position = cells.length - 1;
 
-            this.startBatch('add');
-            cells.forEach(function(cell) {
-                opt.position--;
-                this.addCell(cell, opt);
-            }, this);
-            this.stopBatch('add');
-        }
+        this.startBatch('add', opt);
+        cells.forEach(function(cell) {
+            this.addCell(cell, opt);
+            opt.position--;
+        }, this);
+        this.stopBatch('add', opt);
 
         return this;
     },
@@ -525,42 +524,49 @@ export const Graph = Backbone.Model.extend({
 
     getNeighbors: function(model, opt) {
 
-        opt = opt || {};
+        opt || (opt = {});
 
+        var deep = opt.deep;
         var inbound = opt.inbound;
         var outbound = opt.outbound;
         if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
-        var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
+        var graph = this;
+        var visited = { source: {}, target: {}};
+        var neighbors = {};
 
-            var source = link.source();
-            var target = link.target();
-            var loop = link.hasLoop(opt);
+        findCellNeighbors(model);
 
-            // Discard if it is a point, or if the neighbor was already added.
-            if (inbound && util.has(source, 'id') && !res[source.id]) {
-
-                var sourceElement = this.getCell(source.id);
-
-                if (loop || (sourceElement && sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
-                    res[source.id] = sourceElement;
-                }
+        function getLinkNeighbor(link, endName, loop) {
+            var endDef = link.get(endName);
+            // Discard if it is a point
+            if (!util.has(endDef, 'id')) return;
+            var id = endDef.id;
+            // Discard if the neighbor was already added.
+            if (neighbors[id]) return;
+            // Discard if we already visited the cell within the same direction
+            if (visited[endName][id]) return;
+            var cell = graph.getCell(id);
+            if (!cell) return;
+            if (!loop && (cell === model || (deep && cell.isEmbeddedIn(model)))) return;
+            if (cell.isElement()) {
+                neighbors[id] = cell;
+                return;
             }
+            visited[endName][id] = true;
+            findCellNeighbors(cell);
+        }
 
-            // Discard if it is a point, or if the neighbor was already added.
-            if (outbound && util.has(target, 'id') && !res[target.id]) {
-
-                var targetElement = this.getCell(target.id);
-
-                if (loop || (targetElement && targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model)))) {
-                    res[target.id] = targetElement;
-                }
+        function findCellNeighbors(cell) {
+            if (cell.isLink()) {
+                var loop = cell.hasLoop(opt);
+                if (inbound) getLinkNeighbor(cell, 'source', loop);
+                if (outbound) getLinkNeighbor(cell, 'target', loop);
             }
-
-            return res;
-        }.bind(this), {});
+            graph.getConnectedLinks(cell, opt).forEach(findCellNeighbors);
+        }
 
         return util.toArray(neighbors);
     },
@@ -1002,17 +1008,23 @@ export const Graph = Backbone.Model.extend({
     // Return bounding box of all elements.
     getBBox: function(cells, opt) {
 
-        return this.getCellsBBox(cells || this.getElements(), opt);
+        return this.getCellsBBox(cells || this.getCells(), opt);
     },
 
     // Return the bounding box of all cells in array provided.
-    // Links are being ignored.
     getCellsBBox: function(cells, opt) {
-
+        opt || (opt = {});
         return util.toArray(cells).reduce(function(memo, cell) {
-            if (cell.isLink()) return memo;
-            var rect = cell.getBBox(opt);
-            var angle = cell.angle();
+            var angle, rect;
+            var isLink = cell.isLink();
+            if (isLink) {
+                if (!opt.includeLinks) return memo;
+                angle = 0;
+            } else {
+                angle = cell.angle();
+            }
+            rect = cell.getBBox(opt);
+            if (!rect) return memo;
             if (angle) rect = rect.bbox(angle);
             if (memo) {
                 return memo.union(rect);
@@ -1096,7 +1108,7 @@ export const Graph = Backbone.Model.extend({
 
             if (source.id && target.id) {
 
-                var sourceModel = link.getSourceElement();
+                var sourceModel = link.getSourceCell();
                 if (sourceModel) {
 
                     var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });

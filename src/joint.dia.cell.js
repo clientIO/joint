@@ -68,7 +68,6 @@ joint.dia.Cell = Backbone.Model.extend({
         });
 
         var attributes = joint.util.cloneDeep(joint.util.omit(this.attributes, 'attrs'));
-        //var attributes = JSON.parse(JSON.stringify(_.omit(this.attributes, 'attrs')));
         attributes.attrs = finalAttrs;
 
         return attributes;
@@ -532,13 +531,15 @@ joint.dia.Cell = Backbone.Model.extend({
     // A convient way to unset nested properties
     removeProp: function(path, opt) {
 
+        opt = opt || {};
+
+        var pathArray = Array.isArray(path) ? path : path.split('/');
+
         // Once a property is removed from the `attrs` attribute
         // the cellView will recognize a `dirty` flag and rerender itself
         // in order to remove the attribute from SVG element.
-        opt = opt || {};
-        opt.dirty = true;
-
-        var pathArray = Array.isArray(path) ? path : path.split('/');
+        var property = pathArray[0];
+        if (property === 'attrs') opt.dirty = true;
 
         if (pathArray.length === 1) {
             // A top level property
@@ -546,7 +547,6 @@ joint.dia.Cell = Backbone.Model.extend({
         }
 
         // A nested property
-        var property = pathArray[0];
         var nestedPath = pathArray.slice(1);
         var propertyValue = joint.util.cloneDeep(this.get(property));
 
@@ -709,6 +709,25 @@ joint.dia.Cell = Backbone.Model.extend({
 
         if (this.graph) { this.graph.stopBatch(name, joint.util.assign({}, opt, { cell: this })); }
         return this;
+    },
+
+    getChangeFlag: function(attributes) {
+        var flag = 0;
+        if (!attributes) return flag;
+        for (var key in attributes) {
+            if (!attributes.hasOwnProperty(key) || !this.hasChanged(key)) continue;
+            flag |= attributes[key];
+        }
+        return flag;
+    },
+
+    angle: function() {
+        return 0;
+    },
+
+    getPointFromConnectedLink: function() {
+        // To be overridden
+        return new g.Point();
     }
 
 }, {
@@ -745,6 +764,8 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     selector: 'root',
 
+    metrics: null,
+
     className: function() {
 
         var classNames = ['cell'];
@@ -761,8 +782,11 @@ joint.dia.CellView = joint.mvc.View.extend({
     },
 
     attributes: function() {
-
-        return { 'model-id': this.model.id };
+        var cell = this.model;
+        return {
+            'model-id': cell.id,
+            'data-type': cell.attributes.type
+        };
     },
 
     constructor: function(options) {
@@ -778,17 +802,21 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     init: function() {
 
-        joint.util.bindAll(this, 'remove', 'update');
+        this.cleanNodesCache();
 
         // Store reference to this to the <g> DOM element so that the view is accessible through the DOM tree.
         this.$el.data('view', this);
 
-        // Add the cell's type to the view's element as a data attribute.
-        this.$el.attr('data-type', this.model.get('type'));
-
-        this.listenTo(this.model, 'change:attrs', this.onChangeAttrs);
+        this.startListening();
     },
 
+    startListening: function() {
+        this.listenTo(this.model, 'change', this.onAttributesChange);
+    },
+
+    onAttributesChange: function() {
+        // to be overriden
+    },
 
     parseDOMJSON: function(markup, root) {
 
@@ -805,18 +833,6 @@ joint.dia.CellView = joint.mvc.View.extend({
             selectors[rootSelector] = root;
         }
         return { fragment: doc.fragment, selectors: selectors };
-    },
-
-    onChangeAttrs: function(cell, attrs, opt) {
-
-        if (opt.dirty) {
-
-            // dirty flag could be set when a model attribute was removed and it needs to be cleared
-            // also from the DOM element. See cell.removeAttr().
-            return this.render();
-        }
-
-        return this.update(cell, attrs, opt);
     },
 
     // Return `true` if cell link is allowed to perform a certain UI `feature`.
@@ -863,33 +879,6 @@ joint.dia.CellView = joint.mvc.View.extend({
             // Paper event handlers receive the view object as the first argument.
             this.paper.trigger.apply(this.paper, [eventName, this].concat(args));
         }
-    },
-
-    // ** Deprecated **
-    getStrokeBBox: function(el) {
-        // Return a bounding box rectangle that takes into account stroke.
-        // Note that this is a naive and ad-hoc implementation that does not
-        // works only in certain cases and should be replaced as soon as browsers will
-        // start supporting the getStrokeBBox() SVG method.
-        // @TODO any better solution is very welcome!
-
-        var isMagnet = !!el;
-
-        el = el || this.el;
-        var bbox = V(el).getBBox({ target: this.paper.viewport });
-        var strokeWidth;
-        if (isMagnet) {
-
-            strokeWidth = V(el).attr('stroke-width');
-
-        } else {
-
-            strokeWidth = this.model.attr('rect/stroke-width') || this.model.attr('circle/stroke-width') || this.model.attr('ellipse/stroke-width') || this.model.attr('path/stroke-width');
-        }
-
-        strokeWidth = parseFloat(strokeWidth) || 0;
-
-        return g.rect(bbox).moveAndExpand({ x: -strokeWidth / 2, y: -strokeWidth / 2, width: strokeWidth, height: strokeWidth });
     },
 
     getBBox: function() {
@@ -999,7 +988,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var paper = this.paper;
         var connectionStrategy = paper.options.connectionStrategy;
         if (typeof connectionStrategy === 'function') {
-            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType);
+            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType, paper);
             if (strategy) end = strategy;
         }
 
@@ -1169,9 +1158,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         var offseted = false;
         if (offsetAttrs) {
             // Check if the node is visible
-            var nodeClientRect = node.getBoundingClientRect();
-            if (nodeClientRect.width > 0 && nodeClientRect.height > 0) {
-                var nodeBBox = V.transformRect(node.getBBox(), nodeMatrix).scale(1 / sx, 1 / sy);
+            var nodeBoundingRect = this.getNodeBoundingRect(node);
+            if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
+                var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
                 for (attrName in offsetAttrs) {
                     attrVal = offsetAttrs[attrName];
                     def = this.getAttributeDefinition(attrName);
@@ -1212,6 +1201,76 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
 
         return { sx: sx, sy: sy };
+    },
+
+    cleanNodesCache: function() {
+        this.metrics = {};
+    },
+
+    nodeCache: function(magnet) {
+
+        var metrics = this.metrics;
+        // Don't use cache? It most likely a custom view with overridden update.
+        if (!metrics) return {};
+        var id = V.ensureId(magnet);
+        var value = metrics[id];
+        if (!value) value = metrics[id] = {};
+        return value;
+    },
+
+    getNodeData: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (!metrics.data) metrics.data = {};
+        return metrics.data;
+    },
+
+    getNodeBoundingRect: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
+        return new g.Rect(metrics.boundingRect);
+    },
+
+    getNodeMatrix: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.magnetMatrix === undefined) {
+            var target = this.rotatableNode || this.el;
+            metrics.magnetMatrix = V(magnet).getTransformToElement(target);
+        }
+        return V.createSVGMatrix(metrics.magnetMatrix);
+    },
+
+    getNodeShape: function(magnet) {
+
+        var metrics = this.nodeCache(magnet);
+        if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
+        return metrics.geometryShape.clone();
+    },
+
+    getNodeBBox: function(magnet) {
+
+        return V.transformRect(this.getNodeBoundingRect(magnet), this.getNodeMatrix(magnet));
+    },
+
+    getNodeUnrotatedBBox: function(magnet) {
+
+        return this.getNodeBBox(magnet);
+    },
+
+    getRootTranslateMatrix: function() {
+
+        return V.createSVGMatrix();
+    },
+
+    getRootRotateMatrix: function() {
+
+        return V.createSVGMatrix();
+    },
+
+    isNodeConnection: function(node) {
+        return this.model.isLink() && (!node || node === this.el);
     },
 
     findNodesAttributes: function(attrs, root, selectorCache, selectors) {

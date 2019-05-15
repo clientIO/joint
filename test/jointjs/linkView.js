@@ -650,6 +650,195 @@ QUnit.module('linkView', function(hooks) {
         });
     });
 
+    QUnit.module('linkAnchors', function() {
+
+        QUnit.test('sanity', function(assert) {
+            // Source Anchor
+            var sourceAnchor = new g.Point(1, -1);
+            var sourceAnchorSpy = joint.linkAnchors.test1 = sinon.spy(function() {
+                return sourceAnchor;
+            });
+            linkView.model.source(link2, {
+                anchor: {
+                    name: 'test1',
+                    args: {
+                        testArg1: true
+                    }
+                }
+            });
+            assert.ok(sourceAnchorSpy.calledOnce);
+            assert.ok(sourceAnchorSpy.calledWithExactly(
+                linkView2,
+                linkView2.el,
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+            assert.ok(sourceAnchorSpy.calledOn(linkView));
+            assert.deepEqual(linkView.sourceBBox.toJSON(), (new g.Rect(sourceAnchor)).toJSON());
+
+
+            // // Target Anchor
+            var targetAnchor = new g.Point(-1, 1);
+            var targetAnchorSpy = joint.linkAnchors.test2 = sinon.spy(function() {
+                return targetAnchor;
+            });
+            linkView.model.target(link2, {
+                anchor: {
+                    name: 'test2',
+                    args: {
+                        testArg2: true
+                    }
+                }
+            });
+            assert.ok(targetAnchorSpy.calledOnce);
+            assert.ok(targetAnchorSpy.calledWithExactly(
+                linkView2,
+                linkView2.el,
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+            assert.ok(targetAnchorSpy.calledOn(linkView));
+            assert.deepEqual(linkView.targetBBox.toJSON(), (new g.Rect(targetAnchor)).toJSON());
+
+            // // Changing target updates both anchors
+            assert.ok(sourceAnchorSpy.calledTwice);
+
+            // // Source Magnet
+            sourceAnchorSpy.resetHistory();
+            var sourceMagnetAnchorSpy = joint.anchors.test1 = sinon.spy(function() {
+                return sourceAnchor;
+            });
+            linkView.model.prop('source/magnet', '.connection');
+            assert.ok(sourceAnchorSpy.notCalled);
+            assert.ok(sourceMagnetAnchorSpy.calledWithExactly(
+                linkView2,
+                // eslint-disable-next-line no-undef
+                linkView2.el.querySelector('.connection'),
+                sinon.match(function(value) {
+                    return value instanceof SVGElement;
+                }), // requires resolving
+                sinon.match({ testArg1: true }),
+                'source',
+                linkView
+            ));
+            assert.ok(sourceMagnetAnchorSpy.calledOnce);
+
+            // // Target Magnet
+            targetAnchorSpy.resetHistory();
+            var targetMagnetAnchorSpy = joint.anchors.test2 = sinon.spy(function() {
+                return targetAnchor;
+            });
+            linkView.model.prop('target/magnet', '.connection');
+            assert.ok(targetAnchorSpy.notCalled);
+
+            assert.ok(targetMagnetAnchorSpy.calledWithExactly(
+                linkView2,
+                linkView2.el.querySelector('.connection'),
+                sinon.match.instanceOf(g.Point),
+                sinon.match({ testArg2: true }),
+                'target',
+                linkView
+            ));
+            assert.ok(targetMagnetAnchorSpy.calledOnce);
+
+            assert.ok(sourceAnchor.equals(linkView.sourceAnchor));
+            assert.ok(targetAnchor.equals(linkView.targetAnchor));
+
+            // // Link connected by source to a point does not use anchors
+            sourceAnchorSpy.resetHistory();
+            sourceMagnetAnchorSpy.resetHistory();
+            linkView.model.removeProp('source/id');
+            assert.ok(sourceAnchorSpy.notCalled);
+            assert.ok(sourceMagnetAnchorSpy.notCalled);
+
+            // Link connected by target to a point does not use anchors
+            targetAnchorSpy.resetHistory();
+            targetMagnetAnchorSpy.resetHistory();
+            linkView.model.removeProp('target/id');
+            assert.ok(targetAnchorSpy.notCalled);
+            assert.ok(targetMagnetAnchorSpy.notCalled);
+        });
+
+        QUnit.test('joint.linkAnchors - source', function(assert) {
+
+            link2.source({ x: 100, y: 100 });
+            link2.target({ x: 200, y: 100 });
+            link.source({ x: 160, y: 200 });
+            // RATIO
+            link.target(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.2 }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 120, y: 100 });
+            //L ENGTH
+            link.target(link2, { anchor: { name: 'connectionLength', args: { length: 40 }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 140, y: 100 });
+            // CLOSEST
+            link.target(link2, { anchor: { name: 'connectionClosest' }});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 160, y: 100 });
+            // PERPENDICULAR
+            link.target(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: '30%' }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 160, y: 100 });
+            link.source({ x: 0, y: 200 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 130, y: 100 });
+            link.target(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: 40 }}});
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 140, y: 100 });
+            link.removeProp('target/anchor/args');
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 100 });
+            link2.target({ x: 100, y: 300 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 200 });
+            link.prop('target/anchor/args', { fixedAt: '40%' });
+            link.source(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.9 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 280 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 }); // perpendicular
+            // Multiple intersections
+            link2.target({ x: 200, y: 100 });
+            link2.vertices([{ x: 100, y: 300 }, { x: 200, y: 300 }]);
+            link.source(link2, { anchor: { name: 'connectionPerpendicular' }});
+            link.target({ x: 0, y: 150 });
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 150 });
+        });
+
+        QUnit.test('joint.linknAchors - target', function(assert) {
+
+            link2.source({ x: 100, y: 100 });
+            link2.target({ x: 200, y: 100 });
+            link.target({ x: 160, y: 200 });
+            // RATIO
+            link.source(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.2 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 120, y: 100 });
+            // LENGTH
+            link.source(link2, { anchor: { name: 'connectionLength', args: { length: 40 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 140, y: 100 });
+            // CLOSEST
+            link.source(link2, { anchor: { name: 'connectionClosest' }});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 160, y: 100 });
+            // PERPENDICULAR
+            link.source(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: '30%' }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 160, y: 100 });
+            link.target({ x: 0, y: 200 });
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 130, y: 100 });
+            link.source(link2, { anchor: { name: 'connectionPerpendicular', args: { fallbackAt: 40 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 140, y: 100 });
+            link.removeProp('source/anchor/args');
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 100 });
+            link2.target({ x: 100, y: 300 });
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 200 });
+            link.prop('source/anchor/args', { fixedAt: '40%' });
+            link.target(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.9 }}});
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 180 }); // fixedAt
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 });
+            // Multiple intersections
+            link2.target({ x: 200, y: 100 });
+            link2.vertices([{ x: 100, y: 300 }, { x: 200, y: 300 }]);
+            link.target(link2, { anchor: { name: 'connectionPerpendicular' }});
+            link.source({ x: 0, y: 150 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 150 });
+        });
+
+    });
+
     QUnit.module('anchors', function(hooks) {
 
         var r1, r2, rv1, rv2;
@@ -686,7 +875,7 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 linkView
             ));
-            assert.equal(sourceAnchorSpy.thisValues[0], linkView);
+            assert.ok(sourceAnchorSpy.calledOn(linkView));
 
             // Target Anchor
             var targetAnchor = new g.Point(-1, 1);
@@ -706,7 +895,7 @@ QUnit.module('linkView', function(hooks) {
                 'target',
                 linkView
             ));
-            assert.equal(targetAnchorSpy.thisValues[0], linkView);
+            assert.ok(targetAnchorSpy.calledOn(linkView));
 
             // Changing target updates both anchors
             assert.ok(sourceAnchorSpy.calledTwice);
@@ -788,7 +977,7 @@ QUnit.module('linkView', function(hooks) {
                 'source',
                 linkView
             ));
-            assert.equal(sourceConnectionPointSpy.thisValues[0], linkView);
+            assert.ok(sourceConnectionPointSpy.calledOn(linkView));
             // Target connectionPoint
             var targetPoint = new g.Point(-1, 1);
             var targetConnectionPointSpy = joint.connectionPoints.test2 = sinon.spy(function() {
@@ -807,7 +996,7 @@ QUnit.module('linkView', function(hooks) {
                 'target',
                 linkView
             ));
-            assert.equal(targetConnectionPointSpy.thisValues[0], linkView);
+            assert.ok(targetConnectionPointSpy.calledOn(linkView));
 
             // Changing target updates both connectionPoints
             assert.ok(sourceConnectionPointSpy.calledTwice);
@@ -861,7 +1050,7 @@ QUnit.module('linkView', function(hooks) {
             rv1 = r1.findView(paper);
         });
 
-        QUnit.test('sannity', function(assert) {
+        QUnit.test('sanity', function(assert) {
 
             var data;
             var strategySpy = paper.options.connectionStrategy = sinon.spy(function(end) {
@@ -893,9 +1082,10 @@ QUnit.module('linkView', function(hooks) {
                 rv1.el,
                 sinon.match(function(coords) { return coords.equals(new g.Point(50, 50)); }),
                 linkView.model,
-                'source'
+                'source',
+                paper
             ));
-            assert.equal(strategySpy.thisValues[0], paper);
+            assert.ok(strategySpy.calledOn(paper));
             assert.equal(linkView.model.attributes.source.test, true);
 
             // Target
@@ -923,9 +1113,10 @@ QUnit.module('linkView', function(hooks) {
                 rv1.el,
                 sinon.match(function(coords) { return coords.equals(new g.Point(40, 40)); }),
                 linkView.model,
-                'target'
+                'target',
+                paper
             ));
-            assert.equal(strategySpy.thisValues[1], paper);
+            assert.ok(strategySpy.alwaysCalledOn(paper));
             assert.equal(linkView.model.attributes.target.test, true);
         });
     });

@@ -194,19 +194,18 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, 'M 140 120 L 280 120 L 280 0 L 580 0 L 580 20 L 620 20',
             'The option paddingBox was passed. The source and target element and obstacles are avoided taken this padding in account.');
 
-        assert.throws(function() {
 
-            l0.set('router', {
-                name: 'manhattan',
-                args: {
-                    maximumLoops: 1,
-                    fallbackRoute: function() {
-                        throw 'fallback-route';
-                    }
-                }
-            });
+        var fallbackRouteSpy = sinon.spy(function() { return []; });
 
-        }, /fallback-route/, 'A fallback route is available.');
+        l0.set('router', {
+            name: 'manhattan',
+            args: {
+                maximumLoops: 1,
+                fallbackRoute: fallbackRouteSpy
+            }
+        });
+
+        assert.ok(fallbackRouteSpy.calledOnce);
 
         l0.set('router', {
             name: 'manhattan',
@@ -247,21 +246,19 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, 'M 80 80 L 80 21 L 21 21 L 21 20 L 620 20',
             'A vertex was moved (not snapped to the grid now). Route correctly recalculated.');
 
-        assert.throws(function() {
+        var draggingRouteSpy = sinon.spy();
 
-            l0.set({
-                target: { x: 200, y: 200 },
-                router: {
-                    name: 'manhattan',
-                    args: {
-                        draggingRoute: function() {
-                            throw 'dragging-route';
-                        }
-                    }
+        l0.set({
+            target: { x: 200, y: 200 },
+            router: {
+                name: 'manhattan',
+                args: {
+                    draggingRoute: draggingRouteSpy
                 }
-            });
+            }
+        });
 
-        }, /dragging-route/, 'A dragging route is triggered correctly');
+        assert.ok(draggingRouteSpy.calledOnce);
 
         l0.set({
             target: { id: r3.id },
