@@ -1092,7 +1092,7 @@ QUnit.module('links', function(hooks) {
         this.graph.addCells([linkDefaultConnector, linkOwnConnector]);
     });
 
-    QUnit.test('getSourceElement', function(assert) {
+    QUnit.test('getSourceCell', function(assert) {
 
         var link = new joint.dia.Link({
             source: { x: 40, y: 40 },
@@ -1101,11 +1101,11 @@ QUnit.module('links', function(hooks) {
 
         this.graph.addCell(link);
 
-        assert.equal(typeof link.getSourceElement, 'function', 'should be a function');
+        assert.equal(typeof link.getSourceCell, 'function', 'should be a function');
 
         var source;
 
-        source = link.getSourceElement();
+        source = link.getSourceCell();
 
         assert.equal(source, null, 'without source element');
 
@@ -1118,7 +1118,7 @@ QUnit.module('links', function(hooks) {
 
         link.set('source', { id: element.id });
 
-        source = link.getSourceElement();
+        source = link.getSourceCell();
 
         assert.ok(source && source instanceof joint.dia.Element && source.id === element.id, 'with source element');
 
@@ -1130,7 +1130,7 @@ QUnit.module('links', function(hooks) {
         var thrownError;
 
         try {
-            linkNotInGraph.getSourceElement();
+            linkNotInGraph.getSourceCell();
         } catch (error) {
             thrownError = error;
         }
@@ -1138,7 +1138,29 @@ QUnit.module('links', function(hooks) {
         assert.ok(typeof thrownError === 'undefined', 'should not throw an error when link not in graph');
     });
 
-    QUnit.test('getTargetElement', function(assert) {
+    QUnit.test('getSourceElement', function(assert) {
+
+        var link1 = new joint.shapes.standard.Link();
+        var link2 = new joint.shapes.standard.Link();
+
+        this.graph.addCells([link1, link2]);
+
+        assert.equal(typeof link1.getSourceElement, 'function');
+
+        assert.equal(link1.getSourceElement(), null, 'without source element');
+        assert.equal(link2.getSourceElement(), null, 'without source element');
+
+        var element = new joint.shapes.standard.Rectangle();
+        this.graph.addCell(element);
+
+        link1.source(element);
+        link2.source(link1);
+
+        assert.equal(link1.getSourceElement(), element);
+        assert.equal(link2.getSourceElement(), element);
+    });
+
+    QUnit.test('getTargetCell', function(assert) {
 
         var link = new joint.dia.Link({
             source: { x: 40, y: 40 },
@@ -1147,11 +1169,11 @@ QUnit.module('links', function(hooks) {
 
         this.graph.addCell(link);
 
-        assert.equal(typeof link.getTargetElement, 'function', 'should be a function');
+        assert.equal(typeof link.getTargetCell, 'function', 'should be a function');
 
         var target;
 
-        target = link.getTargetElement();
+        target = link.getTargetCell();
 
         assert.equal(target, null, 'without target element');
 
@@ -1164,7 +1186,7 @@ QUnit.module('links', function(hooks) {
 
         link.set('target', { id: element.id });
 
-        target = link.getTargetElement();
+        target = link.getTargetCell();
 
         assert.ok(target && target instanceof joint.dia.Element && target.id === element.id, 'with target element');
 
@@ -1176,12 +1198,35 @@ QUnit.module('links', function(hooks) {
         var thrownError;
 
         try {
-            linkNotInGraph.getTargetElement();
+            linkNotInGraph.getTargetCell();
         } catch (error) {
             thrownError = error;
         }
 
         assert.ok(typeof thrownError === 'undefined', 'should not throw an error when link not in graph');
+    });
+
+
+    QUnit.test('getTargetElement', function(assert) {
+
+        var link1 = new joint.shapes.standard.Link();
+        var link2 = new joint.shapes.standard.Link();
+
+        this.graph.addCells([link1, link2]);
+
+        assert.equal(typeof link1.getTargetElement, 'function');
+
+        assert.equal(link1.getTargetElement(), null, 'without source element');
+        assert.equal(link2.getTargetElement(), null, 'without source element');
+
+        var element = new joint.shapes.standard.Rectangle();
+        this.graph.addCell(element);
+
+        link1.target(element);
+        link2.target(link1);
+
+        assert.equal(link1.getTargetElement(), element);
+        assert.equal(link2.getTargetElement(), element);
     });
 
     QUnit.test('getRelationshipAncestor()', function(assert) {

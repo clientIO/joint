@@ -526,8 +526,14 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getSourceElement: function() {
-        // TODO: closest element
-        return this.getSourceCell();
+        var cell = this;
+        var visited = {};
+        do {
+            if (visited[cell.id]) return null;
+            visited[cell.id] = true;
+            cell = cell.getSourceCell();
+        } while (cell && cell.isLink());
+        return cell;
     },
 
     // unlike target(), this method returns null if target is a point
@@ -540,8 +546,14 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getTargetElement: function() {
-        // TODO: closest element
-        return this.getTargetCell();
+        var cell = this;
+        var visited = {};
+        do {
+            if (visited[cell.id]) return null;
+            visited[cell.id] = true;
+            cell = cell.getTargetCell();
+        } while (cell && cell.isLink());
+        return cell;
     },
 
     // Returns the common ancestor for the source element,
