@@ -1481,7 +1481,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
             }
             connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
-            if (!connectionPoint) anchor;
+            if (!connectionPoint) return anchor;
             return connectionPoint.round(this.decimalsRounding);
         },
 
