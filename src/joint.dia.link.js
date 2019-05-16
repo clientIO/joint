@@ -662,6 +662,8 @@ joint.dia.Link = joint.dia.Cell.extend({
             this.metrics = {};
         },
 
+        initFlag: FLAG_RENDER | FLAG_SOURCE | FLAG_TARGET,
+
         presentationAttributes: {
             markup: FLAG_RENDER,
             attrs: FLAG_UPDATE,
@@ -687,7 +689,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         FLAG_VERTICES: FLAG_VERTICES,
         FLAG_SOURCE: FLAG_SOURCE,
         FLAG_TARGET: FLAG_TARGET,
-        FLAG_INIT: FLAG_RENDER | FLAG_SOURCE | FLAG_TARGET,
 
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);

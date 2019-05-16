@@ -1002,8 +1002,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         var root = this.el;
         var port = end.port;
         var selector = end.magnet;
+        var model = this.model;
         var magnet;
-        if (port != null && this.model.hasPort(port)) {
+        if (port != null && model.isElement() && model.hasPort(port)) {
             magnet = this.findPortNode(port, selector) || root;
         } else {
             if (!selector) selector = end.selector;

@@ -455,6 +455,8 @@ joint.dia.Element = joint.dia.Cell.extend({
             this._initializePorts();
         },
 
+        initFlag: FLAG_RENDER,
+
         presentationAttributes: {
             'attrs': FLAG_UPDATE,
             'position': FLAG_TRANSLATE,
@@ -466,7 +468,6 @@ joint.dia.Element = joint.dia.Cell.extend({
 
         UPDATE_PRIORITY: 0,
 
-        FLAG_INIT: FLAG_RENDER,
         FLAG_RENDER: FLAG_RENDER,
         FLAG_UPDATE: FLAG_UPDATE,
         FLAG_TRANSLATE: FLAG_TRANSLATE,

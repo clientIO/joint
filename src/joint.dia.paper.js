@@ -1123,7 +1123,7 @@
             } else {
                 view = views[cell.id] = this.createViewForModel(cell);
                 view.paper = this;
-                flag = FLAG_INSERT | view.FLAG_INIT;
+                flag = FLAG_INSERT | view.initFlag;
             }
             this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
             return view;
