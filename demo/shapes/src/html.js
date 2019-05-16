@@ -80,7 +80,7 @@
             // Set the position and the size of the box so that it covers the JointJS element
             // (taking the paper transformations into account).
             var bbox = this.getBBox({ useModelGeometry: true });
-            var scale = V(this.paper.viewport).scale();
+            var scale = paper.scale();
 
             this.$box.css({
                 transform: 'scale(' + scale.sx + ',' + scale.sy + ')',
