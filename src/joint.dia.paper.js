@@ -457,8 +457,7 @@
                 for (var j = 0, n = links.length; j < n; j++) {
                     var linkView = this.findViewByModel(links[j]);
                     if (!linkView) continue;
-                    var flag = linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET;
-                    this.scheduleViewUpdate(linkView, flag, linkView.UPDATE_PRIORITY, opt);
+                    this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
                 }
             }
         },
