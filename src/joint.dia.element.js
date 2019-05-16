@@ -492,7 +492,7 @@ joint.dia.Element = joint.dia.Cell.extend({
                 flag ^= FLAG_RESIZE | FLAG_UPDATE;
             }
             if (flag & FLAG_UPDATE) {
-                this.updateAttributes();
+                this.updateNodesAttributes();
                 flag ^= FLAG_UPDATE;
             }
             if (flag & FLAG_TRANSLATE) {
@@ -521,12 +521,12 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             this._removePorts();
 
-            this.updateAttributes(renderingOnlyAttrs);
+            this.updateNodesAttributes(renderingOnlyAttrs);
 
             this._renderPorts();
         },
 
-        updateAttributes: function(renderingOnlyAttrs) {
+        updateNodesAttributes: function(renderingOnlyAttrs) {
 
             this.cleanNodesCache();
 
@@ -588,7 +588,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             if (this.scalableNode) {
                 // Double update is necessary for elements with the scalable group only
                 // Note the resize() triggers the other `update`.
-                this.updateAttributes();
+                this.updateNodesAttributes();
             }
             this.resize();
             if (this.rotatableNode) {
@@ -607,7 +607,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             if (this.scalableNode) return this.sgResize(opt);
             if (this.model.attributes.angle) this.rotate();
-            this.updateAttributes();
+            this.updateNodesAttributes();
         },
 
         translate: function() {
@@ -622,7 +622,7 @@ joint.dia.Element = joint.dia.Cell.extend({
                 this.rgRotate();
                 // It's necessary to call the update for the nodes outside
                 // the rotatable group referencing nodes inside the group
-                this.updateAttributes();
+                this.updateNodesAttributes();
                 return;
             }
             this.updateTransformation();
@@ -763,7 +763,7 @@ joint.dia.Element = joint.dia.Cell.extend({
 
             // Update must always be called on non-rotated element. Otherwise, relative positioning
             // would work with wrong (rotated) bounding boxes.
-            this.updateAttributes();
+            this.updateNodesAttributes();
         },
 
         // Embedding mode methods.

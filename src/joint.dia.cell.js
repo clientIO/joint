@@ -800,7 +800,9 @@ joint.dia.CellView = joint.mvc.View.extend({
         joint.mvc.View.call(this, options);
     },
 
-    init: function() {
+    initialize: function() {
+
+        joint.mvc.View.prototype.initialize.apply(this, arguments);
 
         this.cleanNodesCache();
 
