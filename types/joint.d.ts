@@ -582,6 +582,10 @@ export namespace dia {
 
         paper: Paper | null;
 
+        initFlag: number;
+
+        presentationAttributes: { [key: string]: number };
+
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
         unhighlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
@@ -675,6 +679,8 @@ export namespace dia {
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
         getDelegatedView(): ElementView | null;
+
+        findPortNode(portId: string | number, selector?: string): SVGElement;
 
         protected renderMarkup(): void;
 
