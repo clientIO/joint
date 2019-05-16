@@ -123,11 +123,10 @@ var paper = new joint.dia.Paper({
             if (usedInPorts.find(function(port) { return port.id === portId; })) return false;
         }
         return true;
-    },
-    highlighting: {
-        magnetAvailability: magnetAvailabilityHighlighter
     }
 });
+
+paper.options.highlighting.magnetAvailability = magnetAvailabilityHighlighter;
 
 paper.on('link:mouseenter', function(linkView) {
     var tools = new joint.dia.ToolsView({
