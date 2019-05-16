@@ -1248,6 +1248,10 @@ QUnit.module('vectorizer', function(hooks) {
 
             assert.equal(V.normalizePathData('X M 10 10'), 'M 10 10'); // mixing invalid and valid commands
             assert.equal(V.normalizePathData('X M 10 10 X L 20 20'), 'M 10 10 L 20 20'); // invalid commands interspersed with valid commands
+
+            assert.equal(V.normalizePathData('A 0 3 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 x radius
+            assert.equal(V.normalizePathData('A 3 0 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 y radius
+            assert.equal(V.normalizePathData('A 0 0 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 x and y radii
         });
 
         QUnit.test('path segment reconstruction', function(assert) {
