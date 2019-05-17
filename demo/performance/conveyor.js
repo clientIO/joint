@@ -1,55 +1,11 @@
 'use strict';
 
-joint.dia.FastPaper = joint.dia.Paper.extend({
+joint.dia.Element.define('perf.ConveyorElement', {
 
-    sortViews: joint.util.noop,
+    hasPallet: false
 
-    beforeRenderViews: function() {
-
-        this.documentFragment = document.createDocumentFragment();
-    },
-
-    renderView: function(cell) {
-
-        var view = this._views[cell.id] = this.createViewForModel(cell);
-
-        // Keep the document fragment sorted. First goes links and then elements. L-L-L-L-L-E-E-E-E-E-E
-        if (cell.isLink()) {
-            this.documentFragment.insertBefore(view.el, this.documentFragment.firstChild);
-        } else {
-            this.documentFragment.appendChild(view.el);
-        }
-
-        view.paper = this;
-        view.render();
-
-        return view;
-    },
-
-    asyncBatchAdded: function() {
-
-        if (this.documentFragment.children.length) {
-            // Insert the document fragment after last link. i.e. If the viewport is sorted having
-            // L1-L2-L3-E1-E2-E3 and the fragment contains L4-E4 we want the viewport stay sorted.
-            // -> L1-L2-L3-L4-E4-E1-E2-E3
-            // Also note that there in the viewport could be a single element, but never a single link.
-            this.viewport.insertBefore(this.documentFragment, this.viewport.querySelector('.element'));
-            this.documentFragment = document.createDocumentFragment();
-        }
-    }
-});
-
-joint.shapes.perf = {};
-joint.shapes.perf.ConveyorElement = joint.dia.Element.extend({
-
+}, {
     PADDING: 2,
-
-    defaults: joint.util.defaultsDeep({
-
-        type: 'perf.ConveyorElement',
-        hasPallet: false
-
-    }, joint.dia.Element.prototype.defaults),
 
     addPallet: function() {
 
@@ -103,57 +59,63 @@ joint.shapes.perf.ConveyorElement = joint.dia.Element.extend({
     }
 });
 
+var FLAG_TRANSLATE = 1<<0;
+var FLAG_RESIZE = 1<<1;
+var FLAG_ROTATE = 1<<2;
+var FLAG_PALLET = 1<<3;
+var FLAG_MARKUP = 1<<4;
 
 joint.shapes.perf.ConveyorElementView = joint.dia.ElementView.extend({
 
-    initialize: function() {
+    initFlag: FLAG_TRANSLATE | FLAG_RESIZE | FLAG_ROTATE | FLAG_PALLET | FLAG_MARKUP,
 
-        this.listenTo(this.model, 'change:position', this.translate);
-        this.listenTo(this.model, 'change:size', this.resize);
-        this.listenTo(this.model, 'change:angle', this.rotate);
-        this.listenTo(this.model, 'change:hasPallet', this.updatePallet);
+    presentationAttributes: {
+        'position': FLAG_TRANSLATE,
+        'size': FLAG_RESIZE | FLAG_ROTATE,
+        'angle': FLAG_ROTATE,
+        'hasPallet': FLAG_PALLET
+    },
+
+    confirmUpdate: function(flag) {
+
+        if (flag & FLAG_MARKUP) this.renderMarkup();
+        if (flag & FLAG_PALLET) this.updatePallet();
+        if (flag & FLAG_RESIZE) this.resize();
+        if (flag & FLAG_ROTATE) this.rotate();
+        if (flag & FLAG_TRANSLATE) this.translate();
+
+        return 0;
     },
 
     updatePallet: function() {
 
         var palletColor = this.model.hasPallet() ? 'blue' : 'red';
-
         this.svgInnerRect.attr('fill', palletColor);
     },
 
     updateRectsDimensions: function() {
 
         var model = this.model;
-
         this.svgOuterRect.attr(model.getOuterRectBBox());
         this.svgInnerRect.attr(model.getInnerRectBBox());
-    },
-
-    update: function() {
-
-        this.updatePallet();
     },
 
     renderMarkup: function() {
 
         this.svgOuterRect = this.constructor.outerRect.clone();
         this.svgInnerRect = this.constructor.innerRect.clone();
-
         this.vel.append([this.svgOuterRect, this.svgInnerRect]);
     },
 
     resize: function() {
 
         this.updateRectsDimensions();
-        // fix rotate transformation origin.
-        this.rotate();
     },
 
     translate: function() {
 
         var model = this.model;
         var position = model.get('position');
-
         this.vel.translate(position.x, position.y, { absolute: true });
     },
 
@@ -162,7 +124,6 @@ joint.shapes.perf.ConveyorElementView = joint.dia.ElementView.extend({
         var model = this.model;
         var angle = model.get('angle');
         var size = model.get('size');
-
         this.vel.rotate(angle, size.width / 2, size.height / 2, { absolute: true });
     }
 
@@ -170,8 +131,6 @@ joint.shapes.perf.ConveyorElementView = joint.dia.ElementView.extend({
     innerRect: V('rect').addClass('rect-inner'),
     outerRect: V('rect').addClass('rect-outer')
 });
-
-
 
 
 function createCircle(center, radius, rectSize) {
@@ -187,8 +146,6 @@ function createCircle(center, radius, rectSize) {
             size: { width: rectSize, height: rectSize },
             angle: -angle
         });
-
-        console.log('Add: ' + p.x + ' x ' + p.y);
 
         if (elements.length % 2 === 0) {
             conveyorElement.addPallet();
@@ -206,7 +163,7 @@ function createCircle(center, radius, rectSize) {
 var canvasWidth = 1000;
 var canvasHeight = 1000;
 var graph = new joint.dia.Graph;
-var paper = new joint.dia.FastPaper({
+var paper = new joint.dia.Paper({
     el: document.getElementById('canvas'),
     width: canvasWidth,
     height: canvasHeight,

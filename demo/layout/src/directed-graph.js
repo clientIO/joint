@@ -1,6 +1,7 @@
 (function(joint) {
 
     var Shape = joint.dia.Element.define('demo.Shape', {
+        z: 2,
         size: {
             width: 100,
             height: 50
@@ -55,7 +56,7 @@
         connector: {
             name: 'rounded'
         },
-        z: -1,
+        z: 1,
         weight: 1,
         minLen: 1,
         labelPosition: 'c',
@@ -123,8 +124,8 @@
     var LayoutControls = joint.mvc.View.extend({
 
         events: {
-            change: 'layout',
-            input: 'layout'
+            change: 'onChange',
+            input: 'onChange'
         },
 
         options: {
@@ -138,11 +139,14 @@
                 options.cells = this.buildGraphFromAdjacencyList(options.adjacencyList);
             }
 
-            this.listenTo(options.paper.model, 'change', function(cell, opt) {
-                if (opt.layout) {
-                    this.layout();
-                }
+            this.listenTo(options.paper.model, 'change', function(_, opt) {
+                if (opt.layout) this.layout();
             });
+        },
+
+        onChange: function() {
+            this.layout();
+            this.trigger('layout');
         },
 
         layout: function() {
@@ -150,6 +154,8 @@
             var paper = this.options.paper;
             var graph = paper.model;
             var cells = this.options.cells;
+
+            paper.freeze();
 
             joint.layout.DirectedGraph.layout(cells, this.getLayoutOptions());
 
@@ -161,10 +167,11 @@
 
             paper.fitToContent({
                 padding: this.options.padding,
-                allowNewOrigin: 'any'
+                allowNewOrigin: 'any',
+                useModelGeometry: true
             });
 
-            this.trigger('layout');
+            paper.unfreeze();
         },
 
         getLayoutOptions: function() {
@@ -232,6 +239,7 @@
 
         updateLink: function() {
             this.options.cellView.model.set(this.getModelAttributes(), { layout: true });
+            this.constructor.refresh();
         },
 
         updateControls: function() {
@@ -300,6 +308,7 @@
         el: document.getElementById('layout-controls'),
         paper: new joint.dia.Paper({
             el: document.getElementById('paper'),
+            sorting: joint.dia.Paper.sorting.APPROX,
             interactive: function(cellView) {
                 return cellView.model.isElement();
             }

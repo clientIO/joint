@@ -526,8 +526,14 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getSourceElement: function() {
-        // TODO: closest element
-        return this.getSourceCell();
+        var cell = this;
+        var visited = {};
+        do {
+            if (visited[cell.id]) return null;
+            visited[cell.id] = true;
+            cell = cell.getSourceCell();
+        } while (cell && cell.isLink());
+        return cell;
     },
 
     // unlike target(), this method returns null if target is a point
@@ -540,8 +546,14 @@ joint.dia.Link = joint.dia.Cell.extend({
     },
 
     getTargetElement: function() {
-        // TODO: closest element
-        return this.getTargetCell();
+        var cell = this;
+        var visited = {};
+        do {
+            if (visited[cell.id]) return null;
+            visited[cell.id] = true;
+            cell = cell.getTargetCell();
+        } while (cell && cell.isLink());
+        return cell;
     },
 
     // Returns the common ancestor for the source element,
@@ -662,6 +674,8 @@ joint.dia.Link = joint.dia.Cell.extend({
             this.metrics = {};
         },
 
+        initFlag: FLAG_RENDER | FLAG_SOURCE | FLAG_TARGET,
+
         presentationAttributes: {
             markup: FLAG_RENDER,
             attrs: FLAG_UPDATE,
@@ -687,7 +701,6 @@ joint.dia.Link = joint.dia.Cell.extend({
         FLAG_VERTICES: FLAG_VERTICES,
         FLAG_SOURCE: FLAG_SOURCE,
         FLAG_TARGET: FLAG_TARGET,
-        FLAG_INIT: FLAG_RENDER | FLAG_SOURCE | FLAG_TARGET,
 
         onAttributesChange: function(model, opt) {
             var flag = model.getChangeFlag(this.presentationAttributes);
@@ -1468,7 +1481,7 @@ joint.dia.Link = joint.dia.Cell.extend({
                 if (typeof connectionPointFn !== 'function') throw new Error('Unknown connection point: ' + connectionPointName);
             }
             connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
-            if (!connectionPoint) anchor;
+            if (!connectionPoint) return anchor;
             return connectionPoint.round(this.decimalsRounding);
         },
 

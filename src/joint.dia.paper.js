@@ -457,8 +457,7 @@
                 for (var j = 0, n = links.length; j < n; j++) {
                     var linkView = this.findViewByModel(links[j]);
                     if (!linkView) continue;
-                    var flag = linkView.FLAG_UPDATE | linkView.FLAG_SOURCE | linkView.FLAG_TARGET;
-                    this.scheduleViewUpdate(linkView, flag, linkView.UPDATE_PRIORITY, opt);
+                    this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
                 }
             }
         },
@@ -1123,7 +1122,7 @@
             } else {
                 view = views[cell.id] = this.createViewForModel(cell);
                 view.paper = this;
-                flag = FLAG_INSERT | view.FLAG_INIT;
+                flag = FLAG_INSERT | view.initFlag;
             }
             this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
             return view;
