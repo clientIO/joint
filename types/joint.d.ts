@@ -2596,7 +2596,8 @@ export namespace anchors {
     }
 
     interface ModelCenterAnchorArguments {
-
+        dx?: number;
+        dy?: number;
     }
 
     interface AnchorArgumentsMap {
