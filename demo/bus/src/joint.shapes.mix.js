@@ -74,7 +74,7 @@ joint.shapes.standard.Link.define('mix.Connector', {
                 }
             });
         } else {
-            connector.source(source, { selector: source.isLink() ? null : 'body' });
+            connector.source(source, { selector: source.isLink() ? 'root' : 'body' });
         }
         if (Array.isArray(target)) {
             connector.target(target[0], {
@@ -87,7 +87,7 @@ joint.shapes.standard.Link.define('mix.Connector', {
                 }
             });
         } else {
-            connector.target(target, { selector: target.isLink() ? null : 'body' });
+            connector.target(target, { selector: target.isLink() ? 'root' : 'body' });
         }
         return connector;
     }
