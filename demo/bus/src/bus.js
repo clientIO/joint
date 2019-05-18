@@ -12,7 +12,6 @@ var paper = new joint.dia.Paper({
     defaultConnectionPoint: { name: 'boundary', args: { selector: 'body' }},
     defaultLinkAnchor: { name: 'connectionPerpendicular' },
     defaultAnchor: { name: 'perpendicular' },
-    //defaultRouter: { name: 'orthogonal' },
     interactive: { linkMove: false, labelMove: false },
     highlighting: {
         default: {
@@ -63,6 +62,31 @@ var Component = joint.shapes.standard.Rectangle.define('Component', {
         body: {
             strokeWidth: 2,
             stroke: '#cccccc'
+        }
+    },
+    portMarkup: [{
+        tagName: 'rect',
+        selector: 'portBody',
+        attributes: {
+            'fill': '#ffffff',
+            'stroke': '#333333',
+            'stroke-width': 2,
+            'x': -10,
+            'y': -5,
+            'width': 20,
+            'height': 10
+        }
+    }],
+    ports: {
+        groups: {
+            'in': {
+                z: -1,
+                position: 'left'
+            },
+            'out': {
+                z: -1,
+                position: 'right',
+            }
         }
     }
 });
@@ -222,6 +246,7 @@ function createFader(x, y) {
         position: { x: x, y: y },
     });
 }
+
 function createConnector(source, target) {
     var connector = new Connector();
     if (Array.isArray(source)) {
@@ -272,12 +297,12 @@ var bus5 = createBus(700, 'Mix Left', '#ff5964');
 var bus6 = createBus(725, 'Mix Right', '#b5d99c');
 var bus7 = createBus(750, 'Post-fade Aux', '#35a7ff');
 var bus8 = createBus(775, 'Pre-fade Aux', '#6b2d5c');
-var component1 = createComponent(850, 180, 80, 80, 'Stereo Mix');
-var component2 = createComponent(840, 280, 100, 30, 'Pre Aux');
-var component3 = createComponent(840, 330, 100, 30, 'Post Aux');
+var component1 = createComponent(850, 180, 80, 80, 'Stereo Mix').addPort({ group: 'out' });
+var component2 = createComponent(840, 280, 100, 30, 'Pre Aux').addPort({ group: 'out' });
+var component3 = createComponent(840, 330, 100, 30, 'Post Aux').addPort({ group: 'out' });
 var component4 = createComponent(450, 200, 90, 100, 'Output Routing');
 var component5 = createComponent(450, 450, 90, 100, 'Output Routing');
-var component6 = createComponent(100, 230, 150, 40, 'Input Channel');
+var component6 = createComponent(100, 230, 150, 40, 'Input Channel').addPort({ group: 'in' });
 var component7 = createComponent(100, 480, 150, 40, 'Sub-group 1');
 var fader1 = createFader(350, 210, 80, 100, 'Output Routing');
 var fader2 = createFader(350, 460, 80, 100, 'Output Routing');
@@ -285,12 +310,7 @@ var aux1 = createAux(420, 320, 'Pre-fade Aux');
 var aux2 = createAux(350, 360, 'Post-fade Aux');
 var aux3 = createAux(420, 570, 'Post-fade Aux');
 var aux4 = createAux(350, 610, 'Pre-fade Aux');
-var connector1 = createConnector(bus1, component7).vertices([{ x: 175, y: 420 }]).attr('line', {
-    sourceMarker: {
-        'type': 'path',
-        'd': 'M 0 -8 15 0 0 8 z'
-    }
-});
+var connector1 = createConnector(bus1, component7).vertices([{ x: 175, y: 420 }]);
 var connector2 = createConnector(fader2, component5);
 var connector3 = createConnector(connector2, aux3).vertices([{ x: 400, y: 585 }]);
 var connector4 = createConnector(fader1, component4);
@@ -299,7 +319,29 @@ var connector6 = createConnector(component7, fader2);
 var connector7 = createConnector(connector6, aux4).vertices([{ x: 310, y: 625 }]);
 var connector8 = createConnector(component6, fader1);
 var connector9 = createConnector(connector8, aux2).vertices([{ x: 310, y: 375 }]);
+var connector10 = createConnector(bus5, [component1, -10]);
+var connector11 = createConnector(bus6, [component1, 10]);
+var connector12 = createConnector(bus7, component2);
+var connector13 = createConnector(bus8, component3);
+var connector14 = createConnector([component4, -40], bus1);
+var connector15 = createConnector([component4, -24], bus2);
+var connector16 = createConnector([component4, -8], bus3);
+var connector17 = createConnector([component4, 8], bus4);
+var connector18 = createConnector([component4, 24], bus5);
+var connector19 = createConnector([component4, 40], bus6);
+var connector20 = createConnector([component5, -20], bus5);
+var connector21 = createConnector([component5, 20], bus6);
+var connector22 = createConnector(aux1, bus7);
+var connector23 = createConnector(aux2, bus8);
+var connector24 = createConnector(aux3, bus7);
+var connector25 = createConnector(aux4, bus8);
 
+connector1.attr('line', {
+    sourceMarker: {
+        'type': 'path',
+        'd': 'M 0 -8 15 0 0 8 z'
+    }
+});
 
 graph.resetCells([
     bus1,
@@ -323,37 +365,31 @@ graph.resetCells([
     aux2,
     aux3,
     aux4,
-    createConnector(bus5, [component1, -10]),
-    createConnector(bus6, [component1, 10]),
-    createConnector(bus7, component2),
-    createConnector(bus8, component3),
-
-    createConnector([component4, -40], bus1),
-    createConnector([component4, -24], bus2),
-    createConnector([component4, -8], bus3),
-    createConnector([component4, 8], bus4),
-    createConnector([component4, 24], bus5),
-    createConnector([component4, 40], bus6),
-
-    createConnector([component5, -20], bus5),
-    createConnector([component5, 20], bus6),
-
-    connector4,
-    connector2,
-    connector6,
-    connector8,
-    createConnector(aux1, bus7),
-    createConnector(aux2, bus8),
-    createConnector(aux3, bus7),
-    createConnector(aux4, bus8),
-
     connector1,
+    connector2,
     connector3,
+    connector4,
     connector5,
+    connector6,
     connector7,
-    connector9
-
-    //createConnector(component1, { x: 980, y: 220 })
+    connector8,
+    connector9,
+    connector10,
+    connector11,
+    connector12,
+    connector13,
+    connector14,
+    connector15,
+    connector16,
+    connector17,
+    connector18,
+    connector19,
+    connector20,
+    connector21,
+    connector22,
+    connector23,
+    connector24,
+    connector25
 ]);
 
 component7.embed(connector1);
@@ -362,20 +398,20 @@ aux1.embed(connector5);
 aux4.embed(connector7);
 aux2.embed(connector9);
 
-paper.on('element:mouseenter', function(cellView) {
-    var neighbors = this.model.getNeighbors(cellView.model, { outbound: true });
-    // neighbors.push(...this.model.getConnectedLinks(cellView.model, { outbound: true }));
-    neighbors = graph.getSubgraph([cellView.model].concat(neighbors));
-    neighbors.forEach(function(n) {
-        n.findView(paper).highlight();
+paper.on('cell:mouseenter', function(cellView) {
+    getElementSubgraph(this.model, cellView.model).forEach(function(cell) {
+        cell.findView(paper).highlight();
     }, this);
 });
 
-
-paper.on('element:mouseleave', function(cellView) {
-    var neighbors = this.model.getNeighbors(cellView.model, { outbound: true });
-    neighbors = graph.getSubgraph([cellView.model].concat(neighbors));
-    neighbors.forEach(function(n) {
-        n.findView(paper).unhighlight();
+paper.on('cell:mouseleave', function(cellView) {
+    getElementSubgraph(this.model, cellView.model).forEach(function(cell) {
+        cell.findView(paper).unhighlight();
     }, this);
 });
+
+function getElementSubgraph(graph, element) {
+    var neighbors = graph.getNeighbors(element, { outbound: true });
+    var outboundLinks = graph.getConnectedLinks(element, { outbound: true });
+    return graph.getSubgraph([element].concat(neighbors).concat(outboundLinks));
+}

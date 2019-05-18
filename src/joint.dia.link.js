@@ -1957,7 +1957,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             var path = this.path;
             if (!path) return null;
-
+            if (joint.util.isPercentage(ratio)) ratio = parseFloat(ratio) / 100;
             return path.pointAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
