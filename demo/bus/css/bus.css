@@ -1,9 +1,9 @@
 .active.joint-element [joint-selector="body"],
-.active.joint-type-connector [joint-selector="line"] {
+.active.joint-type-mix-connector [joint-selector="line"] {
     stroke: #D8A47F;
     stroke-width: 3;
 }
-.active.joint-type-bus [joint-selector="line"] {
+.active.joint-type-mix-bus [joint-selector="line"] {
     stroke: #D8A47F;
     stroke-width: 5;
     stroke-dasharray: 10,1;
