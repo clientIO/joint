@@ -418,6 +418,7 @@ export namespace dia {
             port?: string;
             anchor?: anchors.AnchorJSON;
             connectionPoint?: connectionPoints.ConnectionPointJSON;
+            priority?: boolean;
         }
 
         interface EndCellJSON extends EndCellArgs {

@@ -792,6 +792,9 @@ QUnit.module('linkView', function(hooks) {
             link.source(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.9 }}});
             assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 280 });
             assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 }); // perpendicular
+            link.prop('target/priority', true);
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 280 });
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 180 }); // fixedAt
             // Multiple intersections
             link2.target({ x: 200, y: 100 });
             link2.vertices([{ x: 100, y: 300 }, { x: 200, y: 300 }]);
@@ -800,7 +803,7 @@ QUnit.module('linkView', function(hooks) {
             assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 150 });
         });
 
-        QUnit.test('joint.linknAchors - target', function(assert) {
+        QUnit.test('joint.linkAchors - target', function(assert) {
 
             link2.source({ x: 100, y: 100 });
             link2.target({ x: 200, y: 100 });
@@ -828,6 +831,9 @@ QUnit.module('linkView', function(hooks) {
             link.prop('source/anchor/args', { fixedAt: '40%' });
             link.target(link2, { anchor: { name: 'connectionRatio', args: { ratio: 0.9 }}});
             assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 180 }); // fixedAt
+            assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 });
+            link.prop('target/priority', true);
+            assert.deepEqual(linkView.sourceAnchor.toJSON(), { x: 100, y: 280 }); // perpendicular
             assert.deepEqual(linkView.targetAnchor.toJSON(), { x: 100, y: 280 });
             // Multiple intersections
             link2.target({ x: 200, y: 100 });

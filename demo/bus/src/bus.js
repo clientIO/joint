@@ -1,3 +1,5 @@
+// https://www.soundonsound.com/sound-advice/q-aux-and-bus-explained
+
 var graph = new joint.dia.Graph;
 
 var paper = new joint.dia.Paper({
@@ -11,7 +13,15 @@ var paper = new joint.dia.Paper({
     defaultLinkAnchor: { name: 'connectionPerpendicular' },
     defaultAnchor: { name: 'perpendicular' },
     //defaultRouter: { name: 'orthogonal' },
-    interactive: { linkMove: false, labelMove: false }
+    interactive: { linkMove: false, labelMove: false },
+    highlighting: {
+        default: {
+            name: 'addClass',
+            options: {
+                className: 'active'
+            }
+        }
+    }
 });
 
 var Bus = joint.shapes.standard.Link.define('Bus', {
@@ -216,6 +226,7 @@ function createConnector(source, target) {
     var connector = new Connector();
     if (Array.isArray(source)) {
         connector.source(source[0], {
+            priority: true,
             anchor: {
                 name: 'center',
                 args: {
@@ -228,6 +239,7 @@ function createConnector(source, target) {
     }
     if (Array.isArray(target)) {
         connector.target(target[0], {
+            priority: true,
             anchor: {
                 name: 'center',
                 args: {
@@ -256,13 +268,13 @@ var bus1 = createBus(600, 'Sub-group 1', '#333333');
 var bus2 = createBus(625, 'Sub-group 2', '#333333');
 var bus3 = createBus(650, 'Sub-group 3', '#333333');
 var bus4 = createBus(675, 'Sub-group 4', '#333333');
-var bus5 = createBus(700, 'Mix Left', 'red');
-var bus6 = createBus(725, 'Mix Right', 'green');
-var bus7 = createBus(750, 'Post-fade Aux', 'blue');
-var bus8 = createBus(775, 'Pre-fade Aux', 'purple');
+var bus5 = createBus(700, 'Mix Left', '#ff5964');
+var bus6 = createBus(725, 'Mix Right', '#b5d99c');
+var bus7 = createBus(750, 'Post-fade Aux', '#35a7ff');
+var bus8 = createBus(775, 'Pre-fade Aux', '#6b2d5c');
 var component1 = createComponent(850, 180, 80, 80, 'Stereo Mix');
-var component2 = createComponent(850, 280, 80, 30, 'Pre Aux');
-var component3 = createComponent(850, 330, 80, 30, 'Post Aux');
+var component2 = createComponent(840, 280, 100, 30, 'Pre Aux');
+var component3 = createComponent(840, 330, 100, 30, 'Post Aux');
 var component4 = createComponent(450, 200, 90, 100, 'Output Routing');
 var component5 = createComponent(450, 450, 90, 100, 'Output Routing');
 var component6 = createComponent(100, 230, 150, 40, 'Input Channel');
@@ -311,10 +323,10 @@ graph.resetCells([
     aux2,
     aux3,
     aux4,
-    createConnector([component1, -10], bus5),
-    createConnector([component1, 10], bus6),
-    createConnector(component2, bus7),
-    createConnector(component3, bus8),
+    createConnector(bus5, [component1, -10]),
+    createConnector(bus6, [component1, 10]),
+    createConnector(bus7, component2),
+    createConnector(bus8, component3),
 
     createConnector([component4, -40], bus1),
     createConnector([component4, -24], bus2),
@@ -350,9 +362,20 @@ aux1.embed(connector5);
 aux4.embed(connector7);
 aux2.embed(connector9);
 
-paper.on('cell:pointerdown', function(cellView) {
+paper.on('element:mouseenter', function(cellView) {
     var neighbors = this.model.getNeighbors(cellView.model, { outbound: true });
+    // neighbors.push(...this.model.getConnectedLinks(cellView.model, { outbound: true }));
+    neighbors = graph.getSubgraph([cellView.model].concat(neighbors));
     neighbors.forEach(function(n) {
         n.findView(paper).highlight();
+    }, this);
+});
+
+
+paper.on('element:mouseleave', function(cellView) {
+    var neighbors = this.model.getNeighbors(cellView.model, { outbound: true });
+    neighbors = graph.getSubgraph([cellView.model].concat(neighbors));
+    neighbors.forEach(function(n) {
+        n.findView(paper).unhighlight();
     }, this);
 });

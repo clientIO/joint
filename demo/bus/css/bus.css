@@ -1,3 +1,5 @@
-#paper {
-    display: inline-block;
+.active [joint-selector="body"],
+.active [joint-selector="line"] {
+    stroke: #D8A47F;
+    stroke-width: 3;
 }
