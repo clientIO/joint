@@ -106,7 +106,7 @@ var connector25 = mix.Connector.create(aux4, bus8);
 connector1.attr('line', {
     sourceMarker: {
         'type': 'path',
-        'd': 'M 0 -8 15 0 0 8 z'
+        'd': 'M -2 -8 15 0 -2 8 z'
     }
 });
 
