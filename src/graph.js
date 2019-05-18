@@ -562,7 +562,7 @@ export const Graph = Backbone.Model.extend({
 
     getNeighbors: function(model, opt) {
 
-        opt = opt || {};
+        opt || (opt = {});
 
         var inbound = opt.inbound;
         var outbound = opt.outbound;
