@@ -2886,7 +2886,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
             var sourceMagnet = this.sourceMagnet;
             if (sourceView.isNodeConnection(sourceMagnet)) {
-                return new g.Rect(this.sourcePoint);
+                return new g.Rect(this.sourceAnchor);
             }
             return sourceView.getNodeBBox(sourceMagnet || sourceView.el);
         }
@@ -2905,7 +2905,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
             var targetMagnet = this.targetMagnet;
             if (targetView.isNodeConnection(targetMagnet)) {
-                return new g.Rect(this.targetPoint);
+                return new g.Rect(this.targetAnchor);
             }
             return targetView.getNodeBBox(targetMagnet || targetView.el);
         }

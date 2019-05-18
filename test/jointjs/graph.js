@@ -996,7 +996,7 @@ QUnit.module('graph', function(hooks) {
 
         });
 
-        QUnit.test('getNeighbor() link-link', function(assert) {
+        QUnit.test('getNeighbor(), isNeighbor(), link-link', function(assert) {
 
             var graph = this.graph;
 
@@ -1030,6 +1030,10 @@ QUnit.module('graph', function(hooks) {
             assert.deepEqual(neighbors(graph, r1, { proxy: true }), ['R2', 'R3']);
             assert.deepEqual(neighbors(graph, r1, { proxy: true, inbound: true }), []);
             assert.deepEqual(neighbors(graph, r1, { proxy: true, outbound: true }), ['R3']);
+
+            assert.ok(graph.isNeighbor(r1, r3, { proxy: true }));
+            assert.ok(graph.isNeighbor(r1, r3, { proxy: true, outbound: true  }));
+            assert.notOk(graph.isNeighbor(r1, r3, { proxy: true, inbound: true }));
 
             assert.deepEqual(neighbors(graph, r2, { proxy: true }), ['R1', 'R2', 'R3']);
             assert.deepEqual(neighbors(graph, r2, { proxy: true, inbound: true }), ['R2']);
