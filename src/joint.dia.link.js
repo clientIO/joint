@@ -612,7 +612,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
 // joint.dia.Link base view and controller.
 // ----------------------------------------
-(function() {
+(function(joint) {
 
     var FLAG_RENDER = 1<<0;
     var FLAG_UPDATE = 1<<1;

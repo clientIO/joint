@@ -165,7 +165,7 @@
                 if (refView) {
                     if (refView.isNodeConnection(ref)) {
                         var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
-                        refPoint = getPointAtLink(view, distance);
+                        refPoint = getPointAtLink(refView, distance);
                     } else {
                         refPoint = refView.getNodeBBox(ref).center();
                     }
