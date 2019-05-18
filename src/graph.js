@@ -431,6 +431,7 @@ export const Graph = Backbone.Model.extend({
 
         opt = opt || {};
 
+        var proxy = opt.proxy;
         var inbound = opt.inbound;
         var outbound = opt.outbound;
         if ((inbound === undefined) && (outbound === undefined)) {
@@ -444,23 +445,60 @@ export const Graph = Backbone.Model.extend({
         var edges = {};
 
         if (outbound) {
-            util.forIn(this.getOutboundEdges(model.id), function(exists, edge) {
-                if (!edges[edge]) {
-                    links.push(this.getCell(edge));
-                    edges[edge] = true;
-                }
-            }.bind(this));
+            addOutbounds(this, model);
         }
         if (inbound) {
-            util.forIn(this.getInboundEdges(model.id), function(exists, edge) {
+            addInbounds(this, model);
+        }
+
+        function addOutbounds(graph, model) {
+            util.forIn(graph.getOutboundEdges(model.id), function(_, edge) {
                 // skip links that were already added
                 // (those must be self-loop links)
                 // (because they are inbound and outbound edges of the same two elements)
-                if (!edges[edge]) {
-                    links.push(this.getCell(edge));
-                    edges[edge] = true;
+                if (edges[edge]) return;
+                var link = graph.getCell(edge);
+                links.push(link);
+                edges[edge] = true;
+                if (proxy) {
+                    if (inbound) addInbounds(graph, link);
+                    if (outbound) addOutbounds(graph, link);
                 }
-            }.bind(this));
+            }.bind(graph));
+            if (proxy && model.isLink()) {
+                var outCell = model.getTargetCell();
+                if (outCell && outCell.isLink()) {
+                    if (!edges[outCell.id]) {
+                        links.push(outCell);
+                        addOutbounds(graph, outCell);
+                    }
+                }
+            }
+        }
+
+        function addInbounds(graph, model) {
+            util.forIn(graph.getInboundEdges(model.id), function(_, edge) {
+                // skip links that were already added
+                // (those must be self-loop links)
+                // (because they are inbound and outbound edges of the same two elements)
+                if (edges[edge]) return;
+                var link = graph.getCell(edge);
+                links.push(link);
+                edges[edge] = true;
+                if (proxy) {
+                    if (inbound) addInbounds(graph, link);
+                    if (outbound) addOutbounds(graph, link);
+                }
+            }.bind(graph));
+            if (proxy && model.isLink()) {
+                var inCell = model.getSourceCell();
+                if (inCell && inCell.isLink()) {
+                    if (!edges[inCell.id]) {
+                        links.push(inCell);
+                        addInbounds(graph, inCell);
+                    }
+                }
+            }
         }
 
         // if `deep` option is `true`, check also all the links that are connected to any of the descendant cells
@@ -524,48 +562,58 @@ export const Graph = Backbone.Model.extend({
 
     getNeighbors: function(model, opt) {
 
-        opt || (opt = {});
+        opt = opt || {};
 
-        var deep = opt.deep;
         var inbound = opt.inbound;
         var outbound = opt.outbound;
         if (inbound === undefined && outbound === undefined) {
             inbound = outbound = true;
         }
 
-        var graph = this;
-        var visited = { source: {}, target: {}};
-        var neighbors = {};
+        var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
 
-        findCellNeighbors(model);
+            var source = link.source();
+            var target = link.target();
+            var loop = link.hasLoop(opt);
 
-        function getLinkNeighbor(link, endName, loop) {
-            var endDef = link.get(endName);
-            // Discard if it is a point
-            if (!util.has(endDef, 'id')) return;
-            var id = endDef.id;
-            // Discard if the neighbor was already added.
-            if (neighbors[id]) return;
-            // Discard if we already visited the cell within the same direction
-            if (visited[endName][id]) return;
-            var cell = graph.getCell(id);
-            if (!cell) return;
-            if (!loop && (cell === model || (deep && cell.isEmbeddedIn(model)))) return;
-            if (cell.isElement()) {
-                neighbors[id] = cell;
-                return;
+            // Discard if it is a point, or if the neighbor was already added.
+            if (inbound && util.has(source, 'id') && !res[source.id]) {
+
+                var sourceElement = this.getCell(source.id);
+                if (sourceElement.isElement()) {
+                    if (loop || (sourceElement && sourceElement !== model && (!opt.deep || !sourceElement.isEmbeddedIn(model)))) {
+                        res[source.id] = sourceElement;
+                    }
+                }
             }
-            visited[endName][id] = true;
-            findCellNeighbors(cell);
-        }
 
-        function findCellNeighbors(cell) {
-            if (cell.isLink()) {
-                var loop = cell.hasLoop(opt);
-                if (inbound) getLinkNeighbor(cell, 'source', loop);
-                if (outbound) getLinkNeighbor(cell, 'target', loop);
+            // Discard if it is a point, or if the neighbor was already added.
+            if (outbound && util.has(target, 'id') && !res[target.id]) {
+
+                var targetElement = this.getCell(target.id);
+                if (targetElement.isElement()) {
+                    if (loop || (targetElement && targetElement !== model && (!opt.deep || !targetElement.isEmbeddedIn(model)))) {
+                        res[target.id] = targetElement;
+                    }
+                }
             }
-            graph.getConnectedLinks(cell, opt).forEach(findCellNeighbors);
+
+            return res;
+        }.bind(this), {});
+
+        if (model.isLink()) {
+            if (inbound) {
+                var sourceCell = model.getSourceCell();
+                if (sourceCell && sourceCell.isElement() && !neighbors[sourceCell.id]) {
+                    neighbors[sourceCell.id] = sourceCell;
+                }
+            }
+            if (outbound) {
+                var targetCell = model.getTargetCell();
+                if (targetCell && targetCell.isElement() && !neighbors[targetCell.id]) {
+                    neighbors[targetCell.id] = targetCell;
+                }
+            }
         }
 
         return util.toArray(neighbors);

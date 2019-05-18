@@ -36,21 +36,22 @@ var paper = new joint.dia.Paper({
 });
 
 paper.on('cell:mouseenter', function(cellView) {
-    getElementSubgraph(this.model, cellView.model).forEach(function(cell) {
+    getCellOutbounds(this.model, cellView.model).forEach(function(cell) {
         cell.findView(this).highlight();
     }, this);
 });
 
 paper.on('cell:mouseleave', function(cellView) {
-    getElementSubgraph(this.model, cellView.model).forEach(function(cell) {
+    getCellOutbounds(this.model, cellView.model).forEach(function(cell) {
         cell.findView(this).unhighlight();
     }, this);
 });
 
-function getElementSubgraph(graph, element) {
-    var neighbors = graph.getNeighbors(element, { outbound: true });
-    var outboundLinks = graph.getConnectedLinks(element, { outbound: true });
-    return graph.getSubgraph([element].concat(neighbors).concat(outboundLinks));
+function getCellOutbounds(graph, cell) {
+    return [cell].concat(
+        graph.getNeighbors(cell, { outbound: true, proxy: true }),
+        graph.getConnectedLinks(cell, { outbound: true, proxy: true })
+    );
 }
 
 // Create shapes
