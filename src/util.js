@@ -466,11 +466,12 @@ export const breakText = function(text, size, styles, opt) {
 
     var separator = opt.separator || ' ';
     var eol = opt.eol || '\n';
+    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
 
     var words = text.split(separator);
     var full = [];
     var lines = [];
-    var p;
+    var p, h;
     var lineHeight;
 
     for (var i = 0, l = 0, len = words.length; i < len; i++) {
@@ -505,12 +506,13 @@ export const breakText = function(text, size, styles, opt) {
             // the current line fits
             lines[l] = textNode.data;
 
-            if (p) {
+            if (p || h) {
                 // We were partitioning. Put rest of the word onto next line
                 full[l++] = true;
 
-                // cancel partitioning
+                // cancel partitioning and splitting by hyphens
                 p = 0;
+                h = 0;
             }
 
         } else {
@@ -555,12 +557,24 @@ export const breakText = function(text, size, styles, opt) {
 
                 } else {
 
-                    // We initiate partitioning
-                    // split the long word into two words
-                    words.splice(i, 1, word.substring(0, p), word.substring(p));
+                    if (h) {
+                        // cancel splitting and put the words together again
+                        words.splice(i, 2, words[i] + words[i + 1]);
+                        h = 0;
+                    } else {
+                        var hyphenIndex = word.search(hyphen);
+                        if (hyphenIndex > -1 && hyphenIndex !== word.length - 1 && hyphenIndex !== 0) {
+                            h = hyphenIndex + 1;
+                            p = 0;
+                        }
 
-                    // adjust words length
-                    len++;
+                        // We initiate partitioning or splitting
+                        // split the long word into two words
+                        words.splice(i, 1, word.substring(0, h || p), word.substring(h|| p));
+                        // adjust words length
+                        len++;
+
+                    }
 
                     if (l && !full[l - 1]) {
                         // if the previous line is not full, try to fit max part of
