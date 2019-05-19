@@ -163,6 +163,10 @@ QUnit.module('util', function(hooks) {
             var t, r;
 
             t = 'test-hyphen';
+
+            r = joint.util.breakText(t, { width: 2 * WIDTH }, styles);
+            assert.equal(r, 'test-hyphen');
+
             r = joint.util.breakText(t, { width: WIDTH }, styles);
             assert.equal(r, 'test-\nhyphen');
 
