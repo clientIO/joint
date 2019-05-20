@@ -938,6 +938,7 @@ export namespace dia {
             maxScaleY?: number;
             scaleGrid?: number;
             fittingBBox?: BBox;
+            useModelGeometry?: boolean;
         }
 
         interface FitToContentOptions {
@@ -949,6 +950,7 @@ export namespace dia {
             minHeight?: number;
             maxWidth?: number;
             maxHeight?: number;
+            useModelGeometry?: boolean;
         }
     }
 
@@ -1023,9 +1025,9 @@ export namespace dia {
 
         getRestrictedArea(): g.Rect | undefined;
 
-        getContentArea(): g.Rect;
+        getContentArea(opt?: { useModelGeometry: boolean }): g.Rect;
 
-        getContentBBox(): g.Rect;
+        getContentBBox(opt?: { useModelGeometry: boolean }): g.Rect;
 
         findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
 
