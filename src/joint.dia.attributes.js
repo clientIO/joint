@@ -354,7 +354,8 @@
                         // Provide an existing SVG Document here
                         // instead of creating a temporary one over again.
                         svgDocument: this.paper.svg,
-                        ellipsis: value.ellipsis
+                        ellipsis: value.ellipsis,
+                        hyphen: value.hyphen
                     });
                 } else {
                     wrappedText = '';

@@ -157,6 +157,28 @@ QUnit.module('util', function(hooks) {
             });
         });
 
+        QUnit.test('hyphen', function(assert) {
+
+            var WIDTH = 50;
+            var t, r;
+
+            t = 'test-hyphen';
+
+            r = joint.util.breakText(t, { width: 2 * WIDTH }, styles);
+            assert.equal(r, 'test-hyphen');
+
+            r = joint.util.breakText(t, { width: WIDTH }, styles);
+            assert.equal(r, 'test-\nhyphen');
+
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { hyphen: '-' });
+            assert.equal(r, 'test-\nhyphen');
+
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { hyphen: 'h' });
+            assert.equal(r, 'test-h\nyphen');
+
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { hyphen: /h/ });
+            assert.equal(r, 'test-h\nyphen');
+        });
     });
 
     QUnit.test('util.parseCssNumeric', function(assert) {

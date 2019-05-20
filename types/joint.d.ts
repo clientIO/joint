@@ -2069,6 +2069,7 @@ export namespace util {
         separator?: string | any;
         eol?: string;
         ellipsis?: boolean | string;
+        hyphen?: string | RegExp;
     }): string;
 
     export function sanitizeHTML(html: string): string;
@@ -2887,6 +2888,7 @@ export namespace attributes {
         width?: string | number;
         height?: string | number;
         ellipsis?: boolean | string;
+        hyphen?: string;
         [key: string]: any
     }
 
