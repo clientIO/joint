@@ -1,3 +1,4 @@
 <pre class="docs-method-signature"><code>link.getBBox()</code></pre>
 <p>Return the bounding box of the link model represented as a <code>g.Rect</code>.</p>
+
 <p>This method creates the bounding box from the link polyline (see the <code>link.getPolyline</code> <a href="#dia.Link.prototype.getPolyline">function</a>). This simplified heuristic may cause portions of curved links to protrude out of the reported bounding box. If you definitely need to make sure to include all of the link view, consider using the <code>linkView.getBBox</code> function instead. See the documentation of the <code>elementView.getBBox</code> <a href="#dia.ElementView.prototype.getBBox">function</a> for an explanation of the limitations of this approach (albeit in the context of element views).</p>

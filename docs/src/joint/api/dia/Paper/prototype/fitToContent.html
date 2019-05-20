@@ -1,6 +1,8 @@
 <pre class="docs-method-signature"><code>paper.fitToContent([opt])</code></pre>
 <p>Expand or shrink the paper to fit the content inside it. The method returns the area (<code>g.Rect</code>) of the paper after fitting in local coordinates.</p>
+
 <p>The function accepts an object with additional settings (all optional):</p>
+
 <ul>
   <li><code>opt.gridWidth</code> and <code>opt.gridHeight</code> – snap the resulting width and height of the paper to a grid defined by these dimensions.</li>
   <li><code>opt.padding</code> – additional padding around the resulting paper. It may be specified as a number, in which case it represents the padding width on all sides of the paper. It may be an object of the form <code>{ top: [number], right: [number], bottom: [number], left: [number] }</code>.</li>
@@ -17,8 +19,11 @@
   after fitting it to content.</li>
   <li><code>opt.useModelGeometry</code> – should paper content area be calculated from cell models instead of views? Default is <code>false</code>. See the documentation of the <code>paper.getContentArea</code> <a href="#dia.Paper.prototype.getContentArea">function</a> for more details.</li>
 </ul>
+
 <p>You can try many of these options interactively in the <a href="http://jointjs.com/demos/paper">paper demo</a>.</p>
+
 <p>This method might internally trigger the <code>&quot;resize&quot;</code> and <code>&quot;translate&quot;</code> events. These can be handled by listening on the paper object (<code>paper.on('resize', myHandler)</code>).</p>
+
 
 <pre class="docs-method-signature"><code>paper.fitToContent([gridWidth, gridHeight, padding, opt])</code></pre>
 <p><i>Depracated usage. All parameters are expected to be passed inside the <code>opt</code> object.</i></p>
