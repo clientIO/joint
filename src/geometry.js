@@ -4416,12 +4416,22 @@ export const toRad = function(deg, over360) {
     return deg * PI / 180;
 };
 
+// Return a random integer from the interval [min,max], inclusive.
 export const random = function(min, max) {
+
     if (max === undefined) {
+        // use first argument as max, min is 0
         max = (min === undefined) ? 1 : min;
         min = 0;
+
+    } else if (max < min) {
+        // switch max and min
+        const temp = min;
+        min = max;
+        max = temp;
     }
-    return floor(math.random() * (max - min + 1) + min);
+
+    return floor((math.random() * (max - min + 1)) + min);
 };
 
 // For backwards compatibility:
