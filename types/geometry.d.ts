@@ -431,7 +431,7 @@ export namespace g {
         constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
 
-        closestPoint(points: PlainPoint[]): Point | null;
+        chooseClosest(points: PlainPoint[]): Point | null;
 
         adhereToRect(r: Rect): this;
 

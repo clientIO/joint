@@ -136,7 +136,7 @@
         var intersections = [];
         if (verticalIntersections) Array.prototype.push.apply(intersections, verticalIntersections);
         if (horizontalIntersections) Array.prototype.push.apply(intersections, horizontalIntersections);
-        if (intersections.length > 0) return refPoint.closestPoint(intersections);
+        if (intersections.length > 0) return refPoint.chooseClosest(intersections);
         if ('fallbackAt' in opt) {
             return getPointAtLink(view, opt.fallbackAt);
         }

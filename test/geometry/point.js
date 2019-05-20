@@ -29,18 +29,18 @@ QUnit.module('point', function() {
 
     QUnit.module('prototype', function() {
 
-        QUnit.module('closestPoint(points)', function() {
+        QUnit.module('chooseClosest(points)', function() {
 
             QUnit.test('returns the closest point', function(assert) {
                 var a = new g.Point(10, 10);
                 var b = { x: 20, y: 20 };
                 var c = { x: 30, y: 30 };
-                assert.equal(a.closestPoint([]), null);
-                assert.ok(a.closestPoint([b]) instanceof g.Point);
-                assert.deepEqual(a.closestPoint([b]).toJSON(), b);
-                assert.deepEqual(a.closestPoint([new g.Point(b)]).toJSON(), b);
-                assert.deepEqual(a.closestPoint([b, c]).toJSON(), b);
-                assert.deepEqual(a.closestPoint([c, b]).toJSON(), b);
+                assert.equal(a.chooseClosest([]), null);
+                assert.ok(a.chooseClosest([b]) instanceof g.Point);
+                assert.deepEqual(a.chooseClosest([b]).toJSON(), b);
+                assert.deepEqual(a.chooseClosest([new g.Point(b)]).toJSON(), b);
+                assert.deepEqual(a.chooseClosest([b, c]).toJSON(), b);
+                assert.deepEqual(a.chooseClosest([c, b]).toJSON(), b);
             });
         });
 
