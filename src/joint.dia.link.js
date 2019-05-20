@@ -612,7 +612,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
 // joint.dia.Link base view and controller.
 // ----------------------------------------
-(function() {
+(function(joint) {
 
     var FLAG_RENDER = 1<<0;
     var FLAG_UPDATE = 1<<1;
@@ -1335,50 +1335,59 @@ joint.dia.Link = joint.dia.Cell.extend({
             };
         },
 
+        findAnchorsOrdered: function(firstEndType, firstRef, secondEndType, secondRef) {
+
+            var firstAnchor, secondAnchor;
+            var firstAnchorRef, secondAnchorRef;
+            var model = this.model;
+            var firstDef = model.get(firstEndType);
+            var secondDef = model.get(secondEndType);
+            var firstView = this.getEndView(firstEndType);
+            var secondView = this.getEndView(secondEndType);
+            var firstMagnet = this.getEndMagnet(firstEndType);
+            var secondMagnet = this.getEndMagnet(secondEndType);
+
+            // Anchor first
+            if (firstView) {
+                if (firstRef) {
+                    firstAnchorRef = new g.Point(firstRef);
+                } else if (secondView) {
+                    firstAnchorRef = secondMagnet;
+                } else {
+                    firstAnchorRef = new g.Point(secondDef);
+                }
+                firstAnchor = this.getAnchor(firstDef.anchor, firstView, firstMagnet, firstAnchorRef, firstEndType);
+            } else {
+                firstAnchor = new g.Point(firstDef);
+            }
+
+            // Anchor second
+            if (secondView) {
+                secondAnchorRef = new g.Point(secondRef || firstAnchor);
+                secondAnchor = this.getAnchor(secondDef.anchor, secondView, secondMagnet, secondAnchorRef, secondEndType);
+            } else {
+                secondAnchor = new g.Point(secondDef);
+            }
+
+            var res = {};
+            res[firstEndType] = firstAnchor;
+            res[secondEndType] = secondAnchor;
+            return res;
+        },
+
         findAnchors: function(vertices) {
 
             var model = this.model;
             var firstVertex = vertices[0];
             var lastVertex = vertices[vertices.length - 1];
-            var sourceDef = model.get('source');
-            var targetDef = model.get('target');
-            var sourceView = this.sourceView;
-            var targetView = this.targetView;
-            var sourceMagnet, targetMagnet;
 
-            // Anchor Source
-            var sourceAnchor;
-            if (sourceView) {
-                sourceMagnet = (this.sourceMagnet || sourceView.el);
-                var sourceAnchorRef;
-                if (firstVertex) {
-                    sourceAnchorRef = new g.Point(firstVertex);
-                } else if (targetView) {
-                    // TODO: the source anchor reference is not a point, how to deal with this?
-                    sourceAnchorRef = this.targetMagnet || targetView.el;
-                } else {
-                    sourceAnchorRef = new g.Point(targetDef);
-                }
-                sourceAnchor = this.getAnchor(sourceDef.anchor, sourceView, sourceMagnet, sourceAnchorRef, 'source');
-            } else {
-                sourceAnchor = new g.Point(sourceDef);
+            if (model.target().priority && !model.source().priority) {
+                // Reversed order
+                return this.findAnchorsOrdered('target', lastVertex, 'source', firstVertex);
             }
 
-            // Anchor Target
-            var targetAnchor;
-            if (targetView) {
-                targetMagnet = (this.targetMagnet || targetView.el);
-                var targetAnchorRef = new g.Point(lastVertex || sourceAnchor);
-                targetAnchor = this.getAnchor(targetDef.anchor, targetView, targetMagnet, targetAnchorRef, 'target');
-            } else {
-                targetAnchor = new g.Point(targetDef);
-            }
-
-            // Con
-            return {
-                source: sourceAnchor,
-                target: targetAnchor
-            };
+            // Usual order
+            return this.findAnchorsOrdered('source', firstVertex, 'target', lastVertex);
         },
 
         findConnectionPoints: function(route, sourceAnchor, targetAnchor) {
@@ -1948,7 +1957,7 @@ joint.dia.Link = joint.dia.Cell.extend({
 
             var path = this.path;
             if (!path) return null;
-
+            if (joint.util.isPercentage(ratio)) ratio = parseFloat(ratio) / 100;
             return path.pointAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
@@ -2877,7 +2886,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
             var sourceMagnet = this.sourceMagnet;
             if (sourceView.isNodeConnection(sourceMagnet)) {
-                return new g.Rect(this.sourcePoint);
+                return new g.Rect(this.sourceAnchor);
             }
             return sourceView.getNodeBBox(sourceMagnet || sourceView.el);
         }
@@ -2896,7 +2905,7 @@ joint.dia.Link = joint.dia.Cell.extend({
             }
             var targetMagnet = this.targetMagnet;
             if (targetView.isNodeConnection(targetMagnet)) {
-                return new g.Rect(this.targetPoint);
+                return new g.Rect(this.targetAnchor);
             }
             return targetView.getNodeBBox(targetMagnet || targetView.el);
         }

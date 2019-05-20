@@ -490,7 +490,7 @@ joint.dia.Element = joint.dia.Cell.extend({
             }
             if (flag & FLAG_RESIZE) {
                 this.resize(opt);
-                flag ^= FLAG_RESIZE | FLAG_UPDATE;
+                flag ^= flag & (FLAG_RESIZE | FLAG_UPDATE);
             }
             if (flag & FLAG_UPDATE) {
                 this.updateNodesAttributes();

@@ -53,7 +53,7 @@
             prepended += 'M 0 0 ';
             d = 'M 0 0 ' + d;
         }
-        var normalizedD = V('<path/>').attr('d', d).attr('d');
+        var normalizedD = V('path').attr('d', d).attr('d');
         if (isPartial) {
             // Strip away anything that was prepended or appended.
             normalizedD = normalizedD.substr(prepended.length);
@@ -63,7 +63,7 @@
     }
 
     function normalizeSvgAttr(name, value) {
-        return V('<g/>').attr(name, value).attr(name);
+        return V('g').attr(name, value).attr(name);
     }
 
     function normalizeCssAttr(name, value) {

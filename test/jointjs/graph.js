@@ -713,22 +713,55 @@ QUnit.module('graph', function(hooks) {
         assert.deepEqual(_.map(clones, function(c) {return c.get('name'); }), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'cloneSubgraph() returns cloned elements including connected links');
     });
 
-    QUnit.test('graph.getSubgraph()', function(assert) {
+    QUnit.module('graph.getSubgraph()', function() {
 
-        var graph = this.graph;
-        this.setupTestTreeGraph(graph);
+        QUnit.test('link-element', function(assert) {
 
-        var subgraph = graph.getSubgraph([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
-        assert.deepEqual(_.map(subgraph, 'id'), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'getSubgraph() returns elements including links that are connected to any element passed as argument');
+            var graph = this.graph;
+            this.setupTestTreeGraph(graph);
 
-        graph.clear();
-        this.setupTestNestedGraph(graph);
+            var subgraph = graph.getSubgraph([graph.getCell('d')].concat(graph.getSuccessors(graph.getCell('d'))));
+            assert.deepEqual(_.map(subgraph, 'id'), ['d', 'k', 'l', 'm', 'l10', 'l11', 'l12'], 'getSubgraph() returns elements including links that are connected to any element passed as argument');
 
-        subgraph = graph.getSubgraph([graph.getCell('a')], { deep: false });
-        assert.deepEqual(_.map(subgraph, 'id'), ['a'], 'getSubgraph() returns only the one element if deep is false');
+            graph.clear();
+            this.setupTestNestedGraph(graph);
 
-        subgraph = graph.getSubgraph([graph.getCell('a')], { deep: true });
-        assert.deepEqual(_.map(subgraph, 'id'), ['a', 'aa', 'c', 'l2', 'aaa', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
+            subgraph = graph.getSubgraph([graph.getCell('a')], { deep: false });
+            assert.deepEqual(_.map(subgraph, 'id'), ['a'], 'getSubgraph() returns only the one element if deep is false');
+
+            subgraph = graph.getSubgraph([graph.getCell('a')], { deep: true });
+            assert.deepEqual(_.map(subgraph, 'id'), ['a', 'aa', 'c', 'l2', 'aaa', 'l1'], 'getSubgraph() returns all the embedded elements and all the links that connect these elements');
+        });
+
+        /* TODO: implement getSubgraph() for link to link connections
+        QUnit.test('link-link', function(assert) {
+
+            var a = new joint.shapes.standard.Rectangle({ id: 'a' });
+            var b = new joint.shapes.standard.Rectangle({ id: 'b' });
+            var c = new joint.shapes.standard.Rectangle({ id: 'c' });
+            var d = new joint.shapes.standard.Rectangle({ id: 'd' });
+            var e = new joint.shapes.standard.Rectangle({ id: 'e' });
+            var f = new joint.shapes.standard.Rectangle({ id: 'f' });
+            var ab = (new joint.shapes.standard.Link({ id: 'ab' })).source(a).target(b);
+            var cd = (new joint.shapes.standard.Link({ id: 'cd' })).source(c).target(d);
+            var abcd = (new joint.shapes.standard.Link({ id: 'abcd' })).source(ab).target(cd);
+            var abcde = (new joint.shapes.standard.Link({ id: 'abcde' })).source(abcd).target(e);
+            var fabcd = (new joint.shapes.standard.Link({ id: 'fabcd' })).source(f).target(abcd);
+            var graph = this.graph;
+            graph.resetCells([a,b,c,d,e,f,ab,cd,abcd,abcde,fabcd]);
+
+            var subgraph;
+
+            subgraph = graph.getSubgraph([graph.getCell('a'), graph.getCell('b')]);
+            assert.deepEqual(subgraph.map(function(cell) { return cell.id; }), ['a', 'b', 'ab']);
+
+            subgraph = graph.getSubgraph([graph.getCell('a'), graph.getCell('c')]);
+            assert.deepEqual(subgraph.map(function(cell) { return cell.id; }), ['a', 'b', 'c', 'd', 'ab', 'cd', 'abcd']);
+
+            subgraph = graph.getSubgraph([graph.getCell('e'), graph.getCell('f')]);
+            assert.deepEqual(subgraph.map(function(cell) { return cell.id; }), ['a', 'b', 'c', 'd', 'e', 'f', 'ab', 'cd', 'abcd', 'fabcd', 'abcde']);
+        });
+        */
     });
 
     QUnit.test('graph.fetch()', function(assert) {
@@ -963,7 +996,7 @@ QUnit.module('graph', function(hooks) {
 
         });
 
-        QUnit.test('getNeighbor() link-link', function(assert) {
+        QUnit.test('getNeighbor(), isNeighbor(), link-link', function(assert) {
 
             var graph = this.graph;
 
@@ -983,49 +1016,52 @@ QUnit.module('graph', function(hooks) {
             l3.target(r4);
             l4.source(r2);
             l4.target(r2);
-            graph.addCells(r1, r2, r3, r4, l1, l2, l3);
+            graph.addCells(r1, r2, r3, r4, l1, l2, l3, l4);
             //
             //              R3 --l3--> R4
             //              ^
             //              |
             //  R1 --l1--> l2
             //              |
-            //              R2 ----
+            //              R2 <---
             //              |     |
             //               --l4--
             //
-            assert.deepEqual(neighbors(graph, r1), ['R2', 'R3']);
-            assert.deepEqual(neighbors(graph, r1, { inbound: true }), []);
-            assert.deepEqual(neighbors(graph, r1, { outbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r1, { proxy: true }), ['R2', 'R3']);
+            assert.deepEqual(neighbors(graph, r1, { proxy: true, inbound: true }), []);
+            assert.deepEqual(neighbors(graph, r1, { proxy: true, outbound: true }), ['R3']);
 
-            assert.deepEqual(neighbors(graph, r2), ['R1', 'R3']);
-            assert.deepEqual(neighbors(graph, r2, { inbound: true }), []);
-            assert.deepEqual(neighbors(graph, r2, { outbound: true }), ['R3']);
+            assert.ok(graph.isNeighbor(r1, r3, { proxy: true }));
+            assert.ok(graph.isNeighbor(r1, r3, { proxy: true, outbound: true  }));
+            assert.notOk(graph.isNeighbor(r1, r3, { proxy: true, inbound: true }));
 
+            assert.deepEqual(neighbors(graph, r2, { proxy: true }), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, r2, { proxy: true, inbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, r2, { proxy: true, outbound: true }), ['R2', 'R3']);
 
-            assert.deepEqual(neighbors(graph, r3), ['R1', 'R2', 'R4']);
-            assert.deepEqual(neighbors(graph, r3, { inbound: true }), ['R1', 'R2']);
-            assert.deepEqual(neighbors(graph, r3, { outbound: true }), ['R4']);
+            assert.deepEqual(neighbors(graph, r3, { proxy: true }), ['R1', 'R2', 'R4']);
+            assert.deepEqual(neighbors(graph, r3, { proxy: true, inbound: true }), ['R1', 'R2']);
+            assert.deepEqual(neighbors(graph, r3, { proxy: true, outbound: true }), ['R4']);
 
-            assert.deepEqual(neighbors(graph, r4), ['R3']);
-            assert.deepEqual(neighbors(graph, r4, { inbound: true }), ['R3']);
-            assert.deepEqual(neighbors(graph, r4, { outbound: true }), []);
+            assert.deepEqual(neighbors(graph, r4, { proxy: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r4, { proxy: true, inbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r4, { proxy: true, outbound: true }), []);
 
-            assert.deepEqual(neighbors(graph, l1), ['R1', 'R2', 'R3']);
-            assert.deepEqual(neighbors(graph, l1, { inbound: true }), ['R1']);
-            assert.deepEqual(neighbors(graph, l1, { outbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l1, { proxy: true }), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, l1, { proxy: true, inbound: true }), ['R1']);
+            assert.deepEqual(neighbors(graph, l1, { proxy: true, outbound: true }), ['R3']);
 
-            assert.deepEqual(neighbors(graph, l2), ['R1', 'R2', 'R3']);
-            assert.deepEqual(neighbors(graph, l2, { inbound: true }), ['R1', 'R2']);
-            assert.deepEqual(neighbors(graph, l2, { outbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l2, { proxy: true }), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, l2, { proxy: true, inbound: true }), ['R1', 'R2']);
+            assert.deepEqual(neighbors(graph, l2, { proxy: true, outbound: true }), ['R3']);
 
-            assert.deepEqual(neighbors(graph, l3), ['R3', 'R4']);
-            assert.deepEqual(neighbors(graph, l3, { inbound: true }), ['R3']);
-            assert.deepEqual(neighbors(graph, l3, { outbound: true }), ['R4']);
+            assert.deepEqual(neighbors(graph, l3, { proxy: true }), ['R3', 'R4']);
+            assert.deepEqual(neighbors(graph, l3, { proxy: true, inbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l3, { proxy: true, outbound: true }), ['R4']);
 
-            assert.deepEqual(neighbors(graph, l4), ['R2']);
-            assert.deepEqual(neighbors(graph, l4, { inbound: true }), ['R2']);
-            assert.deepEqual(neighbors(graph, l4, { outbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { proxy: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { proxy: true, inbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { proxy: true, outbound: true }), ['R2']);
         });
     });
 
