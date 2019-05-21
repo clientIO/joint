@@ -283,6 +283,8 @@ export namespace dia {
 
         angle(): number;
 
+        getBBox(): g.Rect;
+
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
         getChangeFlag(attributes: { [key: string]: number }): number;
@@ -547,7 +549,7 @@ export namespace dia {
 
         getTargetPoint(): g.Point;
 
-        getBBox(opt?: Cell.Options): g.Rect;
+        getBBox(): g.Rect;
 
         hasLoop(opt?: Cell.EmbeddableOptions): boolean;
 
@@ -617,6 +619,8 @@ export namespace dia {
 
         getNodeBoundingRect(node: SVGElement): g.Rect;
 
+        getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
+
         getNodeBBox(node: SVGElement): g.Rect;
 
         getNodeUnrotatedBBox(node: SVGElement): g.Rect;
@@ -670,8 +674,6 @@ export namespace dia {
     }
 
     class ElementView extends CellViewGeneric<Element> {
-
-        getBBox(opt?: { useModelGeometry?: boolean }): g.Rect;
 
         update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 

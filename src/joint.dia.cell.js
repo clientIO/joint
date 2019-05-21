@@ -712,6 +712,7 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     getChangeFlag: function(attributes) {
+
         var flag = 0;
         if (!attributes) return flag;
         for (var key in attributes) {
@@ -722,12 +723,20 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     angle: function() {
+
         return 0;
     },
 
     getPointFromConnectedLink: function() {
+
         // To be overridden
         return new g.Point();
+    },
+
+    getBBox: function() {
+
+        // To be overridden
+        return new g.Rect(0, 0, 0, 0);
     }
 
 }, {
