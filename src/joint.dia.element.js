@@ -651,58 +651,6 @@ joint.dia.Element = joint.dia.Cell.extend({
             return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
         },
 
-        getBBox: function(opt) {
-
-            var bbox;
-            if (opt && opt.useModelGeometry) {
-                var model = this.model;
-                bbox = model.getBBox().bbox(model.angle());
-            } else {
-                bbox = this.getNodeBBox(this.el);
-            }
-
-            return this.paper.localToPaperRect(bbox);
-        },
-
-        getNodeBBox: function(magnet) {
-
-            var rect = this.getNodeBoundingRect(magnet);
-            var magnetMatrix = this.getNodeMatrix(magnet);
-            var translateMatrix = this.getRootTranslateMatrix();
-            var rotateMatrix = this.getRootRotateMatrix();
-            return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
-        },
-
-        getNodeUnrotatedBBox: function(magnet) {
-
-            var rect = this.getNodeBoundingRect(magnet);
-            var magnetMatrix = this.getNodeMatrix(magnet);
-            var translateMatrix = this.getRootTranslateMatrix();
-            return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
-        },
-
-        getRootTranslateMatrix: function() {
-
-            var model = this.model;
-            var position = model.position();
-            var mt = V.createSVGMatrix().translate(position.x, position.y);
-            return mt;
-        },
-
-        getRootRotateMatrix: function() {
-
-            var mr = V.createSVGMatrix();
-            var model = this.model;
-            var angle = model.angle();
-            if (angle) {
-                var bbox = model.getBBox();
-                var cx = bbox.width / 2;
-                var cy = bbox.height / 2;
-                mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
-            }
-            return mr;
-        },
-
         // Rotatable & Scalable Group
         // always slower, kept mainly for backwards compatibility
 
