@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>link.getSourcePoint()</code></pre>
+<p>Return the source point of the link.</p>
+
+<ul>
+	<li>If the link endpoint is pinned to a specific point on the paper, return that point.</li>
+	<li>If the link is connected to another link, return the midpoint of <a href="#dia.Link.prototype.getPolyline">that link's polyline</a>.</li>
+	<li>If the link is connected to a port on an element, return the center of that port.</li>
+	<li>If the link is connected to an element, return the center of that element.</li>
+</ul>

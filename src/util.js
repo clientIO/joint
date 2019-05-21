@@ -292,7 +292,7 @@ export const nextFrame = (function() {
     }
 
     return function(callback, context, ...rest) {
-        return context
+        return (context !== undefined)
             ? raf(callback.bind(context, ...rest))
             : raf(callback);
     };

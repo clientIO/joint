@@ -1,4 +1,9 @@
 <pre class="docs-method-signature"><code>element.getBBox()</code></pre>
-<p>Returns an element's bounding box represented as a <code>g.Rect</code> object (see <a href="http://www.daviddurman.com/hidden-gold-of-jointjs-the-geometry-library.html">geometry library</a>).</p><pre><code>if (element1.getBBox().intersect(element2.getBBox())) {
-    // elements intersect
+<p>Return the bounding box of the element model, represented as a <code>g.Rect</code>.</p>
+
+<p>Keep in mind that this function reports the dimensions of the element's model, not the dimensions of the element's view. (For example, the model bounding box does not include any associated ports). See the documentation of the <code>elementView.getBBox</code> <a href="#dia.ElementView.prototype.getBBox">function</a> for details about the differences.</p>
+
+<p>Example usage:</p>
+<pre><code>if (element1.getBBox().intersect(element2.getBBox())) {
+    // intersection of the two elements
 }</code></pre>

@@ -28,7 +28,7 @@
         if (opt.stroke) bbox.inflate(stroke(magnet) / 2);
         var intersections = line.intersect(bbox);
         var cp = (intersections)
-            ? line.start.closestPoint(intersections)
+            ? line.start.chooseClosest(intersections)
             : line.end;
         return offset(cp, line.start, opt.offset);
     }
@@ -46,7 +46,7 @@
         var lineWORotation = line.clone().rotate(center, angle);
         var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
         var cp = (intersections)
-            ? lineWORotation.start.closestPoint(intersections).rotate(center, -angle)
+            ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
             : line.end;
         return offset(cp, line.start, opt.offset);
     }
@@ -121,7 +121,7 @@
         intersection = localLine.intersect(localShape, pathOpt);
         if (intersection) {
             // More than one intersection
-            if (V.isArray(intersection)) intersection = localRef.closestPoint(intersection);
+            if (V.isArray(intersection)) intersection = localRef.chooseClosest(intersection);
         } else if (opt.sticky === true) {
             // No intersection, find the closest point instead
             if (localShape instanceof g.Rect) {

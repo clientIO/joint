@@ -2983,21 +2983,21 @@ Point.random = function(x1, x2, y1, y2) {
 
 Point.prototype = {
 
-    closestPoint: function(points) {
+    chooseClosest: function(points) {
 
         var n = points.length;
         if (n === 1) return new Point(points[0]);
-        var closestP = null;
+        var closest = null;
         var minSqrDistance = Infinity;
         for (var i = 0; i < n; i++) {
             var p = new Point(points[i]);
             var sqrDistance = this.squaredDistance(p);
             if (sqrDistance < minSqrDistance) {
-                closestP = p;
+                closest = p;
                 minSqrDistance = sqrDistance;
             }
         }
-        return closestP;
+        return closest;
     },
 
     // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
@@ -4416,12 +4416,22 @@ export const toRad = function(deg, over360) {
     return deg * PI / 180;
 };
 
+// Return a random integer from the interval [min,max], inclusive.
 export const random = function(min, max) {
+
     if (max === undefined) {
+        // use first argument as max, min is 0
         max = (min === undefined) ? 1 : min;
         min = 0;
+
+    } else if (max < min) {
+        // switch max and min
+        const temp = min;
+        min = max;
+        max = temp;
     }
-    return floor(math.random() * (max - min + 1) + min);
+
+    return floor((math.random() * (max - min + 1)) + min);
 };
 
 // For backwards compatibility:

@@ -712,6 +712,7 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     getChangeFlag: function(attributes) {
+
         var flag = 0;
         if (!attributes) return flag;
         for (var key in attributes) {
@@ -722,12 +723,27 @@ joint.dia.Cell = Backbone.Model.extend({
     },
 
     angle: function() {
+
+        // To be overridden.
         return 0;
     },
 
+    position: function() {
+
+        // To be overridden.
+        return new g.Point(0, 0);
+    },
+
     getPointFromConnectedLink: function() {
+
         // To be overridden
         return new g.Point();
+    },
+
+    getBBox: function() {
+
+        // To be overridden
+        return new g.Rect(0, 0, 0, 0);
     }
 
 }, {
@@ -883,9 +899,56 @@ joint.dia.CellView = joint.mvc.View.extend({
         }
     },
 
-    getBBox: function() {
+    getBBox: function(opt) {
 
-        return this.vel.getBBox({ target: this.paper.svg });
+        var bbox;
+        if (opt && opt.useModelGeometry) {
+            var model = this.model;
+            bbox = model.getBBox().bbox(model.angle());
+        } else {
+            bbox = this.getNodeBBox(this.el);
+        }
+
+        return this.paper.localToPaperRect(bbox);
+    },
+
+    getNodeBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        var rotateMatrix = this.getRootRotateMatrix();
+        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+    },
+
+    getNodeUnrotatedBBox: function(magnet) {
+
+        var rect = this.getNodeBoundingRect(magnet);
+        var magnetMatrix = this.getNodeMatrix(magnet);
+        var translateMatrix = this.getRootTranslateMatrix();
+        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
+    },
+
+    getRootTranslateMatrix: function() {
+
+        var model = this.model;
+        var position = model.position();
+        var mt = V.createSVGMatrix().translate(position.x, position.y);
+        return mt;
+    },
+
+    getRootRotateMatrix: function() {
+
+        var mr = V.createSVGMatrix();
+        var model = this.model;
+        var angle = model.angle();
+        if (angle) {
+            var bbox = model.getBBox();
+            var cx = bbox.width / 2;
+            var cy = bbox.height / 2;
+            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
+        }
+        return mr;
     },
 
     highlight: function(el, opt) {
@@ -1250,26 +1313,6 @@ joint.dia.CellView = joint.mvc.View.extend({
         var metrics = this.nodeCache(magnet);
         if (metrics.geometryShape === undefined) metrics.geometryShape = V(magnet).toGeometryShape();
         return metrics.geometryShape.clone();
-    },
-
-    getNodeBBox: function(magnet) {
-
-        return V.transformRect(this.getNodeBoundingRect(magnet), this.getNodeMatrix(magnet));
-    },
-
-    getNodeUnrotatedBBox: function(magnet) {
-
-        return this.getNodeBBox(magnet);
-    },
-
-    getRootTranslateMatrix: function() {
-
-        return V.createSVGMatrix();
-    },
-
-    getRootRotateMatrix: function() {
-
-        return V.createSVGMatrix();
     },
 
     isNodeConnection: function(node) {

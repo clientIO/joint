@@ -1,12 +1,15 @@
-<pre class="docs-method-signature"><code>paper.scaleContentToFit([opt])</code></pre><p>Scale the paper content so that it fits the paper dimensions. If <code>opt.padding</code> is set (default is <code>0</code>), there will be an additional padding in the resulting, scaled, paper content.
-          If <code>opt.preserveAspectRatio</code> is defined (default is <code>true</code>), the aspect ratio of the scaled paper content will be preserved.
-          <code>opt.minScaleX</code>, <code>opt.minScaleY</code>, <code>opt.maxScaleX</code> and <code>opt.maxScaleY</code> can be optionally used to set the minimum and maximum
-          allowed scale factor for both axis.
-          <code>opt.scaleGrid</code> is a number that will be used to as a rounding factor for the resulting scale. For example,
-          if the resulting scale factor is calculated to be <code>1.15</code> and your <code>opt.scaleGrid</code> is set to <code>0.2</code>,
-          then the resulting scale factor will be rounded to <code>1.2</code>. Last option is <code>opt.fittingBBox</code> which can be an object of the form
-          <code>{ x: [number], y: [number], width: [number], height: [number] }</code> and is the area of the paper
-          that should be scaled. By default <code>opt.fittingBBox</code> is <code>{ x: 0, y: y, width: paper.options.width, height: paper.options.height }</code>,
-          i.e. the whole paper area. If the method called a <code>&quot;scale&quot;</code> event can be triggered on the paper.
-                  To try it yourself see <a href="http://jointjs.com/demos/paper">paper demo</a>.
-        </p>
+<pre class="docs-method-signature"><code>paper.scaleContentToFit([opt])</code></pre>
+<p>Scale the paper content so that it fits the paper dimensions.</p>
+
+<p>The function accepts an object with additional settings (all optional):</p>
+
+<ul>
+  <li><code>opt.padding</code> – a number that specifies the width of additional padding that should be added around the resulting (scaled) paper content. Default is <code>0</code>.</li>
+  <li><code>opt.preserveAspectRatio</code> – should the original aspect ratio of the paper content be preserved in the scaled version? Default is <code>true</code>.</li>
+  <li><code>opt.minScaleX</code>, <code>opt.minScaleY</code>, <code>opt.maxScaleX</code>, <code>opt.maxScaleY</code> – the minimum and maximum allowed scale factors for both axes.</li>
+  <li><code>opt.scaleGrid</code> – a number to be used as a rounding factor for the resulting scale. For example, if you pass <code>0.2</code> to this option and the scale factor is calculated as <code>1.15</code>, then the resulting scale factor will be rounded to <code>1.2</code>.</li>
+  <li><code>opt.fittingBBox</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area of the paper that should be scaled. By default <code>opt.fittingBBox</code> is <code>{ x: 0, y: y, width: paper.options.width, height: paper.options.height }</code>, i.e. the whole paper area.</li>
+  <li><code>opt.useModelGeometry</code> – should paper content bounding box be calculated from cell models instead of views? Default is <code>false</code>. See the documentation of the <code>paper.getContentBBox</code> <a href="#dia.Paper.prototype.getContentBBox">function</a> for more details.</li>
+</ul>
+
+<p>The function is illustrated in our <a href="http://jointjs.com/demos/paper">paper demo</a>.</p>
