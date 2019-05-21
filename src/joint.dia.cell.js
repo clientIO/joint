@@ -724,7 +724,14 @@ joint.dia.Cell = Backbone.Model.extend({
 
     angle: function() {
 
+        // To be overridden.
         return 0;
+    },
+
+    position: function() {
+
+        // To be overridden.
+        return new g.Point(0, 0);
     },
 
     getPointFromConnectedLink: function() {
