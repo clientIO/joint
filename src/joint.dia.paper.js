@@ -887,7 +887,7 @@
 
             padding = util.normalizeSides(padding);
 
-            var area = ('contentArea' in opt) ? new g.Rect(area) : this.getContentArea(opt);
+            var area = ('contentArea' in opt) ? new g.Rect(opt.contentArea) : this.getContentArea(opt);
 
             var currentScale = this.scale();
             var currentTranslate = this.translate();
