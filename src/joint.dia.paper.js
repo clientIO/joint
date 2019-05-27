@@ -877,41 +877,42 @@
 
             } else {
 
-                opt = opt || {};
+                opt || (opt = {});
                 gridWidth = gridWidth || 1;
                 gridHeight = gridHeight || 1;
                 padding = padding || 0;
             }
 
+            // Calculate the paper size to accomodate all the graph's elements.
+
             padding = util.normalizeSides(padding);
 
-            // Calculate the paper size to accomodate all the graph's elements.
-            var bbox = this.getContentArea(opt);
+            var area = ('contentArea' in opt) ? new g.Rect(opt.contentArea) : this.getContentArea(opt);
 
             var currentScale = this.scale();
             var currentTranslate = this.translate();
             var sx = currentScale.sx;
             var sy = currentScale.sy;
 
-            bbox.x *= sx;
-            bbox.y *= sy;
-            bbox.width *= sx;
-            bbox.height *= sy;
+            area.x *= sx;
+            area.y *= sy;
+            area.width *= sx;
+            area.height *= sy;
 
-            var calcWidth = Math.max(Math.ceil((bbox.width + bbox.x) / gridWidth), 1) * gridWidth;
-            var calcHeight = Math.max(Math.ceil((bbox.height + bbox.y) / gridHeight), 1) * gridHeight;
+            var calcWidth = Math.max(Math.ceil((area.width + area.x) / gridWidth), 1) * gridWidth;
+            var calcHeight = Math.max(Math.ceil((area.height + area.y) / gridHeight), 1) * gridHeight;
 
             var tx = 0;
             var ty = 0;
 
-            if ((opt.allowNewOrigin == 'negative' && bbox.x < 0) || (opt.allowNewOrigin == 'positive' && bbox.x >= 0) || opt.allowNewOrigin == 'any') {
-                tx = Math.ceil(-bbox.x / gridWidth) * gridWidth;
+            if ((opt.allowNewOrigin == 'negative' && area.x < 0) || (opt.allowNewOrigin == 'positive' && area.x >= 0) || opt.allowNewOrigin == 'any') {
+                tx = Math.ceil(-area.x / gridWidth) * gridWidth;
                 tx += padding.left;
                 calcWidth += tx;
             }
 
-            if ((opt.allowNewOrigin == 'negative' && bbox.y < 0) || (opt.allowNewOrigin == 'positive' && bbox.y >= 0) || opt.allowNewOrigin == 'any') {
-                ty = Math.ceil(-bbox.y / gridHeight) * gridHeight;
+            if ((opt.allowNewOrigin == 'negative' && area.y < 0) || (opt.allowNewOrigin == 'positive' && area.y >= 0) || opt.allowNewOrigin == 'any') {
+                ty = Math.ceil(-area.y / gridHeight) * gridHeight;
                 ty += padding.top;
                 calcHeight += ty;
             }
@@ -944,9 +945,17 @@
 
         scaleContentToFit: function(opt) {
 
-            opt = opt || {};
+            opt || (opt = {});
 
-            var contentBBox = this.getContentBBox(opt);
+            var contentBBox, contentLocalOrigin;
+            if ('contentArea' in opt) {
+                var contentArea = opt.contentArea;
+                contentBBox = this.localToPaperRect(contentArea);
+                contentLocalOrigin = new g.Point(contentArea);
+            } else {
+                contentBBox = this.getContentBBox(opt);
+                contentLocalOrigin = this.paperToLocalPoint(contentBBox);
+            }
 
             if (!contentBBox.width || !contentBBox.height) return;
 
@@ -1008,13 +1017,11 @@
             newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
             newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
+            var origin = this.options.origin;
+            var newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
+            var newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
+
             this.scale(newSx, newSy);
-
-            var contentTranslation = this.getContentBBox(opt);
-
-            var newOx = fittingBBox.x - contentTranslation.x;
-            var newOy = fittingBBox.y - contentTranslation.y;
-
             this.translate(newOx, newOy);
         },
 

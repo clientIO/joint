@@ -939,8 +939,9 @@ export namespace dia {
             maxScaleX?: number;
             maxScaleY?: number;
             scaleGrid?: number;
-            fittingBBox?: BBox;
             useModelGeometry?: boolean;
+            fittingBBox?: BBox;
+            contentArea?: BBox;
         }
 
         interface FitToContentOptions {
@@ -953,6 +954,7 @@ export namespace dia {
             maxWidth?: number;
             maxHeight?: number;
             useModelGeometry?: boolean;
+            contentArea?: BBox;
         }
     }
 

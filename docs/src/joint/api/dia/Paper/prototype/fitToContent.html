@@ -18,6 +18,7 @@
   <li><code>opt.maxWidth</code> and <code>opt.maxHeight</code> – define the maximum width and height of the resulting paper.
   after fitting it to content.</li>
   <li><code>opt.useModelGeometry</code> – should paper content area be calculated from cell models instead of views? Default is <code>false</code>. See the documentation of the <code>paper.getContentArea</code> <a href="#dia.Paper.prototype.getContentArea">function</a> for more details.</li>
+  <li><code>opt.contentArea</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area representing the content bounding box in the local coordinate system that paper should be fitted to. By default <code>opt.contentArea</code> is <code>paper.getContentArea(opt)</code>.</li>
 </ul>
 
 <p>You can try many of these options interactively in the <a href="http://jointjs.com/demos/paper">paper demo</a>.</p>

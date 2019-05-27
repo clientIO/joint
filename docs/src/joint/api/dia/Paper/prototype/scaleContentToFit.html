@@ -8,8 +8,9 @@
   <li><code>opt.preserveAspectRatio</code> – should the original aspect ratio of the paper content be preserved in the scaled version? Default is <code>true</code>.</li>
   <li><code>opt.minScaleX</code>, <code>opt.minScaleY</code>, <code>opt.maxScaleX</code>, <code>opt.maxScaleY</code> – the minimum and maximum allowed scale factors for both axes.</li>
   <li><code>opt.scaleGrid</code> – a number to be used as a rounding factor for the resulting scale. For example, if you pass <code>0.2</code> to this option and the scale factor is calculated as <code>1.15</code>, then the resulting scale factor will be rounded to <code>1.2</code>.</li>
-  <li><code>opt.fittingBBox</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area of the paper that should be scaled. By default <code>opt.fittingBBox</code> is <code>{ x: 0, y: y, width: paper.options.width, height: paper.options.height }</code>, i.e. the whole paper area.</li>
   <li><code>opt.useModelGeometry</code> – should paper content bounding box be calculated from cell models instead of views? Default is <code>false</code>. See the documentation of the <code>paper.getContentBBox</code> <a href="#dia.Paper.prototype.getContentBBox">function</a> for more details.</li>
+  <li><code>opt.fittingBBox</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area of the paper that the content should be scaled to. By default <code>opt.fittingBBox</code> is <code>{ x: 0, y: 0, width: paper.options.width, height: paper.options.height }</code>, i.e. the bounding box of the paper in the paper coordinate system.</li>
+  <li><code>opt.contentArea</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area representing the content in local coordinate system that should be scaled to fit the <code>opt.fittingBBox</code>. By default <code>opt.contentArea</code> is <code>paper.getContentArea(opt)</code>.</li>
 </ul>
 
 <p>The function is illustrated in our <a href="http://jointjs.com/demos/paper">paper demo</a>.</p>
