@@ -528,7 +528,7 @@ joint.dia.Cell = Backbone.Model.extend({
         return this.set(joint.util.merge({}, this.attributes, props), value);
     },
 
-    // A convient way to unset nested properties
+    // A convenient way to unset nested properties
     removeProp: function(path, opt) {
 
         opt = opt || {};
@@ -536,7 +536,7 @@ joint.dia.Cell = Backbone.Model.extend({
         var pathArray = Array.isArray(path) ? path : path.split('/');
 
         // Once a property is removed from the `attrs` attribute
-        // the cellView will recognize a `dirty` flag and rerender itself
+        // the cellView will recognize a `dirty` flag and re-render itself
         // in order to remove the attribute from SVG element.
         var property = pathArray[0];
         if (property === 'attrs') opt.dirty = true;
@@ -797,6 +797,63 @@ joint.dia.CellView = joint.mvc.View.extend({
         return classNames.join(' ');
     },
 
+    _presentationAttributes: null,
+    _flags: null,
+
+    setFlags: function() {
+        var flags = {};
+        var attributes = {};
+        var shift = 0;
+        var i, n, label;
+        var presentationAttributes = this.presentationAttributes;
+        for (var attribute in presentationAttributes) {
+            if (!presentationAttributes.hasOwnProperty(attribute)) continue;
+            var labels = presentationAttributes[attribute];
+            if (!Array.isArray(labels)) labels = [labels];
+            for (i = 0, n = labels.length; i < n; i++) {
+                label = labels[i];
+                var flag = flags[label];
+                if (!flag) {
+                    flag = flags[label] = 1<<(shift++);
+                }
+                attributes[attribute] |= flag;
+            }
+        }
+        var initFlag = this.initFlag;
+        if (!Array.isArray(initFlag)) initFlag = [initFlag];
+        for (i = 0, n = initFlag.length; i < n; i++) {
+            label = initFlag[i];
+            if (!flags[label]) flags[label] = 1<<(shift++);
+        }
+
+        // 26 - 30 are reserved for paper flags
+        // 31+ overflows maximal number
+        if (shift > 25) throw new Error('dia.CellView: Maximum number of flags exceeded.');
+
+        this._flags = flags;
+        this._presentationAttributes = attributes;
+    },
+
+    hasFlag: function(flag, label) {
+        return flag & this.getFlag(label);
+    },
+
+    removeFlag: function(flag, label) {
+        return flag ^ (flag & this.getFlag(label));
+    },
+
+    getFlag: function(label) {
+        var flags = this._flags;
+        if (!flags) return 0;
+        var flag = 0;
+        if (Array.isArray(label)) {
+            for (var i = 0, n = label.length; i < n; i++) flag |= flags[label[i]];
+        } else {
+            flag |= flags[label];
+        }
+        return flag;
+    },
+
     attributes: function() {
         var cell = this.model;
         return {
@@ -818,6 +875,8 @@ joint.dia.CellView = joint.mvc.View.extend({
 
     initialize: function() {
 
+        this.setFlags();
+
         joint.mvc.View.prototype.initialize.apply(this, arguments);
 
         this.cleanNodesCache();
@@ -832,8 +891,14 @@ joint.dia.CellView = joint.mvc.View.extend({
         this.listenTo(this.model, 'change', this.onAttributesChange);
     },
 
-    onAttributesChange: function() {
-        // to be overriden
+    onAttributesChange: function(model, opt) {
+        var flag = model.getChangeFlag(this._presentationAttributes);
+        if (opt.updateHandled || !flag) return;
+        if (opt.dirty && this.hasFlag(flag, 'UPDATE')) flag |= this.getFlag('RENDER');
+        // TODO: tool changes does not need to be sync // Fix Segments tools
+        if (opt.tool) opt.async = false;
+        var paper = this.paper;
+        if (paper) paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
     },
 
     parseDOMJSON: function(markup, root) {
@@ -842,7 +907,7 @@ joint.dia.CellView = joint.mvc.View.extend({
         var selectors = doc.selectors;
         var groups = doc.groupSelectors;
         for (var group in groups) {
-            if (selectors[group]) throw new Error('dia.CellView: ambigious group selector');
+            if (selectors[group]) throw new Error('dia.CellView: ambiguous group selector');
             selectors[group] = groups[group];
         }
         if (root) {

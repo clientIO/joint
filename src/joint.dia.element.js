@@ -412,13 +412,6 @@ joint.dia.Element = joint.dia.Cell.extend({
 
 (function(joint, V) {
 
-    var FLAG_RENDER = 1<<0;
-    var FLAG_UPDATE = 1<<1;
-    var FLAG_TRANSLATE = 1<<2;
-    var FLAG_ROTATE = 1<<3;
-    var FLAG_RESIZE = 1<<4;
-    var FLAG_PORTS = 1<<5;
-
     // joint.dia.Element base view and controller.
     // -------------------------------------------
 
@@ -455,60 +448,47 @@ joint.dia.Element = joint.dia.Cell.extend({
             this._initializePorts();
         },
 
-        initFlag: FLAG_RENDER,
-
         presentationAttributes: {
-            'attrs': FLAG_UPDATE,
-            'position': FLAG_TRANSLATE,
-            'size': FLAG_RESIZE | FLAG_PORTS,
-            'angle': FLAG_ROTATE,
-            'markup': FLAG_RENDER,
-            'ports': FLAG_PORTS
+            'attrs': ['UPDATE'],
+            'position': ['TRANSLATE'],
+            'size': ['RESIZE', 'PORTS'],
+            'angle': ['ROTATE'],
+            'markup': ['RENDER'],
+            'ports': ['PORTS']
         },
+
+        initFlag: ['RENDER'],
 
         UPDATE_PRIORITY: 0,
 
-        FLAG_RENDER: FLAG_RENDER,
-        FLAG_UPDATE: FLAG_UPDATE,
-        FLAG_TRANSLATE: FLAG_TRANSLATE,
-        FLAG_ROTATE: FLAG_ROTATE,
-        FLAG_RESIZE: FLAG_RESIZE,
-        FLAG_PORTS: FLAG_PORTS,
-
-        onAttributesChange: function(model, opt) {
-            var flag = model.getChangeFlag(this.presentationAttributes);
-            if (opt.updateHandled || !flag) return;
-            if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
-            var paper = this.paper;
-            if (paper) paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
-        },
-
         confirmUpdate: function(flag, opt) {
-            if (flag & FLAG_RENDER) {
+            if (this.hasFlag(flag, 'RENDER')) {
                 this.render();
-                return 0;
+                flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
+                return flag;
             }
-            if (flag & FLAG_RESIZE) {
+            if (this.hasFlag(flag, 'RESIZE')) {
                 this.resize(opt);
-                flag ^= flag & (FLAG_RESIZE | FLAG_UPDATE);
+                // Resize method is calling `update()` internally
+                flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
             }
-            if (flag & FLAG_UPDATE) {
+            if (this.hasFlag(flag, 'UPDATE')) {
                 this.updateNodesAttributes();
-                flag ^= FLAG_UPDATE;
+                flag = this.removeFlag(flag, 'UPDATE');
             }
-            if (flag & FLAG_TRANSLATE) {
+            if (this.hasFlag(flag, 'TRANSLATE')) {
                 this.translate();
-                flag ^= FLAG_TRANSLATE;
+                flag = this.removeFlag(flag, 'TRANSLATE');
             }
-            if (flag & FLAG_ROTATE) {
+            if (this.hasFlag(flag, 'ROTATE')) {
                 this.rotate();
-                flag ^= FLAG_ROTATE;
+                flag = this.removeFlag(flag, 'ROTATE');
             }
-            if (flag & FLAG_PORTS) {
+            if (this.hasFlag(flag, 'PORTS')) {
                 this._refreshPorts();
-                flag ^= FLAG_PORTS;
+                flag = this.removeFlag(flag, 'PORTS');
             }
-            return 0;
+            return flag;
         },
 
         /**

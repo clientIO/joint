@@ -457,7 +457,8 @@
                 for (var j = 0, n = links.length; j < n; j++) {
                     var linkView = this.findViewByModel(links[j]);
                     if (!linkView) continue;
-                    this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
+                    var flag = linkView.getFlag(['UPDATE', 'SOURCE', 'TARGET']);
+                    this.scheduleViewUpdate(linkView, flag, linkView.UPDATE_PRIORITY, opt);
                 }
             }
         },
@@ -466,7 +467,7 @@
             if (!view || !(view instanceof joint.dia.CellView)) return false;
             var model = view.model;
             if (model.isElement()) return false;
-            if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
+            if ((flag & (view.getFlag(['SOURCE', 'TARGET']))) === 0) {
                 // LinkView is waiting for the target or the source cellView to be rendered
                 // This can happen when the cells are not in the viewport.
                 var sourceView = this.findViewByModel(model.getSourceCell());
@@ -1129,7 +1130,7 @@
             } else {
                 view = views[cell.id] = this.createViewForModel(cell);
                 view.paper = this;
-                flag = FLAG_INSERT | view.initFlag;
+                flag = FLAG_INSERT | view.getFlag(view.initFlag);
             }
             this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
             return view;
