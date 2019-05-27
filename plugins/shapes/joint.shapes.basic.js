@@ -439,7 +439,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         }
     },
 
-    update: function(cell, renderingOnlyAttrs) {
+    updateNodesAttributes: function(renderingOnlyAttrs) {
 
         var model = this.model;
 
@@ -447,7 +447,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
             // Update everything but the content first.
             var noTextAttrs = joint.util.omit(renderingOnlyAttrs || model.get('attrs'), '.content');
-            joint.dia.ElementView.prototype.update.call(this, model, noTextAttrs);
+            joint.dia.ElementView.prototype.updateNodesAttributes.call(this, noTextAttrs);
 
             if (!renderingOnlyAttrs || joint.util.has(renderingOnlyAttrs, '.content')) {
                 // Update the content itself.
@@ -456,7 +456,7 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
 
         } else {
 
-            joint.dia.ElementView.prototype.update.call(this, model, renderingOnlyAttrs);
+            joint.dia.ElementView.prototype.updateNodesAttributes.call(this, renderingOnlyAttrs);
         }
     },
 
@@ -481,6 +481,6 @@ joint.shapes.basic.TextBlockView = joint.dia.ElementView.extend({
         attrs['.content'].text = text;
 
         // Update the view using renderingOnlyAttributes parameter.
-        joint.dia.ElementView.prototype.update.call(this, cell, attrs);
+        joint.dia.ElementView.prototype.updateNodesAttributes.call(this, attrs);
     }
 });
