@@ -47,6 +47,8 @@ export const ElementView = CellView.extend({
         this._initializePorts();
     },
 
+    initFlag: FLAG_RENDER,
+
     presentationAttributes: {
         'attrs': FLAG_UPDATE,
         'position': FLAG_TRANSLATE,
@@ -58,7 +60,6 @@ export const ElementView = CellView.extend({
 
     UPDATE_PRIORITY: 0,
 
-    FLAG_INIT: FLAG_RENDER,
     FLAG_RENDER: FLAG_RENDER,
     FLAG_UPDATE: FLAG_UPDATE,
     FLAG_TRANSLATE: FLAG_TRANSLATE,
@@ -81,10 +82,10 @@ export const ElementView = CellView.extend({
         }
         if (flag & FLAG_RESIZE) {
             this.resize(opt);
-            flag ^= FLAG_RESIZE | FLAG_UPDATE;
+            flag ^= flag & (FLAG_RESIZE | FLAG_UPDATE);
         }
         if (flag & FLAG_UPDATE) {
-            this.updateAttributes();
+            this.updateNodesAttributes();
             flag ^= FLAG_UPDATE;
         }
         if (flag & FLAG_TRANSLATE) {
@@ -113,12 +114,12 @@ export const ElementView = CellView.extend({
 
         this._removePorts();
 
-        this.updateAttributes(renderingOnlyAttrs);
+        this.updateNodesAttributes(renderingOnlyAttrs);
 
         this._renderPorts();
     },
 
-    updateAttributes: function(renderingOnlyAttrs) {
+    updateNodesAttributes: function(renderingOnlyAttrs) {
 
         this.cleanNodesCache();
 
@@ -180,7 +181,7 @@ export const ElementView = CellView.extend({
         if (this.scalableNode) {
             // Double update is necessary for elements with the scalable group only
             // Note the resize() triggers the other `update`.
-            this.updateAttributes();
+            this.updateNodesAttributes();
         }
         this.resize();
         if (this.rotatableNode) {
@@ -199,7 +200,7 @@ export const ElementView = CellView.extend({
 
         if (this.scalableNode) return this.sgResize(opt);
         if (this.model.attributes.angle) this.rotate();
-        this.updateAttributes();
+        this.updateNodesAttributes();
     },
 
     translate: function() {
@@ -214,7 +215,7 @@ export const ElementView = CellView.extend({
             this.rgRotate();
             // It's necessary to call the update for the nodes outside
             // the rotatable group referencing nodes inside the group
-            this.updateAttributes();
+            this.updateNodesAttributes();
             return;
         }
         this.updateTransformation();
@@ -240,58 +241,6 @@ export const ElementView = CellView.extend({
         if (!angle) return null;
         var size = attributes.size;
         return 'rotate(' + angle + ',' + (size.width / 2) + ',' + (size.height / 2) + ')';
-    },
-
-    getBBox: function(opt) {
-
-        var bbox;
-        if (opt && opt.useModelGeometry) {
-            var model = this.model;
-            bbox = model.getBBox().bbox(model.angle());
-        } else {
-            bbox = this.getNodeBBox(this.el);
-        }
-
-        return this.paper.localToPaperRect(bbox);
-    },
-
-    getNodeBBox: function(magnet) {
-
-        var rect = this.getNodeBoundingRect(magnet);
-        var magnetMatrix = this.getNodeMatrix(magnet);
-        var translateMatrix = this.getRootTranslateMatrix();
-        var rotateMatrix = this.getRootRotateMatrix();
-        return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
-    },
-
-    getNodeUnrotatedBBox: function(magnet) {
-
-        var rect = this.getNodeBoundingRect(magnet);
-        var magnetMatrix = this.getNodeMatrix(magnet);
-        var translateMatrix = this.getRootTranslateMatrix();
-        return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
-    },
-
-    getRootTranslateMatrix: function() {
-
-        var model = this.model;
-        var position = model.position();
-        var mt = V.createSVGMatrix().translate(position.x, position.y);
-        return mt;
-    },
-
-    getRootRotateMatrix: function() {
-
-        var mr = V.createSVGMatrix();
-        var model = this.model;
-        var angle = model.angle();
-        if (angle) {
-            var bbox = model.getBBox();
-            var cx = bbox.width / 2;
-            var cy = bbox.height / 2;
-            mr = mr.translate(cx, cy).rotate(angle).translate(-cx, -cy);
-        }
-        return mr;
     },
 
     // Rotatable & Scalable Group
@@ -355,7 +304,7 @@ export const ElementView = CellView.extend({
 
         // Update must always be called on non-rotated element. Otherwise, relative positioning
         // would work with wrong (rotated) bounding boxes.
-        this.updateAttributes();
+        this.updateNodesAttributes();
     },
 
     // Embedding mode methods.
