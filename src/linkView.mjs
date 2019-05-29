@@ -5,6 +5,7 @@ import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFu
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from './geometry.js';
 import * as routers from '../module/routers/index.js';
 import * as connectors from '../module/connectors/index.js';
+import $ from 'jquery';
 
 // Link base view and controller.
 // ----------------------------------------

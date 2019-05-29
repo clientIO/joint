@@ -25,6 +25,7 @@ import {
     template,
     toArray
 } from './util.js';
+import { Rect, Point, toRad } from './geometry.js';
 import { View, views } from './view.js';
 import { CellView } from './cellView.mjs';
 import { ElementView } from './elementView.mjs';
@@ -918,17 +919,17 @@ export const Paper = View.extend({
 
         } else {
 
-                opt || (opt = {});
+            opt || (opt = {});
             gridWidth = gridWidth || 1;
             gridHeight = gridHeight || 1;
             padding = padding || 0;
         }
 
-            // Calculate the paper size to accomodate all the graph's elements.
+        // Calculate the paper size to accomodate all the graph's elements.
 
-            padding = normalizeSides(padding);
+        padding = normalizeSides(padding);
 
-            var area = ('contentArea' in opt) ? new g.Rect(opt.contentArea) : this.getContentArea(opt);
+        var area = ('contentArea' in opt) ? new Rect(opt.contentArea) : this.getContentArea(opt);
 
         var currentScale = this.scale();
         var currentTranslate = this.translate();
@@ -981,7 +982,7 @@ export const Paper = View.extend({
             this.setDimensions(calcWidth, calcHeight);
         }
 
-        return new g.Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
+        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
     },
 
     scaleContentToFit: function(opt) {
@@ -992,7 +993,7 @@ export const Paper = View.extend({
             if ('contentArea' in opt) {
                 var contentArea = opt.contentArea;
                 contentBBox = this.localToPaperRect(contentArea);
-                contentLocalOrigin = new g.Point(contentArea);
+                contentLocalOrigin = new Point(contentArea);
             } else {
                 contentBBox = this.getContentBBox(opt);
                 contentLocalOrigin = this.paperToLocalPoint(contentBBox);
@@ -1034,7 +1035,7 @@ export const Paper = View.extend({
             };
         }
 
-        fittingBBox = new g.Rect(fittingBBox).inflate(-padding);
+        fittingBBox = new Rect(fittingBBox).inflate(-padding);
 
         var currentScale = this.scale();
 
@@ -1071,7 +1072,7 @@ export const Paper = View.extend({
 
         if (opt && opt.useModelGeometry) {
             var graph = this.model;
-            return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new g.Rect();
+            return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new Rect();
         }
 
         return V(this.viewport).getBBox();
@@ -1395,7 +1396,7 @@ export const Paper = View.extend({
     // Find all views at given point
     findViewsFromPoint: function(p) {
 
-        p = new g.Point(p);
+        p = new Point(p);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
 
@@ -1408,7 +1409,7 @@ export const Paper = View.extend({
     findViewsInArea: function(rect, opt) {
 
         opt = defaults(opt || {}, { strict: false });
-        rect = new g.Rect(rect);
+        rect = new Rect(rect);
 
         var views = this.model.getElements().map(this.findViewByModel, this);
         var method = opt.strict ? 'containsRect' : 'intersect';
@@ -1447,42 +1448,42 @@ export const Paper = View.extend({
 
     localToPaperPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var localPoint = new g.Point(x, y);
+        var localPoint = new Point(x, y);
         var paperPoint = V.transformPoint(localPoint, this.matrix());
         return paperPoint;
     },
 
     localToPaperRect: function(x, y, width, height) {
         // allow `x` to be a rectangle and rest arguments undefined
-        var localRect = new g.Rect(x, y, width, height);
+        var localRect = new Rect(x, y, width, height);
         var paperRect = V.transformRect(localRect, this.matrix());
         return paperRect;
     },
 
     paperToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var paperPoint = new g.Point(x, y);
+        var paperPoint = new Point(x, y);
         var localPoint = V.transformPoint(paperPoint, this.matrix().inverse());
         return localPoint;
     },
 
     paperToLocalRect: function(x, y, width, height) {
         // allow `x` to be a rectangle and rest arguments undefined
-        var paperRect = new g.Rect(x, y, width, height);
+        var paperRect = new Rect(x, y, width, height);
         var localRect = V.transformRect(paperRect, this.matrix().inverse());
         return localRect;
     },
 
     localToClientPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var localPoint = new g.Point(x, y);
+        var localPoint = new Point(x, y);
         var clientPoint = V.transformPoint(localPoint, this.clientMatrix());
         return clientPoint;
     },
 
     localToClientRect: function(x, y, width, height) {
         // allow `x` to be a point and `y` undefined
-        var localRect = new g.Rect(x, y, width, height);
+        var localRect = new Rect(x, y, width, height);
         var clientRect = V.transformRect(localRect, this.clientMatrix());
         return clientRect;
     },
@@ -1493,14 +1494,14 @@ export const Paper = View.extend({
     // Example: var localPoint = paper.clientToLocalPoint({ x: evt.clientX, y: evt.clientY });
     clientToLocalPoint: function(x, y) {
         // allow `x` to be a point and `y` undefined
-        var clientPoint = new g.Point(x, y);
+        var clientPoint = new Point(x, y);
         var localPoint = V.transformPoint(clientPoint, this.clientMatrix().inverse());
         return localPoint;
     },
 
     clientToLocalRect: function(x, y, width, height) {
         // allow `x` to be a point and `y` undefined
-        var clientRect = new g.Rect(x, y, width, height);
+        var clientRect = new Rect(x, y, width, height);
         var localRect = V.transformRect(clientRect, this.clientMatrix().inverse());
         return localRect;
     },
@@ -1517,7 +1518,7 @@ export const Paper = View.extend({
 
     pageToLocalPoint: function(x, y) {
 
-        var pagePoint = new g.Point(x, y);
+        var pagePoint = new Point(x, y);
         var paperPoint = pagePoint.difference(this.pageOffset());
         return this.paperToLocalPoint(paperPoint);
     },
@@ -1525,7 +1526,7 @@ export const Paper = View.extend({
     pageToLocalRect: function(x, y, width, height) {
 
         var pageOffset = this.pageOffset();
-        var paperRect = new g.Rect(x, y, width, height);
+        var paperRect = new Rect(x, y, width, height);
         paperRect.x -= pageOffset.x;
         paperRect.y -= pageOffset.y;
         return this.paperToLocalRect(paperRect);
@@ -1534,7 +1535,7 @@ export const Paper = View.extend({
     clientOffset: function() {
 
         var clientRect = this.svg.getBoundingClientRect();
-        return new g.Point(clientRect.left, clientRect.top);
+        return new Point(clientRect.left, clientRect.top);
     },
 
     pageOffset: function() {
@@ -2179,7 +2180,7 @@ export const Paper = View.extend({
 
         // backgroundSize
         if (isObject(backgroundSize)) {
-            backgroundSize = new g.Rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
+            backgroundSize = new Rect(backgroundSize).scale(currentScale.sx, currentScale.sy);
             backgroundSize = backgroundSize.width + 'px ' + backgroundSize.height + 'px';
         }
 
@@ -2497,7 +2498,7 @@ export const Paper = View.extend({
 
             var ctx = canvas.getContext('2d');
             var angle = isNumber(opt.watermarkAngle) ? -opt.watermarkAngle : -20;
-            var radians = g.toRad(angle);
+            var radians = toRad(angle);
             var stepX = canvas.width / 4;
             var stepY = canvas.height / 4;
 
