@@ -68,7 +68,7 @@ export const CellView = View.extend({
 
     initialize: function() {
 
-        joint.mvc.View.prototype.initialize.apply(this, arguments);
+        View.prototype.initialize.apply(this, arguments);
 
         this.cleanNodesCache();
 
@@ -303,7 +303,7 @@ export const CellView = View.extend({
         var paper = this.paper;
         var connectionStrategy = paper.options.connectionStrategy;
         if (typeof connectionStrategy === 'function') {
-            var strategy = connectionStrategy.call(paper, end, this, magnet, new g.Point(x, y), link, endType, paper);
+            var strategy = connectionStrategy.call(paper, end, this, magnet, new Point(x, y), link, endType, paper);
             if (strategy) end = strategy;
         }
 
@@ -545,7 +545,7 @@ export const CellView = View.extend({
 
         var metrics = this.nodeCache(magnet);
         if (metrics.boundingRect === undefined) metrics.boundingRect = V(magnet).getBBox();
-        return new g.Rect(metrics.boundingRect);
+        return new Rect(metrics.boundingRect);
     },
 
     getNodeMatrix: function(magnet) {

@@ -3,6 +3,8 @@ import { Link } from './joint.dia.link.js';
 import V from './vectorizer.js';
 import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone } from './util.js';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from './geometry.js';
+import * as routers from '../module/routers/index.js';
+import * as connectors from '../module/connectors/index.js';
 
 // Link base view and controller.
 // ----------------------------------------
@@ -493,8 +495,7 @@ export const LinkView = CellView.extend({
         var markupTemplate = template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
         this.model.vertices().forEach(function(vertex, idx) {
-
-            $markerVertices.append(V(markupTemplate(({ idx: idx }, vertex))).node);
+            $markerVertices.append(V(markupTemplate(assign({ idx: idx }, vertex))).node);
         });
 
         return this;
@@ -742,23 +743,23 @@ export const LinkView = CellView.extend({
         // Anchor first
         if (firstView) {
             if (firstRef) {
-                firstAnchorRef = new g.Point(firstRef);
+                firstAnchorRef = new Point(firstRef);
             } else if (secondView) {
                 firstAnchorRef = secondMagnet;
             } else {
-                firstAnchorRef = new g.Point(secondDef);
+                firstAnchorRef = new Point(secondDef);
             }
             firstAnchor = this.getAnchor(firstDef.anchor, firstView, firstMagnet, firstAnchorRef, firstEndType);
         } else {
-            firstAnchor = new g.Point(firstDef);
+            firstAnchor = new Point(firstDef);
         }
 
         // Anchor second
         if (secondView) {
-            secondAnchorRef = new g.Point(secondRef || firstAnchor);
+            secondAnchorRef = new Point(secondRef || firstAnchor);
             secondAnchor = this.getAnchor(secondDef.anchor, secondView, secondMagnet, secondAnchorRef, secondEndType);
         } else {
-            secondAnchor = new g.Point(secondDef);
+            secondAnchor = new Point(secondDef);
         }
 
         var res = {};
@@ -1226,8 +1227,7 @@ export const LinkView = CellView.extend({
 
         vertices || (vertices = []);
 
-        //TODO v.talas es6
-        var namespace = joint.routers;
+        var namespace = routers;
         var router = this.model.router();
         var defaultRouter = this.paper.options.defaultRouter;
 
@@ -1259,8 +1259,7 @@ export const LinkView = CellView.extend({
     // between `source` and `target`.
     findPath: function(route, sourcePoint, targetPoint) {
 
-        //TODO v.talas es6
-        var namespace = joint.connectors;
+        var namespace = connectors;
         var connector = this.model.connector();
         var defaultConnector = this.paper.options.defaultConnector;
 

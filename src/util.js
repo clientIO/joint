@@ -1672,3 +1672,15 @@ export const isString = function(value) {
 
 export const noop = function() {
 };
+
+export const isCellView = function(view) {
+    return isLinkView(view) || isElementView(view);
+};
+
+export const isLinkView = function(view) {
+    return view.model && view.model.isLink && view.model.isLink();
+};
+
+export const isElementView = function(view) {
+    return view.model && view.model.isElement && view.model.isElement();
+};

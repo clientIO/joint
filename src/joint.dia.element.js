@@ -1,5 +1,5 @@
 import { Cell } from './joint.dia.cell.js';
-import { Point, toRad } from './geometry.js';
+import { Point, toRad, normalizeAngle, Rect} from './geometry.js';
 import { isNumber, isObject, interpolate, assign, invoke, normalizeSides } from './util.js';
 import { elementPortPrototype } from './ports.js';
 
@@ -205,7 +205,7 @@ export const Element = Cell.extend({
             }
 
             // Get the angle and clamp its value between 0 and 360 degrees.
-            var angle = g.normalizeAngle(this.get('angle') || 0);
+            var angle = normalizeAngle(this.get('angle') || 0);
 
             var quadrant = {
                 'top-right': 0,
@@ -372,7 +372,7 @@ export const Element = Cell.extend({
     },
 
     angle: function() {
-        return g.normalizeAngle(this.get('angle') || 0);
+        return normalizeAngle(this.get('angle') || 0);
     },
 
     getBBox: function(opt) {
@@ -393,7 +393,7 @@ export const Element = Cell.extend({
         var position = this.get('position');
         var size = this.get('size');
 
-        return new g.Rect(position.x, position.y, size.width, size.height);
+        return new Rect(position.x, position.y, size.width, size.height);
     },
 
     getPointFromConnectedLink: function(link, endType) {
@@ -407,7 +407,7 @@ export const Element = Cell.extend({
         if (!portId) return center;
         var portGroup = this.portProp(portId, ['group']);
         var portsPositions = this.getPortsPositions(portGroup);
-        var portCenter = new g.Point(portsPositions[portId]).offset(bbox.origin());
+        var portCenter = new Point(portsPositions[portId]).offset(bbox.origin());
         var angle = this.angle();
         if (angle) portCenter.rotate(center, -angle);
         return portCenter;

@@ -3,6 +3,7 @@ import { CellView } from './cellView.mjs';
 import { Cell } from './joint.dia.cell.js';
 import V from './vectorizer.js';
 import { elementViewPortPrototype } from './ports.js';
+import { Rect, snapToGrid } from './geometry.js';
 
 var FLAG_RENDER = 1<<0;
 var FLAG_UPDATE = 1<<1;
@@ -126,7 +127,7 @@ export const ElementView = CellView.extend({
         var model = this.model;
         var modelAttrs = model.attr();
         this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
-            rootBBox: new g.Rect(model.size()),
+            rootBBox: new Rect(model.size()),
             selectors: this.selectors,
             scalableNode: this.scalableNode,
             rotatableNode: this.rotatableNode,
@@ -660,8 +661,8 @@ export const ElementView = CellView.extend({
 
         // Make sure the new element's position always snaps to the current grid after
         // translate as the previous one could be calculated with a different grid size.
-        var tx = g.snapToGrid(position.x, grid) - position.x + g.snapToGrid(x - data.x, grid);
-        var ty = g.snapToGrid(position.y, grid) - position.y + g.snapToGrid(y - data.y, grid);
+        var tx = snapToGrid(position.x, grid) - position.x + snapToGrid(x - data.x, grid);
+        var ty = snapToGrid(position.y, grid) - position.y + snapToGrid(y - data.y, grid);
 
         element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
 
@@ -678,8 +679,8 @@ export const ElementView = CellView.extend({
         }
 
         this.eventData(evt, {
-            x: g.snapToGrid(x, grid),
-            y: g.snapToGrid(y, grid),
+            x: snapToGrid(x, grid),
+            y: snapToGrid(y, grid),
             embedding: embedding
         });
     },

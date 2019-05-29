@@ -27,6 +27,8 @@ import {
     has
 } from './util.js';
 import { cloneCells } from './util.cloneCells.mjs';
+import { attributes } from './joint.dia.attributes.js';
+
 
 // Cell base model.
 // --------------------------
@@ -780,8 +782,7 @@ export const Cell = Backbone.Model.extend({
     getAttributeDefinition: function(attrName) {
 
         var defNS = this.attributes;
-        //TODO v.talas es6
-        var globalDefNS = joint.dia.attributes;
+        var globalDefNS = attributes;
         return (defNS && defNS[attrName]) || globalDefNS[attrName];
     },
 
@@ -793,7 +794,7 @@ export const Cell = Backbone.Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
-        if (typeof joint !== undefined && has(joint, 'shapes')) {
+        if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
             setByPath(joint.shapes, type, Cell, '.');
         }
         return Cell;

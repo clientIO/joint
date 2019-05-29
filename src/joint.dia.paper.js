@@ -39,6 +39,7 @@ import * as connectionPoints from '../module/connectionPoints/index.js';
 import * as anchors from '../module/anchors/index.js';
 
 import $ from 'jquery';
+import Backbone from 'backbone';
 
 var sortingTypes = {
     NONE: 'sorting-none',
