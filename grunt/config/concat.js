@@ -104,7 +104,8 @@ module.exports = function(grunt) {
                     ),
                 'build/joint.js':
                     [].concat(
-                        ['wrappers/joint.head.js.partial'],
+                        //TODO v.talas es6 review
+                        // ['wrappers/joint.head.js.partial'],
                         polyfills,
                         geometry,
                         vectorizer,

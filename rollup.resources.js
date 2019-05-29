@@ -144,7 +144,7 @@ export const joint = {
     ],
     output: [{
         file: modules.joint.iife,
-        format: 'iife',
+        format: 'umd',
         name: 'joint',
         freeze: false,
         globals: ((map) => {

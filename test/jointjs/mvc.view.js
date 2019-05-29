@@ -3,7 +3,9 @@
 QUnit.module('joint.mvc.View', function(hooks) {
 
     var resetViews = function() {
-        _.invoke(joint.mvc.views, 'remove');
+        Object.keys(joint.mvc.views).forEach(function(item) {
+            delete joint.mvc.views[item];
+        })
     };
 
     hooks.beforeEach(resetViews);
@@ -31,7 +33,7 @@ QUnit.module('joint.mvc.View', function(hooks) {
         });
 
         assert.ok(setThemeCalled, 'should have executed setTheme() method');
-        assert.ok(_.keys(joint.mvc.views).length === 1, 'should add the instantiated view to the `joint.views` object');
+        assert.equal(_.keys(joint.mvc.views).length, 1, 'should add the instantiated view to the `joint.views` object');
 
         // SVG, no className
         var SVGView = joint.mvc.View.extend({

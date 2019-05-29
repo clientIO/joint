@@ -449,10 +449,10 @@ export const Cylinder = Element.define('standard.Cylinder', {
         if (t === undefined) return this.attr('body/lateralArea');
 
         // setter
-        var isPercentage = isPercentage(t);
+        var isPercentageSetter = isPercentage(t);
 
         var bodyAttrs = { lateralArea: t };
-        var topAttrs = isPercentage
+        var topAttrs = isPercentageSetter
             ? { refCy: t, refRy: t, cy: null, ry: null }
             : { refCy: null, refRy: null, cy: t, ry: t };
 
@@ -463,8 +463,8 @@ export const Cylinder = Element.define('standard.Cylinder', {
     attributes: {
         lateralArea: {
             set: function(t, refBBox) {
-                var isPercentage = isPercentage(t);
-                if (isPercentage) t = parseFloat(t) / 100;
+                var isPercentageSetter = isPercentage(t);
+                if (isPercentageSetter) t = parseFloat(t) / 100;
 
                 var x = refBBox.x;
                 var y = refBBox.y;
@@ -473,11 +473,11 @@ export const Cylinder = Element.define('standard.Cylinder', {
 
                 // curve control point variables
                 var rx = w / 2;
-                var ry = isPercentage ? (h * t) : t;
+                var ry = isPercentageSetter ? (h * t) : t;
 
                 var kappa = V.KAPPA;
                 var cx = kappa * rx;
-                var cy = kappa * (isPercentage ? (h * t) : t);
+                var cy = kappa * (isPercentageSetter ? (h * t) : t);
 
                 // shape variables
                 var xLeft = x;
