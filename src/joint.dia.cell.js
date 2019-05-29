@@ -470,7 +470,7 @@ export const Cell = Backbone.Model.extend({
             // Deep cloning.
 
             // For a deep clone, simply call `graph.cloneCells()` with the cell and all its embedded cells.
-            return toArray(cloneCells(...this.getEmbeddedCells({ deep: true })));
+            return toArray(cloneCells([this].concat(this.getEmbeddedCells({ deep: true }))));
         }
     },
 
