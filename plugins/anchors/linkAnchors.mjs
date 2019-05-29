@@ -1,5 +1,4 @@
 import { Line, Point } from '../../src/geometry.js';
-import { Element } from '../../src/joint.dia.element.js';
 import { isPercentage } from '../../src/util.js';
 
 function connectionRatio(view, _magnet, _refPoint, opt) {
