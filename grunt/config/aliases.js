@@ -1,11 +1,8 @@
 module.exports = function(grunt) {
 
-    const plugins = require('../resources/plugins');
-
     return {
         'default': [
             'install',
-            'build',
             'watch'
         ],
         'install': [
@@ -13,7 +10,6 @@ module.exports = function(grunt) {
             'build:all'
         ],
         'build': [
-            'shell:rollup',
             'build:joint'
         ],
         'dist': [
@@ -30,21 +26,15 @@ module.exports = function(grunt) {
             'newer:copy:appsLibs'
         ],
         'build:joint': [
-            'build:plugins',
-            'newer:uglify:polyfills',
+            'shell:rollup',
             'newer:uglify:deps',
             'newer:uglify:geometry',
             'newer:uglify:vectorizer',
             'newer:uglify:joint',
+            'newer:uglify:jointCore',
             'newer:cssmin:joint',
-            'newer:concat:geometry',
-            'newer:concat:vectorizer',
             'newer:concat:joint',
             'newer:concat:types'
-        ],
-        'build:plugins': [
-            // 'uglify:plugins',
-            'concat:plugins'
         ],
         'build:bundles': [
             'newer:browserify',
@@ -55,8 +45,6 @@ module.exports = function(grunt) {
             'syntaxHighlighting:docs',
             'newer:copy:docs'
         ],
-        'concat:plugins': Object.keys(plugins).map((name) => 'newer:concat:' + name),
-        'uglify:plugins': Object.keys(plugins).map((name) => 'newer:uglify:' + name),
 
         // TESTS
         'test': [

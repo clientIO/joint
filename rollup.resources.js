@@ -3,12 +3,10 @@ import babel from 'rollup-plugin-babel';
 import path from 'path';
 import resolve from 'rollup-plugin-node-resolve';
 
-
 const modules = require('./grunt/resources/es6');
 
 let plugins = [
-    babel({ exclude: 'node_modules/**' }),
-    commonjs()
+    babel({ exclude: 'node_modules/**' })
 ];
 
 const GLOBALS_ALL_MAP = {
@@ -140,6 +138,7 @@ export const joint = {
         'lodash',
         'dagre'
     ],
+    threeshake: false,
     output: [{
         file: modules.joint.umd,
         format: 'umd',
@@ -159,27 +158,21 @@ export const joint = {
 export const jointCore = {
     input: modules.jointCore.src,
     external: [
-        GLOBALS_ALL_MAP.geometry.destination,
-        GLOBALS_ALL_MAP.vectorizer.destination,
         'jquery',
         'backbone',
         'lodash'
     ],
     output: [{
-        file: modules.jointCore.iife,
-        format: 'iife',
+        file: modules.jointCore.umd,
+        format: 'umd',
         name: 'joint',
         freeze: false,
-        globals: ((map) => {
-            const globals = {
-                'jquery': '$',
-                'backbone': 'Backbone',
-                'lodash': '_'
-            };
-            globals[map.vectorizer.destination] = 'V';
-            globals[map.geometry.destination] = 'g';
-            return globals;
-        })(GLOBALS_ALL_MAP),
+        footer: 'var g = joint.g; var V = joint.V;',
+        globals: {
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_'
+        },
     }],
     plugins: plugins
 };

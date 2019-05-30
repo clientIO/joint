@@ -4,20 +4,20 @@ import * as g from './geometry.js';
 
 import { Link } from './joint.dia.link.js';
 import { Element } from './joint.dia.element.js';
-import * as shapes from '../module/shapes/index.mjs';
 import { wrappers, wrapWith } from './util.wrappers.mjs'
-import { cloneCells} from './util.cloneCells.mjs';
+import { cloneCells } from './util.cloneCells.mjs';
 
 const GraphCells = Backbone.Collection.extend({
-
-    cellNamespace: shapes,
 
     initialize: function(models, opt) {
 
         // Set the optional namespace where all model classes are defined.
         if (opt.cellNamespace) {
             this.cellNamespace = opt.cellNamespace;
+        } else {
+            this.cellNamespace = typeof joint !== 'undefined' && util.has(joint, 'shapes') ? joint.shapes : null;
         }
+
 
         this.graph = opt.graph;
     },

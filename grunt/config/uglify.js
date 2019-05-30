@@ -1,19 +1,8 @@
-const plugins = require('../resources/plugins');
-const polyfills = require('../resources/polyfills')
 const modules = require('../resources/es6');
-
 
 module.exports = function() {
 
-    const config = {};
-
-    Object.keys(plugins).forEach(function(name) {
-        config[name] = { files: {} };
-        config[name].files['build/min/joint.' + name + '.min.js'] = plugins[name];
-    });
-
-    return Object.assign({}, config, {
-
+    return {
         options: {
             ASCIIOnly: true
         },
@@ -23,20 +12,20 @@ module.exports = function() {
             }
         },
         geometry: {
-            src: modules.geometry.iife,
-            dest: 'build/min/geometry.min.js'
+            src: modules.geometry.umd,
+            dest: 'build/geometry.min.js'
         },
         joint: {
             src: modules.joint.umd,
             dest: 'build/joint.min.js'
         },
-        polyfills: {
-            src: polyfills,
-            dest: 'build/min/polyfills.min.js'
+        jointCore: {
+            src: modules.jointCore.umd,
+            dest: 'build/joint.core.min.js'
         },
         vectorizer: {
-            src: modules.vectorizer.iife,
-            dest: 'build/min/vectorizer.min.js'
+            src: modules.vectorizer.umd,
+            dest: 'build/vectorizer.min.js'
         }
-    });
+    };
 };
