@@ -143,7 +143,7 @@ export const joint = {
         'dagre'
     ],
     output: [{
-        file: modules.joint.iife,
+        file: modules.joint.umd,
         format: 'umd',
         name: 'joint',
         freeze: false,

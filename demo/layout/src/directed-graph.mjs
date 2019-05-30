@@ -1,4 +1,4 @@
-import * as joint from '../../../index.mjs';
+import * as joint from '../../../joint.mjs';
 
 var Shape = joint.dia.Element.define('demo.Shape', {
     z: 2,

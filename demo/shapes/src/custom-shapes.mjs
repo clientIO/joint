@@ -1,4 +1,4 @@
-import * as joint from '../../../index.mjs';
+import * as joint from '../../../joint.mjs';
 import * as g from '../../../src/geometry.js';
 import V from '../../../src/vectorizer.js';
 

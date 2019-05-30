@@ -1,5 +1,5 @@
-import * as basic from './basic.js';
-import * as standard from './standard.js';
+import * as basic from './basic.mjs';
+import * as standard from './standard.mjs';
 import * as devs from '../../plugins/shapes/joint.shapes.devs.js';
 import * as logic from '../../plugins/shapes/joint.shapes.logic.js';
 import * as chess from '../../plugins/shapes/joint.shapes.chess.js';

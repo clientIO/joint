@@ -7,8 +7,8 @@ import V from '../../src/vectorizer.js';
 import * as joint from '../../src/core.js';
 import { ToolView, ToolsView } from '../../src/joint.dia.tools.js';
 
-import { Port } from '../layout/port.js';
-import { PortLabel } from '../layout/portLabel.js';
+import { Port } from '../layout/port.mjs';
+import { PortLabel } from '../layout/portLabel.mjs';
 import * as connectors from '../connectors/index.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as connectionPoints from '../connectionpoints/index.mjs';

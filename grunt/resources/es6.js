@@ -19,8 +19,9 @@ const modules = {
         umd: 'build/vectorizer.js',
     },
     joint: {
-        src: 'index.mjs',
-        iife: 'build/iife/joint.js',
+        src: 'joint.mjs',
+        umd: 'build/umd/joint.js',
+        iife: 'build/iife/joint.js'
     },
     jointCore: {
         src: 'wrappers/joint.core.js',

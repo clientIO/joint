@@ -1233,8 +1233,8 @@ export const LinkView = CellView.extend({
         var defaultRouter = this.paper.options.defaultRouter;
 
         if (!router) {
-            if (defaultRouter) router = defaultRouter;
             //TODO v.talas es6
+            if (defaultRouter) router = defaultRouter;
             else return vertices.map(Point, g); // no router specified
         }
 

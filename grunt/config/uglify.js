@@ -1,8 +1,7 @@
 const plugins = require('../resources/plugins');
-const geometry = require('../resources/geometry');
-const vectorizer = require('../resources/vectorizer');
-const core = require('../resources/core').js;
-const polyfills = require('../resources/polyfills');
+const polyfills = require('../resources/polyfills')
+const modules = require('../resources/es6');
+
 
 module.exports = function() {
 
@@ -24,11 +23,11 @@ module.exports = function() {
             }
         },
         geometry: {
-            src: geometry,
+            src: modules.geometry.iife,
             dest: 'build/min/geometry.min.js'
         },
         joint: {
-            src: core,
+            src: modules.jointCore.iife,
             dest: 'build/min/joint.min.js'
         },
         polyfills: {
@@ -36,7 +35,7 @@ module.exports = function() {
             dest: 'build/min/polyfills.min.js'
         },
         vectorizer: {
-            src: vectorizer,
+            src: modules.vectorizer.iife,
             dest: 'build/min/vectorizer.min.js'
         }
     });

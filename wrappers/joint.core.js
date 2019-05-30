@@ -6,12 +6,13 @@ import * as routers from '../module/routers/index.mjs';
 import * as anchors from '../module/anchors/index.mjs';
 import * as linkAnchors from '../module/linkAnchors/index.mjs';
 import * as dia from '../module/dia/index.mjs';
+import * as basic from '../module/shapes/basic.mjs';
+import * as standard from '../module/shapes/standard.mjs';
 import * as linkTools from '../module/linkTools/index.mjs';
+import * as util from '../module/util/index.mjs';
 import * as mvc from '../module/mvc/index.mjs';
-import { Port } from '../module/layout/port.js'
-import { PortLabel } from '../module/layout/portLabel.js'
-import * as basic from '../module/shapes/basic.js';
-import * as standard from '../module/shapes/standard.js';
+import { Port } from '../module/layout/port.mjs'
+import { PortLabel } from '../module/layout/portLabel.mjs'
 
 const shapes = { basic, standard };
 const layout = { PortLabel, Port };
@@ -33,5 +34,6 @@ export {
     routers,
     ui,
     shapes,
+    util,
     linkTools
 }
