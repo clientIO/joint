@@ -1,6 +1,7 @@
-import * as joint from '../../src/core.js';
+import { Element } from '../../src/joint.dia.element.js';
+import { Link } from '../../src/joint.dia.link.js';
 
-joint.dia.Element.define('erd.Entity', {
+export const Entity = Element.define('erd.Entity', {
     size: { width: 150, height: 60 },
     attrs: {
         '.outer': {
@@ -23,15 +24,14 @@ joint.dia.Element.define('erd.Entity', {
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
 });
 
-
-joint.shapes.erd.Entity.define('erd.WeakEntity', {
+export const WeakEntity = Entity.define('erd.WeakEntity', {
     attrs: {
         '.inner': { display: 'auto' },
         text: { text: 'Weak Entity' }
     }
 });
 
-joint.dia.Element.define('erd.Relationship', {
+export const Relationship = Element.define('erd.Relationship', {
     size: { width: 80, height: 80 },
     attrs: {
         '.outer': {
@@ -54,14 +54,14 @@ joint.dia.Element.define('erd.Relationship', {
     markup: '<g class="rotatable"><g class="scalable"><polygon class="outer"/><polygon class="inner"/></g><text/></g>',
 });
 
-joint.shapes.erd.Relationship.define('erd.IdentifyingRelationship', {
+export const IdentifyingRelationship = Relationship.define('erd.IdentifyingRelationship', {
     attrs: {
         '.inner': { display: 'auto' },
         text: { text: 'Identifying' }
     }
 });
 
-joint.dia.Element.define('erd.Attribute', {
+export const Attribute = Element.define('erd.Attribute', {
     size: { width: 100, height: 50 },
     attrs: {
         'ellipse': {
@@ -87,32 +87,32 @@ joint.dia.Element.define('erd.Attribute', {
     markup: '<g class="rotatable"><g class="scalable"><ellipse class="outer"/><ellipse class="inner"/></g><text/></g>',
 });
 
-joint.shapes.erd.Attribute.define('erd.Multivalued', {
+export const Multivalued = Attribute.define('erd.Multivalued', {
     attrs: {
         '.inner': { display: 'block' },
         text: { text: 'multivalued' }
     }
 });
 
-joint.shapes.erd.Attribute.define('erd.Derived', {
+export const Derived = Attribute.define('erd.Derived', {
     attrs: {
         '.outer': { 'stroke-dasharray': '3,5' },
         text: { text: 'derived' }
     }
 });
 
-joint.shapes.erd.Attribute.define('erd.Key', {
+export const Key = Attribute.define('erd.Key', {
     attrs: {
         ellipse: { 'stroke-width': 4 },
         text: { text: 'key', 'font-weight': '800', 'text-decoration': 'underline' }
     }
 });
 
-joint.shapes.erd.Attribute.define('erd.Normal', {
+export const Normal = Attribute.define('erd.Normal', {
     attrs: { text: { text: 'Normal' }}
 });
 
-joint.dia.Element.define('erd.ISA', {
+export const ISA = Element.define('erd.ISA', {
     type: 'erd.ISA',
     size: { width: 100, height: 50 },
     attrs: {
@@ -130,10 +130,8 @@ joint.dia.Element.define('erd.ISA', {
     markup: '<g class="rotatable"><g class="scalable"><polygon/></g><text/></g>',
 });
 
-joint.dia.Link.define('erd.Line', {}, {
+export const Line = Link.define('erd.Line', {}, {
     cardinality: function(value) {
         this.set('labels', [{ position: -20, attrs: { text: { dy: -8, text: value }}}]);
     }
 });
-
-export const erd = joint.shapes.erd;
