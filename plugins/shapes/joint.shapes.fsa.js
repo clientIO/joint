@@ -1,13 +1,15 @@
-import * as joint from '../../src/core.js';
+import { Circle } from './joint.shapes.basic.js';
+import { Element } from '../../src/joint.dia.element.js';
+import { Link } from '../../src/joint.dia.link.js';
 
-joint.shapes.basic.Circle.define('fsa.State', {
+export const State = Circle.define('fsa.State', {
     attrs: {
         circle: { 'stroke-width': 3 },
         text: { 'font-weight': '800' }
     }
 });
 
-joint.dia.Element.define('fsa.StartState', {
+export const StartState = Element.define('fsa.StartState', {
     size: { width: 20, height: 20 },
     attrs: {
         circle: {
@@ -20,7 +22,7 @@ joint.dia.Element.define('fsa.StartState', {
     markup: '<g class="rotatable"><g class="scalable"><circle/></g></g>',
 });
 
-joint.dia.Element.define('fsa.EndState', {
+export const EndState = Element.define('fsa.EndState', {
     size: { width: 20, height: 20 },
     attrs: {
         '.outer': {
@@ -40,10 +42,9 @@ joint.dia.Element.define('fsa.EndState', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
 });
 
-joint.dia.Link.define('fsa.Arrow', {
+export const Arrow = Link.define('fsa.Arrow', {
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }},
     smooth: true
 });
 
-export const fsa = joint.shapes.fsa;
 

@@ -1,6 +1,8 @@
-import * as joint from '../../src/core.js';
+import { ElementView } from '../../src/elementView.mjs';
+import { Link } from '../../src/joint.dia.link.js';
+import { Generic, Circle } from './joint.shapes.basic.js';
 
-joint.shapes.basic.Generic.define('uml.Class', {
+export const Class = Generic.define('uml.Class', {
     attrs: {
         rect: { 'width': 200 },
 
@@ -85,7 +87,7 @@ joint.shapes.basic.Generic.define('uml.Class', {
 
 });
 
-joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
+export const ClassView = ElementView.extend({
 
     initialize: function() {
 
@@ -98,7 +100,7 @@ joint.shapes.uml.ClassView = joint.dia.ElementView.extend({
     }
 });
 
-joint.shapes.uml.Class.define('uml.Abstract', {
+export const Abstract = Class.define('uml.Abstract', {
     attrs: {
         '.uml-class-name-rect': { fill: '#e74c3c' },
         '.uml-class-attrs-rect': { fill: '#c0392b' },
@@ -111,9 +113,9 @@ joint.shapes.uml.Class.define('uml.Abstract', {
     }
 
 });
-joint.shapes.uml.AbstractView = joint.shapes.uml.ClassView;
+export const AbstractView = ClassView;
 
-joint.shapes.uml.Class.define('uml.Interface', {
+export const Interface = Class.define('uml.Interface', {
     attrs: {
         '.uml-class-name-rect': { fill: '#f1c40f' },
         '.uml-class-attrs-rect': { fill: '#f39c12' },
@@ -124,32 +126,32 @@ joint.shapes.uml.Class.define('uml.Interface', {
         return ['<<Interface>>', this.get('name')];
     }
 });
-joint.shapes.uml.InterfaceView = joint.shapes.uml.ClassView;
+export const InterfaceView = ClassView;
 
-joint.dia.Link.define('uml.Generalization', {
+export const Generalization = Link.define('uml.Generalization', {
     attrs: { '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' }}
 });
 
-joint.dia.Link.define('uml.Implementation', {
+export const Implementation = Link.define('uml.Implementation', {
     attrs: {
         '.marker-target': { d: 'M 20 0 L 0 10 L 20 20 z', fill: 'white' },
         '.connection': { 'stroke-dasharray': '3,3' }
     }
 });
 
-joint.dia.Link.define('uml.Aggregation', {
+export const Aggregation = Link.define('uml.Aggregation', {
     attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'white' }}
 });
 
-joint.dia.Link.define('uml.Composition', {
+export const Composition = Link.define('uml.Composition', {
     attrs: { '.marker-target': { d: 'M 40 10 L 20 20 L 0 10 L 20 0 z', fill: 'black' }}
 });
 
-joint.dia.Link.define('uml.Association');
+export const Association = Link.define('uml.Association');
 
 // Statechart
 
-joint.shapes.basic.Generic.define('uml.State', {
+export const State = Generic.define('uml.State', {
     attrs: {
         '.uml-state-body': {
             'width': 200, 'height': 200, 'rx': 10, 'ry': 10,
@@ -219,12 +221,12 @@ joint.shapes.basic.Generic.define('uml.State', {
     }
 });
 
-joint.shapes.basic.Circle.define('uml.StartState', {
+export const StartState = Circle.define('uml.StartState', {
     type: 'uml.StartState',
     attrs: { circle: { 'fill': '#34495e', 'stroke': '#2c3e50', 'stroke-width': 2, 'rx': 1 }}
 });
 
-joint.shapes.basic.Generic.define('uml.EndState', {
+export const EndState = Generic.define('uml.EndState', {
     size: { width: 20, height: 20 },
     attrs: {
         'circle.outer': {
@@ -244,11 +246,9 @@ joint.shapes.basic.Generic.define('uml.EndState', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="outer"/><circle class="inner"/></g></g>',
 });
 
-joint.dia.Link.define('uml.Transition', {
+export const Transition = Link.define('uml.Transition', {
     attrs: {
         '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z', fill: '#34495e', stroke: '#2c3e50' },
         '.connection': { stroke: '#2c3e50' }
     }
 });
-
-export const uml = joint.shapes.uml;

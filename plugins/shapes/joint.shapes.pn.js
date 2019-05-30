@@ -1,6 +1,9 @@
 import * as joint from '../../src/core.js';
+import { Generic } from './joint.shapes.basic.js';
+import { ElementView } from '../../src/elementView.mjs';
+import { Link } from '../../src/linkView.mjs';
 
-joint.shapes.basic.Generic.define('pn.Place', {
+export const Place = Generic.define('pn.Place', {
     size: { width: 50, height: 50 },
     attrs: {
         '.root': {
@@ -40,7 +43,7 @@ joint.shapes.basic.Generic.define('pn.Place', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
+export const PlaceView = ElementView.extend({
 
     initialize: function() {
 
@@ -96,7 +99,7 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
     }
 });
 
-joint.shapes.basic.Generic.define('pn.Transition', {
+export const Transition = Generic.define('pn.Transition', {
     size: { width: 12, height: 50 },
     attrs: {
         'rect': {
@@ -118,8 +121,6 @@ joint.shapes.basic.Generic.define('pn.Transition', {
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
 });
 
-joint.dia.Link.define('pn.Link', {
+export const Link = Link.define('pn.Link', {
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 });
-
-export const pn = joint.shapes.pn;
