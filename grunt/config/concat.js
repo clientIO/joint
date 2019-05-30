@@ -31,7 +31,7 @@ module.exports = function(grunt) {
                     ),
                 'build/joint.css':
                     [].concat(
-                        core.css,
+                        core.css
                     )
             }
         }
