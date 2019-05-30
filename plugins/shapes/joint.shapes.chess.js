@@ -1,3 +1,5 @@
+import { Generic } from './joint.shapes.basic.js';
+
 export const KingWhite = Generic.define('chess.KingWhite', {
     size: { width: 42, height: 38 }
 }, {

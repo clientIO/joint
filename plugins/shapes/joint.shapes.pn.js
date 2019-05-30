@@ -1,7 +1,6 @@
-import * as joint from '../../src/core.js';
 import { Generic } from './joint.shapes.basic.js';
 import { ElementView } from '../../src/elementView.mjs';
-import { Link } from '../../src/linkView.mjs';
+import { Link as diaLink} from '../../src/joint.dia.link.js';
 
 export const Place = Generic.define('pn.Place', {
     size: { width: 50, height: 50 },
@@ -47,7 +46,7 @@ export const PlaceView = ElementView.extend({
 
     initialize: function() {
 
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        ElementView.prototype.initialize.apply(this, arguments);
 
         this.model.on('change:tokens', function() {
 
@@ -59,7 +58,7 @@ export const PlaceView = ElementView.extend({
 
     render: function() {
 
-        joint.dia.ElementView.prototype.render.apply(this, arguments);
+        ElementView.prototype.render.apply(this, arguments);
 
         this.renderTokens();
         this.update();
@@ -121,6 +120,6 @@ export const Transition = Generic.define('pn.Transition', {
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
 });
 
-export const Link = Link.define('pn.Link', {
+export const Link = diaLink.define('pn.Link', {
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 });
