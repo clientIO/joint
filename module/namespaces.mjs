@@ -1,7 +1,7 @@
 import * as connectors from '../module/connectors/index.mjs';
 import * as highlighters from '../module/highlighters/index.mjs';
 import * as connectionPoints from '../module/connectionPoints/index.mjs';
-import * as connectionStrategies from '../module/connectionstrategies/index.mjs';
+import * as connectionStrategies from '../module/connectionStrategies/index.mjs';
 import * as routers from '../module/routers/index.mjs';
 import * as anchors from '../module/anchors/index.mjs';
 import * as linkAnchors from '../module/linkAnchors/index.mjs';
