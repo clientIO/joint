@@ -33,11 +33,11 @@ import { LinkView } from './linkView.mjs';
 import { Link } from './joint.dia.link.js';
 import { Cell } from './joint.dia.cell.js';
 import { Graph } from './graph.js';
-import * as shapes from '../module/shapes/index.js';
-import * as highlighters from '../module/highlighters/index.js';
+import * as shapes from '../module/shapes/index.mjs';
+import * as highlighters from '../module/highlighters/index.mjs';
 import * as linkAnchors from '../module/linkAnchors/index.mjs';
-import * as connectionPoints from '../module/connectionPoints/index.js';
-import * as anchors from '../module/anchors/index.js';
+import * as connectionPoints from '../module/connectionpoints/index.mjs';
+import * as anchors from '../module/anchors/index.mjs';
 
 import $ from 'jquery';
 import Backbone from 'backbone';

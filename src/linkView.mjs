@@ -3,8 +3,8 @@ import { Link } from './joint.dia.link.js';
 import V from './vectorizer.js';
 import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone } from './util.js';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from './geometry.js';
-import * as routers from '../module/routers/index.js';
-import * as connectors from '../module/connectors/index.js';
+import * as routers from '../module/routers/index.mjs';
+import * as connectors from '../module/connectors/index.mjs';
 import $ from 'jquery';
 
 // Link base view and controller.

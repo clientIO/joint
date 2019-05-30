@@ -110,17 +110,17 @@ module.exports = function(grunt) {
                         geometry,
                         vectorizer,
                         modules.joint.iife,
-                        ['wrappers/joint.foot.js.partial']
+                        // ['wrappers/joint.foot.js.partial']
                     ),
                 'build/joint.min.js':
                     [].concat(
-                        ['wrappers/joint.head.js.partial'],
+                        // ['wrappers/joint.head.js.partial'],
                         ['build/min/polyfills.min.js'],
                         ['build/min/geometry.min.js'],
                         ['build/min/vectorizer.min.js'],
                         ['build/min/joint.min.js'],
                         allMinifiedJSPlugins,
-                        ['wrappers/joint.foot.js.partial']
+                        // ['wrappers/joint.foot.js.partial']
                     ),
                 'build/joint.css':
                     [].concat(
