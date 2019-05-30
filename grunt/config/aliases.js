@@ -7,7 +7,7 @@ module.exports = function(grunt) {
         ],
         'install': [
             'shell:libs-esm',
-            'build:all'
+            'build'
         ],
         'build': [
             'build:joint'
@@ -20,29 +20,24 @@ module.exports = function(grunt) {
         // dry dist - create dist files into the build folder - including min files
         'dist:prepare':[
             'clean:build',
-            'build:all',
-            'uglify:all',
-            'concat:types'
-        ],
-        'build:all': [
             'build:joint',
-            'build:bundles',
-            'build:docs',
-            'newer:copy:appsLibs'
+            'uglify:all',
+            'build:docs'
         ],
         'build:joint': [
             'shell:rollup',
             'newer:concat:joint',
-            'newer:concat:types'
+            'newer:concat:types',
+            'newer:copy:appsLibs'
         ],
         'uglify:all':[
-            'uglify:deps',
-            'uglify:geometry',
-            'uglify:vectorizer',
-            'uglify:joint',
-            'uglify:jointCore',
-            'uglify:jointNoWrap',
-            'cssmin:joint',
+            'newer:uglify:deps',
+            'newer:uglify:geometry',
+            'newer:uglify:vectorizer',
+            'newer:uglify:joint',
+            'newer:uglify:jointCore',
+            'newer:uglify:jointNoWrap',
+            'newer:cssmin:joint',
         ],
         'build:bundles': [
             'newer:browserify',

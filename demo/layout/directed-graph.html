@@ -6,41 +6,6 @@
 
     <link rel="stylesheet" type="text/css" href="../../build/joint.css">
 
-    <!---------------------------------------------------------------------------------------------------------------
-    I. ES6 "native" script type module
-    needs a server to run, e.g.
-
-    `cd ../.. && http-server -p 8081`
-    open http://localhost:8081/demo/layout/directed-graph.html
-
-    -->
-    <script defer src="../../node_modules/es-module-shims/dist/es-module-shims.js"></script>
-    <script type="importmap-shim">
-        {
-          "imports": {
-            "backbone": "/build/esm/backbone.mjs",
-            "underscore": "/build/esm/lodash.js",
-            "lodash": "/build/esm/lodash.js",
-            "dagre": "/build/esm/dagre.js",
-            "jquery": "/build/esm/jquery.js"
-          }
-        }
-    </script>
-    <script src="../../scripts/checkCompatibility.js"></script>
-    <script type="module-shim" src="src/directed-graph.mjs"></script>
-
-    <!---------------------------------------------------------------------------------------------------------------
-    II. ES5 - webpack bundle
-
-    build: `npm run build`
-    open file:///<PATH TO JOINTJS>/demo/layout/directed-graph.html
-    -->
-
-    <!--
-    <script defer type="text/javascript" src="dist/directed-graph-bundle.js"></script>
-    -->
-
-    <!--------------------------------------------------------------------------------------------------------------->
 
     <style>
         #paper {
@@ -107,5 +72,41 @@
     <input id="nodesep" type="range" min="1" max="100" value="50"/>
 </div>
 <div id="paper"></div>
+<!---------------------------------------------------------------------------------------------------------------
+I. ES6 "native" script type module
+needs a server to run, e.g.
+
+`cd ../.. && http-server -p 8081`
+open http://localhost:8081/demo/layout/directed-graph.html
+
+-->
+<script defer src="../../node_modules/es-module-shims/dist/es-module-shims.js"></script>
+<script type="importmap-shim">
+        {
+          "imports": {
+            "backbone": "/build/esm/backbone.mjs",
+            "underscore": "/build/esm/lodash.mjs",
+            "lodash": "/build/esm/lodash.mjs",
+            "dagre": "/build/esm/dagre.mjs",
+            "jquery": "/build/esm/jquery.mjs"
+          }
+        }
+    </script>
+<script src="../../scripts/checkCompatibility.js"></script>
+<script type="module-shim" src="src/directed-graph.mjs"></script>
+
+<!---------------------------------------------------------------------------------------------------------------
+II. ES5 - webpack bundle
+
+build: `npm run build`
+open file:///<PATH TO JOINTJS>/demo/layout/directed-graph.html
+-->
+
+<!--
+<script defer type="text/javascript" src="dist/directed-graph-bundle.js"></script>
+-->
+
+<!--------------------------------------------------------------------------------------------------------------->
+
 </body>
 </html>

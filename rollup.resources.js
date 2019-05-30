@@ -23,34 +23,9 @@ const GLOBALS_ALL_MAP = {
     }
 };
 
-const resolveGlobals = function(externals) {
-
-    return externals.reduce((res, item) => {
-
-        const module = GLOBALS_ALL_MAP[item];
-
-        if (!module) {
-            throw new Error(`Local module ${item} is not defined`)
-        }
-
-        if (module.name) {
-            res[module.destination] = module.name;
-        } else {
-            res[item] = module;
-        }
-
-        return res;
-    }, {});
-};
-
 export const geometry = {
     input: modules.geometry.src,
     output: [{
-        file: modules.geometry.iife,
-        format: 'iife',
-        name: 'g',
-        freeze: false
-    }, {
         file: modules.geometry.umd,
         format: 'umd',
         name: 'g',
@@ -63,7 +38,7 @@ export const dagre = {
     input: 'node_modules/dagre/index.js',
     external: ['lodash'],
     output: [{
-        file: 'build/esm/dagre.js',
+        file: 'build/esm/dagre.mjs',
         format: 'esm',
         freeze: false
     }],
@@ -76,7 +51,7 @@ export const dagre = {
 export const jquery = {
     input: 'node_modules/jquery/dist/jquery.js',
     output: [{
-        file: 'build/esm/jquery.js',
+        file: 'build/esm/jquery.mjs',
         format: 'esm',
         freeze: false
     }],
@@ -89,7 +64,7 @@ export const jquery = {
 export const lodash = {
     input: 'node_modules/lodash/index.js',
     output: [{
-        file: 'build/esm/lodash.js',
+        file: 'build/esm/lodash.mjs',
         format: 'esm',
         freeze: false
     }],
@@ -113,19 +88,17 @@ export const backbone = {
 
 export const vectorizer = {
     input: modules.vectorizer.src,
-    external: ['./geometry.js'],
+    external: [GLOBALS_ALL_MAP.geometry.destination],
     output: [{
-        file: modules.vectorizer.iife,
-        format: 'iife',
-        name: 'V',
-        freeze: false,
-        globals: resolveGlobals(['geometry'])
-    }, {
         file: modules.vectorizer.umd,
-        format: 'iife',
+        format: 'umd',
         name: 'V',
         freeze: false,
-        globals: resolveGlobals(['geometry'])
+        globals: ((map) => {
+            const globals = {};
+            globals[map.geometry.destination] = 'g';
+            return globals;
+        })(GLOBALS_ALL_MAP),
     }],
     plugins: plugins
 };
@@ -138,13 +111,23 @@ export const joint = {
         'lodash',
         'dagre'
     ],
-    threeshake: false,
     output: [{
         file: modules.joint.umd,
         format: 'umd',
         name: 'joint',
         freeze: false,
         footer: 'var g = joint.g; var V = joint.V;',
+        globals: {
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_',
+            'dagre': 'dagre'
+        }
+    }, {
+        file: modules.joint.iife,
+        format: 'iife',
+        name: 'joint',
+        freeze: false,
         globals: {
             'jquery': '$',
             'backbone': 'Backbone',

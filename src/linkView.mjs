@@ -1233,9 +1233,8 @@ export const LinkView = CellView.extend({
         var defaultRouter = this.paper.options.defaultRouter;
 
         if (!router) {
-            //TODO v.talas es6
             if (defaultRouter) router = defaultRouter;
-            else return vertices.map(Point, g); // no router specified
+            else return vertices.map(Point); // no router specified
         }
 
         var routerFn = isFunction(router) ? router : namespace[router.name];
@@ -1252,7 +1251,7 @@ export const LinkView = CellView.extend({
             this // linkView
         );
 
-        if (!route) return vertices.map(Point, g);
+        if (!route) return vertices.map(Point);
         return route;
     },
 

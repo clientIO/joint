@@ -10,6 +10,7 @@ const getAllSources = function(modules) {
 const modules = {
     geometry: {
         src: 'src/geometry.js',
+        //TODO v.talas remove
         iife: 'build/iife/geometry.js',
         umd: 'build/geometry.js',
     },
@@ -21,7 +22,7 @@ const modules = {
     joint: {
         src: 'wrappers/joint.wrapper.mjs',
         umd: 'build/joint.js',
-        iife: 'build/iife/joint.js'
+        iife: 'build/joint.nowrap.js'
     },
     jointCore: {
         src: 'wrappers/joint.core.wrapper.mjs',

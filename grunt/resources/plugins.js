@@ -15,6 +15,6 @@ module.exports = {
     //     ['plugins/shapes/joint.shapes.uml.js'],
     // 'shapes.logic':
     //     ['plugins/shapes/joint.shapes.logic.js'],
-    'layout.DirectedGraph':
-        ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
+    // 'layout.DirectedGraph':
+    //     ['plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js']
 };

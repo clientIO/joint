@@ -1673,6 +1673,10 @@ export const isString = function(value) {
 export const noop = function() {
 };
 
+export const isPaper= function(view) {
+    return view && view.isPaper && view.isPaper();
+};
+
 export const isCellView = function(view) {
     return isLinkView(view) || isElementView(view);
 };

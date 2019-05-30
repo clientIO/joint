@@ -2406,6 +2406,10 @@ export const Paper = View.extend({
         return markerId;
     },
 
+    isPaper: function() {
+        return true;
+    }
+
 }, {
 
     sorting: sortingTypes,

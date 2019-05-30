@@ -2,6 +2,7 @@ const modules = require('../resources/es6');
 
 module.exports = function() {
 
+    //TODO v.talas missing plugins.min.js file in build
     return {
         options: {
             ASCIIOnly: true
@@ -22,6 +23,10 @@ module.exports = function() {
         jointCore: {
             src: modules.jointCore.umd,
             dest: 'build/joint.core.min.js'
+        },
+        jointNoWrap: {
+            src: modules.joint.iife,
+            dest: 'build/joint.nowrap.min.js'
         },
         vectorizer: {
             src: modules.vectorizer.umd,

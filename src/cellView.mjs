@@ -11,7 +11,8 @@ import {
     isString,
     toKebabCase,
     sortedIndex,
-    merge
+    merge,
+    isPaper
 } from './util.js';
 import { Point, Rect } from './geometry.js';
 import V from './vectorizer.js';
@@ -949,8 +950,7 @@ export const CellView = View.extend({
 }, {
 
     dispatchToolsEvent: function(paper, event) {
-        //TODO v.talas es6
-        if ((typeof event === 'string') && (paper instanceof joint.dia.Paper)) {
+        if ((typeof event === 'string') && isPaper(paper)) {
             paper.trigger('tools:event', event);
         }
     }
