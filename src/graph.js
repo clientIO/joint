@@ -4,7 +4,7 @@ import * as g from './geometry.js';
 
 import { Link } from './joint.dia.link.js';
 import { Element } from './joint.dia.element.js';
-import { wrappers, wrapWith } from './util.wrappers.mjs'
+import { wrappers, wrapWith } from './util.wrappers.mjs';
 import { cloneCells } from './util.cloneCells.mjs';
 
 const GraphCells = Backbone.Collection.extend({

@@ -1,13 +1,4 @@
-const getAllSources = function(modules) {
-    return Object.keys(modules).reduce((res, key) => {
-        if (key !== 'src') {
-            res.push(modules[key].src)
-        }
-        return res;
-    }, [])
-};
-
-const modules = {
+module.exports = {
     geometry: {
         src: 'src/geometry.js',
         //TODO v.talas remove
@@ -30,8 +21,3 @@ const modules = {
         iife: 'build/iife/joint.core.js',
     },
 };
-
-module.exports = Object.assign(
-    modules,
-    { src: getAllSources(modules) }
-);

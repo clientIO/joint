@@ -1,5 +1,5 @@
 import { Cell } from './joint.dia.cell.js';
-import { Point, toRad, normalizeAngle, Rect} from './geometry.js';
+import { Point, toRad, normalizeAngle, Rect } from './geometry.js';
 import { isNumber, isObject, interpolate, assign, invoke, normalizeSides } from './util.js';
 import { elementPortPrototype } from './ports.js';
 

@@ -3,7 +3,7 @@ import V from '../../src/vectorizer.js';
 import * as util from '../../src/util.js';
 import * as connectionStrategies from '../../module/connectionstrategies/index.mjs';
 import * as mvc from '../../src/view.js';
-import { ToolView } from '../../src/joint.dia.tools.js'
+import { ToolView } from '../../src/joint.dia.tools.js';
 
 function getAnchor(coords, view, magnet) {
     // take advantage of an existing logic inside of the
@@ -107,34 +107,34 @@ var Vertices = ToolView.extend({
             this.renderChildren();
             this.updatePath();
         }
+        this.resetHandles();
+        this.renderHandles();
+        return this;
+    },
+    update: function() {
+        var relatedView = this.relatedView;
+        var vertices = relatedView.model.vertices();
+        if (vertices.length === this.handles.length) {
+            this.updateHandles();
+        } else {
             this.resetHandles();
             this.renderHandles();
-            return this;
-        },
-        update: function() {
-            var relatedView = this.relatedView;
-            var vertices = relatedView.model.vertices();
-            if (vertices.length === this.handles.length) {
-                this.updateHandles();
-            } else {
-                this.resetHandles();
-                this.renderHandles();
-            }
-            if (this.options.vertexAdded) {
-                this.updatePath();
-            }
-            return this;
-        },
-        resetHandles: function() {
-            var handles = this.handles;
-            this.handles = [];
-            this.stopListening();
-            if (!Array.isArray(handles)) return;
-            for (var i = 0, n = handles.length; i < n; i++) {
-                handles[i].remove();
-            }
-        },
-        renderHandles: function() {
+        }
+        if (this.options.vertexAdded) {
+            this.updatePath();
+        }
+        return this;
+    },
+    resetHandles: function() {
+        var handles = this.handles;
+        this.handles = [];
+        this.stopListening();
+        if (!Array.isArray(handles)) return;
+        for (var i = 0, n = handles.length; i < n; i++) {
+            handles[i].remove();
+        }
+    },
+    renderHandles: function() {
         var relatedView = this.relatedView;
         var vertices = relatedView.model.vertices();
         for (var i = 0, n = vertices.length; i < n; i++) {
@@ -148,19 +148,19 @@ var Vertices = ToolView.extend({
             this.startHandleListening(handle);
         }
     },
-        updateHandles: function() {
-            var relatedView = this.relatedView;
-            var vertices = relatedView.model.vertices();
-            for (var i = 0, n = vertices.length; i < n; i++) {
-                var vertex = vertices[i];
-                var handle = this.handles[i];
-                if (!handle) return;
-                handle.position(vertex.x, vertex.y);
-            }
+    updateHandles: function() {
+        var relatedView = this.relatedView;
+        var vertices = relatedView.model.vertices();
+        for (var i = 0, n = vertices.length; i < n; i++) {
+            var vertex = vertices[i];
+            var handle = this.handles[i];
+            if (!handle) return;
+            handle.position(vertex.x, vertex.y);
+        }
     },
     updatePath: function() {
         var connection = this.childNodes.connection;
-            if (connection) connection.setAttribute('d', this.relatedView.getSerializedConnection());
+        if (connection) connection.setAttribute('d', this.relatedView.getSerializedConnection());
     },
     startHandleListening: function(handle) {
         var relatedView = this.relatedView;
@@ -610,7 +610,7 @@ var Arrowhead = ToolView.extend({
             position = view.getPointAtRatio(ratio);
             angle = 0;
         }
-            if (!position) return this;
+        if (!position) return this;
         var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
         this.vel.transform(matrix, { absolute: true });
         return this;
@@ -718,7 +718,7 @@ var Button = ToolView.extend({
         evt.preventDefault();
         var actionFn = this.options.action;
         if (typeof actionFn === 'function') {
-                actionFn.call(this.relatedView, evt, this.relatedView, this);
+            actionFn.call(this.relatedView, evt, this.relatedView, this);
         }
     }
 });
@@ -747,8 +747,8 @@ var Remove = Button.extend({
     options: {
         distance: 60,
         offset: 0,
-            action: function(evt, view, tool) {
-                view.model.remove({ ui: true, tool: tool.cid });
+        action: function(evt, view, tool) {
+            view.model.remove({ ui: true, tool: tool.cid });
         }
     }
 });
@@ -873,23 +873,23 @@ var Anchor = ToolView.extend({
         var relatedView = this.relatedView;
         var type = this.type;
         var view = relatedView.getEndView(type);
-            var model = view.model;
+        var model = view.model;
         var magnet = relatedView.getEndMagnet(type);
         var padding = this.options.areaPadding;
         if (!isFinite(padding)) padding = 0;
-            var bbox, angle, center;
-            if (view.isNodeConnection(magnet)) {
-                bbox = view.getBBox();
-                angle = 0;
-                center = bbox.center();
-            } else {
-                bbox = view.getNodeUnrotatedBBox(magnet);
-                angle = model.angle();
-                center = bbox.center();
-                if (angle) center.rotate(model.getBBox().center(), -angle);
-                // TODO: get the link's magnet rotation into account
-            }
-            bbox.inflate(padding);
+        var bbox, angle, center;
+        if (view.isNodeConnection(magnet)) {
+            bbox = view.getBBox();
+            angle = 0;
+            center = bbox.center();
+        } else {
+            bbox = view.getNodeUnrotatedBBox(magnet);
+            angle = model.angle();
+            center = bbox.center();
+            if (angle) center.rotate(model.getBBox().center(), -angle);
+            // TODO: get the link's magnet rotation into account
+        }
+        bbox.inflate(padding);
         areaNode.setAttribute('x', -bbox.width / 2);
         areaNode.setAttribute('y', -bbox.height / 2);
         areaNode.setAttribute('width', bbox.width);
@@ -929,7 +929,7 @@ var Anchor = ToolView.extend({
         var relatedView = this.relatedView;
         var type = this.type;
         var view = relatedView.getEndView(type);
-            var model = view.model;
+        var model = view.model;
         var magnet = relatedView.getEndMagnet(type);
         var normalizedEvent = util.normalizeEvent(evt);
         var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
@@ -940,21 +940,21 @@ var Anchor = ToolView.extend({
         }
 
         if (this.options.restrictArea) {
-                if (view.isNodeConnection(magnet)) {
-                    // snap coords to the link's connection
-                    var pointAtConnection = view.getClosestPoint(coords);
-                    if (pointAtConnection) coords = pointAtConnection;
-                } else {
-            // snap coords within node bbox
-            var bbox = view.getNodeUnrotatedBBox(magnet);
-                    var angle = model.angle();
-                    var origin = model.getBBox().center();
-            var rotatedCoords = coords.clone().rotate(origin, angle);
-            if (!bbox.containsPoint(rotatedCoords)) {
-                coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+            if (view.isNodeConnection(magnet)) {
+                // snap coords to the link's connection
+                var pointAtConnection = view.getClosestPoint(coords);
+                if (pointAtConnection) coords = pointAtConnection;
+            } else {
+                // snap coords within node bbox
+                var bbox = view.getNodeUnrotatedBBox(magnet);
+                var angle = model.angle();
+                var origin = model.getBBox().center();
+                var rotatedCoords = coords.clone().rotate(origin, angle);
+                if (!bbox.containsPoint(rotatedCoords)) {
+                    coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+                }
             }
         }
-            }
 
         var anchor;
         var anchorFn = this.options.anchor;

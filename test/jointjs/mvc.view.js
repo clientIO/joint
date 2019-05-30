@@ -5,7 +5,7 @@ QUnit.module('joint.mvc.View', function(hooks) {
     var resetViews = function() {
         Object.keys(joint.mvc.views).forEach(function(item) {
             delete joint.mvc.views[item];
-        })
+        });
     };
 
     hooks.beforeEach(resetViews);

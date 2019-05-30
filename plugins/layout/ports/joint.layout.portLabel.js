@@ -187,19 +187,19 @@ export const manual = function(portPosition, elBBox, opt) {
 };
 
 export const left = function(portPosition, elBBox, opt) {
-    return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' } } });
+    return labelAttributes(opt, { x: -15, attrs: { '.': { y: '.3em', 'text-anchor': 'end' }}});
 };
 
 export const right = function(portPosition, elBBox, opt) {
-    return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' } } });
+    return labelAttributes(opt, { x: 15, attrs: { '.': { y: '.3em', 'text-anchor': 'start' }}});
 };
 
 export const top = function(portPosition, elBBox, opt) {
-    return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' } } });
+    return labelAttributes(opt, { y: -15, attrs: { '.': { 'text-anchor': 'middle' }}});
 };
 
 export const bottom = function(portPosition, elBBox, opt) {
-    return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' } } });
+    return labelAttributes(opt, { y: 15, attrs: { '.': { y: '.6em', 'text-anchor': 'middle' }}});
 };
 
 export const outsideOriented = function(portPosition, elBBox, opt) {

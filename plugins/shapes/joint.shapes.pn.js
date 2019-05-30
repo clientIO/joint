@@ -1,6 +1,6 @@
 import { Generic } from './joint.shapes.basic.js';
 import { ElementView } from '../../src/elementView.mjs';
-import { Link as diaLink} from '../../src/joint.dia.link.js';
+import { Link as diaLink } from '../../src/joint.dia.link.js';
 
 export const Place = Generic.define('pn.Place', {
     size: { width: 50, height: 50 },

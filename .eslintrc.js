@@ -1,4 +1,3 @@
-const es6Resources = require('./grunt/resources/es6').src;
 
 module.exports = {
     'extends': 'eslint:recommended',
@@ -25,11 +24,8 @@ module.exports = {
         'Backbone': true,
         'Uint8Array': true
     },
-    'overrides': [{
-        'files': ['grunt/**/*.js'].concat(es6Resources),
-        'parserOptions': {
-            'ecmaVersion': 6,
-            sourceType: 'module'
-        }
-    }]
+    'parserOptions': {
+        'ecmaVersion': 6,
+        sourceType: 'module'
+    }
 };

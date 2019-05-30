@@ -499,7 +499,7 @@ export const Paper = View.extend({
             for (var j = 0, n = links.length; j < n; j++) {
                 var linkView = this.findViewByModel(links[j]);
                 if (!linkView) continue;
-                    this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
+                this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
             }
         }
     },
@@ -936,25 +936,25 @@ export const Paper = View.extend({
         var sx = currentScale.sx;
         var sy = currentScale.sy;
 
-            area.x *= sx;
-            area.y *= sy;
-            area.width *= sx;
-            area.height *= sy;
+        area.x *= sx;
+        area.y *= sy;
+        area.width *= sx;
+        area.height *= sy;
 
-            var calcWidth = Math.max(Math.ceil((area.width + area.x) / gridWidth), 1) * gridWidth;
-            var calcHeight = Math.max(Math.ceil((area.height + area.y) / gridHeight), 1) * gridHeight;
+        var calcWidth = Math.max(Math.ceil((area.width + area.x) / gridWidth), 1) * gridWidth;
+        var calcHeight = Math.max(Math.ceil((area.height + area.y) / gridHeight), 1) * gridHeight;
 
         var tx = 0;
         var ty = 0;
 
-            if ((opt.allowNewOrigin == 'negative' && area.x < 0) || (opt.allowNewOrigin == 'positive' && area.x >= 0) || opt.allowNewOrigin == 'any') {
-                tx = Math.ceil(-area.x / gridWidth) * gridWidth;
+        if ((opt.allowNewOrigin == 'negative' && area.x < 0) || (opt.allowNewOrigin == 'positive' && area.x >= 0) || opt.allowNewOrigin == 'any') {
+            tx = Math.ceil(-area.x / gridWidth) * gridWidth;
             tx += padding.left;
             calcWidth += tx;
         }
 
-            if ((opt.allowNewOrigin == 'negative' && area.y < 0) || (opt.allowNewOrigin == 'positive' && area.y >= 0) || opt.allowNewOrigin == 'any') {
-                ty = Math.ceil(-area.y / gridHeight) * gridHeight;
+        if ((opt.allowNewOrigin == 'negative' && area.y < 0) || (opt.allowNewOrigin == 'positive' && area.y >= 0) || opt.allowNewOrigin == 'any') {
+            ty = Math.ceil(-area.y / gridHeight) * gridHeight;
             ty += padding.top;
             calcHeight += ty;
         }
@@ -987,17 +987,17 @@ export const Paper = View.extend({
 
     scaleContentToFit: function(opt) {
 
-            opt || (opt = {});
+        opt || (opt = {});
 
-            var contentBBox, contentLocalOrigin;
-            if ('contentArea' in opt) {
-                var contentArea = opt.contentArea;
-                contentBBox = this.localToPaperRect(contentArea);
-                contentLocalOrigin = new Point(contentArea);
-            } else {
-                contentBBox = this.getContentBBox(opt);
-                contentLocalOrigin = this.paperToLocalPoint(contentBBox);
-            }
+        var contentBBox, contentLocalOrigin;
+        if ('contentArea' in opt) {
+            var contentArea = opt.contentArea;
+            contentBBox = this.localToPaperRect(contentArea);
+            contentLocalOrigin = new Point(contentArea);
+        } else {
+            contentBBox = this.getContentBBox(opt);
+            contentLocalOrigin = this.paperToLocalPoint(contentBBox);
+        }
 
         if (!contentBBox.width || !contentBBox.height) return;
 
@@ -1059,9 +1059,9 @@ export const Paper = View.extend({
         newSx = Math.min(maxScaleX, Math.max(minScaleX, newSx));
         newSy = Math.min(maxScaleY, Math.max(minScaleY, newSy));
 
-            var origin = this.options.origin;
-            var newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
-            var newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
+        var origin = this.options.origin;
+        var newOx = fittingBBox.x - contentLocalOrigin.x * newSx - origin.x;
+        var newOy = fittingBBox.y - contentLocalOrigin.y * newSy - origin.y;
 
         this.scale(newSx, newSy);
         this.translate(newOx, newOy);
@@ -1171,7 +1171,7 @@ export const Paper = View.extend({
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;
-                flag = FLAG_INSERT | view.initFlag;
+            flag = FLAG_INSERT | view.initFlag;
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
