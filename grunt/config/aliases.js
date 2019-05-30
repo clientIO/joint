@@ -14,9 +14,14 @@ module.exports = function(grunt) {
         ],
         'dist': [
             'clean:dist',
+            'dist:prepare',
+            'copy:dist',
+        ],
+        // dry dist - create dist files into the build folder - including min files
+        'dist:prepare':[
             'clean:build',
             'build:all',
-            'copy:dist',
+            'uglify:all',
             'concat:types'
         ],
         'build:all': [
@@ -27,14 +32,17 @@ module.exports = function(grunt) {
         ],
         'build:joint': [
             'shell:rollup',
-            'newer:uglify:deps',
-            'newer:uglify:geometry',
-            'newer:uglify:vectorizer',
-            'newer:uglify:joint',
-            'newer:uglify:jointCore',
-            'newer:cssmin:joint',
             'newer:concat:joint',
             'newer:concat:types'
+        ],
+        'uglify:all':[
+            'uglify:deps',
+            'uglify:geometry',
+            'uglify:vectorizer',
+            'uglify:joint',
+            'uglify:jointCore',
+            'uglify:jointNoWrap',
+            'cssmin:joint',
         ],
         'build:bundles': [
             'newer:browserify',
