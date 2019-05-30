@@ -13,11 +13,16 @@ import * as util from '../module/util/index.mjs';
 import * as mvc from '../module/mvc/index.mjs';
 import { Port } from '../module/layout/port.mjs'
 import { PortLabel } from '../module/layout/portLabel.mjs'
+import * as g from '../src/geometry.js';
+import V from '../src/vectorizer.js';
+const Vectorizer = V;
 
 const shapes = { basic, standard };
 const layout = { PortLabel, Port };
 const format = {};
 const ui = {};
+
+
 
 export * from '../module/config.mjs';
 export {
@@ -35,5 +40,8 @@ export {
     ui,
     shapes,
     util,
-    linkTools
+    linkTools,
+    Vectorizer,
+    V,
+    g
 }

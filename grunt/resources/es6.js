@@ -20,7 +20,7 @@ const modules = {
     },
     joint: {
         src: 'joint.mjs',
-        umd: 'build/umd/joint.js',
+        umd: 'build/joint.js',
         iife: 'build/iife/joint.js'
     },
     jointCore: {

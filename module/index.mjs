@@ -1,3 +1,4 @@
+import './polyfills.mjs';
 import * as layout from './layout/index.mjs';
 import * as connectors from './connectors/index.mjs';
 import * as highlighters from './highlighters/index.mjs';
@@ -11,6 +12,9 @@ import * as shapes from './shapes/index.mjs';
 import * as linkTools from './linkTools/index.mjs';
 import * as util from './util/index.mjs';
 import * as mvc from './mvc/index.mjs';
+import * as g from '../src/geometry.js';
+import V from '../src/vectorizer.js';
+const Vectorizer = V;
 
 export * from './config.mjs';
 export {
@@ -26,5 +30,8 @@ export {
     routers,
     shapes,
     util,
-    mvc
+    mvc,
+    Vectorizer,
+    V,
+    g
 }

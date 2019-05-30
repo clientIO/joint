@@ -27,8 +27,8 @@ module.exports = function() {
             dest: 'build/min/geometry.min.js'
         },
         joint: {
-            src: modules.jointCore.iife,
-            dest: 'build/min/joint.min.js'
+            src: modules.joint.umd,
+            dest: 'build/joint.min.js'
         },
         polyfills: {
             src: polyfills,

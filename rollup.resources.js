@@ -135,8 +135,6 @@ export const vectorizer = {
 export const joint = {
     input: modules.joint.src,
     external: [
-        GLOBALS_ALL_MAP.geometry.destination,
-        GLOBALS_ALL_MAP.vectorizer.destination,
         'jquery',
         'backbone',
         'lodash',
@@ -147,17 +145,13 @@ export const joint = {
         format: 'umd',
         name: 'joint',
         freeze: false,
-        globals: ((map) => {
-            const globals = {
-                'jquery': '$',
-                'backbone': 'Backbone',
-                'lodash': '_',
-                'dagre': 'dagre'
-            };
-            globals[map.vectorizer.destination] = 'V';
-            globals[map.geometry.destination] = 'g';
-            return globals;
-        })(GLOBALS_ALL_MAP),
+        footer: 'var g = joint.g; var V = joint.V;',
+        globals: {
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_',
+            'dagre': 'dagre'
+        }
     }],
     plugins: plugins
 };

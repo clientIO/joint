@@ -1,6 +1,4 @@
 const plugins = require('../resources/plugins');
-const geometry = require('../resources/geometry');
-const vectorizer = require('../resources/vectorizer');
 const core = require('../resources/core');
 const polyfills = require('../resources/polyfills');
 const modules = require('../resources/es6');
@@ -80,8 +78,8 @@ module.exports = function(grunt) {
                     [].concat(
                         ['wrappers/joint.head.js.partial'],
                         polyfills,
-                        geometry,
-                        vectorizer,
+                        modules.geometry.iife,
+                        modules.vectorizer.iife,
                         modules.jointCore.iife,
                         ['wrappers/joint.foot.js.partial']
                     ),
@@ -102,26 +100,6 @@ module.exports = function(grunt) {
                     [].concat(
                         ['build/min/joint.min.css']
                     ),
-                'build/joint.js':
-                    [].concat(
-                        //TODO v.talas es6 review
-                        // ['wrappers/joint.head.js.partial'],
-                        polyfills,
-                        geometry,
-                        vectorizer,
-                        modules.joint.iife,
-                        // ['wrappers/joint.foot.js.partial']
-                    ),
-                'build/joint.min.js':
-                    [].concat(
-                        // ['wrappers/joint.head.js.partial'],
-                        ['build/min/polyfills.min.js'],
-                        ['build/min/geometry.min.js'],
-                        ['build/min/vectorizer.min.js'],
-                        ['build/min/joint.min.js'],
-                        allMinifiedJSPlugins,
-                        // ['wrappers/joint.foot.js.partial']
-                    ),
                 'build/joint.css':
                     [].concat(
                         core.css,
@@ -135,8 +113,8 @@ module.exports = function(grunt) {
                 'build/joint.nowrap.js':
                     [].concat(
                         polyfills,
-                        geometry,
-                        vectorizer,
+                        modules.geometry.iife,
+                        modules.vectorizer.iife,
                         modules.joint.iife
                     ),
                 'build/joint.nowrap.min.js':
