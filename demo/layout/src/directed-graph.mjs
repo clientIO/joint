@@ -1,6 +1,7 @@
 import * as joint from '../../../index.mjs';
 
 var Shape = joint.dia.Element.define('demo.Shape', {
+    z: 2,
     size: {
         width: 100,
         height: 50
@@ -55,7 +56,7 @@ var Link = joint.dia.Link.define('demo.Link', {
     connector: {
         name: 'rounded'
     },
-    z: -1,
+    z: 1,
     weight: 1,
     minLen: 1,
     labelPosition: 'c',
@@ -123,8 +124,8 @@ var Link = joint.dia.Link.define('demo.Link', {
 var LayoutControls = joint.mvc.View.extend({
 
     events: {
-        change: 'layout',
-        input: 'layout'
+        change: 'onChange',
+        input: 'onChange'
     },
 
     options: {
@@ -138,11 +139,14 @@ var LayoutControls = joint.mvc.View.extend({
             options.cells = this.buildGraphFromAdjacencyList(options.adjacencyList);
         }
 
-        this.listenTo(options.paper.model, 'change', function(cell, opt) {
-            if (opt.layout) {
-                this.layout();
-            }
+        this.listenTo(options.paper.model, 'change', function(_, opt) {
+            if (opt.layout) this.layout();
         });
+    },
+
+    onChange: function() {
+        this.layout();
+        this.trigger('layout');
     },
 
     layout: function() {
@@ -150,6 +154,8 @@ var LayoutControls = joint.mvc.View.extend({
         var paper = this.options.paper;
         var graph = paper.model;
         var cells = this.options.cells;
+
+        paper.freeze();
 
         joint.layout.DirectedGraph.layout(cells, this.getLayoutOptions());
 
@@ -161,10 +167,11 @@ var LayoutControls = joint.mvc.View.extend({
 
         paper.fitToContent({
             padding: this.options.padding,
-            allowNewOrigin: 'any'
+            allowNewOrigin: 'any',
+            useModelGeometry: true
         });
 
-        this.trigger('layout');
+        paper.unfreeze();
     },
 
     getLayoutOptions: function() {
@@ -232,6 +239,7 @@ var LinkControls = joint.mvc.View.extend({
 
     updateLink: function() {
         this.options.cellView.model.set(this.getModelAttributes(), { layout: true });
+        this.constructor.refresh();
     },
 
     updateControls: function() {
@@ -300,6 +308,7 @@ var controls = new LayoutControls({
     el: document.getElementById('layout-controls'),
     paper: new joint.dia.Paper({
         el: document.getElementById('paper'),
+        sorting: joint.dia.Paper.sorting.APPROX,
         interactive: function(cellView) {
             return cellView.model.isElement();
         }
@@ -308,15 +317,15 @@ var controls = new LayoutControls({
         'blank:pointerdown element:pointerdown': LinkControls.remove
     }, LinkControls),
     adjacencyList: {
-        a: ['b', 'c', 'd'],
+        a: ['b','c','d'],
         b: ['d', 'e'],
         c: [],
         d: [],
         e: ['e'],
         f: [],
-        g: ['b', 'i'],
+        g: ['b','i'],
         h: ['f'],
-        i: ['f', 'h']
+        i: ['f','h']
     }
 }).on({
     'layout': LinkControls.refresh
