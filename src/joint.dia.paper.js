@@ -36,7 +36,7 @@ import { Cell } from './joint.dia.cell.js';
 import { Graph } from './graph.js';
 import * as highlighters from '../module/highlighters/index.mjs';
 import * as linkAnchors from '../module/linkAnchors/index.mjs';
-import * as connectionPoints from '../module/connectionpoints/index.mjs';
+import * as connectionPoints from '../module/connectionPoints/index.mjs';
 import * as anchors from '../module/anchors/index.mjs';
 
 import $ from 'jquery';
