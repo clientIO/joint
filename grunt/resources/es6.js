@@ -12,12 +12,12 @@ module.exports = {
     },
     joint: {
         src: 'wrappers/joint.wrapper.mjs',
-        umd: 'build/joint.js',
-        iife: 'build/joint.nowrap.js'
+        umd: 'build/joint.js', // joint + plugins + vectorizer + geometry. no header. universal module
+        iife: 'build/joint.nowrap.js',  // joint + plugins + vectorizer + geometry. browser-only version
+        noDependencies: 'build/joint.nodeps.js' // joint + plugins (for unit testing)
     },
     jointCore: {
         src: 'wrappers/joint.core.wrapper.mjs',
-        umd: 'build/joint.core.js',
-        iife: 'build/iife/joint.core.js',
+        umd: 'build/joint.core.js', // joint + vectorizer + geometry. universal module
     },
 };

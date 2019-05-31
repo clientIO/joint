@@ -51,6 +51,7 @@ module.exports = function(grunt) {
 
         // TESTS
         'test': [
+            'shell:test-bundle',
             'test:server',
             'test:client',
             'test:code-style'

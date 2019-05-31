@@ -53,7 +53,7 @@ export const Class = Generic.define('uml.Class', {
 
         this.updateRectangles();
 
-        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+        Generic.prototype.initialize.apply(this, arguments);
     },
 
     getClassName: function() {
@@ -91,7 +91,7 @@ export const ClassView = ElementView.extend({
 
     initialize: function() {
 
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        ElementView.prototype.initialize.apply(this, arguments);
 
         this.listenTo(this.model, 'uml-update', function() {
             this.update();
@@ -197,7 +197,7 @@ export const State = Generic.define('uml.State', {
         this.updateEvents();
         this.updatePath();
 
-        joint.shapes.basic.Generic.prototype.initialize.apply(this, arguments);
+        Generic.prototype.initialize.apply(this, arguments);
     },
 
     updateName: function() {
