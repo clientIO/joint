@@ -12,6 +12,7 @@ import {
     toKebabCase,
     sortedIndex,
     merge,
+    uniq,
     isPaper
 } from './util.js';
 import { Point, Rect } from './geometry.js';
@@ -1019,5 +1020,14 @@ export const CellView = View.extend({
         if ((typeof event === 'string') && isPaper(paper)) {
             paper.trigger('tools:event', event);
         }
+    },
+
+    addPresentationAttributes: function(presentationAttributes) {
+        return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {
+            if (!a || !b) return;
+            if (typeof a === 'string') a = [a];
+            if (typeof b === 'string') b = [b];
+            if (Array.isArray(a) && Array.isArray(b)) return uniq(a.concat(b));
+        });
     }
 });

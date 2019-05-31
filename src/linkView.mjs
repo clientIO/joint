@@ -142,8 +142,8 @@ export const LinkView = CellView.extend({
         var previousLabels = this.model.previous('labels');
 
         if (previousLabels) {
-            // Here is an optimalization for cases when we know, that change does
-            // not require rerendering of all labels.
+            // Here is an optimization for cases when we know, that change does
+            // not require re-rendering of all labels.
             if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
                 // The label is setting by `prop()` method
                 var pathArray = opt.propertyPathArray || [];

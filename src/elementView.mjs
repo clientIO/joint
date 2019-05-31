@@ -66,7 +66,7 @@ export const ElementView = CellView.extend({
             flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
         }
         if (this.hasFlag(flag, 'UPDATE')) {
-            this.updateNodesAttributes();
+            this.update();
             flag = this.removeFlag(flag, 'UPDATE');
         }
         if (this.hasFlag(flag, 'TRANSLATE')) {
@@ -92,15 +92,6 @@ export const ElementView = CellView.extend({
     },
 
     update: function(_, renderingOnlyAttrs) {
-
-        this._removePorts();
-
-        this.updateNodesAttributes(renderingOnlyAttrs);
-
-        this._renderPorts();
-    },
-
-    updateNodesAttributes: function(renderingOnlyAttrs) {
 
         this.cleanNodesCache();
 
@@ -162,7 +153,7 @@ export const ElementView = CellView.extend({
         if (this.scalableNode) {
             // Double update is necessary for elements with the scalable group only
             // Note the resize() triggers the other `update`.
-            this.updateNodesAttributes();
+            this.update();
         }
         this.resize();
         if (this.rotatableNode) {
@@ -181,7 +172,7 @@ export const ElementView = CellView.extend({
 
         if (this.scalableNode) return this.sgResize(opt);
         if (this.model.attributes.angle) this.rotate();
-        this.updateNodesAttributes();
+        this.update();
     },
 
     translate: function() {
@@ -196,7 +187,7 @@ export const ElementView = CellView.extend({
             this.rgRotate();
             // It's necessary to call the update for the nodes outside
             // the rotatable group referencing nodes inside the group
-            this.updateNodesAttributes();
+            this.update();
             return;
         }
         this.updateTransformation();
@@ -285,7 +276,7 @@ export const ElementView = CellView.extend({
 
         // Update must always be called on non-rotated element. Otherwise, relative positioning
         // would work with wrong (rotated) bounding boxes.
-        this.updateNodesAttributes();
+        this.update();
     },
 
     // Embedding mode methods.
