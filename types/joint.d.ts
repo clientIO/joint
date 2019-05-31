@@ -577,6 +577,9 @@ export namespace dia {
         interface InteractivityOptions extends ElementView.InteractivityOptions, LinkView.InteractivityOptions {
 
         }
+
+        type FlagLabel = string | string[];
+        type PresentationAttributes = { [key: string]: FlagLabel };
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
@@ -587,7 +590,7 @@ export namespace dia {
 
         initFlag: number;
 
-        presentationAttributes: { [key: string]: number };
+        presentationAttributes: PresentationAttributes;
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -656,6 +659,8 @@ export namespace dia {
         protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
 
         static dispatchToolsEvent(paper: dia.Paper, eventName: string): void;
+
+        static addPresentationAttributes(attributes: PresentationAttributes): PresentationAttributes
     }
 
     class CellView extends CellViewGeneric<Cell> {
