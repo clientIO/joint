@@ -231,7 +231,7 @@ export const Paper = View.extend({
 
         // Default namespaces
 
-        cellViewNamespace: typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null,
+        cellViewNamespace: null,
 
         highlighterNamespace: highlighters,
 
@@ -409,6 +409,10 @@ export const Paper = View.extend({
             options.highlighting,
             this.constructor.prototype.options.highlighting
         );
+
+        if (!options.cellViewNamespace) {
+            options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+        }
     },
 
     render: function() {
@@ -495,11 +499,16 @@ export const Paper = View.extend({
 
     requestConnectedLinksUpdate: function(view, opt) {
         if (view instanceof CellView) {
-            var links = this.model.getConnectedLinks(view.model);
+            var model = view.model;
+            var links = this.model.getConnectedLinks(model);
             for (var j = 0, n = links.length; j < n; j++) {
-                var linkView = this.findViewByModel(links[j]);
+                var link = links[j];
+                var linkView = this.findViewByModel(link);
                 if (!linkView) continue;
-                this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
+                var flagLabels = ['UPDATE'];
+                if (link.getTargetCell() === model) flagLabels.push('TARGET');
+                if (link.getSourceCell() === model) flagLabels.push('SOURCE');
+                this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), linkView.UPDATE_PRIORITY, opt);
             }
         }
     },
@@ -508,7 +517,7 @@ export const Paper = View.extend({
         if (!view || !(view instanceof CellView)) return false;
         var model = view.model;
         if (model.isElement()) return false;
-        if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
+        if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
             // LinkView is waiting for the target or the source cellView to be rendered
             // This can happen when the cells are not in the viewport.
             var sourceView = this.findViewByModel(model.getSourceCell());
@@ -1171,7 +1180,7 @@ export const Paper = View.extend({
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;
-            flag = FLAG_INSERT | view.initFlag;
+            flag = FLAG_INSERT | view.getFlag(view.initFlag);
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;

@@ -9,13 +9,6 @@ import $ from 'jquery';
 
 // Link base view and controller.
 // ----------------------------------------
-var FLAG_RENDER = 1<<0;
-var FLAG_UPDATE = 1<<1;
-var FLAG_SOURCE = 1<<2;
-var FLAG_TARGET = 1<<3;
-var FLAG_LABELS = 1<<4;
-var FLAG_VERTICES = 1<<5;
-var FLAG_TOOLS = 1<<6;
 
 export const LinkView = CellView.extend({
 
@@ -47,7 +40,7 @@ export const LinkView = CellView.extend({
     metrics: null,
     decimalsRounding: 2,
 
-    initialize: function(options) {
+    initialize: function() {
 
         CellView.prototype.initialize.apply(this, arguments);
 
@@ -69,42 +62,25 @@ export const LinkView = CellView.extend({
         this.metrics = {};
     },
 
-    initFlag: FLAG_RENDER | FLAG_SOURCE | FLAG_TARGET,
-
     presentationAttributes: {
-        markup: FLAG_RENDER,
-        attrs: FLAG_UPDATE,
-        router: FLAG_UPDATE,
-        connector: FLAG_UPDATE,
-        smooth: FLAG_UPDATE,
-        manhattan: FLAG_UPDATE,
-        toolMarkup: FLAG_TOOLS,
-        labels: FLAG_LABELS,
-        labelMarkup: FLAG_LABELS,
-        vertices: FLAG_VERTICES | FLAG_UPDATE,
-        vertexMarkup: FLAG_VERTICES,
-        source: FLAG_SOURCE | FLAG_UPDATE,
-        target: FLAG_TARGET | FLAG_UPDATE
+        markup: ['RENDER'],
+        attrs: ['UPDATE'],
+        router: ['UPDATE'],
+        connector: ['UPDATE'],
+        smooth: ['UPDATE'],
+        manhattan: ['UPDATE'],
+        toolMarkup: ['TOOLS'],
+        labels: ['LABELS'],
+        labelMarkup: ['LABELS'],
+        vertices: ['VERTICES', 'UPDATE'],
+        vertexMarkup: ['VERTICES'],
+        source: ['SOURCE', 'UPDATE'],
+        target: ['TARGET', 'UPDATE']
     },
+
+    initFlag: ['RENDER', 'SOURCE', 'TARGET'],
 
     UPDATE_PRIORITY: 1,
-
-    FLAG_RENDER: FLAG_RENDER,
-    FLAG_UPDATE: FLAG_UPDATE,
-    FLAG_TOOLS: FLAG_TOOLS,
-    FLAG_LABELS: FLAG_LABELS,
-    FLAG_VERTICES: FLAG_VERTICES,
-    FLAG_SOURCE: FLAG_SOURCE,
-    FLAG_TARGET: FLAG_TARGET,
-
-    onAttributesChange: function(model, opt) {
-        var flag = model.getChangeFlag(this.presentationAttributes);
-        if (!flag) return;
-        // TODO: tool changes does not need to be sync
-        // Fix Segments tools
-        if (opt.tool) opt.async = false;
-        this.paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
-    },
 
     confirmUpdate: function(flag, opt) {
 
@@ -114,48 +90,46 @@ export const LinkView = CellView.extend({
         var attributes = model.attributes;
         var leftoverFlag = 0;
 
-        if (flag & FLAG_SOURCE) {
+        if (this.hasFlag(flag, 'SOURCE')) {
             if (!this.updateEndProperties('source')) return flag;
-            flag ^= FLAG_SOURCE;
+            flag = this.removeFlag(flag, 'SOURCE');
         }
 
-        if (flag & FLAG_TARGET) {
+        if (this.hasFlag(flag, 'TARGET')) {
             if (!this.updateEndProperties('target')) return flag;
-            flag ^= FLAG_TARGET;
+            flag = this.removeFlag(flag, 'TARGET');
         }
 
-        if (this.sourceView && !this.sourceView.el.firstChild || this.targetView && !this.targetView.el.firstChild) {
-            // Wait for the sourceView and targeView to be rendered
+        var sourceView = this.sourceView;
+        var targetView = this.targetView;
+        if (sourceView && !sourceView.el.firstChild || targetView && !targetView.el.firstChild) {
+            // Wait for the sourceView and targetView to be rendered
             return flag;
         }
 
-        if (flag & FLAG_RENDER) {
+        if (this.hasFlag(flag, 'RENDER')) {
             this.render();
             return leftoverFlag;
         }
 
-        if (flag & FLAG_VERTICES) {
+        if (this.hasFlag(flag, 'VERTICES')) {
             this.renderVertexMarkers();
-            flag ^= FLAG_VERTICES;
+            flag = this.removeFlag(flag, 'VERTICES');
         }
 
-        if (flag & FLAG_UPDATE) {
-            if (opt.dirty) {
-                this.render();
-            } else {
-                this.update(model, null, opt);
-            }
+        if (this.hasFlag(flag, 'UPDATE')) {
+            this.update(model, null, opt);
             return leftoverFlag;
         }
 
-        if (flag & FLAG_TOOLS) {
+        if (this.hasFlag(flag, 'TOOLS')) {
             this.renderTools().updateToolsPosition();
-            flag ^= FLAG_TOOLS;
+            flag = this.removeFlag(flag, 'TOOLS');
         }
 
-        if (flag & FLAG_LABELS) {
+        if (this.hasFlag(flag, 'LABELS')) {
             this.onLabelsChange(model, attributes.labels, opt);
-            flag ^= FLAG_LABELS;
+            flag = this.removeFlag(flag, 'LABELS');
         }
 
         return leftoverFlag;

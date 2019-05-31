@@ -1,4 +1,4 @@
-import { View } from './view.js'
+import { View } from './view.js';
 import {
     assign,
     guid,
@@ -17,7 +17,7 @@ import {
 import { Point, Rect } from './geometry.js';
 import V from './vectorizer.js';
 import $ from 'jquery';
-import { ToolsView } from './joint.dia.tools.js'
+import { ToolsView } from './joint.dia.tools.js';
 
 // CellView base view and controller.
 // --------------------------------------------
@@ -48,6 +48,63 @@ export const CellView = View.extend({
         return classNames.join(' ');
     },
 
+    _presentationAttributes: null,
+    _flags: null,
+
+    setFlags: function() {
+        var flags = {};
+        var attributes = {};
+        var shift = 0;
+        var i, n, label;
+        var presentationAttributes = this.presentationAttributes;
+        for (var attribute in presentationAttributes) {
+            if (!presentationAttributes.hasOwnProperty(attribute)) continue;
+            var labels = presentationAttributes[attribute];
+            if (!Array.isArray(labels)) labels = [labels];
+            for (i = 0, n = labels.length; i < n; i++) {
+                label = labels[i];
+                var flag = flags[label];
+                if (!flag) {
+                    flag = flags[label] = 1<<(shift++);
+                }
+                attributes[attribute] |= flag;
+            }
+        }
+        var initFlag = this.initFlag;
+        if (!Array.isArray(initFlag)) initFlag = [initFlag];
+        for (i = 0, n = initFlag.length; i < n; i++) {
+            label = initFlag[i];
+            if (!flags[label]) flags[label] = 1<<(shift++);
+        }
+
+        // 26 - 30 are reserved for paper flags
+        // 31+ overflows maximal number
+        if (shift > 25) throw new Error('dia.CellView: Maximum number of flags exceeded.');
+
+        this._flags = flags;
+        this._presentationAttributes = attributes;
+    },
+
+    hasFlag: function(flag, label) {
+        return flag & this.getFlag(label);
+    },
+
+    removeFlag: function(flag, label) {
+        return flag ^ (flag & this.getFlag(label));
+    },
+
+    getFlag: function(label) {
+        var flags = this._flags;
+        if (!flags) return 0;
+        var flag = 0;
+        if (Array.isArray(label)) {
+            for (var i = 0, n = label.length; i < n; i++) flag |= flags[label[i]];
+        } else {
+            flag |= flags[label];
+        }
+        return flag;
+    },
+
     attributes: function() {
         var cell = this.model;
         return {
@@ -69,6 +126,8 @@ export const CellView = View.extend({
 
     initialize: function() {
 
+        this.setFlags();
+
         View.prototype.initialize.apply(this, arguments);
 
         this.cleanNodesCache();
@@ -83,8 +142,15 @@ export const CellView = View.extend({
         this.listenTo(this.model, 'change', this.onAttributesChange);
     },
 
-    onAttributesChange: function() {
-        // to be overriden
+    onAttributesChange: function(model, opt) {
+        var flag = model.getChangeFlag(this._presentationAttributes);
+        if (opt.updateHandled || !flag) return;
+        if (opt.dirty && this.hasFlag(flag, 'UPDATE')) flag |= this.getFlag('RENDER');
+        // TODO: tool changes does not need to be sync
+        // Fix Segments tools
+        if (opt.tool) opt.async = false;
+        var paper = this.paper;
+        if (paper) paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
     },
 
     parseDOMJSON: function(markup, root) {
@@ -93,7 +159,7 @@ export const CellView = View.extend({
         var selectors = doc.selectors;
         var groups = doc.groupSelectors;
         for (var group in groups) {
-            if (selectors[group]) throw new Error('dia.CellView: ambigious group selector');
+            if (selectors[group]) throw new Error('dia.CellView: ambiguous group selector');
             selectors[group] = groups[group];
         }
         if (root) {
