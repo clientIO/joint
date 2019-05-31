@@ -1,8 +1,6 @@
 module.exports = {
     geometry: {
         src: 'src/geometry.js',
-        //TODO v.talas remove
-        iife: 'build/iife/geometry.js',
         umd: 'build/geometry.js',
     },
     vectorizer: {
