@@ -2,17 +2,19 @@
 
 <h4><span id="dia.Link.presentation.source">Source</span> and <span id="dia.Link.presentation.target">Target</span></h4>
 
-<p>The <code>source</code> and <code>target</code> properties have to be provided when creating a Link. Either an Element can be provided (either directly or via an <code>id</code> property) or a Point (with <code>x</code> and <code>y</code> properties).</p>
+<p>The <code>source</code> and <code>target</code> properties have to be provided when creating a Link. Either a Cell can be provided (Element or Link, either directly or via an <code>id</code> property) or a Point (with <code>x</code> and <code>y</code> properties).</p>
 
 <pre><code>link.source(rect);
 link.source({ id: rect.id });
+link.source(link2);
+link.source({ id: link2.id });
 
 link.source(new g.Point(100, 100));
 link.source({ x: 100, y: 100 });</code></pre>
 
 <p>If the end is specified as an Element, a specific subelement on that element may be identified for use as the link end. The <code>selector</code> property allows specifying the subelement with a selector string, while the <code>magnet</code> property uses magnet id, and the <code>port</code> property uses the port id.</p>
 
-<p>For the purposes of link geometry, however, the most important are the <code>anchor</code> and <code>connectionPoint</code> properties of link end elements. The <code>connectionStrategy</code> <a href="#dia.Paper.prototype.options.connectionStrategy">paper option</a> is also relevant to mention in this context.</p>
+<p>For the purposes of link geometry, the most important are the <code>anchor</code>/<code>linkAnchor</code> and <code>connectionPoint</code> properties of link end elements. The <code>connectionStrategy</code> <a href="#dia.Paper.prototype.options.connectionStrategy">paper option</a> is also relevant to mention in this context.</p>
 
 <h4 id="dia.Link.presentation.anchor">Anchor</h4>
 
@@ -33,6 +35,25 @@ link.source({ x: 100, y: 100 });</code></pre>
 });</code></pre>
 
 <p>If an anchor function is not provided, the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a> is used instead. The <code>joint.anchors.center</code> <a href="#anchors.center">function</a> is used by default.</p>
+
+<h4 id="dia.Link.presentation.linkAnchor">Link Anchor</h4>
+
+<p>If the link end (<a href="#dia.Link.presentation.source">source</a>/<a href="#dia.Link.presentation.target">target</a>) is specified as a Link, the precise position of the link end's anchor may be specified by the <code>linkAnchor</code> property.</p>
+
+<p>A link end link anchor is a point on another link that this link's path wants to connect to at that source/target end. Alongside <a href="#dia.Link.presentation.vertices">link vertices</a>, source and target anchors determine the basic link path.</p>
+
+<p>The link anchor functions reference the end link to find the anchor point - e.g. a point at a given ratio from the start, or the closest point. Several pre-made <a href="#linkAnchors">linkAnchors</a> are provided inside the JointJS library in the <code>joint.linkAnchors</code> namespace.</p>
+
+<pre><code>link.source(link2, {
+    linkAnchor: {
+        name: 'connectionRatio',
+        args: {
+            ratio: 0.25
+        }
+    }
+});</code></pre>
+
+<p>If a link anchor function is not provided, the <code>defaultLinkAnchor</code> <a href="#dia.Paper.prototype.options.defaultLinkAnchor">paper option</a> is used instead. The <code>joint.linkAnchors.connectionRatio</code> <a href="#linkAnchors.connectionRatio">function</a> is used by default.</p>
 
 <h4 id="dia.Link.presentation.connectionPoint">Connection Point</h4>
 

@@ -1,0 +1,7 @@
+<p><code>sorting</code> - the sorting type to use when rendering the views in this paper (i.e. <q>In what order should the views be rendered?</q>). The Paper object exposes a <code>sorting</code> object with three choices:</p>
+
+<ul>
+	<li><code>joint.dia.Paper.sorting.EXACT</code> - (default) render views in exactly the same order in which they were added into the paper. This is by far the slowest option, present mainly for backwards compatibility.</li>
+	<li><code>joint.dia.Paper.sorting.APPROX</code> - render views according to their z-values. Views with different z-index values are rendered in order, but the ordering of views with the same z-index is indeterminate. Similar in functionality to the <code>EXACT</code> option, but much faster.</li>
+	<li><code>joint.dia.Paper.sorting.NONE</code> - render views in an indeterminate order. (Note that this setting disables the <code>toFront</code> and <code>toBack</code> <a href="#dia.Element.prototype.toFront">Element</a> and <a href="#dia.Link.prototype.toFront">Link</a> functions.)</li>
+</ul>

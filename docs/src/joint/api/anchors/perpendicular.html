@@ -18,3 +18,15 @@
         }
     }
 });</code></pre>
+
+<p>By default, a link using the <code>'perpendicular'</code> anchor <q>slides</q> alongside the source element's edge while pointing to target's center. To invert this behavior, and have the link <q>slide</q> alongside the target element's edge while pointing to source's center, pass a <code>priority</code> option to the target:</p>
+
+<pre><code>link.target(model, {
+    priority: true,
+    anchor: {
+        name: 'perpendicular',
+        args: {
+            padding: 10
+        }
+    }
+});</code></pre>
