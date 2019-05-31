@@ -1,48 +1,44 @@
 module.exports = function(grunt) {
 
-    const plugins = require('../resources/plugins');
-
     return {
         'default': [
             'install',
-            'build',
             'watch'
         ],
-        'install': ['build:all'],
+        'install': [
+            'shell:libs-esm',
+            'build',
+            'uglify:all'
+        ],
         'build': [
-            'shell:rollup',
             'build:joint'
         ],
         'dist': [
             'clean:dist',
-            'clean:build',
-            'build:all',
+            'dist:prepare',
             'copy:dist',
-            'concat:types'
         ],
-        'build:all': [
-            'shell:rollup',
+        // dry dist - create dist files into the build folder - including min files
+        'dist:prepare':[
+            'clean:build',
             'build:joint',
-            'build:bundles',
-            'build:docs',
-            'newer:copy:appsLibs'
+            'uglify:all',
+            'build:docs'
         ],
         'build:joint': [
-            'build:plugins',
-            'newer:uglify:polyfills',
+            'shell:rollup',
+            'newer:concat:joint',
+            'newer:concat:types',
+            'newer:copy:appsLibs'
+        ],
+        'uglify:all':[
             'newer:uglify:deps',
             'newer:uglify:geometry',
             'newer:uglify:vectorizer',
             'newer:uglify:joint',
+            'newer:uglify:jointCore',
+            'newer:uglify:jointNoWrap',
             'newer:cssmin:joint',
-            'newer:concat:geometry',
-            'newer:concat:vectorizer',
-            'newer:concat:joint',
-            'newer:concat:types'
-        ],
-        'build:plugins': [
-            'uglify:plugins',
-            'concat:plugins'
         ],
         'build:bundles': [
             'newer:browserify',
@@ -53,11 +49,10 @@ module.exports = function(grunt) {
             'syntaxHighlighting:docs',
             'newer:copy:docs'
         ],
-        'concat:plugins': Object.keys(plugins).map((name) => 'newer:concat:' + name),
-        'uglify:plugins': Object.keys(plugins).map((name) => 'newer:uglify:' + name),
 
         // TESTS
         'test': [
+            'shell:test-bundle',
             'test:server',
             'test:client',
             'test:code-style'
@@ -73,8 +68,8 @@ module.exports = function(grunt) {
             'karma:joint'
         ],
         'test:bundles': [
-            'qunit:joint',
-            'qunit:vectorizer',
+            // 'qunit:joint',
+            // 'qunit:vectorizer',
             'qunit:geometry'
         ],
         'test:code-style': ['eslint'],

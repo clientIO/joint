@@ -1,9 +1,8 @@
 import * as  util from './util.js';
 import V from './vectorizer.js';
-import * as g from './geometry.js';
-import { Element } from './element.js';
-import { ElementView } from './elementView.js';
-import { Port, PortLabel } from '../plugins/layout/layout.ports.js';
+import { Rect, Point } from './geometry.js';
+import * as Port from '../plugins/layout/ports/joint.layout.port.js';
+import * as PortLabel from '../plugins/layout/ports/joint.layout.portLabel.js';
 
 var PortData = function(data) {
 
@@ -61,7 +60,7 @@ PortData.prototype = {
             res.result.push({
                 portId: port.id,
                 portTransformation: portTransformation,
-                labelTransformation: this._getPortLabelLayout(port, g.Point(portTransformation), elBBox),
+                labelTransformation: this._getPortLabelLayout(port, Point(portTransformation), elBBox),
                 portAttrs: port.attrs,
                 portSize: port.size,
                 labelSize: port.label.size
@@ -185,7 +184,7 @@ PortData.prototype = {
     }
 };
 
-util.assign(Element.prototype, {
+export const elementPortPrototype = {
 
     _initializePorts: function() {
 
@@ -279,7 +278,7 @@ util.assign(Element.prototype, {
      */
     getPortsPositions: function(groupName) {
 
-        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, g.Rect(this.size()));
+        var portsMetrics = this._portSettingsData.getGroupPortsMetrics(groupName, Rect(this.size()));
 
         return portsMetrics.reduce(function(positions, metrics) {
             var transformation = metrics.portTransformation;
@@ -505,9 +504,9 @@ util.assign(Element.prototype, {
             }
         }
     }
-});
+};
 
-util.assign(ElementView.prototype, {
+export const elementViewPortPrototype = {
 
     portContainerMarkup: 'g',
     portMarkup: [{
@@ -755,7 +754,7 @@ util.assign(ElementView.prototype, {
      */
     _updatePortGroup: function(groupName) {
 
-        var elementBBox = g.Rect(this.model.size());
+        var elementBBox = Rect(this.model.size());
         var portsMetrics = this.model._portSettingsData.getGroupPortsMetrics(groupName, elementBBox);
 
         for (var i = 0, n = portsMetrics.length; i < n; i++) {
@@ -765,7 +764,7 @@ util.assign(ElementView.prototype, {
             var portTransformation = metrics.portTransformation;
             this.applyPortTransform(cached.portElement, portTransformation);
             this.updateDOMSubtreeAttributes(cached.portElement.node, metrics.portAttrs, {
-                rootBBox: new g.Rect(metrics.portSize),
+                rootBBox: new Rect(metrics.portSize),
                 selectors: cached.portSelectors
             });
 
@@ -773,7 +772,7 @@ util.assign(ElementView.prototype, {
             if (labelTransformation) {
                 this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
                 this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
-                    rootBBox: new g.Rect(metrics.labelSize),
+                    rootBBox: new Rect(metrics.labelSize),
                     selectors: cached.portLabelSelectors
                 });
             }
@@ -815,4 +814,5 @@ util.assign(ElementView.prototype, {
 
         return label.markup || this.model.get('portLabelMarkup') || this.model.portLabelMarkup || this.portLabelMarkup;
     }
-});
+};
+

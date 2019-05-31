@@ -1,13 +1,15 @@
 import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
 import path from 'path';
+import resolve from 'rollup-plugin-node-resolve';
 
 const modules = require('./grunt/resources/es6');
 
 let plugins = [
-    babel({ exclude: 'node_modules/**' }),
-    commonjs()
+    babel({ exclude: 'node_modules/**' })
 ];
+
+let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V; }';
 
 const GLOBALS_ALL_MAP = {
     lodash: '_',
@@ -15,136 +17,182 @@ const GLOBALS_ALL_MAP = {
     backbone: 'Backbone',
     vectorizer: {
         name: 'V',
-        destination: path.resolve(modules.vectorizer.src)
+        src: path.resolve(modules.vectorizer.src)
     },
     geometry: {
         name: 'g',
-        destination: path.resolve(modules.geometry.src)
-    },
-    util: {
-        name: 'joint.util',
-        destination: path.resolve(modules.util.src)
-    },
-    // not es6 modules, yet. We are pretending they are there already
-    cell: {
-        name: 'joint.dia',
-        destination: path.resolve('./src/cell.js')
-    },
-    element: {
-        name: 'joint.dia',
-        destination: path.resolve('./src/element.js')
-    },
-    elementView: {
-        name: 'joint.dia',
-        destination: path.resolve('./src/elementView.js')
-    },
-    link: {
-        name: 'joint.dia',
-        destination: path.resolve('./src/link.js')
-    },
-    shapes: {
-        name: 'joint.shapes',
-        destination: path.resolve('./plugins/shapes.js')
-    },
-    'layout/ports': {
-        name: 'joint.layout',
-        destination: path.resolve('./plugins/layout/layout.ports.js')
+        src: path.resolve(modules.geometry.src)
     }
-};
-
-const resolveGlobals = function(externals) {
-
-    return externals.reduce((res, item) => {
-
-        const module = GLOBALS_ALL_MAP[item];
-
-        if (!module) {
-            throw new Error(`Local module ${item} is not defined`)
-        }
-
-        if (module.name) {
-            res[module.destination] = module.name;
-        } else {
-            res[item] = module;
-        }
-
-        return res;
-    }, {});
 };
 
 export const geometry = {
     input: modules.geometry.src,
     output: [{
-        file: modules.geometry.iife,
-        format: 'iife',
+        file: modules.geometry.umd,
+        format: 'umd',
         name: 'g',
         freeze: false
     }],
     plugins: plugins
 };
 
-export const util = {
-    input: modules.util.src,
-    external: ['jquery', 'lodash', './vectorizer.js', './cell.js'],
-    output: [{
-        file: modules.util.iife,
-        format: 'iife',
-        name: 'joint_util',
-        freeze: false,
-        globals: resolveGlobals(['jquery', 'lodash', 'vectorizer', 'cell']),
-        footer: 'joint.util = joint_util;'
-    }],
-    plugins: plugins
-};
-
-export const config = {
-    input: modules.config.src,
-    output: [{
-        file: modules.config.iife,
-        format: 'iife',
-        name: 'joint_config',
-        freeze: false,
-        footer: 'joint.config = joint_config;'
-    }],
-    plugins: plugins
-};
-
 export const vectorizer = {
     input: modules.vectorizer.src,
-    external: ['./geometry.js'],
+    external: [GLOBALS_ALL_MAP.geometry.src],
     output: [{
-        file: modules.vectorizer.iife,
-        format: 'iife',
+        file: modules.vectorizer.umd,
+        format: 'umd',
         name: 'V',
         freeze: false,
-        globals: resolveGlobals(['geometry'])
+        globals: ((map) => {
+            const globals = {};
+            globals[map.geometry.src] = 'g';
+            return globals;
+        })(GLOBALS_ALL_MAP),
     }],
     plugins: plugins
 };
 
-export const graph = {
-    input: modules.graph.src,
-    external: ['backbone', './util.js', './cell.js', './element.js', './link.js', './geometry.js', '../plugins/shapes.js'],
+export const joint = {
+    input: modules.joint.src,
+    external: [
+        'jquery',
+        'backbone',
+        'lodash',
+        'dagre'
+    ],
     output: [{
-        file: modules.graph.iife,
-        format: 'iife',
-        name: 'joint_graph_module',
+        file: modules.joint.umd,
+        format: 'umd',
+        name: 'joint',
         freeze: false,
-        globals: resolveGlobals(['backbone', 'util', 'cell', 'element', 'link', 'geometry', 'shapes']),
-        footer: 'joint.dia.Graph = joint_graph_module.Graph;'
+        footer: JOINT_FOOTER,
+        globals: {
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_',
+            'dagre': 'dagre'
+        }
+    }, {
+        file: modules.joint.iife,
+        format: 'iife',
+        name: 'joint',
+        freeze: false,
+        footer: JOINT_FOOTER,
+        globals: {
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_',
+            'dagre': 'dagre'
+        }
     }],
     plugins: plugins
 };
 
-export const ports = {
-    input: modules.ports.src,
-    external: ['./util.js', './elementView.js', './element.js', './geometry.js', './vectorizer.js', '../plugins/layout/layout.ports.js'],
+export const jointNoDependencies = {
+    input: modules.joint.src,
+    external: [
+        'jquery',
+        'backbone',
+        'lodash',
+        'dagre',
+        GLOBALS_ALL_MAP.geometry.src,
+        GLOBALS_ALL_MAP.vectorizer.src
+    ],
     output: [{
-        file: modules.ports.iife,
+        file: modules.joint.noDependencies,
         format: 'iife',
-        name: 'joint_ports',
+        name: 'joint',
+        footer: JOINT_FOOTER,
         freeze: false,
-        globals: resolveGlobals(['util', 'element', 'elementView', 'geometry', 'vectorizer', 'layout/ports'])
+        globals: ((map) => {
+            const globals = {
+                'jquery': '$',
+                'backbone': 'Backbone',
+                'lodash': '_',
+                'dagre': 'dagre'
+            };
+            globals[map.geometry.src] = 'g';
+            globals[map.vectorizer.src] = 'V';
+            return globals;
+        })(GLOBALS_ALL_MAP)
     }],
     plugins: plugins
+};
+
+export const jointCore = {
+    input: modules.jointCore.src,
+    external: [
+        'jquery',
+        'backbone',
+        'lodash'
+    ],
+    output: [{
+        file: modules.jointCore.umd,
+        format: 'umd',
+        name: 'joint',
+        freeze: false,
+        footer: JOINT_FOOTER,
+        globals: {
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_'
+        },
+    }],
+    plugins: plugins
+};
+
+// dependencies
+// -----------------------------------------------------------------------------------
+
+export const dagre = {
+    input: 'node_modules/dagre/index.js',
+    external: ['lodash'],
+    output: [{
+        file: 'build/esm/dagre.mjs',
+        format: 'esm',
+        freeze: false
+    }],
+    plugins: [
+        resolve(),
+        commonjs()
+    ]
+};
+
+export const jquery = {
+    input: 'node_modules/jquery/dist/jquery.js',
+    output: [{
+        file: 'build/esm/jquery.mjs',
+        format: 'esm',
+        freeze: false
+    }],
+    plugins: [
+        commonjs(),
+        resolve()
+    ]
+};
+
+export const lodash = {
+    input: 'node_modules/lodash/index.js',
+    output: [{
+        file: 'build/esm/lodash.mjs',
+        format: 'esm',
+        freeze: false
+    }],
+    plugins: [
+        commonjs(),
+        resolve()
+    ]
+};
+
+export const backbone = {
+    input: 'node_modules/backbone/backbone.js',
+    external: ['underscore', 'jquery'],
+    output: [{
+        file: 'build/esm/backbone.mjs',
+        format: 'esm'
+    }],
+    plugins: [
+        commonjs()
+    ]
 };

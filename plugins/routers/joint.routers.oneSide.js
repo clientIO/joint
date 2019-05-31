@@ -1,13 +1,15 @@
+import * as util from '../../src/util.js';
+
 // Routes the link always to/from a certain side
 //
 // Arguments:
 //   padding ... gap between the element and the first vertex. :: Default 40.
 //   side ... 'left' | 'right' | 'top' | 'bottom' :: Default 'bottom'.
 //
-joint.routers.oneSide = function(vertices, opt, linkView) {
+export const oneSide = function(vertices, opt, linkView) {
 
     var side = opt.side || 'bottom';
-    var padding = joint.util.normalizeSides(opt.padding || 40);
+    var padding = util.normalizeSides(opt.padding || 40);
 
     // LinkView contains cached source an target bboxes.
     // Note that those are Geometry rectangle objects.

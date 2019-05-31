@@ -69,13 +69,11 @@ QUnit.module('Attributes', function() {
                 spy.resetHistory();
                 ns.textWrap.set.call(cellView, {}, bbox, node, { text: 'text' });
                 assert.equal(node.textContent, 'text');
-                assert.ok(spy.calledWith('text', sinon.match.instanceOf(g.Rect)));
 
                 // text as part of the `textWrap` value
                 spy.resetHistory();
                 ns.textWrap.set.call(cellView, { text: 'text' }, bbox, node, {});
                 assert.equal(node.textContent, 'text');
-                assert.ok(spy.calledWith('text', sinon.match.instanceOf(g.Rect)));
 
                 // width & height absolute
                 bbox = refBBox.clone();

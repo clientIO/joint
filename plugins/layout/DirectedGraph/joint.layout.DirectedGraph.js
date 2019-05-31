@@ -1,15 +1,9 @@
-if (typeof exports === 'object') {
+import * as dagre from 'dagre';
+import * as util from '../../../src/util.js';
+import { Graph } from '../../../module/dia/index.mjs';
+import * as g from '../../../src/geometry.js';
 
-    var graphlib = require('graphlib');
-    var dagre = require('dagre');
-}
-
-// In the browser, these variables are set to undefined because of JavaScript hoisting.
-// In that case, should grab them from the window object.
-graphlib = graphlib || (typeof window !== 'undefined' && window.graphlib);
-dagre = dagre || (typeof window !== 'undefined' && window.dagre);
-
-joint.layout.DirectedGraph = {
+export const DirectedGraph = {
 
     exportElement: function(element) {
 
@@ -64,7 +58,7 @@ joint.layout.DirectedGraph = {
 
         // check the `setLinkVertices` here for backwards compatibility
         if (opt.setVertices || opt.setLinkVertices) {
-            if (joint.util.isFunction(opt.setVertices)) {
+            if (util.isFunction(opt.setVertices)) {
                 opt.setVertices(link, points);
             } else {
                 // Remove the first and last point from points array.
@@ -76,7 +70,7 @@ joint.layout.DirectedGraph = {
 
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
             var labelPosition = { x: glEdge.x, y: glEdge.y };
-            if (joint.util.isFunction(opt.setLabels)) {
+            if (util.isFunction(opt.setLabels)) {
                 opt.setLabels(link, labelPosition, points);
             } else {
                 // Convert the absolute label position to a relative position
@@ -99,18 +93,18 @@ joint.layout.DirectedGraph = {
 
         var graph;
 
-        if (graphOrCells instanceof joint.dia.Graph) {
+        if (graphOrCells instanceof Graph) {
             graph = graphOrCells;
         } else {
             // Reset cells in dry mode so the graph reference is not stored on the cells.
             // `sort: false` to prevent elements to change their order based on the z-index
-            graph = (new joint.dia.Graph()).resetCells(graphOrCells, { dry: true, sort: false });
+            graph = (new Graph()).resetCells(graphOrCells, { dry: true, sort: false });
         }
 
         // This is not needed anymore.
         graphOrCells = null;
 
-        opt = joint.util.defaults(opt || {}, {
+        opt = util.defaults(opt || {}, {
             resizeClusters: true,
             clusterPadding: 10,
             exportElement: this.exportElement,
@@ -118,7 +112,8 @@ joint.layout.DirectedGraph = {
         });
 
         // create a graphlib.Graph that represents the joint.dia.Graph
-        var glGraph = graph.toGraphLib({
+        // var glGraph = graph.toGraphLib({
+        var glGraph = DirectedGraph.toGraphLib(graph, {
             directed: true,
             // We are about to use edge naming feature.
             multigraph: true,
@@ -165,11 +160,16 @@ joint.layout.DirectedGraph = {
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
 
-        // Update the graph.
-        graph.fromGraphLib(glGraph, {
+        DirectedGraph.fromGraphLib(glGraph, {
             importNode: this.importElement.bind(graph, opt),
             importEdge: this.importLink.bind(graph, opt)
         });
+
+        // // Update the graph.
+        // graph.fromGraphLib(glGraph, {
+        //     importNode: this.importElement.bind(graph, opt),
+        //     importEdge: this.importLink.bind(graph, opt)
+        // });
 
         if (opt.resizeClusters) {
             // Resize and reposition cluster elements (parents of other elements)
@@ -185,7 +185,7 @@ joint.layout.DirectedGraph = {
                     return bCluster.getAncestors().length - aCluster.getAncestors().length;
                 });
 
-            joint.util.invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
+            util.invoke(clusters, 'fitEmbeds', { padding: opt.clusterPadding });
         }
 
         graph.stopBatch('layout');
@@ -205,9 +205,9 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var importNode = opt.importNode || joint.util.noop;
-        var importEdge = opt.importEdge || joint.util.noop;
-        var graph = (this instanceof joint.dia.Graph) ? this : new joint.dia.Graph;
+        var importNode = opt.importNode || util.noop;
+        var importEdge = opt.importEdge || util.noop;
+        var graph = (this instanceof Graph) ? this : new Graph;
 
         // Import all nodes.
         glGraph.nodes().forEach(function(node) {
@@ -227,11 +227,11 @@ joint.layout.DirectedGraph = {
 
         opt = opt || {};
 
-        var glGraphType = joint.util.pick(opt, 'directed', 'compound', 'multigraph');
-        var glGraph = new graphlib.Graph(glGraphType);
-        var setNodeLabel = opt.setNodeLabel || joint.util.noop;
-        var setEdgeLabel = opt.setEdgeLabel || joint.util.noop;
-        var setEdgeName = opt.setEdgeName || joint.util.noop;
+        var glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
+        var glGraph = new dagre.graphlib.Graph(glGraphType);
+        var setNodeLabel = opt.setNodeLabel || util.noop;
+        var setEdgeLabel = opt.setEdgeLabel || util.noop;
+        var setEdgeName = opt.setEdgeName || util.noop;
         var collection = graph.get('cells');
 
         for (var i = 0, n = collection.length; i < n; i++) {
@@ -269,12 +269,12 @@ joint.layout.DirectedGraph = {
     }
 };
 
-joint.dia.Graph.prototype.toGraphLib = function(opt) {
+Graph.prototype.toGraphLib = function(opt) {
 
-    return joint.layout.DirectedGraph.toGraphLib(this, opt);
+    return DirectedGraph.toGraphLib(this, opt);
 };
 
-joint.dia.Graph.prototype.fromGraphLib = function(glGraph, opt) {
+Graph.prototype.fromGraphLib = function(glGraph, opt) {
 
-    return joint.layout.DirectedGraph.fromGraphLib.call(this, glGraph, opt);
+    return DirectedGraph.fromGraphLib.call(this, glGraph, opt);
 };

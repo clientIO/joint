@@ -6,7 +6,8 @@ require.config({
         // Dependencies for Joint:
         'jquery': 'node_modules/jquery/dist/jquery',
         'backbone': 'node_modules/backbone/backbone',
-        'lodash': 'node_modules/lodash/lodash'
+        'lodash': 'node_modules/lodash/lodash',
+        'dagre': 'node_modules/dagre/dist/dagre'
     },
     map: {
         '*': {

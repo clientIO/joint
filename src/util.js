@@ -2,7 +2,6 @@ import _ from 'lodash';
 import $ from 'jquery';
 import V from './vectorizer.js';
 import * as config from './config.js';
-import { Cell } from './cell.js';
 
 export const addClassNamePrefix = function(className) {
 
@@ -1574,67 +1573,6 @@ export const toggleFullScreen = function(el) {
     }
 };
 
-export const wrapWith = function(object, methods, wrapper) {
-
-    if (isString(wrapper)) {
-
-        if (!wrappers[wrapper]) {
-            throw new Error('Unknown wrapper: "' + wrapper + '"');
-        }
-
-        wrapper = wrappers[wrapper];
-    }
-
-    if (!isFunction(wrapper)) {
-        throw new Error('Wrapper must be a function.');
-    }
-
-    toArray(methods).forEach(function(method) {
-        object[method] = wrapper(object[method]);
-    });
-};
-
-export const wrappers = {
-
-    /*
-        Prepares a function with the following usage:
-
-        fn([cell, cell, cell], opt);
-        fn([cell, cell, cell]);
-        fn(cell, cell, cell, opt);
-        fn(cell, cell, cell);
-        fn(cell);
-    */
-    cells: function(fn) {
-
-        return function() {
-
-            var args = Array.from(arguments);
-            var n = args.length;
-            var cells = n > 0 && args[0] || [];
-            var opt = n > 1 && args[n - 1] || {};
-
-            if (!Array.isArray(cells)) {
-
-                if (opt instanceof Cell) {
-                    cells = args;
-                } else if (cells instanceof Cell) {
-                    if (args.length > 1) {
-                        args.pop();
-                    }
-                    cells = args;
-                }
-            }
-
-            if (opt instanceof Cell) {
-                opt = {};
-            }
-
-            return fn.call(this, cells, opt);
-        };
-    }
-};
-
 // Deprecated
 // Copy all the properties to the first argument from the following arguments.
 // All the properties will be overwritten by the properties from the following
@@ -1733,4 +1671,20 @@ export const isString = function(value) {
 };
 
 export const noop = function() {
+};
+
+export const isPaper= function(view) {
+    return view && view.isPaper && view.isPaper();
+};
+
+export const isCellView = function(view) {
+    return isLinkView(view) || isElementView(view);
+};
+
+export const isLinkView = function(view) {
+    return view.model && view.model.isLink && view.model.isLink();
+};
+
+export const isElementView = function(view) {
+    return view.model && view.model.isElement && view.model.isElement();
 };

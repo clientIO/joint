@@ -2,13 +2,12 @@ const core = require('../resources/core');
 
 module.exports = function() {
 
-    const config = {
+    return {
         joint: {
             files: {
-                'build/min/joint.min.css': core.css
+                'build/joint.min.css': core.css,
+                'build/joint.core.min.css': core.css,
             }
         }
     };
-
-    return config;
 };

@@ -1,20 +1,9 @@
-const plugins = require('../resources/plugins');
-const geometry = require('../resources/geometry');
-const vectorizer = require('../resources/vectorizer');
-const core = require('../resources/core').js;
-const polyfills = require('../resources/polyfills');
+const modules = require('../resources/es6');
 
 module.exports = function() {
 
-    const config = {};
-
-    Object.keys(plugins).forEach(function(name) {
-        config[name] = { files: {} };
-        config[name].files['build/min/joint.' + name + '.min.js'] = plugins[name];
-    });
-
-    return Object.assign({}, config, {
-
+    //TODO v.talas missing plugins.min.js file in build
+    return {
         options: {
             ASCIIOnly: true
         },
@@ -24,20 +13,24 @@ module.exports = function() {
             }
         },
         geometry: {
-            src: geometry,
-            dest: 'build/min/geometry.min.js'
+            src: modules.geometry.umd,
+            dest: 'build/geometry.min.js'
         },
         joint: {
-            src: core,
-            dest: 'build/min/joint.min.js'
+            src: modules.joint.umd,
+            dest: 'build/joint.min.js'
         },
-        polyfills: {
-            src: polyfills,
-            dest: 'build/min/polyfills.min.js'
+        jointCore: {
+            src: modules.jointCore.umd,
+            dest: 'build/joint.core.min.js'
+        },
+        jointNoWrap: {
+            src: modules.joint.iife,
+            dest: 'build/joint.nowrap.min.js'
         },
         vectorizer: {
-            src: vectorizer,
-            dest: 'build/min/vectorizer.min.js'
+            src: modules.vectorizer.umd,
+            dest: 'build/vectorizer.min.js'
         }
-    });
+    };
 };

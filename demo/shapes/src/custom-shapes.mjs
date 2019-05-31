@@ -1,3 +1,7 @@
+import * as joint from '../../../joint.mjs';
+import * as g from '../../../src/geometry.js';
+import V from '../../../src/vectorizer.js';
+
 var graph = new joint.dia.Graph;
 
 var paper = new joint.dia.Paper({

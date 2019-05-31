@@ -1,4 +1,6 @@
-joint.connectors.rounded = function(sourcePoint, targetPoint, route, opt) {
+import * as g from '../../src/geometry.js';
+
+export const rounded = function(sourcePoint, targetPoint, route, opt) {
 
     opt || (opt = {});
 

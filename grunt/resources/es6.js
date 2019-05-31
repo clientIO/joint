@@ -1,40 +1,21 @@
-const getAllSources = function(modules) {
-    return Object.keys(modules).reduce((res, key) => {
-        if (key !== 'src') {
-            res.push(modules[key].src)
-        }
-        return res;
-    }, [])
-};
-
-const modules = {
-    config: {
-        src: 'src/config.js',
-        iife: 'build/iife/config.js',
-    },
+module.exports = {
     geometry: {
         src: 'src/geometry.js',
-        iife: 'build/iife/geometry.js',
+        umd: 'build/geometry.js',
     },
     vectorizer: {
         src: 'src/vectorizer.js',
         iife: 'build/iife/vectorizer.js',
+        umd: 'build/vectorizer.js',
     },
-    util: {
-        src: 'src/util.js',
-        iife: 'build/iife/util.js',
+    joint: {
+        src: 'wrappers/joint.wrapper.mjs',
+        umd: 'build/joint.js', // joint + plugins + vectorizer + geometry. no header. universal module
+        iife: 'build/joint.nowrap.js',  // joint + plugins + vectorizer + geometry. browser-only version
+        noDependencies: 'build/joint.nodeps.js' // joint + plugins (for unit testing)
     },
-    graph: {
-        src: 'src/graph.js',
-        iife: 'build/iife/graph.js',
-    },
-    ports: {
-        src: 'src/ports.js',
-        iife: 'build/iife/ports.js',
+    jointCore: {
+        src: 'wrappers/joint.core.wrapper.mjs',
+        umd: 'build/joint.core.js', // joint + vectorizer + geometry. universal module
     },
 };
-
-module.exports = Object.assign(
-    modules,
-    { src: getAllSources(modules) }
-);

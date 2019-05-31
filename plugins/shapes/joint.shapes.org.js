@@ -1,4 +1,7 @@
-joint.dia.Element.define('org.Member', {
+import { Element } from '../../src/joint.dia.element.js';
+import { Link } from '../../src/joint.dia.link.js';
+
+export const Member = Element.define('org.Member', {
     size: { width: 180, height: 70 },
     attrs: {
         rect: { width: 170, height: 60 },
@@ -31,8 +34,9 @@ joint.dia.Element.define('org.Member', {
     markup: '<g class="rotatable"><g class="scalable"><rect class="card"/><image/></g><text class="rank"/><text class="name"/></g>',
 });
 
-joint.dia.Link.define('org.Arrow', {
+export const Arrow = Link.define('org.Arrow', {
     source: { selector: '.card' }, target: { selector: '.card' },
     attrs: { '.connection': { stroke: '#585858', 'stroke-width': 3 }},
     z: -1
 });
+

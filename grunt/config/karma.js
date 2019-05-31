@@ -1,17 +1,7 @@
-const plugins = require('../resources/plugins');
-const geometry = require('../resources/geometry');
-const vectorizer = require('../resources/vectorizer');
-const core = require('../resources/core');
-const polyfills = require('../resources/polyfills');
 const dependecies = require('../resources/dependencies');
+const modules = require('../resources/es6');
 
 module.exports = function(grunt) {
-
-    let allJSPlugins = [];
-
-    Object.keys(plugins).forEach(function(name) {
-        allJSPlugins = allJSPlugins.concat(plugins[name]);
-    });
 
     function karmaBrowsers() {
         const browser = grunt.option('browser') || 'PhantomJS';
@@ -68,21 +58,21 @@ module.exports = function(grunt) {
         geometry: {
             options: {
                 files: [
-                    geometry,
+                    modules.geometry.umd,
                     'test/geometry/*.js'
                 ],
-                preprocessors: karmaPreprocessors(geometry),
+                preprocessors: karmaPreprocessors([modules.geometry.umd]),
                 coverageReporter: karmaCoverageReporters('geometry')
             },
         },
         vectorizer: {
             options: {
                 files: [
-                    geometry,
-                    vectorizer,
+                    modules.geometry.umd,
+                    modules.vectorizer.umd,
                     'test/vectorizer/*.js',
                 ],
-                preprocessors: karmaPreprocessors(vectorizer),
+                preprocessors: karmaPreprocessors([modules.vectorizer.umd]),
                 coverageReporter: karmaCoverageReporters('vectorizer')
             }
         },
@@ -90,15 +80,13 @@ module.exports = function(grunt) {
             options: {
                 files: [
                     dependecies,
-                    geometry,
-                    vectorizer,
-                    polyfills,
-                    core.js,
-                    allJSPlugins,
+                    modules.geometry.umd,
+                    modules.vectorizer.umd,
+                    modules.joint.noDependencies,
                     'test/utils.js',
                     'test/jointjs/**/*.js'
                 ],
-                preprocessors: karmaPreprocessors([].concat(core.js, allJSPlugins)),
+                preprocessors: karmaPreprocessors([modules.joint.noDependencies]),
                 coverageReporter: karmaCoverageReporters('joint')
             }
         }

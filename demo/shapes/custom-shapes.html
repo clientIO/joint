@@ -10,14 +10,50 @@
                 border: 1px solid gray;
             }
         </style>
+
+        <link rel="stylesheet" type="text/css" href="../../build/joint.css">
+
+
     </head>
     <body>
         <div id="paper"></div>
-        <!-- Dependencies: -->
-        <script src="../../node_modules/jquery/dist/jquery.js"></script>
-        <script src="../../node_modules/lodash/lodash.js"></script>
-        <script src="../../node_modules/backbone/backbone.js"></script>
-        <script src="../../build/joint.js"></script>
-        <script src="./src/custom-shapes.js"></script>
+        <!---------------------------------------------------------------------------------------------------------------
+        I. ES6 "native" script type module
+        needs a server to run, e.g.
+
+        `cd ../.. && http-server -p 8081`
+        open http://localhost:8081/demo/shapes/custom-shapes.html
+
+        -->
+
+        <script defer src="../../node_modules/es-module-shims/dist/es-module-shims.js"></script>
+        <script type="importmap-shim">
+        {
+          "imports": {
+            "backbone": "/build/esm/backbone.mjs",
+            "underscore": "/build/esm/lodash.mjs",
+            "lodash": "/build/esm/lodash.mjs",
+            "jquery": "/build/esm/jquery.mjs",
+            "dagre": "/build/esm/dagre.mjs"
+          }
+        }
+        </script>
+
+        <script src="../../scripts/checkCompatibility.js"></script>
+        <script type="module-shim" src="src/custom-shapes.mjs"></script>
+
+        <!---------------------------------------------------------------------------------------------------------------
+        II. ES5 - webpack bundle
+
+        build: `webpack --config ./webpack.config.js`
+        open file:///<PATH TO JOINTJS>/demo/shapes/custom-shapes.html
+        -->
+
+        <!--
+        <script defer type="text/javascript" src="dist/custom-shapes-bundle.js"></script>
+        -->
+
+        <!--------------------------------------------------------------------------------------------------------------->
+
     </body>
 </html>

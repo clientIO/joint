@@ -1,4 +1,8 @@
-joint.highlighters.stroke = {
+import * as util from '../../src/util.js';
+import V from '../../src/vectorizer.js';
+import * as mvc from '../../src/view.js';
+
+export const stroke = {
 
     defaultOptions: {
 
@@ -37,7 +41,7 @@ joint.highlighters.stroke = {
         // Only highlight once.
         if (this._views[id]) return;
 
-        var options = joint.util.defaults(opt || {}, this.defaultOptions);
+        var options = util.defaults(opt || {}, this.defaultOptions);
 
         var magnetVel = V(magnetEl);
         var magnetBBox;
@@ -51,7 +55,7 @@ joint.highlighters.stroke = {
             // Failed to get path data from magnet element.
             // Draw a rectangle around the entire cell view instead.
             magnetBBox = magnetVel.bbox(true/* without transforms */);
-            pathData = V.rectToPath(joint.util.assign({}, options, magnetBBox));
+            pathData = V.rectToPath(util.assign({}, options, magnetBBox));
         }
 
         var highlightVel = V('path').attr({
@@ -101,7 +105,7 @@ joint.highlighters.stroke = {
         }
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
-        var highlightView = this._views[id] = new joint.mvc.View({
+        var highlightView = this._views[id] = new mvc.View({
             svgElement: true,
             className: 'highlight-stroke',
             el: highlightVel.node

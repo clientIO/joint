@@ -1,11 +1,18 @@
+import Backbone from 'backbone';
+import $ from 'jquery';
+import * as util from './util.js';
+import * as config from './config.js';
+import V from './vectorizer.js';
 
-joint.mvc.View = Backbone.View.extend({
+export const views = {};
+
+export const View = Backbone.View.extend({
 
     options: {},
     theme: null,
-    themeClassNamePrefix: joint.util.addClassNamePrefix('theme-'),
+    themeClassNamePrefix: util.addClassNamePrefix('theme-'),
     requireSetThemeOverride: false,
-    defaultTheme: joint.config.defaultTheme,
+    defaultTheme: config.defaultTheme,
     children: null,
     childNodes: null,
 
@@ -14,14 +21,14 @@ joint.mvc.View = Backbone.View.extend({
     constructor: function(options) {
 
         this.requireSetThemeOverride = options && !!options.theme;
-        this.options = joint.util.assign({}, this.options, options);
+        this.options = util.assign({}, this.options, options);
 
         Backbone.View.call(this, options);
     },
 
     initialize: function() {
 
-        joint.mvc.views[this.cid] = this;
+        views[this.cid] = this;
 
         this.setTheme(this.options.theme || this.defaultTheme);
         this.init();
@@ -40,7 +47,7 @@ joint.mvc.View = Backbone.View.extend({
         if (children) {
             var isSVG = this.svgElement;
             var namespace = V.namespace[isSVG ? 'xmlns' : 'xhtml'];
-            var doc = joint.util.parseDOMJSON(children, namespace);
+            var doc = util.parseDOMJSON(children, namespace);
             (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
             this.childNodes = doc.selectors;
         }
@@ -69,15 +76,15 @@ joint.mvc.View = Backbone.View.extend({
     // Expose class name setter as a separate method.
     _ensureElement: function() {
         if (!this.el) {
-            var tagName = joint.util.result(this, 'tagName');
-            var attrs = joint.util.assign({}, joint.util.result(this, 'attributes'));
-            var style = joint.util.assign({}, joint.util.result(this, 'style'));
-            if (this.id) attrs.id = joint.util.result(this, 'id');
+            var tagName = util.result(this, 'tagName');
+            var attrs = util.assign({}, util.result(this, 'attributes'));
+            var style = util.assign({}, util.result(this, 'style'));
+            if (this.id) attrs.id = util.result(this, 'id');
             this.setElement(this._createElement(tagName));
             this._setAttributes(attrs);
             this._setStyle(style);
         } else {
-            this.setElement(joint.util.result(this, 'el'));
+            this.setElement(util.result(this, 'el'));
         }
         this._ensureElClassName();
     },
@@ -111,9 +118,9 @@ joint.mvc.View = Backbone.View.extend({
     },
 
     _ensureElClassName: function() {
-        var className = joint.util.result(this, 'className');
+        var className = util.result(this, 'className');
         if (!className) return;
-        var prefixedClassName = joint.util.addClassNamePrefix(className);
+        var prefixedClassName = util.addClassNamePrefix(className);
         // Note: className removal here kept for backwards compatibility only
         if (this.svgElement) {
             this.vel.removeClass(className).addClass(prefixedClassName);
@@ -196,7 +203,7 @@ joint.mvc.View = Backbone.View.extend({
         this.onRemove();
         this.undelegateDocumentEvents();
 
-        joint.mvc.views[this.cid] = null;
+        views[this.cid] = null;
 
         Backbone.View.prototype.remove.apply(this, arguments);
 
@@ -232,7 +239,7 @@ joint.mvc.View = Backbone.View.extend({
     },
 
     delegateDocumentEvents: function(events, data) {
-        events || (events = joint.util.result(this, 'documentEvents'));
+        events || (events = util.result(this, 'documentEvents'));
         return this.delegateElementEvents(document, events, data);
     },
 
@@ -250,7 +257,7 @@ joint.mvc.View = Backbone.View.extend({
         }
         currentData || (currentData = evt.data = {});
         currentData[key] || (currentData[key] = {});
-        joint.util.assign(currentData[key], data);
+        util.assign(currentData[key], data);
         return this;
     },
 
@@ -271,8 +278,8 @@ joint.mvc.View = Backbone.View.extend({
 
         // Deep clone the prototype and static properties objects.
         // This prevents unexpected behavior where some properties are overwritten outside of this function.
-        var protoProps = args[0] && joint.util.assign({}, args[0]) || {};
-        var staticProps = args[1] && joint.util.assign({}, args[1]) || {};
+        var protoProps = args[0] && util.assign({}, args[0]) || {};
+        var staticProps = args[1] && util.assign({}, args[1]) || {};
 
         // Need the real render method so that we can wrap it and call it later.
         var renderFn = protoProps.render || (this.prototype && this.prototype.render) || null;

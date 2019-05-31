@@ -1,4 +1,8 @@
-joint.shapes.basic.Generic.define('pn.Place', {
+import { Generic } from './joint.shapes.basic.js';
+import { ElementView } from '../../src/elementView.mjs';
+import { Link as diaLink } from '../../src/joint.dia.link.js';
+
+export const Place = Generic.define('pn.Place', {
     size: { width: 50, height: 50 },
     attrs: {
         '.root': {
@@ -38,11 +42,11 @@ joint.shapes.basic.Generic.define('pn.Place', {
     markup: '<g class="rotatable"><g class="scalable"><circle class="root"/><g class="tokens" /></g><text class="label"/></g>',
 });
 
-joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
+export const PlaceView = ElementView.extend({
 
     initialize: function() {
 
-        joint.dia.ElementView.prototype.initialize.apply(this, arguments);
+        ElementView.prototype.initialize.apply(this, arguments);
 
         this.model.on('change:tokens', function() {
 
@@ -54,7 +58,7 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
 
     render: function() {
 
-        joint.dia.ElementView.prototype.render.apply(this, arguments);
+        ElementView.prototype.render.apply(this, arguments);
 
         this.renderTokens();
         this.update();
@@ -94,7 +98,7 @@ joint.shapes.pn.PlaceView = joint.dia.ElementView.extend({
     }
 });
 
-joint.shapes.basic.Generic.define('pn.Transition', {
+export const Transition = Generic.define('pn.Transition', {
     size: { width: 12, height: 50 },
     attrs: {
         'rect': {
@@ -116,6 +120,6 @@ joint.shapes.basic.Generic.define('pn.Transition', {
     markup: '<g class="rotatable"><g class="scalable"><rect class="root"/></g></g><text class="label"/>',
 });
 
-joint.dia.Link.define('pn.Link', {
+export const Link = diaLink.define('pn.Link', {
     attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 });
