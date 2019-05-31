@@ -7,7 +7,8 @@ module.exports = function(grunt) {
         ],
         'install': [
             'shell:libs-esm',
-            'build'
+            'build',
+            'uglify:all'
         ],
         'build': [
             'build:joint'

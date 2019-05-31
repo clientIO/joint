@@ -38,17 +38,11 @@ export const geometry = {
 
 export const vectorizer = {
     input: modules.vectorizer.src,
-    external: [GLOBALS_ALL_MAP.geometry.src],
     output: [{
         file: modules.vectorizer.umd,
         format: 'umd',
         name: 'V',
         freeze: false,
-        globals: ((map) => {
-            const globals = {};
-            globals[map.geometry.src] = 'g';
-            return globals;
-        })(GLOBALS_ALL_MAP),
     }],
     plugins: plugins
 };
