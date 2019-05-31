@@ -1,0 +1,32 @@
+<p>A link anchor of a link is a point on the reference link that this link wants to reach as its endpoint. Link anchors are set via a <code>linkAnchor</code> property provided within link end definitions (i.e. the objects provided to <code>link.source()</code> and <code>link.target()</code> functions). (If the reference object is an Element, JointJS looks at <code>anchor</code> <a href="#anchors">property</a> instead.)</p>
+
+<p>There are several built-in linkAnchor functions in JointJS:</p>
+
+<ul>
+    <li><code>'connectionRatio'</code> - <a href="#linkAnchors.connectionRatio">default link anchor at specified ratio at reference link</a></li>
+    <li><code>'connectionLength'</code> - <a href="#linkAnchors.connectionLength">link anchor at specified length along reference link</a></li>
+    <li><code>'connectionPerpendicular'</code> - <a href="#linkAnchors.connectionPerpendicular">link anchor that ensures an orthogonal route to the reference link</a></li>
+    <li><code>'connectionClosest'</code> - <a href="#linkAnchors.connectionClosest">link anchor at the point on reference link that is closest to the last vertex on link path</a></li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>link.source(link2, {
+    linkAnchor: {
+        name: 'connectionRatio',
+        args: {
+            ratio: 0.25
+        }
+    }
+});</code></pre>
+
+<p>The default link anchor function is <code>'connectionRatio'</code>; this can be changed with the <code>defaultLinkAnchor</code> <a href="#dia.Paper.prototype.options.defaultLinkAnchor">paper option</a>. Example:</p>
+
+<pre><code>paper.options.defaultLinkAnchor = {
+    name: 'connectionLength',
+    args: {
+        length: 20
+    }
+};</code></pre>
+
+<p>JointJS also contains mechanisms to define one's own <a href="#linkAnchors.custom">custom link anchor functions</a>.</p>

@@ -18,7 +18,7 @@ link.source({ x: 100, y: 100 });</code></pre>
 
 <h4 id="dia.Link.presentation.anchor">Anchor</h4>
 
-<p>If the link end (<a href="#dia.Link.presentation.source">source</a>/<a href="#dia.Link.presentation.target">target</a>) is specified as an Element (whether or not one of the subelement specifications is in effect), the precise position of the link end's anchor may be specified by the <code>anchor</code> property. (If the link end is specified as a Point, its coordinates are used as its anchor directly.) Every link has two anchors; one at the source end and one at the target end.</p>
+<p>If the link end (<a href="#dia.Link.presentation.source">source</a>/<a href="#dia.Link.presentation.target">target</a>) is an Element (or a Link with ports), the precise position of the link end's anchor may be specified by the <code>anchor</code> property. (If the link end is specified as a Point, its coordinates are used as its anchor directly.) Every link has two anchors; one at the source end and one at the target end.</p>
 
 <p>A link end anchor is a point inside a given (sub)element that the link path wants to connect to at that source/target end - if it were not obstructed by the body of the element itself (it is the role of <a href="#dia.Link.presentation.connectionPoint">connectionPoints</a> to take the end element into account). Alongside <a href="#dia.Link.presentation.vertices">link vertices</a>, source and target anchors determine the basic link path. Then, it is the job of <a href="#dia.Link.presentation.connectionPoint">connectionPoints</a>, <a href="#dia.Link.presentation.router">routers</a>, and <a href="#dia.Link.presentation.connector">connectors</a> to modify that path to make it look good.</p>
 
@@ -38,7 +38,7 @@ link.source({ x: 100, y: 100 });</code></pre>
 
 <h4 id="dia.Link.presentation.linkAnchor">Link Anchor</h4>
 
-<p>If the link end (<a href="#dia.Link.presentation.source">source</a>/<a href="#dia.Link.presentation.target">target</a>) is specified as a Link, the precise position of the link end's anchor may be specified by the <code>linkAnchor</code> property.</p>
+<p>If the link end (<a href="#dia.Link.presentation.source">source</a>/<a href="#dia.Link.presentation.target">target</a>) is a Link (not an Element), the precise position of the link end's anchor may be specified by the <code>linkAnchor</code> property. If a link anchor method is used, no <code>connectionPoint</code> methods are applied. (Note: If the link has ports, <code>anchor</code> methods are used to connect to them; in that case, <code>connectionPoint</code> methods are applied in a standard fashion.)</p>
 
 <p>A link end link anchor is a point on another link that this link's path wants to connect to at that source/target end. Alongside <a href="#dia.Link.presentation.vertices">link vertices</a>, source and target anchors determine the basic link path.</p>
 

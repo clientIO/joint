@@ -1,0 +1,20 @@
+<p>The <code>'connectionLength'</code> link anchor function places the anchor of the link at a point a specified length along reference link (counting from reference link's source). It accepts one argument, which can be passed within the <code>linkAnchor.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>length</th>
+        <td><i>number</i></td>
+        <td>The length at which to place the target anchor. Default is <code>20</code>, meaning a point 20 pixels from the source of the reference link.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(link2, {
+    linkAnchor: {
+        name: 'connectionLength',
+        args: {
+            ratio: 50
+        }
+    }
+});</code></pre>

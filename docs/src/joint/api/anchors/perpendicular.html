@@ -19,7 +19,7 @@
     }
 });</code></pre>
 
-<p>By default, a link using the <code>'perpendicular'</code> anchor <q>slides</q> alongside the source element's edge while pointing to target's center. To invert this behavior, and have the link <q>slide</q> alongside the target element's edge while pointing to source's center, pass a <code>priority</code> option to the target:</p>
+<p>When the link has no vertices, the other end cell's center is used as a reference point. By default, this means that a link using the <code>'perpendicular'</code> anchor <q>slides</q> alongside the source element's edge while pointing to target element's center. To invert this behavior, and have the anchor <q>slide</q> alongside the target element's edge while pointing to source element's center, pass a <code>priority</code> option to the target function:</p>
 
 <pre><code>link.target(model, {
     priority: true,

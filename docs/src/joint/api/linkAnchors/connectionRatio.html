@@ -1,0 +1,20 @@
+<p>The <code>'connectionRatio'</code> link anchor function places the anchor of the link at a point at a specified ratio of the reference link's length (from reference link's source). It accepts one argument, which can be passed within the <code>linkAnchor.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>ratio</th>
+        <td><i>number</i></td>
+        <td>The length ratio of the target anchor. Default is <code>0.5</code>, meaning the midpoint of the reference link.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>link.source(link2, {
+    linkAnchor: {
+        name: 'connectionRatio',
+        args: {
+            ratio: 0.25
+        }
+    }
+});</code></pre>
