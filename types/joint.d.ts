@@ -680,9 +680,7 @@ export namespace dia {
 
     class ElementView extends CellViewGeneric<Element> {
 
-        update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
-
-        updateAttributes(renderingOnlyAttrs?: { [key: string]: any }): void;
+        update(element?: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
