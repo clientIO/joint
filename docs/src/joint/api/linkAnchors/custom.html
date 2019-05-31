@@ -10,8 +10,8 @@
     </tr>
     <tr>
         <th>endMagnet</th>
-        <td><i>SVGElement</i></td>
-        <td>The SVGElement in our page that contains the magnet (link/port) to which we are connecting.</td>
+        <td><i>null</i></td>
+        <td>(Not used) This argument is only present to ensure that the signature of custom <code>linkAnchor</code> methods is the same as the signature of custom <code>anchor</code> <a href="#linkAnchors.custom">methods</a>.</td>
     </tr>
     <tr>
         <th rowspan="2">anchorReference</th>
@@ -20,7 +20,7 @@
     </tr>
     <tr>
         <td><i>SVGElement</i></td>
-        <td>...if the anchor in question does not exist (yet), it is that link end's magnet.</td>
+        <td>...if the anchor in question does not exist (yet), it is that link end's magnet. (The built-in methods usually use this element's center point as reference.)</td>
     </tr>
     <tr>
         <th>args</th>
