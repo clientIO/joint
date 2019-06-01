@@ -586,8 +586,7 @@ export const ElementView = CellView.extend({
         });
 
         view.eventData(evt, {
-            x: x,
-            y: y,
+            pointerOffset: view.model.position().difference(x, y),
             restrictedArea: this.paper.getRestrictedArea(view)
         });
     },
@@ -656,17 +655,15 @@ export const ElementView = CellView.extend({
         var paper = this.paper;
         var grid = paper.options.gridSize;
         var element = this.model;
-        var position = element.position();
         var data = this.eventData(evt);
+        var { pointerOffset, restrictedArea, embedding } = data;
 
-        // Make sure the new element's position always snaps to the current grid after
-        // translate as the previous one could be calculated with a different grid size.
-        var tx = snapToGrid(position.x, grid) - position.x + snapToGrid(x - data.x, grid);
-        var ty = snapToGrid(position.y, grid) - position.y + snapToGrid(y - data.y, grid);
+        // Make sure the new element's position always snaps to the current grid
+        var elX = snapToGrid(x + pointerOffset.x, grid);
+        var elY = snapToGrid(y + pointerOffset.y, grid);
 
-        element.translate(tx, ty, { restrictedArea: data.restrictedArea, ui: true });
+        element.position(elX, elY, { restrictedArea, deep: true, ui: true });
 
-        var embedding = !!data.embedding;
         if (paper.options.embeddingMode) {
             if (!embedding) {
                 // Prepare the element for embedding only if the pointer moves.
@@ -679,9 +676,7 @@ export const ElementView = CellView.extend({
         }
 
         this.eventData(evt, {
-            x: snapToGrid(x, grid),
-            y: snapToGrid(y, grid),
-            embedding: embedding
+            embedding
         });
     },
 
