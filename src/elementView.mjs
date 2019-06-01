@@ -66,7 +66,7 @@ export const ElementView = CellView.extend({
             flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
         }
         if (this.hasFlag(flag, 'UPDATE')) {
-            this.update();
+            this.update(this.model, null, opt);
             flag = this.removeFlag(flag, 'UPDATE');
         }
         if (this.hasFlag(flag, 'TRANSLATE')) {

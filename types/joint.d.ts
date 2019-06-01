@@ -722,6 +722,7 @@ export namespace dia {
             vertexRemove?: boolean;
             arrowheadMove?: boolean;
             labelMove?: boolean;
+            linkMove?: boolean;
             useLinkTools?: boolean;
         }
 
@@ -883,6 +884,12 @@ export namespace dia {
 
         type Dimension = number | string | null;
 
+        enum sorting {
+            EXACT = 'sorting-exact',
+            APPROX = 'sorting-approximate',
+            NONE = 'sorting-none'
+        }
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
             width?: Dimension;
@@ -892,7 +899,8 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
-            async?: boolean | { batchSize: number };
+            async?: boolean;
+            sorting?: sorting;
             // interactions
             gridSize?: number;
             highlighting?: { [type: string]: highlighters.HighlighterJSON };

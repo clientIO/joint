@@ -319,7 +319,7 @@ export const TextBlockView = ElementView.extend({
         var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
         if (this.hasFlag(flag, 'CONTENT')) {
             this.updateContent(this.model);
-            this.removeFlag(flag, 'CONTENT');
+            flag = this.removeFlag(flag, 'CONTENT');
         }
         return flag;
     },
@@ -328,7 +328,7 @@ export const TextBlockView = ElementView.extend({
 
         var model = this.model;
 
-        if (svgForeignObjectSupported) {
+        if (!svgForeignObjectSupported) {
 
             // Update everything but the content first.
             var noTextAttrs = omit(renderingOnlyAttrs || model.get('attrs'), '.content');
