@@ -41,7 +41,7 @@ paper.on('cell:mouseenter', function(cellView) {
     }, this);
 });
 
-paper.on('cell:mouseleave', function(cellView) {
+paper.on('cell:mouseleave cell:pointerdown', function(cellView) {
     getCellOutbounds(this.model, cellView.model).forEach(function(cell) {
         cell.findView(this).unhighlight();
     }, this);
