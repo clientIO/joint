@@ -899,8 +899,6 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
-            async?: boolean;
-            sorting?: sorting;
             // interactions
             gridSize?: number;
             highlighting?: { [type: string]: highlighters.HighlighterJSON };
@@ -931,6 +929,9 @@ export namespace dia {
             // default views, models & attributes
             cellViewNamespace?: any;
             highlighterNamespace?: any;
+            anchorNamespace?: any;
+            linkAnchorNamespace?: any,
+            connectionPointNamespace?: any;
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
@@ -938,6 +939,13 @@ export namespace dia {
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
+            // rendering
+            async?: boolean;
+            sorting?: sorting;
+            frozen?: boolean;
+            viewport?: ((view: mvc.View, isDetached: boolean, paper: Paper) => boolean) | null;
+            onViewUpdate?: (view: mvc.View, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewPostponed?: (view: mvc.View, flag: number, paper: Paper) => boolean;
         }
 
         interface ScaleContentOptions {
