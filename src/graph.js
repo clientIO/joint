@@ -984,7 +984,7 @@ export const Graph = Backbone.Model.extend({
             ? this.findModelsInArea(bbox)
             : this.findModelsFromPoint(bbox[opt.searchBy]());
 
-        // don't account element itself or any of its descendents
+        // don't account element itself or any of its descendants
         return elements.filter(function(el) {
             return element.id !== el.id && !el.isEmbeddedIn(element);
         });
@@ -992,31 +992,23 @@ export const Graph = Backbone.Model.extend({
 
 
     // Return bounding box of all elements.
-    getBBox: function(cells, opt) {
+    getBBox: function() {
 
-        return this.getCellsBBox(cells || this.getCells(), opt);
+        return this.getCellsBBox(this.getCells());
     },
 
     // Return the bounding box of all cells in array provided.
     getCellsBBox: function(cells, opt) {
         opt || (opt = {});
         return util.toArray(cells).reduce(function(memo, cell) {
-            var angle, rect;
-            var isLink = cell.isLink();
-            if (isLink) {
-                if (!opt.includeLinks) return memo;
-                angle = 0;
-            } else {
-                angle = cell.angle();
-            }
-            rect = cell.getBBox(opt);
+            var rect = cell.getBBox(opt);
             if (!rect) return memo;
+            var angle = cell.angle();
             if (angle) rect = rect.bbox(angle);
             if (memo) {
                 return memo.union(rect);
-            } else {
-                return rect;
             }
+            return rect;
         }, null);
     },
 
