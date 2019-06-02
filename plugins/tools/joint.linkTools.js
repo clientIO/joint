@@ -85,7 +85,7 @@ var Vertices = ToolView.extend({
         snapRadius: 20,
         redundancyRemoval: true,
         vertexAdding: true,
-        notifyEvents: true
+        stopPropagation: true
     },
     children: [{
         tagName: 'path',
@@ -188,7 +188,7 @@ var Vertices = ToolView.extend({
         this.focus();
         const { relatedView, options } = this;
         relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
-        if (options.notifyEvents) relatedView.notifyPointerdown(...relatedView.paper.getPointerArgs(evt));
+        if (!options.stopPropagation) relatedView.notifyPointerdown(...relatedView.paper.getPointerArgs(evt));
     },
     onHandleChanging: function(handle, evt) {
         const { options, relatedView: linkView } = this;
@@ -198,7 +198,7 @@ var Vertices = ToolView.extend({
         this.snapVertex(vertex, index);
         linkView.model.vertex(index, vertex, { ui: true, tool: this.cid });
         handle.position(vertex.x, vertex.y);
-        if (options.notifyEvents) linkView.notifyPointermove(normalizedEvent, x, y);
+        if (!options.stopPropagation) linkView.notifyPointermove(normalizedEvent, x, y);
     },
     onHandleChanged: function(_handle, evt) {
         const { options, relatedView: linkView } = this;
@@ -213,7 +213,7 @@ var Vertices = ToolView.extend({
         }
         var [normalizedEvt, x, y] = linkView.paper.getPointerArgs(evt);
         linkView.checkMouseleave(normalizedEvt);
-        if (options.notifyEvents) linkView.notifyPointerdown(normalizedEvt, x, y);
+        if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvt, x, y);
     },
     snapVertex: function(vertex, index) {
         var snapRadius = this.options.snapRadius;
@@ -233,7 +233,6 @@ var Vertices = ToolView.extend({
             }
         }
     },
-
     onHandleRemove: function(handle, evt) {
         var index = handle.options.index;
         var linkView = this.relatedView;

@@ -627,7 +627,9 @@ export namespace dia {
 
         isNodeConnection(node: SVGElement): boolean;
 
-        getEventTarget(evt: JQuery, opt?: { fromPoint?: boolean }): Element;
+        getEventTarget(evt: JQuery.Event, opt?: { fromPoint?: boolean }): Element;
+
+        checkMouseleave(evt: JQuery.Event): void;
 
         protected onToolEvent(eventName: string): void;
 
@@ -847,6 +849,12 @@ export namespace dia {
         protected dragArrowheadEnd(evt: JQuery.Event, x: number, y: number): void;
 
         protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected notifyPointerdown(evt: JQuery.Event, x: number, y: number): void;
+
+        protected notifyPointermove(evt: JQuery.Event, x: number, y: number): void;
+
+        protected notifyPointerup(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.Paper
