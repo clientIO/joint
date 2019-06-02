@@ -1,4 +1,5 @@
 joint.shapes.standard.Link.define('mix.Bus', {
+    z: -1,
     attrs: {
         line: {
             strokeWidth: 5,

@@ -370,6 +370,7 @@ export const Paper = View.extend({
     },
 
     onGraphReset: function(collection, opt) {
+        this.removeZPivots();
         this.resetViews(collection.models, opt);
     },
 
@@ -410,8 +411,9 @@ export const Paper = View.extend({
             this.constructor.prototype.options.highlighting
         );
 
-        if (!options.cellViewNamespace) {
-            options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+        // Default cellView namespace for ES5
+        if (!options.cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
+            options.cellViewNamespace = joint.shapes;
         }
     },
 
@@ -648,7 +650,7 @@ export const Paper = View.extend({
                 unmountBatchSize: MOUNT_BATCH_SIZE - stats.unmounted
             });
             var checkStats = this.checkViewport(passingOpt);
-            var umountCount = checkStats.unmounted;
+            var unmountCount = checkStats.unmounted;
             var mountCount = checkStats.mounted;
             var processed = data.processed;
             var total = updates.count;
@@ -657,7 +659,7 @@ export const Paper = View.extend({
                 processed += stats.updated + stats.unmounted;
                 stats.processed = processed;
                 if (stats.empty && mountCount === 0) {
-                    stats.unmounted += umountCount;
+                    stats.unmounted += unmountCount;
                     stats.mounted += mountCount;
                     this.trigger('render:done', stats);
                     data.processed = 0;
@@ -1286,6 +1288,12 @@ export const Paper = View.extend({
             viewport.insertBefore(pivot, viewport.firstChild);
         }
         return pivot;
+    },
+
+    removeZPivots: function() {
+        var { _zPivots: pivots, viewport } = this;
+        for (var z in pivots) viewport.removeChild(pivots[z]);
+        this._zPivots = {};
     },
 
     scale: function(sx, sy, ox, oy) {

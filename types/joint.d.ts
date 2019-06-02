@@ -590,7 +590,7 @@ export namespace dia {
 
         initFlag: number;
 
-        presentationAttributes: PresentationAttributes;
+        presentationAttributes: CellView.PresentationAttributes;
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -660,7 +660,7 @@ export namespace dia {
 
         static dispatchToolsEvent(paper: dia.Paper, eventName: string): void;
 
-        static addPresentationAttributes(attributes: PresentationAttributes): PresentationAttributes
+        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -889,6 +889,16 @@ export namespace dia {
             APPROX = 'sorting-approximate',
             NONE = 'sorting-none'
         }
+        type UpdateStats = {
+            updated: number;
+            postponed: number;
+            unmounted: number;
+            mounted: number;
+            empty: boolean;
+        };
+
+        type ViewportCallback = (view: mvc.View<any>, isDetached: boolean, paper: Paper) => boolean;
+        type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -943,9 +953,9 @@ export namespace dia {
             async?: boolean;
             sorting?: sorting;
             frozen?: boolean;
-            viewport?: ((view: mvc.View, isDetached: boolean, paper: Paper) => boolean) | null;
-            onViewUpdate?: (view: mvc.View, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
-            onViewPostponed?: (view: mvc.View, flag: number, paper: Paper) => boolean;
+            viewport?: ViewportCallback | null;
+            onViewUpdate?: (view: mvc.View<any>, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
         }
 
         interface ScaleContentOptions {
@@ -1101,7 +1111,98 @@ export namespace dia {
 
         showTools(): this;
 
+        // rendering
+
+        freeze(opt?: {
+            key?: string
+        }): void;
+
+        unfreeze(opt?: {
+            key?: string;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            batchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): void;
+
+        isFrozen(): boolean;
+
+        requestViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+
+        requireView<T extends ElementView | LinkView>(model: Cell | string | number, opt?: dia.Cell.Options): T;
+
+        dumpViews(opt?: {
+            batchSize?: number;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): void;
+
+        checkViewport(opt?: {
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            viewport?: Paper.ViewportCallback;
+        }): {
+            mounted: number;
+            unmounted: number;
+        };
+
+        updateViews(opt?: {
+            batchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): {
+            updated: number;
+            batches: number;
+        };
+
         // protected
+
+        protected scheduleViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+
+        protected dumpViewUpdate(view: mvc.View<any>): number;
+
+        protected dumpView(view: mvc.View<any>, opt?: { [key: string]: any }): number;
+
+        protected updateView(view: mvc.View<any>, flag: number, opt?: { [key: string]: any }): number;
+
+        protected registerUnmountedView(view: mvc.View<any>): number;
+
+        protected registerMountedView(view: mvc.View<any>): number;
+
+        protected updateViewsAsync(opt?: {
+            batchSize?: number;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): void;
+
+        protected updateViewsBatch(opt?: {
+            batchSize?: number;
+            viewport?: Paper.ViewportCallback;
+        }): Paper.UpdateStats;
+
+        protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: { unmountBatchSize?: number }): number;
+
+        protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: { mountBatchSize?: number }): number;
+
+        protected isAsync(): boolean;
+
+        protected isExactSorting(): boolean;
+
+        protected sortViews(): void;
+
+        protected sortViewsExact(): void;
+
+        protected insertView(view: dia.CellView): void;
+
+        protected addZPivot(z: number): Comment;
+
+        protected removeZPivots(): void
+
         protected pointerdblclick(evt: JQuery.Event): void;
 
         protected pointerclick(evt: JQuery.Event): void;
@@ -1132,23 +1233,28 @@ export namespace dia {
 
         protected guard(evt: JQuery.Event, view: CellView): boolean;
 
-        protected sortViews(): void;
-
         protected drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
+
+        protected updateBackgroundColor(color: string): void;
+
+        protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
 
         protected createViewForModel(cell: Cell): CellView;
 
         protected cloneOptions(): Paper.Options;
 
-        protected afterRenderViews(): void;
+        protected onCellAdded(cell: Cell, collection: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected asyncRenderViews(cells: Cell[], opt?: { [key: string]: any }): void;
+        protected onCellRemoved(cell: Cell, collection: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected beforeRenderViews(cells: Cell[]): Cell[];
+        protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
+        protected onCellChanged(cell: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected init(): void;
+        protected onGraphReset(cells: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
+        protected onGraphSort(): void;
+
+        protected onGraphBatchStop(): void;
 
         protected onCellHighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
@@ -1163,10 +1269,6 @@ export namespace dia {
         protected renderView(cell: Cell): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
-
-        protected updateBackgroundColor(color: string): void;
-
-        protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
     }
 
     namespace ToolsView {
@@ -2426,6 +2528,8 @@ export namespace mvc {
 
         constructor(opt?: ViewOptions<T>);
 
+        UPDATE_PRIORITY: number;
+
         vel: Vectorizer | null;
 
         options: ViewOptions<T>;
@@ -2442,6 +2546,8 @@ export namespace mvc {
 
         children?: dia.MarkupJSON;
 
+        childNodes?: { [key: string]: Element } | null;
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
@@ -2450,14 +2556,23 @@ export namespace mvc {
 
         undelegateDocumentEvents(): this;
 
+        delegateElementEvents(element: Element, events?: Backbone.EventsHash, data?: viewEventData): this;
+
+        undelegateElementEvents(element: Element): this;
+
         eventData(evt: JQuery.Event): viewEventData;
         eventData(evt: JQuery.Event, data: viewEventData): this;
+
+        stopPropagation(evt: JQuery.Event): this;
+        isPropagationStopped(evt: JQuery.Event): boolean;
 
         renderChildren(children?: dia.MarkupJSON): this;
 
         findAttribute(attributeName: string, node: Element): string | null;
 
         confirmUpdate(flag: number, opt: { [key: string]: any }): number;
+
+        unmount(): void;
 
         protected init(): void;
 
