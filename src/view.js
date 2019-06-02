@@ -298,7 +298,7 @@ export const View = Backbone.View.extend({
 
             if (this.render.__render__ === renderFn) {
                 // Should always call onRender() method.
-                // Should call it only once when renderFn is actual protoype method i.e. not the wrapper
+                // Should call it only once when renderFn is actual prototype method i.e. not the wrapper
                 this.onRender();
             }
 

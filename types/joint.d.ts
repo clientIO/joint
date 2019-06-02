@@ -946,6 +946,7 @@ export namespace dia {
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
             defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultLinkAnchor?: anchors.AnchorJSON  | anchors.Anchor;
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
@@ -2754,6 +2755,10 @@ export namespace anchors {
         'perpendicular': PaddingAnchorArguments;
         'midSide': MidSideAnchorArguments;
         'modelCenter': ModelCenterAnchorArguments;
+        'connectionRatio': linkAnchors.ConnectionLengthAnchorArguments;
+        'connectionLength': linkAnchors.ConnectionLengthAnchorArguments;
+        'connectionPerpendicular': linkAnchors.ConnectionPerpendicularAnchorArguments;
+        'connectionClosest': linkAnchors.ConnectionClosestAnchorArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -2794,6 +2799,31 @@ export namespace anchors {
     export var bottomRight: GenericAnchor<'bottomRight'>;
     export var perpendicular: GenericAnchor<'perpendicular'>;
     export var midSide: GenericAnchor<'midSide'>;
+}
+
+export namespace linkAnchors {
+
+    interface ConnectionLengthAnchorArguments {
+        length?: number
+    }
+
+    interface ConnectionRatioAnchorArguments {
+        ratio?: number
+    }
+
+    interface ConnectionPerpendicularAnchorArguments {
+        fallbackAt?: number | string;
+        fixedAt?: number | string;
+    }
+
+    interface ConnectionClosestAnchorArguments {
+        fixedAt?: number | string;
+    }
+
+    export var connectionRatio: anchors.GenericAnchor<'connectionRatio'>;
+    export var connectionLength: anchors.GenericAnchor<'connectionLength'>;
+    export var connectionPerpendicular: anchors.GenericAnchor<'connectionPerpendicular'>;
+    export var connectionClosest: anchors.GenericAnchor<'connectionClosest'>;
 }
 
 // connection points
