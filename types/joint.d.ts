@@ -423,18 +423,15 @@ export namespace dia {
             priority?: boolean;
         }
 
-        interface EndCellJSON extends EndCellArgs {
-            id: number | string;
-        }
-
-        interface EndPointJSON {
-            x: number;
-            y: number;
+        interface EndJSON extends EndCellArgs {
+            id?: number | string;
+            x?: number;
+            y?: number;
         }
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
-            source?: EndCellJSON | EndPointJSON;
-            target?: EndCellJSON | EndPointJSON;
+            source?: EndJSON;
+            target?: EndJSON;
             labels?: Label[];
             vertices?: Point[];
             manhattan?: boolean;
@@ -495,12 +492,12 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): Link.EndCellJSON | Link.EndPointJSON;
-        source(source: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        source(): Link.EndJSON;
+        source(source: Link.EndJSON, opt?: Cell.Options): this;
         source(source: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
-        target(): Link.EndCellJSON | Link.EndPointJSON;
-        target(target: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        target(): Link.EndJSON;
+        target(target: Link.EndJSON, opt?: Cell.Options): this;
         target(target: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
         router(): routers.Router | routers.RouterJSON | null;
