@@ -694,15 +694,15 @@ export const CellView = View.extend({
         return nodesAttrs;
     },
 
-    getEventTarget: function(evt) {
+    getEventTarget: function(evt, opt = {}) {
         // Touchmove/Touchend event's target is not reflecting the element under the coordinates as mousemove does.
         // It holds the element when a touchstart triggered.
-        var type = evt.type;
-        if (type === 'touchmove' || type === 'touchend') {
-            return document.elementFromPoint(evt.clientX, evt.clientY);
+        const { target, type, clientX = 0, clientY = 0 } = evt;
+        if (opt.fromPoint || type === 'touchmove' || type === 'touchend') {
+            return document.elementFromPoint(clientX, clientY);
         }
 
-        return evt.target;
+        return target;
     },
 
     // Default is to process the `model.attributes.attrs` object and set attributes on subelements based on the selectors,
@@ -1008,6 +1008,15 @@ export const CellView = View.extend({
     magnetcontextmenu: function() {
 
         // noop
+    },
+
+    checkMouseleave(evt) {
+        var target = this.getEventTarget(evt, { fromPoint: true });
+        var view = this.paper.findView(target);
+        if (view === this) return;
+        this.mouseleave(evt);
+        if (!view) return;
+        view.mouseenter(evt);
     },
 
     setInteractivity: function(value) {

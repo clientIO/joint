@@ -1,7 +1,7 @@
 import { CellView } from './cellView.mjs';
 import { Link } from './joint.dia.link.js';
 import V from './vectorizer.js';
-import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone } from './util.js';
+import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, normalizeEvent } from './util.js';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from './geometry.js';
 import * as routers from '../module/routers/index.mjs';
 import * as connectors from '../module/connectors/index.mjs';
@@ -1527,6 +1527,21 @@ export const LinkView = CellView.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
+    notifyPointerdown(evt, x, y) {
+        CellView.prototype.pointerdown.call(this, evt, x, y);
+        this.notify('link:pointerdown', evt, x, y);
+    },
+
+    notifyPointermove(evt, x, y) {
+        CellView.prototype.pointermove.call(this, evt, x, y);
+        this.notify('link:pointermove', evt, x, y);
+    },
+
+    notifyPointerup(evt, x, y) {
+        CellView.prototype.pointermove.call(this, evt, x, y);
+        this.notify('link:pointerup', evt, x, y);
+    },
+
     pointerdblclick: function(evt, x, y) {
 
         CellView.prototype.pointerdblclick.apply(this, arguments);
@@ -1547,8 +1562,7 @@ export const LinkView = CellView.extend({
 
     pointerdown: function(evt, x, y) {
 
-        CellView.prototype.pointerdown.apply(this, arguments);
-        this.notify('link:pointerdown', evt, x, y);
+        this.notifyPointerdown(evt, x, y);
 
         // Backwards compatibility for the default markup
         var className = evt.target.getAttribute('class');
@@ -1609,8 +1623,7 @@ export const LinkView = CellView.extend({
         // Backwards compatibility
         if (dragData) assign(dragData, this.eventData(evt));
 
-        CellView.prototype.pointermove.apply(this, arguments);
-        this.notify('link:pointermove', evt, x, y);
+        this.notifyPointermove(evt, x, y);
     },
 
     pointerup: function(evt, x, y) {
@@ -1641,8 +1654,7 @@ export const LinkView = CellView.extend({
                 this.dragEnd(evt, x, y);
         }
 
-        this.notify('link:pointerup', evt, x, y);
-        CellView.prototype.pointerup.apply(this, arguments);
+        this.notifyPointerup(evt, x, y);
     },
 
     mouseover: function(evt) {
@@ -1697,8 +1709,7 @@ export const LinkView = CellView.extend({
                 }
             }
 
-            CellView.prototype.pointerdown.apply(this, [evt, x, y]);
-            this.notify('link:pointerdown', evt, x, y);
+            this.notifyPointerdown(evt, x, y);
 
         } else {
             CellView.prototype.onevent.apply(this, arguments);
@@ -1707,8 +1718,7 @@ export const LinkView = CellView.extend({
 
     onlabel: function(evt, x, y) {
 
-        CellView.prototype.pointerdown.apply(this, arguments);
-        this.notify('link:pointerdown', evt, x, y);
+        this.notifyPointerdown(evt, x, y);
 
         this.dragLabelStart(evt, x, y);
 
@@ -1872,9 +1882,7 @@ export const LinkView = CellView.extend({
         this._afterArrowheadMove(data);
 
         // mouseleave event is not triggered due to changing pointer-events to `none`.
-        if (!this.vel.contains(evt.target)) {
-            this.mouseleave(evt);
-        }
+        this.checkMouseleave(evt);
     },
 
     dragEnd: function() {

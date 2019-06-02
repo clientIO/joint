@@ -594,9 +594,8 @@ export const ElementView = CellView.extend({
 
         var linkView = this.addLinkFromMagnet(magnet, x, y);
 
-        // backwards compatiblity events
-        CellView.prototype.pointerdown.apply(linkView, [evt, x, y]);
-        linkView.notify('link:pointerdown', evt, x, y);
+        // backwards compatibility events
+        linkView.notifyPointerdown(evt, x, y);
 
         linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
         this.eventData(evt, { linkView: linkView });

@@ -627,6 +627,8 @@ export namespace dia {
 
         isNodeConnection(node: SVGElement): boolean;
 
+        getEventTarget(evt: JQuery, opt?: { fromPoint?: boolean }): Element;
+
         protected onToolEvent(eventName: string): void;
 
         protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
@@ -1100,6 +1102,8 @@ export namespace dia {
         translate(tx: number, ty?: number): this;
 
         update(): this;
+
+        getPointerArgs(evt: JQuery.Event): [JQuery.Event, number, number];
 
         // tools
 
@@ -3255,9 +3259,11 @@ export namespace linkTools {
 
     namespace Vertices {
         interface Options extends dia.ToolView.Options {
+            handleClass?: any;
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
+            notifyEvents?: boolean;
         }
     }
 
@@ -3268,6 +3274,7 @@ export namespace linkTools {
 
     namespace Segments {
         interface Options extends dia.ToolView.Options {
+            handleClass?: any;
             snapRadius?: number;
             snapHandle?: boolean;
             redundancyRemoval?: boolean;
