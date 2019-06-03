@@ -237,7 +237,7 @@ var Vertices = ToolView.extend({
         var index = handle.options.index;
         var linkView = this.relatedView;
         linkView.model.removeVertex(index, { ui: true });
-        this.updatePath();
+        if (this.options.vertexAdding) this.updatePath();
         linkView.checkMouseleave(util.normalizeEvent(evt));
     },
     onPathPointerDown: function(evt) {
