@@ -2,8 +2,6 @@ const core = require('../resources/core');
 
 module.exports = function(grunt) {
 
-    const utils = require('../resources/utils')(grunt);
-
     return {
         types: {
             src: [
@@ -16,14 +14,6 @@ module.exports = function(grunt) {
                 'build/joint.d.ts'
         },
         joint: {
-            options: {
-                process: {
-                    options: {
-                        data: utils.pkg
-                    },
-                    delimiters: 'square'
-                }
-            },
             files: {
                 'build/joint.core.css':
                     [].concat(

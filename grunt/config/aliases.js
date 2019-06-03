@@ -68,8 +68,8 @@ module.exports = function(grunt) {
             'karma:joint'
         ],
         'test:bundles': [
-            // 'qunit:joint',
-            // 'qunit:vectorizer',
+            'qunit:joint',
+            'qunit:vectorizer',
             'qunit:geometry'
         ],
         'test:code-style': ['eslint'],

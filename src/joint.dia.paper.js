@@ -231,7 +231,7 @@ export const Paper = View.extend({
 
         // Default namespaces
 
-        cellViewNamespace: typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null,
+        cellViewNamespace: null,
 
         highlighterNamespace: highlighters,
 
@@ -293,6 +293,10 @@ export const Paper = View.extend({
     MIN_SCALE: 1e-6,
 
     init: function() {
+
+        if (!this.options.cellViewNamespace) {
+            this.options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+        }
 
         bindAll(this, 'pointerup');
 
