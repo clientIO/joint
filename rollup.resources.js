@@ -3,6 +3,8 @@ import babel from 'rollup-plugin-babel';
 import path from 'path';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
+import externalGlobals from 'rollup-plugin-external-globals';
+
 const modules = require('./grunt/resources/es6');
 const pkg = require('./package.json');
 
@@ -10,6 +12,11 @@ let plugins = [
     replace({
         include: 'src/core.js',
         VERSION: pkg.version
+    }),
+
+    // prevent injecting 'dagre' into ES5 bundle
+    externalGlobals({
+        'dagre': 'dagre'
     }),
     babel({ exclude: 'node_modules/**' })
 ];
@@ -55,8 +62,7 @@ export const joint = {
     external: [
         'jquery',
         'backbone',
-        'lodash',
-        'dagre'
+        'lodash'
     ],
     output: [{
         file: modules.joint.umd,
@@ -67,8 +73,7 @@ export const joint = {
         globals: {
             'jquery': '$',
             'backbone': 'Backbone',
-            'lodash': '_',
-            'dagre': 'dagre'
+            'lodash': '_'
         }
     }, {
         file: modules.joint.iife,
@@ -79,8 +84,7 @@ export const joint = {
         globals: {
             'jquery': '$',
             'backbone': 'Backbone',
-            'lodash': '_',
-            'dagre': 'dagre'
+            'lodash': '_'
         }
     }],
     plugins: plugins
@@ -92,7 +96,6 @@ export const jointNoDependencies = {
         'jquery',
         'backbone',
         'lodash',
-        'dagre',
         GLOBALS_MAP.geometry.src,
         GLOBALS_MAP.vectorizer.src
     ],
@@ -106,8 +109,7 @@ export const jointNoDependencies = {
             const globals = {
                 'jquery': '$',
                 'backbone': 'Backbone',
-                'lodash': '_',
-                'dagre': 'dagre'
+                'lodash': '_'
             };
             globals[map.geometry.src] = 'g';
             globals[map.vectorizer.src] = 'V';
