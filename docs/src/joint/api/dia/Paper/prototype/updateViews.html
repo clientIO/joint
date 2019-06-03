@@ -1,0 +1,58 @@
+<pre class="docs-method-signature"><code>paper.updateViews([opt])</code></pre>
+<p>Update views in a <a href="#dia.Paper.prototype.options.frozen">frozen</a> <a href="#dia.Paper.prototype.options.async"><code>async</code></a> paper; keep the paper frozen afterwards.</p>
+
+<p>Several extra arguments may be provided in the <code>opt</code> object:</p>
+
+<table>
+    <tr>
+        <td>batchSize</td>
+        <td><i>number</i></td>
+        <td>For <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers, how many views should there be per one asynchronous process? Default is <code>1000</code>.</td>
+    </tr>
+    <tr>
+        <td>viewport</td>
+        <td><i>function</i></td>
+        <td>Callback function to determine whether a given view should be added to the DOM. By default, <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a> is used. The callback function is provided with three arguments:
+            <table>
+                <tr>
+                    <td>view</td>
+                    <td><i>mvc.View</i></td>
+                    <td>The view in question</td>
+                </tr>
+                <tr>
+                    <td>isDetached</td>
+                    <td><i>boolean</i></td>
+                    <td>Is the view currently hidden from the paper?</td>
+                </tr>
+                <tr>
+                    <td>paper</td>
+                    <td><i>dia.Paper</i></td>
+                    <td>This paper (for context)</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td>progress</td>
+        <td><i>function</i></td>
+        <td>Callback function that is called whenever a view is added to the paper. The callback function is provided with three arguments:
+            <table>
+                <tr>
+                    <td>done</td>
+                    <td><i>boolean</i></td>
+                    <td>Are we done?</td>
+                </tr>
+                <tr>
+                    <td>processed</td>
+                    <td><i>number</i></td>
+                    <td>How far along are we (absolute numbers)?</td>
+                </tr>
+                <tr>
+                    <td>total</td>
+                    <td><i>number</i></td>
+                    <td>How many views are there (absolute numbers)?</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>

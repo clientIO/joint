@@ -1,0 +1,4 @@
+<pre class="docs-method-signature"><code>paper.requireView(cell)</code></pre>
+<p>Ensure that the view associated with the <code>cell</code> model is part of the paper.</p>
+
+<p>This function <a href="#dia.Paper.prototype.findViewByModel">finds the view by the cell model</a>. If the view is not part of the paper (e.g. because it was outside the <a href="#dia.Paper.prototype.options.viewport">paper viewport</a>), the function makes it visible. This is necessary when calling certain CellView methods (i.e. <a href="#dia.ElementView.prototype.getBBox">elementView.getBBox</a> or <a href="#dia.LinkView.prototype.getBBox">linkView.getBBox</a>) - these functions need the view to be present in the DOM to function properly.</p>

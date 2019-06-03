@@ -1,0 +1,26 @@
+<pre class="docs-method-signature"><code>paper.checkViewport([viewportFn])</code></pre>
+<p>For every view in the paper, determine if it fits into a specified viewport; if it does not fit, remove the view from the DOM.</p>
+
+<p>While <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers do this automatically (if the <a href="#dia.Paper.prototype.options.viewport"><code>viewport</code></a> option is provided), synchronous papers require a manual call to this function for this functionality to be applied. To reverse the effect of this function, use <a href="#dia.Paper.prototype.dumpViews"><code>paper.dumpViews()</code></a>.</p>
+
+<p>If <code>viewportFn</code> is provided, use it as the callback function; otherwise, use the function specified in <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a>. In any case, the callback function is provided with three arguments:</p>
+
+<table>
+    <tr>
+        <td>view</td>
+        <td><i>mvc.View</i></td>
+        <td>The view in question</td>
+    </tr>
+    <tr>
+        <td>isDetached</td>
+        <td><i>boolean</i></td>
+        <td>Is the view currently hidden from the paper?</td>
+    </tr>
+    <tr>
+        <td>paper</td>
+        <td><i>dia.Paper</i></td>
+        <td>This paper (for context)</td>
+    </tr>
+</table>
+
+<p>See examples of usage in the <a href="#dia.Paper.prototype.options.viewport">documentation of the viewport option</a>.</p>
