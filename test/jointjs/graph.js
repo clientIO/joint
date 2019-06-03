@@ -783,13 +783,15 @@ QUnit.module('graph', function(hooks) {
 
         QUnit.test('sanity', function(assert) {
 
+            var bbox;
+
             var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 20, height: 20 }});
             var r2 = new joint.shapes.basic.Rect({ position: { x: 100, y: 200 }, size: { width: 20, height: 20 }});
             var r3 = new joint.shapes.basic.Rect({ position: { x: 20, y: 10 }, size: { width: 20, height: 20 }});
 
             this.graph.resetCells([r1, r2, r3]);
 
-            var bbox = this.graph.getCellsBBox([r1, r2, r3]);
+            bbox = this.graph.getCellsBBox([r1, r2, r3]);
             assert.equal(bbox.x, 20, 'bbox.x correct');
             assert.equal(bbox.y, 10, 'bbox.y correct');
             assert.equal(bbox.width, 100, 'bbox.width correct');
@@ -798,8 +800,11 @@ QUnit.module('graph', function(hooks) {
             assert.equal(this.graph.getCellsBBox([]), null, 'graph.getBBox([]) with empty array returns null');
 
             var l = new joint.dia.Link();
+            l.source({ x: 10, y: 20 });
+            l.target({ x: 110, y: 120 });
             this.graph.addCell(l);
-            assert.equal(this.graph.getCellsBBox([l]), null, 'graph.getBBox() with links only returns null');
+            bbox = this.graph.getCellsBBox([l]);
+            assert.deepEqual(bbox.toJSON(), { x: 10, y: 20, width: 100, height: 100 }, 'graph.getBBox() with link returns correct bounding box');
 
         });
 

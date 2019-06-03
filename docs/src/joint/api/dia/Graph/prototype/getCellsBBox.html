@@ -1,0 +1,5 @@
+
+<pre class="docs-method-signature"><code>graph.getCellsBBox(cells[, opt])</code></pre>
+<p>Returns the bounding box (<a href="geometry.html#g.Rect">g.Rect</a>) that surrounds all the given cells.</p>
+<pre><code>// Get the bounding box of all `el1` successors and their embeds
+var bbox = graph.getCellsBBox(graph.getSuccessors(el1), { deep: true });</code></pre>

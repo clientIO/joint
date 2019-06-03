@@ -146,7 +146,7 @@ export namespace dia {
                 'topMiddle' | 'topRight' | 'bbox'
         }): Element[];
 
-        getBBox(cells?: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
+        getBBox(): g.Rect | null;
 
         getCellsBBox(cells: Cell[], opt?: Cell.EmbeddableOptions): g.Rect | null;
 
