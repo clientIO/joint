@@ -339,7 +339,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                 rect1.addTo(graph);
                                 rect2.addTo(graph);
                                 var res = paper.updateViews({ batchSize: 1 });
-                                assert.deepEqual(res, { batches: 2, updated: 2 });
+                                assert.deepEqual(res, { batches: 2, updated: 2, priority: 0 });
                                 assert.equal(cellNodesCount(paper), 2);
                             });
 
@@ -351,7 +351,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                 rect2.addTo(graph);
                                 var viewportSpy = sinon.spy(function() { return true; });
                                 var res = paper.updateViews({ viewport: viewportSpy });
-                                assert.deepEqual(res, { batches: 1, updated: 2 });
+                                assert.deepEqual(res, { batches: 1, updated: 2, priority: 0 });
                                 assert.equal(cellNodesCount(paper), 2);
                                 assert.ok(viewportSpy.calledTwice);
                                 // Unmount a view because it's not in the viewport and update views with a different viewport
