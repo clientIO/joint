@@ -430,6 +430,21 @@ export const ElementView = CellView.extend({
     // Interaction. The controller part.
     // ---------------------------------
 
+    notifyPointerdown(evt, x, y) {
+        CellView.prototype.pointerdown.call(this, evt, x, y);
+        this.notify('element:pointerdown', evt, x, y);
+    },
+
+    notifyPointermove(evt, x, y) {
+        CellView.prototype.pointermove.call(this, evt, x, y);
+        this.notify('element:pointermove', evt, x, y);
+    },
+
+    notifyPointerup(evt, x, y) {
+        CellView.prototype.pointermove.call(this, evt, x, y);
+        this.notify('element:pointerup', evt, x, y);
+    },
+
     pointerdblclick: function(evt, x, y) {
 
         CellView.prototype.pointerdblclick.apply(this, arguments);
@@ -452,9 +467,7 @@ export const ElementView = CellView.extend({
 
         if (this.isPropagationStopped(evt)) return;
 
-        CellView.prototype.pointerdown.apply(this, arguments);
-        this.notify('element:pointerdown', evt, x, y);
-
+        this.notifyPointerdown(evt, x, y);
         this.dragStart(evt, x, y);
     },
 
@@ -470,8 +483,7 @@ export const ElementView = CellView.extend({
                 (data.delegatedView || this).drag(evt, x, y);
             // eslint: no-fallthrough=false
             default:
-                CellView.prototype.pointermove.apply(this, arguments);
-                this.notify('element:pointermove', evt, x, y);
+                this.notifyPointermove(evt, x, y);
                 break;
         }
 
@@ -491,12 +503,13 @@ export const ElementView = CellView.extend({
                 (data.delegatedView || this).dragEnd(evt, x, y);
             // eslint: no-fallthrough=false
             default:
-                this.notify('element:pointerup', evt, x, y);
-                CellView.prototype.pointerup.apply(this, arguments);
+                this.notifyPointerup(evt, x, y);
         }
 
         var magnet = data.targetMagnet;
         if (magnet) this.magnetpointerclick(evt, magnet, x, y);
+
+        this.checkMouseleave(evt);
     },
 
     mouseover: function(evt) {
