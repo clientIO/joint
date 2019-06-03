@@ -2119,7 +2119,9 @@ export const LinkView = CellView.extend({
 
         // Let the pointer propagate through the link view elements so that
         // the `evt.target` is another element under the pointer, not the link itself.
-        this.el.style.pointerEvents = 'none';
+        var style = this.el.style;
+        data.pointerEvents = style.pointerEvents;
+        style.pointerEvents = 'none';
 
         if (this.paper.options.markAvailable) {
             this._markAvailableMagnets(data);
@@ -2133,10 +2135,8 @@ export const LinkView = CellView.extend({
             data.z = null;
         }
 
-        // Put `pointer-events` back to its original value. See `startArrowheadMove()` for explanation.
-        // Value `auto` doesn't work in IE9. We force to use `visiblePainted` instead.
-        // See `https://developer.mozilla.org/en-US/docs/Web/CSS/pointer-events`.
-        this.el.style.pointerEvents = 'visiblePainted';
+        // Put `pointer-events` back to its original value. See `_beforeArrowheadMove()` for explanation.
+        this.el.style.pointerEvents = data.pointerEvents;
 
         if (this.paper.options.markAvailable) {
             this._unmarkAvailableMagnets(data);
