@@ -897,6 +897,7 @@ export namespace dia {
             NONE = 'sorting-none'
         }
         type UpdateStats = {
+            priority: number;
             updated: number;
             postponed: number;
             unmounted: number;
