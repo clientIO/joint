@@ -539,11 +539,11 @@ export const Paper = View.extend({
     requestViewUpdate: function(view, flag, priority, opt) {
         opt || (opt = {});
         this.scheduleViewUpdate(view, flag, priority, opt);
-        var async = this.isAsync();
-        if (this.isFrozen() || (async && opt.async !== false)) return;
+        var isAsync = this.isAsync();
+        if (this.isFrozen() || (isAsync && opt.async !== false)) return;
         if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
         var stats = this.updateViews(opt);
-        if (async) this.trigger('render:done', stats, opt);
+        if (isAsync) this.trigger('render:done', stats, opt);
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
