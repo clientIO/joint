@@ -3271,7 +3271,7 @@ export namespace linkTools {
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
-            notifyEvents?: boolean;
+            stopPropagation?: boolean;
         }
     }
 
