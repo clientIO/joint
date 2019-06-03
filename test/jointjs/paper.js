@@ -1933,24 +1933,27 @@ QUnit.module('paper', function(hooks) {
 
                     var eventOrder;
                     if (magnetType === 'passive') {
-                        assert.equal(spy.callCount, 7);
                         eventOrder = [
                             'cell:pointerdown',
                             'element:pointerdown',
                             'element:pointerup',
                             'cell:pointerup',
                             eventName,
+                            'cell:mouseleave',
+                            'element:mouseleave',
                             'cell:pointerclick',
                             'element:pointerclick'
                         ];
                     } else {
-                        assert.ok(spy.calledThrice);
                         eventOrder = [
                             eventName,
+                            'cell:mouseleave',
+                            'element:mouseleave',
                             'cell:pointerclick',
                             'element:pointerclick'
                         ];
                     }
+                    assert.equal(spy.callCount, eventOrder.length);
                     assert.deepEqual(getEventNames(spy), eventOrder);
                     // Stop propagation
                     paper.on(eventName, function(_, evt) {
@@ -1962,13 +1965,10 @@ QUnit.module('paper', function(hooks) {
                         clientX: 13,
                         clientY: 17
                     });
-                    if (magnetType === 'passive') {
-                        assert.equal(spy.callCount, 5);
-                    } else {
-                        assert.ok(spy.calledOnce);
-                    }
+                    assert.equal(spy.callCount, eventOrder.length - 2);
                     var localPoint = paper.snapToGrid(13, 17);
-                    assert.ok(spy.lastCall.calledWithExactly(
+                    var eventIndex = eventOrder.indexOf(eventName);
+                    assert.ok(spy.getCall(eventIndex).calledWithExactly(
                         eventName,
                         elView,
                         sinon.match.instanceOf($.Event),
@@ -2136,6 +2136,8 @@ QUnit.module('paper', function(hooks) {
                 'element:pointerdown',
                 'element:pointerup',
                 'cell:pointerup',
+                'cell:mouseleave',
+                'element:mouseleave',
                 'cell:pointerclick',
                 eventName
             ];
@@ -2160,8 +2162,8 @@ QUnit.module('paper', function(hooks) {
                 clientX: 100,
                 clientY: 100
             });
-            assert.equal(spy.callCount, 4);
-            assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerup') + 1));
+            assert.equal(spy.callCount, eventOrder.length - 2);
+            assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerclick')));
         });
 
         QUnit.test('blank:pointerclick', function(assert) {
