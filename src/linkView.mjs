@@ -1538,8 +1538,8 @@ export const LinkView = CellView.extend({
     },
 
     notifyPointerup(evt, x, y) {
-        CellView.prototype.pointermove.call(this, evt, x, y);
         this.notify('link:pointerup', evt, x, y);
+        CellView.prototype.pointermove.call(this, evt, x, y);
     },
 
     pointerdblclick: function(evt, x, y) {
