@@ -1,7 +1,7 @@
 import { invoke } from './util.js';
 import { View, views } from './view.js';
 
-export const version = '[%= pkg.version %]';
+export const version = 'VERSION';
 export const dia = {};
 export const ui = {};
 export const layout = {};
