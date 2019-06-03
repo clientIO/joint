@@ -212,11 +212,8 @@ var Vertices = ToolView.extend({
             linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
         }
         var [normalizedEvt, x, y] = linkView.paper.getPointerArgs(evt);
-        if (!options.stopPropagation) {
-            linkView.notifyPointerup(normalizedEvt, x, y);
-        } else {
-            linkView.checkMouseleave(normalizedEvt);
-        }
+        if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvt, x, y);
+        linkView.checkMouseleave(normalizedEvt);
     },
     snapVertex: function(vertex, index) {
         var snapRadius = this.options.snapRadius;
