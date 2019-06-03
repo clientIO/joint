@@ -1,6 +1,6 @@
-import '../module/polyfills.mjs';
-import * as layout from '../module/layout/index.mjs';
-import * as shapes from '../module/shapes/index.mjs';
+import '../plugins/polyfills/index.mjs';
+import * as layout from '../layout/index.mjs';
+import * as shapes from '../shapes/index.mjs';
 
 const format = {};
 const ui = {};

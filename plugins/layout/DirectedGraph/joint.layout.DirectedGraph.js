@@ -1,6 +1,6 @@
 import * as dagre from 'dagre';
 import * as util from '../../../src/util.js';
-import { Graph } from '../../../module/dia/index.mjs';
+import { Graph } from '../../../dia/index.mjs';
 import * as g from '../../../src/geometry.js';
 
 export const DirectedGraph = {

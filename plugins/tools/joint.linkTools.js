@@ -1,7 +1,7 @@
 import * as g from '../../src/geometry.js';
 import V from '../../src/vectorizer.js';
 import * as util from '../../src/util.js';
-import * as connectionStrategies from '../../module/connectionStrategies/index.mjs';
+import * as connectionStrategies from '../../connectionStrategies/index.mjs';
 import * as mvc from '../../src/view.js';
 import { ToolView } from '../../src/joint.dia.tools.js';
 

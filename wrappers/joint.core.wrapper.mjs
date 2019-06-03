@@ -1,8 +1,8 @@
-import '../module/polyfills.mjs';
-import { Port } from '../module/layout/port.mjs'
-import { PortLabel } from '../module/layout/portLabel.mjs'
-import * as basic from '../module/shapes/basic.mjs';
-import * as standard from '../module/shapes/standard.mjs';
+import '../plugins/polyfills/index.mjs';
+import { Port } from '../layout/port.mjs'
+import { PortLabel } from '../layout/portLabel.mjs'
+import * as basic from '../shapes/basic.mjs';
+import * as standard from '../shapes/standard.mjs';
 
 const shapes = { basic, standard };
 const layout = { PortLabel, Port };
