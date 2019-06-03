@@ -3,7 +3,8 @@ import babel from 'rollup-plugin-babel';
 import path from 'path';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
-import ignore from 'rollup-plugin-ignore';
+import externalGlobals from 'rollup-plugin-external-globals';
+
 const modules = require('./grunt/resources/es6');
 const pkg = require('./package.json');
 
@@ -12,7 +13,11 @@ let plugins = [
         include: 'src/core.js',
         VERSION: pkg.version
     }),
-    ignore(['dagre']),
+
+    // prevent injecting 'dagre' into ES5 bundle
+    externalGlobals({
+        'dagre': 'dagre'
+    }),
     babel({ exclude: 'node_modules/**' })
 ];
 
@@ -79,7 +84,7 @@ export const joint = {
         globals: {
             'jquery': '$',
             'backbone': 'Backbone',
-            'lodash': '_',
+            'lodash': '_'
         }
     }],
     plugins: plugins
