@@ -70,6 +70,7 @@ module.exports = function(grunt) {
                 files: [
                     modules.geometry.umd,
                     modules.vectorizer.umd,
+                    'test/geometry/*.js',
                     'test/vectorizer/*.js',
                 ],
                 preprocessors: karmaPreprocessors([modules.vectorizer.umd]),

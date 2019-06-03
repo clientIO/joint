@@ -2,19 +2,21 @@ import commonjs from 'rollup-plugin-commonjs';
 import babel from 'rollup-plugin-babel';
 import path from 'path';
 import resolve from 'rollup-plugin-node-resolve';
-
+import replace from 'rollup-plugin-replace';
 const modules = require('./grunt/resources/es6');
+const pkg = require('./package.json');
 
 let plugins = [
+    replace({
+        include: 'src/core.js',
+        VERSION: pkg.version
+    }),
     babel({ exclude: 'node_modules/**' })
 ];
 
 let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V; }';
 
-const GLOBALS_ALL_MAP = {
-    lodash: '_',
-    jquery: '$',
-    backbone: 'Backbone',
+const GLOBALS_MAP = {
     vectorizer: {
         name: 'V',
         src: path.resolve(modules.vectorizer.src)
@@ -38,17 +40,12 @@ export const geometry = {
 
 export const vectorizer = {
     input: modules.vectorizer.src,
-    external: [GLOBALS_ALL_MAP.geometry.src],
     output: [{
         file: modules.vectorizer.umd,
         format: 'umd',
         name: 'V',
         freeze: false,
-        globals: ((map) => {
-            const globals = {};
-            globals[map.geometry.src] = 'g';
-            return globals;
-        })(GLOBALS_ALL_MAP),
+        footer: 'if (typeof V !== \'undefined\') { var g = V.g; };\n'
     }],
     plugins: plugins
 };
@@ -96,8 +93,8 @@ export const jointNoDependencies = {
         'backbone',
         'lodash',
         'dagre',
-        GLOBALS_ALL_MAP.geometry.src,
-        GLOBALS_ALL_MAP.vectorizer.src
+        GLOBALS_MAP.geometry.src,
+        GLOBALS_MAP.vectorizer.src
     ],
     output: [{
         file: modules.joint.noDependencies,
@@ -115,7 +112,7 @@ export const jointNoDependencies = {
             globals[map.geometry.src] = 'g';
             globals[map.vectorizer.src] = 'V';
             return globals;
-        })(GLOBALS_ALL_MAP)
+        })(GLOBALS_MAP)
     }],
     plugins: plugins
 };

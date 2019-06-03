@@ -2467,6 +2467,8 @@ const V = (function() {
 
     V.namespace = ns;
 
+    V.g = g;
+
     return V;
 
 })();

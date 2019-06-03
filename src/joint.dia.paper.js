@@ -294,6 +294,10 @@ export const Paper = View.extend({
 
     init: function() {
 
+        if (!this.options.cellViewNamespace) {
+            this.options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+        }
+
         bindAll(this, 'pointerup');
 
         var model = this.model = this.options.model || new Graph;
