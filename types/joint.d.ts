@@ -423,18 +423,15 @@ export namespace dia {
             priority?: boolean;
         }
 
-        interface EndCellJSON extends EndCellArgs {
-            id: number | string;
-        }
-
-        interface EndPointJSON {
-            x: number;
-            y: number;
+        interface EndJSON extends EndCellArgs {
+            id?: number | string;
+            x?: number;
+            y?: number;
         }
 
         interface GenericAttributes<T> extends Cell.GenericAttributes<T> {
-            source?: EndCellJSON | EndPointJSON;
-            target?: EndCellJSON | EndPointJSON;
+            source?: EndJSON;
+            target?: EndJSON;
             labels?: Label[];
             vertices?: Point[];
             manhattan?: boolean;
@@ -495,12 +492,12 @@ export namespace dia {
 
         disconnect(): this;
 
-        source(): Link.EndCellJSON | Link.EndPointJSON;
-        source(source: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        source(): Link.EndJSON;
+        source(source: Link.EndJSON, opt?: Cell.Options): this;
         source(source: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
-        target(): Link.EndCellJSON | Link.EndPointJSON;
-        target(target: Link.EndCellJSON | Link.EndPointJSON, opt?: Cell.Options): this;
+        target(): Link.EndJSON;
+        target(target: Link.EndJSON, opt?: Cell.Options): this;
         target(target: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
 
         router(): routers.Router | routers.RouterJSON | null;
@@ -577,6 +574,9 @@ export namespace dia {
         interface InteractivityOptions extends ElementView.InteractivityOptions, LinkView.InteractivityOptions {
 
         }
+
+        type FlagLabel = string | string[];
+        type PresentationAttributes = { [key: string]: FlagLabel };
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
@@ -587,7 +587,7 @@ export namespace dia {
 
         initFlag: number;
 
-        presentationAttributes: { [key: string]: number };
+        presentationAttributes: CellView.PresentationAttributes;
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -627,6 +627,10 @@ export namespace dia {
 
         isNodeConnection(node: SVGElement): boolean;
 
+        getEventTarget(evt: JQuery.Event, opt?: { fromPoint?: boolean }): Element;
+
+        checkMouseleave(evt: JQuery.Event): void;
+
         protected onToolEvent(eventName: string): void;
 
         protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
@@ -656,6 +660,8 @@ export namespace dia {
         protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
 
         static dispatchToolsEvent(paper: dia.Paper, eventName: string): void;
+
+        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -675,9 +681,7 @@ export namespace dia {
 
     class ElementView extends CellViewGeneric<Element> {
 
-        update(element: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
-
-        updateAttributes(renderingOnlyAttrs?: { [key: string]: any }): void;
+        update(element?: Element, renderingOnlyAttrs?: { [key: string]: any }): void;
 
         setInteractivity(value: boolean | ElementView.InteractivityOptions): void;
 
@@ -719,6 +723,7 @@ export namespace dia {
             vertexRemove?: boolean;
             arrowheadMove?: boolean;
             labelMove?: boolean;
+            linkMove?: boolean;
             useLinkTools?: boolean;
         }
 
@@ -844,6 +849,12 @@ export namespace dia {
         protected dragArrowheadEnd(evt: JQuery.Event, x: number, y: number): void;
 
         protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+
+        protected notifyPointerdown(evt: JQuery.Event, x: number, y: number): void;
+
+        protected notifyPointermove(evt: JQuery.Event, x: number, y: number): void;
+
+        protected notifyPointerup(evt: JQuery.Event, x: number, y: number): void;
     }
 
     // dia.Paper
@@ -880,6 +891,22 @@ export namespace dia {
 
         type Dimension = number | string | null;
 
+        enum sorting {
+            EXACT = 'sorting-exact',
+            APPROX = 'sorting-approximate',
+            NONE = 'sorting-none'
+        }
+        type UpdateStats = {
+            updated: number;
+            postponed: number;
+            unmounted: number;
+            mounted: number;
+            empty: boolean;
+        };
+
+        type ViewportCallback = (view: mvc.View<any>, isDetached: boolean, paper: Paper) => boolean;
+        type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
             width?: Dimension;
@@ -889,7 +916,6 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
-            async?: boolean | { batchSize: number };
             // interactions
             gridSize?: number;
             highlighting?: { [type: string]: highlighters.HighlighterJSON };
@@ -920,13 +946,24 @@ export namespace dia {
             // default views, models & attributes
             cellViewNamespace?: any;
             highlighterNamespace?: any;
+            anchorNamespace?: any;
+            linkAnchorNamespace?: any,
+            connectionPointNamespace?: any;
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
             defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
+            defaultLinkAnchor?: anchors.AnchorJSON  | anchors.Anchor;
             defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
+            // rendering
+            async?: boolean;
+            sorting?: sorting;
+            frozen?: boolean;
+            viewport?: ViewportCallback | null;
+            onViewUpdate?: (view: mvc.View<any>, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
         }
 
         interface ScaleContentOptions {
@@ -1074,6 +1111,8 @@ export namespace dia {
 
         update(): this;
 
+        getPointerArgs(evt: JQuery.Event): [JQuery.Event, number, number];
+
         // tools
 
         removeTools(): this;
@@ -1082,7 +1121,98 @@ export namespace dia {
 
         showTools(): this;
 
+        // rendering
+
+        freeze(opt?: {
+            key?: string
+        }): void;
+
+        unfreeze(opt?: {
+            key?: string;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            batchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): void;
+
+        isFrozen(): boolean;
+
+        requestViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+
+        requireView<T extends ElementView | LinkView>(model: Cell | string | number, opt?: dia.Cell.Options): T;
+
+        dumpViews(opt?: {
+            batchSize?: number;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): void;
+
+        checkViewport(opt?: {
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            viewport?: Paper.ViewportCallback;
+        }): {
+            mounted: number;
+            unmounted: number;
+        };
+
+        updateViews(opt?: {
+            batchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): {
+            updated: number;
+            batches: number;
+        };
+
         // protected
+
+        protected scheduleViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+
+        protected dumpViewUpdate(view: mvc.View<any>): number;
+
+        protected dumpView(view: mvc.View<any>, opt?: { [key: string]: any }): number;
+
+        protected updateView(view: mvc.View<any>, flag: number, opt?: { [key: string]: any }): number;
+
+        protected registerUnmountedView(view: mvc.View<any>): number;
+
+        protected registerMountedView(view: mvc.View<any>): number;
+
+        protected updateViewsAsync(opt?: {
+            batchSize?: number;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            viewport?: Paper.ViewportCallback;
+            progress?: Paper.ProgressCallback;
+        }): void;
+
+        protected updateViewsBatch(opt?: {
+            batchSize?: number;
+            viewport?: Paper.ViewportCallback;
+        }): Paper.UpdateStats;
+
+        protected checkMountedViews(viewport: Paper.ViewportCallback, opt?: { unmountBatchSize?: number }): number;
+
+        protected checkUnmountedViews(viewport: Paper.ViewportCallback, opt?: { mountBatchSize?: number }): number;
+
+        protected isAsync(): boolean;
+
+        protected isExactSorting(): boolean;
+
+        protected sortViews(): void;
+
+        protected sortViewsExact(): void;
+
+        protected insertView(view: dia.CellView): void;
+
+        protected addZPivot(z: number): Comment;
+
+        protected removeZPivots(): void
+
         protected pointerdblclick(evt: JQuery.Event): void;
 
         protected pointerclick(evt: JQuery.Event): void;
@@ -1113,23 +1243,28 @@ export namespace dia {
 
         protected guard(evt: JQuery.Event, view: CellView): boolean;
 
-        protected sortViews(): void;
-
         protected drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
+
+        protected updateBackgroundColor(color: string): void;
+
+        protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
 
         protected createViewForModel(cell: Cell): CellView;
 
         protected cloneOptions(): Paper.Options;
 
-        protected afterRenderViews(): void;
+        protected onCellAdded(cell: Cell, collection: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected asyncRenderViews(cells: Cell[], opt?: { [key: string]: any }): void;
+        protected onCellRemoved(cell: Cell, collection: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected beforeRenderViews(cells: Cell[]): Cell[];
+        protected onCellChanged(cell: Cell, opt: dia.Cell.Options): void;
+        protected onCellChanged(cell: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected init(): void;
+        protected onGraphReset(cells: Backbone.Collection<Cell>, opt: dia.Graph.Options): void;
 
-        protected onCellAdded(cell: Cell, graph: Graph, opt: { async?: boolean, position?: number }): void;
+        protected onGraphSort(): void;
+
+        protected onGraphBatchStop(): void;
 
         protected onCellHighlight(cellView: CellView, magnetEl: SVGElement, opt?: { highlighter?: highlighters.HighlighterJSON }): void;
 
@@ -1144,10 +1279,6 @@ export namespace dia {
         protected renderView(cell: Cell): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
-
-        protected updateBackgroundColor(color: string): void;
-
-        protected updateBackgroundImage(opt: { position?: any, size?: any }): void;
     }
 
     namespace ToolsView {
@@ -2407,6 +2538,8 @@ export namespace mvc {
 
         constructor(opt?: ViewOptions<T>);
 
+        UPDATE_PRIORITY: number;
+
         vel: Vectorizer | null;
 
         options: ViewOptions<T>;
@@ -2423,6 +2556,8 @@ export namespace mvc {
 
         children?: dia.MarkupJSON;
 
+        childNodes?: { [key: string]: Element } | null;
+
         setTheme(theme: string, opt?: { override?: boolean }): this;
 
         getEventNamespace(): string;
@@ -2431,14 +2566,23 @@ export namespace mvc {
 
         undelegateDocumentEvents(): this;
 
+        delegateElementEvents(element: Element, events?: Backbone.EventsHash, data?: viewEventData): this;
+
+        undelegateElementEvents(element: Element): this;
+
         eventData(evt: JQuery.Event): viewEventData;
         eventData(evt: JQuery.Event, data: viewEventData): this;
+
+        stopPropagation(evt: JQuery.Event): this;
+        isPropagationStopped(evt: JQuery.Event): boolean;
 
         renderChildren(children?: dia.MarkupJSON): this;
 
         findAttribute(attributeName: string, node: Element): string | null;
 
         confirmUpdate(flag: number, opt: { [key: string]: any }): number;
+
+        unmount(): void;
 
         protected init(): void;
 
@@ -2620,6 +2764,10 @@ export namespace anchors {
         'perpendicular': PaddingAnchorArguments;
         'midSide': MidSideAnchorArguments;
         'modelCenter': ModelCenterAnchorArguments;
+        'connectionRatio': linkAnchors.ConnectionLengthAnchorArguments;
+        'connectionLength': linkAnchors.ConnectionLengthAnchorArguments;
+        'connectionPerpendicular': linkAnchors.ConnectionPerpendicularAnchorArguments;
+        'connectionClosest': linkAnchors.ConnectionClosestAnchorArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -2660,6 +2808,31 @@ export namespace anchors {
     export var bottomRight: GenericAnchor<'bottomRight'>;
     export var perpendicular: GenericAnchor<'perpendicular'>;
     export var midSide: GenericAnchor<'midSide'>;
+}
+
+export namespace linkAnchors {
+
+    interface ConnectionLengthAnchorArguments {
+        length?: number
+    }
+
+    interface ConnectionRatioAnchorArguments {
+        ratio?: number
+    }
+
+    interface ConnectionPerpendicularAnchorArguments {
+        fallbackAt?: number | string;
+        fixedAt?: number | string;
+    }
+
+    interface ConnectionClosestAnchorArguments {
+        fixedAt?: number | string;
+    }
+
+    export var connectionRatio: anchors.GenericAnchor<'connectionRatio'>;
+    export var connectionLength: anchors.GenericAnchor<'connectionLength'>;
+    export var connectionPerpendicular: anchors.GenericAnchor<'connectionPerpendicular'>;
+    export var connectionClosest: anchors.GenericAnchor<'connectionClosest'>;
 }
 
 // connection points
@@ -3094,9 +3267,11 @@ export namespace linkTools {
 
     namespace Vertices {
         interface Options extends dia.ToolView.Options {
+            handleClass?: any;
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
+            stopPropagation?: boolean;
         }
     }
 
@@ -3107,6 +3282,7 @@ export namespace linkTools {
 
     namespace Segments {
         interface Options extends dia.ToolView.Options {
+            handleClass?: any;
             snapRadius?: number;
             snapHandle?: boolean;
             redundancyRemoval?: boolean;

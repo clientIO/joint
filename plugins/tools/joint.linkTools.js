@@ -63,7 +63,7 @@ var VertexHandle = mvc.View.extend({
         evt.preventDefault();
         this.options.paper.undelegateEvents();
         this.delegateDocumentEvents(null, evt.data);
-        this.trigger('will-change');
+        this.trigger('will-change', this, evt);
     },
     onPointerMove: function(evt) {
         this.trigger('changing', this, evt);
@@ -85,6 +85,7 @@ var Vertices = ToolView.extend({
         snapRadius: 20,
         redundancyRemoval: true,
         vertexAdding: true,
+        stopPropagation: true
     },
     children: [{
         tagName: 'path',
@@ -183,19 +184,36 @@ var Vertices = ToolView.extend({
             next: new g.Point(next)
         };
     },
-    onHandleWillChange: function(handle, evt) {
+    onHandleWillChange: function(_handle, evt) {
         this.focus();
-        this.relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
+        const { relatedView, options } = this;
+        relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
+        if (!options.stopPropagation) relatedView.notifyPointerdown(...relatedView.paper.getPointerArgs(evt));
     },
     onHandleChanging: function(handle, evt) {
-        var relatedView = this.relatedView;
-        var paper = relatedView.paper;
+        const { options, relatedView: linkView } = this;
         var index = handle.options.index;
-        var normalizedEvent = util.normalizeEvent(evt);
-        var vertex = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
+        var [normalizedEvent, x, y] = linkView.paper.getPointerArgs(evt);
+        var vertex = { x, y };
         this.snapVertex(vertex, index);
-        relatedView.model.vertex(index, vertex, { ui: true, tool: this.cid });
+        linkView.model.vertex(index, vertex, { ui: true, tool: this.cid });
         handle.position(vertex.x, vertex.y);
+        if (!options.stopPropagation) linkView.notifyPointermove(normalizedEvent, x, y);
+    },
+    onHandleChanged: function(_handle, evt) {
+        const { options, relatedView: linkView } = this;
+        if (options.vertexAdding) this.updatePath();
+        if (!options.redundancyRemoval) return;
+        var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+        if (verticesRemoved) this.render();
+        this.blur();
+        linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
+        if (this.eventData(evt).vertexAdded) {
+            linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
+        }
+        var [normalizedEvt, x, y] = linkView.paper.getPointerArgs(evt);
+        linkView.checkMouseleave(normalizedEvt);
+        if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvt, x, y);
     },
     snapVertex: function(vertex, index) {
         var snapRadius = this.options.snapRadius;
@@ -215,21 +233,12 @@ var Vertices = ToolView.extend({
             }
         }
     },
-    onHandleChanged: function(handle, evt) {
-        if (this.options.vertexAdding) this.updatePath();
-        if (!this.options.redundancyRemoval) return;
-        var linkView = this.relatedView;
-        var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
-        if (verticesRemoved) this.render();
-        this.blur();
-        linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
-        if (this.eventData(evt).vertexAdded) {
-            linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
-        }
-    },
-    onHandleRemove: function(handle) {
+    onHandleRemove: function(handle, evt) {
         var index = handle.options.index;
-        this.relatedView.model.removeVertex(index, { ui: true });
+        var linkView = this.relatedView;
+        linkView.model.removeVertex(index, { ui: true });
+        this.updatePath();
+        linkView.checkMouseleave(util.normalizeEvent(evt));
     },
     onPathPointerDown: function(evt) {
         evt.stopPropagation();
@@ -243,8 +252,8 @@ var Vertices = ToolView.extend({
         relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
         this.render();
         var handle = this.handles[index];
-        this.eventData(evt, { vertexAdded: true });
-        handle.onPointerDown(evt);
+        this.eventData(normalizedEvent, { vertexAdded: true });
+        handle.onPointerDown(normalizedEvent);
     },
     onRemove: function() {
         this.resetHandles();
@@ -543,7 +552,7 @@ var Segments = ToolView.extend({
         });
         relatedView.model.startBatch('segment-move', { ui: true, tool: this.cid });
     },
-    onHandleChangeEnd: function(handle) {
+    onHandleChangeEnd: function(_handle, evt) {
         var linkView = this.relatedView;
         if (this.options.redundancyRemoval) {
             linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
@@ -551,6 +560,7 @@ var Segments = ToolView.extend({
         this.render();
         this.blur();
         linkView.model.stopBatch('segment-move', { ui: true, tool: this.cid });
+        linkView.checkMouseleave(util.normalizeEvent(evt));
     },
     updateHandle: function(handle, vertex, nextVertex, offset) {
         var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;

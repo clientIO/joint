@@ -59,32 +59,24 @@ joint.dia.Element.define('perf.ConveyorElement', {
     }
 });
 
-var FLAG_TRANSLATE = 1<<0;
-var FLAG_RESIZE = 1<<1;
-var FLAG_ROTATE = 1<<2;
-var FLAG_PALLET = 1<<3;
-var FLAG_MARKUP = 1<<4;
-
 joint.shapes.perf.ConveyorElementView = joint.dia.ElementView.extend({
 
-    initFlag: FLAG_TRANSLATE | FLAG_RESIZE | FLAG_ROTATE | FLAG_PALLET | FLAG_MARKUP,
+    initFlag: ['TRANSLATE', 'RESIZE', 'ROTATE', 'PALLET', 'MARKUP'],
 
     presentationAttributes: {
-        'position': FLAG_TRANSLATE,
-        'size': FLAG_RESIZE | FLAG_ROTATE,
-        'angle': FLAG_ROTATE,
-        'hasPallet': FLAG_PALLET
+        'position': ['TRANSLATE'],
+        'size': ['RESIZE', 'ROTATE'],
+        'angle': ['ROTATE'],
+        'hasPallet': ['PALLET']
     },
 
     confirmUpdate: function(flag) {
 
-        if (flag & FLAG_MARKUP) this.renderMarkup();
-        if (flag & FLAG_PALLET) this.updatePallet();
-        if (flag & FLAG_RESIZE) this.resize();
-        if (flag & FLAG_ROTATE) this.rotate();
-        if (flag & FLAG_TRANSLATE) this.translate();
-
-        return 0;
+        if (this.hasFlag(flag, 'MARKUP')) this.renderMarkup();
+        if (this.hasFlag(flag, 'PALLET')) this.updatePallet();
+        if (this.hasFlag(flag, 'RESIZE')) this.resize();
+        if (this.hasFlag(flag, 'ROTATE')) this.rotate();
+        if (this.hasFlag(flag, 'TRANSLATE')) this.translate();
     },
 
     updatePallet: function() {
@@ -211,4 +203,3 @@ var updateConveyor = function() {
 };
 
 setInterval(updateConveyor, 1);
-

@@ -559,7 +559,7 @@ export const Cell = Backbone.Model.extend({
         return this.set(merge({}, this.attributes, props), value);
     },
 
-    // A convient way to unset nested properties
+    // A convenient way to unset nested properties
     removeProp: function(path, opt) {
 
         opt = opt || {};
@@ -567,7 +567,7 @@ export const Cell = Backbone.Model.extend({
         var pathArray = Array.isArray(path) ? path : path.split('/');
 
         // Once a property is removed from the `attrs` attribute
-        // the cellView will recognize a `dirty` flag and rerender itself
+        // the cellView will recognize a `dirty` flag and re-render itself
         // in order to remove the attribute from SVG element.
         var property = pathArray[0];
         if (property === 'attrs') opt.dirty = true;

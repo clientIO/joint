@@ -1,7 +1,6 @@
 import { Element } from '../../src/joint.dia.element.js';
 import { ElementView } from '../../src/elementView.mjs';
-import V from '../../src/vectorizer.js';
-import { toArray, omit, assign, template, sanitizeHTML, merge, has, breakText, setByPath } from '../../src/util.js';
+import { omit, assign, sanitizeHTML, merge, has, breakText, setByPath } from '../../src/util.js';
 import { env } from '../../src/core.js';
 
 export const Generic = Element.define('basic.Generic', {
@@ -35,11 +34,19 @@ export const Rect = Generic.define('basic.Rect', {
 
 export const TextView = ElementView.extend({
 
-    initialize: function() {
-        ElementView.prototype.initialize.apply(this, arguments);
-        // The element view is not automatically rescaled to fit the model size
+    presentationAttributes: ElementView.addPresentationAttributes({
+        // The element view is not automatically re-scaled to fit the model size
         // when the attribute 'attrs' is changed.
-        this.listenTo(this.model, 'change:attrs', this.resize);
+        attrs: ['SCALE']
+    }),
+
+    confirmUpdate: function() {
+        var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
+        if (this.hasFlag(flag, 'SCALE')) {
+            this.resize();
+            this.removeFlag(flag, 'SCALE');
+        }
+        return flag;
     }
 });
 
@@ -202,139 +209,7 @@ export const Rhombus = Path.define('basic.Rhombus', {
     }
 });
 
-
-/**
- * @deprecated use the port api instead
- */
-// PortsModelInterface is a common interface for shapes that have ports. This interface makes it easy
-// to create new shapes with ports functionality. It is assumed that the new shapes have
-// `inPorts` and `outPorts` array properties. Only these properties should be used to set ports.
-// In other words, using this interface, it is no longer recommended to set ports directly through the
-// `attrs` object.
-
-// Usage:
-// joint.shapes.custom.MyElementWithPorts = joint.shapes.basic.Path.extend(_.extend({}, joint.shapes.basic.PortsModelInterface, {
-//     getPortAttrs: function(portName, index, total, selector, type) {
-//         var attrs = {};
-//         var portClass = 'port' + index;
-//         var portSelector = selector + '>.' + portClass;
-//         var portTextSelector = portSelector + '>text';
-//         var portBodySelector = portSelector + '>.port-body';
-//
-//         attrs[portTextSelector] = { text: portName };
-//         attrs[portBodySelector] = { port: { id: portName || _.uniqueId(type) , type: type } };
-//         attrs[portSelector] = { ref: 'rect', 'ref-y': (index + 0.5) * (1 / total) };
-//
-//         if (selector === '.outPorts') { attrs[portSelector]['ref-dx'] = 0; }
-//
-//         return attrs;
-//     }
-//}));
-export const PortsModelInterface = {
-
-    initialize: function() {
-
-        this.updatePortsAttrs();
-        this.on('change:inPorts change:outPorts', this.updatePortsAttrs, this);
-
-        // Call the `initialize()` of the parent.
-        this.constructor.__super__.constructor.__super__.initialize.apply(this, arguments);
-    },
-
-    updatePortsAttrs: function(eventName) {
-
-        if (this._portSelectors) {
-
-            var newAttrs = omit(this.get('attrs'), this._portSelectors);
-            this.set('attrs', newAttrs, { silent: true });
-        }
-
-        // This holds keys to the `attrs` object for all the port specific attribute that
-        // we set in this method. This is necessary in order to remove previously set
-        // attributes for previous ports.
-        this._portSelectors = [];
-
-        var attrs = {};
-
-        toArray(this.get('inPorts')).forEach(function(portName, index, ports) {
-            var portAttributes = this.getPortAttrs(portName, index, ports.length, '.inPorts', 'in');
-            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
-            assign(attrs, portAttributes);
-        }, this);
-
-        toArray(this.get('outPorts')).forEach(function(portName, index, ports) {
-            var portAttributes = this.getPortAttrs(portName, index, ports.length, '.outPorts', 'out');
-            this._portSelectors = this._portSelectors.concat(Object.keys(portAttributes));
-            assign(attrs, portAttributes);
-        }, this);
-
-        // Silently set `attrs` on the cell so that noone knows the attrs have changed. This makes sure
-        // that, for example, command manager does not register `change:attrs` command but only
-        // the important `change:inPorts`/`change:outPorts` command.
-        this.attr(attrs, { silent: true });
-        // Manually call the `processPorts()` method that is normally called on `change:attrs` (that we just made silent).
-        this.processPorts();
-        // Let the outside world (mainly the `ModelView`) know that we're done configuring the `attrs` object.
-        this.trigger('process:ports');
-    },
-
-    getPortSelector: function(name) {
-
-        var selector = '.inPorts';
-        var index = this.get('inPorts').indexOf(name);
-
-        if (index < 0) {
-            selector = '.outPorts';
-            index = this.get('outPorts').indexOf(name);
-
-            if (index < 0) throw new Error('getPortSelector(): Port doesn\'t exist.');
-        }
-
-        return selector + '>g:nth-child(' + (index + 1) + ')>.port-body';
-    }
-};
-
-export const PortsViewInterface = {
-
-    initialize: function() {
-
-        // `Model` emits the `process:ports` whenever it's done configuring the `attrs` object for ports.
-        this.listenTo(this.model, 'process:ports', this.update);
-
-        ElementView.prototype.initialize.apply(this, arguments);
-    },
-
-    update: function() {
-
-        // First render ports so that `attrs` can be applied to those newly created DOM elements
-        // in `ElementView.prototype.update()`.
-        this.renderPorts();
-        ElementView.prototype.update.apply(this, arguments);
-    },
-
-    renderPorts: function() {
-
-        var $inPorts = this.$('.inPorts').empty();
-        var $outPorts = this.$('.outPorts').empty();
-
-        var portTemplate = template(this.model.portMarkup);
-
-        var ports = toArray(this.model.ports);
-        ports.filter(function(p) {
-            return p.type === 'in';
-        }).forEach(function(port, index) {
-
-            $inPorts.append(V(portTemplate({ id: index, port: port })).node);
-        });
-
-        ports.filter(function(p) {
-            return p.type === 'out';
-        }).forEach(function(port, index) {
-
-            $outPorts.append(V(portTemplate({ id: index, port: port })).node);
-        });
-    }
-};
+const svgForeignObjectSupported = env.test('svgforeignobject');
 
 export const TextBlock = Generic.define('basic.TextBlock', {
     // see joint.css for more element styles
@@ -364,7 +239,9 @@ export const TextBlock = Generic.define('basic.TextBlock', {
     markup: [
         '<g class="rotatable">',
         '<g class="scalable"><rect/></g>',
-        env.test('svgforeignobject') ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>' : '<text class="content"/>',
+        svgForeignObjectSupported
+            ? '<foreignObject class="fobj"><body xmlns="http://www.w3.org/1999/xhtml"><div class="content"/></body></foreignObject>'
+            : '<text class="content"/>',
         '</g>'
     ].join(''),
 
@@ -391,7 +268,7 @@ export const TextBlock = Generic.define('basic.TextBlock', {
 
     updateContent: function(cell, content) {
 
-        if (env.test('svgforeignobject')) {
+        if (svgForeignObjectSupported) {
 
             // Content element is a <div> element.
             this.attr({
@@ -429,27 +306,29 @@ export const TextBlock = Generic.define('basic.TextBlock', {
 // the text needs to be manually broken.
 export const TextBlockView = ElementView.extend({
 
-    initialize: function() {
+    presentationAttributes: svgForeignObjectSupported
+        ? ElementView.prototype.presentationAttributes
+        : ElementView.addPresentationAttributes({
+            content: ['CONTENT'],
+            size: ['CONTENT']
+        }),
 
-        ElementView.prototype.initialize.apply(this, arguments);
+    initFlag: ['RENDER', 'CONTENT'],
 
-        // Keep this for backwards compatibility:
-        this.noSVGForeignObjectElement = !env.test('svgforeignobject');
-
-        if (!env.test('svgforeignobject')) {
-
-            this.listenTo(this.model, 'change:content change:size', function(cell) {
-                // avoiding pass of extra parameters
-                this.updateContent(cell);
-            });
+    confirmUpdate: function() {
+        var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
+        if (this.hasFlag(flag, 'CONTENT')) {
+            this.updateContent(this.model);
+            flag = this.removeFlag(flag, 'CONTENT');
         }
+        return flag;
     },
 
-    update: function(cell, renderingOnlyAttrs) {
+    update: function(_, renderingOnlyAttrs) {
 
         var model = this.model;
 
-        if (!env.test('svgforeignobject')) {
+        if (!svgForeignObjectSupported) {
 
             // Update everything but the content first.
             var noTextAttrs = omit(renderingOnlyAttrs || model.get('attrs'), '.content');

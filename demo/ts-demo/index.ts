@@ -19,9 +19,12 @@ const paper = new joint.dia.Paper({
     gridSize: 20,
     model: graph,
     markAvailable: true,
+    frozen: true,
     defaultLink: new joint.shapes.app.Link(),
-    connectionStrategy: joint.connectionStrategies.pinAbsolute
+    connectionStrategy: joint.connectionStrategies.pinAbsolute,
+    sorting: joint.dia.Paper.sorting.APPROX
 });
+
 
 let rect = new joint.shapes.standard.Rectangle()
     .position(40, 20)
@@ -77,6 +80,8 @@ let link = new joint.shapes.standard.Link()
     .router('manhattan', { step: 20 })
     .connector('rounded', { radius: 20 })
     .addTo(graph);
+
+paper.unfreeze();
 
 // VECTORIZER DEMO:
 // Display all SVG shapes and convert them to paths.

@@ -169,7 +169,7 @@ export const Paper = View.extend({
 
         /* EMBEDDING */
 
-        // Enables embedding. Reparents the dragged element with elements under it and makes sure that
+        // Enables embedding. Re-parent the dragged element with elements under it and makes sure that
         // all links and elements are visible taken the level of embedding into account.
         embeddingMode: false,
 
@@ -231,7 +231,7 @@ export const Paper = View.extend({
 
         // Default namespaces
 
-        cellViewNamespace: typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null,
+        cellViewNamespace: null,
 
         highlighterNamespace: highlighters,
 
@@ -310,7 +310,7 @@ export const Paper = View.extend({
         this._zPivots = {};
         // Reference to the paper owner document
         this.$document = $(this.el.ownerDocument);
-        // Highliters references
+        // Highlighters references
         this._highlights = {};
         // Render existing cells in the graph
         this.resetViews(model.attributes.cells.models);
@@ -370,6 +370,7 @@ export const Paper = View.extend({
     },
 
     onGraphReset: function(collection, opt) {
+        this.removeZPivots();
         this.resetViews(collection.models, opt);
     },
 
@@ -409,6 +410,11 @@ export const Paper = View.extend({
             options.highlighting,
             this.constructor.prototype.options.highlighting
         );
+
+        // Default cellView namespace for ES5
+        if (!options.cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
+            options.cellViewNamespace = joint.shapes;
+        }
     },
 
     render: function() {
@@ -495,11 +501,16 @@ export const Paper = View.extend({
 
     requestConnectedLinksUpdate: function(view, opt) {
         if (view instanceof CellView) {
-            var links = this.model.getConnectedLinks(view.model);
+            var model = view.model;
+            var links = this.model.getConnectedLinks(model);
             for (var j = 0, n = links.length; j < n; j++) {
-                var linkView = this.findViewByModel(links[j]);
+                var link = links[j];
+                var linkView = this.findViewByModel(link);
                 if (!linkView) continue;
-                this.scheduleViewUpdate(linkView, linkView.FLAG_UPDATE, linkView.UPDATE_PRIORITY, opt);
+                var flagLabels = ['UPDATE'];
+                if (link.getTargetCell() === model) flagLabels.push('TARGET');
+                if (link.getSourceCell() === model) flagLabels.push('SOURCE');
+                this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), linkView.UPDATE_PRIORITY, opt);
             }
         }
     },
@@ -508,7 +519,7 @@ export const Paper = View.extend({
         if (!view || !(view instanceof CellView)) return false;
         var model = view.model;
         if (model.isElement()) return false;
-        if ((flag & (view.FLAG_SOURCE | view.FLAG_TARGET)) === 0) {
+        if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
             // LinkView is waiting for the target or the source cellView to be rendered
             // This can happen when the cells are not in the viewport.
             var sourceView = this.findViewByModel(model.getSourceCell());
@@ -639,7 +650,7 @@ export const Paper = View.extend({
                 unmountBatchSize: MOUNT_BATCH_SIZE - stats.unmounted
             });
             var checkStats = this.checkViewport(passingOpt);
-            var umountCount = checkStats.unmounted;
+            var unmountCount = checkStats.unmounted;
             var mountCount = checkStats.mounted;
             var processed = data.processed;
             var total = updates.count;
@@ -648,7 +659,7 @@ export const Paper = View.extend({
                 processed += stats.updated + stats.unmounted;
                 stats.processed = processed;
                 if (stats.empty && mountCount === 0) {
-                    stats.unmounted += umountCount;
+                    stats.unmounted += unmountCount;
                     stats.mounted += mountCount;
                     this.trigger('render:done', stats);
                     data.processed = 0;
@@ -1171,7 +1182,7 @@ export const Paper = View.extend({
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;
-            flag = FLAG_INSERT | view.initFlag;
+            flag = FLAG_INSERT | view.getFlag(view.initFlag);
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
@@ -1277,6 +1288,12 @@ export const Paper = View.extend({
             viewport.insertBefore(pivot, viewport.firstChild);
         }
         return pivot;
+    },
+
+    removeZPivots: function() {
+        var { _zPivots: pivots, viewport } = this;
+        for (var z in pivots) viewport.removeChild(pivots[z]);
+        this._zPivots = {};
     },
 
     scale: function(sx, sy, ox, oy) {
@@ -1693,7 +1710,7 @@ export const Paper = View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
         if (view) {
             view.pointerdblclick(evt, localPoint.x, localPoint.y);
@@ -1716,7 +1733,7 @@ export const Paper = View.extend({
             var view = this.findView(evt.target);
             if (this.guard(evt, view)) return;
 
-            var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+            var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
             if (view) {
                 view.pointerclick(evt, localPoint.x, localPoint.y);
@@ -1736,7 +1753,7 @@ export const Paper = View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
         if (view) {
             view.contextmenu(evt, localPoint.x, localPoint.y);
@@ -1756,7 +1773,7 @@ export const Paper = View.extend({
         var view = this.findView(evt.target);
         if (this.guard(evt, view)) return;
 
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
         if (view) {
 
@@ -1784,7 +1801,7 @@ export const Paper = View.extend({
 
         evt = normalizeEvent(evt);
 
-        var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+        var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
 
         var view = data.sourceView;
         if (view) {
@@ -1802,7 +1819,7 @@ export const Paper = View.extend({
 
         var normalizedEvt = normalizeEvent(evt);
 
-        var localPoint = this.snapToGrid({ x: normalizedEvt.clientX, y: normalizedEvt.clientY });
+        var localPoint = this.snapToGrid(normalizedEvt.clientX, normalizedEvt.clientY);
 
         var view = this.eventData(evt).sourceView;
         if (view) {
@@ -1895,7 +1912,7 @@ export const Paper = View.extend({
         if (this.guard(evt, view)) return;
 
         var originalEvent = evt.originalEvent;
-        var localPoint = this.snapToGrid({ x: originalEvent.clientX, y: originalEvent.clientY });
+        var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
         var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
 
         if (view) {
@@ -1917,7 +1934,7 @@ export const Paper = View.extend({
                 evt = normalizeEvent(evt);
                 if (this.guard(evt, view)) return;
 
-                var localPoint = this.snapToGrid({ x: evt.clientX, y: evt.clientY });
+                var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
                 view.onevent(evt, eventName, localPoint.x, localPoint.y);
             }
         }
@@ -1973,6 +1990,12 @@ export const Paper = View.extend({
             var localPoint = this.snapToGrid(evt.clientX, evt.clientY);
             view.onlabel(evt, localPoint.x, localPoint.y);
         }
+    },
+
+    getPointerArgs(evt) {
+        const normalizedEvt = normalizeEvent(evt);
+        const { x, y } = this.snapToGrid(normalizedEvt.clientX, normalizedEvt.clientY);
+        return [normalizedEvt, x, y];
     },
 
     delegateDragEvents: function(view, data) {

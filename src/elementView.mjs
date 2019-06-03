@@ -5,13 +5,6 @@ import V from './vectorizer.js';
 import { elementViewPortPrototype } from './ports.js';
 import { Rect, snapToGrid } from './geometry.js';
 
-var FLAG_RENDER = 1<<0;
-var FLAG_UPDATE = 1<<1;
-var FLAG_TRANSLATE = 1<<2;
-var FLAG_ROTATE = 1<<3;
-var FLAG_RESIZE = 1<<4;
-var FLAG_PORTS = 1<<5;
-
 // Element base view and controller.
 // -------------------------------------------
 
@@ -48,60 +41,47 @@ export const ElementView = CellView.extend({
         this._initializePorts();
     },
 
-    initFlag: FLAG_RENDER,
-
     presentationAttributes: {
-        'attrs': FLAG_UPDATE,
-        'position': FLAG_TRANSLATE,
-        'size': FLAG_RESIZE | FLAG_PORTS,
-        'angle': FLAG_ROTATE,
-        'markup': FLAG_RENDER,
-        'ports': FLAG_PORTS
+        'attrs': ['UPDATE'],
+        'position': ['TRANSLATE'],
+        'size': ['RESIZE', 'PORTS'],
+        'angle': ['ROTATE'],
+        'markup': ['RENDER'],
+        'ports': ['PORTS']
     },
+
+    initFlag: ['RENDER'],
 
     UPDATE_PRIORITY: 0,
 
-    FLAG_RENDER: FLAG_RENDER,
-    FLAG_UPDATE: FLAG_UPDATE,
-    FLAG_TRANSLATE: FLAG_TRANSLATE,
-    FLAG_ROTATE: FLAG_ROTATE,
-    FLAG_RESIZE: FLAG_RESIZE,
-    FLAG_PORTS: FLAG_PORTS,
-
-    onAttributesChange: function(model, opt) {
-        var flag = model.getChangeFlag(this.presentationAttributes);
-        if (opt.updateHandled || !flag) return;
-        if (opt.dirty && flag & FLAG_UPDATE) flag |= FLAG_RENDER;
-        var paper = this.paper;
-        if (paper) paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
-    },
-
     confirmUpdate: function(flag, opt) {
-        if (flag & FLAG_RENDER) {
+        if (this.hasFlag(flag, 'RENDER')) {
             this.render();
-            return 0;
+            flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
+            return flag;
         }
-        if (flag & FLAG_RESIZE) {
+        if (this.hasFlag(flag, 'RESIZE')) {
             this.resize(opt);
-            flag ^= flag & (FLAG_RESIZE | FLAG_UPDATE);
+            // Resize method is calling `update()` internally
+            flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
         }
-        if (flag & FLAG_UPDATE) {
-            this.updateNodesAttributes();
-            flag ^= FLAG_UPDATE;
+        if (this.hasFlag(flag, 'UPDATE')) {
+            this.update(this.model, null, opt);
+            flag = this.removeFlag(flag, 'UPDATE');
         }
-        if (flag & FLAG_TRANSLATE) {
+        if (this.hasFlag(flag, 'TRANSLATE')) {
             this.translate();
-            flag ^= FLAG_TRANSLATE;
+            flag = this.removeFlag(flag, 'TRANSLATE');
         }
-        if (flag & FLAG_ROTATE) {
+        if (this.hasFlag(flag, 'ROTATE')) {
             this.rotate();
-            flag ^= FLAG_ROTATE;
+            flag = this.removeFlag(flag, 'ROTATE');
         }
-        if (flag & FLAG_PORTS) {
+        if (this.hasFlag(flag, 'PORTS')) {
             this._refreshPorts();
-            flag ^= FLAG_PORTS;
+            flag = this.removeFlag(flag, 'PORTS');
         }
-        return 0;
+        return flag;
     },
 
     /**
@@ -112,15 +92,6 @@ export const ElementView = CellView.extend({
     },
 
     update: function(_, renderingOnlyAttrs) {
-
-        this._removePorts();
-
-        this.updateNodesAttributes(renderingOnlyAttrs);
-
-        this._renderPorts();
-    },
-
-    updateNodesAttributes: function(renderingOnlyAttrs) {
 
         this.cleanNodesCache();
 
@@ -182,7 +153,7 @@ export const ElementView = CellView.extend({
         if (this.scalableNode) {
             // Double update is necessary for elements with the scalable group only
             // Note the resize() triggers the other `update`.
-            this.updateNodesAttributes();
+            this.update();
         }
         this.resize();
         if (this.rotatableNode) {
@@ -201,7 +172,7 @@ export const ElementView = CellView.extend({
 
         if (this.scalableNode) return this.sgResize(opt);
         if (this.model.attributes.angle) this.rotate();
-        this.updateNodesAttributes();
+        this.update();
     },
 
     translate: function() {
@@ -216,7 +187,7 @@ export const ElementView = CellView.extend({
             this.rgRotate();
             // It's necessary to call the update for the nodes outside
             // the rotatable group referencing nodes inside the group
-            this.updateNodesAttributes();
+            this.update();
             return;
         }
         this.updateTransformation();
@@ -305,7 +276,7 @@ export const ElementView = CellView.extend({
 
         // Update must always be called on non-rotated element. Otherwise, relative positioning
         // would work with wrong (rotated) bounding boxes.
-        this.updateNodesAttributes();
+        this.update();
     },
 
     // Embedding mode methods.
@@ -623,9 +594,8 @@ export const ElementView = CellView.extend({
 
         var linkView = this.addLinkFromMagnet(magnet, x, y);
 
-        // backwards compatiblity events
-        CellView.prototype.pointerdown.apply(linkView, [evt, x, y]);
-        linkView.notify('link:pointerdown', evt, x, y);
+        // backwards compatibility events
+        linkView.notifyPointerdown(evt, x, y);
 
         linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
         this.eventData(evt, { linkView: linkView });
