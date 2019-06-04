@@ -359,9 +359,9 @@ export const shapePerimeterConnectionPoint = function(linkView, view, magnet, re
 
     if (magnet) {
 
-        spot = V(magnet).findIntersection(reference, linkView.paper.viewport);
+        spot = V(magnet).findIntersection(reference, linkView.paper.cells);
         if (!spot) {
-            bbox = V(magnet).getBBox({ target: linkView.paper.viewport });
+            bbox = V(magnet).getBBox({ target: linkView.paper.cells });
         }
 
     } else {

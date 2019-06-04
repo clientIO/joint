@@ -6,7 +6,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
     var graph;
 
     function cellNodesCount(paper) {
-        return V(paper.viewport).children().length;
+        return V(paper.cells).children().length;
     }
 
     function addCells(graph) {
@@ -229,7 +229,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             // TODO: is false ok?
                             assert.ok(viewportSpy.calledWithExactly(rectView, false, paper));
                             assert.ok(viewportSpy.calledOn(paper));
-                            assert.equal(rectView.el.parentNode, paper.viewport);
+                            assert.equal(rectView.el.parentNode, paper.cells);
                             viewportSpy.resetHistory();
                             visible = false;
                             rect.translate(10, 0);
@@ -404,22 +404,22 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         var rectAlwaysView = rectAlways.findView(paper);
                         paper.options.viewport = function(view) { return [rect2, rect3, rectAlways].indexOf(view.model) > -1; };
                         assert.equal(cellNodesCount(paper), 2);
-                        assert.equal(rect1View.el.parentNode, paper.viewport);
-                        assert.equal(rectAlwaysView.el.parentNode, paper.viewport);
+                        assert.equal(rect1View.el.parentNode, paper.cells);
+                        assert.equal(rectAlwaysView.el.parentNode, paper.cells);
                         var res1 = paper.checkViewport();
                         assert.deepEqual(res1, { mounted: 2, unmounted: 1 });
                         paper.updateViews();
                         assert.equal(cellNodesCount(paper), 3);
-                        assert.equal(rect2View.el.parentNode, paper.viewport);
-                        assert.equal(rect3View.el.parentNode, paper.viewport);
-                        assert.equal(rectAlwaysView.el.parentNode, paper.viewport);
+                        assert.equal(rect2View.el.parentNode, paper.cells);
+                        assert.equal(rect3View.el.parentNode, paper.cells);
+                        assert.equal(rectAlwaysView.el.parentNode, paper.cells);
                         paper.options.viewport = function(view) { return [rect1, rectAlways].indexOf(view.model) > -1; };
                         var res2 = paper.checkViewport();
                         assert.deepEqual(res2, { mounted: 1, unmounted: 2 });
                         paper.updateViews();
                         assert.equal(cellNodesCount(paper), 2);
-                        assert.equal(rect1.findView(paper).el.parentNode, paper.viewport);
-                        assert.equal(rectAlwaysView.el.parentNode, paper.viewport);
+                        assert.equal(rect1.findView(paper).el.parentNode, paper.cells);
+                        assert.equal(rectAlwaysView.el.parentNode, paper.cells);
                     });
 
                     QUnit.test('requireView()', function(assert) {
@@ -432,7 +432,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         var rectView = rect.findView(paper);
                         assert.notOk(rectView.el.parentNode);
                         rectView = paper.requireView(rect);
-                        assert.ok(rectView.el.parentNode, paper.viewport);
+                        assert.ok(rectView.el.parentNode, paper.cells);
                         assert.checkBbox(paper, rect, 201, 202, 101, 102);
                     });
 

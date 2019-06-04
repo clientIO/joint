@@ -266,7 +266,7 @@ export const ElementView = CellView.extend({
         if (rotation) {
 
             rotatable.attr('transform', rotation + ' rotate(' + (-angle) + ',' + (size.width / 2) + ',' + (size.height / 2) + ')');
-            var rotatableBBox = scalable.getBBox({ target: this.paper.viewport });
+            var rotatableBBox = scalable.getBBox({ target: this.paper.cells });
 
             // Store new x, y and perform rotate() again against the new rotation origin.
             model.set('position', { x: rotatableBBox.x, y: rotatableBBox.y }, assign({ updateHandled: true }, opt));

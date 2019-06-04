@@ -1003,10 +1003,11 @@ export namespace dia {
         options: Paper.Options;
 
         svg: SVGElement;
-        viewport: SVGGElement;
         defs: SVGDefsElement;
+        cells: SVGGElement;
         tools: SVGGElement;
         layers: SVGGElement;
+        viewport: SVGGElement;
 
         $document: JQuery;
         $grid: JQuery;

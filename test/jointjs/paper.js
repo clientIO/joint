@@ -147,7 +147,7 @@ QUnit.module('paper', function(hooks) {
         var r2 = new joint.shapes.basic.Rect;
         var r3 = new joint.shapes.basic.Rect;
 
-        var viewport = V(this.paper.viewport);
+        var viewport = V(this.paper.cells);
 
         viewport.append(V('rect').addClass('not-a-cell'));
 
@@ -1558,7 +1558,7 @@ QUnit.module('paper', function(hooks) {
 
         QUnit.test('scale', function(assert) {
             this.paper.scale(2);
-            var viewportScale = V.matrixToScale(this.paper.viewport.getCTM());
+            var viewportScale = V.matrixToScale(this.paper.cells.getCTM());
             assert.equal(viewportScale.sx, 2);
             assert.equal(viewportScale.sy, 2);
             var getterScale = this.paper.scale();
@@ -1568,7 +1568,7 @@ QUnit.module('paper', function(hooks) {
 
         QUnit.test('translate', function(assert) {
             this.paper.translate(10, 20);
-            var viewportTranslate = V.matrixToTranslate(this.paper.viewport.getCTM());
+            var viewportTranslate = V.matrixToTranslate(this.paper.cells.getCTM());
             assert.equal(viewportTranslate.tx, 10);
             assert.equal(viewportTranslate.ty, 20);
             var getterTranslate = this.paper.translate();
@@ -1578,7 +1578,7 @@ QUnit.module('paper', function(hooks) {
 
         QUnit.test('rotate', function(assert) {
             this.paper.rotate(45);
-            var viewportRotate = V.matrixToRotate(this.paper.viewport.getCTM());
+            var viewportRotate = V.matrixToRotate(this.paper.cells.getCTM());
             assert.equal(viewportRotate.angle, 45);
             var getterRotate = this.paper.rotate();
             assert.equal(getterRotate.angle, 45);
