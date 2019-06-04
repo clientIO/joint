@@ -43,10 +43,10 @@ export const View = Backbone.View.extend({
     },
 
     renderChildren: function(children) {
-        children || (children = this.children);
+        children || (children = util.result(this, 'children'));
         if (children) {
             var isSVG = this.svgElement;
-            var namespace = V.namespace[isSVG ? 'xmlns' : 'xhtml'];
+            var namespace = V.namespace[isSVG ? 'svg' : 'xhtml'];
             var doc = util.parseDOMJSON(children, namespace);
             (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
             this.childNodes = doc.selectors;
@@ -103,7 +103,7 @@ export const View = Backbone.View.extend({
 
     _createElement: function(tagName) {
         if (this.svgElement) {
-            return document.createElementNS(V.namespace.xmlns, tagName);
+            return document.createElementNS(V.namespace.svg, tagName);
         } else {
             return document.createElement(tagName);
         }

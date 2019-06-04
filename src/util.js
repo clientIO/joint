@@ -37,7 +37,7 @@ export const parseDOMJSON = function(json, namespace) {
 
     var selectors = {};
     var groupSelectors = {};
-    var svgNamespace = V.namespace.xmlns;
+    var svgNamespace = V.namespace.svg;
 
     var ns = namespace || svgNamespace;
     var fragment = document.createDocumentFragment();

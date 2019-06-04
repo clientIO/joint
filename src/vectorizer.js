@@ -25,13 +25,14 @@ const V = (function() {
 
     // XML namespaces.
     var ns = {
-        xmlns: 'http://www.w3.org/2000/svg',
+        svg: 'http://www.w3.org/2000/svg',
+        xmlns: 'http://www.w3.org/2000/xmlns/',
         xml: 'http://www.w3.org/XML/1998/namespace',
         xlink: 'http://www.w3.org/1999/xlink',
         xhtml: 'http://www.w3.org/1999/xhtml'
     };
 
-    var SVGversion = '1.1';
+    var SVGVersion = '1.1';
 
     // Declare shorthands to the most used math functions.
     var math = Math;
@@ -93,7 +94,7 @@ const V = (function() {
 
             } else {
 
-                el = document.createElementNS(ns.xmlns, el);
+                el = document.createElementNS(ns.svg, el);
             }
 
             V.ensureId(el);
@@ -541,7 +542,7 @@ const V = (function() {
         for (var i = 0, lastI = lines.length - 1; i <= lastI; i++) {
             var dy = lineHeight;
             var lineClassName = 'v-line';
-            var lineNode = doc.createElementNS(V.namespace.xmlns, 'tspan');
+            var lineNode = doc.createElementNS(ns.svg, 'tspan');
             var line = lines[i];
             var lineMetrics;
             if (line) {
@@ -1268,9 +1269,17 @@ const V = (function() {
     // If `content` is passed, it will be used as the SVG content of the `<svg>` root element.
     V.createSvgDocument = function(content) {
 
-        var svg = '<svg xmlns="' + ns.xmlns + '" xmlns:xlink="' + ns.xlink + '" version="' + SVGversion + '">' + (content || '') + '</svg>';
-        var xml = V.parseXML(svg, { async: false });
-        return xml.documentElement;
+        if (content) {
+            const XMLString = `<svg xmlns="${ns.svg}" xmlns:xlink="${ns.xlink}" version="${SVGVersion}">${content}</svg>`;
+            const { documentElement } = V.parseXML(XMLString, { async: false });
+            return documentElement;
+        }
+
+        const svg = document.createElementNS(ns.svg, 'svg');
+        svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
+        svg.setAttribute('xmlns', ns.svg);
+        svg.setAttribute('version', SVGVersion);
+        return svg;
     };
 
     V.idCounter = 0;
