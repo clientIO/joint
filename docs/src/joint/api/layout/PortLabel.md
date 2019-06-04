@@ -39,7 +39,7 @@ Simple label layout suitable for rectangular shapes. It places the label on arbi
                 <tr>
                     <td><b>attrs</b></td>
                     <td>number</td>
-                    <td>JointJS style attribute applied on label's DOM element and it's children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
+                    <td>JointJS style attribute applied on label's DOM element and its children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
                 </tr>
             </table>
         </td>
@@ -85,7 +85,7 @@ Places the label inside or outside of a rectangular shape. Where 'oriented' vers
                 <tr>
                     <td><b>attrs</b></td>
                     <td>number</td>
-                    <td>JointJS style attribute applied on label's DOM element and it's children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
+                    <td>JointJS style attribute applied on label's DOM element and its children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
                 </tr>
             </table>
         </td>
@@ -132,7 +132,7 @@ Places the label outside of a circular shape. Where the 'oriented' version rotat
                 <tr>
                     <td><b>attrs</b></td>
                     <td>number</td>
-                    <td>JointJS style attribute applied on label's DOM element and it's children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
+                    <td>JointJS style attribute applied on label's DOM element and its children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
                 </tr>
             </table>
         </td>
@@ -187,7 +187,7 @@ It allows to set a label position directly.
                 <tr>
                     <td><b>attrs</b></td>
                     <td>number</td>
-                    <td>JointJS style attribute applied on label's DOM element and it's children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
+                    <td>JointJS style attribute applied on label's DOM element and its children. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
                 </tr>
             </table>
         </td>
