@@ -3,7 +3,6 @@ import {
     isNumber,
     assign,
     nextFrame,
-    bindAll,
     isObject,
     cancelFrame,
     defaults,
@@ -277,6 +276,13 @@ export const Paper = View.extend({
         'touchcancel': 'pointerup'
     },
 
+    svg: null,
+    viewport: null,
+    defs: null,
+    tools: null,
+    $background: null,
+    layers: null,
+    $grid: null,
     $document: null,
 
     _highlights: null,
@@ -286,7 +292,7 @@ export const Paper = View.extend({
     // For verifying whether the CTM is up-to-date. The viewport transform attribute
     // could have been manipulated directly.
     _viewportTransformString: null,
-    // Updates data (priorities, umnounted views etc.)
+    // Updates data (priorities, unmounted views etc.)
     _updates: null,
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
@@ -295,15 +301,14 @@ export const Paper = View.extend({
 
     init: function() {
 
-        if (!this.options.cellViewNamespace) {
-            this.options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+        const { options, el } = this;
+        if (!options.cellViewNamespace) {
+            options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
         }
 
-        bindAll(this, 'pointerup');
+        const model = this.model = options.model || new Graph;
 
-        var model = this.model = this.options.model || new Graph;
-
-        this.setGrid(this.options.drawGrid);
+        this.setGrid(options.drawGrid);
         this.cloneOptions();
         this.render();
         this.setDimensions();
@@ -314,7 +319,7 @@ export const Paper = View.extend({
         // z-index pivots
         this._zPivots = {};
         // Reference to the paper owner document
-        this.$document = $(this.el.ownerDocument);
+        this.$document = $(el.ownerDocument);
         // Highlighters references
         this._highlights = {};
         // Render existing cells in the graph
@@ -422,29 +427,71 @@ export const Paper = View.extend({
         }
     },
 
+    children: function() {
+        var ns = V.namespace;
+        return [{
+            namespaceURI: ns.xhtml,
+            tagName: 'div',
+            className: addClassNamePrefix('paper-background'),
+            selector: 'background'
+        }, {
+            namespaceURI: ns.xhtml,
+            tagName: 'div',
+            className: addClassNamePrefix('paper-grid'),
+            selector: 'grid'
+        }, {
+            namespaceURI: ns.svg,
+            tagName: 'svg',
+            attributes: {
+                'width': '100%',
+                'height': '100%',
+                'xmlns:xlink': ns.xlink,
+                'xmlns': ns.svg
+            },
+            selector: 'svg',
+            children: [{
+                // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
+                // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
+                tagName: 'defs',
+                selector: 'defs'
+            }, {
+                tagName: 'g',
+                className: addClassNamePrefix('layers'),
+                selector: 'layers',
+                children: [{
+                    tagName: 'g',
+                    className: addClassNamePrefix('layer viewport'),
+                    selector: 'viewport',
+                }, {
+                    tagName: 'g',
+                    className: addClassNamePrefix('layer tools-container'),
+                    selector: 'tools'
+                }]
+            }]
+        }];
+    },
+
     render: function() {
 
-        this.$el.empty();
+        this.renderChildren();
+        const { childNodes, options } = this;
+        const { svg, viewport, defs, tools, layers, background, grid } = childNodes;
 
-        this.svg = V('svg').attr({ width: '100%', height: '100%' }).node;
-        this.viewport = V('g').addClass(addClassNamePrefix('viewport')).node;
-        this.defs = V('defs').node;
-        this.tools = V('g').addClass(addClassNamePrefix('tools-container')).node;
-        // Append `<defs>` element to the SVG document. This is useful for filters and gradients.
-        // It's desired to have the defs defined before the viewport (e.g. to make a PDF document pick up defs properly).
-        V(this.svg).append([this.defs, this.viewport, this.tools]);
+        this.svg = svg;
+        this.viewport = viewport;
+        this.defs = defs;
+        this.tools = tools;
+        this.layers = layers;
+        this.$background = $(background);
+        this.$grid = $(grid);
 
-        this.$background = $('<div/>').addClass(addClassNamePrefix('paper-background'));
-        if (this.options.background) {
-            this.drawBackground(this.options.background);
+        if (options.background) {
+            this.drawBackground(options.background);
         }
 
-        this.$grid = $('<div/>').addClass(addClassNamePrefix('paper-grid'));
-        if (this.options.drawGrid) {
+        if (options.drawGrid) {
             this.drawGrid();
         }
-
-        this.$el.append(this.$background, this.$grid, this.svg);
 
         return this;
     },
@@ -464,7 +511,7 @@ export const Paper = View.extend({
 
     matrix: function(ctm) {
 
-        var viewport = this.viewport;
+        var viewport = this.layers;
 
         // Getter:
         if (ctm === undefined) {
@@ -491,7 +538,6 @@ export const Paper = View.extend({
         ctm = V.createSVGMatrix(ctm);
         var ctmString = V.matrixToTransformString(ctm);
         viewport.setAttribute('transform', ctmString);
-        this.tools.setAttribute('transform', ctmString);
 
         this._viewportMatrix = ctm;
         this._viewportTransformString = viewport.getAttribute('transform');
@@ -1263,16 +1309,16 @@ export const Paper = View.extend({
 
 
     insertView: function(view) {
-        var container = this.viewport;
+        var layer = this.viewport;
         switch (this.options.sorting) {
             case sortingTypes.APPROX:
                 var z = view.model.get('z');
                 var pivot = this.addZPivot(z);
-                container.insertBefore(view.el, pivot);
+                layer.insertBefore(view.el, pivot);
                 break;
             case sortingTypes.EXACT:
             default:
-                container.appendChild(view.el);
+                layer.appendChild(view.el);
                 break;
         }
     },
@@ -1292,14 +1338,14 @@ export const Paper = View.extend({
                 if (neighborZ === z - 1) continue;
             }
         }
-        var viewport = this.viewport;
+        var layer = this.viewport;
         if (neighborZ !== -Infinity) {
             var neighborPivot = pivots[neighborZ];
             // Insert After
-            viewport.insertBefore(pivot, neighborPivot.nextSibling);
+            layer.insertBefore(pivot, neighborPivot.nextSibling);
         } else {
             // First Child
-            viewport.insertBefore(pivot, viewport.firstChild);
+            layer.insertBefore(pivot, layer.firstChild);
         }
         return pivot;
     },

@@ -1086,7 +1086,7 @@ QUnit.module('util', function(hooks) {
         QUnit.module('namespaceURI', function() {
 
             QUnit.test('svg', function(assert) {
-                var res = util.parseDOMJSON([{ tagName: 'rect', namespaceURI: V.namespace.xmlns }]);
+                var res = util.parseDOMJSON([{ tagName: 'rect', namespaceURI: V.namespace.svg }]);
                 var node = res.fragment.firstChild;
                 assert.ok(node instanceof SVGRectElement);
             });
