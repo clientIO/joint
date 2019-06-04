@@ -9,7 +9,7 @@ const layout = { PortLabel, Port };
 const format = {};
 const ui = {};
 
-export * from '../module/namespaces.mjs';
+export * from '../src/namespaces.mjs';
 export {
     format,
     layout,
