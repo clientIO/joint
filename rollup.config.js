@@ -15,7 +15,7 @@ const DIST = [
     modules.jointCore,
     modules.geometry,
     modules.vectorizer,
-].concat(modules.jointPlugins);
+].concat(modules.jointPlugins).concat(LIBS_ESM);
 
 const TEST_BUNDLE = [
     modules.jointNoDependencies

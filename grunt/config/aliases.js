@@ -6,7 +6,7 @@ module.exports = function(grunt) {
             'watch'
         ],
         'install': [
-            'newer:shell:rollup-libs-esm',
+            'newer:shell:rollup-dist',
             'build',
             'uglify:all'
         ],
