@@ -18,9 +18,12 @@
     </tr>
 </table>
 
-<p>This function is meant to support hiding of views when they are outside the viewport. In most situations, it is unnecessary to render DOM elements that are not visible by the user; removing those elements from the DOM dramatically improves rendering times of huge graphs (thousands of views) and improves smoothness of user interaction. (If you do need to show a view that falls outside of the viewport, you can manually force the view to be shown using <a href="#dia.Paper.prototype.requireView"><code>paper.requireView()</code></a>. If you need to force all views to be shown, use <a href="#dia.Paper.prototype.dumpViews"><code>paper.dumpViews()</code></a>.) An example:</p>
+<p>This function is meant to support hiding of views when they are outside the viewport. In most situations, it is unnecessary to render DOM elements that are not visible by the user; removing those elements from the DOM dramatically improves rendering times of huge graphs (thousands of views) and improves smoothness of user interaction. (If you do need to show a view that falls outside of this viewport, you can manually force the view to be shown using <a href="#dia.Paper.prototype.requireView"><code>paper.requireView()</code></a>. If you need to show views according to a different viewport function, use <a href="#dia.Paper.prototype.checkViewport"><code>paper.checkViewport()</code></a>. If you need to force all views to be shown, use <a href="#dia.Paper.prototype.dumpViews"><code>paper.dumpViews()</code></a>.)</p>
+
+<p>Example usage:</p>
 
 <pre><code>var viewportRect = new g.Rect(0, 0, 600, 400);
+var graph = new joint.dia.Graph();
 var paper = new joint.dia.Paper({
     model: graph,
     async: true,
@@ -29,6 +32,7 @@ var paper = new joint.dia.Paper({
         var bbox = model.getBBox();
         if (model.isLink()) {
             // vertical/horizontal links have zero width/height
+            // we need to manually inflate the bounding box
             bbox.inflate(1);
         }
         // Return true if there is an intersection
@@ -39,27 +43,26 @@ var paper = new joint.dia.Paper({
 
 <p>The <code>viewport</code> function can also be used to support collapsing/uncollapsing behavior:</p>
 
-<pre><code>var paper = new joint.dia.Paper({
+<pre><code>var graph = new joint.dia.Graph();
+var paper = new joint.dia.Paper({
     model: graph,
     async: true,
     viewport: function(view) {
         // Return true if model is not hidden
-        return !model.isHidden();
+        return !model.get('hidden');
     }
 });
 
-paper.on('element:collapse', function(view, evt) {
+paper.on('element:pointerclick', function(view, evt) {
     evt.stopPropagation();
     toggleBranch(view.model);
 });
 
 function toggleBranch(root) {
-    var shouldHide = !root.isCollapsed();
-    root.set({ collapsed: shouldHide });
+    var shouldHide = !root.get('collapsed');
+    root.set('collapsed', shouldHide);
     graph.getSuccessors(root).forEach(function(successor) {
-        successor.set({
-            hidden: shouldHide,
-            collapsed: false
-        });
+        successor.set('hidden', shouldHide);
+        successor.set('collapsed', false);
     });
 }</code></pre>
