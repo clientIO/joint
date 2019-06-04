@@ -1001,9 +1001,15 @@ export namespace dia {
         constructor(opt: Paper.Options);
 
         options: Paper.Options;
+
         svg: SVGElement;
         viewport: SVGGElement;
         defs: SVGDefsElement;
+        tools: SVGGElement;
+
+        $document: JQuery;
+        $grid: JQuery;
+        $background: JQuery;
 
         matrix(): SVGMatrix;
         matrix(ctm: SVGMatrix | Vectorizer.Matrix): this;
