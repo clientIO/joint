@@ -926,6 +926,7 @@ const V = (function() {
         // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
         // element is scaled by the factor 2, not 8.
         var scale = this.scale();
+        this.attr('transform', '');
         var bbox = this.getBBox({ target: target }).scale(scale.sx, scale.sy);
 
         // 1. Translate to origin.
@@ -943,7 +944,6 @@ const V = (function() {
         translateFromOrigin.setTranslate(2 * position.x - finalPosition.x, 2 * position.y - finalPosition.y);
 
         // 4. Get the current transformation matrix of this node
-        this.attr('transform', '');
         var ctm = this.getTransformToElement(target);
 
         // 5. Apply transformations and the scale
