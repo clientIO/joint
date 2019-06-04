@@ -923,7 +923,7 @@ QUnit.module('paper', function(hooks) {
             height: 55
         }, 'two rectangles + one circle, content area should be correct');
 
-        V(this.paper.viewport).scale(2, 2);
+        this.paper.scale(2, 2);
 
         assert.checkBboxApproximately(4/* +- */, this.paper.getContentArea(), {
             x: 5,
@@ -1002,7 +1002,7 @@ QUnit.module('paper', function(hooks) {
             height: 55
         }, 'two rectangles + one circle, content bbox should be correct');
 
-        V(this.paper.viewport).scale(2, 2);
+        this.paper.scale(2, 2);
 
         assert.checkBboxApproximately(4/* +- */, this.paper.getContentBBox(), {
             x: 10,

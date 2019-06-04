@@ -3,7 +3,6 @@ import {
     isNumber,
     assign,
     nextFrame,
-    bindAll,
     isObject,
     cancelFrame,
     defaults,
@@ -282,6 +281,7 @@ export const Paper = View.extend({
     defs: null,
     tools: null,
     $background: null,
+    layers: null,
     $grid: null,
     $document: null,
 
@@ -475,12 +475,13 @@ export const Paper = View.extend({
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, viewport, defs, tools, background, grid } = childNodes;
+        const { svg, viewport, defs, tools, layers, background, grid } = childNodes;
 
         this.svg = svg;
         this.viewport = viewport;
         this.defs = defs;
         this.tools = tools;
+        this.layers = layers;
         this.$background = $(background);
         this.$grid = $(grid);
 
@@ -510,7 +511,7 @@ export const Paper = View.extend({
 
     matrix: function(ctm) {
 
-        var viewport = this.childNodes.layers;
+        var viewport = this.layers;
 
         // Getter:
         if (ctm === undefined) {

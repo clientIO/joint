@@ -1006,6 +1006,7 @@ export namespace dia {
         viewport: SVGGElement;
         defs: SVGDefsElement;
         tools: SVGGElement;
+        layers: SVGGElement;
 
         $document: JQuery;
         $grid: JQuery;

@@ -31,7 +31,10 @@ QUnit.module('Attributes', function() {
 
         hooks.beforeEach(function() {
             graph = new joint.dia.Graph;
-            paper = new joint.dia.Paper({ model: graph });
+            var fixtures = document.getElementById('qunit-fixture');
+            var paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph });
             cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
             cellView = cell.findView(paper);

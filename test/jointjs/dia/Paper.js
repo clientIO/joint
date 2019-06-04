@@ -644,13 +644,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                         paper.freeze();
                     });
                     paper.freeze();
-                    paper.unfreeze({ batchSize: 1, progress: progressSpy });
                     graph.resetCells([
                         new joint.shapes.standard.Rectangle(),
                         new joint.shapes.standard.Rectangle(),
                         new joint.shapes.standard.Rectangle(),
                         new joint.shapes.standard.Rectangle()
                     ]);
+                    paper.unfreeze({ batchSize: 1, progress: progressSpy });
                 });
 
             });
