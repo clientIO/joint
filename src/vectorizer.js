@@ -917,53 +917,44 @@ const V = (function() {
     // `target` is the element relative to which the transformations are applied. Usually a viewport.
     VPrototype.translateAndAutoOrient = function(position, reference, target) {
 
+        position = new g.Point(position);
+        reference =  new g.Point(reference);
+        target || (target = this.svg());
+
         // Clean-up previously set transformations except the scale. If we didn't clean up the
         // previous transformations then they'd add up with the old ones. Scale is an exception as
         // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
         // element is scaled by the factor 2, not 8.
-
-        var s = this.scale();
+        var scale = this.scale();
         this.attr('transform', '');
-        this.scale(s.sx, s.sy);
-
-        var svg = this.svg().node;
-        var bbox = this.getBBox({ target: target || svg });
+        var bbox = this.getBBox({ target: target }).scale(scale.sx, scale.sy);
 
         // 1. Translate to origin.
-        var translateToOrigin = svg.createSVGTransform();
+        var translateToOrigin = V.createSVGTransform();
         translateToOrigin.setTranslate(-bbox.x - bbox.width / 2, -bbox.y - bbox.height / 2);
 
         // 2. Rotate around origin.
-        var rotateAroundOrigin = svg.createSVGTransform();
-        var angle = (new g.Point(position)).changeInAngle(position.x - reference.x, position.y - reference.y, reference);
-        rotateAroundOrigin.setRotate(angle, 0, 0);
+        var rotateAroundOrigin = V.createSVGTransform();
+        var angle = position.angleBetween(reference, position.clone().offset(1, 0));
+        if (angle) rotateAroundOrigin.setRotate(angle, 0, 0);
 
         // 3. Translate to the `position` + the offset (half my width) towards the `reference` point.
-        var translateFinal = svg.createSVGTransform();
-        var finalPosition = (new g.Point(position)).move(reference, bbox.width / 2);
-        translateFinal.setTranslate(position.x + (position.x - finalPosition.x), position.y + (position.y - finalPosition.y));
+        var translateFromOrigin = V.createSVGTransform();
+        var finalPosition = position.clone().move(reference, bbox.width / 2);
+        translateFromOrigin.setTranslate(2 * position.x - finalPosition.x, 2 * position.y - finalPosition.y);
 
-        // 4. Apply transformations.
-        var ctm = this.getTransformToElement(target || svg);
-        var transform = svg.createSVGTransform();
+        // 4. Get the current transformation matrix of this node
+        var ctm = this.getTransformToElement(target);
+
+        // 5. Apply transformations and the scale
+        var transform = V.createSVGTransform();
         transform.setMatrix(
-            translateFinal.matrix.multiply(
+            translateFromOrigin.matrix.multiply(
                 rotateAroundOrigin.matrix.multiply(
                     translateToOrigin.matrix.multiply(
-                        ctm)))
-        );
+                        ctm.scale(scale.sx, scale.sy)))));
 
-        // Instead of directly setting the `matrix()` transform on the element, first, decompose
-        // the matrix into separate transforms. This allows us to use normal Vectorizer methods
-        // as they don't work on matrices. An example of this is to retrieve a scale of an element.
-        // this.node.transform.baseVal.initialize(transform);
-
-        var decomposition = V.decomposeMatrix(transform.matrix);
-
-        this.translate(decomposition.translateX, decomposition.translateY);
-        this.rotate(decomposition.rotation);
-        // Note that scale has been already applied, hence the following line stays commented. (it's here just for reference).
-        //this.scale(decomposition.scaleX, decomposition.scaleY);
+        this.attr('transform', V.matrixToTransformString(transform.matrix));
 
         return this;
     };
