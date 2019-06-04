@@ -1,5 +1,5 @@
 import commonjs from 'rollup-plugin-commonjs';
-import babel from 'rollup-plugin-babel';
+import buble from 'rollup-plugin-buble'
 import path from 'path';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
@@ -18,7 +18,7 @@ let plugins = [
     externalGlobals({
         'dagre': 'dagre'
     }),
-    babel({ exclude: 'node_modules/**' })
+    buble()
 ];
 
 let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V; }';
@@ -136,7 +136,7 @@ export const jointCore = {
             'jquery': '$',
             'backbone': 'Backbone',
             'lodash': '_'
-        },
+        }
     }],
     plugins: plugins
 };
@@ -195,3 +195,38 @@ export const backbone = {
         commonjs()
     ]
 };
+
+export const jointPlugins = Object.keys(modules.jointPlugins).reduce((res, key) => {
+
+    const item = modules.jointPlugins[key];
+    res.push({
+        input: item.src,
+        external: [
+            'jquery',
+            'backbone',
+            'lodash',
+            GLOBALS_MAP.geometry.src,
+            GLOBALS_MAP.vectorizer.src
+        ],
+        output: [{
+            file: item.iife,
+            format: 'iife',
+            extend: true,
+            name: key,
+            globals: ((map) => {
+                const globals = {
+                    'jquery': '$',
+                    'backbone': 'Backbone',
+                    'lodash': '_'
+                };
+                globals[map.geometry.src] = 'g';
+                globals[map.vectorizer.src] = 'V';
+                return globals;
+            })(GLOBALS_MAP),
+        }],
+        plugins: plugins
+    });
+
+    return res;
+}, []);
+

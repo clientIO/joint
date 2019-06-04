@@ -1,12 +1,15 @@
 module.exports = {
-    rollup: {
-        command: 'rollup -c'
+    'rollup-joint': {
+        command: 'rollup -c --config-joint'
     },
-    'test-bundle': {
-        command: 'rollup -c rollup.test-bundle.js'
+    'rollup-libs-esm': {
+        command: 'rollup -c --config-libs-esm'
     },
-    'libs-esm': {
-        command:'rollup -c rollup.libs-esm.config.js'
+    'rollup-dist': {
+        command: 'rollup -c --config-dist'
+    },
+    'rollup-test-bundle': {
+        command: 'rollup -c --config-test-bundle'
     }
 };
 
