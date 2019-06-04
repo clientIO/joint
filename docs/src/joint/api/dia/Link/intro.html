@@ -1,6 +1,8 @@
-<p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links.</p>
+<p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links. These properties may be split into several groups:</p>
 
-<p>Links have two crucial attributes: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined as an element id or as a Point:</p>
+<h4 id="dia.Link.intro.geometry">Geometry</h4>
+
+<p>Links have two crucial attributes: <code>source</code> and <code>target</code>. They define the starting point and the end point of the link. They can be defined with a Cell id (optionally, with additional subelement/magnet/port reference) or with a Point:</p>
 
 <pre><code>var link1 = new joint.dia.Link({
     source: { id: sourceId },
@@ -12,18 +14,38 @@ var link2 = new joint.dia.Link({
     target: { x: 100, y: 100 }
 });</code></pre>
 
+<p>The <code>source</code> and <code>target</code> properties accept additional modifier properties that modify the actual position of the link end: <code>anchor</code>/<code>linkAnchor</code>, and <code>connectionPoint</code>.</p>
+
+<p>Additionally, the path of the link is determined by its <code>vertices</code>, and the applied <code>router</code> and <code>connector</code>. All these attributes are described in more detail in <a href="#dia.Link.geometry">link geometry documentation</a>.</p>
+
+<h4 id="dia.Link.intro.presentation">Presentation</h4>
+
 <p>These are not the only attributes that may be specified for a newly-created <code>joint.dia.Link</code>, however. An individual link instance may provide a value for these attributes:</p>
 
 <ul>
     <li><code>markup</code> - provide custom link markup. May be specified as an <a href="#dia.Cell.markup">XML string or JSON array</a>.</li>
-    <li><code>attrs</code> - provide custom link attributes. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
     <li><code>vertices</code> - provide an array of <a href="#dia.Link.prototype.vertex">vertices</a>.</li>
     <li><code>vertexMarkup</code> - provide custom vertex markup (on hover).</li>
     <li><code>toolMarkup</code> - provide custom tool markup (on hover).</li>
     <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
     <li><code>arrowheadMarkup</code> - provide custom arrowhead markup (on hover).</li>
-    <li><code>labels</code> - provide an array of <a href="#dia.Link.prototype.label">labels</a>. Each can have its own markup, position, and attrs specified.</li>
 </ul>
+
+<h4 id="dia.Link.intro.styling">Styling</h4>
+
+<p>Styling of the link is contained in the <code>attrs</code> property which has exactly the same structure as the <a href="#dia.Element.intro.styling"><code>Element.attrs</code></a> property. It allows you to change the style and size of SVG elements, identified by their selectors, as defined by link <a href="#dia.Link.intro.presentation"><code>markup</code></a>.</p>
+
+<p>It is not recommended to change the <code>attrs</code> object directly. Instead, use the <a href="#dia.Link.prototype.attr">attr</a> method.</p>
+
+<h4 id="dia.Link.intro.z">Z</h4>
+
+<p>Links also have the <code>z</code> property which specifies the z-level of the link. It has exactly the same meaning as the <a href="#dia.Element.intro.z"><code>Element.z</code></a> property.</p>
+
+<h4 id="dia.Link.intro.labels">Labels</h4>
+
+<p>You may provide an array of labels to the link through the <code>labels</code> attribute. Each can have its own markup, position, and attrs. See the <a href="#dia.Link.labels">link labels documentation</a>.</p>
+
+<h4 id="dia.Link.intro.customAttributes">Custom Attributes</h4>
 
 <p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="#dia.LinkView.intro">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
 
@@ -57,6 +79,10 @@ var link2 = new joint.dia.Link({
     //...
     customLinkInteractions: false // or omit completely
 });</code></pre>
+
+<h4 id="dia.Link.intro.events">Events</h4>
+
+<p>Links trigger several special events, detailed in the <a href="#dia.Link.events">link events documentation</a>.
 
 <h4 id="dia.Link.intro.customLink">Custom Link</h4>
 
