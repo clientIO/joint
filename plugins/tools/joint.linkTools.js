@@ -212,8 +212,8 @@ var Vertices = ToolView.extend({
             linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
         }
         var [normalizedEvt, x, y] = linkView.paper.getPointerArgs(evt);
-        linkView.checkMouseleave(normalizedEvt);
         if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvt, x, y);
+        linkView.checkMouseleave(normalizedEvt);
     },
     snapVertex: function(vertex, index) {
         var snapRadius = this.options.snapRadius;
@@ -237,7 +237,7 @@ var Vertices = ToolView.extend({
         var index = handle.options.index;
         var linkView = this.relatedView;
         linkView.model.removeVertex(index, { ui: true });
-        this.updatePath();
+        if (this.options.vertexAdding) this.updatePath();
         linkView.checkMouseleave(util.normalizeEvent(evt));
     },
     onPathPointerDown: function(evt) {

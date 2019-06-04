@@ -616,7 +616,8 @@ export const Link = LinkBase.define('standard.Link', {
         attributes: {
             'fill': 'none',
             'cursor': 'pointer',
-            'stroke': 'transparent'
+            'stroke': 'transparent',
+            'stroke-linecap': 'round'
         }
     }, {
         tagName: 'path',

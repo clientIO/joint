@@ -1925,32 +1925,42 @@ QUnit.module('paper', function(hooks) {
                     paper.on('all', spy);
                     paper.options.magnetThreshold = 'onleave';
                     // Events Order
+                    var localPoint = el.getBBox().center();
+                    var clientPoint = paper.localToClientPoint(localPoint);
                     simulate.click({
                         el: elRect,
-                        clientX: 100,
-                        clientY: 100
+                        clientX: clientPoint.x,
+                        clientY: clientPoint.y
                     });
 
                     var eventOrder;
                     if (magnetType === 'passive') {
-                        assert.equal(spy.callCount, 7);
                         eventOrder = [
                             'cell:pointerdown',
                             'element:pointerdown',
                             'element:pointerup',
                             'cell:pointerup',
                             eventName,
+                            'cell:mouseleave',
+                            'element:mouseleave',
                             'cell:pointerclick',
                             'element:pointerclick'
                         ];
                     } else {
-                        assert.ok(spy.calledThrice);
                         eventOrder = [
                             eventName,
+                            'cell:mouseleave',
+                            'element:mouseleave',
                             'cell:pointerclick',
                             'element:pointerclick'
                         ];
                     }
+
+                    if (document.elementFromPoint(clientPoint.x, clientPoint.y)) {
+                        eventOrder.splice(eventOrder.indexOf('cell:mouseleave'), 2);
+                    }
+
+                    assert.equal(spy.callCount, eventOrder.length);
                     assert.deepEqual(getEventNames(spy), eventOrder);
                     // Stop propagation
                     paper.on(eventName, function(_, evt) {
@@ -1962,13 +1972,10 @@ QUnit.module('paper', function(hooks) {
                         clientX: 13,
                         clientY: 17
                     });
-                    if (magnetType === 'passive') {
-                        assert.equal(spy.callCount, 5);
-                    } else {
-                        assert.ok(spy.calledOnce);
-                    }
-                    var localPoint = paper.snapToGrid(13, 17);
-                    assert.ok(spy.lastCall.calledWithExactly(
+                    assert.equal(spy.callCount, eventOrder.length - 2);
+                    localPoint = paper.snapToGrid(13, 17);
+                    var eventIndex = eventOrder.indexOf(eventName);
+                    assert.ok(spy.getCall(eventIndex).calledWithExactly(
                         eventName,
                         elView,
                         sinon.match.instanceOf($.Event),
@@ -2127,18 +2134,21 @@ QUnit.module('paper', function(hooks) {
             // Events Order
             simulate.click({
                 el: elRect,
-                clientX: 13,
-                clientY: 17
+                clientX: 1200,
+                clientY: 1300
             });
-            var localPoint = paper.snapToGrid(13, 17);
+            var localPoint = paper.snapToGrid(1200, 1300);
             var eventOrder = [
                 'cell:pointerdown',
                 'element:pointerdown',
                 'element:pointerup',
                 'cell:pointerup',
+                'cell:mouseleave',
+                'element:mouseleave',
                 'cell:pointerclick',
                 eventName
             ];
+
             assert.equal(spy.callCount, eventOrder.length);
             assert.deepEqual(getEventNames(spy), eventOrder);
             assert.ok(spy.getCall(eventOrder.indexOf(eventName)).calledWithExactly(
@@ -2157,11 +2167,11 @@ QUnit.module('paper', function(hooks) {
             spy.resetHistory();
             simulate.click({
                 el: elRect,
-                clientX: 100,
-                clientY: 100
+                clientX: 1200,
+                clientY: 1300
             });
-            assert.equal(spy.callCount, 4);
-            assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerup') + 1));
+            assert.equal(spy.callCount, eventOrder.length - 2);
+            assert.deepEqual(getEventNames(spy), eventOrder.slice(0, eventOrder.indexOf('cell:pointerclick')));
         });
 
         QUnit.test('blank:pointerclick', function(assert) {

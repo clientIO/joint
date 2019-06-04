@@ -1538,8 +1538,8 @@ export const LinkView = CellView.extend({
     },
 
     notifyPointerup(evt, x, y) {
-        CellView.prototype.pointermove.call(this, evt, x, y);
         this.notify('link:pointerup', evt, x, y);
+        CellView.prototype.pointermove.call(this, evt, x, y);
     },
 
     pointerdblclick: function(evt, x, y) {
@@ -1655,6 +1655,7 @@ export const LinkView = CellView.extend({
         }
 
         this.notifyPointerup(evt, x, y);
+        this.checkMouseleave(evt);
     },
 
     mouseover: function(evt) {
@@ -1880,9 +1881,6 @@ export const LinkView = CellView.extend({
         }
 
         this._afterArrowheadMove(data);
-
-        // mouseleave event is not triggered due to changing pointer-events to `none`.
-        this.checkMouseleave(evt);
     },
 
     dragEnd: function() {

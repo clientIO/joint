@@ -53,6 +53,7 @@ var FLAG_REMOVE = 1<<29;
 
 var MOUNT_BATCH_SIZE = 1000;
 var UPDATE_BATCH_SIZE = Infinity;
+var MIN_PRIORITY = 2;
 
 export const Paper = View.extend({
 
@@ -538,9 +539,11 @@ export const Paper = View.extend({
     requestViewUpdate: function(view, flag, priority, opt) {
         opt || (opt = {});
         this.scheduleViewUpdate(view, flag, priority, opt);
-        if (this.isFrozen() || (this.isAsync() && opt.async !== false)) return;
+        var isAsync = this.isAsync();
+        if (this.isFrozen() || (isAsync && opt.async !== false)) return;
         if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
-        this.updateViews(opt);
+        var stats = this.updateViews(opt);
+        if (isAsync) this.trigger('render:done', stats, opt);
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
@@ -633,17 +636,19 @@ export const Paper = View.extend({
         var stats;
         var updateCount = 0;
         var batchCount = 0;
+        var priority = MIN_PRIORITY;
         do {
             batchCount++;
             stats = this.updateViewsBatch(opt);
             updateCount += stats.updated;
+            priority = Math.min(stats.priority, priority);
         } while (!stats.empty);
-        return { updated: updateCount, batches: batchCount };
+        return { updated: updateCount, batches: batchCount, priority };
     },
 
     updateViewsAsync: function(opt, data) {
         opt || (opt = {});
-        data || (data = { processed: 0 });
+        data || (data = { processed: 0, priority: MIN_PRIORITY });
         var updates = this._updates;
         var id = updates.id;
         if (id) {
@@ -662,10 +667,12 @@ export const Paper = View.extend({
                 // Some updates have been just processed
                 processed += stats.updated + stats.unmounted;
                 stats.processed = processed;
+                data.priority = Math.min(stats.priority, data.priority);
                 if (stats.empty && mountCount === 0) {
                     stats.unmounted += unmountCount;
                     stats.mounted += mountCount;
-                    this.trigger('render:done', stats);
+                    stats.priority = data.priority;
+                    this.trigger('render:done', stats, opt);
                     data.processed = 0;
                     updates.count = 0;
                 } else {
@@ -691,6 +698,7 @@ export const Paper = View.extend({
         var postponeCount = 0;
         var unmountCount = 0;
         var mountCount = 0;
+        var maxPriority = MIN_PRIORITY;
         var empty = true;
         var options = this.options;
         var priorities = updates.priorities;
@@ -741,11 +749,13 @@ export const Paper = View.extend({
                     }
                     continue;
                 }
+                if (maxPriority > priority) maxPriority = priority;
                 updateCount++;
                 delete priorityUpdates[cid];
             }
         }
         return {
+            priority: maxPriority,
             updated: updateCount,
             postponed: postponeCount,
             unmounted: unmountCount,
