@@ -3,7 +3,6 @@ import * as shapes from './src/shapes/index.mjs';
 
 // joint core
 export {
-    version,
     setTheme,
     config,
     env,
