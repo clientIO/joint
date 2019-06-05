@@ -1014,7 +1014,7 @@ export const LinkView = CellView.extend({
             sourceArrow.translateAndAutoOrient(
                 this.sourcePoint,
                 route[0] || this.targetPoint,
-                this.paper.viewport
+                this.paper.cells
             );
         }
 
@@ -1022,7 +1022,7 @@ export const LinkView = CellView.extend({
             targetArrow.translateAndAutoOrient(
                 this.targetPoint,
                 route[route.length - 1] || this.sourcePoint,
-                this.paper.viewport
+                this.paper.cells
             );
         }
     },
@@ -1192,7 +1192,7 @@ export const LinkView = CellView.extend({
         }
 
         vToken
-            .appendTo(this.paper.viewport)
+            .appendTo(this.paper.cells)
             .animateAlongPath(animationAttributes, connection);
 
         setTimeout(onAnimationEnd(vToken, callback), duration);

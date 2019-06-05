@@ -659,8 +659,6 @@ export namespace dia {
 
         protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
 
-        static dispatchToolsEvent(paper: dia.Paper, eventName: string): void;
-
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes
     }
 
@@ -1003,10 +1001,11 @@ export namespace dia {
         options: Paper.Options;
 
         svg: SVGElement;
-        viewport: SVGGElement;
         defs: SVGDefsElement;
+        cells: SVGGElement;
         tools: SVGGElement;
         layers: SVGGElement;
+        viewport: SVGGElement;
 
         $document: JQuery;
         $grid: JQuery;
@@ -1128,6 +1127,8 @@ export namespace dia {
         hideTools(): this;
 
         showTools(): this;
+
+        dispatchToolsEvent(eventName: string, ...args: any[]): void;
 
         // rendering
 

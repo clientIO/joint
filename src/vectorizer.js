@@ -1145,9 +1145,8 @@ const V = (function() {
     // Find the intersection of a line starting in the center
     // of the SVG `node` ending in the point `ref`.
     // `target` is an SVG element to which `node`s transformations are relative to.
-    // In JointJS, `target` is the `paper.viewport` SVG group element.
     // Note that `ref` point must be in the coordinate system of the `target` for this function to work properly.
-    // Returns a point in the `target` coordinte system (the same system as `ref` is in) if
+    // Returns a point in the `target` coordinate system (the same system as `ref` is in) if
     // an intersection is found. Returns `undefined` otherwise.
     VPrototype.findIntersection = function(ref, target) {
 
@@ -1161,7 +1160,7 @@ const V = (function() {
         var spot;
         var tagName = this.tagName();
 
-        // Little speed up optimalization for `<rect>` element. We do not do conversion
+        // Little speed up optimization for `<rect>` element. We do not do conversion
         // to path element and sampling but directly calculate the intersection through
         // a transformed geometrical rectangle.
         if (tagName === 'RECT') {

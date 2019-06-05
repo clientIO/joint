@@ -359,9 +359,9 @@ export const shapePerimeterConnectionPoint = function(linkView, view, magnet, re
 
     if (magnet) {
 
-        spot = V(magnet).findIntersection(reference, linkView.paper.viewport);
+        spot = V(magnet).findIntersection(reference, linkView.paper.cells);
         if (!spot) {
-            bbox = V(magnet).getBBox({ target: linkView.paper.viewport });
+            bbox = V(magnet).getBBox({ target: linkView.paper.cells });
         }
 
     } else {
@@ -1671,20 +1671,4 @@ export const isString = function(value) {
 };
 
 export const noop = function() {
-};
-
-export const isPaper= function(view) {
-    return view && view.isPaper && view.isPaper();
-};
-
-export const isCellView = function(view) {
-    return isLinkView(view) || isElementView(view);
-};
-
-export const isLinkView = function(view) {
-    return view.model && view.model.isLink && view.model.isLink();
-};
-
-export const isElementView = function(view) {
-    return view.model && view.model.isElement && view.model.isElement();
 };

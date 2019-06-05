@@ -460,11 +460,11 @@ export const Paper = View.extend({
                 selector: 'layers',
                 children: [{
                     tagName: 'g',
-                    className: addClassNamePrefix('layer viewport'),
-                    selector: 'viewport',
+                    className: addClassNamePrefix('cells-layer viewport'),
+                    selector: 'cells',
                 }, {
                     tagName: 'g',
-                    className: addClassNamePrefix('layer tools-container'),
+                    className: addClassNamePrefix('tools-layer'),
                     selector: 'tools'
                 }]
             }]
@@ -475,15 +475,18 @@ export const Paper = View.extend({
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, viewport, defs, tools, layers, background, grid } = childNodes;
+        const { svg, cells, defs, tools, layers, background, grid } = childNodes;
 
         this.svg = svg;
-        this.viewport = viewport;
         this.defs = defs;
         this.tools = tools;
+        this.cells = cells;
         this.layers = layers;
         this.$background = $(background);
         this.$grid = $(grid);
+
+        // backwards compatibility
+        this.viewport = cells;
 
         if (options.background) {
             this.drawBackground(options.background);
@@ -547,7 +550,7 @@ export const Paper = View.extend({
 
     clientMatrix: function() {
 
-        return V.createSVGMatrix(this.viewport.getScreenCTM());
+        return V.createSVGMatrix(this.cells.getScreenCTM());
     },
 
     requestConnectedLinksUpdate: function(view, opt) {
@@ -1146,7 +1149,7 @@ export const Paper = View.extend({
             return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new Rect();
         }
 
-        return V(this.viewport).getBBox();
+        return V(this.cells).getBBox();
     },
 
     // Return the dimensions of the content bbox in the paper units (as it appears on screen).
@@ -1295,7 +1298,7 @@ export const Paper = View.extend({
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
 
-        var $cells = $(this.viewport).children('[model-id]');
+        var $cells = $(this.cells).children('[model-id]');
         var cells = this.model.get('cells');
 
         sortElements($cells, function(a, b) {
@@ -1309,7 +1312,7 @@ export const Paper = View.extend({
 
 
     insertView: function(view) {
-        var layer = this.viewport;
+        var layer = this.cells;
         switch (this.options.sorting) {
             case sortingTypes.APPROX:
                 var z = view.model.get('z');
@@ -1338,7 +1341,7 @@ export const Paper = View.extend({
                 if (neighborZ === z - 1) continue;
             }
         }
-        var layer = this.viewport;
+        var layer = this.cells;
         if (neighborZ !== -Infinity) {
             var neighborPivot = pivots[neighborZ];
             // Insert After
@@ -1408,7 +1411,7 @@ export const Paper = View.extend({
         // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
         // the real bounding box (`bbox()`) including transformations).
         if (cx === undefined) {
-            var bbox = this.viewport.getBBox();
+            var bbox = this.cells.getBBox();
             cx = bbox.width / 2;
             cy = bbox.height / 2;
         }
@@ -1453,7 +1456,7 @@ export const Paper = View.extend({
     findView: function($el) {
 
         var el = isString($el)
-            ? this.viewport.querySelector($el)
+            ? this.cells.querySelector($el)
             : $el instanceof $ ? $el[0] : $el;
 
         var id = this.findAttribute('model-id', el);
@@ -1478,7 +1481,7 @@ export const Paper = View.extend({
         var views = this.model.getElements().map(this.findViewByModel, this);
 
         return views.filter(function(view) {
-            return view && view.vel.getBBox({ target: this.viewport }).containsPoint(p);
+            return view && view.vel.getBBox({ target: this.cells }).containsPoint(p);
         }, this);
     },
 
@@ -1492,24 +1495,30 @@ export const Paper = View.extend({
         var method = opt.strict ? 'containsRect' : 'intersect';
 
         return views.filter(function(view) {
-            return view && rect[method](view.vel.getBBox({ target: this.viewport }));
+            return view && rect[method](view.vel.getBBox({ target: this.cells }));
         }, this);
     },
 
     removeTools: function() {
-        CellView.dispatchToolsEvent(this, 'remove');
+        this.dispatchToolsEvent('remove');
         return this;
     },
 
     hideTools: function() {
-        CellView.dispatchToolsEvent(this, 'hide');
+        this.dispatchToolsEvent('hide');
         return this;
     },
 
     showTools: function() {
-        CellView.dispatchToolsEvent(this, 'show');
+        this.dispatchToolsEvent('show');
         return this;
     },
+
+    dispatchToolsEvent: function(event, ...args) {
+        if (typeof event !== 'string') return;
+        this.trigger('tools:event', event, ...args);
+    },
+
 
     getModelById: function(id) {
 
@@ -2487,10 +2496,6 @@ export const Paper = View.extend({
         }
 
         return markerId;
-    },
-
-    isPaper: function() {
-        return true;
     }
 
 }, {
