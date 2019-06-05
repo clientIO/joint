@@ -1,8 +1,8 @@
 const modules = require('../resources/es6');
+const path = require('path');
 
 module.exports = function() {
 
-    //TODO v.talas missing plugins.min.js file in build
     return {
         options: {
             ASCIIOnly: true
@@ -31,6 +31,17 @@ module.exports = function() {
         vectorizer: {
             src: modules.vectorizer.umd,
             dest: 'build/vectorizer.min.js'
+        },
+        plugins: {
+            files: [{
+                expand: true,
+                cwd: 'build',
+                src: Object.keys(modules.jointPlugins).map(key => path.basename(modules.jointPlugins[key].iife)),
+                dest: 'build',
+                rename: function(dst, src) {
+                    return dst + '/' + src.replace('.js', '.min.js');
+                }
+            }]
         }
     };
 };

@@ -6,7 +6,7 @@ module.exports = function(grunt) {
             'watch'
         ],
         'install': [
-            'shell:libs-esm',
+            'shell:rollup-dist',
             'build',
             'uglify:all'
         ],
@@ -22,11 +22,12 @@ module.exports = function(grunt) {
         'dist:prepare':[
             'clean:build',
             'build:joint',
+            'shell:rollup-dist',
             'uglify:all',
             'build:docs'
         ],
         'build:joint': [
-            'shell:rollup',
+            'shell:rollup-joint',
             'newer:concat:joint',
             'newer:concat:types',
             'newer:copy:appsLibs'
@@ -38,6 +39,7 @@ module.exports = function(grunt) {
             'newer:uglify:joint',
             'newer:uglify:jointCore',
             'newer:uglify:jointNoWrap',
+            'newer:uglify:plugins',
             'newer:cssmin:joint',
         ],
         'build:bundles': [
@@ -52,7 +54,7 @@ module.exports = function(grunt) {
 
         // TESTS
         'test': [
-            'shell:test-bundle',
+            'shell:rollup-test-bundle',
             'test:server',
             'test:client',
             'test:code-style'
