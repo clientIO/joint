@@ -43,4 +43,3 @@ export const setTheme = function(theme, opt) {
     // Update the default theme on the view prototype.
     mvc.View.prototype.defaultTheme = theme;
 };
-
