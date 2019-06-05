@@ -1,14 +1,37 @@
 import '../plugins/polyfills/index.mjs';
-import * as layout from '../layout/index.mjs';
+
+// extend the `layout` namespace
+import { Port } from '../layout/port.mjs'
+import { PortLabel } from '../layout/portLabel.mjs'
+import { DirectedGraph } from '../plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js';
 import * as shapes from '../shapes/index.mjs';
 
-const format = {};
-const ui = {};
+export const layout = { DirectedGraph, PortLabel, Port };
 
-export * from '../src/namespaces.mjs';
+// export empty namespaces - backward compatibility
+export const format = {};
+export const ui = {};
+
+// joint core
 export {
-    format,
-    layout,
-    ui,
-    shapes,
-}
+    version,
+    setTheme,
+    config,
+    env,
+    anchors,
+    linkAnchors,
+    connectionPoints,
+    connectionStrategies,
+    connectors,
+    dia,
+    highlighters,
+    mvc,
+    routers,
+    util,
+    linkTools,
+    Vectorizer,
+    V,
+    g
+} from '../src/namespaces.mjs';
+
+export { shapes }

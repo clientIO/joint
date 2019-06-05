@@ -10,7 +10,7 @@ const pkg = require('./package.json');
 
 let plugins = [
     replace({
-        include: 'src/core.js',
+        include: 'src/namespaces.mjs',
         VERSION: pkg.version
     }),
 

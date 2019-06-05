@@ -1,32 +1,3 @@
-import { invoke } from './util.js';
-import { View, views } from './view.js';
-
-export const version = 'VERSION';
-export const dia = {};
-export const ui = {};
-export const layout = {};
-export const shapes = {};
-export const format = {};
-export const connectors = {};
-export const highlighters = {};
-export const routers = {};
-export const anchors = {};
-export const connectionPoints = {};
-export const connectionStrategies = {};
-export const linkTools = {};
-export const mvc = {};
-export const util = {};
-
-export const setTheme = function(theme, opt) {
-
-    opt = opt || {};
-
-    invoke(views, 'setTheme', theme, opt);
-
-    // Update the default theme on the view prototype.
-    View.prototype.defaultTheme = theme;
-};
-
 export const env = {
 
     _results: {},
@@ -70,4 +41,3 @@ export const env = {
         return result;
     }
 };
-

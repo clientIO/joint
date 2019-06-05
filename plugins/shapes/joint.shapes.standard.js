@@ -3,7 +3,7 @@ import { Element } from '../../src/joint.dia.element.js';
 import { Link as LinkBase } from '../../src/joint.dia.link.js';
 import { isPercentage, assign } from '../../src/util.js';
 import { attributes } from '../../src/joint.dia.attributes.js';
-import { env } from '../../src/core.js';
+import { env } from '../../src/env.mjs';
 
 
 // ELEMENTS

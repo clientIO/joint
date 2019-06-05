@@ -11,20 +11,17 @@ import * as util from '../util/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 import * as g from '../src/geometry.js';
 import * as config from '../src/config.js';
-import * as core from '../src/core.js';
 import V from '../src/vectorizer.js';
+import { Port } from '../layout/port.mjs'
+import { PortLabel } from '../layout/portLabel.mjs'
 
-const Vectorizer = V;
-
-const version = core.version;
-const setTheme = core.setTheme;
-const env = core.env;
-
+export const version = 'VERSION';
+export const Vectorizer = V;
+export const layout = { PortLabel, Port };
+export { env } from '../src/env.mjs'
+export { setTheme } from '../src/util.setTheme.mjs';
 export {
-    version,
-    setTheme,
     config,
-    env,
     anchors,
     linkAnchors,
     connectionPoints,
@@ -36,7 +33,6 @@ export {
     routers,
     util,
     linkTools,
-    Vectorizer,
     V,
     g
 }

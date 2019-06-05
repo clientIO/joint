@@ -1,7 +1,7 @@
 import { Element } from '../../src/joint.dia.element.js';
 import { ElementView } from '../../src/elementView.mjs';
 import { omit, assign, sanitizeHTML, merge, has, breakText, setByPath } from '../../src/util.js';
-import { env } from '../../src/core.js';
+import { env } from '../../src/env.mjs';
 
 export const Generic = Element.define('basic.Generic', {
     attrs: {

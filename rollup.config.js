@@ -23,18 +23,22 @@ const TEST_BUNDLE = [
 
 export default commandLineArgs => {
 
+    // rollup -c --config-joint
     if (commandLineArgs['config-joint']) {
         return JOINT;
     }
 
+    // rollup -c --config-libs-esm
     if (commandLineArgs['config-libs-esm']) {
         return LIBS_ESM;
     }
 
+    // rollup -c --config-dist
     if (commandLineArgs['config-dist']) {
         return DIST;
     }
 
+    // rollup -c --config-test-bundle
     if (commandLineArgs['config-test-bundle']) {
         return TEST_BUNDLE;
     }
