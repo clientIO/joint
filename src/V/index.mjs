@@ -4,7 +4,7 @@
 // A tiny library for making your life easier when dealing with SVG.
 // The only Vectorizer dependency is the Geometry library.
 
-import * as g from './g/index.mjs';
+import * as g from '../g/index.mjs';
 
 const V = (function() {
 
