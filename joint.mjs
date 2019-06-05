@@ -1,8 +1,26 @@
 import * as layout from './src/layout/index.mjs';
 import * as shapes from './src/shapes/index.mjs';
 
-export * from './src/core.mjs';
+// joint core
 export {
-    layout,
-    shapes
-}
+    version,
+    setTheme,
+    config,
+    env,
+    anchors,
+    linkAnchors,
+    connectionPoints,
+    connectionStrategies,
+    connectors,
+    dia,
+    highlighters,
+    mvc,
+    routers,
+    util,
+    linkTools,
+    Vectorizer,
+    V,
+    g
+} from './src/core.mjs';
+
+export { layout, shapes }

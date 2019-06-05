@@ -15,7 +15,6 @@ import V from './Vectorizer.mjs';
 import * as Port from './layout/ports/port.mjs'
 import * as PortLabel from './layout/ports/portLabel.mjs'
 
-export const version = 'VERSION';
 export const Vectorizer = V;
 export const layout = { PortLabel, Port };
 export { env } from './env/index.mjs'
