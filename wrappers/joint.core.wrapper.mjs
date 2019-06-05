@@ -6,7 +6,7 @@ const shapes = { basic, standard };
 const format = {};
 const ui = {};
 
-export * from '../src/namespaces.mjs';
+export * from '../src/core.mjs';
 export {
     format,
     ui,

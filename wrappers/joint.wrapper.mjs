@@ -32,6 +32,6 @@ export {
     Vectorizer,
     V,
     g
-} from '../src/namespaces.mjs';
+} from '../src/core.mjs';
 
 export { shapes }
