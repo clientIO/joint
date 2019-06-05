@@ -1,5 +1,5 @@
 import * as util from '../util/util.js';
-import { toRad } from '../geometry.mjs';
+import { toRad } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
 
 function bboxWrapper(method) {

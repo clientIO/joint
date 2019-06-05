@@ -1,4 +1,4 @@
-import * as g from '../geometry.mjs';
+import * as g from '../g/index.mjs';
 
 export const smooth = function(sourcePoint, targetPoint, route, opt) {
 

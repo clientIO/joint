@@ -1,4 +1,4 @@
-import { Line, Point } from '../geometry.mjs';
+import { Line, Point } from '../g/index.mjs';
 import { isPercentage } from '../util/util.js';
 
 function connectionRatio(view, _magnet, _refPoint, opt) {

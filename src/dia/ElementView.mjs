@@ -3,7 +3,7 @@ import { CellView } from './CellView.mjs';
 import { Cell } from './Cell.mjs';
 import V from '../Vectorizer.mjs';
 import { elementViewPortPrototype } from './ports.js';
-import { Rect, snapToGrid } from '../geometry.mjs';
+import { Rect, snapToGrid } from '../g/index.mjs';
 
 // Element base view and controller.
 // -------------------------------------------

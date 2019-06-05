@@ -9,7 +9,7 @@ import * as dia from './dia/index.mjs';
 import * as linkTools from './linkTools/index.mjs';
 import * as util from './util/index.mjs';
 import * as mvc from './mvc/index.mjs';
-import * as g from './geometry.mjs';
+import * as g from './g/index.mjs';
 import * as config from './config/index.mjs';
 import V from './Vectorizer.mjs';
 import * as Port from './layout/ports/port.mjs'

@@ -1,5 +1,5 @@
 import * as util from '../util/util.js';
-import * as g from '../geometry.mjs';
+import * as g from '../g/index.mjs';
 
 // default size of jump if not specified in options
 var JUMP_SIZE = 5;

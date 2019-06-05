@@ -1,6 +1,6 @@
 module.exports = {
     geometry: {
-        src: 'src/geometry.mjs',
+        src: 'src/g/index.mjs',
         umd: 'build/geometry.js',
     },
     vectorizer: {

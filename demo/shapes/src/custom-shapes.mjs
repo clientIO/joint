@@ -1,5 +1,5 @@
 import * as joint from '../../../joint.mjs';
-import * as g from '../../../src/geometry.mjs';
+import * as g from '../../../src/g/index.mjs';
 import V from '../../../src/Vectorizer.mjs';
 
 var graph = new joint.dia.Graph;

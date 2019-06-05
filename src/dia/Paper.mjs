@@ -25,7 +25,7 @@ import {
     toArray,
     has
 } from '../util/util.js';
-import { Rect, Point, toRad } from '../geometry.mjs';
+import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';
 import { ElementView } from './ElementView.mjs';

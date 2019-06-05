@@ -14,7 +14,7 @@ import {
     merge,
     uniq
 } from '../util/util.js';
-import { Point, Rect } from '../geometry.mjs';
+import { Point, Rect } from '../g/index.mjs';
 import V from '../Vectorizer.mjs';
 import $ from 'jquery';
 

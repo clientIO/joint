@@ -2,7 +2,7 @@ import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../Vectorizer.mjs';
 import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone } from '../util/util.js';
-import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../geometry.mjs';
+import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import $ from 'jquery';

@@ -1,4 +1,4 @@
-import * as g from '../geometry.mjs';
+import * as g from '../g/index.mjs';
 import * as util from '../util/util.js';
 
 var config = {

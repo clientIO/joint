@@ -1,6 +1,6 @@
 import * as  util from '../util/util.js';
 import V from '../Vectorizer.mjs';
-import { Rect, Point } from '../geometry.mjs';
+import { Rect, Point } from '../g/index.mjs';
 import * as Port from '../layout/ports/port.mjs';
 import * as PortLabel from '../layout/ports/portLabel.mjs';
 
