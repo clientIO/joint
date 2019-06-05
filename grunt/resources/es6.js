@@ -1,10 +1,10 @@
 module.exports = {
     geometry: {
-        src: 'src/geometry.js',
+        src: 'src/geometry.mjs',
         umd: 'build/geometry.js',
     },
     vectorizer: {
-        src: 'src/vectorizer.js',
+        src: 'src/Vectorizer.mjs',
         iife: 'build/iife/vectorizer.js',
         umd: 'build/vectorizer.js',
     },
@@ -20,39 +20,39 @@ module.exports = {
     },
     jointPlugins: {
         'joint.shapes.erd': {
-            src: 'plugins/shapes/joint.shapes.erd.js',
+            src: 'src/shapes/erd.mjs',
             iife: 'build/joint.shapes.erd.js'
         },
         'joint.shapes.fsa': {
-            src: 'plugins/shapes/joint.shapes.fsa.js',
+            src: 'src/shapes/fsa.mjs',
             iife: 'build/joint.shapes.fsa.js'
         },
         'joint.shapes.org': {
-            src: 'plugins/shapes/joint.shapes.org.js',
+            src: 'src/shapes/org.mjs',
             iife: 'build/joint.shapes.org.js'
         },
         'joint.shapes.chess': {
-            src: 'plugins/shapes/joint.shapes.chess.js',
+            src: 'src/shapes/chess.mjs',
             iife: 'build/joint.shapes.chess.js'
         },
         'joint.shapes.pn': {
-            src: 'plugins/shapes/joint.shapes.pn.js',
+            src: 'src/shapes/pn.mjs',
             iife: 'build/joint.shapes.pn.js'
         },
         'joint.shapes.devs': {
-            src: 'plugins/shapes/joint.shapes.devs.js',
+            src: 'src/shapes/devs.mjs',
             iife: 'build/joint.shapes.devs.js'
         },
         'joint.shapes.uml': {
-            src: 'plugins/shapes/joint.shapes.uml.js',
+            src: 'src/shapes/uml.mjs',
             iife: 'build/joint.shapes.uml.js'
         },
         'joint.shapes.logic': {
-            src: 'plugins/shapes/joint.shapes.logic.js',
+            src: 'src/shapes/logic.mjs',
             iife: 'build/joint.shapes.logic.js'
         },
         'joint.layout.DirectedGraph': {
-            src: 'plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js',
+            src: 'src/layout/DirectedGraph/DirectedGraph.mjs',
             iife: 'build/joint.layout.DirectedGraph.js'
         }
     }

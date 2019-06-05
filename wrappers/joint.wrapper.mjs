@@ -1,10 +1,10 @@
-import '../plugins/polyfills/index.mjs';
+import '../src/polyfills/index.mjs';
 
 // extend the `layout` namespace
-import { Port } from '../layout/port.mjs'
-import { PortLabel } from '../layout/portLabel.mjs'
-import { DirectedGraph } from '../plugins/layout/DirectedGraph/joint.layout.DirectedGraph.js';
-import * as shapes from '../shapes/index.mjs';
+import * as Port from '../src/layout/ports/port.mjs'
+import * as PortLabel from '../src/layout/ports/portLabel.mjs'
+import { DirectedGraph } from '../src/layout/DirectedGraph/DirectedGraph.mjs';
+import * as shapes from '../src/shapes/index.mjs';
 
 export const layout = { DirectedGraph, PortLabel, Port };
 

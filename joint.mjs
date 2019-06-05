@@ -1,5 +1,5 @@
-import * as layout from './layout/index.mjs';
-import * as shapes from './shapes/index.mjs';
+import * as layout from './src/layout/index.mjs';
+import * as shapes from './src/shapes/index.mjs';
 
 export * from './src/core.mjs';
 export {

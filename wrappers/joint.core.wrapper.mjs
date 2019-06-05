@@ -1,6 +1,6 @@
-import '../plugins/polyfills/index.mjs';
-import * as basic from '../shapes/basic.mjs';
-import * as standard from '../shapes/standard.mjs';
+import '../src/polyfills/index.mjs';
+import * as basic from '../src/shapes/basic.mjs';
+import * as standard from '../src/shapes/standard.mjs';
 
 const shapes = { basic, standard };
 const format = {};

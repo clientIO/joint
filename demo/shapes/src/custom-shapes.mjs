@@ -1,6 +1,6 @@
 import * as joint from '../../../joint.mjs';
-import * as g from '../../../src/geometry.js';
-import V from '../../../src/vectorizer.js';
+import * as g from '../../../src/geometry.mjs';
+import V from '../../../src/Vectorizer.mjs';
 
 var graph = new joint.dia.Graph;
 
