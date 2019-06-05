@@ -1,5 +1,5 @@
 import * as util from '../util/index.mjs';
-import V from '../Vectorizer.mjs';
+import V from '../V/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 
 export const stroke = {

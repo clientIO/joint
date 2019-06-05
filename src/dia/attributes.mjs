@@ -1,7 +1,7 @@
 import { Point, Path, Polyline } from '../g/index.mjs';
 import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../util/util.mjs';
 import $ from 'jquery';
-import V from '../Vectorizer.mjs';
+import V from '../V/index.mjs';
 
 function setWrapper(attrName, dimension) {
     return function(value, refBBox) {

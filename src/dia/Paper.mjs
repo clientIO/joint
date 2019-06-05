@@ -1,4 +1,4 @@
-import V from '../Vectorizer.mjs';
+import V from '../V/index.mjs';
 import {
     isNumber,
     assign,

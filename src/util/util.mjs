@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import $ from 'jquery';
-import V from '../Vectorizer.mjs';
+import V from '../V/index.mjs';
 import * as config from '../config/index.mjs';
 
 export const addClassNamePrefix = function(className) {

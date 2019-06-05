@@ -15,7 +15,7 @@ import {
     uniq
 } from '../util/index.mjs';
 import { Point, Rect } from '../g/index.mjs';
-import V from '../Vectorizer.mjs';
+import V from '../V/index.mjs';
 import $ from 'jquery';
 
 // CellView base view and controller.

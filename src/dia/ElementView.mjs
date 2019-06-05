@@ -1,7 +1,7 @@
 import { assign, invoke, isFunction, toArray } from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
 import { Cell } from './Cell.mjs';
-import V from '../Vectorizer.mjs';
+import V from '../V/index.mjs';
 import { elementViewPortPrototype } from './ports.js';
 import { Rect, snapToGrid } from '../g/index.mjs';
 
