@@ -3,7 +3,7 @@
   * dia.Paper - async mode revamped (viewport matching, rendering progress) [breaking change]
   * dia.Paper - cells are rendered into the `paper.cells` (previously called `paper.viewport`), transformations are applied to `paper.layers` (parent of `paper.cells`) [breaking change]
   * dia.Graph - getBBox() accepts no parameters and returns the bounding box of the entire graph [breaking change]
-  * dia.Graph - getCellsBBox() does not ignore links passed [breaking change]
+  * dia.Graph - getCellsBBox(cells) does not ignore links passed via `cells` parameter [breaking change]
   * dia.CellView - listening for underlying model changes switched from a specific attribute change (e.g. `change:size`) to a general `change` event [breaking change]
   * dia.CellView - remove deprecated getStrokeBBox() [breaking change]
   * Vectorizer - change `xmlns` to `svg` namespace, add correct `xmlns` namespace [breaking change]
