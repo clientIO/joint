@@ -12,13 +12,11 @@ import {
     toKebabCase,
     sortedIndex,
     merge,
-    uniq,
-    isPaper
+    uniq
 } from './util.js';
 import { Point, Rect } from './geometry.js';
 import V from './vectorizer.js';
 import $ from 'jquery';
-import { ToolsView } from './joint.dia.tools.js';
 
 // CellView base view and controller.
 // --------------------------------------------
@@ -859,7 +857,7 @@ export const CellView = View.extend({
 
         this.removeTools();
 
-        if (toolsView instanceof ToolsView) {
+        if (toolsView) {
             this._toolsView = toolsView;
             toolsView.configure({ relatedView: this });
             toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
@@ -1024,12 +1022,6 @@ export const CellView = View.extend({
         this.options.interactive = value;
     }
 }, {
-
-    dispatchToolsEvent: function(paper, event) {
-        if ((typeof event === 'string') && isPaper(paper)) {
-            paper.trigger('tools:event', event);
-        }
-    },
 
     addPresentationAttributes: function(presentationAttributes) {
         return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {

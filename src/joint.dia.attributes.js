@@ -1,5 +1,5 @@
 import { Point, Path, Polyline } from './geometry.js';
-import { assign, isPlainObject, pick, isObject, isPercentage, breakText, isLinkView as _isLinkView } from './util.js';
+import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from './util.js';
 import $ from 'jquery';
 import V from './vectorizer.js';
 
@@ -156,7 +156,7 @@ function isTextInUse(lineHeight, node, attrs) {
 }
 
 function isLinkView() {
-    return _isLinkView(this);
+    return this.model.isLink();
 }
 
 function contextMarker(context) {

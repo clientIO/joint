@@ -1,5 +1,6 @@
 import * as mvc from './view.js';
 import * as util from './util.js';
+import { CellView } from './cellView.mjs';
 
 var ToolView = mvc.View.extend({
     name: null,
@@ -76,7 +77,7 @@ var ToolsView = mvc.View.extend({
         var tools = options.tools;
         if (!Array.isArray(tools)) return this;
         var relatedView = options.relatedView;
-        if (!util.isCellView(relatedView)) return this;
+        if (!(relatedView instanceof CellView)) return this;
         var views = this.tools = [];
         for (var i = 0, n = tools.length; i < n; i++) {
             var tool = tools[i];

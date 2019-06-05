@@ -1500,19 +1500,25 @@ export const Paper = View.extend({
     },
 
     removeTools: function() {
-        CellView.dispatchToolsEvent(this, 'remove');
+        this.dispatchToolsEvent('remove');
         return this;
     },
 
     hideTools: function() {
-        CellView.dispatchToolsEvent(this, 'hide');
+        this.dispatchToolsEvent('hide');
         return this;
     },
 
     showTools: function() {
-        CellView.dispatchToolsEvent(this, 'show');
+        this.dispatchToolsEvent('show');
         return this;
     },
+
+    dispatchToolsEvent: function(event, ...args) {
+        if (typeof event !== 'string') return;
+        this.trigger('tools:event', event, ...args);
+    },
+
 
     getModelById: function(id) {
 
@@ -2490,10 +2496,6 @@ export const Paper = View.extend({
         }
 
         return markerId;
-    },
-
-    isPaper: function() {
-        return true;
     }
 
 }, {
