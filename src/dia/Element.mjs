@@ -1,7 +1,7 @@
 import { Cell } from './Cell.mjs';
 import { Point, toRad, normalizeAngle, Rect } from '../g/index.mjs';
 import { isNumber, isObject, interpolate, assign, invoke, normalizeSides } from '../util/index.mjs';
-import { elementPortPrototype } from './ports.js';
+import { elementPortPrototype } from './ports.mjs';
 
 // Element base model.
 // -----------------------------

@@ -2,7 +2,7 @@ import { assign, invoke, isFunction, toArray } from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
 import { Cell } from './Cell.mjs';
 import V from '../V/index.mjs';
-import { elementViewPortPrototype } from './ports.js';
+import { elementViewPortPrototype } from './ports.mjs';
 import { Rect, snapToGrid } from '../g/index.mjs';
 
 // Element base view and controller.
