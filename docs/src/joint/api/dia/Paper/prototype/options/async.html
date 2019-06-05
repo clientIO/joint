@@ -9,9 +9,11 @@
 	<li>...re-rendering may have been manually disabled with <a href="#dia.Paper.prototype.options.frozen"><code>paper.options.frozen</code></a> or <a href="#dia.Paper.prototype.freeze"><code>paper.freeze()</code></a>.</li>
 </ul>
 
-<p>This is a problem because certain CellView/Paper methods require the view to be updated and present in the DOM to function properly (e.g. <a href="#dia.Paper.prototype.findViewByModel"><code>paper.findViewByModel()</code></a>, <a href="#dia.Element.prototype.findView"><code>element.findView()</code></a>/<a href="#dia.Link.prototype.findView"><code>link.findView()</code></a> or <a href="#dia.ElementView.prototype.getBBox"><code>elementView.getBBox()</code></a>/<a href="#dia.LinkView.prototype.getBBox"><code>linkView.getBBox()</code></a>).</p>
+<p>This is an issue because certain CellView/Paper methods require the view to be updated and present in the DOM to function properly (e.g. <a href="#dia.Paper.prototype.findViewByModel"><code>paper.findViewByModel()</code></a> or <a href="#dia.Element.prototype.findView"><code>element.findView()</code></a>/<a href="#dia.Link.prototype.findView"><code>link.findView()</code></a>, as well as <a href="#dia.Paper.prototype.getContentBBox"><code>paper.getContentBBox()</code></a> and <a href="#dia.ElementView.prototype.getBBox"><code>elementView.getBBox()</code></a>/<a href="#dia.LinkView.prototype.getBBox"><code>linkView.getBBox()</code></a>).</p>
 
-<p>One option to guard against inconsistencies is to rely on the <code>'render:done'</code> <a href="#dia.Paper.events">paper event</a>. This event signals that all scheduled updates were done and that the state of cell views is consistent with the state of the cell models.</p>
+<p>The problem may be circumvented in several Paper methods via the <code>useModelGeometry</code> option to force using model calculations instead of view measurements (e.g. <a href="#dia.Paper.prototype.getContentBBox"><code>paper.getContentBBox()</code></a>, <a href="#dia.Paper.prototype.getContentArea"><code>paper.getContentArea()</code></a>, <a href="#dia.Paper.prototype.scaleToFit"><code>paper.scaleToFit()</code></a>, <a href="#dia.Paper.prototype.fitToContent"><code>paper.fitToContent()</code></a>). In this case, the methods refer to the (always up-to-date) model data.</p>
+
+<p>For the methods that truly need a to refer to a CellView, one way to prevent inconsistencies is to rely on the <code>'render:done'</code> <a href="#dia.Paper.events">paper event</a>. This event signals that all scheduled updates are done and that the state of cell views is consistent with the state of the cell models.</p>
 
 <p>Alternatively, you may trigger a manual update immediately before a sensitive function call. JointJS offers several suitable methods:</p>
 
@@ -21,5 +23,4 @@
 	<li><a href="#dia.Paper.prototype.dumpViews"><code>paper.dumpViews()</code></a> - bring all views into the DOM and update them.</li>
 	<li><a href="#dia.Paper.prototype.updateViews"><code>paper.updateViews()</code></a> - update all views.</li>
 	</li>
-	<li><a href="#dia.Paper.prototype.unfreeze"><code>paper.unfreeze()</code></a> - update all views and unfreeze the <a href="#dia.Paper.prototype.options.frozen"><code>frozen</code></a> paper (i.e. enable automatic re-rendering views upon updates).</li>
 </ul>
