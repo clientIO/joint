@@ -1,0 +1,30 @@
+<p>New link anchor functions can be defined in the <code>joint.linkAnchors</code> namespace (e.g. <code>joint.linkAnchors.myLinkAnchor</code>) or passed directly as a function to the <code>linkAnchor</code> property of link source/target (or to the <code>defaultLinkAnchor</code> <a href="#dia.Paper.prototype.options.defaultLinkAnchor">option of a paper</a>).</p>
+
+<p>In either case, the link anchor function must return the link anchor as a Point. The function is expected to have the form <code>function(endView, endMagnet, anchorReference, args)</code>:</p>
+
+<table>
+    <tr>
+        <th>endView</th>
+        <td><i>dia.LinkView</i></td>
+        <td>The LinkView to which we are connecting. The Link model can be accessed as <code>endView.model</code>; this may be useful for writing conditional logic based on link attributes.</td>
+    </tr>
+    <tr>
+        <th>endMagnet</th>
+        <td><i>null</i></td>
+        <td>(Not used) This argument is only present to ensure that the signature of custom <code>linkAnchor</code> methods is the same as the signature of custom <code>anchor</code> <a href="#linkAnchors.custom">methods</a>.</td>
+    </tr>
+    <tr>
+        <th rowspan="2">anchorReference</th>
+        <td><i>g.Point</i></td>
+        <td>A reference to another component of the link path that may be necessary to find this anchor point. If we are calling this method for a source anchor, it is the first vertex; if there are no vertices, it is the target anchor. If we are calling this method for a target anchor, it is the last vertex; if there are no vertices, it is the source anchor...</td>
+    </tr>
+    <tr>
+        <td><i>SVGElement</i></td>
+        <td>...if the anchor in question does not exist (yet), it is that link end's magnet. (The built-in methods usually use this element's center point as reference.)</td>
+    </tr>
+    <tr>
+        <th>args</th>
+        <td><i>object</i></td>
+        <td>An object with additional optional arguments passed to the link anchor method by the user when it was called (the <code>args</code> property).</td>
+    </tr>
+</table>

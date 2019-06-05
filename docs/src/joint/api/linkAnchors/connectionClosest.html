@@ -1,0 +1,9 @@
+<p>The <code>'connectionClosest'</code> link anchor function places the anchor of the link at the point along the reference link that is the closest to the appropriate reference point of this link. (If we are calling this method for a source anchor, the reference point is the first vertex; if there are no vertices, it is the target anchor. If we are calling this method for a target anchor, the reference point is the last vertex; if there are no vertices, it is the source anchor.)</p>
+
+<p>Example:</p>
+
+<pre><code>link.source(link2, {
+    linkAnchor: {
+        name: 'connectionClosest'
+    }
+});</code></pre>

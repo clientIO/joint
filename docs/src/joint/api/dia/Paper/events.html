@@ -362,12 +362,16 @@
     </td>
   </tr>
   <tr>
-    <th>rendered:done</th>
-    <td>Triggered when the paper has finished rendering all cell views in case <a href="#dia.Paper.prototype.options.async">async</a> rendering is enabled.</td>
+    <th>render:done</th>
+    <td>
+      <p>Triggered on <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers when all scheduled updates are done (i.e. all scheduled batches have finished).</p>
+    </td>
   </tr>
   <tr>
     <th>[custom]</th>
-    <td>Custom cell event can be triggered on pointerdown with <a href="#dia.attributes.event">Event</a> attribute. Calling <code>evt.stopPropagation()</code> prevents triggering all subsequent events.</td>
+    <td>
+      <p>Custom cell event can be triggered on pointerdown with <a href="#dia.attributes.event">Event</a> attribute. Calling <code>evt.stopPropagation()</code> prevents triggering all subsequent events.</p>
+    </td>
   </tr>
 </table>
 

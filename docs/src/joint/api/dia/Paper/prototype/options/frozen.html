@@ -1,0 +1,12 @@
+<code>frozen</code> - when <code>true</code> on an <a href="#dia.Paper.prototype.options.async"><code>async</code></a> paper, the paper is <q>frozen</q>. This means that changes made in this paper's graph are not reflected by the paper until this state is reversed. Use <a href="#dia.Paper.prototype.unfreeze"><code>paper.unfreeze()</code></a> to unfreeze the paper, and <a href="#dia.Paper.prototype.freeze"><code>paper.freeze()</code></a> to freeze it again. (You may also use <a href="#dia.Paper.prototype.updateViews"><code>paper.updateViews()</code></a> to manually refresh the paper and leave it frozen.)</p>
+
+<p>Example:</p>
+
+<code><pre>var graph = new joint.dia.Graph();
+graph.resetCells([cell1, cell2]);
+var paper = new joint.dia.Paper({
+	el: document.getElementById('paper-holder'),
+	model: graph,
+	frozen: true
+});
+paper.unfreeze();</pre></code>

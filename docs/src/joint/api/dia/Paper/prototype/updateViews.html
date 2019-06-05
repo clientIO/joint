@@ -1,0 +1,41 @@
+<pre class="docs-method-signature"><code>paper.updateViews([opt])</code></pre>
+<p>Update views in a <a href="#dia.Paper.prototype.options.frozen">frozen</a> <a href="#dia.Paper.prototype.options.async"><code>async</code></a> paper to make sure that the views reflect the cells' models; keep the paper frozen afterwards.</p>
+
+<p>Several extra arguments may be provided in the <code>opt</code> object:</p>
+
+<table>
+    <tr>
+        <td>batchSize</td>
+        <td><i>number</i></td>
+        <td>For <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers, how many views should there be per one asynchronous process? Default is <code>1000</code>.</td>
+    </tr>
+    <tr>
+        <td>progress</td>
+        <td><i>function</i></td>
+        <td>Callback function that is called whenever a batch is finished processing. The callback function is provided with three arguments:
+            <table>
+                <tr>
+                    <td>done</td>
+                    <td><i>boolean</i></td>
+                    <td>Are we done? Was this the last batch?</td>
+                </tr>
+                <tr>
+                    <td>processed</td>
+                    <td><i>number</i></td>
+                    <td>How far along are we? How many elements have been processed as part of a batch so far?</td>
+                </tr>
+                <tr>
+                    <td>total</td>
+                    <td><i>number</i></td>
+                    <td>How many views are there? How many elements in will have been processed as part of a batch when we are done?</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td>viewport</td>
+        <td><i>function</i></td>
+        <td>Callback function to determine whether a given view should be added to the DOM. By default, <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a> is used, but you may provide a different callback function. The format of the callback method is described in the <a href="#dia.Paper.prototype.options.viewport">option's documentation</a>, as are examples of usage.
+        </td>
+    </tr>
+</table>

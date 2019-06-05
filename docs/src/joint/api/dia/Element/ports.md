@@ -72,7 +72,7 @@ rect.addPort(port);
 <tr>
     <td><b>attrs</b></td>
     <td><i>object</i></td>
-    <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
+    <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
 </tr>
 <tr>
     <td><b>markup</b></td>
@@ -248,7 +248,7 @@ All properties described above are optional and everything has own default. E.g.
 <tr>
     <td><b>attrs</b></td>
     <td><i>object</i></td>
-    <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#joint.dia.Element.presentation).</td>
+    <td>JointJS style attribute definition. The same notation as the `attrs` property on [`Element`](#dia.Element.intro.presentation).</td>
 </tr>
 <tr>
     <td><b>markup</b></td>

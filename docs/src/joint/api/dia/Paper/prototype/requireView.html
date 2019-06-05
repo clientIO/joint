@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>paper.requireView(cell)</code></pre>
+<p>Ensure that the view associated with the <code>cell</code> model is attached to the DOM and that it is updated.</p>
+
+<p>This function <a href="#dia.Paper.prototype.findViewByModel">finds the view by the cell model</a>. If the view is not part of the paper's DOM (e.g. because it was outside the <a href="#dia.Paper.prototype.options.viewport">paper viewport</a>), this function attaches it. Additionally, the view is updated to reflect any changes that may have been done on the cell model in the meantime.</p>
+
+<p>Certain CellView methods require the view to be updated and present in the DOM to function properly (e.g. <a href="#dia.ElementView.prototype.getBBox">elementView.getBBox</a>/<a href="#dia.LinkView.prototype.getBBox">linkView.getBBox</a>). In <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers, you should precede calls to these methods with this function to guard against inconsistencies.</p>

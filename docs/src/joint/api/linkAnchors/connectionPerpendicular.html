@@ -1,0 +1,18 @@
+<p>The <code>'connectionPerpendicular'</code> link anchor function tries to place the anchor of the link inside the view bbox so that the link is made orthogonal. The anchor is placed along two line segments inside the view bbox (between the centers of the top and bottom side and between the centers of the left and right sides). If it is not possible to place the link anchor so that the resulting link would be orthogonal, the anchor is placed at the point on the reference link that is the <a href="#linkAnchors.connectionClosest">closest</a> to the appropriate reference point on this link. (If we are calling this method for a source anchor, the reference point is the first vertex; if there are no vertices, it is the target anchor. If we are calling this method for a target anchor, the reference point is the last vertex; if there are no vertices, it is the source anchor.)</p>
+
+<p>Example:</p>
+
+<pre><code>link.source(link2, {
+    anchor: {
+        name: 'connectionPerpendicular'
+    }
+});</code></pre>
+
+<p>When the link has no vertices, the other end cell's center is used as a reference point. By default, this means that a link using the <code>'connectionPerpendicular'</code> anchor <q>slides</q> alongside the source reference link while pointing to target's center. To invert this behavior, and have the link <q>slide</q> alongside the target reference link while pointing to source's center, pass a <code>priority</code> option to the target function:</p>
+
+<pre><code>link.target(link2, {
+    priority: true,
+    anchor: {
+        name: 'connectionPerpendicular',
+    }
+});</code></pre>

@@ -1,0 +1,9 @@
+<pre class="docs-method-signature"><code>paper.checkViewport()</code></pre>
+<p>For every view in the paper, determine if it fits into the viewport specified by <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a> function. Views that fit (views for which that function returns <code>true</code>) are attached to the DOM; views that do not are detached.</p>
+
+<p>While <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers do this automatically, synchronous papers require an explicit call to this method for this functionality to be applied. To show all views again, use <a href="#dia.Paper.prototype.dumpViews"><code>paper.dumpViews()</code></a>.</p>
+
+<pre class="docs-method-signature"><code>paper.checkViewport(opt)</code></pre>
+<p>If <code>opt.viewport</code> is provided, it is used as the callback function instead of <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a>. The format of the callback method is described in the <a href="#dia.Paper.prototype.options.viewport">option's documentation</a>, as are examples of usage.</p>
+
+<p>In <a href="#dia.Paper.prototype.options.async"><code>async</code></a> papers, providing <code>opt.viewport</code> causes viewport to be temporarily recalculated according to the provided callback function. This may be useful in situations where you need to show different views depending on context (e.g. viewing a section of the diagram vs. printing all of it).</p>
