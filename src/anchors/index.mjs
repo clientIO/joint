@@ -1,4 +1,4 @@
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import { toRad } from '../g/index.mjs';
 import { resolveRef } from '../linkAnchors/index.mjs';
 

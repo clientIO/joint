@@ -1,7 +1,7 @@
 import V from '../Vectorizer.mjs';
 import { Element } from '../dia/Element.mjs';
 import { Link as LinkBase } from '../dia/Link.mjs';
-import { isPercentage, assign } from '../util/util.js';
+import { isPercentage, assign } from '../util/index.mjs';
 import { attributes } from '../dia/attributes.mjs';
 import { env } from '../env/index.mjs';
 

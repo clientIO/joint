@@ -1,6 +1,6 @@
 import Backbone from 'backbone';
 import $ from 'jquery';
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import * as config from '../config/index.mjs';
 import V from '../Vectorizer.mjs';
 

@@ -1,6 +1,6 @@
 import { Element } from '../dia/Element.mjs';
 import { ElementView } from '../dia/ElementView.mjs';
-import { omit, assign, sanitizeHTML, merge, has, breakText, setByPath } from '../util/util.js';
+import { omit, assign, sanitizeHTML, merge, has, breakText, setByPath } from '../util/index.mjs';
 import { env } from '../env/index.mjs';
 
 export const Generic = Element.define('basic.Generic', {

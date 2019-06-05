@@ -1,5 +1,5 @@
 import * as mvc from '../mvc/index.mjs';
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
 import { ToolView } from './ToolView.mjs';
 

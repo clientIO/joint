@@ -19,7 +19,6 @@ export const version = 'VERSION';
 export const Vectorizer = V;
 export const layout = { PortLabel, Port };
 export { env } from './env/index.mjs'
-export { setTheme } from './util/util.setTheme.mjs';
 export {
     config,
     anchors,
@@ -36,3 +35,13 @@ export {
     V,
     g
 }
+export const setTheme = function(theme, opt) {
+
+    opt = opt || {};
+
+    util.invoke(mvc.views, 'setTheme', theme, opt);
+
+    // Update the default theme on the view prototype.
+    mvc.View.prototype.defaultTheme = theme;
+};
+

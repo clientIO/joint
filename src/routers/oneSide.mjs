@@ -1,4 +1,4 @@
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 
 // Routes the link always to/from a certain side
 //

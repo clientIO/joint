@@ -1,5 +1,5 @@
 import { Line, Point } from '../g/index.mjs';
-import { isPercentage } from '../util/util.js';
+import { isPercentage } from '../util/index.mjs';
 
 function connectionRatio(view, _magnet, _refPoint, opt) {
 

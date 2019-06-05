@@ -1,5 +1,5 @@
 import { Point, Path, Polyline } from '../g/index.mjs';
-import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../util/util.js';
+import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../util/index.mjs';
 import $ from 'jquery';
 import V from '../Vectorizer.mjs';
 

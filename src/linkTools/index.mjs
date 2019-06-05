@@ -1,6 +1,6 @@
 import * as g from '../g/index.mjs';
 import V from '../Vectorizer.mjs';
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import * as connectionStrategies from '../connectionStrategies/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';

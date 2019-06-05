@@ -1,4 +1,4 @@
-import {uniq, toArray, isEmpty} from './util.js';
+import {uniq, toArray, isEmpty} from './index.mjs';
 
 // Clone `cells` returning an object that maps the original cell ID to the clone. The number
 // of clones is exactly the same as the `cells.length`.

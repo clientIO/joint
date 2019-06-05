@@ -1,4 +1,4 @@
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
 // default size of jump if not specified in options

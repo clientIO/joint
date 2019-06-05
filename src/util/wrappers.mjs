@@ -1,5 +1,5 @@
 import { Cell } from '../dia/Cell.mjs';
-import { isFunction, isString, toArray } from './util.js';
+import { isFunction, isString, toArray } from './index.mjs';
 
 export const wrapWith = function(object, methods, wrapper) {
 

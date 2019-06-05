@@ -13,7 +13,7 @@ import {
     sortedIndex,
     merge,
     uniq
-} from '../util/util.js';
+} from '../util/index.mjs';
 import { Point, Rect } from '../g/index.mjs';
 import V from '../Vectorizer.mjs';
 import $ from 'jquery';

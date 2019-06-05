@@ -1,4 +1,4 @@
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import V from '../Vectorizer.mjs';
 
 export const opacity = {

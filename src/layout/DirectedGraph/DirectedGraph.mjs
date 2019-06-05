@@ -1,5 +1,5 @@
 import * as dagre from 'dagre';
-import * as util from '../../util/util.js';
+import * as util from '../../util/index.mjs';
 import { Graph } from '../../dia/index.mjs';
 import * as g from '../../g/index.mjs';
 

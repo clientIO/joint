@@ -24,7 +24,7 @@ import {
     template,
     toArray,
     has
-} from '../util/util.js';
+} from '../util/index.mjs';
 import { Rect, Point, toRad } from '../g/index.mjs';
 import { View, views } from '../mvc/index.mjs';
 import { CellView } from './CellView.mjs';

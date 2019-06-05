@@ -1,5 +1,5 @@
 import { Cell } from './Cell.mjs';
-import { clone, isPlainObject, isFunction, isString, isNumber } from '../util/util.js';
+import { clone, isPlainObject, isFunction, isString, isNumber } from '../util/index.mjs';
 import { Point, Polyline } from '../g/index.mjs';
 
 // Link base model.

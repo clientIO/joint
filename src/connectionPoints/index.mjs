@@ -1,6 +1,6 @@
 import * as g from '../g/index.mjs';
 import V from '../Vectorizer.mjs';
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 
 function offset(p1, p2, offset) {
 

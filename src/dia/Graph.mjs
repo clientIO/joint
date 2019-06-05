@@ -1,5 +1,5 @@
 import Backbone from 'backbone';
-import * as util from '../util/util.js';
+import * as util from '../util/index.mjs';
 import * as g from '../g/index.mjs';
 
 import { Link } from './Link.mjs';

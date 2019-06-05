@@ -25,7 +25,7 @@ import {
     cancelFrame,
     defaultsDeep,
     has
-} from '../util/util.js';
+} from '../util/index.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes.mjs';
 
