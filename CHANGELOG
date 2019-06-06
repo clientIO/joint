@@ -7,6 +7,7 @@
   * dia.CellView - listening for underlying model changes switched from a specific attribute change (e.g. `change:size`) to a general `change` event [breaking change]
   * dia.CellView - remove deprecated getStrokeBBox() [breaking change]
   * Vectorizer - change `xmlns` to `svg` namespace, add correct `xmlns` namespace [breaking change]
+  * remove deprecated `PortsModelInterface` and `PortsViewInterface` from `joint.shapes.basic` [breaking change]
   * upgrade dependencies (Backbone v1.4.0, Dagre v0.8.4, Graphlib v2.1.6, jQuery v3.4.1)
   * full support for ES Modules
   * support for Link to Link connections
@@ -21,7 +22,7 @@
   * dia.Graph - add `indirect` option for getNeighbors(), getConnectedLinks(), isNeighbor() for link-link connections
   * dia.Link - add `priority` attribute for anchors
   * dia.Link - add getSourceCell(), getTargetCell(), getPolyline(), getSourcePoint(), getTargetPoint(), getBBox()
-  * dia.Link - getSourceElement() and getTargetElement() return finds also indirect elements
+  * dia.Link - getSourceElement() and getTargetElement() finds also indirect elements
   * dia.Link - add angle, keepGradient and ensureLegibility options for labels
   * dia.ElementView - add findPortNode()
   * dia.LinkView - properly revert `pointer-events` attribute after a link interaction
