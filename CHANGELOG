@@ -30,10 +30,10 @@
   * dia.CellView - make sure `cell:mouseleave` and `cell:mouseenter` events are always called when the mouse leaves/enters a cell
   * dia.CellView - fix referenced bounding box for nodes outside the rotatable group
   * dia.Cell - add generateId(), generatePortId()
-  * anchors - modeCenter accept `dx`, `dy` options
+  * anchors - modelCenter anchor accepts `dx`, `dy` options
   * linkAnchors - add anchors for link-link connections (ratio, length, perpendicular, closest)
   * linkTools - add `stopPropagation` option for Vertices tool
-  * shapes.Standard - add `standard.InscribedImage` shape
+  * shapes.standard - add `standard.InscribedImage` shape
   * util - breakText() prefers breaking words at hyphens
   * util - nextFrame() extra parameters are appended to the arguments the callback receives
   * Vectorizer - fix translateAndAutoOrient() for edge cases
