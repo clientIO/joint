@@ -2,7 +2,7 @@
 
     var graph = new joint.dia.Graph;
 
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper-special-attributes-text-relative-dimensions'),
         model: graph,
         width: 600,
@@ -107,8 +107,8 @@
             duration: 4000,
             valueFunction: function(start, end) {
                 return function(time) {
-                    return start + end.substr(1, Math.ceil(end.length * time))
-                }
+                    return start + end.substr(1, Math.ceil(end.length * time));
+                };
             }
         });
 
@@ -125,7 +125,7 @@
             valueFunction: function(start, end) {
                 return function(time) {
                     return end + start.substr(1, Math.ceil(start.length * time));
-                }
+                };
             }
         });
 
@@ -146,7 +146,7 @@
 
         if (element.currentTransitions === 0) {
             if (element.typeToggle) type(element);
-            else untype(element)
+            else untype(element);
         }
     });
 }());

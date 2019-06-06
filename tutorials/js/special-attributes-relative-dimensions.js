@@ -2,7 +2,7 @@
 
     var graph = new joint.dia.Graph;
 
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper-special-attributes-relative-dimensions'),
         model: graph,
         width: 600,
@@ -134,7 +134,7 @@
 
         if (element.currentTransitions === 0) {
             if (element.stretchToggle) stretch(element);
-            else contract(element)
+            else contract(element);
         }
     });
 }());

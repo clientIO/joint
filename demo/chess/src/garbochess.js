@@ -12,7 +12,6 @@
 // Better king evaluation
 // Better move sorting in PV nodes (especially root)
 
-var g_debug = true;
 var g_timeout = 40;
 
 function GetFen(){
@@ -125,7 +124,7 @@ function GetMoveSAN(move, validMoves) {
 
     MakeMove(move);
     if (g_inCheck) {
-	    result += GenerateValidMoves().length == 0 ? '#' : '+';
+        result += GenerateValidMoves().length == 0 ? '#' : '+';
     }
     UnmakeMove(move);
 
@@ -189,13 +188,11 @@ var g_startTime;
 var g_nodeCount;
 var g_qNodeCount;
 var g_searchValid;
-var g_globalPly = 0;
 
 function Search(finishMoveCallback, maxPly, finishPlyCallback) {
     var alpha = minEval;
     var beta = maxEval;
 
-    g_globalPly++;
     g_nodeCount = 0;
     g_qNodeCount = 0;
     g_searchValid = true;
@@ -317,14 +314,6 @@ var pieceSquareAdj = new Array(8);
 
 // Returns the square flipped
 var flipTable = new Array(256);
-
-function PawnEval(color) {
-    var pieceIdx = (color | 1) << 4;
-    var from = g_pieceList[pieceIdx++];
-    while (from != 0) {
-        from = g_pieceList[pieceIdx++];
-    }
-}
 
 function Mobility(color) {
     var result = 0;
@@ -755,7 +744,7 @@ function MovePicker(hashMove, depth, killer1, killer2) {
                 GenerateAllMoves(this.moves);
                 this.moveCount = this.moves.length;
                 // Move ordering
-                for (var i = this.atMove; i < this.moveCount; i++) this.moveScores[i] = ScoreMove(this.moves[i]);
+                for (i = this.atMove; i < this.moveCount; i++) this.moveScores[i] = ScoreMove(this.moves[i]);
                 // No moves, onto next stage
                 if (this.atMove == this.moveCount) this.stage++;
             }
@@ -763,10 +752,10 @@ function MovePicker(hashMove, depth, killer1, killer2) {
             if (this.stage == 6) {
                 // Losing captures
                 if (this.losingCaptures != null) {
-                    for (var i = 0; i < this.losingCaptures.length; i++) {
+                    for (i = 0; i < this.losingCaptures.length; i++) {
                         this.moves[this.moves.length] = this.losingCaptures[i];
                     }
-                    for (var i = this.atMove; i < this.moveCount; i++) this.moveScores[i] = ScoreMove(this.moves[i]);
+                    for (i = this.atMove; i < this.moveCount; i++) this.moveScores[i] = ScoreMove(this.moves[i]);
                     this.moveCount = this.moves.length;
                 }
                 // No moves, onto next stage
@@ -891,20 +880,20 @@ function AllCutNode(ply, depth, beta, allowNull) {
             var r = 3 + (ply >= 5 ? 1 : ply / 4);
             if (g_baseEval - beta > 1500) r++;
 
-	        g_toMove = 8 - g_toMove;
-	        g_baseEval = -g_baseEval;
-	        g_hashKeyLow ^= g_zobristBlackLow;
-	        g_hashKeyHigh ^= g_zobristBlackHigh;
+            g_toMove = 8 - g_toMove;
+            g_baseEval = -g_baseEval;
+            g_hashKeyLow ^= g_zobristBlackLow;
+            g_hashKeyHigh ^= g_zobristBlackHigh;
 
-	        var value = -AllCutNode(ply - r, depth + 1, -(beta - 1), false);
+            var value = -AllCutNode(ply - r, depth + 1, -(beta - 1), false);
 
-	        g_hashKeyLow ^= g_zobristBlackLow;
-	        g_hashKeyHigh ^= g_zobristBlackHigh;
-	        g_toMove = 8 - g_toMove;
-	        g_baseEval = -g_baseEval;
+            g_hashKeyLow ^= g_zobristBlackLow;
+            g_hashKeyHigh ^= g_zobristBlackHigh;
+            g_toMove = 8 - g_toMove;
+            g_baseEval = -g_baseEval;
 
             if (value >= beta)
-	            return beta;
+                return beta;
         }
     }
 
@@ -925,7 +914,6 @@ function AllCutNode(ply, depth, beta, allowNull) {
             continue;
         }
 
-        var value;
         var doFullSearch = true;
 
         if (g_inCheck) {
@@ -978,16 +966,16 @@ function AllCutNode(ply, depth, beta, allowNull) {
             if (value >= beta) {
                 var histTo = (currentMove >> 8) & 0xFF;
                 if (g_board[histTo] == 0) {
-				    var histPiece = g_board[currentMove & 0xFF] & 0xF;
-				    historyTable[histPiece][histTo] += ply * ply;
-				    if (historyTable[histPiece][histTo] > 32767) {
-				        historyTable[histPiece][histTo] >>= 1;
-				    }
+                    var histPiece = g_board[currentMove & 0xFF] & 0xF;
+                    historyTable[histPiece][histTo] += ply * ply;
+                    if (historyTable[histPiece][histTo] > 32767) {
+                        historyTable[histPiece][histTo] >>= 1;
+                    }
 
-				    if (g_killers[depth][0] != currentMove) {
-				        g_killers[depth][1] = g_killers[depth][0];
-				        g_killers[depth][0] = currentMove;
-				    }
+                    if (g_killers[depth][0] != currentMove) {
+                        g_killers[depth][1] = g_killers[depth][0];
+                        g_killers[depth][0] = currentMove;
+                    }
                 }
 
                 StoreHash(value, hashflagBeta, ply, currentMove, depth);
@@ -1172,7 +1160,7 @@ var moveflagPromoteQueen = 0x40 << 16;
 var moveflagPromoteBishop = 0x80 << 16;
 
 function MT() {
- 	var N = 624;
+    var N = 624;
     var M = 397;
     var MAG01 = [0x0, 0x9908b0df];
 
@@ -1200,11 +1188,11 @@ function MT() {
                 this.setSeed(19650218);
 
                 var l = a[0].length;
-                var i = 1;
+                i = 1;
                 var j = 0;
 
                 for (var k = N > l ? N : l; k != 0; --k) {
-                    var s = this.mt[i - 1] ^ (this.mt[i - 1] >>> 30);
+                    s = this.mt[i - 1] ^ (this.mt[i - 1] >>> 30);
                     this.mt[i] = (this.mt[i]
 						^ (((1664525 * ((s & 0xffff0000) >>> 16)) << 16)
 							+ 1664525 * (s & 0x0000ffff)))
@@ -1235,7 +1223,7 @@ function MT() {
                 return;
             default:
                 var seeds = new Array();
-                for (var i = 0; i < a.length; ++i) {
+                for (i = 0; i < a.length; ++i) {
                     seeds.push(a[i]);
                 }
                 this.setSeed(seeds);
@@ -1254,7 +1242,7 @@ function MT() {
                 x = (this.mt[k] & 0x80000000) | (this.mt[k + 1] & 0x7fffffff);
                 this.mt[k] = this.mt[k + M] ^ (x >>> 1) ^ MAG01[x & 0x1];
             }
-            for (var k = N - M; k < N - 1; ++k) {
+            for (k = N - M; k < N - 1; ++k) {
                 x = (this.mt[k] & 0x80000000) | (this.mt[k + 1] & 0x7fffffff);
                 this.mt[k] = this.mt[k + (M - N)] ^ (x >>> 1) ^ MAG01[x & 0x1];
             }
@@ -1341,7 +1329,7 @@ function ResetGame() {
 
     g_hashTable = new Array(g_hashSize);
 
-    for (var i = 0; i < 32; i++) {
+    for (i = 0; i < 32; i++) {
         historyTable[i] = new Array(256);
         for (var j = 0; j < 256; j++)
             historyTable[i][j] = 0;
@@ -1351,7 +1339,7 @@ function ResetGame() {
 
     g_zobristLow = new Array(256);
     g_zobristHigh = new Array(256);
-    for (var i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++) {
         g_zobristLow[i] = new Array(16);
         g_zobristHigh[i] = new Array(16);
         for (var j = 0; j < 16; j++) {
@@ -1378,7 +1366,7 @@ function ResetGame() {
 
     var pieceDeltas = [[], [], g_knightDeltas, g_bishopDeltas, g_rookDeltas, g_queenDeltas, g_queenDeltas];
 
-    for (var i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++) {
         g_vectorDelta[i] = new Object();
         g_vectorDelta[i].delta = 0;
         g_vectorDelta[i].pieceMask = new Array(2);
@@ -1387,9 +1375,9 @@ function ResetGame() {
     }
 
     // Initialize the vector delta table
-    for (var row = 0; row < 0x80; row += 0x10)
+    for (row = 0; row < 0x80; row += 0x10)
         for (var col = 0; col < 0x8; col++) {
-            var square = row | col;
+            square = row | col;
 
             // Pawn moves
             var index = square - (square - 17) + 128;
@@ -1582,8 +1570,8 @@ function InitializeFromFen(fen) {
 
     g_enPassentSquare = -1;
     if (chunks[3].indexOf('-') == -1) {
-        var col = chunks[3].charAt(0).charCodeAt() - 'a'.charCodeAt();
-        var row = 8 - (chunks[3].charAt(1).charCodeAt() - '0'.charCodeAt());
+        col = chunks[3].charAt(0).charCodeAt() - 'a'.charCodeAt();
+        row = 8 - (chunks[3].charAt(1).charCodeAt() - '0'.charCodeAt());
         g_enPassentSquare = MakeSquare(row, col);
     }
 
@@ -1592,7 +1580,7 @@ function InitializeFromFen(fen) {
     g_hashKeyHigh = hashResult.hashKeyHigh;
 
     g_baseEval = 0;
-    for (var i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++) {
         if (g_board[i] & colorWhite) {
             g_baseEval += pieceSquareAdj[g_board[i] & 0x7][i];
             g_baseEval += materialTable[g_board[i] & 0x7];
@@ -1632,7 +1620,7 @@ function InitializePieceList() {
         }
     }
 
-    for (var i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++) {
         g_pieceIndex[i] = 0;
         if (g_board[i] & (colorWhite | colorBlack)) {
             var piece = g_board[i] & 0xF;
@@ -1697,7 +1685,7 @@ function MakeMove(move){
                 return false;
             }
 
-            var rook = g_board[to - 2];
+            rook = g_board[to - 2];
 
             g_hashKeyLow ^= g_zobristLow[to -2][rook & 0xF];
             g_hashKeyHigh ^= g_zobristHigh[to - 2][rook & 0xF];
@@ -1710,7 +1698,7 @@ function MakeMove(move){
             g_baseEval -= pieceSquareAdj[rook & 0x7][me == 0 ? flipTable[to - 2] : (to - 2)];
             g_baseEval += pieceSquareAdj[rook & 0x7][me == 0 ? flipTable[to + 1] : (to + 1)];
 
-            var rookIndex = g_pieceIndex[to - 2];
+            rookIndex = g_pieceIndex[to - 2];
             g_pieceIndex[to + 1] = rookIndex;
             g_pieceList[((rook & 0xF) << 4) | rookIndex] = to + 1;
         }
@@ -1881,11 +1869,11 @@ function UnmakeMove(move){
             g_pieceList[((rook & 0xF) << 4) | rookIndex] = to + 1;
         }
         else if (flags & moveflagCastleQueen) {
-            var rook = g_board[to + 1];
+            rook = g_board[to + 1];
             g_board[to - 2] = rook;
             g_board[to + 1] = pieceEmpty;
 
-            var rookIndex = g_pieceIndex[to + 1];
+            rookIndex = g_pieceIndex[to + 1];
             g_pieceIndex[to - 2] = rookIndex;
             g_pieceList[((rook & 0xF) << 4) | rookIndex] = to - 2;
         }
@@ -2115,8 +2103,8 @@ function GenerateAllMoves(moveStack) {
     }
 }
 
-function GenerateCaptureMoves(moveStack, moveScores) {
-    var from, to, piece, pieceIdx;
+function GenerateCaptureMoves(moveStack) {
+    var from, to, pieceIdx;
     var inc = (g_toMove == 8) ? -16 : 16;
     var enemy = g_toMove == 8 ? 0x10 : 0x8;
 
@@ -2138,10 +2126,8 @@ function GenerateCaptureMoves(moveStack, moveScores) {
     }
 
     if (g_enPassentSquare != -1) {
-        var inc = (g_toMove == colorWhite) ? -16 : 16;
         var pawn = g_toMove | piecePawn;
 
-        var from = g_enPassentSquare - (inc + 1);
         if ((g_board[from] & 0xF) == pawn) {
             moveStack[moveStack.length] = GenerateMove(from, g_enPassentSquare, moveflagEPC);
         }
@@ -2243,8 +2229,7 @@ function GeneratePawnMoves(moveStack, from) {
         MovePawnTo(moveStack, from, to/*, pieceEmpty */);
 
         // Check if we can do a 2 square jump
-        if ((((from & 0xF0) == 0x30) && color != colorWhite) ||
-		    (((from & 0xF0) == 0x80) && color == colorWhite)) {
+        if ((((from & 0xF0) == 0x30) && color != colorWhite) || (((from & 0xF0) == 0x80) && color == colorWhite)) {
             to += inc;
             if (g_board[to] == 0) {
                 moveStack[moveStack.length] = GenerateMove(from, to);
@@ -2334,7 +2319,7 @@ function See(move) {
     // Our attacks
     var usAttacks = new Array();
     SeeAddKnightAttacks(to, us, usAttacks);
-    for (var pieceType = pieceBishop; pieceType <= pieceKing; pieceType++) {
+    for (pieceType = pieceBishop; pieceType <= pieceKing; pieceType++) {
         SeeAddSliderAttacks(to, us, usAttacks, pieceType);
     }
 
@@ -2383,9 +2368,9 @@ function See(move) {
         capturingPieceIndex = -1;
 
         // Find our least valuable piece that can attack the square
-        for (var i = 0; i < usAttacks.length; i++) {
+        for (i = 0; i < usAttacks.length; i++) {
             if (usAttacks[i] != 0) {
-                var pieceValue = g_seeValues[g_board[usAttacks[i]] & 0x7];
+                pieceValue = g_seeValues[g_board[usAttacks[i]] & 0x7];
                 if (pieceValue < capturingPieceValue) {
                     capturingPieceValue = pieceValue;
                     capturingPieceIndex = i;
