@@ -49,8 +49,8 @@ paper.on('cell:mouseleave cell:pointerdown', function(cellView) {
 
 function getCellOutbounds(graph, cell) {
     return [cell].concat(
-        graph.getNeighbors(cell, { outbound: true, proxy: true }),
-        graph.getConnectedLinks(cell, { outbound: true, proxy: true })
+        graph.getNeighbors(cell, { outbound: true, indirect: true }),
+        graph.getConnectedLinks(cell, { outbound: true, indirect: true })
     );
 }
 

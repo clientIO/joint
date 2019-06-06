@@ -433,7 +433,7 @@ export const Graph = Backbone.Model.extend({
 
         opt = opt || {};
 
-        var proxy = opt.proxy;
+        var indirect = opt.indirect;
         var inbound = opt.inbound;
         var outbound = opt.outbound;
         if ((inbound === undefined) && (outbound === undefined)) {
@@ -462,12 +462,12 @@ export const Graph = Backbone.Model.extend({
                 var link = graph.getCell(edge);
                 links.push(link);
                 edges[edge] = true;
-                if (proxy) {
+                if (indirect) {
                     if (inbound) addInbounds(graph, link);
                     if (outbound) addOutbounds(graph, link);
                 }
             }.bind(graph));
-            if (proxy && model.isLink()) {
+            if (indirect && model.isLink()) {
                 var outCell = model.getTargetCell();
                 if (outCell && outCell.isLink()) {
                     if (!edges[outCell.id]) {
@@ -487,12 +487,12 @@ export const Graph = Backbone.Model.extend({
                 var link = graph.getCell(edge);
                 links.push(link);
                 edges[edge] = true;
-                if (proxy) {
+                if (indirect) {
                     if (inbound) addInbounds(graph, link);
                     if (outbound) addOutbounds(graph, link);
                 }
             }.bind(graph));
-            if (proxy && model.isLink()) {
+            if (indirect && model.isLink()) {
                 var inCell = model.getSourceCell();
                 if (inCell && inCell.isLink()) {
                     if (!edges[inCell.id]) {

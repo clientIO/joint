@@ -1032,41 +1032,41 @@ QUnit.module('graph', function(hooks) {
             //              |     |
             //               --l4--
             //
-            assert.deepEqual(neighbors(graph, r1, { proxy: true }), ['R2', 'R3']);
-            assert.deepEqual(neighbors(graph, r1, { proxy: true, inbound: true }), []);
-            assert.deepEqual(neighbors(graph, r1, { proxy: true, outbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r1, { indirect: true }), ['R2', 'R3']);
+            assert.deepEqual(neighbors(graph, r1, { indirect: true, inbound: true }), []);
+            assert.deepEqual(neighbors(graph, r1, { indirect: true, outbound: true }), ['R3']);
 
-            assert.ok(graph.isNeighbor(r1, r3, { proxy: true }));
-            assert.ok(graph.isNeighbor(r1, r3, { proxy: true, outbound: true  }));
-            assert.notOk(graph.isNeighbor(r1, r3, { proxy: true, inbound: true }));
+            assert.ok(graph.isNeighbor(r1, r3, { indirect: true }));
+            assert.ok(graph.isNeighbor(r1, r3, { indirect: true, outbound: true  }));
+            assert.notOk(graph.isNeighbor(r1, r3, { indirect: true, inbound: true }));
 
-            assert.deepEqual(neighbors(graph, r2, { proxy: true }), ['R1', 'R2', 'R3']);
-            assert.deepEqual(neighbors(graph, r2, { proxy: true, inbound: true }), ['R2']);
-            assert.deepEqual(neighbors(graph, r2, { proxy: true, outbound: true }), ['R2', 'R3']);
+            assert.deepEqual(neighbors(graph, r2, { indirect: true }), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, r2, { indirect: true, inbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, r2, { indirect: true, outbound: true }), ['R2', 'R3']);
 
-            assert.deepEqual(neighbors(graph, r3, { proxy: true }), ['R1', 'R2', 'R4']);
-            assert.deepEqual(neighbors(graph, r3, { proxy: true, inbound: true }), ['R1', 'R2']);
-            assert.deepEqual(neighbors(graph, r3, { proxy: true, outbound: true }), ['R4']);
+            assert.deepEqual(neighbors(graph, r3, { indirect: true }), ['R1', 'R2', 'R4']);
+            assert.deepEqual(neighbors(graph, r3, { indirect: true, inbound: true }), ['R1', 'R2']);
+            assert.deepEqual(neighbors(graph, r3, { indirect: true, outbound: true }), ['R4']);
 
-            assert.deepEqual(neighbors(graph, r4, { proxy: true }), ['R3']);
-            assert.deepEqual(neighbors(graph, r4, { proxy: true, inbound: true }), ['R3']);
-            assert.deepEqual(neighbors(graph, r4, { proxy: true, outbound: true }), []);
+            assert.deepEqual(neighbors(graph, r4, { indirect: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r4, { indirect: true, inbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, r4, { indirect: true, outbound: true }), []);
 
-            assert.deepEqual(neighbors(graph, l1, { proxy: true }), ['R1', 'R2', 'R3']);
-            assert.deepEqual(neighbors(graph, l1, { proxy: true, inbound: true }), ['R1']);
-            assert.deepEqual(neighbors(graph, l1, { proxy: true, outbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l1, { indirect: true }), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, l1, { indirect: true, inbound: true }), ['R1']);
+            assert.deepEqual(neighbors(graph, l1, { indirect: true, outbound: true }), ['R3']);
 
-            assert.deepEqual(neighbors(graph, l2, { proxy: true }), ['R1', 'R2', 'R3']);
-            assert.deepEqual(neighbors(graph, l2, { proxy: true, inbound: true }), ['R1', 'R2']);
-            assert.deepEqual(neighbors(graph, l2, { proxy: true, outbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l2, { indirect: true }), ['R1', 'R2', 'R3']);
+            assert.deepEqual(neighbors(graph, l2, { indirect: true, inbound: true }), ['R1', 'R2']);
+            assert.deepEqual(neighbors(graph, l2, { indirect: true, outbound: true }), ['R3']);
 
-            assert.deepEqual(neighbors(graph, l3, { proxy: true }), ['R3', 'R4']);
-            assert.deepEqual(neighbors(graph, l3, { proxy: true, inbound: true }), ['R3']);
-            assert.deepEqual(neighbors(graph, l3, { proxy: true, outbound: true }), ['R4']);
+            assert.deepEqual(neighbors(graph, l3, { indirect: true }), ['R3', 'R4']);
+            assert.deepEqual(neighbors(graph, l3, { indirect: true, inbound: true }), ['R3']);
+            assert.deepEqual(neighbors(graph, l3, { indirect: true, outbound: true }), ['R4']);
 
-            assert.deepEqual(neighbors(graph, l4, { proxy: true }), ['R2']);
-            assert.deepEqual(neighbors(graph, l4, { proxy: true, inbound: true }), ['R2']);
-            assert.deepEqual(neighbors(graph, l4, { proxy: true, outbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { indirect: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { indirect: true, inbound: true }), ['R2']);
+            assert.deepEqual(neighbors(graph, l4, { indirect: true, outbound: true }), ['R2']);
         });
     });
 
