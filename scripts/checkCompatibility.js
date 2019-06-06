@@ -32,7 +32,7 @@
         body.appendChild(br.cloneNode());
 
         var a = document.createElement('a');
-        let link = 'http://localhost:8081' + window.location.href.substr(window.location.href.indexOf('/demo'));
+        var link = 'http://localhost:8081' + window.location.href.substr(window.location.href.indexOf('/demo'));
         a.href = link;
         a.innerText = link;
         body.appendChild(a);
