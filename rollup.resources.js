@@ -21,7 +21,7 @@ let plugins = [
     buble()
 ];
 
-let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V; }';
+let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
 
 const GLOBALS_MAP = {
     vectorizer: {
