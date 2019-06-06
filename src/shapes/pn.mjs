@@ -44,55 +44,52 @@ export const Place = Generic.define('pn.Place', {
 
 export const PlaceView = ElementView.extend({
 
-    initialize: function() {
+    presentationAttributes: ElementView.addPresentationAttributes({
+        tokens: ['TOKENS']
+    }),
 
-        ElementView.prototype.initialize.apply(this, arguments);
+    initFlag: ElementView.prototype.initFlag.concat(['TOKENS']),
 
-        this.model.on('change:tokens', function() {
-
+    confirmUpdate: function(...args) {
+        let flags = ElementView.prototype.confirmUpdate.call(this, ...args);
+        if (this.hasFlag(flags, 'TOKENS')) {
             this.renderTokens();
             this.update();
-
-        }, this);
-    },
-
-    render: function() {
-
-        ElementView.prototype.render.apply(this, arguments);
-
-        this.renderTokens();
-        this.update();
+            flags = this.removeFlag(flags, 'TOKENS');
+        }
+        return flags;
     },
 
     renderTokens: function() {
 
-        var $tokens = this.$('.tokens').empty();
-        $tokens[0].className.baseVal = 'tokens';
+        const vTokens = this.vel.findOne('.tokens').empty();
+        ['one', 'two', 'three', 'alot'].forEach(function(className) {
+            vTokens.removeClass(className);
+        });
 
         var tokens = this.model.get('tokens');
-
         if (!tokens) return;
 
         switch (tokens) {
 
             case 1:
-                $tokens[0].className.baseVal += ' one';
-                $tokens.append(V('<circle/>').node);
+                vTokens.addClass('one');
+                vTokens.append(V('circle'));
                 break;
 
             case 2:
-                $tokens[0].className.baseVal += ' two';
-                $tokens.append(V('<circle/>').node, V('<circle/>').node);
+                vTokens.addClass('two');
+                vTokens.append([V('circle'), V('circle')]);
                 break;
 
             case 3:
-                $tokens[0].className.baseVal += ' three';
-                $tokens.append(V('<circle/>').node, V('<circle/>').node, V('<circle/>').node);
+                vTokens.addClass('three');
+                vTokens.append([V('circle'), V('circle'), V('circle')]);
                 break;
 
             default:
-                $tokens[0].className.baseVal += ' alot';
-                $tokens.append(V('<text/>').text(tokens + '').node);
+                vTokens.addClass('alot');
+                vTokens.append(V('text').text(tokens + ''));
                 break;
         }
     }
