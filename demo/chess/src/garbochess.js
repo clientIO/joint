@@ -480,16 +480,16 @@ function QSearch(alpha, beta, ply) {
 
     if (wasInCheck) {
         // TODO: Fast check escape generator and fast checking moves generator
-        GenerateCaptureMoves(moves, null);
+        GenerateCaptureMoves(moves);
         GenerateAllMoves(moves);
 
         for (var i = 0; i < moves.length; i++) {
             moveScores[i] = ScoreMove(moves[i]);
         }
     } else {
-        GenerateCaptureMoves(moves, null);
+        GenerateCaptureMoves(moves);
 
-        for (var i = 0; i < moves.length; i++) {
+        for (i = 0; i < moves.length; i++) {
             var captured = g_board[(moves[i] >> 8) & 0xFF] & 0x7;
             var pieceType = g_board[moves[i] & 0xFF] & 0x7;
 
@@ -497,7 +497,7 @@ function QSearch(alpha, beta, ply) {
         }
     }
 
-    for (var i = 0; i < moves.length; i++) {
+    for (i = 0; i < moves.length; i++) {
         var bestMove = i;
         for (var j = moves.length - 1; j > i; j--) {
             if (moveScores[j] > moveScores[bestMove]) {
@@ -705,7 +705,7 @@ function MovePicker(hashMove, depth, killer1, killer2) {
             }
 
             if (this.stage == 2) {
-                GenerateCaptureMoves(this.moves, null);
+                GenerateCaptureMoves(this.moves);
                 this.moveCount = this.moves.length;
                 this.moveScores = new Array(this.moveCount);
                 // Move ordering
@@ -1487,7 +1487,7 @@ function InitializeFromFen(fen) {
     var col = 0;
 
     var pieces = chunks[0];
-    for (var i = 0; i < pieces.length; i++) {
+    for (i = 0; i < pieces.length; i++) {
         var c = pieces.charAt(i);
 
         if (c == '/') {
@@ -1994,7 +1994,7 @@ function GenerateMove(from, to, flags){
 function GenerateValidMoves() {
     var moveList = new Array();
     var allMoves = new Array();
-    GenerateCaptureMoves(allMoves, null);
+    GenerateCaptureMoves(allMoves);
     GenerateAllMoves(allMoves);
 
     for (var i = allMoves.length - 1; i >= 0; i--) {
