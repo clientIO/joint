@@ -43,7 +43,7 @@
         line: {
             stroke: 'black'
         }
-    })
+    });
     link.labels([
         {
             markup: [{
@@ -106,28 +106,28 @@
 
         this.drawBackground({
             color: 'orange'
-        })
+        });
     });
 
     paper.on('element:pointerdblclick', function(elementView) {
         resetAll(this);
 
         var currentElement = elementView.model;
-        currentElement.attr('body/stroke', 'orange')
+        currentElement.attr('body/stroke', 'orange');
     });
 
     paper.on('link:pointerdblclick', function(linkView) {
         resetAll(this);
 
         var currentLink = linkView.model;
-        currentLink.attr('line/stroke', 'orange')
+        currentLink.attr('line/stroke', 'orange');
         currentLink.label(0, {
             attrs: {
                 body: {
                     stroke: 'orange'
                 }
             }
-        })
+        });
     });
 
     paper.on('cell:pointerdblclick', function(cellView) {
@@ -142,7 +142,7 @@
     function resetAll(paper) {
         paper.drawBackground({
             color: 'white'
-        })
+        });
 
         var elements = paper.model.getElements();
         for (var i = 0, ii = elements.length; i < ii; i++) {
@@ -160,7 +160,7 @@
                         stroke: 'black'
                     }
                 }
-            })
+            });
         }
     }
 }());

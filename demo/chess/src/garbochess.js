@@ -192,7 +192,6 @@ var g_searchValid;
 var g_globalPly = 0;
 
 function Search(finishMoveCallback, maxPly, finishPlyCallback) {
-    var lastEval;
     var alpha = minEval;
     var beta = maxEval;
 
@@ -911,7 +910,6 @@ function AllCutNode(ply, depth, beta, allowNull) {
 
     var moveMade = false;
     var realEval = minEval - 1;
-    var inCheck = g_inCheck;
 
     var movePicker = new MovePicker(hashMove, depth, g_killers[depth][0], g_killers[depth][1]);
 
@@ -1349,7 +1347,7 @@ function ResetGame() {
             historyTable[i][j] = 0;
     }
 
-    var mt = new MT(0x1badf00d);
+    var mt = new MT(/*0x1badf00d*/);
 
     g_zobristLow = new Array(256);
     g_zobristHigh = new Array(256);
@@ -1865,10 +1863,6 @@ function UnmakeMove(move){
     g_hashKeyHigh = g_moveUndoStack[g_moveCount].hashKeyHigh;
     g_move50 = g_moveUndoStack[g_moveCount].move50;
 
-    var otherColor = 8 - g_toMove;
-    var me = g_toMove >> 3;
-    var them = otherColor >> 3;
-
     var flags = move & 0xFF0000;
     var captured = g_moveUndoStack[g_moveCount].captured;
     var to = (move >> 8) & 0xFF;
@@ -2005,10 +1999,6 @@ function IsSquareAttackable(target, color) {
     return false;
 }
 
-function GenerateMove(from, to) {
-    return from | (to << 8);
-}
-
 function GenerateMove(from, to, flags){
     return from | (to << 8) | flags;
 }
@@ -2030,7 +2020,7 @@ function GenerateValidMoves() {
 }
 
 function GenerateAllMoves(moveStack) {
-    var from, to, piece, pieceIdx;
+    var from, to, pieceIdx;
 
     // Pawn quiet moves
     pieceIdx = (g_toMove | 1) << 4;
@@ -2250,7 +2240,7 @@ function GeneratePawnMoves(moveStack, from) {
     // Quiet pawn moves
     var to = from + inc;
     if (g_board[to] == 0) {
-        MovePawnTo(moveStack, from, to, pieceEmpty);
+        MovePawnTo(moveStack, from, to/*, pieceEmpty */);
 
         // Check if we can do a 2 square jump
         if ((((from & 0xF0) == 0x30) && color != colorWhite) ||

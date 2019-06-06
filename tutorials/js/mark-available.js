@@ -1,14 +1,14 @@
 (function() {
 
     var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: $('#paper-mark-available'),
         width: 650, height: 200, gridSize: 1,
         model: graph,
         defaultLink: new joint.dia.Link({
-            attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } }
+            attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
         }),
-        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT) {
             // Prevent linking from input ports.
             if (magnetS && magnetS.getAttribute('port-group') === 'in') return false;
             // Prevent linking from output ports to input ports within one element.
@@ -50,6 +50,6 @@
         }
     }).addTo(graph);
 
-    var m2 = m1.clone().translate(300, 0).attr('.label/text', 'Model 2').addTo(graph);
+    m1.clone().translate(300, 0).attr('.label/text', 'Model 2').addTo(graph);
 
 })();

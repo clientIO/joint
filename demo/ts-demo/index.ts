@@ -42,8 +42,9 @@ const Circle = joint.shapes.standard.Circle.define('CustomCircle', {
 
 let circle = new Circle()
     .position(180, 60)
-    .size(60, 60)
-    .addTo(graph);
+    .size(60, 60);
+
+circle.addTo(graph);
 
 // create the CustomRect - it's defined in the custom.ts
 let customRect = new joint.shapes.app.CustomRect()
@@ -78,8 +79,9 @@ let link = new joint.shapes.standard.Link()
         }
     })
     .router('manhattan', { step: 20 })
-    .connector('rounded', { radius: 20 })
-    .addTo(graph);
+    .connector('rounded', { radius: 20 });
+
+link.addTo(graph);
 
 paper.unfreeze();
 

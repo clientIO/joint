@@ -2,7 +2,7 @@
 
     var graph = new joint.dia.Graph;
 
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper-special-attributes-link-arrowheads'),
         model: graph,
         width: 600,
@@ -52,8 +52,8 @@
                     return {
                         x: origin.x + (radius * Math.cos((t * 2 * Math.PI) + timeCorrection)),
                         y: origin.y + (radius * Math.sin((t * 2 * Math.PI) + timeCorrection))
-                    }
-                }
+                    };
+                };
             }
         });
     }
@@ -63,7 +63,7 @@
             delay: 1000,
             duration: 19000,
             timingFunction: function(time) {
-                return ((time * 12) - (Math.floor(time * 12)))
+                return ((time * 12) - (Math.floor(time * 12)));
             },
             valueFunction: function(start, startTime) {
                 var timeCorrection = ((startTime * (2 * Math.PI)) - (Math.PI / 2));
@@ -73,8 +73,8 @@
                     return {
                         x: origin.x + (radius * Math.cos((t * 2 * Math.PI) + timeCorrection)),
                         y: origin.y + (radius * Math.sin((t * 2 * Math.PI) + timeCorrection))
-                    }
-                }
+                    };
+                };
             }
         });
     }
