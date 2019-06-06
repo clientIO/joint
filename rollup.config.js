@@ -48,4 +48,4 @@ export default commandLineArgs => {
         .concat(LIBS_ESM)
         .concat(DIST)
         .concat(TEST_BUNDLE);
-}
+};

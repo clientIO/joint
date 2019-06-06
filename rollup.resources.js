@@ -1,5 +1,5 @@
 import commonjs from 'rollup-plugin-commonjs';
-import buble from 'rollup-plugin-buble'
+import buble from 'rollup-plugin-buble';
 import path from 'path';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
@@ -21,7 +21,7 @@ let plugins = [
     buble()
 ];
 
-let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V; }';
+let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
 
 const GLOBALS_MAP = {
     vectorizer: {

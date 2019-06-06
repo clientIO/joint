@@ -53,7 +53,7 @@ let customRect = new joint.shapes.app.CustomRect()
     .addTo(graph);
 
 customRect.test();
-joint.shapes.app.CustomRect.staticTest()
+joint.shapes.app.CustomRect.staticTest();
 
 let link = new joint.shapes.standard.Link()
     .source(rect, {
