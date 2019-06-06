@@ -1,6 +1,6 @@
 var graph = new joint.dia.Graph;
 
-var paper = new joint.dia.Paper({
+new joint.dia.Paper({
     el: $('#paper'),
     width: 1000,
     height: 600,
@@ -12,11 +12,11 @@ var paper = new joint.dia.Paper({
 // define the connector inside joint.connectors
 // allows passing custom arguments
 // can be serialized with `toJSON()`
-joint.connectors.wobble = function(sourcePoint, targetPoint, vertices, args, linkView) {
+joint.connectors.wobble = function(sourcePoint, targetPoint, vertices, args, _linkView) {
 
     var SPREAD = args.spread || 20;
 
-    var points = vertices.concat(targetPoint)
+    var points = vertices.concat(targetPoint);
     var prev = sourcePoint;
     var path = new g.Path(g.Path.createSegment('M', prev));
 
@@ -42,7 +42,7 @@ joint.connectors.wobble = function(sourcePoint, targetPoint, vertices, args, lin
     }
 
     return path.serialize();
-}
+};
 
 var source = new joint.shapes.standard.Rectangle();
 source.position(50, 50);
@@ -50,7 +50,7 @@ source.resize(140, 70);
 source.attr('label/text', 'Source');
 
 var target = source.clone();
-target.translate(700, 400)
+target.translate(700, 400);
 target.attr('label/text', 'Target');
 
 var link = new joint.shapes.standard.Link();

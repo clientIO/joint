@@ -11,7 +11,7 @@
         document.write('<code>http-server -p 8081</code><br/><br/>');
 
         document.write('<b>The demo should be on this location:</b><br/>');
-        let link = 'http://localhost:8081' + window.location.href.substr(window.location.href.indexOf('/demo'));
+        var link = 'http://localhost:8081' + window.location.href.substr(window.location.href.indexOf('/demo'));
         document.write('<a href="' + link + '">' + link + '</a><br/>');
     }
 })();

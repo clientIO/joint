@@ -4,7 +4,7 @@
     var graph = new joint.dia.Graph;
 
     // main paper view
-    var paper = new joint.dia.Paper({
+    new joint.dia.Paper({
         el: document.getElementById('paper-multiple-papers'),
         model: graph,
         width: 600,

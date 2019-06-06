@@ -1,10 +1,10 @@
 (function() {
 
     var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({ el: $('#paper-html-elements'), width: 650, height: 400, gridSize: 1, model: graph });
+    new joint.dia.Paper({ el: $('#paper-html-elements'), width: 650, height: 400, gridSize: 1, model: graph });
 
-// Create a custom element.
-// ------------------------
+    // Create a custom element.
+    // ------------------------
 
     joint.shapes.html = {};
     joint.shapes.html.Element = joint.shapes.basic.Rect.extend({
@@ -16,8 +16,8 @@
         }, joint.shapes.basic.Rect.prototype.defaults)
     });
 
-// Create a custom view for that element that displays an HTML div above it.
-// -------------------------------------------------------------------------
+    // Create a custom view for that element that displays an HTML div above it.
+    // -------------------------------------------------------------------------
 
     joint.shapes.html.ElementView = joint.dia.ElementView.extend({
 
@@ -81,8 +81,8 @@
         }
     });
 
-// Create JointJS elements and add them to the graph as usual.
-// -----------------------------------------------------------
+    // Create JointJS elements and add them to the graph as usual.
+    // -----------------------------------------------------------
 
     var el1 = new joint.shapes.html.Element({
         position: { x: 80, y: 80 },
@@ -99,9 +99,9 @@
     var l = new joint.dia.Link({
         source: { id: el1.id },
         target: { id: el2.id },
-        attrs: { '.connection': { 'stroke-width': 5, stroke: '#34495E' } }
+        attrs: { '.connection': { 'stroke-width': 5, stroke: '#34495E' }}
     });
 
     graph.addCells([el1, el2, l]);
 
-}())
+}());
