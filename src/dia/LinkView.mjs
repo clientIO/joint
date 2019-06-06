@@ -82,57 +82,58 @@ export const LinkView = CellView.extend({
 
     UPDATE_PRIORITY: 1,
 
-    confirmUpdate: function(flag, opt) {
+    confirmUpdate: function(flags, opt) {
 
         opt || (opt = {});
 
         var model = this.model;
         var attributes = model.attributes;
-        var leftoverFlag = 0;
 
-        if (this.hasFlag(flag, 'SOURCE')) {
-            if (!this.updateEndProperties('source')) return flag;
-            flag = this.removeFlag(flag, 'SOURCE');
+        if (this.hasFlag(flags, 'SOURCE')) {
+            if (!this.updateEndProperties('source')) return flags;
+            flags = this.removeFlag(flags, 'SOURCE');
         }
 
-        if (this.hasFlag(flag, 'TARGET')) {
-            if (!this.updateEndProperties('target')) return flag;
-            flag = this.removeFlag(flag, 'TARGET');
+        if (this.hasFlag(flags, 'TARGET')) {
+            if (!this.updateEndProperties('target')) return flags;
+            flags = this.removeFlag(flags, 'TARGET');
         }
 
         var sourceView = this.sourceView;
         var targetView = this.targetView;
         if (sourceView && !sourceView.el.firstChild || targetView && !targetView.el.firstChild) {
             // Wait for the sourceView and targetView to be rendered
-            return flag;
+            return flags;
         }
 
-        if (this.hasFlag(flag, 'RENDER')) {
+        if (this.hasFlag(flags, 'RENDER')) {
             this.render();
-            return leftoverFlag;
+            flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'TOOLS', 'LABELS']);
+            return flags;
         }
 
-        if (this.hasFlag(flag, 'VERTICES')) {
+        if (this.hasFlag(flags, 'VERTICES')) {
             this.renderVertexMarkers();
-            flag = this.removeFlag(flag, 'VERTICES');
+            flags = this.removeFlag(flags, 'VERTICES');
         }
 
-        if (this.hasFlag(flag, 'UPDATE')) {
+        if (this.hasFlag(flags, 'UPDATE')) {
             this.update(model, null, opt);
-            return leftoverFlag;
+            flags = this.removeFlag(flags, ['UPDATE', 'TOOLS', 'LABELS']);
+            return flags;
         }
 
-        if (this.hasFlag(flag, 'TOOLS')) {
+        if (this.hasFlag(flags, 'TOOLS')) {
             this.renderTools().updateToolsPosition();
-            flag = this.removeFlag(flag, 'TOOLS');
+            flags = this.removeFlag(flags, 'TOOLS');
         }
 
-        if (this.hasFlag(flag, 'LABELS')) {
+        if (this.hasFlag(flags, 'LABELS')) {
             this.onLabelsChange(model, attributes.labels, opt);
-            flag = this.removeFlag(flag, 'LABELS');
+            flags = this.removeFlag(flags, 'LABELS');
         }
 
-        return leftoverFlag;
+        return flags;
     },
 
     onLabelsChange: function(link, labels, opt) {
