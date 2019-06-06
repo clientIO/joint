@@ -8,7 +8,8 @@ module.exports = function(grunt) {
         'install': [
             'shell:rollup-dist',
             'build',
-            'uglify:all'
+            'uglify:all',
+            'build:docs'
         ],
         'build': [
             'build:joint'
