@@ -1,7 +1,7 @@
 <pre class="docs-method-signature"><code>graph.getConnectedLinks(element [, opt])</code></pre>
-<p>Get all links connected with <code>element</code>.</p>
+<p>Get all links connected with <code>element</code>. A neighbor of an element is another element connected to it via an inbound and/or outbound link.</p>
 
-<p>If <code>opt.inbound === true</code>, return only inbound connected links. Conversely, if <code>opt.outbound === true</code>, return only outbound connected links. If both of these options were left undefined, or if both of them were set to <code>true</code>, return inbound as well as outbound links.</p>
+<p>If <code>opt.inbound === true</code>, return only inbound connected links. Conversely, if <code>opt.outbound === true</code>, return only outbound connected links. If both of these options are left undefined, or if both of them are set to <code>true</code>, return both inbound and outbound links.</p>
 
 <p>By default, this function returns only immediate (<q>shallow</q>) inbound and outbound links - no recursion. (Note that connections from <code>element</code> to embedded child elements, and connections to <code>element</code> from embedding parent elements count as <q>shallow</q>, too - they too are returned.)</p>
 
@@ -9,10 +9,13 @@
 
 <p>Note that the specification of <code>opt.deep</code> excludes links that connect two descendants of <code>element</code> (<q>enclosed</q> links). If you do need to find all links connected with and/or enclosed within <code>element</code>, you should use <code>opt.deep === true</code> alongside an additional option: <code>opt.includeEnclosed === true</code>.</p>
 
+<p>If <code>opt.indirect === true</code>, also return links that can only be considered connected to <code>element</code> if we go <q>against the flow</q> of directed links at link-link connections.</p>
+
 <p>Example use:</p>
 
 <pre><code>var links = graph.getConnectedLinks(element); // inbound and outbound
 var links = graph.getConnectedLinks(element, { outbound: true });
 var links = graph.getConnectedLinks(element, { deep: true }); // inbound and outbound
 var links = graph.getConnectedLinks(element, { inbound: true, deep: true });
-var links = graph.getConnectedLinks(element, { outbound: true, deep: true, includeEnclosed: true });</code></pre>
+var links = graph.getConnectedLinks(element, { outbound: true, deep: true, includeEnclosed: true });
+var links = graph.getConnectedLinks(element, { indirect: true });</code></pre>
