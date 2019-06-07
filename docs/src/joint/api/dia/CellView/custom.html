@@ -1,0 +1,37 @@
+<p>When you define a custom CellView, which listens to the underlying model changes and update itself (modifying its sub-elements directly) you should follow the instructions below in order to make the view work correctly in the <a href="joint.html#dia.Paper.prototype.options.async">async</a> mode.</p>
+
+<p>Note, that when a view needs an update (a model attribute has changed e.g. <code>size</code> has changed), it requests the update from the paper first. The paper confirms the update immediately (<code>sync</code> mode) or in the next animation frame (<code>async</code> mode). The updates may be also held by the paper as long as the paper is <a href="joint.html#dia.Paper.prototype.options.frozen">frozen</a> and released when the paper changes its state to unfrozen.</p>
+
+<p>The update requests are sent to the paper via <code>flags</code> and later received back all at once. The paper accumulates flags received and confirms the updates when the right time has come.</p>
+
+<h5>Methods and terminology</h5>
+
+<p><code>flagLabel</code> - is an arbitrary string or array of strings</p>
+
+<p><code>flags</code> - are encoded flag labels</p>
+
+<p><code>CellView.prototype.presentationAttributes</code> - is an object that maps model attributes to flag labels.</p>
+
+<p><code>CellView.prototype.confirmUpdate(flags, opt)</code> - This method receives all scheduled flags and based on them updates the view</p>
+
+<p><code>CellView.prototype.hasFlag(flags, flagLabel)</code> - Checks whether a <code>flagLabel</code> is present in the current update.</p>
+
+<p><code>CellView.addPresentationAttributes(presentationAttributes)</code>
+- Extends the CellView presentation attributes with another <code>presentationAttributes</code>. - The method makes sure the original CellView attributes are preserved. It returns a new object with all presentation attributes.</p>
+
+<h5>Usage</h5>
+
+<pre><code>const FadeView = joint.dia.ElementView.extend({
+    // Make sure that all super class presentation attributes are preserved
+    presentationAttributes: joint.dia.ElementView.addPresentationAttributes({
+        // mapping the model attributes to flag labels
+        faded: 'flag:opacity'
+    }),
+    confirmUpdate(flags, ...args) {
+        joint.dia.ElementView.prototype.confirmUpdate.call(this, flags, ...args);
+        if (this.hasFlag(flags, 'flag:opacity')) this.toggleFade();
+    },
+    toggleFade() {
+        this.el.style.opacity = this.model.get('faded') ? 0.5 : 1;
+    }
+});</code></pre>
