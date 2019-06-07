@@ -5,7 +5,7 @@ var graph = new joint.dia.Graph;
 var paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 1000,
-    height: 1000,
+    height: 800,
     model: graph,
     async: true,
     frozen: true,
@@ -64,19 +64,19 @@ var bus5 = mix.Bus.create(700, 'Mix Left', '#ff5964');
 var bus6 = mix.Bus.create(725, 'Mix Right', '#b5d99c');
 var bus7 = mix.Bus.create(750, 'Post-fade Aux', '#35a7ff');
 var bus8 = mix.Bus.create(775, 'Pre-fade Aux', '#6b2d5c');
-var component1 = mix.Component.create(850, 180, 80, 80, 'Stereo Mix').addPort({ group: 'out' });
-var component2 = mix.Component.create(840, 330, 100, 30, 'Pre Aux').addPort({ group: 'out' });
-var component3 = mix.Component.create(840, 280, 100, 30, 'Post Aux').addPort({ group: 'out' });
-var component4 = mix.Component.create(450, 200, 90, 100, 'Output Routing');
-var component5 = mix.Component.create(450, 450, 90, 100, 'Output Routing');
-var component6 = mix.Component.create(100, 230, 150, 40, 'Input Channel').addPort({ group: 'in' });
-var component7 = mix.Component.create(100, 480, 150, 40, 'Sub-group 1');
-var fader1 = mix.Fader.create(350, 210, 80, 100, 'Output Routing');
-var fader2 = mix.Fader.create(350, 460, 80, 100, 'Output Routing');
-var aux1 = mix.Aux.create(420, 320, 'Post-fade Aux');
-var aux2 = mix.Aux.create(350, 360, 'Pre-fade Aux');
-var aux3 = mix.Aux.create(420, 570, 'Post-fade Aux');
-var aux4 = mix.Aux.create(350, 610, 'Pre-fade Aux');
+var component1 = mix.Component.create(850, 80, 80, 80, 'Stereo Mix').addPort({ group: 'out' });
+var component2 = mix.Component.create(840, 230, 100, 30, 'Pre Aux').addPort({ group: 'out' });
+var component3 = mix.Component.create(840, 180, 100, 30, 'Post Aux').addPort({ group: 'out' });
+var component4 = mix.Component.create(450, 100, 90, 100, 'Output Routing');
+var component5 = mix.Component.create(450, 350, 90, 100, 'Output Routing');
+var component6 = mix.Component.create(100, 130, 150, 40, 'Input Channel').addPort({ group: 'in' });
+var component7 = mix.Component.create(100, 380, 150, 40, 'Sub-group 1');
+var fader1 = mix.Fader.create(350, 110, 80, 100, 'Output Routing');
+var fader2 = mix.Fader.create(350, 360, 80, 100, 'Output Routing');
+var aux1 = mix.Aux.create(420, 220, 'Post-fade Aux');
+var aux2 = mix.Aux.create(350, 260, 'Pre-fade Aux');
+var aux3 = mix.Aux.create(420, 470, 'Post-fade Aux');
+var aux4 = mix.Aux.create(350, 510, 'Pre-fade Aux');
 var connector1 = mix.Connector.create(bus1, component7);
 var connector2 = mix.Connector.create(fader2, component5);
 var connector3 = mix.Connector.create(connector2, aux3);
@@ -112,11 +112,11 @@ connector1.attr('line', {
 });
 
 // Vertices
-connector1.vertices([{ x: 175, y: 420 }]);
-connector3.vertices([{ x: 400, y: 585 }]);
-connector5.vertices([{ x: 400, y: 335 }]);
-connector7.vertices([{ x: 310, y: 625 }]);
-connector9.vertices([{ x: 310, y: 375 }]);
+connector1.vertices([{ x: 175, y: 320 }]);
+connector3.vertices([{ x: 400, y: 485 }]);
+connector5.vertices([{ x: 400, y: 235 }]);
+connector7.vertices([{ x: 310, y: 525 }]);
+connector9.vertices([{ x: 310, y: 275 }]);
 
 // Embed vertices
 component7.embed(connector1);
