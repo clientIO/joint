@@ -13,11 +13,14 @@ declare module './vendor/joint' {
 
             class Link extends joint.dia.Link {
             }
+
+            class CustomRectView extends joint.dia.ElementView {
+            }
         }
     }
 }
 
-joint.shapes.standard.Link.define('app.Link', {
+const Link = joint.shapes.standard.Link.define('app.Link', {
     attrs: {
         line: {
             stroke: '#222138',
@@ -28,7 +31,7 @@ joint.shapes.standard.Link.define('app.Link', {
     }
 });
 
-joint.shapes.standard.Rectangle.define('app.CustomRect', {
+const CustomRect = joint.shapes.standard.Rectangle.define('app.CustomRect', {
     attrs: {
         body: {
             fill: 'red'
@@ -44,17 +47,19 @@ joint.shapes.standard.Rectangle.define('app.CustomRect', {
     }
 });
 
-// demonstrate creating a custom dummy view for the app.CustomRect
-namespace CustomViews {
+class CustomRectView extends joint.dia.ElementView {
 
-    export class CustomRectView extends joint.dia.ElementView {
-
-        initialize() {
-            super.initialize.apply(this, arguments);
-            console.log('CustomRectView called !!!');
-        }
+    initialize() {
+        super.initialize.apply(this, arguments);
+        console.log('CustomRectView called !!!');
     }
 }
 
-(<any>Object).assign(joint.shapes.app, CustomViews)
+(<any>Object).assign(joint.shapes, {
+    app: {
+        Link,
+        CustomRect,
+        CustomRectView
+    }
+});
 
