@@ -22,7 +22,8 @@ const paper = new joint.dia.Paper({
     frozen: true,
     defaultLink: new joint.shapes.app.Link(),
     connectionStrategy: joint.connectionStrategies.pinAbsolute,
-    sorting: joint.dia.Paper.sorting.APPROX
+    sorting: joint.dia.Paper.sorting.APPROX,
+    cellViewNamespace: joint.shapes
 });
 
 
@@ -205,3 +206,5 @@ vText.text('This is a rich text.\nThis text goes to multiple lines.', {
 });
 
 svg.append(vText);
+
+(<any>window).joint = joint;
