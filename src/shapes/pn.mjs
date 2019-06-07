@@ -1,5 +1,6 @@
 import { Generic } from './basic.mjs';
 import { ElementView } from '../dia/ElementView.mjs';
+import V from '../V/index.mjs';
 import { Link as diaLink } from '../dia/Link.mjs';
 
 export const Place = Generic.define('pn.Place', {
