@@ -1,5 +1,5 @@
 const dependecies = require('../resources/dependencies');
-const modules = require('../resources/es6');
+const modules = require('../resources/esm');
 
 module.exports = function(grunt) {
 

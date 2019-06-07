@@ -1,4 +1,4 @@
-const modules = require('../resources/es6');
+const modules = require('../resources/esm');
 const path = require('path');
 
 module.exports = function() {
@@ -36,7 +36,7 @@ module.exports = function() {
             files: [{
                 expand: true,
                 cwd: 'build',
-                src: Object.keys(modules.jointPlugins).map(key => path.basename(modules.jointPlugins[key].iife)),
+                src: Object.keys(modules.plugins).map(key => path.basename(`build/${key}.js`)),
                 dest: 'build',
                 rename: function(dst, src) {
                     return dst + '/' + src.replace('.js', '.min.js');

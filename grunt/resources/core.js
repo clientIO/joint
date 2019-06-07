@@ -1,4 +1,4 @@
-const modules = require('../resources/es6');
+const modules = require('../resources/esm');
 
 module.exports = {
 
