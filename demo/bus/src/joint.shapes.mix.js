@@ -25,8 +25,8 @@ joint.shapes.standard.Link.define('mix.Bus', {
 }, {
     create: function(x, label, color) {
         return new this({
-            source: { x: x, y: 800 },
-            target: { x: x, y: 100 },
+            source: { x: x, y: 700 },
+            target: { x: x, y: 50 },
             attrs: {
                 line: {
                     stroke: color
