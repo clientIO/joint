@@ -1,11 +1,12 @@
 import commonjs from 'rollup-plugin-commonjs';
 import buble from 'rollup-plugin-buble';
 import path from 'path';
+import fs from 'fs';
 import resolve from 'rollup-plugin-node-resolve';
 import replace from 'rollup-plugin-replace';
 import externalGlobals from 'rollup-plugin-external-globals';
 
-const modules = require('./grunt/resources/es6');
+const modules = require('./grunt/resources/esm');
 const pkg = require('./package.json');
 
 let plugins = [
@@ -13,7 +14,6 @@ let plugins = [
         include: 'src/core.mjs',
         VERSION: pkg.version
     }),
-
     // prevent injecting 'dagre' into ES5 bundle
     externalGlobals({
         'dagre': 'dagre'
@@ -23,16 +23,29 @@ let plugins = [
 
 let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
 
-const GLOBALS_MAP = {
-    vectorizer: {
-        name: 'V',
-        src: path.resolve(modules.vectorizer.src)
-    },
-    geometry: {
-        name: 'g',
-        src: path.resolve(modules.geometry.src)
-    }
+const readNamespace = function(namespace) {
+    let location = './src/' + namespace;
+    const list = fs.readdirSync(path.resolve(location));
+    return list.reduce((res, item) => {
+        res[path.resolve(location, item)] = 'joint.' + namespace;
+        return res;
+    }, {});
 };
+
+const G_REF = readNamespace('g');
+const V_REF = readNamespace('V');
+const LOCAL_EXTERNALS = Object.assign(
+    {},
+    Object.keys(modules.plugins).reduce((res, key) => {
+        const item = modules.plugins[key];
+        res[path.resolve(item.src)] = key;
+        return res;
+    }, {}),
+    readNamespace('dia'),
+    readNamespace('shapes'),
+    G_REF, V_REF,
+    readNamespace('util')
+);
 
 export const geometry = {
     input: modules.geometry.src,
@@ -95,26 +108,19 @@ export const jointNoDependencies = {
     external: [
         'jquery',
         'backbone',
-        'lodash',
-        GLOBALS_MAP.geometry.src,
-        GLOBALS_MAP.vectorizer.src
-    ],
+        'lodash'
+    ].concat(Object.keys(G_REF)).concat(Object.keys(V_REF)),
     output: [{
         file: modules.joint.noDependencies,
         format: 'iife',
         name: 'joint',
         footer: JOINT_FOOTER,
         freeze: false,
-        globals: ((map) => {
-            const globals = {
-                'jquery': '$',
-                'backbone': 'Backbone',
-                'lodash': '_'
-            };
-            globals[map.geometry.src] = 'g';
-            globals[map.vectorizer.src] = 'V';
-            return globals;
-        })(GLOBALS_MAP)
+        globals: Object.assign({
+            'jquery': '$',
+            'backbone': 'Backbone',
+            'lodash': '_'
+        }, G_REF, V_REF)
     }],
     plugins: plugins
 };
@@ -196,33 +202,25 @@ export const backbone = {
     ]
 };
 
-export const jointPlugins = Object.keys(modules.jointPlugins).reduce((res, key) => {
-
-    const item = modules.jointPlugins[key];
+export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace) => {
+    const item = modules.plugins[namespace];
     res.push({
         input: item.src,
         external: [
             'jquery',
             'backbone',
             'lodash',
-            GLOBALS_MAP.geometry.src,
-            GLOBALS_MAP.vectorizer.src
-        ],
+        ].concat(Object.keys(LOCAL_EXTERNALS)),
         output: [{
-            file: item.iife,
+            file: `build/${namespace}.js`,
             format: 'iife',
             extend: true,
-            name: key,
-            globals: ((map) => {
-                const globals = {
-                    'jquery': '$',
-                    'backbone': 'Backbone',
-                    'lodash': '_'
-                };
-                globals[map.geometry.src] = 'g';
-                globals[map.vectorizer.src] = 'V';
-                return globals;
-            })(GLOBALS_MAP),
+            name: namespace,
+            globals: Object.assign({
+                'jquery': '$',
+                'backbone': 'Backbone',
+                'lodash': '_',
+            }, LOCAL_EXTERNALS)
         }],
         plugins: plugins
     });
