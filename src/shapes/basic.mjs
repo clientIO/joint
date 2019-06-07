@@ -41,12 +41,12 @@ export const TextView = ElementView.extend({
     }),
 
     confirmUpdate: function() {
-        var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
-        if (this.hasFlag(flag, 'SCALE')) {
+        var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
+        if (this.hasFlag(flags, 'SCALE')) {
             this.resize();
-            this.removeFlag(flag, 'SCALE');
+            flags = this.removeFlag(flags, 'SCALE');
         }
-        return flag;
+        return flags;
     }
 });
 
@@ -316,12 +316,12 @@ export const TextBlockView = ElementView.extend({
     initFlag: ['RENDER', 'CONTENT'],
 
     confirmUpdate: function() {
-        var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
-        if (this.hasFlag(flag, 'CONTENT')) {
+        var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
+        if (this.hasFlag(flags, 'CONTENT')) {
             this.updateContent(this.model);
-            flag = this.removeFlag(flag, 'CONTENT');
+            flags = this.removeFlag(flags, 'CONTENT');
         }
-        return flag;
+        return flags;
     },
 
     update: function(_, renderingOnlyAttrs) {
