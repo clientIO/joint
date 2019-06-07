@@ -1,4 +1,6 @@
-<p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links. These properties may be split into several groups:</p>
+<p>The basic model for diagram links. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to links. For a quick introduction to elements, see our <a href="http://resources.jointjs.com/tutorial/elements">tutorial</a>.</p>
+
+<p>Links' properties may be split into several groups according to their function:</p>
 
 <h4 id="dia.Link.intro.geometry">Geometry</h4>
 
@@ -14,40 +16,88 @@ var link2 = new joint.dia.Link({
     target: { x: 100, y: 100 }
 });</code></pre>
 
-<p>The <code>source</code> and <code>target</code> properties accept additional modifier properties that modify the actual position of the link end: <code>anchor</code>/<code>linkAnchor</code>, and <code>connectionPoint</code>.</p>
+<p>The <a href="#dia.Link.geometry.source"><code>source</code></a> and <a href="#dia.Link.geometry.target"><code>target</code></a> properties accept additional modifier properties that modify the actual position of the link end: <a href="#dia.Link.geometry.anchor"><code>anchor</code></a>/<a href="#dia.Link.geometry.linkAnchor"><code>linkAnchor</code></a>, and <a href="#dia.Link.geometry.connectionPoint"><code>connectionPoint</code></a>.</p>
 
-<p>Additionally, the path of the link is determined by its <code>vertices</code>, and the applied <code>router</code> and <code>connector</code>. All these attributes are described in more detail in <a href="#dia.Link.geometry">link geometry documentation</a>.</p>
+<p>Additionally, the path of the link is determined by its <a href="#dia.Link.geometry.vertices"><code>vertices</code></a>, and the applied <a href="#dia.Link.geometry.router"><code>router</code></a> and <a href="#dia.Link.geometry.connector"><code>connector</code></a>. All these attributes are described in more detail in <a href="#dia.Link.geometry">link geometry documentation</a>.</p>
 
 <h4 id="dia.Link.intro.presentation">Presentation</h4>
 
-<p>These are not the only attributes that may be specified for a newly-created <code>joint.dia.Link</code>, however. An individual link instance may provide a value for these attributes:</p>
+<p>Each <code>joint.dia.Link</code> defines its own SVG <code>markup</code> which is then used by <a href="#dia.LinkView"><code>joint.dia.LinkView</code></a> to render the link to the <a href="#dia.Paper">paper</a>. For instance, the <a href="#shapes.standard.Link"><code>joint.shapes.standard.Link</code></a> (which inherits from <code>joint.dia.Link</code>) defines its markup using the <a href="#dia.Cell.markup.json">JSON array notation</a> as follows:</p>
+
+<pre><code>markup: [{
+    tagName: 'path',
+    selector: 'wrapper',
+    attributes: {
+        'fill': 'none',
+        'cursor': 'pointer',
+        'stroke': 'transparent',
+        'stroke-linecap': 'round'
+    }
+}, {
+    tagName: 'path',
+    selector: 'line',
+    attributes: {
+        'fill': 'none',
+        'pointer-events': 'none'
+    }
+}]</code></pre>
+
+<p>As we can see, the <code>joint.shapes.standard.Link</code> shape consists of two <q>subelements</q>: one SVGPathElement named <code>'wrapper'</code> and one SVGPathElement named <code>'line'</code>. The <a href="#dia.Link.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
+
+<p>The <code>markup</code> attribute is not the only presentation attribute that may be specified for a <code>joint.dia.Link</code>. However, all the following Link properties are deprecated and included only for backwards compatibility. Use <a href="#linkTools">link tools</a> instead:</p>
 
 <ul>
-    <li><code>markup</code> - provide custom link markup. May be specified as an <a href="#dia.Cell.markup">XML string or JSON array</a>.</li>
-    <li><code>vertices</code> - provide an array of <a href="#dia.Link.prototype.vertex">vertices</a>.</li>
-    <li><code>vertexMarkup</code> - provide custom vertex markup (on hover).</li>
-    <li><code>toolMarkup</code> - provide custom tool markup (on hover).</li>
-    <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
-    <li><code>arrowheadMarkup</code> - provide custom arrowhead markup (on hover).</li>
+    <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
+    <li><code>toolMarkup</code> - provide custom tool markup for all instances of this Link type (on hover).</li>
+    <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools for all instances of this Link type (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
+    <li><code>arrowheadMarkup</code> - provide custom arrowhead markup for all instances of this Link type (on hover).</li>
 </ul>
 
 <h4 id="dia.Link.intro.styling">Styling</h4>
 
-<p>Styling of the link is contained in the <code>attrs</code> property which has exactly the same structure as the <a href="#dia.Element.intro.styling"><code>Element.attrs</code></a> property. It allows you to change the style and size of SVG elements, identified by their selectors, as defined by link <a href="#dia.Link.intro.presentation"><code>markup</code></a>.</p>
+<p>The keys of the <code>attrs</code> object are selectors that match subelements defined in the link's <a href="#dia.Link.intro.presentation"><code>markup</code></a>. The values of this object are SVG attributes that will be set on the selected subelements. One can find the full list of SVG attributes and their descriptions online, e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.</p>
 
-<p>It is not recommended to change the <code>attrs</code> object directly. Instead, use the <a href="#dia.Link.prototype.attr">attr</a> method.</p>
+<p>For example, in order to set a red stroke color on a subelement called <code>'line'</code>, the <code>attrs</code> object would contain:</p>
+
+<pre><code>line: { stroke: 'red' }</code></pre>
+
+<p>If you simply need to change a value of an attribute, it is not recommended to modify the <code>attrs</code> object directly. Instead, use the <a href="#dia.Link.prototype.attr"><code>link.attr()</code></a> method.</p>
+
+<p>We can use the <a href="#shapes.standard.Link"><code>joint.shapes.standard.Link</code></a> (which inherits from <code>joint.dia.Link</code>) as an example. The <code>attrs</code> object in its definition is provided below:</p>
+
+<pre><code>attrs: {
+    line: {
+        connection: true,
+        stroke: '#333333',
+        strokeWidth: 2,
+        strokeLinejoin: 'round',
+        targetMarker: {
+            'type': 'path',
+            'd': 'M 10 -5 0 0 10 5 z'
+        }
+    },
+    wrapper: {
+        connection: true,
+        strokeWidth: 10,
+        strokeLinejoin: 'round'
+    }
+}</code></pre>
+
+<p>Notice that the object makes use of special JointJS attributes (e.g. <a href="#dia.attributes.connection"><code>connection</code></a>, <a href="#dia.attributes.targetMarker"><code>targetMarker</code></a>) on top of standard SVG attributes (e.g. <code>stroke</code>, <code>strokeWidth</code>). All of these <q>special attributes</q> are listed in the <a href="#dia.attributes">attributes</a> section of this documentation. You should also refer to our <a href="http://resources.jointjs.com/tutorial/special-attributes">tutorial on special attributes</a>.</p>
+
+<p>In the context of links, the most important special attribute is <code>connection</code>. It specifies that the SVGPathElement(s) in question should follow the path of the Link's model, as provided by the interplay of <a href="#dia.Link.intro.geometry">link geometry methods</a>.</p>
 
 <h4 id="dia.Link.intro.z">Z</h4>
 
-<p>Links also have the <code>z</code> property which specifies the z-level of the link. It has exactly the same meaning as the <a href="#dia.Element.intro.z"><code>Element.z</code></a> property.</p>
+<p>The <code>z</code> property specifies the stack order of the element in the SVG DOM. An element with a higher <code>z</code> value will be rendered in front of an element with a lower <code>z</code> value. (<a href="#dia.Element.intro.z">This also applies to Elements.</a>)</p>
 
 <h4 id="dia.Link.intro.labels">Labels</h4>
 
-<p>You may provide an array of labels to the link through the <code>labels</code> attribute. Each can have its own markup, position, and attrs. See the <a href="#dia.Link.labels">link labels documentation</a>.</p>
+<p>You may provide an array of labels to the link through the <code>labels</code> attribute. Each can have its own markup, position, and attrs. See the <a href="#dia.Link.labels">link labels documentation</a>. You should also refer to our <a href="http://resources.jointjs.com/tutorial/link-labels">tutorial</a> on link labels.</p>
 
 <h4 id="dia.Link.intro.customAttributes">Custom Attributes</h4>
 
-<p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="#dia.LinkView.intro">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
+<p>It is also possible to pass custom attributes to the link. These may be useful to identify an individual link model for the purposes of linkView interaction (see <code>LinkView</code> <a href="#dia.LinkView">documentation</a> for more information). For example, to only enable custom contextmenu interaction for <code>link1</code> but not <code>link2</code>:</p>
 
 <pre><code>var CustomLinkView = joint.dia.LinkView.extend({
     contextmenu: function(evt, x, y) {
@@ -86,19 +136,17 @@ var link2 = new joint.dia.Link({
 
 <h4 id="dia.Link.intro.customLink">Custom Link</h4>
 
-<p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override Link properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link attributes are applicable in this context:</p>
+<p>It is possible to extend the <code>joint.dia.Link</code> class to create a custom link. A custom link may override Link properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Link type, unless an individual instance overrides them with its own values. The following Link properties are applicable in this context:</p>
 
 <ul>
-    <li><code>markup</code> - provide default link markup for all instances of this Link type. May be specified as an <a href="#dia.Cell.markup">XML string or JSON array</a>.</li>
+    <li><code>markup</code> - provide default link markup for all instances of this Link type, specified with a <a href="#dia.Cell.markup.json">JSON array</a>.</li>
     <li><code>attrs</code> - provide default link attributes for all instances of this Link type. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
-    <li><code>vertexMarkup</code> - provide default vertex markup for all vertices created on an instance of this Link type (on hover).</li>
-    <li><code>toolMarkup</code> - provide custom tool markup for all instances of this Link type (on hover).</li>
-    <li><code>doubleToolMarkup</code> - provide custom markup for second set of tools for all instances of this Link type (on hover, if <code>linkView.doubleLinkTools</code> is <code>true</code>).</li>
-    <li><code>arrowheadMarkup</code> - provide custom arrowhead markup for all instances of this Link type (on hover).</li>
     <li><code>defaultLabel</code> - provide default properties (markup, attrs, position) for all labels created on an instance of this Link type.</li>
 </ul>
 
 <p>The values of these defaults may be important; the <code>linkView.addLabel()</code> <a href="#dia.LinkView.prototype.addLabel">shortcut function</a> is only capable of adding default labels to the link.</p>
+
+<p>Creating custom links is explained in more detail in our <a href="http://resources.jointjs.com/tutorial/custom-links">tutorial</a>.</p>
 
 <p>Example:</p>
 

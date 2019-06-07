@@ -1,28 +1,60 @@
-<p>The basic model for diagram elements. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to elements. These properties may be split into several groups:</p>
+<p>The basic model for diagram elements. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to elements. For a quick introduction to elements, see our <a href="http://resources.jointjs.com/tutorial/elements">tutorial</a>.</p>
+
+<p>Elements' properties may be split into several groups according to their function:</p>
 
 <h4 id="dia.Element.intro.geometry">Geometry</h4>
 
 <ul>
-	<li><code>position</code> - coordinates of the element, provided as an object with <code>x</code> and <code>y</code> keys. The property may be accessed or set directly using regular Backbone <code>set('position')</code>/<code>get('position')</code> methods or through Element's <a href="#dia.Element.prototype.translate">translate()</a> method.</li>
-	<li><code>angle</code> - angle of rotation of the element in degrees. The rotation origin is always the center of the element. The property may be accessed or set directly using regular Backbone <code>set('angle')</code>/<code>get('angle')</code> methods or through Element's <a href="#dia.Element.prototype.rotate">rotate()</a> method.</li>
-	<li><code>size</code> - size of the element, provided as an object with <code>width</code> and <code>height</code> keys. The property may be accessed or set directly using regular Backbone <code>set('size')</code>/<code>get('size')</code> methods or through Element's <a href="#dia.Element.prototype.resize">translate()</a> method.</li>
+	<li><code>position</code> - coordinates of the element, provided as an object with <code>x</code> and <code>y</code> keys. The property may be accessed or set directly using regular Backbone <code>set('position')</code>/<code>get('position')</code> methods or through Element's <a href="#dia.Element.prototype.translate"><code>translate()</code></a> method.</li>
+	<li><code>angle</code> - angle of rotation of the element in degrees. The rotation origin is always the center of the element. The property may be accessed or set directly using regular Backbone <code>set('angle')</code>/<code>get('angle')</code> methods or through Element's <a href="#dia.Element.prototype.rotate"><code>rotate()</code></a> method.</li>
+	<li><code>size</code> - size of the element, provided as an object with <code>width</code> and <code>height</code> keys. The property may be accessed or set directly using regular Backbone <code>set('size')</code>/<code>get('size')</code> methods or through Element's <a href="#dia.Element.prototype.resize"><code>translate()</code></a> method.</li>
 </ul>
 
 <h4 id="dia.Element.intro.presentation">Presentation</h4>
 
-<p>Each <code>joint.dia.Element</code> defines its own SVG <code>markup</code> which is then used by <code>joint.dia.ElementView</code> to render the element to the paper. For instance, the <code>joint.shapes.basic.Rect</code> element (which inherits from <code>joint.dia.Element</code>) defines its markup as follows:</p>
+<p>Each <code>joint.dia.Element</code> defines its own SVG <code>markup</code> which is then used by <a href="#dia.ElementView"><code>joint.dia.ElementView</code></a> to render the element to the <a href="#dia.Paper">paper</a>. For instance, the <a href="#shapes.standard.Rectangle"><code>joint.shapes.standard.Rectangle</code></a> element (which inherits from <code>joint.dia.Element</code>) defines its markup using the <a href="#dia.Cell.markup.json">JSON array notation</a> as follows:</p>
 
-<pre><code data-lang="svg">&lt;g class=&quot;rotatable&quot;&gt;&lt;g class=&quot;scalable&quot;&gt;&lt;rect/&gt;&lt;/g&gt;&lt;text/&gt;&lt;/g&gt;</code></pre>
+<pre><code>markup: [{
+    tagName: 'rect',
+    selector: 'body',
+}, {
+    tagName: 'text',
+    selector: 'label'
+}]</code></pre>
+
+<p>As we can see, the <code>joint.shapes.standard.Rect</code> shape consists of two <q>subelements</q>: one SVGRectElement named <code>'body'</code> and one SVGTextElement named <code>'label'</code>. The <a href="#dia.Element.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
 
 <h4 id="dia.Element.intro.styling">Styling</h4>
 
-<p>Another important property is <code>attrs</code>. The keys of this object represent <q>selectors</q> that match subelements defined in the element's markup. The values of this object are SVG attributes that will be set on the selected subelements. One can find a list of SVG attributes and their descriptions e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.</p>
+<p>The keys of the <code>attrs</code> object are selectors that match subelements defined in the element's <a href="#dia.Element.intro.presentation"><code>markup</code></a>. The values of this object are SVG attributes that will be set on the selected subelements. One can find the full list of SVG attributes and their descriptions online, e.g. on <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">MDN</a>.</p>
 
-<p>Therefore, in order to set a red fill color on a subelement called <code>rect</code>, the <code>attrs</code> object should contain:</p>
+<p>For example, in order to set a red fill color on a subelement called <code>'body'</code>, the <code>attrs</code> object would contain:</p>
 
-<pre><code>rect: { fill: 'red' }</code></pre>
+<pre><code>body: { fill: 'red' }</code></pre>
 
-<p>It is not recommended to change the <code>attrs</code> object directly. Instead, use the <a href="#dia.Element.prototype.attr">attr</a> method.</p>
+<p>If you simply need to change a value of an attribute, it is not recommended to modify the <code>attrs</code> object directly. Instead, use the <a href="#dia.Element.prototype.attr"><code>element.attr()</code></a> method.</p>
+
+<p>We can use the <a href="#shapes.standard.Rectangle"><code>joint.shapes.standard.Rectangle</code></a> element (which inherits from <code>joint.dia.Element</code>) as an example. The <code>attrs</code> object in its definition is provided below:</p>
+
+<pre><code>attrs: {
+    body: {
+        refWidth: '100%',
+        refHeight: '100%',
+        strokeWidth: 2,
+        stroke: '#000000',
+        fill: '#FFFFFF'
+    },
+    label: {
+        textVerticalAnchor: 'middle',
+        textAnchor: 'middle',
+        refX: '50%',
+        refY: '50%',
+        fontSize: 14,
+        fill: '#333333'
+    }
+}</code></pre>
+
+<p>Notice that the object makes use of special JointJS attributes (e.g. <a href="#dia.attributes.refWidth"><code>refWidth</code></a>, <a href="#dia.attributes.textVerticalAnchor"><code>textVerticalAnchor</code></a>) on top of standard SVG attributes (e.g. <code>stroke</code>, <code>fill</code>). All of these <q>special attributes</q> are listed in the <a href="#dia.attributes">attributes</a> section of this documentation. You should also refer to our <a href="http://resources.jointjs.com/tutorial/special-attributes">tutorial on special attributes</a>.</p>
 
 <h4 id="dia.Element.intro.z">Z</h4>
 
@@ -44,3 +76,14 @@
 <h4 id="dia.Element.intro.events">Events</h4>
 
 <p>Elements trigger several special events, detailed in the <a href="#dia.Elment.events">element events documentation</a>.</p>
+
+<h4 id="dia.Element.intro.customElement">Custom Element</h4>
+
+<p>It is possible to extend the <code>joint.dia.Element</code> class to create a custom element. A custom element may override Element properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Element type, unless an individual instance overrides them with its own values. The following Element properties are applicable in this context:</p>
+
+<ul>
+    <li><code>markup</code> - provide default element markup for all instances of this Element type, specified with a <a href="#dia.Cell.markup.json">JSON array</a>.</li>
+    <li><code>attrs</code> - provide default element styling for all instances of this Element type. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
+</ul>
+
+<p>Creating custom elements is explained in more detail in our <a href="http://resources.jointjs.com/tutorial/custom-elements">tutorial</a>.</p>

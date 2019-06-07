@@ -15,6 +15,11 @@
 markup: '&lt;rect class="rectangle"/&gt;'
 markup: '&lt;rect&gt;&lt;g&gt;&lt;circle/&gt;&lt;circle/&gt;&lt;/g&gt;'</code></pre>
 
+<p>
+    Note that defining Cell markup with XML strings is slower than defining it with JSON arrays, precisely because of the need for parsing.
+    We strongly recommend you to use the <a href="#dia.Cell.markup.json">JSON markup</a> for your Cell definitions.
+</p>
+
 <h4 id="dia.Cell.markup.json">JSON Markup</h4>
 
 <p>
