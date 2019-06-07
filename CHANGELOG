@@ -1,3 +1,51 @@
+07-06-2019 (v3.0.0)
+
+  * dia.Paper - async mode revamped (viewport matching, rendering progress) [breaking change]
+  * dia.Paper - cells are rendered into the `paper.cells` (previously called `paper.viewport`), transformations are applied to `paper.layers` (parent of `paper.cells`) [breaking change]
+  * dia.Graph - getBBox() accepts no parameters and returns the bounding box of the entire graph [breaking change]
+  * dia.Graph - getCellsBBox(cells) does not ignore links passed via `cells` parameter [breaking change]
+  * dia.CellView - listening for underlying model changes switched from a specific attribute change (e.g. `change:size`) to a general `change` event [breaking change]
+  * dia.CellView - remove deprecated getStrokeBBox() [breaking change]
+  * Vectorizer - change `xmlns` to `svg` namespace, add correct `xmlns` namespace [breaking change]
+  * remove deprecated `PortsModelInterface` and `PortsViewInterface` from `joint.shapes.basic` [breaking change]
+  * upgrade dependencies (Backbone v1.4.0, Dagre v0.8.4, Graphlib v2.1.6, jQuery v3.4.1)
+  * full support for ES Modules
+  * support for Link to Link connections
+  * dia.Paper - implement viewport matching (remove views from the DOM when not in the viewport) via `viewport` option and checkViewport()
+  * dia.Paper - add freeze(), unfreeze(), isFrozen() and option `frozen` to stop/start views updates
+  * dia.Paper - add requireView(), dumpViews(), updateViews() to force views to update
+  * dia.Paper - add sorting options (none, approximate, exact)
+  * dia.Paper - add `anchorNamespace`, `linkAnchorNamespace`, `connectionPointNamespace`, `defaultLinkAnchor` options
+  * dia.Paper - add `useModelGeometry` for scaleContentToFit(), fitToContent(), getContentBBox(), getContentArea()
+  * dia.Paper - add `contentArea` for scaleContentToFit(), fitToContent()
+  * dia.Paper - fitToContent() returns area (g.Rect) of the content
+  * dia.Graph - add `indirect` option for getNeighbors(), getConnectedLinks(), isNeighbor() for link-link connections
+  * dia.Link - add `priority` attribute for anchors
+  * dia.Link - add getSourceCell(), getTargetCell(), getPolyline(), getSourcePoint(), getTargetPoint(), getBBox()
+  * dia.Link - getSourceElement() and getTargetElement() finds also indirect elements
+  * dia.Link - add angle, keepGradient and ensureLegibility options for labels
+  * dia.ElementView - add findPortNode()
+  * dia.LinkView - properly revert `pointer-events` attribute after a link interaction
+  * dia.LinkView - add root node selector for string markup
+  * dia.CellView - keep a dragged always view under the pointer (esp. when `restrictTranslate` in use)
+  * dia.CellView - make sure `cell:mouseleave` and `cell:mouseenter` events are always called when the mouse leaves/enters a cell
+  * dia.CellView - fix referenced bounding box for nodes outside the rotatable group
+  * dia.Cell - add generateId(), generatePortId()
+  * anchors - modelCenter anchor accepts `dx`, `dy` options
+  * linkAnchors - add anchors for link-link connections (ratio, length, perpendicular, closest)
+  * linkTools - add `stopPropagation` option for Vertices tool
+  * shapes.standard - add `standard.InscribedImage` shape
+  * util - breakText() prefers breaking words at hyphens
+  * util - nextFrame() extra parameters are appended to the arguments the callback receives
+  * Vectorizer - fix translateAndAutoOrient() for edge cases
+  * Geometry - add divideAt() and divideAtLength() for paths
+  * Geometry - supports scientific notation for paths defined via SVGPath data
+  * Geometry - add Line.prototype.angle(), Point.prototype.chooseClosest()
+  * Geometry - add containsPoint() for Polyline, Path, Curve and Line
+  * Geometry - fix Path.prototype.closestPoint() ending in an infinite loop
+  * Geometry - add random()
+  * add Mix Bus, ForeignObject demos
+
 12-11-2018 (v2.2.1)
   * utils - fix breakText() definition in Typescript
   * dia.CellView - findAttribute() docs
@@ -20,12 +68,12 @@
   * dia.LinkView - prevent multiple validate connections for already snapped magnets
   * dia.LinkView - fix label rendering in IE
   * dia.Cell - JSON Markup accepts textContent and groupSelector properties
-  * dia.CellView - presentaion attributes (attrs) are now applied in the order given
+  * dia.CellView - presentation attributes (attrs) are now applied in the order given
   * mvc.View - prevent multiple onRender() calls
   * mvc.View - add findAttribute()
   * mvc.View - prevent className undefined
   * dia.attributes - add ellipsis option for textWrap
-  * dia.atributes - add refWidth2 and refHeight2
+  * dia.attributes - add refWidth2 and refHeight2
   * shapes.standard - add background to BorderedImage
   * shapes.standard - add InscribedImage shape
   * shapes.pn - fix PlaceView
@@ -45,10 +93,10 @@
   * dia.LinkView - stop preventing propagation for legacy link tools events
 
 29-6-2018 (v2.1.3)
-  * dia.CellView - fix ambigious magnet selector
+  * dia.CellView - fix ambiguous magnet selector
   * dia.LinkView - trigger missing link:pointerdown event on label pointerdown
   * dia.LinkView - fix connection update for loop links
-  * dia.Link - improve reparenting (loop link embeds into the connected element, link connected to ancestor and its decendant embeds into the ancestor)
+  * dia.Link - improve reparenting (loop link embeds into the connected element, link connected to ancestor and its descendant embeds into the ancestor)
   * dia.Graph - getConnectedLinks() does not contain enclosed links (not necessary embedded links), add includeEnclosed option to get all connected links.
   * dia.Paper - fix cell:contextmenu event
   * dia.Paper - fix missing magnet reference for validateConnection()
