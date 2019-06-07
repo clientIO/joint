@@ -5,7 +5,6 @@ module.exports = {
     },
     vectorizer: {
         src: 'src/V/index.mjs',
-        iife: 'build/iife/vectorizer.js',
         umd: 'build/vectorizer.js',
     },
     joint: {
