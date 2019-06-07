@@ -23,17 +23,17 @@ let plugins = [
 
 let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
 
-const readNamespace = function(namespace) {
+const readNamespace = function(namespace, global) {
     let location = './src/' + namespace;
     const list = fs.readdirSync(path.resolve(location));
     return list.reduce((res, item) => {
-        res[path.resolve(location, item)] = 'joint.' + namespace;
+        res[path.resolve(location, item)] = global || 'joint.' + namespace;
         return res;
     }, {});
 };
 
-const G_REF = readNamespace('g');
-const V_REF = readNamespace('V');
+const G_REF = readNamespace('g', 'g');
+const V_REF = readNamespace('V', 'V');
 const LOCAL_EXTERNALS = Object.assign(
     {},
     Object.keys(modules.plugins).reduce((res, key) => {
