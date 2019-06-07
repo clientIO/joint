@@ -1,4 +1,4 @@
-/*! JointJS v3.0.0-beta (2019-06-06) - JavaScript diagramming library
+/*! JointJS v3.0.0-beta (2019-06-07) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -15360,12 +15360,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         }),
 
         confirmUpdate: function() {
-            var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
-            if (this.hasFlag(flag, 'SCALE')) {
+            var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
+            if (this.hasFlag(flags, 'SCALE')) {
                 this.resize();
-                this.removeFlag(flag, 'SCALE');
+                flags = this.removeFlag(flags, 'SCALE');
             }
-            return flag;
+            return flags;
         }
     });
 
@@ -15635,12 +15635,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         initFlag: ['RENDER', 'CONTENT'],
 
         confirmUpdate: function() {
-            var flag = ElementView.prototype.confirmUpdate.apply(this, arguments);
-            if (this.hasFlag(flag, 'CONTENT')) {
+            var flags = ElementView.prototype.confirmUpdate.apply(this, arguments);
+            if (this.hasFlag(flags, 'CONTENT')) {
                 this.updateContent(this.model);
-                flag = this.removeFlag(flag, 'CONTENT');
+                flags = this.removeFlag(flags, 'CONTENT');
             }
-            return flag;
+            return flags;
         },
 
         update: function(_$$1, renderingOnlyAttrs) {
