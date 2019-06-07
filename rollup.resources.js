@@ -65,7 +65,7 @@ export const vectorizer = {
         format: 'umd',
         name: 'V',
         freeze: false,
-        footer: 'if (typeof V !== \'undefined\') { var g = V.g; };\n'
+        footer: 'if (typeof V !== \'undefined\') { var g = V.g; var Vectorizer = V; };\n'
     }],
     plugins: plugins
 };
