@@ -119,5 +119,5 @@ export const Transition = Generic.define('pn.Transition', {
 });
 
 export const Link = diaLink.define('pn.Link', {
-    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' } }
+    attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
 });
