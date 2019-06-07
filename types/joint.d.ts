@@ -631,6 +631,14 @@ export namespace dia {
 
         checkMouseleave(evt: JQuery.Event): void;
 
+        getFlag(label: CellView.FlagLabel): number;
+
+        protected hasFlag(flags: number, label: CellView.FlagLabel): boolean;
+
+        protected removeFlag(flags: number, label: CellView.FlagLabel): number;
+
+        protected setFlags(): void;
+
         protected onToolEvent(eventName: string): void;
 
         protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
