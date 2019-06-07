@@ -1,4 +1,6 @@
-<p>The basic model for diagram elements. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to elements. These extra properties may be split into several groups:</p>
+<p>The basic model for diagram elements. It inherits from <a href="#dia.Cell">joint.dia.Cell</a> with a few additional properties and methods specific to elements. For a quick introduction to elements, see our <a href="http://resources.jointjs.com/tutorial/elements">tutorial</a>.</p>
+
+<p>Elements' properties may be split into several groups by their function:</p>
 
 <h4 id="dia.Element.intro.geometry">Geometry</h4>
 
@@ -10,7 +12,7 @@
 
 <h4 id="dia.Element.intro.presentation">Presentation</h4>
 
-<p>Each <code>joint.dia.Element</code> defines its own SVG <code>markup</code> which is then used by <a href="#dia.ElementView"><code>joint.dia.ElementView</code></a> to render the element to the <a href="#dia.Paper">paper</a>. For instance, the <a href="#shapes.standard.Rectangle"><code>joint.shapes.standard.Rectangle</code></a> element (which inherits from <code>joint.dia.Element</code>) defines its markup as follows:</p>
+<p>Each <code>joint.dia.Element</code> defines its own SVG <code>markup</code> which is then used by <a href="#dia.ElementView"><code>joint.dia.ElementView</code></a> to render the element to the <a href="#dia.Paper">paper</a>. For instance, the <a href="#shapes.standard.Rectangle"><code>joint.shapes.standard.Rectangle</code></a> element (which inherits from <code>joint.dia.Element</code>) defines its markup using the <a href="#dia.Cell.markup.json">JSON array notation</a> as follows:</p>
 
 <pre><code>markup: [{
     tagName: 'rect',
@@ -74,3 +76,14 @@
 <h4 id="dia.Element.intro.events">Events</h4>
 
 <p>Elements trigger several special events, detailed in the <a href="#dia.Elment.events">element events documentation</a>.</p>
+
+<h4 id="dia.Element.intro.customElement">Custom Element</h4>
+
+<p>It is possible to extend the <code>joint.dia.Element</code> class to create a custom element. A custom element may override Element properties to assign its own defaults. These values override builtin defaults, if provided, and are applied to all instances of the new Element type, unless an individual instance overrides them with its own values. The following Element properties are applicable in this context:</p>
+
+<ul>
+    <li><code>markup</code> - provide default element markup for all instances of this Element type, specified with a <a href="#dia.Cell.markup.json">JSON array</a>.</li>
+    <li><code>attrs</code> - provide default element styling for all instances of this Element type. These allow you to change the style and size of SVG elements, identified by their selectors.</li>
+</ul>
+
+<p>Creating custom elements is explained in more detail in our <a href="http://resources.jointjs.com/tutorial/custom-elements">tutorial</a>.</p>
