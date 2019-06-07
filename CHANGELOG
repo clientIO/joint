@@ -1,4 +1,4 @@
-??-??-???? (v3.0.0)
+07-06-2019 (v3.0.0)
 
   * dia.Paper - async mode revamped (viewport matching, rendering progress) [breaking change]
   * dia.Paper - cells are rendered into the `paper.cells` (previously called `paper.viewport`), transformations are applied to `paper.layers` (parent of `paper.cells`) [breaking change]
