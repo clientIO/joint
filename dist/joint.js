@@ -1,4 +1,4 @@
-/*! JointJS v3.0.0 (2019-06-07) - JavaScript diagramming library
+/*! JointJS v3.0.0 (2019-06-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -5854,7 +5854,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     // Vectorizer.
 
-    var V$1 = (function() {
+    var V = (function() {
 
         var hasSvg = typeof window === 'object' &&
             !!(
@@ -7116,7 +7116,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var svg = document.createElementNS(ns.svg, 'svg');
             svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-            svg.setAttribute('xmlns', ns.svg);
             svg.setAttribute('version', SVGVersion);
             return svg;
         };
@@ -8365,7 +8364,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         var selectors = {};
         var groupSelectors = {};
-        var svgNamespace = V$1.namespace.svg;
+        var svgNamespace = V.namespace.svg;
 
         var ns = namespace || svgNamespace;
         var fragment = document.createDocumentFragment();
@@ -8384,7 +8383,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var node = document.createElementNS(ns, tagName);
                 var svg = (ns === svgNamespace);
 
-                var wrapper = (svg) ? V$1 : $;
+                var wrapper = (svg) ? V : $;
                 // Attributes
                 var attributes = nodeDef.attributes;
                 if (attributes) { wrapper(node).attr(attributes); }
@@ -8690,9 +8689,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         if (magnet) {
 
-            spot = V$1(magnet).findIntersection(reference, linkView.paper.cells);
+            spot = V(magnet).findIntersection(reference, linkView.paper.cells);
             if (!spot) {
-                bbox = V$1(magnet).getBBox({ target: linkView.paper.cells });
+                bbox = V(magnet).getBBox({ target: linkView.paper.cells });
             }
 
         } else {
@@ -8770,9 +8769,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         var width = size.width;
         var height = size.height;
 
-        var svgDocument = opt.svgDocument || V$1('svg').node;
-        var textSpan = V$1('tspan').node;
-        var textElement = V$1('text').attr(styles).append(textSpan).node;
+        var svgDocument = opt.svgDocument || V('svg').node;
+        var textSpan = V('tspan').node;
+        var textElement = V('text').attr(styles).append(textSpan).node;
         var textNode = document.createTextNode('');
 
         // Prevent flickering
@@ -9201,7 +9200,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // Firefox correction
         if (element.ownerSVGElement) {
 
-            var vel = V$1(element);
+            var vel = V(element);
             var bbox = vel.getBBox({ target: vel.svg() });
 
             // if FF getBoundingClientRect includes stroke-width, getBBox doesn't.
@@ -10177,7 +10176,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     // `d` attribute for SVGPaths
     function dWrapper(opt) {
         function pathConstructor(value) {
-            return new Path(V$1.normalizePathData(value));
+            return new Path(V.normalizePathData(value));
         }
 
         var shape = shapeWrapper(pathConstructor, opt);
@@ -10383,7 +10382,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                             }
                         }
                     }
-                    V$1(node).text('' + text, textAttrs);
+                    V(node).text('' + text, textAttrs);
                     $node.data(cacheName, textHash);
                 }
             }
@@ -13230,7 +13229,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var portElements = toArray(ports).map(this._getPortElement, this);
 
             if (refs[z] || z < 0) {
-                V$1(refs[Math.max(z, 0)]).before(portElements);
+                V(refs[Math.max(z, 0)]).before(portElements);
             } else {
                 containerElement.append(portElements);
             }
@@ -13287,7 +13286,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var portElement;
             var labelElement;
 
-            var portContainerElement = V$1(this.portContainerMarkup).addClass('joint-port');
+            var portContainerElement = V(this.portContainerMarkup).addClass('joint-port');
 
             var portMarkup = this._getPortMarkup(port);
             var portSelectors;
@@ -13295,15 +13294,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var portDoc = this.parseDOMJSON(portMarkup, portContainerElement.node);
                 var portFragment = portDoc.fragment;
                 if (portFragment.childNodes.length > 1) {
-                    portElement = V$1('g').append(portFragment);
+                    portElement = V('g').append(portFragment);
                 } else {
-                    portElement = V$1(portFragment.firstChild);
+                    portElement = V(portFragment.firstChild);
                 }
                 portSelectors = portDoc.selectors;
             } else {
-                portElement = V$1(portMarkup);
+                portElement = V(portMarkup);
                 if (Array.isArray(portElement)) {
-                    portElement = V$1('g').append(portElement);
+                    portElement = V('g').append(portElement);
                 }
             }
 
@@ -13322,15 +13321,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var labelDoc = this.parseDOMJSON(labelMarkup, portContainerElement.node);
                 var labelFragment = labelDoc.fragment;
                 if (labelFragment.childNodes.length > 1) {
-                    labelElement = V$1('g').append(labelFragment);
+                    labelElement = V('g').append(labelFragment);
                 } else {
-                    labelElement = V$1(labelFragment.firstChild);
+                    labelElement = V(labelFragment.firstChild);
                 }
                 labelSelectors = labelDoc.selectors;
             } else {
-                labelElement = V$1(labelMarkup);
+                labelElement = V(labelMarkup);
                 if (Array.isArray(labelElement)) {
-                    labelElement = V$1('g').append(labelElement);
+                    labelElement = V('g').append(labelElement);
                 }
             }
 
@@ -13404,7 +13403,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
          */
         applyPortTransform: function(element, transformData, initialAngle) {
 
-            var matrix = V$1.createSVGMatrix()
+            var matrix = V.createSVGMatrix()
                 .rotate(initialAngle || 0)
                 .translate(transformData.x || 0, transformData.y || 0)
                 .rotate(transformData.angle || 0);
@@ -15001,7 +15000,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             children || (children = result(this, 'children'));
             if (children) {
                 var isSVG = this.svgElement;
-                var namespace = V$1.namespace[isSVG ? 'svg' : 'xhtml'];
+                var namespace = V.namespace[isSVG ? 'svg' : 'xhtml'];
                 var doc = parseDOMJSON(children, namespace);
                 (isSVG ? this.vel : this.$el).empty().append(doc.fragment);
                 this.childNodes = doc.selectors;
@@ -15058,7 +15057,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         _createElement: function(tagName) {
             if (this.svgElement) {
-                return document.createElementNS(V$1.namespace.svg, tagName);
+                return document.createElementNS(V.namespace.svg, tagName);
             } else {
                 return document.createElement(tagName);
             }
@@ -15069,7 +15068,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         _setElement: function(el) {
             this.$el = el instanceof Backbone.$ ? el : Backbone.$(el);
             this.el = this.$el[0];
-            if (this.svgElement) { this.vel = V$1(this.el); }
+            if (this.svgElement) { this.vel = V(this.el); }
         },
 
         _ensureElClassName: function() {
@@ -15488,7 +15487,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var magnetMatrix = this.getNodeMatrix(magnet);
             var translateMatrix = this.getRootTranslateMatrix();
             var rotateMatrix = this.getRootRotateMatrix();
-            return V$1.transformRect(rect$$1, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+            return V.transformRect(rect$$1, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
         },
 
         getNodeUnrotatedBBox: function(magnet) {
@@ -15496,20 +15495,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var rect$$1 = this.getNodeBoundingRect(magnet);
             var magnetMatrix = this.getNodeMatrix(magnet);
             var translateMatrix = this.getRootTranslateMatrix();
-            return V$1.transformRect(rect$$1, translateMatrix.multiply(magnetMatrix));
+            return V.transformRect(rect$$1, translateMatrix.multiply(magnetMatrix));
         },
 
         getRootTranslateMatrix: function() {
 
             var model = this.model;
             var position = model.position();
-            var mt = V$1.createSVGMatrix().translate(position.x, position.y);
+            var mt = V.createSVGMatrix().translate(position.x, position.y);
             return mt;
         },
 
         getRootRotateMatrix: function() {
 
-            var mr = V$1.createSVGMatrix();
+            var mr = V.createSVGMatrix();
             var model = this.model;
             var angle = model.angle();
             if (angle) {
@@ -15587,7 +15586,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             if (el) {
 
-                var nthChild = V$1(el).index() + 1;
+                var nthChild = V(el).index() + 1;
                 selector = el.tagName + ':nth-child(' + nthChild + ')';
 
                 if (prevSelector) {
@@ -15661,7 +15660,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             if (!isEmpty(attrs)) {
                 if (node instanceof SVGElement) {
-                    V$1(node).attr(attrs);
+                    V(node).attr(attrs);
                 } else {
                     $(node).attr(attrs);
                 }
@@ -15756,7 +15755,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             // The final translation of the subelement.
             var nodeTransform = nodeAttrs.transform;
-            var nodeMatrix = V$1.transformStringToMatrix(nodeTransform);
+            var nodeMatrix = V.transformStringToMatrix(nodeTransform);
             var nodePosition = Point(nodeMatrix.e, nodeMatrix.f);
             if (nodeTransform) {
                 nodeAttrs = omit(nodeAttrs, 'transform');
@@ -15796,7 +15795,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // Check if the node is visible
                 var nodeBoundingRect = this.getNodeBoundingRect(node);
                 if (nodeBoundingRect.width > 0 && nodeBoundingRect.height > 0) {
-                    var nodeBBox = V$1.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
+                    var nodeBBox = V.transformRect(nodeBoundingRect, nodeMatrix).scale(1 / sx, 1 / sy);
                     for (attrName in offsetAttrs) {
                         attrVal = offsetAttrs[attrName];
                         def = this.getAttributeDefinition(attrName);
@@ -15818,7 +15817,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 nodePosition.round(1);
                 nodeMatrix.e = nodePosition.x;
                 nodeMatrix.f = nodePosition.y;
-                node.setAttribute('transform', V$1.matrixToTransformString(nodeMatrix));
+                node.setAttribute('transform', V.matrixToTransformString(nodeMatrix));
                 // TODO: store nodeMatrix metrics?
             }
         },
@@ -15848,7 +15847,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var metrics = this.metrics;
             // Don't use cache? It most likely a custom view with overridden update.
             if (!metrics) { return {}; }
-            var id = V$1.ensureId(magnet);
+            var id = V.ensureId(magnet);
             var value = metrics[id];
             if (!value) { value = metrics[id] = {}; }
             return value;
@@ -15864,7 +15863,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         getNodeBoundingRect: function(magnet) {
 
             var metrics = this.nodeCache(magnet);
-            if (metrics.boundingRect === undefined) { metrics.boundingRect = V$1(magnet).getBBox(); }
+            if (metrics.boundingRect === undefined) { metrics.boundingRect = V(magnet).getBBox(); }
             return new Rect(metrics.boundingRect);
         },
 
@@ -15873,15 +15872,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var metrics = this.nodeCache(magnet);
             if (metrics.magnetMatrix === undefined) {
                 var target = this.rotatableNode || this.el;
-                metrics.magnetMatrix = V$1(magnet).getTransformToElement(target);
+                metrics.magnetMatrix = V(magnet).getTransformToElement(target);
             }
-            return V$1.createSVGMatrix(metrics.magnetMatrix);
+            return V.createSVGMatrix(metrics.magnetMatrix);
         },
 
         getNodeShape: function(magnet) {
 
             var metrics = this.nodeCache(magnet);
-            if (metrics.geometryShape === undefined) { metrics.geometryShape = V$1(magnet).toGeometryShape(); }
+            if (metrics.geometryShape === undefined) { metrics.geometryShape = V(magnet).toGeometryShape(); }
             return metrics.geometryShape.clone();
         },
 
@@ -15899,7 +15898,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
                 for (i = 0, n = selected.length; i < n; i++) {
                     var node = selected[i];
-                    nodeId = V$1.ensureId(node);
+                    nodeId = V.ensureId(node);
                     nodeAttrs = attrs[selector];
                     // "unique" selectors are selectors that referencing a single node (defined by `selector`)
                     // groupSelector referencing a single node is not "unique"
@@ -16044,8 +16043,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
                 // Find the reference element bounding box. If no reference was provided, we
                 // use the optional bounding box.
-                var vRotatable = V$1(opt.rotatableNode);
-                var refNodeId = refNode ? V$1.ensureId(refNode) : '';
+                var vRotatable = V(opt.rotatableNode);
+                var refNodeId = refNode ? V.ensureId(refNode) : '';
                 var isRefNodeRotatable = !!vRotatable && !!refNode && vRotatable.contains(refNode);
                 var unrotatedRefBBox = bboxCache[refNodeId];
                 if (!unrotatedRefBBox) {
@@ -16054,7 +16053,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     // Uses the bounding box provided.
                     var transformationTarget = (isRefNodeRotatable) ? vRotatable : rootNode;
                     unrotatedRefBBox = bboxCache[refNodeId] = (refNode)
-                        ? V$1(refNode).getBBox({ target: transformationTarget })
+                        ? V(refNode).getBBox({ target: transformationTarget })
                         : opt.rootBBox;
                 }
 
@@ -16073,8 +16072,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 if (isRefNodeRotatable && !vRotatable.contains(node)) {
                     // if the referenced node is inside the rotatable group while the updated node is outside,
                     // we need to take the rotatable node transformation into account
-                    if (!rotatableMatrix) { rotatableMatrix = V$1.transformStringToMatrix(vRotatable.attr('transform')); }
-                    refBBox = V$1.transformRect(unrotatedRefBBox, rotatableMatrix);
+                    if (!rotatableMatrix) { rotatableMatrix = V.transformStringToMatrix(vRotatable.attr('transform')); }
+                    refBBox = V.transformRect(unrotatedRefBBox, rotatableMatrix);
                 }
 
                 this.updateRelativeAttributes(node, processedAttrs, refBBox, opt);
@@ -16415,8 +16414,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var doc = this.parseDOMJSON(markup, this.el);
             var selectors = this.selectors = doc.selectors;
-            this.rotatableNode = V$1(selectors[this.rotatableSelector]) || null;
-            this.scalableNode = V$1(selectors[this.scalableSelector]) || null;
+            this.rotatableNode = V(selectors[this.rotatableSelector]) || null;
+            this.scalableNode = V(selectors[this.scalableSelector]) || null;
             // Fragment
             this.vel.append(doc.fragment);
         },
@@ -16424,7 +16423,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         renderStringMarkup: function(markup) {
 
             var vel = this.vel;
-            vel.append(V$1(markup));
+            vel.append(V(markup));
             // Cache transformation groups
             this.rotatableNode = vel.findOne('.rotatable');
             this.scalableNode = vel.findOne('.scalable');
@@ -16965,7 +16964,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var targetMagnet = data.targetMagnet;
                 if (magnetThreshold === 'onleave') {
                     // magnetThreshold when the pointer leaves the magnet
-                    if (targetMagnet === currentTarget || V$1(targetMagnet).contains(currentTarget)) { return; }
+                    if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) { return; }
                 } else {
                     // magnetThreshold defined as a number of movements
                     if (paper.eventData(evt).mousemoved <= magnetThreshold) { return; }
@@ -19003,7 +19002,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // `.connection`, `.connection-wrap`, `.marker-source` and `.marker-target` selectors
             // of elements with special meaning though. Therefore, those classes should be preserved in any
             // special markup passed in `properties.markup`.
-            var children = V$1(markup);
+            var children = V(markup);
             // custom markup may contain only one children
             if (!Array.isArray(children)) { children = [children]; }
             // Cache all children elements for quicker access.
@@ -19035,7 +19034,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         _getLabelStringMarkup: function(labelMarkup) {
 
-            var children = V$1(labelMarkup);
+            var children = V(labelMarkup);
             var fragment = document.createDocumentFragment();
 
             if (!Array.isArray(children)) {
@@ -19066,9 +19065,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if ((childNodes.length > 1) || childNodes[0].nodeName.toUpperCase() !== 'G') {
                 // default markup fragment is not wrapped in <g />
                 // add a <g /> container
-                vNode = V$1('g').append(fragment);
+                vNode = V('g').append(fragment);
             } else {
-                vNode = V$1(childNodes[0]);
+                vNode = V(childNodes[0]);
             }
 
             vNode.addClass('label');
@@ -19096,7 +19095,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }  else {
                 // there is no label container in the markup but some labels are defined
                 // add a <g class="labels" /> container
-                vLabels = cache.labels = V$1('g').addClass('labels');
+                vLabels = cache.labels = V('g').addClass('labels');
             }
 
             var container = vLabels.node;
@@ -19219,7 +19218,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var $tools = $(this._V.linkTools.node).empty();
             var toolTemplate = template(this.model.get('toolMarkup') || this.model.toolMarkup);
-            var tool = V$1(toolTemplate());
+            var tool = V(toolTemplate());
 
             $tools.append(tool.node);
 
@@ -19233,7 +19232,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var tool2;
                 if (this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup) {
                     toolTemplate = template(this.model.get('doubleToolMarkup') || this.model.doubleToolMarkup);
-                    tool2 = V$1(toolTemplate());
+                    tool2 = V(toolTemplate());
                 } else {
                     tool2 = tool.clone();
                 }
@@ -19257,7 +19256,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var markupTemplate = template(this.model.get('vertexMarkup') || this.model.vertexMarkup);
 
             this.model.vertices().forEach(function(vertex, idx) {
-                $markerVertices.append(V$1(markupTemplate(assign({ idx: idx }, vertex))).node);
+                $markerVertices.append(V(markupTemplate(assign({ idx: idx }, vertex))).node);
             });
 
             return this;
@@ -19277,8 +19276,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // SVG elements for .marker-vertex and .marker-vertex-remove tools.
             var markupTemplate = template(this.model.get('arrowheadMarkup') || this.model.arrowheadMarkup);
 
-            this._V.sourceArrowhead = V$1(markupTemplate({ end: 'source' }));
-            this._V.targetArrowhead = V$1(markupTemplate({ end: 'target' }));
+            this._V.sourceArrowhead = V(markupTemplate({ end: 'source' }));
+            this._V.targetArrowhead = V(markupTemplate({ end: 'target' }));
 
             $markerArrowheads.append(this._V.sourceArrowhead.node, this._V.targetArrowhead.node);
 
@@ -19696,7 +19695,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var labelPosition = this._normalizeLabelPosition(label.position);
                 var position = merge({}, defaultPosition, labelPosition);
                 var transformationMatrix = this._getLabelTransformationMatrix(position);
-                this._labelCache[idx].setAttribute('transform', V$1.matrixToTransformString(transformationMatrix));
+                this._labelCache[idx].setAttribute('transform', V.matrixToTransformString(transformationMatrix));
             }
 
             return this;
@@ -19963,7 +19962,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 animationAttributes.keyTimes = '0;1';
             }
 
-            var vToken = V$1(token);
+            var vToken = V(token);
             var connection;
             if (typeof selector === 'string') {
                 // Use custom connection path.
@@ -20047,7 +20046,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             if (typeof path === 'string') {
                 // Backwards compatibility for connectors not supporting `raw` option.
-                path = new Path(V$1.normalizePathData(path));
+                path = new Path(V.normalizePathData(path));
             }
 
             return path;
@@ -20283,7 +20282,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 if (isOffsetAbsolute) { translation.offset(labelOffsetCoordinates); }
             }
 
-            return V$1.createSVGMatrix()
+            return V.createSVGMatrix()
                 .translate(translation.x, translation.y)
                 .rotate(angle);
         },
@@ -20478,7 +20477,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         onevent: function(evt, eventName, x, y) {
 
             // Backwards compatibility
-            var linkTool = V$1(evt.target).findParentByClass('link-tool', this.el);
+            var linkTool = V(evt.target).findParentByClass('link-tool', this.el);
             if (linkTool) {
                 // No further action to be executed
                 evt.stopPropagation();
@@ -21113,7 +21112,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var options = defaults(opt || {}, this.defaultOptions);
 
-            var magnetVel = V$1(magnetEl);
+            var magnetVel = V(magnetEl);
             var magnetBBox;
 
             try {
@@ -21125,10 +21124,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // Failed to get path data from magnet element.
                 // Draw a rectangle around the entire cell view instead.
                 magnetBBox = magnetVel.bbox(true/* without transforms */);
-                pathData = V$1.rectToPath(assign({}, options, magnetBBox));
+                pathData = V.rectToPath(assign({}, options, magnetBBox));
             }
 
-            var highlightVel = V$1('path').attr({
+            var highlightVel = V('path').attr({
                 'd': pathData,
                 'pointer-events': 'none',
                 'vector-effect': 'non-scaling-stroke',
@@ -21152,14 +21151,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     var cx = magnetBBox.x + (magnetBBox.width / 2);
                     var cy = magnetBBox.y + (magnetBBox.height / 2);
 
-                    magnetBBox = V$1.transformRect(magnetBBox, highlightMatrix);
+                    magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
 
                     var width = Math.max(magnetBBox.width, 1);
                     var height = Math.max(magnetBBox.height, 1);
                     var sx = (width + padding) / width;
                     var sy = (height + padding) / height;
 
-                    var paddingMatrix = V$1.createSVGMatrix({
+                    var paddingMatrix = V.createSVGMatrix({
                         a: sx,
                         b: 0,
                         c: 0,
@@ -21209,7 +21208,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
          */
         highlight: function(cellView, magnetEl) {
 
-            V$1(magnetEl).addClass(addClassNamePrefix('highlight-opacity'));
+            V(magnetEl).addClass(addClassNamePrefix('highlight-opacity'));
         },
 
         /**
@@ -21218,7 +21217,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
          */
         unhighlight: function(cellView, magnetEl) {
 
-            V$1(magnetEl).removeClass(addClassNamePrefix('highlight-opacity'));
+            V(magnetEl).removeClass(addClassNamePrefix('highlight-opacity'));
         }
     };
 
@@ -21235,7 +21234,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var options = opt || {};
             var className = options.className || this.className;
-            V$1(magnetEl).addClass(className);
+            V(magnetEl).addClass(className);
         },
 
         /**
@@ -21247,7 +21246,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var options = opt || {};
             var className = options.className || this.className;
-            V$1(magnetEl).removeClass(className);
+            V(magnetEl).removeClass(className);
         }
     };
 
@@ -21422,8 +21421,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             node = findShapeNode(magnet);
         }
 
-        if (!V$1.isSVGGraphicsElement(node)) {
-            if (node === magnet || !V$1.isSVGGraphicsElement(magnet)) { return anchor; }
+        if (!V.isSVGGraphicsElement(node)) {
+            if (node === magnet || !V.isSVGGraphicsElement(magnet)) { return anchor; }
             node = magnet;
         }
 
@@ -21433,7 +21432,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         var rotateMatrix = view.getRootRotateMatrix();
         var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
         var localMatrix = targetMatrix.inverse();
-        var localLine = V$1.transformLine(line$$1, localMatrix);
+        var localLine = V.transformLine(line$$1, localMatrix);
         var localRef = localLine.start.clone();
         var data = view.getNodeData(node);
 
@@ -21459,7 +21458,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         intersection$$1 = localLine.intersect(localShape, pathOpt);
         if (intersection$$1) {
             // More than one intersection
-            if (V$1.isArray(intersection$$1)) { intersection$$1 = localRef.chooseClosest(intersection$$1); }
+            if (V.isArray(intersection$$1)) { intersection$$1 = localRef.chooseClosest(intersection$$1); }
         } else if (opt.sticky === true) {
             // No intersection, find the closest point instead
             if (localShape instanceof Rect) {
@@ -21471,7 +21470,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
         }
 
-        var cp = (intersection$$1) ? V$1.transformPoint(intersection$$1, targetMatrix) : anchor;
+        var cp = (intersection$$1) ? V.transformPoint(intersection$$1, targetMatrix) : anchor;
         var cpOffset = opt.offset || 0;
         if (opt.stroke) { cpOffset += stroke$1(node) / 2; }
 
@@ -22013,7 +22012,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         },
 
         children: function() {
-            var ns = V$1.namespace;
+            var ns = V.namespace;
             return [{
                 namespaceURI: ns.xhtml,
                 tagName: 'div',
@@ -22030,8 +22029,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 attributes: {
                     'width': '100%',
                     'height': '100%',
-                    'xmlns:xlink': ns.xlink,
-                    'xmlns': ns.svg
+                    'xmlns:xlink': ns.xlink
                 },
                 selector: 'svg',
                 children: [{
@@ -22127,12 +22125,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
                 // Clone the cached current transformation matrix.
                 // If no matrix previously stored the identity matrix is returned.
-                return V$1.createSVGMatrix(ctm);
+                return V.createSVGMatrix(ctm);
             }
 
             // Setter:
-            ctm = V$1.createSVGMatrix(ctm);
-            var ctmString = V$1.matrixToTransformString(ctm);
+            ctm = V.createSVGMatrix(ctm);
+            var ctmString = V.matrixToTransformString(ctm);
             viewport.setAttribute('transform', ctmString);
 
             this._viewportMatrix = ctm;
@@ -22143,7 +22141,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         clientMatrix: function() {
 
-            return V$1.createSVGMatrix(this.cells.getScreenCTM());
+            return V.createSVGMatrix(this.cells.getScreenCTM());
         },
 
         requestConnectedLinksUpdate: function(view, opt) {
@@ -22742,7 +22740,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new Rect();
             }
 
-            return V$1(this.cells).getBBox();
+            return V(this.cells).getBBox();
         },
 
         // Return the dimensions of the content bbox in the paper units (as it appears on screen).
@@ -22958,7 +22956,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             // getter
             if (sx === undefined) {
-                return V$1.matrixToScale(this.matrix());
+                return V.matrixToScale(this.matrix());
             }
 
             // setter
@@ -22997,7 +22995,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             // getter
             if (angle === undefined) {
-                return V$1.matrixToRotate(this.matrix());
+                return V.matrixToRotate(this.matrix());
             }
 
             // setter
@@ -23021,7 +23019,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             // getter
             if (tx === undefined) {
-                return V$1.matrixToTranslate(this.matrix());
+                return V.matrixToTranslate(this.matrix());
             }
 
             // setter
@@ -23134,42 +23132,42 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         localToPaperPoint: function(x, y) {
             // allow `x` to be a point and `y` undefined
             var localPoint = new Point(x, y);
-            var paperPoint = V$1.transformPoint(localPoint, this.matrix());
+            var paperPoint = V.transformPoint(localPoint, this.matrix());
             return paperPoint;
         },
 
         localToPaperRect: function(x, y, width, height) {
             // allow `x` to be a rectangle and rest arguments undefined
             var localRect = new Rect(x, y, width, height);
-            var paperRect = V$1.transformRect(localRect, this.matrix());
+            var paperRect = V.transformRect(localRect, this.matrix());
             return paperRect;
         },
 
         paperToLocalPoint: function(x, y) {
             // allow `x` to be a point and `y` undefined
             var paperPoint = new Point(x, y);
-            var localPoint = V$1.transformPoint(paperPoint, this.matrix().inverse());
+            var localPoint = V.transformPoint(paperPoint, this.matrix().inverse());
             return localPoint;
         },
 
         paperToLocalRect: function(x, y, width, height) {
             // allow `x` to be a rectangle and rest arguments undefined
             var paperRect = new Rect(x, y, width, height);
-            var localRect = V$1.transformRect(paperRect, this.matrix().inverse());
+            var localRect = V.transformRect(paperRect, this.matrix().inverse());
             return localRect;
         },
 
         localToClientPoint: function(x, y) {
             // allow `x` to be a point and `y` undefined
             var localPoint = new Point(x, y);
-            var clientPoint = V$1.transformPoint(localPoint, this.clientMatrix());
+            var clientPoint = V.transformPoint(localPoint, this.clientMatrix());
             return clientPoint;
         },
 
         localToClientRect: function(x, y, width, height) {
             // allow `x` to be a point and `y` undefined
             var localRect = new Rect(x, y, width, height);
-            var clientRect = V$1.transformRect(localRect, this.clientMatrix());
+            var clientRect = V.transformRect(localRect, this.clientMatrix());
             return clientRect;
         },
 
@@ -23180,14 +23178,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         clientToLocalPoint: function(x, y) {
             // allow `x` to be a point and `y` undefined
             var clientPoint = new Point(x, y);
-            var localPoint = V$1.transformPoint(clientPoint, this.clientMatrix().inverse());
+            var localPoint = V.transformPoint(clientPoint, this.clientMatrix().inverse());
             return localPoint;
         },
 
         clientToLocalRect: function(x, y, width, height) {
             // allow `x` to be a point and `y` undefined
             var clientRect = new Rect(x, y, width, height);
-            var localRect = V$1.transformRect(clientRect, this.clientMatrix().inverse());
+            var localRect = V.transformRect(clientRect, this.clientMatrix().inverse());
             return localRect;
         },
 
@@ -23330,7 +23328,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             opt = this.resolveHighlighter(opt);
             if (!opt) { return; }
             if (!magnetEl.id) {
-                magnetEl.id = V$1.uniqueId();
+                magnetEl.id = V.uniqueId();
             }
 
             var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
@@ -23723,17 +23721,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         },
 
-        _getGriRefs: function() {
+        _getGridRefs: function() {
 
             if (!this._gridCache) {
 
                 this._gridCache = {
-                    root: V$1('svg', { width: '100%', height: '100%' }, V$1('defs')),
+                    root: V('svg', { width: '100%', height: '100%' }, V('defs')),
                     patterns: {},
                     add: function(id, vel) {
-                        V$1(this.root.node.childNodes[0]).append(vel);
+                        V(this.root.node.childNodes[0]).append(vel);
                         this.patterns[id] = vel;
-                        this.root.append(V$1('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
+                        this.root.append(V('rect', { width: '100%', height: '100%', fill: 'url(#' + id + ')' }));
                     },
                     get: function(id) {
                         return this.patterns[id];
@@ -23807,7 +23805,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var localOptions = Array.isArray(opt) ? opt : [opt];
 
             var ctm = this.matrix();
-            var refs = this._getGriRefs();
+            var refs = this._getGridRefs();
 
             this._gridSettings.forEach(function(gridLayerSetting, index) {
 
@@ -23823,7 +23821,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 options.height = gridSize * (ctm.d || 1) * (options.scaleFactor || 1);
 
                 if (!refs.exist(id)) {
-                    refs.add(id, V$1('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V$1(options.markup)));
+                    refs.add(id, V('pattern', { id: id, patternUnits: 'userSpaceOnUse' }, V(options.markup)));
                 }
 
                 var patternDefVel = refs.get(id);
@@ -24019,7 +24017,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     id: filterId
                 });
 
-                V$1(filterSVGString, filterAttrs).appendTo(this.defs);
+                V(filterSVGString, filterAttrs).appendTo(this.defs);
             }
 
             return filterId;
@@ -24061,7 +24059,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
                 var gradientAttrs = assign({ id: gradientId }, gradient.attrs);
 
-                V$1(gradientSVGString, gradientAttrs).appendTo(this.defs);
+                V(gradientSVGString, gradientAttrs).appendTo(this.defs);
             }
 
             return gradientId;
@@ -24084,13 +24082,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (!this.isDefined(markerId)) {
 
                 var attrs = omit(marker, 'type', 'userSpaceOnUse');
-                var pathMarker = V$1('marker', {
+                var pathMarker = V('marker', {
                     id: markerId,
                     orient: 'auto',
                     overflow: 'visible',
                     markerUnits: marker.markerUnits || 'userSpaceOnUse'
                 }, [
-                    V$1(marker.type || 'path', attrs)
+                    V(marker.type || 'path', attrs)
                 ]);
 
                 pathMarker.appendTo(this.defs);
@@ -24216,7 +24214,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 thickness: 1,
                 markup: 'rect',
                 update: function(el, opt) {
-                    V$1(el).attr({
+                    V(el).attr({
                         width: opt.thickness * opt.sx,
                         height: opt.thickness * opt.sy,
                         fill: opt.color
@@ -24229,7 +24227,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 markup: 'rect',
                 update: function(el, opt) {
                     var size = opt.sx <= 1 ? opt.thickness * opt.sx : opt.thickness;
-                    V$1(el).attr({ width: size, height: size, fill: opt.color });
+                    V(el).attr({ width: size, height: size, fill: opt.color });
                 }
             }],
             mesh: [{
@@ -24249,7 +24247,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                         d = 'M 0 0 0 0';
                     }
 
-                    V$1(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+                    V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
                 }
             }],
             doubleMesh: [{
@@ -24269,7 +24267,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                         d = 'M 0 0 0 0';
                     }
 
-                    V$1(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+                    V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
                 }
             }, {
                 color: '#000000',
@@ -24289,7 +24287,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                         d = 'M 0 0 0 0';
                     }
 
-                    V$1(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
+                    V(el).attr({ 'd': d, stroke: opt.color, 'stroke-width': opt.thickness });
                 }
             }]
         }
@@ -25647,7 +25645,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     var rx = w / 2;
                     var ry = isPercentageSetter ? (h * t) : t;
 
-                    var kappa = V$1.KAPPA;
+                    var kappa = V.KAPPA;
                     var cx = kappa * rx;
                     var cy = kappa * (isPercentageSetter ? (h * t) : t);
 
@@ -27430,9 +27428,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         },
         position: function(x, y, angle, view) {
 
-            var matrix = V$1.createSVGMatrix().translate(x, y).rotate(angle);
+            var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
             var handle = this.childNodes.handle;
-            handle.setAttribute('transform', V$1.matrixToTransformString(matrix));
+            handle.setAttribute('transform', V.matrixToTransformString(matrix));
             handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
 
             var viewPoint = view.getClosestPoint(new Point(x, y));
@@ -27745,7 +27743,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 angle = 0;
             }
             if (!position) { return this; }
-            var matrix = V$1.createSVGMatrix().translate(position.x, position.y).rotate(angle);
+            var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
             this.vel.transform(matrix, { absolute: true });
             return this;
         },
@@ -27839,7 +27837,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 position = this.relatedView.getConnection().start;
                 angle = 0;
             }
-            var matrix = V$1.createSVGMatrix()
+            var matrix = V.createSVGMatrix()
                 .translate(position.x, position.y)
                 .rotate(angle)
                 .translate(0, this.options.offset || 0);
@@ -28138,7 +28136,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         Boundary: Boundary
     });
 
-    var Vectorizer = V$1;
+    var Vectorizer = V;
     var setTheme = function(theme, opt) {
 
         opt = opt || {};
@@ -28176,7 +28174,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     exports.util = index$1;
     exports.linkTools = index$6;
     exports.Vectorizer = Vectorizer;
-    exports.V = V$1;
+    exports.V = V;
     exports.g = g$1;
 
     Object.defineProperty(exports, '__esModule', { value: true });

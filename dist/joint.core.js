@@ -1,4 +1,4 @@
-/*! JointJS v3.0.0 (2019-06-07) - JavaScript diagramming library
+/*! JointJS v3.0.0 (2019-06-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7116,7 +7116,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var svg = document.createElementNS(ns.svg, 'svg');
             svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-            svg.setAttribute('xmlns', ns.svg);
             svg.setAttribute('version', SVGVersion);
             return svg;
         };
@@ -23263,8 +23262,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 attributes: {
                     'width': '100%',
                     'height': '100%',
-                    'xmlns:xlink': ns.xlink,
-                    'xmlns': ns.svg
+                    'xmlns:xlink': ns.xlink
                 },
                 selector: 'svg',
                 children: [{
@@ -24956,7 +24954,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         },
 
-        _getGriRefs: function() {
+        _getGridRefs: function() {
 
             if (!this._gridCache) {
 
@@ -25040,7 +25038,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var localOptions = Array.isArray(opt) ? opt : [opt];
 
             var ctm = this.matrix();
-            var refs = this._getGriRefs();
+            var refs = this._getGridRefs();
 
             this._gridSettings.forEach(function(gridLayerSetting, index) {
 

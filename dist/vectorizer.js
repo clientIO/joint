@@ -1,4 +1,4 @@
-/*! JointJS v3.0.0 (2019-06-07) - JavaScript diagramming library
+/*! JointJS v3.0.0 (2019-06-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6721,7 +6721,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var svg = document.createElementNS(ns.svg, 'svg');
             svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-            svg.setAttribute('xmlns', ns.svg);
             svg.setAttribute('version', SVGVersion);
             return svg;
         };
