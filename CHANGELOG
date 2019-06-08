@@ -1,3 +1,8 @@
+??-??-???? (v3.0.1)
+
+  * dia.LinkView - fix `cell:pointerup` event
+  * Geometry - fix self-referencing in ES6
+
 07-06-2019 (v3.0.0)
 
   * dia.Paper - async mode revamped (viewport matching, rendering progress) [breaking change]
