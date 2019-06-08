@@ -1,4 +1,4 @@
-/*! JointJS v3.0.0 (2019-06-07) - JavaScript diagramming library
+/*! JointJS v3.0.0 (2019-06-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7,8 +7,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 this.joint = this.joint || {};
 this.joint.shapes = this.joint.shapes || {};
-(function (exports, basic_mjs, ElementView_mjs, Link_mjs) {
+(function (exports, basic_mjs, ElementView_mjs, V, Link_mjs) {
     'use strict';
+
+    V = V && V.hasOwnProperty('default') ? V['default'] : V;
 
     var Place = basic_mjs.Generic.define('pn.Place', {
         size: { width: 50, height: 50 },
@@ -138,4 +140,4 @@ this.joint.shapes = this.joint.shapes || {};
     exports.Transition = Transition;
     exports.Link = Link;
 
-}(this.joint.shapes.pn = this.joint.shapes.pn || {}, joint.shapes, joint.dia, joint.dia));
+}(this.joint.shapes.pn = this.joint.shapes.pn || {}, joint.shapes, joint.dia, V, joint.dia));
