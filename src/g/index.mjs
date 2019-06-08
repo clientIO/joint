@@ -1325,7 +1325,7 @@ Line.prototype = {
     // @returns the angle of incline of the line.
     angle: function() {
 
-        var horizontalPoint = new g.Point(this.start.x + 1, this.start.y);
+        var horizontalPoint = new Point(this.start.x + 1, this.start.y);
         return this.start.angleBetween(this.end, horizontalPoint);
     },
 
@@ -1407,8 +1407,8 @@ Line.prototype = {
         // else: cross product of 0 indicates that this line and the vector to `p` are collinear
 
         var length = this.length();
-        if ((new g.Line(start, p)).length() > length) return false;
-        if ((new g.Line(p, end)).length() > length) return false;
+        if ((new Line(start, p)).length() > length) return false;
+        if ((new Line(p, end)).length() > length) return false;
         // else: `p` lies between start and end of the line
 
         return true;
@@ -1419,7 +1419,7 @@ Line.prototype = {
 
         var dividerPoint = this.pointAt(ratio);
 
-        // return array with two new lines
+        // return array with two lines
         return [
             new Line(this.start, dividerPoint),
             new Line(dividerPoint, this.end)
@@ -1555,7 +1555,7 @@ Line.prototype = {
     pointOffset: function(p) {
 
         // Find the sign of the determinant of vectors (start,end), where p is the query point.
-        p = new g.Point(p);
+        p = new Point(p);
         var start = this.start;
         var end = this.end;
         var determinant = ((end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x));
@@ -2125,7 +2125,7 @@ Path.prototype = {
 
         // insert a Moveto segment to ensure secondPath will be valid:
         var movetoEnd = pathCopy.getSegment(divisionMidIndex).start;
-        pathCopy.insertSegment(divisionMidIndex, g.Path.createSegment('M', movetoEnd));
+        pathCopy.insertSegment(divisionMidIndex, Path.createSegment('M', movetoEnd));
         divisionEndIndex += 1;
 
         // do not insert the part if it looks like a point
@@ -2145,7 +2145,7 @@ Path.prototype = {
             if ((segment.type === 'Z') && !originalSegment.subpathStartSegment.end.equals(segment.subpathStartSegment.end)) {
                 // pathCopy segment's subpathStartSegment is different from original segment's one
                 // convert this Closepath segment to a Lineto and replace it in pathCopy
-                var convertedSegment = g.Path.createSegment('L', originalSegment.end);
+                var convertedSegment = Path.createSegment('L', originalSegment.end);
                 pathCopy.replaceSegment(i, convertedSegment);
             }
         }
@@ -3152,7 +3152,7 @@ Point.prototype = {
     // Angle is flipped because this is a left-handed coord system (y-axis points downward).
     rotate: function(origin, angle) {
 
-        origin = origin || new g.Point(0, 0);
+        origin = origin || new Point(0, 0);
 
         angle = toRad(normalizeAngle(-angle));
         var cosAngle = cos(angle);
