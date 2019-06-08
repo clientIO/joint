@@ -1267,7 +1267,6 @@ const V = (function() {
 
         const svg = document.createElementNS(ns.svg, 'svg');
         svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
-        svg.setAttribute('xmlns', ns.svg);
         svg.setAttribute('version', SVGVersion);
         return svg;
     };

@@ -445,8 +445,7 @@ export const Paper = View.extend({
             attributes: {
                 'width': '100%',
                 'height': '100%',
-                'xmlns:xlink': ns.xlink,
-                'xmlns': ns.svg
+                'xmlns:xlink': ns.xlink
             },
             selector: 'svg',
             children: [{
@@ -2122,7 +2121,7 @@ export const Paper = View.extend({
         return this;
     },
 
-    _getGriRefs: function() {
+    _getGridRefs: function() {
 
         if (!this._gridCache) {
 
@@ -2206,7 +2205,7 @@ export const Paper = View.extend({
         var localOptions = Array.isArray(opt) ? opt : [opt];
 
         var ctm = this.matrix();
-        var refs = this._getGriRefs();
+        var refs = this._getGridRefs();
 
         this._gridSettings.forEach(function(gridLayerSetting, index) {
 
