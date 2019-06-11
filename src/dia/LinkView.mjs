@@ -1,7 +1,7 @@
 import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
-import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone } from '../util/index.mjs';
+import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage } from '../util/index.mjs';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
@@ -1326,7 +1326,7 @@ export const LinkView = CellView.extend({
 
         var path = this.path;
         if (!path) return null;
-        if (joint.util.isPercentage(ratio)) ratio = parseFloat(ratio) / 100;
+        if (isPercentage(ratio)) ratio = parseFloat(ratio) / 100;
         return path.pointAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
     },
 

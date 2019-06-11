@@ -1,5 +1,6 @@
 import * as g from '../g/index.mjs';
 import * as util from '../util/index.mjs';
+import { orthogonal } from './orthogonal.mjs';
 
 var config = {
 
@@ -89,11 +90,11 @@ var config = {
     // (one of the partial routes returns null)
     fallbackRouter: function(vertices, opt, linkView) {
 
-        if (!util.isFunction(joint.routers.orthogonal)) {
+        if (!util.isFunction(orthogonal)) {
             throw new Error('Manhattan requires the orthogonal router as default fallback.');
         }
 
-        return joint.routers.orthogonal(vertices, util.assign({}, config, opt), linkView);
+        return orthogonal(vertices, util.assign({}, config, opt), linkView);
     },
 
     /* Deprecated */
