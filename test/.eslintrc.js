@@ -13,6 +13,6 @@ module.exports = {
         'QUnit': true,
         'sinon': true,
         'blanket': true,
-        'simulate': true,
+        'simulate': true
     }
 };
