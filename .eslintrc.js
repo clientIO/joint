@@ -17,12 +17,7 @@ module.exports = {
         'node': true
     },
     'globals': {
-        'joint': true,
-        'V': true,
-        'g': true,
-        '$': true,
-        'Backbone': true,
-        'Uint8Array': true
+       'Uint8Array': true
     },
     'parserOptions': {
         'ecmaVersion': 6,
