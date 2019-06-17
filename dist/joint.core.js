@@ -1,4 +1,4 @@
-/*! JointJS v3.0.0 (2019-06-08) - JavaScript diagramming library
+/*! JointJS v3.0.1 (2019-06-17) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1733,7 +1733,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // @returns the angle of incline of the line.
         angle: function() {
 
-            var horizontalPoint = new g.Point(this.start.x + 1, this.start.y);
+            var horizontalPoint = new Point(this.start.x + 1, this.start.y);
             return this.start.angleBetween(this.end, horizontalPoint);
         },
 
@@ -1815,8 +1815,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // else: cross product of 0 indicates that this line and the vector to `p` are collinear
 
             var length = this.length();
-            if ((new g.Line(start, p)).length() > length) { return false; }
-            if ((new g.Line(p, end)).length() > length) { return false; }
+            if ((new Line(start, p)).length() > length) { return false; }
+            if ((new Line(p, end)).length() > length) { return false; }
             // else: `p` lies between start and end of the line
 
             return true;
@@ -1827,7 +1827,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var dividerPoint = this.pointAt(ratio);
 
-            // return array with two new lines
+            // return array with two lines
             return [
                 new Line(this.start, dividerPoint),
                 new Line(dividerPoint, this.end)
@@ -1963,7 +1963,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         pointOffset: function(p) {
 
             // Find the sign of the determinant of vectors (start,end), where p is the query point.
-            p = new g.Point(p);
+            p = new Point(p);
             var start = this.start;
             var end = this.end;
             var determinant = ((end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x));
@@ -2532,7 +2532,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             // insert a Moveto segment to ensure secondPath will be valid:
             var movetoEnd = pathCopy.getSegment(divisionMidIndex).start;
-            pathCopy.insertSegment(divisionMidIndex, g.Path.createSegment('M', movetoEnd));
+            pathCopy.insertSegment(divisionMidIndex, Path.createSegment('M', movetoEnd));
             divisionEndIndex += 1;
 
             // do not insert the part if it looks like a point
@@ -2552,7 +2552,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 if ((segment.type === 'Z') && !originalSegment.subpathStartSegment.end.equals(segment.subpathStartSegment.end)) {
                     // pathCopy segment's subpathStartSegment is different from original segment's one
                     // convert this Closepath segment to a Lineto and replace it in pathCopy
-                    var convertedSegment = g.Path.createSegment('L', originalSegment.end);
+                    var convertedSegment = Path.createSegment('L', originalSegment.end);
                     pathCopy.replaceSegment(i, convertedSegment);
                 }
             }
@@ -3559,7 +3559,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // Angle is flipped because this is a left-handed coord system (y-axis points downward).
         rotate: function(origin, angle) {
 
-            origin = origin || new g.Point(0, 0);
+            origin = origin || new Point(0, 0);
 
             angle = toRad(normalizeAngle(-angle));
             var cosAngle = cos(angle);
@@ -18412,11 +18412,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // (one of the partial routes returns null)
         fallbackRouter: function(vertices, opt, linkView) {
 
-            if (!isFunction(joint.routers.orthogonal)) {
+            if (!isFunction(orthogonal)) {
                 throw new Error('Manhattan requires the orthogonal router as default fallback.');
             }
 
-            return joint.routers.orthogonal(vertices, assign({}, config, opt), linkView);
+            return orthogonal(vertices, assign({}, config, opt), linkView);
         },
 
         /* Deprecated */
@@ -21896,7 +21896,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var path = this.path;
             if (!path) { return null; }
-            if (joint.util.isPercentage(ratio)) { ratio = parseFloat(ratio) / 100; }
+            if (isPercentage(ratio)) { ratio = parseFloat(ratio) / 100; }
             return path.pointAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
@@ -22110,7 +22110,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         notifyPointerup: function notifyPointerup(evt, x, y) {
             this.notify('link:pointerup', evt, x, y);
-            CellView.prototype.pointermove.call(this, evt, x, y);
+            CellView.prototype.pointerup.call(this, evt, x, y);
         },
 
         pointerdblclick: function(evt, x, y) {

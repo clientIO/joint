@@ -1,4 +1,4 @@
-??-??-???? (v3.0.1)
+17-06-2019 (v3.0.1)
 
   * remove all global variables
   * dia.LinkView - fix `cell:pointerup` event
