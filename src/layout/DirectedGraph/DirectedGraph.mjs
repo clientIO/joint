@@ -1,4 +1,3 @@
-import * as dagre from 'dagre';
 import * as util from '../../util/index.mjs';
 import { Graph } from '../../dia/index.mjs';
 import * as g from '../../g/index.mjs';
@@ -111,9 +110,12 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
+        const dagreUtil = opt.dagre || dagre;
+
         // create a graphlib.Graph that represents the joint.dia.Graph
         // var glGraph = graph.toGraphLib({
         var glGraph = DirectedGraph.toGraphLib(graph, {
+            dagre: dagreUtil,
             directed: true,
             // We are about to use edge naming feature.
             multigraph: true,
@@ -155,7 +157,7 @@ export const DirectedGraph = {
         glGraph.setGraph(glLabel);
 
         // Executes the layout.
-        dagre.layout(glGraph, { debugTiming: !!opt.debugTiming });
+        dagreUtil.layout(glGraph, { debugTiming: !!opt.debugTiming });
 
         // Wrap all graph changes into a batch.
         graph.startBatch('layout');
@@ -227,8 +229,10 @@ export const DirectedGraph = {
 
         opt = opt || {};
 
+        const dagreUtil = opt.dagre || dagre;
+
         var glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
-        var glGraph = new dagre.graphlib.Graph(glGraphType);
+        var glGraph = new dagreUtil.graphlib.Graph(glGraphType);
         var setNodeLabel = opt.setNodeLabel || util.noop;
         var setEdgeLabel = opt.setEdgeLabel || util.noop;
         var setEdgeName = opt.setEdgeName || util.noop;

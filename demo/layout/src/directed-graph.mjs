@@ -1,3 +1,4 @@
+import * as dagre from 'dagre';
 import * as joint from '../../../joint.mjs';
 
 var Shape = joint.dia.Element.define('demo.Shape', {
@@ -176,6 +177,7 @@ var LayoutControls = joint.mvc.View.extend({
 
     getLayoutOptions: function() {
         return {
+            dagre: dagre,
             setVertices: true,
             setLabels: true,
             ranker: this.$('#ranker').val(),

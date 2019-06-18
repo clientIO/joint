@@ -55,6 +55,10 @@ number of pixels to use as a margin around the top and bottom of the graph.</td>
             <em><b>Note:</b> Only the first label (<code>link.label(0);</code>) is positioned by the layout.</em>
         </td>
     </tr>
+    <tr><th>dagre</th>
+        <td>
+            Optional. The DirectedGraph plugins has dependency to the <a href="https://github.com/dagrejs/dagre">dagre</a> lay-outing tool. The DirectedGraph is expecting to have the <code>dagre</code> variable in the global namespace, you can, however, pass your own instance of the <code>dagre</code> using this property.</td>
+    </tr>
 </table>
 
 <p>Additionally, the layout engine takes into account some properties on elements/links to fine tune the layout further. These are:</p>
