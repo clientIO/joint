@@ -961,7 +961,7 @@ export namespace dia {
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
             defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
             defaultLinkAnchor?: anchors.AnchorJSON  | anchors.Anchor;
-            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
+            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint | ((...args: any[]) => connectionPoints.ConnectionPoint);
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
             // rendering
