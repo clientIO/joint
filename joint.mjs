@@ -19,6 +19,7 @@ export {
     linkTools,
     Vectorizer,
     V,
+    version,
     g
 } from './src/core.mjs';
 

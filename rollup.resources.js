@@ -1,19 +1,13 @@
 import commonjs from 'rollup-plugin-commonjs';
 import buble from 'rollup-plugin-buble';
 import path from 'path';
+import json from 'rollup-plugin-json';
 import fs from 'fs';
 import resolve from 'rollup-plugin-node-resolve';
-import replace from 'rollup-plugin-replace';
 import externalGlobals from 'rollup-plugin-external-globals';
-
 const modules = require('./grunt/resources/esm');
-const pkg = require('./package.json');
 
 let plugins = [
-    replace({
-        include: 'src/core.mjs',
-        VERSION: pkg.version
-    }),
     // prevent injecting 'dagre' into ES5 bundle
     externalGlobals({
         'dagre': 'dagre'
@@ -147,6 +141,44 @@ export const jointCore = {
     plugins: plugins
 };
 
+export const version = {
+    input: 'wrappers/version.wrapper.mjs',
+    output: [{
+        file: 'build/version.mjs',
+        format: 'esm'
+    }],
+    plugins: [
+        json()
+    ]
+};
+
+export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace) => {
+    const item = modules.plugins[namespace];
+    res.push({
+        input: item.src,
+        external: [
+            'jquery',
+            'backbone',
+            'lodash',
+        ].concat(Object.keys(LOCAL_EXTERNALS)),
+        output: [{
+            file: `build/${namespace}.js`,
+            format: 'iife',
+            extend: true,
+            name: namespace,
+            globals: Object.assign({
+                'jquery': '$',
+                'backbone': 'Backbone',
+                'lodash': '_',
+            }, LOCAL_EXTERNALS)
+        }],
+        plugins: plugins
+    });
+
+    return res;
+}, []);
+
+
 // dependencies
 // -----------------------------------------------------------------------------------
 
@@ -201,30 +233,4 @@ export const backbone = {
         commonjs()
     ]
 };
-
-export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace) => {
-    const item = modules.plugins[namespace];
-    res.push({
-        input: item.src,
-        external: [
-            'jquery',
-            'backbone',
-            'lodash',
-        ].concat(Object.keys(LOCAL_EXTERNALS)),
-        output: [{
-            file: `build/${namespace}.js`,
-            format: 'iife',
-            extend: true,
-            name: namespace,
-            globals: Object.assign({
-                'jquery': '$',
-                'backbone': 'Backbone',
-                'lodash': '_',
-            }, LOCAL_EXTERNALS)
-        }],
-        plugins: plugins
-    });
-
-    return res;
-}, []);
 
