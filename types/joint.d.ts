@@ -2516,6 +2516,8 @@ export namespace layout {
         }
 
         interface LayoutOptions {
+            dagre?: any;
+            graphlib?: any;
             rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
             ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
             nodeSep?: number;
@@ -2535,7 +2537,16 @@ export namespace layout {
             setLinkVertices?: boolean;
         }
 
+        interface toGraphLibOptions {
+            graphlib?: any,
+            [key: string]: any
+        }
+
         export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
+
+        export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
+
+        export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
     }
 }
 

@@ -110,12 +110,14 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
-        const dagreUtil = opt.dagre || dagre;
+        const dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
+
+        if (dagreUtil === undefined) throw new Error('The the "dagre" utility is a mandatory dependency.');
 
         // create a graphlib.Graph that represents the joint.dia.Graph
         // var glGraph = graph.toGraphLib({
         var glGraph = DirectedGraph.toGraphLib(graph, {
-            dagre: dagreUtil,
+            graphlib: opt.graphlib,
             directed: true,
             // We are about to use edge naming feature.
             multigraph: true,
@@ -229,10 +231,12 @@ export const DirectedGraph = {
 
         opt = opt || {};
 
-        const dagreUtil = opt.dagre || dagre;
+        const graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
+
+        if (graphlibUtil === undefined) throw new Error('The the "graphlib" utility is a mandatory dependency.');
 
         var glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
-        var glGraph = new dagreUtil.graphlib.Graph(glGraphType);
+        var glGraph = new graphlibUtil.Graph(glGraphType);
         var setNodeLabel = opt.setNodeLabel || util.noop;
         var setEdgeLabel = opt.setEdgeLabel || util.noop;
         var setEdgeName = opt.setEdgeName || util.noop;

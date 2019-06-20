@@ -178,6 +178,7 @@ var LayoutControls = joint.mvc.View.extend({
     getLayoutOptions: function() {
         return {
             dagre: dagre,
+            graphlib: dagre.graphlib,
             setVertices: true,
             setLabels: true,
             ranker: this.$('#ranker').val(),
