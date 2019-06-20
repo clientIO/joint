@@ -55,6 +55,14 @@ number of pixels to use as a margin around the top and bottom of the graph.</td>
             <em><b>Note:</b> Only the first label (<code>link.label(0);</code>) is positioned by the layout.</em>
         </td>
     </tr>
+    <tr><th>dagre</th>
+        <td>
+            Optional. The DirectedGraph plugin has the dependency to the <a href="https://github.com/dagrejs/dagre">dagre</a> lay-outing tool. The DirectedGraph is expecting to have the <code>dagre</code> variable in the global namespace, you can, however, pass your own instance of the <code>dagre</code> using this property.</td>
+    </tr>
+    <tr><th>graphlib</th>
+        <td>
+            Optional. The DirectedGraph plugin has the dependency to the <a href="https://github.com/dagrejs/graphlib">graphlib</a> - a directed multi-graph library. The DirectedGraph is expecting to have the <code>grpahlib</code> variable in the global namespace, you can, however, pass your own instance of the <code>graphlib</code> using this property.</td>
+    </tr>
 </table>
 
 <p>Additionally, the layout engine takes into account some properties on elements/links to fine tune the layout further. These are:</p>
@@ -99,14 +107,16 @@ number of pixels to use as a margin around the top and bottom of the graph.</td>
 <h3>API</h3>
 
 <p>The <code>layout.DirectedGraph</code> plugins extends the <code>joint.dia.Graph</code> type with functions
-that make it easy to convert graphs to and from the <a href="https://github.com/cpettitt/graphlib">Graphlib</a> graph format.
-This allows you to easily use many of the <a href="https://github.com/cpettitt/graphlib/wiki/API-Reference">graph algorithms</a> provided by this library.</p>
+that make it easy to convert graphs to and from the <a href="https://github.com/dagrejs/graphlib">Graphlib</a> graph format.
+This allows you to easily use many of the <a href="https://github.com/dagrejs/graphlib/wiki/API-Reference">graph algorithms</a> provided by this library.</p>
 
 <table>
   <tr><th><p>toGraphLib()</th><td>Convert the JointJS <code>joint.dia.Graph</code> object to the Graphlib graph object.</p>
       <pre><code>var graph = new joint.dia.Graph;
 // ... populated the graph with elements connected with links
 graphlib.alg.isAcyclic(graph.toGraphLib())      // true if the graph is acyclic</code></pre>
+      Please note, the <code>toGraphLib</code> has the dependency to the <a href="https://github.com/dagrejs/graphlib">graphlib</a> - a directed multi-graph library. You can either have the <code>graphlib</code> in the global namespace or you can pass the <code>graphlib</code> instance as an option property.
+
   </td></tr>
   <tr><th><p>fromGraphLib(glGraph, opt)</th><td>Convert the Graphlib graph representation to JointJS <code>joint.dia.Graph</code> object.
       <code>opt.importNode</code> and <code>opt.importEdge</code> are functions that accept a Graphlib node and edge objects and should return

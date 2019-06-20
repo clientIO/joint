@@ -11,7 +11,6 @@ export const layout = { DirectedGraph, PortLabel, Port };
 // export empty namespaces - backward compatibility
 export const format = {};
 export const ui = {};
-export const version = 'VERSION';
 
 // joint core
 export {
@@ -31,6 +30,7 @@ export {
     linkTools,
     Vectorizer,
     V,
+    version,
     g
 } from '../src/core.mjs';
 

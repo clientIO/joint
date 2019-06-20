@@ -1,6 +1,7 @@
 import * as modules from './rollup.resources';
 
 const JOINT = [
+    modules.version,
     modules.joint
 ];
 
@@ -12,6 +13,7 @@ const LIBS_ESM = [
 ];
 
 const DIST = [
+    modules.version,
     modules.jointCore,
     modules.geometry,
     modules.vectorizer,
