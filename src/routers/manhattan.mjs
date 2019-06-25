@@ -666,7 +666,9 @@ function findRoute(from, to, map, opt) {
             else previousDirectionAngle = null; // beginning of path, source anchor or `from` point
 
             // check if we reached any endpoint
-            if (endPointsKeys.indexOf(currentKey) >= 0) {
+            var samePoints = util.isEqual(startPoints, endPoints);
+            var skipEndCheck = (isRouteBeginning && samePoints);
+            if (!skipEndCheck && (endPointsKeys.indexOf(currentKey) >= 0)) {
                 opt.previousDirectionAngle = previousDirectionAngle;
                 return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
             }
