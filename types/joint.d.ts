@@ -323,22 +323,22 @@ export namespace dia {
 
         interface PortGroup {
             position?: PositionType,
-            markup?: string;
+            markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
             label?: {
-                markup?: string;
+                markup?: string | MarkupJSON;
                 position?: PositionType;
             }
         }
 
         interface Port {
             id?: string;
-            markup?: string;
+            markup?: string | MarkupJSON;
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
             label?: {
-                markup?: string;
+                markup?: string | MarkupJSON;
                 position?: PositionType;
             }
             z?: number | 'auto';
@@ -463,7 +463,7 @@ export namespace dia {
         }
 
         interface Label {
-            markup?: string; // default labels
+            markup?: string | MarkupJSON;
             position?: LabelPosition | number; // optional for default labels
             attrs?: Cell.Selectors;
             size?: Size;
@@ -481,7 +481,7 @@ export namespace dia {
         doubleToolMarkup?: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
-        labelMarkup?: string; // default label markup
+        labelMarkup?: string | MarkupJSON; // default label markup
         labelProps?: Link.Label; // default label props
 
         constructor(attributes?: Link.Attributes, opt?: Graph.Options);
