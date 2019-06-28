@@ -1,4 +1,4 @@
-/*! JointJS v3.0.1 (2019-06-17) - JavaScript diagramming library
+/*! JointJS v3.0.2 (2019-06-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -118,9 +118,14 @@ this.joint.layout = this.joint.layout || {};
                 exportLink: this.exportLink
             });
 
+            var dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
+
+            if (dagreUtil === undefined) { throw new Error('The the "dagre" utility is a mandatory dependency.'); }
+
             // create a graphlib.Graph that represents the joint.dia.Graph
             // var glGraph = graph.toGraphLib({
             var glGraph = DirectedGraph.toGraphLib(graph, {
+                graphlib: opt.graphlib,
                 directed: true,
                 // We are about to use edge naming feature.
                 multigraph: true,
@@ -162,7 +167,7 @@ this.joint.layout = this.joint.layout || {};
             glGraph.setGraph(glLabel);
 
             // Executes the layout.
-            dagre.layout(glGraph, { debugTiming: !!opt.debugTiming });
+            dagreUtil.layout(glGraph, { debugTiming: !!opt.debugTiming });
 
             // Wrap all graph changes into a batch.
             graph.startBatch('layout');
@@ -234,8 +239,12 @@ this.joint.layout = this.joint.layout || {};
 
             opt = opt || {};
 
+            var graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
+
+            if (graphlibUtil === undefined) { throw new Error('The the "graphlib" utility is a mandatory dependency.'); }
+
             var glGraphType = util.pick(opt, 'directed', 'compound', 'multigraph');
-            var glGraph = new dagre.graphlib.Graph(glGraphType);
+            var glGraph = new graphlibUtil.Graph(glGraphType);
             var setNodeLabel = opt.setNodeLabel || util.noop;
             var setEdgeLabel = opt.setEdgeLabel || util.noop;
             var setEdgeName = opt.setEdgeName || util.noop;

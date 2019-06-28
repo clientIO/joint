@@ -1,4 +1,4 @@
-/*! JointJS v3.0.1 (2019-06-17) - JavaScript diagramming library
+/*! JointJS v3.0.2 (2019-06-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1336,22 +1336,22 @@ export namespace dia {
 
         interface PortGroup {
             position?: PositionType,
-            markup?: string;
+            markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
             label?: {
-                markup?: string;
+                markup?: string | MarkupJSON;
                 position?: PositionType;
             }
         }
 
         interface Port {
             id?: string;
-            markup?: string;
+            markup?: string | MarkupJSON;
             group?: string;
             attrs?: Cell.Selectors;
             args?: { [key: string]: any };
             label?: {
-                markup?: string;
+                markup?: string | MarkupJSON;
                 position?: PositionType;
             }
             z?: number | 'auto';
@@ -1476,7 +1476,7 @@ export namespace dia {
         }
 
         interface Label {
-            markup?: string; // default labels
+            markup?: string | MarkupJSON;
             position?: LabelPosition | number; // optional for default labels
             attrs?: Cell.Selectors;
             size?: Size;
@@ -1494,7 +1494,7 @@ export namespace dia {
         doubleToolMarkup?: string;
         vertexMarkup: string;
         arrowHeadMarkup: string;
-        labelMarkup?: string; // default label markup
+        labelMarkup?: string | MarkupJSON; // default label markup
         labelProps?: Link.Label; // default label props
 
         constructor(attributes?: Link.Attributes, opt?: Graph.Options);
@@ -1974,7 +1974,7 @@ export namespace dia {
             defaultConnector?: connectors.Connector | connectors.ConnectorJSON;
             defaultAnchor?: anchors.AnchorJSON  | anchors.Anchor;
             defaultLinkAnchor?: anchors.AnchorJSON  | anchors.Anchor;
-            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint
+            defaultConnectionPoint?: connectionPoints.ConnectionPointJSON | connectionPoints.ConnectionPoint | ((...args: any[]) => connectionPoints.ConnectionPoint);
             // connecting
             connectionStrategy?: connectionStrategies.ConnectionStrategy;
             // rendering
@@ -3529,6 +3529,8 @@ export namespace layout {
         }
 
         interface LayoutOptions {
+            dagre?: any;
+            graphlib?: any;
             rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
             ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
             nodeSep?: number;
@@ -3548,7 +3550,16 @@ export namespace layout {
             setLinkVertices?: boolean;
         }
 
+        interface toGraphLibOptions {
+            graphlib?: any,
+            [key: string]: any
+        }
+
         export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
+
+        export function toGraphLib(graph: dia.Graph, opt?: toGraphLibOptions): any;
+
+        export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
     }
 }
 

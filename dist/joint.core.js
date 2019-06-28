@@ -1,4 +1,4 @@
-/*! JointJS v3.0.1 (2019-06-17) - JavaScript diagramming library
+/*! JointJS v3.0.2 (2019-06-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -18988,7 +18988,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 else { previousDirectionAngle = null; } // beginning of path, source anchor or `from` point
 
                 // check if we reached any endpoint
-                if (endPointsKeys.indexOf(currentKey) >= 0) {
+                var samePoints = isEqual(startPoints, endPoints);
+                var skipEndCheck = (isRouteBeginning && samePoints);
+                if (!skipEndCheck && (endPointsKeys.indexOf(currentKey) >= 0)) {
                     opt.previousDirectionAngle = previousDirectionAngle;
                     return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
                 }
@@ -26727,6 +26729,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         Boundary: Boundary
     });
 
+    var version = "3.0.2";
+
     var Vectorizer = V;
     var layout = { PortLabel: PortLabel, Port: Port };
     var setTheme = function(theme, opt) {
@@ -26743,9 +26747,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     var format$1 = {};
     var ui = {};
 
-    var version = 'VERSION';
-
-    exports.version = version;
     exports.format = format$1;
     exports.ui = ui;
     exports.shapes = shapes;
@@ -26767,6 +26768,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     exports.g = g$1;
     exports.setTheme = setTheme;
     exports.env = env;
+    exports.version = version;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

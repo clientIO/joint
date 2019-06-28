@@ -1,3 +1,9 @@
+27-06-2019 (v3.0.2)
+
+  * layout.DirectedGraph - allow injecting `dagre` and `graphlib` as an option property
+  * routers.Manhattan - use fallback when source and target are exactly the same
+  * fix markup TypeScript definition
+
 17-06-2019 (v3.0.1)
 
   * remove all global variables
