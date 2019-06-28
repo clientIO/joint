@@ -144,7 +144,7 @@ export const jointCore = {
 export const version = {
     input: 'wrappers/version.wrapper.mjs',
     output: [{
-        file: 'build/version.mjs',
+        file: 'dist/version.mjs',
         format: 'esm'
     }],
     plugins: [
