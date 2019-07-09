@@ -15,7 +15,7 @@
   "main": "./dist/joint.min.js",
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
-  "module": "./index.mjs",
+  "module": "./joint.mjs",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
