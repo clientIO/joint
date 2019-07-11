@@ -151,7 +151,7 @@ function atConnectionWrapper(method, opt) {
     };
 }
 
-function isTextInUse(lineHeight, node, attrs) {
+function isTextNotInUse(_value, _node, attrs) {
     return (attrs.text !== undefined);
 }
 
@@ -289,14 +289,14 @@ const attributesNS = {
     },
 
     text: {
-        qualify: function(text, node, attrs) {
+        qualify: function(_text, _node, attrs) {
             return !attrs.textWrap || !isPlainObject(attrs.textWrap);
         },
-        set: function(text, refBBox, node, attrs) {
+        set: function(text, _refBBox, node, attrs) {
             var $node = $(node);
             var cacheName = 'joint-text';
             var cache = $node.data(cacheName);
-            var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
+            var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'editable');
             var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
             var textHash = JSON.stringify([text, textAttrs]);
             // Update the text only if there was a change in the string
@@ -395,19 +395,27 @@ const attributesNS = {
     },
 
     lineHeight: {
-        qualify: isTextInUse
+        qualify: isTextNotInUse
     },
 
     textVerticalAnchor: {
-        qualify: isTextInUse
+        qualify: isTextNotInUse
     },
 
     textPath: {
-        qualify: isTextInUse
+        qualify: isTextNotInUse
     },
 
     annotations: {
-        qualify: isTextInUse
+        qualify: isTextNotInUse
+    },
+
+    eol: {
+        qualify: isTextNotInUse
+    },
+
+    editable: {
+        qualify: isTextNotInUse
     },
 
     // `port` attribute contains the `id` of the port that the underlying magnet represents.
