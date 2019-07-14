@@ -303,7 +303,9 @@ export const Paper = View.extend({
 
         const { options, el } = this;
         if (!options.cellViewNamespace) {
+            /* global joint: true */
             options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+            /* global joint: false */
         }
 
         const model = this.model = options.model || new Graph;
@@ -422,9 +424,11 @@ export const Paper = View.extend({
         );
 
         // Default cellView namespace for ES5
+        /* global joint: true */
         if (!options.cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
             options.cellViewNamespace = joint.shapes;
         }
+        /* global joint: false */
     },
 
     children: function() {

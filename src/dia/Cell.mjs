@@ -28,6 +28,7 @@ import {
 } from '../util/util.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
 import { attributes } from './attributes.mjs';
+import * as g from '../g/index.mjs';
 
 
 // Cell base model.
@@ -794,9 +795,11 @@ export const Cell = Backbone.Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
+        /* global joint: true */
         if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
             setByPath(joint.shapes, type, Cell, '.');
         }
+        /* global joint: false */
         return Cell;
     }
 });
