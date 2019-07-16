@@ -484,6 +484,8 @@ export const Paper = View.extend({
         this.$background = $(background);
         this.$grid = $(grid);
 
+        V.ensureId(svg);
+
         // backwards compatibility
         this.viewport = cells;
 

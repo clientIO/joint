@@ -43,6 +43,11 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         paperEl = null;
     });
 
+    QUnit.test('sanity', function(assert) {
+        paper = new Paper({ el: paperEl });
+        assert.ok(paper.svg.id);
+    });
+
     QUnit.module('async = FALSE', function(hooks) {
 
         hooks.beforeEach(function() {
