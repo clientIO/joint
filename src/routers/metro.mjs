@@ -1,5 +1,6 @@
 import { manhattan } from './manhattan.mjs';
 import * as util from '../util/index.mjs';
+import * as g from '../g/index.mjs';
 
 var config = {
 

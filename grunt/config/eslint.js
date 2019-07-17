@@ -2,7 +2,7 @@ module.exports = {
     joint: {
         src: [
             'src/**/*.js',
-            'plugins/**/*.js',
+            'src/**/*.mjs'
         ],
         options: {
             configFile: '.eslintrc.js'

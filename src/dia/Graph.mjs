@@ -15,7 +15,9 @@ const GraphCells = Backbone.Collection.extend({
         if (opt.cellNamespace) {
             this.cellNamespace = opt.cellNamespace;
         } else {
+            /* global joint: true */
             this.cellNamespace = typeof joint !== 'undefined' && util.has(joint, 'shapes') ? joint.shapes : null;
+            /* global joint: false */
         }
 
 

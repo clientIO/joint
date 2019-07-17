@@ -110,7 +110,9 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
+        /* global dagre: true */
         const dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
+        /* global dagre: false */
 
         if (dagreUtil === undefined) throw new Error('The the "dagre" utility is a mandatory dependency.');
 
@@ -231,7 +233,9 @@ export const DirectedGraph = {
 
         opt = opt || {};
 
+        /* global graphlib: true */
         const graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
+        /* global graphlib: false */
 
         if (graphlibUtil === undefined) throw new Error('The the "graphlib" utility is a mandatory dependency.');
 
