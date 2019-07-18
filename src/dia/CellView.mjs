@@ -183,7 +183,9 @@ export const CellView = View.extend({
 
     findBySelector: function(selector, root, selectors) {
 
-        root || (root = this.el);
+        const { el, model } = this;
+
+        root || (root = el);
         selectors || (selectors = this.selectors);
 
         // These are either descendants of `this.$el` of `this.$el` itself.
@@ -195,6 +197,11 @@ export const CellView = View.extend({
                 if (Array.isArray(nodes)) return nodes;
                 return [nodes];
             }
+        }
+
+        // Make sure no ports sub-nodes are selected when `attrs` were applied
+        if (root === this.el && model.isElement() && model.hasPorts()) {
+            selector = `${selector}:not(.joint-port ${selector})`;
         }
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
