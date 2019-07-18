@@ -200,7 +200,7 @@ export const CellView = View.extend({
         }
 
         // Make sure no ports sub-nodes are selected when `attrs` were applied
-        if (root === this.el && model.isElement() && model.hasPorts()) {
+        if (root === el && model.isElement() && model.hasPorts()) {
             selector = `${selector}:not(.joint-port ${selector})`;
         }
         // Maintaining backwards compatibility
