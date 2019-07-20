@@ -1,3 +1,4 @@
+import { useCSSSelectors } from '../config/index.mjs';
 import { View } from '../mvc/index.mjs';
 import {
     assign,
@@ -183,9 +184,7 @@ export const CellView = View.extend({
 
     findBySelector: function(selector, root, selectors) {
 
-        const { el, model } = this;
-
-        root || (root = el);
+        root || (root = this.el);
         selectors || (selectors = this.selectors);
 
         // These are either descendants of `this.$el` of `this.$el` itself.
@@ -199,13 +198,11 @@ export const CellView = View.extend({
             }
         }
 
-        // Make sure no ports sub-nodes are selected when `attrs` were applied
-        if (root === el && model.isElement() && model.hasPorts()) {
-            selector = `${selector}:not(.joint-port ${selector})`;
-        }
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
-        return $(root).find(selector).toArray();
+        if (useCSSSelectors) return $(root).find(selector).toArray();
+
+        return [];
     },
 
     notify: function(eventName) {
