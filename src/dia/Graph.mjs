@@ -1063,17 +1063,18 @@ export const Graph = Backbone.Model.extend({
 
     hasActiveBatch: function(name) {
 
+        const batches = this._batches;
+        let names;
+
         if (arguments.length === 0) {
-            return util.toArray(this._batches).some(function(batches) {
-                return batches > 0;
-            });
+            names = util.toArray(batches);
+        } else if (Array.isArray(name)) {
+            names = name;
+        } else {
+            names = [name];
         }
-        if (Array.isArray(name)) {
-            return name.some(function(name) {
-                return !!this._batches[name];
-            }, this);
-        }
-        return !!this._batches[name];
+
+        return names.some((batch) => batches[batch] > 0);
     }
 
 }, {
