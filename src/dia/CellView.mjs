@@ -1,4 +1,4 @@
-import { useCSSSelectors } from '../config/index.mjs';
+import { config } from '../config/index.mjs';
 import { View } from '../mvc/index.mjs';
 import {
     assign,
@@ -200,7 +200,7 @@ export const CellView = View.extend({
 
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
-        if (useCSSSelectors) return $(root).find(selector).toArray();
+        if (config.useCSSSelectors) return $(root).find(selector).toArray();
 
         return [];
     },

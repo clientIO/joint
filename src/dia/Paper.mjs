@@ -680,6 +680,13 @@ export const Paper = View.extend({
         return flag;
     },
 
+    isViewMounted: function(view) {
+        if (!view) return false;
+        var cid = view.cid;
+        var updates = this._updates;
+        return (cid in updates.mounted);
+    },
+
     dumpViews: function(opt) {
         var passingOpt = defaults({}, opt, { viewport: null });
         this.checkViewport(passingOpt);

@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import $ from 'jquery';
 import V from '../V/index.mjs';
-import * as config from '../config/index.mjs';
+import { config } from '../config/index.mjs';
 
 export const addClassNamePrefix = function(className) {
 

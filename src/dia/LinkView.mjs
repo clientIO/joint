@@ -86,9 +86,6 @@ export const LinkView = CellView.extend({
 
         opt || (opt = {});
 
-        var model = this.model;
-        var attributes = model.attributes;
-
         if (this.hasFlag(flags, 'SOURCE')) {
             if (!this.updateEndProperties('source')) return flags;
             flags = this.removeFlag(flags, 'SOURCE');
@@ -99,9 +96,8 @@ export const LinkView = CellView.extend({
             flags = this.removeFlag(flags, 'TARGET');
         }
 
-        var sourceView = this.sourceView;
-        var targetView = this.targetView;
-        if (sourceView && !sourceView.el.firstChild || targetView && !targetView.el.firstChild) {
+        const { paper, sourceView, targetView } = this;
+        if (paper && ((sourceView && !paper.isViewMounted(sourceView)) || (targetView && !paper.isViewMounted(targetView)))) {
             // Wait for the sourceView and targetView to be rendered
             return flags;
         }
@@ -116,6 +112,9 @@ export const LinkView = CellView.extend({
             this.renderVertexMarkers();
             flags = this.removeFlag(flags, 'VERTICES');
         }
+
+        const { model } = this;
+        const { attributes } = model;
 
         if (this.hasFlag(flags, 'UPDATE')) {
             this.update(model, null, opt);
