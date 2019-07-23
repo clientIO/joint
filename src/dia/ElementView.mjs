@@ -106,7 +106,8 @@ export const ElementView = CellView.extend({
         this.cleanNodesCache();
 
         // When CSS selector strings are used, make sure no rule matches port nodes.
-        if (config.useCSSSelectors) this._removePorts();
+        const { useCSSSelectors } = config;
+        if (useCSSSelectors) this._removePorts();
 
         var model = this.model;
         var modelAttrs = model.attr();
@@ -119,7 +120,7 @@ export const ElementView = CellView.extend({
             roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
         });
 
-        if (config.useCSSSelectors) this._renderPorts();
+        if (useCSSSelectors) this._renderPorts();
     },
 
     rotatableSelector: 'rotatable',
