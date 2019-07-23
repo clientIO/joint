@@ -581,10 +581,18 @@ export const Paper = View.extend({
         if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
             // LinkView is waiting for the target or the source cellView to be rendered
             // This can happen when the cells are not in the viewport.
+            var sourceFlag = 0;
             var sourceView = this.findViewByModel(model.getSourceCell());
-            var sourceFlag = this.dumpView(sourceView);
+            if (sourceView && !this.isViewMounted(sourceView)) {
+                sourceFlag = this.dumpView(sourceView);
+                view.updateEndMagnet('source');
+            }
+            var targetFlag = 0;
             var targetView = this.findViewByModel(model.getTargetCell());
-            var targetFlag = this.dumpView(targetView);
+            if (targetView && !this.isViewMounted(targetView)) {
+                targetFlag = this.dumpView(targetView);
+                view.updateEndMagnet('target');
+            }
             if (sourceFlag === 0 && targetFlag === 0) {
                 return !!this.dumpView(view);
             }
