@@ -585,7 +585,8 @@ export const Paper = View.extend({
             var sourceFlag = this.dumpView(sourceView);
             var targetView = this.findViewByModel(model.getTargetCell());
             var targetFlag = this.dumpView(targetView);
-            return sourceFlag === 0 && targetFlag === 0;
+            var linkFlag = this.dumpView(view);
+            return sourceFlag === 0 && targetFlag === 0 && linkFlag === 0;
         }
         return false;
     },
@@ -806,7 +807,7 @@ export const Paper = View.extend({
                     postponeCount++;
                     if (postponeViewFn && postponeViewFn.call(this, view, leftoverFlag, this)) {
                         // postponed view update was resolved
-                        empty = false;
+                        if (priorityUpdates[cid]) empty = false;
                     }
                     continue;
                 }
