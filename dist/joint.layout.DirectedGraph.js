@@ -1,4 +1,4 @@
-/*! JointJS v3.0.2 (2019-06-28) - JavaScript diagramming library
+/*! JointJS v3.0.3 (2019-07-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -118,7 +118,9 @@ this.joint.layout = this.joint.layout || {};
                 exportLink: this.exportLink
             });
 
+            /* global dagre: true */
             var dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
+            /* global dagre: false */
 
             if (dagreUtil === undefined) { throw new Error('The the "dagre" utility is a mandatory dependency.'); }
 
@@ -239,7 +241,9 @@ this.joint.layout = this.joint.layout || {};
 
             opt = opt || {};
 
+            /* global graphlib: true */
             var graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
+            /* global graphlib: false */
 
             if (graphlibUtil === undefined) { throw new Error('The the "graphlib" utility is a mandatory dependency.'); }
 
