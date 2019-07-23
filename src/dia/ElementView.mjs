@@ -63,12 +63,7 @@ export const ElementView = CellView.extend({
         }
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
-            const doneByRenderFlags = ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE'];
-            if (!useCSSSelectors) {
-                // `render()` will render ports when useCSSSelectors are disabled
-                doneByRenderFlags.push('PORTS');
-            }
-            flag = this.removeFlag(flag, doneByRenderFlags);
+            flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
             return flag;
         }
         if (this.hasFlag(flag, 'RESIZE')) {

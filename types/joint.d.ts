@@ -1,3 +1,9 @@
+export namespace config {
+    var useCSSSelectors: boolean;
+    var classNamePrefix: string;
+    var defaultTheme: string;
+}
+
 export namespace dia {
 
     type Point = g.PlainPoint;
