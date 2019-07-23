@@ -977,32 +977,43 @@ export const LinkView = CellView.extend({
 
     updateEndProperties: function(endType) {
 
-        var endViewProperty = endType + 'View';
-        var endMagnetProperty = endType + 'Magnet';
-        var endDef = this.model.get(endType);
-        var endId = endDef && endDef.id;
+        const { model, paper } = this;
+        const endViewProperty = `${endType}View`;
+        const endDef = model.get(endType);
+        const endId = endDef && endDef.id;
 
         if (!endId) {
             // the link end is a point ~ rect 0x0
-            this[endViewProperty] = this[endMagnetProperty] = null;
+            this[endViewProperty] = null;
+            this.updateEndMagnet(endType);
             return true;
         }
 
-        var paper = this.paper;
-        var endModel = paper.getModelById(endId);
+        const endModel = paper.getModelById(endId);
         if (!endModel) throw new Error('LinkView: invalid ' + endType + ' cell.');
 
-        var endView = endModel.findView(paper);
+        const endView = endModel.findView(paper);
         if (!endView) {
             // A view for a model should always exist
             return false;
         }
 
         this[endViewProperty] = endView;
-        var connectedMagnet = endView.getMagnetFromLinkEnd(endDef);
-        if (connectedMagnet === endView.el) connectedMagnet = null;
-        this[endMagnetProperty] = connectedMagnet;
+        this.updateEndMagnet(endType);
         return true;
+    },
+
+    updateEndMagnet: function(endType) {
+
+        const endMagnetProperty = `${endType}Magnet`;
+        const endView = this.getEndView(endType);
+        if (endView) {
+            let connectedMagnet = endView.getMagnetFromLinkEnd(this.model.get(endType));
+            if (connectedMagnet === endView.el) connectedMagnet = null;
+            this[endMagnetProperty] = connectedMagnet;
+        } else {
+            this[endMagnetProperty] = null;
+        }
     },
 
     _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
