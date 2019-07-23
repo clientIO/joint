@@ -532,8 +532,7 @@ export const elementViewPortPrototype = {
      * @private
      */
     _initializePorts: function() {
-
-        this._portElementsCache = {};
+        this._cleanPortsCache();
     },
 
     /**
@@ -553,8 +552,12 @@ export const elementViewPortPrototype = {
     _refreshPorts: function() {
 
         this._removePorts();
-        this._portElementsCache = {};
+        this._cleanPortsCache();
         this._renderPorts();
+    },
+
+    _cleanPortsCache: function() {
+        this._portElementsCache = {};
     },
 
     /**

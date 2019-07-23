@@ -56,9 +56,19 @@ export const ElementView = CellView.extend({
     UPDATE_PRIORITY: 0,
 
     confirmUpdate: function(flag, opt) {
+        const { useCSSSelectors } = config;
+        if (this.hasFlag(flag, 'PORTS')) {
+            this._removePorts();
+            this._cleanPortsCache();
+        }
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
-            flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
+            const doneByRenderFlags = ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE'];
+            if (!useCSSSelectors) {
+                // `render()` will render ports when useCSSSelectors are disabled
+                doneByRenderFlags.push('PORTS');
+            }
+            flag = this.removeFlag(flag, doneByRenderFlags);
             return flag;
         }
         if (this.hasFlag(flag, 'RESIZE')) {
@@ -69,7 +79,10 @@ export const ElementView = CellView.extend({
         if (this.hasFlag(flag, 'UPDATE')) {
             this.update(this.model, null, opt);
             flag = this.removeFlag(flag, 'UPDATE');
-            if (config.useCSSSelectors) flag = this.removeFlag(flag, 'PORTS');
+            if (useCSSSelectors) {
+                // `update()` will render ports when useCSSSelectors are enabled
+                flag = this.removeFlag(flag, 'PORTS');
+            }
         }
         if (this.hasFlag(flag, 'TRANSLATE')) {
             this.translate();
@@ -80,7 +93,7 @@ export const ElementView = CellView.extend({
             flag = this.removeFlag(flag, 'ROTATE');
         }
         if (this.hasFlag(flag, 'PORTS')) {
-            this._refreshPorts();
+            this._renderPorts();
             flag = this.removeFlag(flag, 'PORTS');
         }
         return flag;
@@ -171,7 +184,7 @@ export const ElementView = CellView.extend({
         } else {
             this.updateTransformation();
         }
-        this._refreshPorts();
+        if (!config.useCSSSelectors) this._renderPorts();
         return this;
     },
 
