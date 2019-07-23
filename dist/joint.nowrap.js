@@ -19798,18 +19798,20 @@ var joint = (function (exports, Backbone, _, $) {
 
         updateEndProperties: function(endType) {
 
-            var endViewProperty = endType + 'View';
-            var endMagnetProperty = endType + 'Magnet';
-            var endDef = this.model.get(endType);
+            var ref = this;
+            var model = ref.model;
+            var paper = ref.paper;
+            var endViewProperty = endType + "View";
+            var endDef = model.get(endType);
             var endId = endDef && endDef.id;
 
             if (!endId) {
                 // the link end is a point ~ rect 0x0
-                this[endViewProperty] = this[endMagnetProperty] = null;
+                this[endViewProperty] = null;
+                this.updateEndMagnet(endType);
                 return true;
             }
 
-            var paper = this.paper;
             var endModel = paper.getModelById(endId);
             if (!endModel) { throw new Error('LinkView: invalid ' + endType + ' cell.'); }
 
@@ -19820,10 +19822,21 @@ var joint = (function (exports, Backbone, _, $) {
             }
 
             this[endViewProperty] = endView;
-            var connectedMagnet = endView.getMagnetFromLinkEnd(endDef);
-            if (connectedMagnet === endView.el) { connectedMagnet = null; }
-            this[endMagnetProperty] = connectedMagnet;
+            this.updateEndMagnet(endType);
             return true;
+        },
+
+        updateEndMagnet: function(endType) {
+
+            var endMagnetProperty = endType + "Magnet";
+            var endView = this.getEndView(endType);
+            if (endView) {
+                var connectedMagnet = endView.getMagnetFromLinkEnd(this.model.get(endType));
+                if (connectedMagnet === endView.el) { connectedMagnet = null; }
+                this[endMagnetProperty] = connectedMagnet;
+            } else {
+                this[endMagnetProperty] = null;
+            }
         },
 
         _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
@@ -22208,10 +22221,18 @@ var joint = (function (exports, Backbone, _, $) {
             if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
                 // LinkView is waiting for the target or the source cellView to be rendered
                 // This can happen when the cells are not in the viewport.
+                var sourceFlag = 0;
                 var sourceView = this.findViewByModel(model.getSourceCell());
-                var sourceFlag = this.dumpView(sourceView);
+                if (sourceView && !this.isViewMounted(sourceView)) {
+                    sourceFlag = this.dumpView(sourceView);
+                    view.updateEndMagnet('source');
+                }
+                var targetFlag = 0;
                 var targetView = this.findViewByModel(model.getTargetCell());
-                var targetFlag = this.dumpView(targetView);
+                if (targetView && !this.isViewMounted(targetView)) {
+                    targetFlag = this.dumpView(targetView);
+                    view.updateEndMagnet('target');
+                }
                 if (sourceFlag === 0 && targetFlag === 0) {
                     return !!this.dumpView(view);
                 }
