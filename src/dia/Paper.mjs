@@ -585,7 +585,9 @@ export const Paper = View.extend({
             var sourceFlag = this.dumpView(sourceView);
             var targetView = this.findViewByModel(model.getTargetCell());
             var targetFlag = this.dumpView(targetView);
-            return sourceFlag === 0 && targetFlag === 0;
+            if (sourceFlag === 0 && targetFlag === 0) {
+                return !!this.dumpView(view);
+            }
         }
         return false;
     },
@@ -678,6 +680,13 @@ export const Paper = View.extend({
         var flag = updates.unmounted[cid] || 0;
         delete updates.unmounted[cid];
         return flag;
+    },
+
+    isViewMounted: function(view) {
+        if (!view) return false;
+        var cid = view.cid;
+        var updates = this._updates;
+        return (cid in updates.mounted);
     },
 
     dumpViews: function(opt) {
@@ -796,12 +805,11 @@ export const Paper = View.extend({
                 if (leftoverFlag > 0) {
                     // View update has not finished completely
                     priorityUpdates[cid] = leftoverFlag;
-                    postponeCount++;
-                    if (postponeViewFn && postponeViewFn.call(this, view, leftoverFlag, this)) {
-                        // postponed view update was resolved
+                    if (!postponeViewFn || !postponeViewFn.call(this, view, leftoverFlag, this) || priorityUpdates[cid]) {
+                        postponeCount++;
                         empty = false;
+                        continue;
                     }
-                    continue;
                 }
                 if (maxPriority > priority) maxPriority = priority;
                 updateCount++;

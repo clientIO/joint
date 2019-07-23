@@ -1,3 +1,4 @@
+import { config } from '../config/index.mjs';
 import { assign, invoke, isFunction, toArray } from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
 import { Cell } from './Cell.mjs';
@@ -55,6 +56,11 @@ export const ElementView = CellView.extend({
     UPDATE_PRIORITY: 0,
 
     confirmUpdate: function(flag, opt) {
+        const { useCSSSelectors } = config;
+        if (this.hasFlag(flag, 'PORTS')) {
+            this._removePorts();
+            this._cleanPortsCache();
+        }
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
             flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
@@ -68,6 +74,10 @@ export const ElementView = CellView.extend({
         if (this.hasFlag(flag, 'UPDATE')) {
             this.update(this.model, null, opt);
             flag = this.removeFlag(flag, 'UPDATE');
+            if (useCSSSelectors) {
+                // `update()` will render ports when useCSSSelectors are enabled
+                flag = this.removeFlag(flag, 'PORTS');
+            }
         }
         if (this.hasFlag(flag, 'TRANSLATE')) {
             this.translate();
@@ -78,7 +88,7 @@ export const ElementView = CellView.extend({
             flag = this.removeFlag(flag, 'ROTATE');
         }
         if (this.hasFlag(flag, 'PORTS')) {
-            this._refreshPorts();
+            this._renderPorts();
             flag = this.removeFlag(flag, 'PORTS');
         }
         return flag;
@@ -95,6 +105,10 @@ export const ElementView = CellView.extend({
 
         this.cleanNodesCache();
 
+        // When CSS selector strings are used, make sure no rule matches port nodes.
+        const { useCSSSelectors } = config;
+        if (useCSSSelectors) this._removePorts();
+
         var model = this.model;
         var modelAttrs = model.attr();
         this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
@@ -105,6 +119,8 @@ export const ElementView = CellView.extend({
             // Use rendering only attributes if they differs from the model attributes
             roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
         });
+
+        if (useCSSSelectors) this._renderPorts();
     },
 
     rotatableSelector: 'rotatable',
@@ -164,7 +180,7 @@ export const ElementView = CellView.extend({
         } else {
             this.updateTransformation();
         }
-        this._refreshPorts();
+        if (!config.useCSSSelectors) this._renderPorts();
         return this;
     },
 

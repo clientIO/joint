@@ -94,7 +94,8 @@ export const joint = {
             'lodash': '_'
         }
     }],
-    plugins: plugins
+    plugins: plugins,
+    treeshake: false
 };
 
 export const jointNoDependencies = {
