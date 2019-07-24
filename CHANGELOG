@@ -1,3 +1,9 @@
+23-07-2019 (v3.0.3)
+
+  * dia.Paper: fix viewport matching for links
+  * dia.CellView: properly separate elements and ports CSS selectors
+  * changes to config options are respected
+
 27-06-2019 (v3.0.2)
 
   * layout.DirectedGraph - allow injecting `dagre` and `graphlib` as an option property

@@ -1,4 +1,4 @@
-/*! JointJS v3.0.2 (2019-06-28) - JavaScript diagramming library
+/*! JointJS v3.0.3 (2019-07-23) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -316,6 +316,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     if (!String.prototype.includes) {
         String.prototype.includes = function(search, start) {
+            'use strict';
             if (typeof start !== 'number') {
                 start = 0;
             }
@@ -2085,7 +2086,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         var i;
         var n;
 
-        if (!arg) ; else if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
+        if (!arg) {
+            // don't do anything
+
+        } else if (Array.isArray(arg) && arg.length !== 0) { // if arg is a non-empty array
             // flatten one level deep
             // so we can chain arbitrary Path.createSegment results
             arg = arg.reduce(function(acc, val) {
@@ -5831,7 +5835,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         return this.regexSupportedData.test(data);
     };
 
-    var g$1 = ({
+    var g = ({
         bezier: bezier,
         Curve: Curve,
         Ellipse: Ellipse,
@@ -8314,21 +8318,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         V.namespace = ns;
 
-        V.g = g$1;
+        V.g = g;
 
         return V;
 
     })();
 
-    // The class name prefix config is for advanced use only.
-    // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
-    var classNamePrefix = 'joint-';
-    var defaultTheme = 'default';
-
-    var index = ({
-        classNamePrefix: classNamePrefix,
-        defaultTheme: defaultTheme
-    });
+    var config = {
+        // When set to `true` the cell selectors could be defined as CSS selectors.
+        // If not, only JSON Markup selectors are taken into account.
+        // export let useCSSSelectors = true;
+        useCSSSelectors: true,
+        // The class name prefix config is for advanced use only.
+        // Be aware that if you change the prefix, the JointJS CSS will no longer function properly.
+        // export let classNamePrefix = 'joint-';
+        // export let defaultTheme = 'default';
+        classNamePrefix: 'joint-',
+        defaultTheme: 'default'
+    };
 
     var addClassNamePrefix = function(className) {
 
@@ -8336,8 +8343,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         return className.toString().split(' ').map(function(_className) {
 
-            if (_className.substr(0, classNamePrefix.length) !== classNamePrefix) {
-                _className = classNamePrefix + _className;
+            if (_className.substr(0, config.classNamePrefix.length) !== config.classNamePrefix) {
+                _className = config.classNamePrefix + _className;
             }
 
             return _className;
@@ -8351,8 +8358,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         return className.toString().split(' ').map(function(_className) {
 
-            if (_className.substr(0, classNamePrefix.length) === classNamePrefix) {
-                _className = _className.substr(classNamePrefix.length);
+            if (_className.substr(0, config.classNamePrefix.length) === config.classNamePrefix) {
+                _className = _className.substr(config.classNamePrefix.length);
             }
 
             return _className;
@@ -11411,19 +11418,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         position: function() {
 
             // To be overridden.
-            return new g.Point(0, 0);
+            return new Point(0, 0);
         },
 
         getPointFromConnectedLink: function() {
 
             // To be overridden
-            return new g.Point();
+            return new Point();
         },
 
         getBBox: function() {
 
             // To be overridden
-            return new g.Rect(0, 0, 0, 0);
+            return new Rect(0, 0, 0, 0);
         }
 
     }, {
@@ -11443,9 +11450,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var Cell = this.extend(protoProps, staticProps);
             // es5 backward compatibility
+            /* global joint: true */
             if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
                 setByPath(joint.shapes, type, Cell, '.');
             }
+            /* global joint: false */
             return Cell;
         }
     });
@@ -11505,7 +11514,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 
-    var index$1 = ({
+    var index = ({
         wrapWith: wrapWith,
         wrappers: wrappers,
         addClassNamePrefix: addClassNamePrefix,
@@ -13148,8 +13157,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
          * @private
          */
         _initializePorts: function() {
-
-            this._portElementsCache = {};
+            this._cleanPortsCache();
         },
 
         /**
@@ -13169,8 +13177,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         _refreshPorts: function() {
 
             this._removePorts();
-            this._portElementsCache = {};
+            this._cleanPortsCache();
             this._renderPorts();
+        },
+
+        _cleanPortsCache: function() {
+            this._portElementsCache = {};
         },
 
         /**
@@ -13853,7 +13865,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (opt.cellNamespace) {
                 this.cellNamespace = opt.cellNamespace;
             } else {
+                /* global joint: true */
                 this.cellNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+                /* global joint: false */
             }
 
 
@@ -14899,17 +14913,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         hasActiveBatch: function(name) {
 
+            var batches = this._batches;
+            var names;
+
             if (arguments.length === 0) {
-                return toArray(this._batches).some(function(batches) {
-                    return batches > 0;
-                });
+                names = toArray(batches);
+            } else if (Array.isArray(name)) {
+                names = name;
+            } else {
+                names = [name];
             }
-            if (Array.isArray(name)) {
-                return name.some(function(name) {
-                    return !!this._batches[name];
-                }, this);
-            }
-            return !!this._batches[name];
+
+            return names.some(function (batch) { return batches[batch] > 0; });
         }
 
     }, {
@@ -14966,7 +14981,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         theme: null,
         themeClassNamePrefix: addClassNamePrefix('theme-'),
         requireSetThemeOverride: false,
-        defaultTheme: defaultTheme,
+        defaultTheme: config.defaultTheme,
         children: null,
         childNodes: null,
 
@@ -15266,7 +15281,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         }
     });
 
-    var index$2 = ({
+    var index$1 = ({
         views: views,
         View: View
     });
@@ -15449,9 +15464,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     return [nodes];
                 }
             }
+
             // Maintaining backwards compatibility
             // e.g. `circle:first` would fail with querySelector() call
-            return $(root).find(selector).toArray();
+            if (config.useCSSSelectors) { return $(root).find(selector).toArray(); }
+
+            return [];
         },
 
         notify: function(eventName) {
@@ -16341,6 +16359,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         UPDATE_PRIORITY: 0,
 
         confirmUpdate: function(flag, opt) {
+            var useCSSSelectors = config.useCSSSelectors;
+            if (this.hasFlag(flag, 'PORTS')) {
+                this._removePorts();
+                this._cleanPortsCache();
+            }
             if (this.hasFlag(flag, 'RENDER')) {
                 this.render();
                 flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
@@ -16354,6 +16377,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (this.hasFlag(flag, 'UPDATE')) {
                 this.update(this.model, null, opt);
                 flag = this.removeFlag(flag, 'UPDATE');
+                if (useCSSSelectors) {
+                    // `update()` will render ports when useCSSSelectors are enabled
+                    flag = this.removeFlag(flag, 'PORTS');
+                }
             }
             if (this.hasFlag(flag, 'TRANSLATE')) {
                 this.translate();
@@ -16364,7 +16391,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 flag = this.removeFlag(flag, 'ROTATE');
             }
             if (this.hasFlag(flag, 'PORTS')) {
-                this._refreshPorts();
+                this._renderPorts();
                 flag = this.removeFlag(flag, 'PORTS');
             }
             return flag;
@@ -16381,6 +16408,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             this.cleanNodesCache();
 
+            // When CSS selector strings are used, make sure no rule matches port nodes.
+            var useCSSSelectors = config.useCSSSelectors;
+            if (useCSSSelectors) { this._removePorts(); }
+
             var model = this.model;
             var modelAttrs = model.attr();
             this.updateDOMSubtreeAttributes(this.el, modelAttrs, {
@@ -16391,6 +16422,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // Use rendering only attributes if they differs from the model attributes
                 roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
             });
+
+            if (useCSSSelectors) { this._renderPorts(); }
         },
 
         rotatableSelector: 'rotatable',
@@ -16450,7 +16483,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             } else {
                 this.updateTransformation();
             }
-            this._refreshPorts();
+            if (!config.useCSSSelectors) { this._renderPorts(); }
             return this;
         },
 
@@ -17387,7 +17420,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         return orthogonalVertices;
     }
 
-    var config = {
+    var config$1 = {
 
         // size of the step to find a route (the grid of the manhattan pathfinder)
         step: 10,
@@ -17479,7 +17512,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 throw new Error('Manhattan requires the orthogonal router as default fallback.');
             }
 
-            return orthogonal(vertices, assign({}, config, opt), linkView);
+            return orthogonal(vertices, assign({}, config$1, opt), linkView);
         },
 
         /* Deprecated */
@@ -18216,10 +18249,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     // public function
     var manhattan = function(vertices, opt, linkView) {
-        return router(vertices, assign({}, config, opt), linkView);
+        return router(vertices, assign({}, config$1, opt), linkView);
     };
 
-    var config$1 = {
+    var config$2 = {
 
         maxAllowedDirectionChange: 45,
 
@@ -18270,26 +18303,26 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
 
             var p1 = (theta % 90) < 45 ? a : b;
-            var l1 = new g.Line(from, p1);
+            var l1 = new Line(from, p1);
 
             var alpha = 90 * Math.ceil(theta / 90);
 
-            var p2 = g.Point.fromPolar(l1.squaredLength(), g.toRad(alpha + 135), p1);
-            var l2 = new g.Line(to, p2);
+            var p2 = Point.fromPolar(l1.squaredLength(), toRad(alpha + 135), p1);
+            var l2 = new Line(to, p2);
 
             var intersectionPoint = l1.intersection(l2);
-            var point = intersectionPoint ? intersectionPoint : to;
+            var point$$1 = intersectionPoint ? intersectionPoint : to;
 
-            var directionFrom = intersectionPoint ? point : from;
+            var directionFrom = intersectionPoint ? point$$1 : from;
 
             var quadrant = 360 / opt.directions.length;
             var angleTheta = directionFrom.theta(to);
-            var normalizedAngle = g.normalizeAngle(angleTheta + (quadrant / 2));
+            var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
             var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
 
             opt.previousDirectionAngle = directionAngle;
 
-            if (point) { route.push(point.round()); }
+            if (point$$1) { route.push(point$$1.round()); }
             route.push(to);
 
             return route;
@@ -18303,7 +18336,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             throw new Error('Metro requires the manhattan router.');
         }
 
-        return manhattan(vertices, assign({}, config$1, opt), linkView);
+        return manhattan(vertices, assign({}, config$2, opt), linkView);
     };
 
 
@@ -18873,9 +18906,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             opt || (opt = {});
 
-            var model = this.model;
-            var attributes = model.attributes;
-
             if (this.hasFlag(flags, 'SOURCE')) {
                 if (!this.updateEndProperties('source')) { return flags; }
                 flags = this.removeFlag(flags, 'SOURCE');
@@ -18886,9 +18916,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 flags = this.removeFlag(flags, 'TARGET');
             }
 
-            var sourceView = this.sourceView;
-            var targetView = this.targetView;
-            if (sourceView && !sourceView.el.firstChild || targetView && !targetView.el.firstChild) {
+            var ref = this;
+            var paper = ref.paper;
+            var sourceView = ref.sourceView;
+            var targetView = ref.targetView;
+            if (paper && ((sourceView && !paper.isViewMounted(sourceView)) || (targetView && !paper.isViewMounted(targetView)))) {
                 // Wait for the sourceView and targetView to be rendered
                 return flags;
             }
@@ -18903,6 +18935,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 this.renderVertexMarkers();
                 flags = this.removeFlag(flags, 'VERTICES');
             }
+
+            var ref$1 = this;
+            var model = ref$1.model;
+            var attributes = model.attributes;
 
             if (this.hasFlag(flags, 'UPDATE')) {
                 this.update(model, null, opt);
@@ -19765,18 +19801,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         updateEndProperties: function(endType) {
 
-            var endViewProperty = endType + 'View';
-            var endMagnetProperty = endType + 'Magnet';
-            var endDef = this.model.get(endType);
+            var ref = this;
+            var model = ref.model;
+            var paper = ref.paper;
+            var endViewProperty = endType + "View";
+            var endDef = model.get(endType);
             var endId = endDef && endDef.id;
 
             if (!endId) {
                 // the link end is a point ~ rect 0x0
-                this[endViewProperty] = this[endMagnetProperty] = null;
+                this[endViewProperty] = null;
+                this.updateEndMagnet(endType);
                 return true;
             }
 
-            var paper = this.paper;
             var endModel = paper.getModelById(endId);
             if (!endModel) { throw new Error('LinkView: invalid ' + endType + ' cell.'); }
 
@@ -19787,10 +19825,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
 
             this[endViewProperty] = endView;
-            var connectedMagnet = endView.getMagnetFromLinkEnd(endDef);
-            if (connectedMagnet === endView.el) { connectedMagnet = null; }
-            this[endMagnetProperty] = connectedMagnet;
+            this.updateEndMagnet(endType);
             return true;
+        },
+
+        updateEndMagnet: function(endType) {
+
+            var endMagnetProperty = endType + "Magnet";
+            var endView = this.getEndView(endType);
+            if (endView) {
+                var connectedMagnet = endView.getMagnetFromLinkEnd(this.model.get(endType));
+                if (connectedMagnet === endView.el) { connectedMagnet = null; }
+                this[endMagnetProperty] = connectedMagnet;
+            } else {
+                this[endMagnetProperty] = null;
+            }
         },
 
         _translateAndAutoOrientArrows: function(sourceArrow, targetArrow) {
@@ -21889,7 +21938,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var options = ref.options;
             var el = ref.el;
             if (!options.cellViewNamespace) {
+                /* global joint: true */
                 options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
+                /* global joint: false */
             }
 
             var model = this.model = options.model || new Graph;
@@ -22008,9 +22059,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             );
 
             // Default cellView namespace for ES5
+            /* global joint: true */
             if (!options.cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
                 options.cellViewNamespace = joint.shapes;
             }
+            /* global joint: false */
         },
 
         children: function() {
@@ -22077,6 +22130,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             this.layers = layers;
             this.$background = $(background);
             this.$grid = $(grid);
+
+            V.ensureId(svg);
 
             // backwards compatibility
             this.viewport = cells;
@@ -22169,11 +22224,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if ((flag & view.getFlag(['SOURCE', 'TARGET'])) === 0) {
                 // LinkView is waiting for the target or the source cellView to be rendered
                 // This can happen when the cells are not in the viewport.
+                var sourceFlag = 0;
                 var sourceView = this.findViewByModel(model.getSourceCell());
-                var sourceFlag = this.dumpView(sourceView);
+                if (sourceView && !this.isViewMounted(sourceView)) {
+                    sourceFlag = this.dumpView(sourceView);
+                    view.updateEndMagnet('source');
+                }
+                var targetFlag = 0;
                 var targetView = this.findViewByModel(model.getTargetCell());
-                var targetFlag = this.dumpView(targetView);
-                return sourceFlag === 0 && targetFlag === 0;
+                if (targetView && !this.isViewMounted(targetView)) {
+                    targetFlag = this.dumpView(targetView);
+                    view.updateEndMagnet('target');
+                }
+                if (sourceFlag === 0 && targetFlag === 0) {
+                    return !!this.dumpView(view);
+                }
             }
             return false;
         },
@@ -22266,6 +22331,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var flag = updates.unmounted[cid] || 0;
             delete updates.unmounted[cid];
             return flag;
+        },
+
+        isViewMounted: function(view) {
+            if (!view) { return false; }
+            var cid = view.cid;
+            var updates = this._updates;
+            return (cid in updates.mounted);
         },
 
         dumpViews: function(opt) {
@@ -22384,12 +22456,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     if (leftoverFlag > 0) {
                         // View update has not finished completely
                         priorityUpdates[cid] = leftoverFlag;
-                        postponeCount++;
-                        if (postponeViewFn && postponeViewFn.call(this, view, leftoverFlag, this)) {
-                            // postponed view update was resolved
+                        if (!postponeViewFn || !postponeViewFn.call(this, view, leftoverFlag, this) || priorityUpdates[cid]) {
+                            postponeCount++;
                             empty = false;
+                            continue;
                         }
-                        continue;
                     }
                     if (maxPriority > priority) { maxPriority = priority; }
                     updateCount++;
@@ -24461,7 +24532,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 
-    var index$3 = ({
+    var index$2 = ({
         Graph: Graph,
         attributes: attributes,
         Cell: Cell,
@@ -24583,7 +24654,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 exportLink: this.exportLink
             });
 
+            /* global dagre: true */
             var dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
+            /* global dagre: false */
 
             if (dagreUtil === undefined) { throw new Error('The the "dagre" utility is a mandatory dependency.'); }
 
@@ -24704,7 +24777,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             opt = opt || {};
 
+            /* global graphlib: true */
             var graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
+            /* global graphlib: false */
 
             if (graphlibUtil === undefined) { throw new Error('The the "graphlib" utility is a mandatory dependency.'); }
 
@@ -27039,7 +27114,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 
-    var index$4 = ({
+    var index$3 = ({
         basic: basic,
         standard: standard,
         devs: devs,
@@ -27120,7 +27195,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     var pinAbsolute = pin(false);
     var pinRelative = pin(true);
 
-    var index$5 = ({
+    var index$4 = ({
         useDefaults: useDefaults,
         pinAbsolute: pinAbsolute,
         pinRelative: pinRelative
@@ -28135,7 +28210,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         type: 'target'
     });
 
-    var index$6 = ({
+    var index$5 = ({
         Vertices: Vertices,
         Segments: Segments,
         SourceArrowhead: SourceArrowhead,
@@ -28147,9 +28222,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         Boundary: Boundary
     });
 
-    var version = "3.0.2";
+    var version = "3.0.3";
 
     var Vectorizer = V;
+    var layout = { PortLabel: PortLabel, Port: Port };
     var setTheme = function(theme, opt) {
 
         opt = opt || {};
@@ -28169,25 +28245,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     exports.layout = layout$1;
     exports.format = format$1;
     exports.ui = ui;
-    exports.shapes = index$4;
+    exports.shapes = index$3;
     exports.setTheme = setTheme;
-    exports.config = index;
+    exports.config = config;
     exports.env = env;
     exports.anchors = anchors;
     exports.linkAnchors = linkAnchors;
     exports.connectionPoints = connectionPoints;
-    exports.connectionStrategies = index$5;
+    exports.connectionStrategies = index$4;
     exports.connectors = connectors;
-    exports.dia = index$3;
+    exports.dia = index$2;
     exports.highlighters = highlighters;
-    exports.mvc = index$2;
+    exports.mvc = index$1;
     exports.routers = routers;
-    exports.util = index$1;
-    exports.linkTools = index$6;
+    exports.util = index;
+    exports.linkTools = index$5;
     exports.Vectorizer = Vectorizer;
     exports.V = V;
     exports.version = version;
-    exports.g = g$1;
+    exports.g = g;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
