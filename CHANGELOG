@@ -2,10 +2,10 @@
 
   * allow for automatic patch upgrades for dependencies
   * changes to config options are respected
-  * dia.Paper: ensure SVG document has id
-  * dia.Paper: fix viewport matching for links
-  * dia.Graph: make hasActiveBatches() use the same logic for various signatures
-  * dia.CellView: properly separate elements and ports CSS selectors
+  * dia.Paper - ensure SVG document has id
+  * dia.Paper - fix viewport matching for links
+  * dia.Graph - make hasActiveBatches() use the same logic for various signatures
+  * dia.CellView - properly separate elements and ports CSS selectors
 
 27-06-2019 (v3.0.2)
 
