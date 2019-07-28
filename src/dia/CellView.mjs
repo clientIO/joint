@@ -1013,6 +1013,7 @@ export const CellView = View.extend({
     },
 
     checkMouseleave(evt) {
+        this.paper.dumpView(this);
         var target = this.getEventTarget(evt, { fromPoint: true });
         var view = this.paper.findView(target);
         if (view === this) return;
