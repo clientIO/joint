@@ -121,7 +121,7 @@ var Vertices = ToolView.extend({
             this.resetHandles();
             this.renderHandles();
         }
-        if (this.options.vertexAdded) {
+        if (this.options.vertexAdding) {
             this.updatePath();
         }
         return this;
