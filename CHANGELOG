@@ -1,4 +1,4 @@
-31-07-2019 (v3.0.3)
+31-07-2019 (v3.0.4)
 
   * dia.Paper - pass Backbone model options to view update (cell removal & `z` change)
   * dia.CellView -  fix `mouseleave` event in async mode
