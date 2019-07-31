@@ -1013,11 +1013,18 @@ export const CellView = View.extend({
     },
 
     checkMouseleave(evt) {
-        var target = this.getEventTarget(evt, { fromPoint: true });
-        var view = this.paper.findView(target);
+        const { paper } = this;
+        if (paper.isAsync()) {
+            // Do the updates of the current view synchronously now
+            paper.dumpView(this);
+        }
+        const target = this.getEventTarget(evt, { fromPoint: true });
+        const view = paper.findView(target);
         if (view === this) return;
+        // Leaving the current view
         this.mouseleave(evt);
         if (!view) return;
+        // Entering another view
         view.mouseenter(evt);
     },
 
