@@ -369,15 +369,16 @@ export const Paper = View.extend({
         }
     },
 
-    onCellRemoved: function(cell) {
-        this.requestViewUpdate(this.findViewByModel(cell), FLAG_REMOVE, 0);
+    onCellRemoved: function(cell, _, opt) {
+        const view = this.findViewByModel(cell);
+        if (view) this.requestViewUpdate(view, FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
     },
 
-    onCellChange: function(cell) {
+    onCellChange: function(cell, opt) {
         if (cell === this.model.attributes.cells) return;
         if (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX) {
-            var view = this.findViewByModel(cell);
-            if (view) this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY);
+            const view = this.findViewByModel(cell);
+            if (view) this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY, opt);
         }
     },
 
