@@ -1,4 +1,4 @@
-/*! JointJS v3.0.3 (2019-07-23) - JavaScript diagramming library
+/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -16282,11 +16282,19 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         checkMouseleave: function checkMouseleave(evt) {
+            var ref = this;
+            var paper = ref.paper;
+            if (paper.isAsync()) {
+                // Do the updates of the current view synchronously now
+                paper.dumpView(this);
+            }
             var target = this.getEventTarget(evt, { fromPoint: true });
-            var view = this.paper.findView(target);
+            var view = paper.findView(target);
             if (view === this) { return; }
+            // Leaving the current view
             this.mouseleave(evt);
             if (!view) { return; }
+            // Entering another view
             view.mouseenter(evt);
         },
 
@@ -22001,15 +22009,16 @@ var joint = (function (exports, Backbone, _, $) {
             }
         },
 
-        onCellRemoved: function(cell) {
-            this.requestViewUpdate(this.findViewByModel(cell), FLAG_REMOVE, 0);
+        onCellRemoved: function(cell, _$$1, opt) {
+            var view = this.findViewByModel(cell);
+            if (view) { this.requestViewUpdate(view, FLAG_REMOVE, view.UPDATE_PRIORITY, opt); }
         },
 
-        onCellChange: function(cell) {
+        onCellChange: function(cell, opt) {
             if (cell === this.model.attributes.cells) { return; }
             if (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX) {
                 var view = this.findViewByModel(cell);
-                if (view) { this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY); }
+                if (view) { this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY, opt); }
             }
         },
 
@@ -27314,7 +27323,7 @@ var joint = (function (exports, Backbone, _, $) {
                 this.resetHandles();
                 this.renderHandles();
             }
-            if (this.options.vertexAdded) {
+            if (this.options.vertexAdding) {
                 this.updatePath();
             }
             return this;
@@ -28219,7 +28228,7 @@ var joint = (function (exports, Backbone, _, $) {
         Boundary: Boundary
     });
 
-    var version = "3.0.3";
+    var version = "3.0.4";
 
     var Vectorizer = V;
     var layout = { PortLabel: PortLabel, Port: Port };
