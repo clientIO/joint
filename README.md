@@ -9,6 +9,7 @@ importantly, fully interactive diagramming tools and application builders.
 
 Please see [http://jointjs.com](http://jointjs.com) for more information, demos and documentation.
 
+Or check out our [mind-map documentation](https://resources.jointjs.com/mmap/joint.html).
 
 ## Features
 
