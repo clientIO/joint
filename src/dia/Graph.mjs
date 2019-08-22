@@ -797,9 +797,8 @@ export const Graph = Backbone.Model.extend({
     // Note that the `distance` is not the shortest or longest distance, it is simply the number of levels
     // crossed till we visited the `element` for the first time. It is especially useful for tree graphs.
     // If `iteratee` explicitly returns `false`, the searching stops.
-    bfs: function(element, iteratee, opt) {
+    bfs: function(element, iteratee, opt = {}) {
 
-        opt = opt || {};
         const visited = {};
         const distance = {};
         const queue = [];
@@ -811,7 +810,7 @@ export const Graph = Backbone.Model.extend({
             var next = queue.shift();
             if (visited[next.id]) continue;
             visited[next.id] = true;
-            if (iteratee(next, distance[next.id]) === false) continue;
+            if (iteratee.call(this, next, distance[next.id]) === false) continue;
             const neighbors = this.getNeighbors(next, opt);
             for (let i = 0, n = neighbors.length; i < n; i++) {
                 const neighbor = neighbors[i];
@@ -839,7 +838,7 @@ export const Graph = Backbone.Model.extend({
             const next = queue.pop();
             if (visited[next.id]) continue;
             visited[next.id] = true;
-            if (iteratee(next, distance[next.id]) === false) continue;
+            if (iteratee.call(this, next, distance[next.id]) === false) continue;
             const neighbors = this.getNeighbors(next, opt);
             const lastIndex = queue.length;
             for (let i = 0, n = neighbors.length; i < n; i++) {
