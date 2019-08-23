@@ -848,7 +848,7 @@ export const Paper = View.extend({
             if (!(cid in unmounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (viewportFn && !viewportFn.call(this, view, true, this)) {
+            if (viewportFn && !viewportFn.call(this, view, false, this)) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -875,7 +875,7 @@ export const Paper = View.extend({
             if (!(cid in mounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (viewportFn.call(this, view, true)) {
+            if (viewportFn.call(this, view, true, this)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
