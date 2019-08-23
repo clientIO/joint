@@ -410,12 +410,10 @@ export const Link = Cell.extend({
 
         var attrs = {};
 
-        var source = this.source();
+        var { source, target } = this.attributes;
         if (!source.id) {
             attrs.source = fn(source);
         }
-
-        var target = this.target();
         if (!target.id) {
             attrs.target = fn(target);
         }
@@ -495,8 +493,9 @@ export const Link = Cell.extend({
 
         opt = opt || {};
 
-        var sourceId = this.source().id;
-        var targetId = this.target().id;
+        var { source, target } = this.attributes;
+        var sourceId = source.id;
+        var targetId = target.id;
 
         if (!sourceId || !targetId) {
             // Link "pinned" to the paper does not have a loop.
@@ -522,9 +521,8 @@ export const Link = Cell.extend({
     // unlike source(), this method returns null if source is a point
     getSourceCell: function() {
 
-        var source = this.source();
-        var graph = this.graph;
-
+        const { graph, attributes } = this;
+        var source = attributes.source;
         return (source && source.id && graph && graph.getCell(source.id)) || null;
     },
 
@@ -542,9 +540,8 @@ export const Link = Cell.extend({
     // unlike target(), this method returns null if target is a point
     getTargetCell: function() {
 
-        var target = this.target();
-        var graph = this.graph;
-
+        const { graph, attributes } = this;
+        var target = attributes.target;
         return (target && target.id && graph && graph.getCell(target.id)) || null;
     },
 

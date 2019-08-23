@@ -117,8 +117,7 @@ export const Graph = Backbone.Model.extend({
 
         if (cell.isLink()) {
             this._edges[cell.id] = true;
-            var source = cell.source();
-            var target = cell.target();
+            var { source, target } = cell.attributes;
             if (source.id) {
                 (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
             }
@@ -134,8 +133,7 @@ export const Graph = Backbone.Model.extend({
 
         if (cell.isLink()) {
             delete this._edges[cell.id];
-            var source = cell.source();
-            var target = cell.target();
+            var { source, target } = cell.attributes;
             if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
                 delete this._out[source.id][cell.id];
             }
@@ -166,7 +164,7 @@ export const Graph = Backbone.Model.extend({
         if (prevSource.id && this._out[prevSource.id]) {
             delete this._out[prevSource.id][link.id];
         }
-        var source = link.source();
+        var source = link.attributes.source;
         if (source.id) {
             (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
         }
@@ -524,8 +522,9 @@ export const Graph = Backbone.Model.extend({
                     util.forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
-                            var sourceId = edgeCell.source().id;
-                            var targetId = edgeCell.target().id;
+                            var { source, target } = edgeCell.attributes;
+                            var sourceId = source.id;
+                            var targetId = target.id;
 
                             // if `includeEnclosed` option is falsy, skip enclosed links
                             if (!opt.includeEnclosed
@@ -543,8 +542,9 @@ export const Graph = Backbone.Model.extend({
                     util.forIn(this.getInboundEdges(cell.id), function(exists, edge) {
                         if (!edges[edge]) {
                             var edgeCell = this.getCell(edge);
-                            var sourceId = edgeCell.source().id;
-                            var targetId = edgeCell.target().id;
+                            var { source, target } = edgeCell.attributes;
+                            var sourceId = source.id;
+                            var targetId = target.id;
 
                             // if `includeEnclosed` option is falsy, skip enclosed links
                             if (!opt.includeEnclosed
@@ -576,8 +576,7 @@ export const Graph = Backbone.Model.extend({
 
         var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
 
-            var source = link.source();
-            var target = link.target();
+            var { source, target } = link.attributes;
             var loop = link.hasLoop(opt);
 
             // Discard if it is a point, or if the neighbor was already added.
@@ -724,8 +723,7 @@ export const Graph = Backbone.Model.extend({
 
         links.forEach(function(link) {
             // For links, return their source & target (if they are elements - not points).
-            var source = link.source();
-            var target = link.target();
+            var { source, target } = link.attributes;
             if (source.id && !cellMap[source.id]) {
                 var sourceElement = this.getCell(source.id);
                 subgraph.push(sourceElement);
@@ -744,8 +742,7 @@ export const Graph = Backbone.Model.extend({
             // For elements, include their connected links if their source/target is in the subgraph;
             var links = this.getConnectedLinks(element, opt);
             links.forEach(function(link) {
-                var source = link.source();
-                var target = link.target();
+                var { source, target } = link.attributes;
                 if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
                     subgraph.push(link);
                     cellMap[link.id] = link;
@@ -930,8 +927,7 @@ export const Graph = Backbone.Model.extend({
 
         this.getConnectedLinks(elementA, opt).forEach(function(link) {
 
-            var source = link.source();
-            var target = link.target();
+            var { source, target } = link.attributes;
 
             // Discard if it is a point.
             if (inbound && util.has(source, 'id') && (source.id === elementB.id)) {
@@ -954,7 +950,7 @@ export const Graph = Backbone.Model.extend({
 
         this.getConnectedLinks(model).forEach(function(link) {
 
-            link.set((link.source().id === model.id ? 'source' : 'target'), { x: 0, y: 0 }, opt);
+            link.set((link.attributes.source.id === model.id ? 'source' : 'target'), { x: 0, y: 0 }, opt);
         });
     },
 
@@ -1093,8 +1089,7 @@ export const Graph = Backbone.Model.extend({
         multiLinks: function(graph, link) {
 
             // Do not allow multiple links to have the same source and target.
-            var source = link.source();
-            var target = link.target();
+            var { source, target } = link.attributes;
 
             if (source.id && target.id) {
 
@@ -1104,9 +1099,7 @@ export const Graph = Backbone.Model.extend({
                     var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });
                     var sameLinks = connectedLinks.filter(function(_link) {
 
-                        var _source = _link.source();
-                        var _target = _link.target();
-
+                        var { source: _source, target: _target } = _link.attributes;
                         return _source && _source.id === source.id &&
                             (!_source.port || (_source.port === source.port)) &&
                             _target && _target.id === target.id &&
@@ -1123,8 +1116,9 @@ export const Graph = Backbone.Model.extend({
             return true;
         },
 
-        linkPinning: function(graph, link) {
-            return link.source().id && link.target().id;
+        linkPinning: function(_graph, link) {
+            var { source, target } = link.attributes;
+            return source.id && target.id;
         }
     }
 
