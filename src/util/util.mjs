@@ -120,13 +120,14 @@ export const hashCode = function(str) {
     return hash;
 };
 
-export const getByPath = function(obj, path, delim) {
+export const getByPath = function(obj, path, delimiter) {
 
-    var keys = Array.isArray(path) ? path.slice() : path.split(delim || '/');
+    var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
     var key;
-
-    while (keys.length) {
-        key = keys.shift();
+    var i = 0;
+    var length = keys.length;
+    while (i < length) {
+        key = keys[i++];
         if (Object(obj) === obj && key in obj) {
             obj = obj[key];
         } else {
@@ -136,9 +137,9 @@ export const getByPath = function(obj, path, delim) {
     return obj;
 };
 
-export const setByPath = function(obj, path, value, delim) {
+export const setByPath = function(obj, path, value, delimiter) {
 
-    var keys = Array.isArray(path) ? path : path.split(delim || '/');
+    var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
 
     var diver = obj;
     var i = 0;
@@ -153,18 +154,17 @@ export const setByPath = function(obj, path, value, delim) {
     return obj;
 };
 
-export const unsetByPath = function(obj, path, delim) {
+export const unsetByPath = function(obj, path, delimiter) {
 
-    delim = delim || '/';
+    delimiter || (delimiter = '/');
 
-    var pathArray = Array.isArray(path) ? path.slice() : path.split(delim);
+    var pathArray = Array.isArray(path) ? path.slice() : path.split(delimiter);
 
     var propertyToRemove = pathArray.pop();
     if (pathArray.length > 0) {
 
         // unsetting a nested attribute
-        var parent = getByPath(obj, pathArray, delim);
-
+        var parent = getByPath(obj, pathArray, delimiter);
         if (parent) {
             delete parent[propertyToRemove];
         }
