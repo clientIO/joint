@@ -797,25 +797,25 @@ export const Graph = Backbone.Model.extend({
     // Note that the `distance` is not the shortest or longest distance, it is simply the number of levels
     // crossed till we visited the `element` for the first time. It is especially useful for tree graphs.
     // If `iteratee` explicitly returns `false`, the searching stops.
-    bfs: function(element, iteratee, opt) {
+    bfs: function(element, iteratee, opt = {}) {
 
-        opt = opt || {};
-        var visited = {};
-        var distance = {};
-        var queue = [];
+        const visited = {};
+        const distance = {};
+        const queue = [];
 
         queue.push(element);
         distance[element.id] = 0;
 
         while (queue.length > 0) {
             var next = queue.shift();
-            if (!visited[next.id]) {
-                visited[next.id] = true;
-                if (iteratee(next, distance[next.id]) === false) return;
-                this.getNeighbors(next, opt).forEach(function(neighbor) {
-                    distance[neighbor.id] = distance[next.id] + 1;
-                    queue.push(neighbor);
-                });
+            if (visited[next.id]) continue;
+            visited[next.id] = true;
+            if (iteratee.call(this, next, distance[next.id]) === false) continue;
+            const neighbors = this.getNeighbors(next, opt);
+            for (let i = 0, n = neighbors.length; i < n; i++) {
+                const neighbor = neighbors[i];
+                distance[neighbor.id] = distance[next.id] + 1;
+                queue.push(neighbor);
             }
         }
     },
@@ -825,19 +825,28 @@ export const Graph = Backbone.Model.extend({
     // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
     // `iteratee` is a function of the form `function(element, distance) {}`.
     // If `iteratee` explicitly returns `false`, the search stops.
-    dfs: function(element, iteratee, opt, _visited, _distance) {
+    dfs: function(element, iteratee, opt = {}) {
 
-        opt = opt || {};
-        var visited = _visited || {};
-        var distance = _distance || 0;
-        if (iteratee(element, distance) === false) return;
-        visited[element.id] = true;
+        const visited = {};
+        const distance = {};
+        const queue = [];
 
-        this.getNeighbors(element, opt).forEach(function(neighbor) {
-            if (!visited[neighbor.id]) {
-                this.dfs(neighbor, iteratee, opt, visited, distance + 1);
+        queue.push(element);
+        distance[element.id] = 0;
+
+        while (queue.length > 0) {
+            const next = queue.pop();
+            if (visited[next.id]) continue;
+            visited[next.id] = true;
+            if (iteratee.call(this, next, distance[next.id]) === false) continue;
+            const neighbors = this.getNeighbors(next, opt);
+            const lastIndex = queue.length;
+            for (let i = 0, n = neighbors.length; i < n; i++) {
+                const neighbor = neighbors[i];
+                distance[neighbor.id] = distance[next.id] + 1;
+                queue.splice(lastIndex, 0, neighbor);
             }
-        }, this);
+        }
     },
 
     // Get all the roots of the graph. Time complexity: O(|V|).
