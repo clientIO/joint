@@ -1267,7 +1267,7 @@ export const Paper = View.extend({
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;
-            flag = FLAG_INSERT | view.getFlag(view.initFlag);
+            flag = this.registerUnmountedView(view) | view.getFlag(view.initFlag);
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
