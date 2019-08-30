@@ -207,7 +207,7 @@ export namespace dia {
             deep?: boolean;
         }
 
-        interface DisconnectableOptions {
+        interface DisconnectableOptions extends Options {
             disconnectLinks?: boolean;
         }
 
