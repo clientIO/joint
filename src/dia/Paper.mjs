@@ -792,24 +792,27 @@ export const Paper = View.extend({
                     continue;
                 }
                 var currentFlag = priorityUpdates[cid];
-                var isDetached = cid in updates.unmounted;
-                if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
-                    // Unmount View
-                    if (!isDetached) {
-                        this.registerUnmountedView(view);
-                        view.unmount();
+                if ((currentFlag & FLAG_REMOVE) === 0) {
+                    // We should never check a view for viewport if we are about to remove the view
+                    var isDetached = cid in updates.unmounted;
+                    if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
+                        // Unmount View
+                        if (!isDetached) {
+                            this.registerUnmountedView(view);
+                            view.unmount();
+                        }
+                        updates.unmounted[cid] |= currentFlag;
+                        delete priorityUpdates[cid];
+                        unmountCount++;
+                        continue;
                     }
-                    updates.unmounted[cid] |= currentFlag;
-                    delete priorityUpdates[cid];
-                    unmountCount++;
-                    continue;
+                    // Mount View
+                    if (isDetached) {
+                        currentFlag |= FLAG_INSERT;
+                        mountCount++;
+                    }
+                    currentFlag |= this.registerMountedView(view);
                 }
-                // Mount View
-                if (isDetached) {
-                    currentFlag |= FLAG_INSERT;
-                    mountCount++;
-                }
-                currentFlag |= this.registerMountedView(view);
                 var leftoverFlag = this.updateView(view, currentFlag, opt);
                 if (leftoverFlag > 0) {
                     // View update has not finished completely

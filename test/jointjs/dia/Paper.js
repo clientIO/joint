@@ -347,22 +347,36 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                 assert.equal(cellNodesCount(paper), 2);
                             });
 
-                            QUnit.test('viewport', function(assert) {
-                                paper.freeze();
-                                var rect1 = new joint.shapes.standard.Rectangle();
-                                var rect2 = new joint.shapes.standard.Rectangle();
-                                rect1.addTo(graph);
-                                rect2.addTo(graph);
-                                var viewportSpy = sinon.spy(function() { return true; });
-                                var res = paper.updateViews({ viewport: viewportSpy });
-                                assert.deepEqual(res, { batches: 1, updated: 2, priority: 0 });
-                                assert.equal(cellNodesCount(paper), 2);
-                                assert.ok(viewportSpy.calledTwice);
-                                // Unmount a view because it's not in the viewport and update views with a different viewport
-                                paper.checkViewport({ viewport: function() { return false; } });
-                                rect1.translate(10, 0);
-                                paper.updateViews({ viewport: function() { return true; } });
-                                assert.equal(cellNodesCount(paper), 1);
+                            QUnit.module('viewport', function() {
+
+                                QUnit.test('sanity', function(assert) {
+
+                                    paper.freeze();
+                                    var rect1 = new joint.shapes.standard.Rectangle();
+                                    var rect2 = new joint.shapes.standard.Rectangle();
+                                    rect1.addTo(graph);
+                                    rect2.addTo(graph);
+                                    var viewportSpy = sinon.spy(function() { return true; });
+                                    var res = paper.updateViews({ viewport: viewportSpy });
+                                    assert.deepEqual(res, { batches: 1, updated: 2, priority: 0 });
+                                    assert.equal(cellNodesCount(paper), 2);
+                                    assert.ok(viewportSpy.calledTwice);
+                                    // Unmount a view because it's not in the viewport and update views with a different viewport
+                                    paper.checkViewport({ viewport: function() { return false; } });
+                                    rect1.translate(10, 0);
+                                    paper.updateViews({ viewport: function() { return true; } });
+                                    assert.equal(cellNodesCount(paper), 1);
+                                });
+
+                                QUnit.test('view removal', function(assert) {
+                                    var rect1 = new joint.shapes.standard.Rectangle();
+                                    rect1.addTo(graph);
+                                    assert.ok(paper.findViewByModel(rect1));
+                                    paper.freeze();
+                                    rect1.remove();
+                                    paper.updateViews({ viewport: function() { return false; } });
+                                    assert.notOk(paper.findViewByModel(rect1));
+                                });
                             });
                         });
                     });
