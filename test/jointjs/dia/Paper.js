@@ -231,8 +231,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             rect.addTo(graph);
                             var rectView = rect.findView(paper);
                             assert.ok(viewportSpy.calledOnce);
-                            // TODO: is false ok?
-                            assert.ok(viewportSpy.calledWithExactly(rectView, false, paper));
+                            assert.ok(viewportSpy.calledWithExactly(rectView, true, paper));
                             assert.ok(viewportSpy.calledOn(paper));
                             assert.equal(rectView.el.parentNode, paper.cells);
                             viewportSpy.resetHistory();
