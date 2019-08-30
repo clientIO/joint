@@ -1250,11 +1250,16 @@ export const Paper = View.extend({
 
     removeView: function(cell) {
 
-        var id = cell.id;
-        var view = this._views[id];
+        const { id } = cell;
+        const { _views, _updates } = this;
+        const view = _views[id];
         if (view) {
+            var { cid } = view;
+            const { mounted, unmounted } = _updates;
             view.remove();
-            delete this._views[id];
+            delete _views[id];
+            delete mounted[cid];
+            delete unmounted[cid];
         }
         return view;
     },
