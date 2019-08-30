@@ -1104,8 +1104,6 @@ export namespace dia {
 
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
-        cancelRenderViews(): void;
-
         drawBackground(opt?: Paper.BackgroundOptions): this;
 
         drawGrid(opt?: Paper.GridOptions | Paper.GridOptions[]): this;
