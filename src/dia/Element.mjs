@@ -300,46 +300,40 @@ export const Element = Cell.extend({
         return this;
     },
 
-    fitEmbeds: function(opt) {
-
-        opt = opt || {};
+    fitEmbeds: function(opt = {}) {
 
         // Getting the children's size and position requires the collection.
-        // Cell.get('embdes') helds an array of cell ids only.
-        if (!this.graph) throw new Error('Element must be part of a graph.');
+        // Cell.get('embeds') helds an array of cell ids only.
+        const { graph } = this;
+        if (!graph) throw new Error('Element must be part of a graph.');
 
-        var embeddedCells = this.getEmbeddedCells();
+        const embeddedCells = this.getEmbeddedCells().filter(cell => cell.isElement());
+        if (embeddedCells.length === 0) return this;
 
-        if (embeddedCells.length > 0) {
+        this.startBatch('fit-embeds', opt);
 
-            this.startBatch('fit-embeds', opt);
-
-            if (opt.deep) {
-                // Recursively apply fitEmbeds on all embeds first.
-                invoke(embeddedCells, 'fitEmbeds', opt);
-            }
-
-            // Compute cell's size and position  based on the children bbox
-            // and given padding.
-            var bbox = this.graph.getCellsBBox(embeddedCells);
-            var padding = normalizeSides(opt.padding);
-
-            // Apply padding computed above to the bbox.
-            bbox.moveAndExpand({
-                x: -padding.left,
-                y: -padding.top,
-                width: padding.right + padding.left,
-                height: padding.bottom + padding.top
-            });
-
-            // Set new element dimensions finally.
-            this.set({
-                position: { x: bbox.x, y: bbox.y },
-                size: { width: bbox.width, height: bbox.height }
-            }, opt);
-
-            this.stopBatch('fit-embeds');
+        if (opt.deep) {
+            // Recursively apply fitEmbeds on all embeds first.
+            invoke(embeddedCells, 'fitEmbeds', opt);
         }
+
+        // Compute cell's size and position based on the children bbox
+        // and given padding.
+        const { left, right, top, bottom } = normalizeSides(opt.padding);
+        let { x, y, width, height } = graph.getCellsBBox(embeddedCells);
+        // Apply padding computed above to the bbox.
+        x -= left;
+        y -= top;
+        width += left + right;
+        height += bottom + top;
+
+        // Set new element dimensions finally.
+        this.set({
+            position: { x, y },
+            size: { width, height }
+        }, opt);
+
+        this.stopBatch('fit-embeds');
 
         return this;
     },
