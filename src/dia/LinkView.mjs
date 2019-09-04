@@ -118,13 +118,7 @@ export const LinkView = CellView.extend({
 
         if (this.hasFlag(flags, 'UPDATE')) {
             this.update(model, null, opt);
-            flags = this.removeFlag(flags, ['UPDATE', 'TOOLS', 'LABELS']);
-            return flags;
-        }
-
-        if (this.hasFlag(flags, 'TOOLS')) {
-            this.renderTools().updateToolsPosition();
-            flags = this.removeFlag(flags, 'TOOLS');
+            flags = this.removeFlag(flags, 'UPDATE');
         }
 
         if (this.hasFlag(flags, 'LABELS')) {
@@ -132,40 +126,48 @@ export const LinkView = CellView.extend({
             flags = this.removeFlag(flags, 'LABELS');
         }
 
+        if (this.hasFlag(flags, 'TOOLS')) {
+            this.renderTools().updateToolsPosition();
+            flags = this.removeFlag(flags, 'TOOLS');
+        }
+
         return flags;
     },
 
-    onLabelsChange: function(link, labels, opt) {
+    isLabelsRenderRequired: function(opt = {}) {
 
-        var requireRender = true;
+        const previousLabels = this.model.previous('labels');
+        if (!previousLabels) return true;
 
-        var previousLabels = this.model.previous('labels');
-
-        if (previousLabels) {
-            // Here is an optimization for cases when we know, that change does
-            // not require re-rendering of all labels.
-            if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
-                // The label is setting by `prop()` method
-                var pathArray = opt.propertyPathArray || [];
-                var pathLength = pathArray.length;
-                if (pathLength > 1) {
-                    // We are changing a single label here e.g. 'labels/0/position'
-                    var labelExists = !!previousLabels[pathArray[1]];
-                    if (labelExists) {
-                        if (pathLength === 2) {
-                            // We are changing the entire label. Need to check if the
-                            // markup is also being changed.
-                            requireRender = ('markup' in Object(opt.propertyValue));
-                        } else if (pathArray[2] !== 'markup') {
-                            // We are changing a label property but not the markup
-                            requireRender = false;
-                        }
+        // Here is an optimization for cases when we know, that change does
+        // not require re-rendering of all labels.
+        if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
+            // The label is setting by `prop()` method
+            var pathArray = opt.propertyPathArray || [];
+            var pathLength = pathArray.length;
+            if (pathLength > 1) {
+                // We are changing a single label here e.g. 'labels/0/position'
+                var labelExists = !!previousLabels[pathArray[1]];
+                if (labelExists) {
+                    if (pathLength === 2) {
+                        // We are changing the entire label. Need to check if the
+                        // markup is also being changed.
+                        return ('markup' in Object(opt.propertyValue));
+                    } else if (pathArray[2] !== 'markup') {
+                        // We are changing a label property but not the markup
+                        return false;
                     }
                 }
             }
         }
 
-        if (requireRender) {
+        return true;
+    },
+
+    onLabelsChange: function(_link, _labels, opt) {
+
+        // Note: this optimization works in async=false mode only
+        if (this.isLabelsRenderRequired(opt)) {
             this.renderLabels();
         } else {
             this.updateLabels();
