@@ -1167,8 +1167,7 @@ export const Paper = View.extend({
     getContentArea: function(opt) {
 
         if (opt && opt.useModelGeometry) {
-            var graph = this.model;
-            return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new Rect();
+            return this.model.getBBox() || new Rect();
         }
 
         return V(this.cells).getBBox();
