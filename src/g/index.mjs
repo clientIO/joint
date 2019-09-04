@@ -4362,18 +4362,14 @@ Rect.prototype = {
     // @return {rect} representing the union of both rectangles.
     union: function(rect) {
 
-        rect = new Rect(rect);
-        var myOrigin = this.origin();
-        var myCorner = this.corner();
-        var rOrigin = rect.origin();
-        var rCorner = rect.corner();
-
-        var originX = min(myOrigin.x, rOrigin.x);
-        var originY = min(myOrigin.y, rOrigin.y);
-        var cornerX = max(myCorner.x, rCorner.x);
-        var cornerY = max(myCorner.y, rCorner.y);
-
-        return new Rect(originX, originY, cornerX - originX, cornerY - originY);
+        const u = new Rect(rect);
+        const { x, y, width, height } = this;
+        const { x: rx, y: ry, width: rw, height: rh } = u;
+        const ux = u.x = min(x, rx);
+        const uy = u.y = min(y, ry);
+        u.width = max(x + width, rx + rw) - ux;
+        u.height = max(y + height, ry + rh) - uy;
+        return u;
     }
 };
 
