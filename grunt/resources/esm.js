@@ -18,14 +18,16 @@ module.exports = {
         umd: 'build/joint.core.js', // joint + vectorizer + geometry. universal module
     },
     plugins: {
-        'joint.shapes.erd': { src: 'src/shapes/erd.mjs' },
-        'joint.shapes.fsa': { src: 'src/shapes/fsa.mjs' },
-        'joint.shapes.org': { src: 'src/shapes/org.mjs' },
-        'joint.shapes.chess': { src: 'src/shapes/chess.mjs' },
-        'joint.shapes.pn': { src: 'src/shapes/pn.mjs' },
-        'joint.shapes.devs': { src: 'src/shapes/devs.mjs' },
-        'joint.shapes.uml': { src: 'src/shapes/uml.mjs' },
-        'joint.shapes.logic': { src: 'src/shapes/logic.mjs' },
-        'joint.layout.DirectedGraph': { src: 'src/layout/DirectedGraph/DirectedGraph.mjs' }
+        'joint.shapes.basic': { src: 'src/shapes/basic.mjs' }, // don't export this namespace to a separate file
+        'joint.shapes.standard': { src: 'src/shapes/standard.mjs' }, // don't export this namespace to a separate file
+        'joint.shapes.erd': { src: 'src/shapes/erd.mjs', export: true },
+        'joint.shapes.fsa': { src: 'src/shapes/fsa.mjs', export: true },
+        'joint.shapes.org': { src: 'src/shapes/org.mjs', export: true },
+        'joint.shapes.chess': { src: 'src/shapes/chess.mjs', export: true },
+        'joint.shapes.pn': { src: 'src/shapes/pn.mjs', export: true },
+        'joint.shapes.devs': { src: 'src/shapes/devs.mjs', export: true },
+        'joint.shapes.uml': { src: 'src/shapes/uml.mjs', export: true },
+        'joint.shapes.logic': { src: 'src/shapes/logic.mjs', export: true },
+        'joint.layout.DirectedGraph': { src: 'src/layout/DirectedGraph/DirectedGraph.mjs', export: true }
     }
 };
