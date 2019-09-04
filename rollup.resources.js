@@ -17,6 +17,10 @@ let plugins = [
 
 let JOINT_FOOTER = 'if (typeof joint !== \'undefined\') { var g = joint.g, V = joint.V, Vectorizer = joint.V; }';
 
+// for the ES5 transpiling
+// prevent Rollup to include the local references into the partial ES5 file
+// e.g. joint.shapes.fsa shapes depends on `basic` shapes, but `basic` shapes shouldn't be
+// included in the resulting joint.shapes.fsa.js file.
 const readNamespace = function(namespace, global) {
     let location = './src/' + namespace;
     const list = fs.readdirSync(path.resolve(location));
@@ -36,7 +40,6 @@ const LOCAL_EXTERNALS = Object.assign(
         return res;
     }, {}),
     readNamespace('dia'),
-    readNamespace('shapes'),
     G_REF, V_REF,
     readNamespace('util')
 );
@@ -155,26 +158,30 @@ export const version = {
 
 export const jointPlugins = Object.keys(modules.plugins).reduce((res, namespace) => {
     const item = modules.plugins[namespace];
-    res.push({
-        input: item.src,
-        external: [
-            'jquery',
-            'backbone',
-            'lodash',
-        ].concat(Object.keys(LOCAL_EXTERNALS)),
-        output: [{
-            file: `build/${namespace}.js`,
-            format: 'iife',
-            extend: true,
-            name: namespace,
-            globals: Object.assign({
-                'jquery': '$',
-                'backbone': 'Backbone',
-                'lodash': '_',
-            }, LOCAL_EXTERNALS)
-        }],
-        plugins: plugins
-    });
+
+    if (item.export) {
+
+        res.push({
+            input: item.src,
+            external: [
+                'jquery',
+                'backbone',
+                'lodash',
+            ].concat(Object.keys(LOCAL_EXTERNALS)),
+            output: [{
+                file: `build/${namespace}.js`,
+                format: 'iife',
+                extend: true,
+                name: namespace,
+                globals: Object.assign({
+                    'jquery': '$',
+                    'backbone': 'Backbone',
+                    'lodash': '_',
+                }, LOCAL_EXTERNALS)
+            }],
+            plugins: plugins
+        });
+    }
 
     return res;
 }, []);
