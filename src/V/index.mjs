@@ -2169,12 +2169,12 @@ const V = (function() {
                 return [m2, m3, m4].concat(res);
             } else {
                 res = [m2, m3, m4].concat(res).join().split(',');
-                var newRes = [];
-                var ii = ii = res.length;
+                var newres = [];
+                var ii = res.length;
                 for (var i = 0; i < ii; i++) {
-                    newRes[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+                    newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
                 }
-                return newRes;
+                return newres;
             }
         }
 
