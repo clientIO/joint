@@ -1252,6 +1252,10 @@ QUnit.module('vectorizer', function(hooks) {
             assert.equal(V.normalizePathData('A 0 3 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 x radius
             assert.equal(V.normalizePathData('A 3 0 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 y radius
             assert.equal(V.normalizePathData('A 0 0 0 0 1 10 15'), 'M 0 0 L 10 15'); // 0 x and y radii
+
+            // Make sure this does not throw an error because of recursion in a2c() exceeding the maximum stack size
+            V.normalizePathData('M 0 0 A 1 1 0 1 0 -1 -1');
+            V.normalizePathData('M 14.4 29.52 a .72 .72 0 1 0 -.72 -.72 A .72 .72 0 0 0 14.4 29.52Z');
         });
 
         QUnit.test('path segment reconstruction', function(assert) {
