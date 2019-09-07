@@ -2076,21 +2076,20 @@ const V = (function() {
             return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
         }
 
+        function rotate(x, y, rad) {
+
+            var X = (x * cos(rad)) - (y * sin(rad));
+            var Y = (x * sin(rad)) + (y * cos(rad));
+            return { x: X, y: Y };
+        }
+
         function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
             // for more information of where this math came from visit:
             // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-
             var _120 = (PI * 120) / 180;
             var rad = (PI / 180) * (+angle || 0);
             var res = [];
             var xy;
-
-            var rotate = function(x, y, rad) {
-
-                var X = (x * cos(rad)) - (y * sin(rad));
-                var Y = (x * sin(rad)) + (y * cos(rad));
-                return { x: X, y: Y };
-            };
 
             if (!recursive) {
                 xy = rotate(x1, y1, -rad);
@@ -2114,7 +2113,8 @@ const V = (function() {
                 var rx2 = rx * rx;
                 var ry2 = ry * ry;
 
-                var k = ((large_arc_flag == sweep_flag) ? -1 : 1) * sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
+                var k = ((large_arc_flag == sweep_flag) ? -1 : 1) *
+                    sqrt(abs(((rx2 * ry2) - (rx2 * y * y) - (ry2 * x * x)) / ((rx2 * y * y) + (ry2 * x * x))));
 
                 var cx = ((k * rx * y) / ry) + ((x1 + x2) / 2);
                 var cy = ((k * -ry * x) / rx) + ((y1 + y2) / 2);
@@ -2128,8 +2128,8 @@ const V = (function() {
                 if (f1 < 0) f1 = (PI * 2) + f1;
                 if (f2 < 0) f2 = (PI * 2) + f2;
 
-                if ((sweep_flag && f1) > f2) f1 = f1 - (PI * 2);
-                if ((!sweep_flag && f2) > f1) f2 = f2 - (PI * 2);
+                if (sweep_flag && (f1 > f2)) f1 = f1 - (PI * 2);
+                if (!sweep_flag && (f2 > f1)) f2 = f2 - (PI * 2);
 
             } else {
                 f1 = recursive[0];
@@ -2139,16 +2139,13 @@ const V = (function() {
             }
 
             var df = f2 - f1;
-
             if (abs(df) > _120) {
                 var f2old = f2;
                 var x2old = x2;
                 var y2old = y2;
-
-                f2 = f1 + (_120 * (((sweep_flag && f2) > f1) ? 1 : -1));
+                f2 = f1 + (_120 * ((sweep_flag && (f2 > f1)) ? 1 : -1));
                 x2 = cx + (rx * cos(f2));
                 y2 = cy + (ry * sin(f2));
-
                 res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
             }
 
@@ -2158,12 +2155,9 @@ const V = (function() {
             var s1 = sin(f1);
             var c2 = cos(f2);
             var s2 = sin(f2);
-
             var t = tan(df / 4);
-
             var hx = (4 / 3) * (rx * t);
             var hy = (4 / 3) * (ry * t);
-
             var m1 = [x1, y1];
             var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
             var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
@@ -2174,17 +2168,13 @@ const V = (function() {
 
             if (recursive) {
                 return [m2, m3, m4].concat(res);
-
             } else {
                 res = [m2, m3, m4].concat(res).join().split(',');
-
-                var newres = [];
-                var ii = res.length;
-                for (var i = 0; i < ii; i++) {
-                    newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
+                var newRes = [];
+                for (var i = 0, ii = res.length; i < ii; i++) {
+                    newRes[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
                 }
-
-                return newres;
+                return newRes;
             }
         }
 
