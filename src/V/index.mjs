@@ -2170,7 +2170,8 @@ const V = (function() {
             } else {
                 res = [m2, m3, m4].concat(res).join().split(',');
                 var newRes = [];
-                for (var i = 0, ii = res.length; i < ii; i++) {
+                var ii = ii = res.length;
+                for (var i = 0; i < ii; i++) {
                     newRes[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
                 }
                 return newRes;
