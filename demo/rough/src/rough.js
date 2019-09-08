@@ -1,11 +1,14 @@
 (function(joint, rough, g) {
 
+    var WIDTH = 800;
+    var HEIGHT = 800;
+
     var graph = new joint.dia.Graph;
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
-        width: 800,
-        height: 400,
+        width: WIDTH,
+        height: HEIGHT,
         gridSize: 1,
         model: graph,
         clickThreshold: 5,
@@ -20,7 +23,11 @@
         }
     });
 
-    paper.rough = rough.svg(paper.svg);
+    var r = rough.svg(paper.svg);
+    var padding = 4;
+    var borderEl = r.rectangle(padding, padding, WIDTH - 2 * padding, HEIGHT - 2 * padding);
+    paper.svg.appendChild(borderEl);
+    paper.rough = r;
 
     paper.on({
         'link:mouseenter': function(linkView) {
@@ -40,24 +47,25 @@
             var data = evt.data = {};
             var cell;
             if (evt.shiftKey) {
-                cell = new RoughLink();
+                cell = new RoughLink({
+                    attrs: {
+                        line: {
+                            rough: {
+                                bowing: g.random(1,3)
+                            }
+                        }
+                    }
+                });
                 cell.source({ x: x, y: y });
                 cell.target({ x: x, y: y });
             } else {
                 var type = ['rectangle','ellipse'][g.random(0, 1)];
-                var fillStyle = ['hachure', 'starburst', 'zigzag-line', 'dots', 'solid'][g.random(0,4)];
-                var color = ['#31d0c6', '#7c68fc', '#fe854f', '#feb663', '#c6c7e2'][g.random(0,4)];
                 cell = new RoughElement({
                     attrs: {
                         body: {
                             rough: {
                                 type: type,
-                                hachureGap: g.random(8, 15),
-                                hachureAngle: g.random(0, 180),
-                                fillStyle: fillStyle
-                            },
-                            stroke: color,
-                            fill: color
+                            }
                         },
                         border: {
                             rough: {
@@ -86,6 +94,23 @@
                     size: { width: Math.max(bbox.width, 1), height: Math.max(bbox.height, 1) }
                 });
             }
+        },
+        'blank:pointerup': function(evt) {
+            var cell = evt.data.cell;
+            if (cell.isLink()) return;
+            var fillStyle = ['hachure', 'starburst', 'zigzag-line', 'dots', 'solid'][g.random(0,4)];
+            var color = ['#31d0c6', '#7c68fc', '#fe854f', '#feb663', '#c6c7e2'][g.random(0,4)];
+            cell.attr({
+                body: {
+                    rough: {
+                        hachureGap: g.random(8, 15),
+                        hachureAngle: g.random(0, 180),
+                        fillStyle: fillStyle
+                    },
+                    stroke: color,
+                    fill: color
+                }
+            });
         }
     });
 
@@ -117,7 +142,7 @@
                 refX: '50%',
                 refY: '100%',
                 refY2: 10,
-                fontSize: 15,
+                fontSize: 17,
                 fill: '#c6c7e2'
             }
         }
@@ -174,7 +199,7 @@
         },
         attrs: {
             line: {
-                rough: true,
+                rough: { bowing: 2 },
                 stroke: '#333333',
                 strokeWidth: 2,
                 strokeLinejoin: 'round',
@@ -213,7 +238,10 @@
                 set: function(opt) {
                     var r = this.paper.rough;
                     if (!r) return;
-                    return { d: r.opsToPath(r.generator.path(this.getSerializedConnection(), { bowing: opt.bowing || 1 }).sets[0]) };
+                    var rOpt = {
+                        bowing: opt.bowing || 1
+                    };
+                    return { d: r.opsToPath(r.generator.path(this.getSerializedConnection(), rOpt).sets[0]) };
                 }
             }
         }
@@ -322,7 +350,7 @@
     rl1.source(r1, { selector: 'border' });
     rl1.target(r2, { selector: 'border' });
 
-    var rl2 = new RoughLink({ attrs: { line: { rough: { bowing: 4 }}}});
+    var rl2 = new RoughLink();
     rl2.source(r1, { selector: 'border' });
     rl2.target(r3, { selector: 'border' });
 
