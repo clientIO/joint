@@ -1,4 +1,4 @@
-(function(joint, rough) {
+(function(joint, rough, g) {
 
     var graph = new joint.dia.Graph;
 
@@ -8,7 +8,6 @@
         height: 400,
         gridSize: 1,
         model: graph,
-        linkPinning: false,
         clickThreshold: 5,
         async: true,
         connectionStrategy: joint.connectionStrategies.pinAbsolute,
@@ -17,7 +16,7 @@
             return new RoughLink();
         },
         validateMagnet: function(_view, _magnet, evt) {
-            return !!evt.shiftKey;
+            return evt.shiftKey;
         }
     });
 
@@ -27,7 +26,7 @@
         'link:mouseenter': function(linkView) {
             linkView.addTools(new joint.dia.ToolsView({
                 tools: [
-                    new joint.linkTools.Vertices(),
+                    new joint.linkTools.Vertices({ snapRadius: 0 }),
                     new joint.linkTools.SourceArrowhead(),
                     new joint.linkTools.TargetArrowhead(),
                     new joint.linkTools.Remove({ distance: 20 }),
@@ -36,6 +35,57 @@
         },
         'link:mouseleave': function(linkView) {
             linkView.removeTools();
+        },
+        'blank:pointerdown': function(evt, x, y) {
+            var data = evt.data = {};
+            var cell;
+            if (evt.shiftKey) {
+                cell = new RoughLink();
+                cell.source({ x: x, y: y });
+                cell.target({ x: x, y: y });
+            } else {
+                var type = ['rectangle','ellipse'][g.random(0, 1)];
+                var fillStyle = ['hachure', 'starburst', 'zigzag-line', 'dots', 'solid'][g.random(0,4)];
+                var color = ['#31d0c6', '#7c68fc', '#fe854f', '#feb663', '#c6c7e2'][g.random(0,4)];
+                cell = new RoughElement({
+                    attrs: {
+                        body: {
+                            rough: {
+                                type: type,
+                                hachureGap: g.random(8, 15),
+                                hachureAngle: g.random(0, 180),
+                                fillStyle: fillStyle
+                            },
+                            stroke: color,
+                            fill: color
+                        },
+                        border: {
+                            rough: {
+                                type: type
+                            }
+                        }
+                    }
+                });
+                cell.position(x, y);
+                data.x = x;
+                data.y = y;
+            }
+            cell.addTo(this.model);
+            data.cell = cell;
+        },
+        'blank:pointermove': function(evt, x, y) {
+            var data = evt.data;
+            var cell = data.cell;
+            if (cell.isLink()) {
+                cell.target({ x: x, y: y });
+            } else {
+                var bbox = new g.Rect(data.x, data.y, x - data.x, y - data.y);
+                bbox.normalize();
+                cell.set({
+                    position: { x: bbox.x, y: bbox.y },
+                    size: { width: Math.max(bbox.width, 1), height: Math.max(bbox.height, 1) }
+                });
+            }
         }
     });
 
@@ -80,7 +130,7 @@
             selector: 'border',
             attributes: {
                 'pointer-events': 'bounding-box',
-                'magnet': 'onshift'
+                'magnet': 'on-shift'
             }
         }, {
             tagName: 'text',
@@ -281,5 +331,5 @@
     rl3.target(r4, { selector: 'border' });
 
     graph.resetCells([r1, r2, r3, r4, rl1, rl2, rl3]);
-    window.xxx = graph;
-})(joint, rough);
+
+})(joint, rough, g);
