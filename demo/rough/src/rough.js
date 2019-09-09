@@ -1,4 +1,4 @@
-(function(joint, rough, g) {
+(function(joint, Rough, g) {
 
     var WIDTH = 800;
     var HEIGHT = 800;
@@ -13,6 +13,7 @@
         model: graph,
         clickThreshold: 5,
         async: true,
+        sorting: joint.dia.Paper.sorting.APPROX,
         connectionStrategy: joint.connectionStrategies.pinAbsolute,
         defaultConnectionPoint: { name: 'boundary' },
         defaultLink: function() {
@@ -23,11 +24,11 @@
         }
     });
 
-    var r = rough.svg(paper.svg);
+    var rough = Rough.svg(paper.svg);
     var padding = 4;
-    var borderEl = r.rectangle(padding, padding, WIDTH - 2 * padding, HEIGHT - 2 * padding);
+    var borderEl = rough.rectangle(padding, padding, WIDTH - 2 * padding, HEIGHT - 2 * padding);
     paper.svg.appendChild(borderEl);
-    paper.rough = r;
+    paper.rough = rough;
 
     paper.on({
         'link:mouseenter': function(linkView) {
@@ -115,6 +116,7 @@
     });
 
     var RoughElement = joint.dia.Element.define('rough.Rectangle', {
+        z: 2,
         attrs: {
             root: {
                 magnet: false
@@ -191,6 +193,7 @@
     });
 
     var RoughLink = joint.dia.Link.define('rough.Link', {
+        z: 1,
         source: {
             selector: 'border',
         },
@@ -250,6 +253,8 @@
     // Elements
 
     var r1 = new RoughElement({
+        size: { width: 100, height: 50 },
+        position: { x: 50, y: 50 },
         attrs: {
             body: {
                 rough: {
@@ -262,15 +267,17 @@
                     hachureAngle: 60,
                     hachureGap: 8
                 }
+            },
+            label: {
+                text: 'RoughJS',
+                fill: '#333333'
             }
         }
     });
-    r1.resize(100, 100);
-    r1.position(50, 50);
 
     var r2 = new RoughElement({
         size: { width: 80, height: 80 },
-        position: { x: 350, y: 100 },
+        position: { x: 380, y: 120 },
         attrs: {
             body: {
                 rough: {
@@ -294,6 +301,8 @@
     });
 
     var r3 = new RoughElement({
+        size: { width: 80, height: 85 },
+        position: { x: 280, y: 200 },
         attrs: {
             body: {
                 rough: {
@@ -316,10 +325,9 @@
         }
     });
 
-    r3.resize(100, 100);
-    r3.position(250, 200);
-
     var r4 = new RoughElement({
+        size: { width: 75, height: 75 },
+        position: { x: 280, y: 20 },
         attrs: {
             body: {
                 rough: {
@@ -341,9 +349,30 @@
         }
     });
 
-    r4.resize(120, 120);
-    r4.position(80, 250);
-
+    var r5 = new RoughElement({
+        size: { width: 70, height: 70 },
+        position: { x: 190, y: 250 },
+        attrs: {
+            body: {
+                rough: {
+                    hachureGap: 5,
+                    fillStyle: 'solid',
+                    type: 'ellipse'
+                },
+                stroke: '#feb663',
+                fill: '#feb663'
+            },
+            border: {
+                rough: {
+                    type: 'ellipse'
+                }
+            },
+            label: {
+                text: 'Solid',
+                fill: '#feb663'
+            }
+        }
+    });
     // Links
 
     var rl1 = new RoughLink();
@@ -358,6 +387,10 @@
     rl3.source(r1, { selector: 'border' });
     rl3.target(r4, { selector: 'border' });
 
-    graph.resetCells([r1, r2, r3, r4, rl1, rl2, rl3]);
+    var rl4 = new RoughLink();
+    rl4.source(r1, { selector: 'border' });
+    rl4.target(r5, { selector: 'border' });
+
+    graph.resetCells([r1, r2, r3, r4, r5, rl1, rl2, rl3, rl4]);
 
 })(joint, rough, g);
