@@ -717,8 +717,8 @@ var Button = ToolView.extend({
     },
     getElementMatrix() {
         const { relatedView: view, options } = this;
-        const bbox = getViewBBox(view, options.useModelGeometry);
-        let { x = 0, y = 0, offset = {}} = options;
+        let { x = 0, y = 0, offset = {}, useModelGeometry } = options;
+        const bbox = getViewBBox(view, useModelGeometry);
         const { x: offsetX = 0, y: offsetY = 0 } = offset;
         if (util.isPercentage(x)) {
             x = parseFloat(x) / 100 * bbox.width;
@@ -730,8 +730,8 @@ var Button = ToolView.extend({
     },
     getLinkMatrix() {
         const { relatedView: view, options } = this;
-        let tangent, position, angle;
         const { offset = 0, distance = 0, rotate } = options;
+        let tangent, position, angle;
         if (util.isPercentage(distance)) {
             tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
         } else {

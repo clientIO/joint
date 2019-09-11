@@ -69,13 +69,14 @@
                     new joint.linkTools.Remove({
                         markup: removeButtonMarkup,
                         distance: 20
-                    }),
+                    })
                 ] : [
                     new joint.elementTools.Remove({
                         markup: removeButtonMarkup,
+                        useModelGeometry: true,
                         y: '0%',
                         x: '100%',
-                        offset: { x: -5, y: 5 }
+                        offset: { x: -3, y: 3 }
                     })
                 ]
             }));
