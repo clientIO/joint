@@ -608,7 +608,7 @@ export const ElementView = CellView.extend({
         this.eventData(evt, { targetMagnet: magnet });
         evt.stopPropagation();
 
-        if (paper.options.validateMagnet(this, magnet)) {
+        if (paper.options.validateMagnet(this, magnet, evt)) {
 
             if (paper.options.magnetThreshold <= 0) {
                 this.dragLinkStart(evt, magnet, x, y);
