@@ -53,8 +53,34 @@ QUnit.module('elementTools', function(hooks) {
         }, {
             options: { x: '100%', y: '100%', offset: { x: 2, y: 3 }},
             position: { x: 211 + 2, y: 213 + 3 }
+        }, {
+            options: { x: '100%', y: '100%', rotate: false  },
+            position: { x: 212, y: 212 },
+            before: function() {
+                element.rotate(90);
+            }
+        }, {
+            options: { x: '100%', y: '100%', rotate: true  },
+            position: { x: 99, y: 212 },
+            before: function() {
+                element.rotate(90);
+            }
+        }, {
+            options: { x: '100%', y: '100%', rotate: false, useModelGeometry: true  },
+            position: { x: 200, y: 200 },
+            before: function() {
+                element.rotate(90);
+            }
+        }, {
+            options: { x: '100%', y: '100%', rotate: true, useModelGeometry: true },
+            position: { x: 100, y: 200 },
+            before: function() {
+                element.rotate(90);
+            }
+
         }].forEach(function(testCase) {
             QUnit.test('position (' + JSON.stringify(testCase.options) + ')', function(assert) {
+                if (testCase.before) testCase.before.call();
                 var remove = new joint.elementTools.Remove(testCase.options);
                 elementView.addTools(new joint.dia.ToolsView({ tools: [remove] }));
                 var bbox = remove.vel.getBBox({ target: paper.svg });

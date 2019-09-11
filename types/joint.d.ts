@@ -3317,6 +3317,7 @@ export namespace elementTools {
         interface Options extends dia.ToolView.Options {
             padding?: number;
             useModelGeometry?: boolean;
+            rotate?: boolean;
         }
     }
 

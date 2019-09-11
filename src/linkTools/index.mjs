@@ -34,7 +34,7 @@ function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
 function getViewBBox(view, useModelGeometry) {
     const { model } = view;
     if (useModelGeometry) return model.getBBox();
-    return (model.isLink()) ? view.getConnection().bbox() : view.getBBox();
+    return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
 }
 
 // Vertex Handles
@@ -717,8 +717,10 @@ var Button = ToolView.extend({
     },
     getElementMatrix() {
         const { relatedView: view, options } = this;
-        let { x = 0, y = 0, offset = {}, useModelGeometry } = options;
-        const bbox = getViewBBox(view, useModelGeometry);
+        let { x = 0, y = 0, offset = {}, useModelGeometry, rotate } = options;
+        let bbox = getViewBBox(view, useModelGeometry);
+        const angle = view.model.angle();
+        if (!rotate) bbox = bbox.bbox(angle);
         const { x: offsetX = 0, y: offsetY = 0 } = offset;
         if (util.isPercentage(x)) {
             x = parseFloat(x) / 100 * bbox.width;
@@ -726,7 +728,10 @@ var Button = ToolView.extend({
         if (util.isPercentage(y)) {
             y = parseFloat(y) / 100 * bbox.height;
         }
-        return V.createSVGMatrix().translate(bbox.x + x + offsetX, bbox.y + y + offsetY);
+        let matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
+        if (rotate) matrix = matrix.rotate(angle);
+        matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
+        return matrix;
     },
     getLinkMatrix() {
         const { relatedView: view, options } = this;
@@ -796,7 +801,7 @@ var Boundary = ToolView.extend({
     tagName: 'rect',
     options: {
         padding: 10,
-        useModelGeometry: false
+        useModelGeometry: false,
     },
     attributes: {
         'fill': 'none',
@@ -809,10 +814,23 @@ var Boundary = ToolView.extend({
         this.update();
     },
     update: function() {
-        let { padding, useModelGeometry }= this.options;
+        const { relatedView: view, options, vel } = this;
+        let { padding, useModelGeometry, rotate }= options;
         if (!isFinite(padding)) padding = 0;
-        const bbox = getViewBBox(this.relatedView, useModelGeometry).inflate(padding);
-        this.vel.attr(bbox.toJSON());
+        let bbox = getViewBBox(view, useModelGeometry).inflate(padding);
+        var model = view.model;
+        if (model.isElement()) {
+            var angle = model.angle();
+            if (angle) {
+                if (rotate) {
+                    var origin = model.getBBox().center();
+                    vel.rotate(angle, origin.x, origin.y, { absolute: true });
+                } else {
+                    bbox = bbox.bbox(angle);
+                }
+            }
+        }
+        vel.attr(bbox.toJSON());
         return this;
     }
 });

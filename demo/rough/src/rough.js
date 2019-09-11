@@ -19,8 +19,8 @@
         defaultLink: function() {
             return new RoughLink();
         },
-        validateMagnet: function(_view, _magnet, evt) {
-            return evt.shiftKey;
+        validateMagnet: function(_view, magnet, evt) {
+            return magnet.getAttribute('magnet') === 'on-shift' && evt.shiftKey;
         }
     });
 
@@ -42,37 +42,16 @@
             }
         },
         'cell:mouseenter': function(cellView) {
-            var removeButtonMarkup = [{
-                tagName: 'circle',
-                selector: 'button',
-                attributes: {
-                    'r': 7,
-                    'fill': '#333333',
-                    'cursor': 'pointer'
-                }
-            }, {
-                tagName: 'path',
-                selector: 'icon',
-                attributes: {
-                    'd': 'M -3 -3 3 3 M -3 3 3 -3',
-                    'fill': 'none',
-                    'stroke': '#FFFFFF',
-                    'stroke-width': 2,
-                    'pointer-events': 'none'
-                }
-            }];
             cellView.addTools(new joint.dia.ToolsView({
                 tools: cellView.model.isLink() ? [
                     new joint.linkTools.Vertices({ snapRadius: 0 }),
                     new joint.linkTools.SourceArrowhead(),
                     new joint.linkTools.TargetArrowhead(),
                     new joint.linkTools.Remove({
-                        markup: removeButtonMarkup,
                         distance: 20
                     })
                 ] : [
                     new joint.elementTools.Remove({
-                        markup: removeButtonMarkup,
                         useModelGeometry: true,
                         y: '0%',
                         x: '100%',
@@ -100,7 +79,7 @@
                 cell.source({ x: x, y: y });
                 cell.target({ x: x, y: y });
             } else {
-                var type = ['rectangle','ellipse'][g.random(0, 1)];
+                var type = ['rectangle', 'ellipse'][g.random(0, 1)];
                 cell = new RoughElement({
                     attrs: {
                         body: {
