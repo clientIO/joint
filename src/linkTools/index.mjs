@@ -31,6 +31,12 @@ function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
     return coords;
 }
 
+function getViewBBox(view, useModelGeometry) {
+    const { model } = view;
+    if (useModelGeometry) return model.getBBox();
+    return (model.isLink()) ? view.getConnection().bbox() : view.getBBox();
+}
+
 // Vertex Handles
 var VertexHandle = mvc.View.extend({
     tagName: 'circle',
@@ -705,43 +711,46 @@ var Button = ToolView.extend({
         return this;
     },
     position: function() {
-        var view = this.relatedView;
-        if (view.model.isLink()) {
-            let tangent, position, angle;
-            const distance = this.options.distance || 0;
-            if (util.isPercentage(distance)) {
-                tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
-            } else {
-                tangent = view.getTangentAtLength(distance);
-            }
-            if (tangent) {
-                position = tangent.start;
-                angle = tangent.vector().vectorAngle(new g.Point(1, 0)) || 0;
-            } else {
-                position = view.getConnection().start;
-                angle = 0;
-            }
-            let matrix = V.createSVGMatrix()
-                .translate(position.x, position.y)
-                .rotate(angle)
-                .translate(0, this.options.offset || 0);
-            if (!this.options.rotate) matrix = matrix.rotate(-angle);
-            this.vel.transform(matrix, { absolute: true });
-        } else {
-            const bbox = view.getBBox();
-            let { x = 0, y = 0, offset = {}} = this.options;
-            const { x: offsetX = 0, y: offsetY = 0 } = offset;
-            if (util.isPercentage(x)) {
-                x = parseFloat(x) / 100 * bbox.width;
-            }
-            if (util.isPercentage(y)) {
-                y = parseFloat(y) / 100 * bbox.height;
-            }
-            const matrix = V.createSVGMatrix().translate(bbox.x + x + offsetX, bbox.y + y + offsetY);
-            this.vel.transform(matrix, { absolute: true });
-        }
+        const { relatedView: view, vel } = this;
+        const matrix = view.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
+        vel.transform(matrix, { absolute: true });
     },
-
+    getElementMatrix() {
+        const { relatedView: view, options } = this;
+        const bbox = getViewBBox(view, options.useModelGeometry);
+        let { x = 0, y = 0, offset = {}} = options;
+        const { x: offsetX = 0, y: offsetY = 0 } = offset;
+        if (util.isPercentage(x)) {
+            x = parseFloat(x) / 100 * bbox.width;
+        }
+        if (util.isPercentage(y)) {
+            y = parseFloat(y) / 100 * bbox.height;
+        }
+        return V.createSVGMatrix().translate(bbox.x + x + offsetX, bbox.y + y + offsetY);
+    },
+    getLinkMatrix() {
+        const { relatedView: view, options } = this;
+        let tangent, position, angle;
+        const { offset = 0, distance = 0, rotate } = options;
+        if (util.isPercentage(distance)) {
+            tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
+        } else {
+            tangent = view.getTangentAtLength(distance);
+        }
+        if (tangent) {
+            position = tangent.start;
+            angle = tangent.vector().vectorAngle(new g.Point(1, 0)) || 0;
+        } else {
+            position = view.getConnection().start;
+            angle = 0;
+        }
+        let matrix = V.createSVGMatrix()
+            .translate(position.x, position.y)
+            .rotate(angle)
+            .translate(0, offset);
+        if (!rotate) matrix = matrix.rotate(-angle);
+        return matrix;
+    },
     onPointerDown: function(evt) {
         evt.stopPropagation();
         evt.preventDefault();
@@ -786,7 +795,8 @@ var Boundary = ToolView.extend({
     name: 'boundary',
     tagName: 'rect',
     options: {
-        padding: 10
+        padding: 10,
+        useModelGeometry: false
     },
     attributes: {
         'fill': 'none',
@@ -799,10 +809,9 @@ var Boundary = ToolView.extend({
         this.update();
     },
     update: function() {
-        var padding = this.options.padding;
+        let { padding, useModelGeometry }= this.options;
         if (!isFinite(padding)) padding = 0;
-        var view = this.relatedView;
-        var bbox = (view.model.isLink() ? view.getConnection().bbox() : view.getBBox()).inflate(padding);
+        const bbox = getViewBBox(this.relatedView, useModelGeometry).inflate(padding);
         this.vel.attr(bbox.toJSON());
         return this;
     }

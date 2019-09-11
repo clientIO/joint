@@ -3298,6 +3298,7 @@ export namespace elementTools {
             rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
+            useModelGeometry?: boolean;
         }
     }
 
@@ -3315,6 +3316,7 @@ export namespace elementTools {
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
             padding?: number;
+            useModelGeometry?: boolean;
         }
     }
 
@@ -3445,6 +3447,7 @@ export namespace linkTools {
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
             padding?: number;
+            useModelGeometry?: boolean;
         }
     }
 
