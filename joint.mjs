@@ -17,10 +17,11 @@ export {
     routers,
     util,
     linkTools,
+    elementTools,
     Vectorizer,
     V,
     version,
     g
 } from './src/core.mjs';
 
-export { layout, shapes }
+export { layout, shapes };

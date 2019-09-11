@@ -31,17 +31,56 @@
     paper.rough = rough;
 
     paper.on({
-        'link:mouseenter': function(linkView) {
-            linkView.addTools(new joint.dia.ToolsView({
-                tools: [
+        'element:pointerdblclick': function(elementView) {
+            var element = elementView.model;
+            var text = prompt('Shape Text', element.attr(['label', 'text']));
+            if (text !== null) {
+                element.attr({
+                    label: { text: text },
+                    root: { title: text }
+                });
+            }
+        },
+        'cell:mouseenter': function(cellView) {
+            var removeButtonMarkup = [{
+                tagName: 'circle',
+                selector: 'button',
+                attributes: {
+                    'r': 7,
+                    'fill': '#333333',
+                    'cursor': 'pointer'
+                }
+            }, {
+                tagName: 'path',
+                selector: 'icon',
+                attributes: {
+                    'd': 'M -3 -3 3 3 M -3 3 3 -3',
+                    'fill': 'none',
+                    'stroke': '#FFFFFF',
+                    'stroke-width': 2,
+                    'pointer-events': 'none'
+                }
+            }];
+            cellView.addTools(new joint.dia.ToolsView({
+                tools: cellView.model.isLink() ? [
                     new joint.linkTools.Vertices({ snapRadius: 0 }),
                     new joint.linkTools.SourceArrowhead(),
                     new joint.linkTools.TargetArrowhead(),
-                    new joint.linkTools.Remove({ distance: 20 }),
+                    new joint.linkTools.Remove({
+                        markup: removeButtonMarkup,
+                        distance: 20
+                    }),
+                ] : [
+                    new joint.elementTools.Remove({
+                        markup: removeButtonMarkup,
+                        y: '0%',
+                        x: '100%',
+                        offset: { x: -5, y: 5 }
+                    })
                 ]
             }));
         },
-        'link:mouseleave': function(linkView) {
+        'cell:mouseleave': function(linkView) {
             linkView.removeTools();
         },
         'blank:pointerdown': function(evt, x, y) {
@@ -138,14 +177,23 @@
                 fill: 'none'
             },
             label: {
+                textWrap: {
+                    ellipsis: true,
+                    width: '200%',
+                    height: 200
+                },
                 textVerticalAnchor: 'top',
                 textAnchor: 'middle',
                 fontFamily: 'fantasy',
                 refX: '50%',
                 refY: '100%',
                 refY2: 10,
-                fontSize: 17,
-                fill: '#c6c7e2'
+                fontSize: 20,
+                fontWeight: 'bold',
+                fill: '#FFFFFF',
+                stroke: '#333333',
+                strokeWidth: 0.8,
+                pointerEvents: 'none'
             }
         }
     }, {
@@ -269,8 +317,7 @@
                 }
             },
             label: {
-                text: 'RoughJS',
-                fill: '#333333'
+                text: 'RoughJS'
             }
         }
     });
@@ -294,15 +341,14 @@
                 }
             },
             label: {
-                text: 'Zigzag Line',
-                fill: '#fe854f'
+                text: 'Zigzag Line'
             }
         }
     });
 
     var r3 = new RoughElement({
-        size: { width: 80, height: 85 },
-        position: { x: 280, y: 200 },
+        size: { width: 100, height: 85 },
+        position: { x: 300, y: 230 },
         attrs: {
             body: {
                 rough: {
@@ -319,8 +365,7 @@
                 }
             },
             label: {
-                text: 'Starburst',
-                fill: '#7c68fc'
+                text: 'Starburst'
             }
         }
     });
@@ -343,8 +388,7 @@
                 }
             },
             label: {
-                text: 'Dots',
-                fill: '#31d0c6'
+                text: 'Dots'
             }
         }
     });
@@ -368,8 +412,7 @@
                 }
             },
             label: {
-                text: 'Solid',
-                fill: '#feb663'
+                text: 'Solid'
             }
         }
     });
