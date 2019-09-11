@@ -3787,6 +3787,40 @@ Polyline.prototype = {
         return this;
     },
 
+    simplify: function() {
+
+        var points = this.points;
+        var numPoints = points.length;
+        if (numPoints < 3) return this; // needs at least three points
+        // polylines of 2 points are never simplified
+        // even if the 2 points are coincident
+
+        var index = 1;
+        while (points[index + 1]) {
+            var p1 = points[index - 1];
+            var midPoint = points[index];
+            var p2 = points[index + 1];
+
+            if (p1.equals(midPoint) || midPoint.equals(p2)) {
+                // midPoint equals first point or second point
+                // midPoint.angleBetween would return NaN
+                points.splice(index, 1);
+
+            } else if (midPoint.angleBetween(p1, p2) === 180) {
+                // midPoint lies on a straight line
+                points.splice(index, 1);
+
+            } else {
+                // nothing removed
+                // move index up by one
+                index += 1;
+            }
+        }
+
+        // points array was changed in-place
+        return this;
+    },
+
     tangentAt: function(ratio) {
 
         var points = this.points;
