@@ -701,28 +701,47 @@ var Button = ToolView.extend({
         this.update();
     },
     update: function() {
-        var tangent, position, angle;
-        var distance = this.options.distance || 0;
-        if (util.isPercentage(distance)) {
-            tangent = this.relatedView.getTangentAtRatio(parseFloat(distance) / 100);
-        } else {
-            tangent = this.relatedView.getTangentAtLength(distance);
-        }
-        if (tangent) {
-            position = tangent.start;
-            angle = tangent.vector().vectorAngle(new g.Point(1, 0)) || 0;
-        } else {
-            position = this.relatedView.getConnection().start;
-            angle = 0;
-        }
-        var matrix = V.createSVGMatrix()
-            .translate(position.x, position.y)
-            .rotate(angle)
-            .translate(0, this.options.offset || 0);
-        if (!this.options.rotate) matrix = matrix.rotate(-angle);
-        this.vel.transform(matrix, { absolute: true });
+        this.position();
         return this;
     },
+    position: function() {
+        var view = this.relatedView;
+        if (view.model.isLink()) {
+            let tangent, position, angle;
+            const distance = this.options.distance || 0;
+            if (util.isPercentage(distance)) {
+                tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
+            } else {
+                tangent = view.getTangentAtLength(distance);
+            }
+            if (tangent) {
+                position = tangent.start;
+                angle = tangent.vector().vectorAngle(new g.Point(1, 0)) || 0;
+            } else {
+                position = view.getConnection().start;
+                angle = 0;
+            }
+            let matrix = V.createSVGMatrix()
+                .translate(position.x, position.y)
+                .rotate(angle)
+                .translate(0, this.options.offset || 0);
+            if (!this.options.rotate) matrix = matrix.rotate(-angle);
+            this.vel.transform(matrix, { absolute: true });
+        } else {
+            const bbox = view.getBBox();
+            let { x = 0, y = 0, offset = {}} = this.options;
+            const { x: offsetX = 0, y: offsetY = 0 } = offset;
+            if (util.isPercentage(x)) {
+                x = parseFloat(x) / 100 * bbox.width;
+            }
+            if (util.isPercentage(y)) {
+                y = parseFloat(y) / 100 * bbox.height;
+            }
+            const matrix = V.createSVGMatrix().translate(bbox.x + x + offsetX, bbox.y + y + offsetY);
+            this.vel.transform(matrix, { absolute: true });
+        }
+    },
+
     onPointerDown: function(evt) {
         evt.stopPropagation();
         evt.preventDefault();
@@ -782,7 +801,8 @@ var Boundary = ToolView.extend({
     update: function() {
         var padding = this.options.padding;
         if (!isFinite(padding)) padding = 0;
-        var bbox = this.relatedView.getConnection().bbox().inflate(padding);
+        var view = this.relatedView;
+        var bbox = (view.model.isLink() ? view.getConnection().bbox() : view.getBBox()).inflate(padding);
         this.vel.attr(bbox.toJSON());
         return this;
     }

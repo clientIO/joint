@@ -157,7 +157,7 @@ export const Paper = View.extend({
         connectionStrategy: null,
 
         // Check whether to add a new link to the graph when user clicks on an a magnet.
-        validateMagnet: function(cellView, magnet) {
+        validateMagnet: function(_cellView, magnet, _evt) {
             return magnet.getAttribute('magnet') !== 'passive';
         },
 

@@ -936,7 +936,7 @@ export namespace dia {
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
             // validations
-            validateMagnet?: (cellView: CellView, magnet: SVGElement) => boolean;
+            validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: JQuery.Event) => boolean;
             validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
@@ -3285,6 +3285,44 @@ export namespace attributes {
 
 export function setTheme(theme: string): void;
 
+export namespace elementTools {
+
+    namespace Button {
+
+        type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
+
+        interface Options extends dia.ToolView.Options {
+            x?: number | string;
+            y?: number | string;
+            offset?: number;
+            rotate?: boolean;
+            action?: ActionCallback;
+            markup?: dia.MarkupJSON;
+        }
+    }
+
+    class Button extends dia.ToolView {
+
+        constructor(opt?: Button.Options);
+
+        protected onPointerDown(evt: JQuery.Event): void;
+    }
+
+    class Remove extends Button {
+
+    }
+
+    namespace Boundary {
+        interface Options extends dia.ToolView.Options {
+            padding?: number;
+        }
+    }
+
+    class Boundary extends dia.ToolView {
+
+        constructor(opt?: Boundary.Options);
+    }
+}
 
 export namespace linkTools {
 

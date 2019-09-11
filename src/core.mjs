@@ -7,6 +7,7 @@ import * as anchors from './anchors/index.mjs';
 import * as linkAnchors from './linkAnchors/index.mjs';
 import * as dia from './dia/index.mjs';
 import * as linkTools from './linkTools/index.mjs';
+import * as elementTools from './elementTools/index.mjs';
 import * as util from './util/index.mjs';
 import * as mvc from './mvc/index.mjs';
 import * as g from './g/index.mjs';
@@ -32,6 +33,7 @@ export {
     routers,
     util,
     linkTools,
+    elementTools,
     V,
     g
 };
