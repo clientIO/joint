@@ -247,12 +247,12 @@ function buildPath(lines, jumpSize, jumpType, radius) {
             }
 
         } else {
-            var nextLine = lines[index + 1]
+            var nextLine = lines[index + 1];
             if (radius == 0 || !nextLine || nextLine.isJump) {
-                segment = Path.createSegment('L', line.end);
+                segment = g.Path.createSegment('L', line.end);
                 path.appendSegment(segment);
             } else {
-                buildRoundSegment(radius, path, line.end, line.start, nextLine.end)
+                buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
             }
         }
     });
@@ -260,8 +260,8 @@ function buildPath(lines, jumpSize, jumpType, radius) {
     return path;
 }
 
-function buildRoundSegment(offset, path, curr, prev, next) {
-    var prevDistance = nextDistance || (curr.distance(prev) / 2);
+function buildRoundedSegment(offset, path, curr, prev, next) {
+    var prevDistance = curr.distance(prev) / 2;
     var nextDistance = curr.distance(next) / 2;
 
     var startMove = -Math.min(offset, prevDistance);
@@ -270,14 +270,14 @@ function buildRoundSegment(offset, path, curr, prev, next) {
     var roundedStart = curr.clone().move(prev, startMove).round();
     var roundedEnd = curr.clone().move(next, endMove).round();
 
-    var control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
-    var control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+    var control1 = new g.Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+    var control2 = new g.Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
 
     var segment;
-    segment = Path.createSegment('L', roundedStart);
+    segment = g.Path.createSegment('L', roundedStart);
     path.appendSegment(segment);
 
-    segment = Path.createSegment('C', control1, control2, roundedEnd);
+    segment = g.Path.createSegment('C', control1, control2, roundedEnd);
     path.appendSegment(segment);
 }
 
