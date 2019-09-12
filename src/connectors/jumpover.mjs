@@ -248,7 +248,7 @@ function buildPath(lines, jumpSize, jumpType, radius) {
 
         } else {
             var nextLine = lines[index + 1]
-            if (!nextLine || nextLine.isJump) {
+            if (radius == 0 || !nextLine || nextLine.isJump) {
                 segment = Path.createSegment('L', line.end);
                 path.appendSegment(segment);
             } else {
@@ -393,6 +393,6 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) { // esli
         return resultLines;
     }, []);
 
-    var path = buildPath(jumpingLines, jumpSize, jumpType);
+    var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
     return (raw) ? path : path.serialize();
 };
