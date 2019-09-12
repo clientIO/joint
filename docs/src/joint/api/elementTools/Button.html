@@ -1,32 +1,30 @@
-<p>The <code>Button</code> link tool allows you to have a custom button rendered at a given position along the link. It accepts five additional arguments, which can be passed as an object to the link tool constructor:</p>
+<p>The <code>Button</code> element tool allows you to have a custom button rendered at a given position above the element. It accepts a few additional arguments, which can be passed as an object to the element tool constructor:</p>
 
 <table>
     <tr>
-        <th rowspan="2">distance</th>
-        <td><i>number</i></td>
-        <td>Distance at which the button should be placed. Negative numbers are accepted; then the distance is counted from the end of the link. Default is <code>0</code>.</td>
+        <th>x</th>
+        <td rowspan="2"><i>string | number</i></td>
+        <td rowspan="2">Use percentage strings (e.g. <code>'40%'</code>) to position the button relatively to the element width/height. A number means distance from the top-left corner of the element. Default is <code>0</code>.</td>
     </tr>
     <tr>
-        <!-- distance -->
-        <td><i>string</i></td>
-        <td>Percentage strings (e.g. <code>'40%'</code>) are also accepted.</td>
+        <th>y</th>
     </tr>
     <tr>
         <th>rotate</th>
         <td><i>boolean</i></td>
-        <td>Should the button rotate according to the slope of the link at the position specified by <code>distance</code>? Default is <code>false</code>.</td>
+        <td>Should the button rotate according to the element angle around the element center? Default is <code>false</code>.</td>
     </tr>
     <tr>
         <th>offset</th>
-        <td><i>number</i></td>
-        <td>Relative offset of the button from the link. Positive numbers mean that the button should be offset to the right of the link (relative to the direction from source to target); negative numbers mean that the button should be offset to the left of the link (relative to the direction from source to target). Default is <code>0</code>.</td>
+        <td><i>object</i></td>
+        <td>Additional offset of the button from the position defined by <code>x</code> and <code>y</code>. Default is <code>{ x: 0, y: 0 }</code>.</td>
     </tr>
     <tr>
         <th>action</th>
         <td><i>function</i></td>
         <td>What should happen when the user clicks the button? Default is <code>undefined</code> (no interaction).<br><br>
 
-            The callback function is expected to have the signature <code>function(evt, linkView, buttonView)</code> where <code>evt</code> is a <code>jQuery.Event</code> <a href="https://api.jquery.com/category/events/event-object/">object</a>. The related link view is available inside the function as <code>this</code>. The link model is available as <code>this.model</code>.</td>
+            The callback function is expected to have the signature <code>function(evt, elementView, buttonView)</code> where <code>evt</code> is a <code>jQuery.Event</code> <a href="https://api.jquery.com/category/events/event-object/">object</a>. The element view is available inside the function as <code>this</code>; the element model is available as <code>this.model</code>.</td>
     </tr>
     <tr>
         <th>markup</th>
@@ -37,9 +35,12 @@
 
 <p>Example of a useful custom info button:</p>
 
-<pre><code>var infoButton = new joint.linkTools.Button({
+<pre><code>var infoButton = new joint.elementTools.Button({
     focusOpacity: 0.5,
-    distance: 60,
+    // top-right corner
+    x: '100%',
+    y: '0%'',
+    offset: { x: -5, y: -5 },
     action: function(evt) {
         alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
     },
@@ -64,9 +65,9 @@
     }]
 });</code></pre>
 
-<p>The <code>linkTools.Button</code> class can also be extended, to create a reusable custom button type. Then, a new instance of the custom button type can be obtained by calling its constructor:</p>
+<p>The <code>elementTools.Button</code> class can also be extended, to create a reusable custom button type. Then, a new instance of the custom button type can be obtained by calling its constructor:</p>
 
-<pre><code>var InfoButton = joint.linkTools.Button.extend({
+<pre><code>var InfoButton = joint.elementTools.Button.extend({
     name: 'info-button',
     options: {
         focusOpacity: 0.5,
