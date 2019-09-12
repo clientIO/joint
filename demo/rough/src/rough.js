@@ -41,16 +41,21 @@
                 });
             }
         },
-        'cell:mouseenter': function(cellView) {
-            cellView.addTools(new joint.dia.ToolsView({
-                tools: cellView.model.isLink() ? [
+        'link:mouseenter': function(linkView) {
+            linkView.addTools(new joint.dia.ToolsView({
+                tools: [
                     new joint.linkTools.Vertices({ snapRadius: 0 }),
                     new joint.linkTools.SourceArrowhead(),
                     new joint.linkTools.TargetArrowhead(),
                     new joint.linkTools.Remove({
                         distance: 20
                     })
-                ] : [
+                ]
+            }));
+        },
+        'element:mouseenter': function(elementView) {
+            elementView.addTools(new joint.dia.ToolsView({
+                tools: [
                     new joint.elementTools.Remove({
                         useModelGeometry: true,
                         y: '0%',
@@ -60,8 +65,8 @@
                 ]
             }));
         },
-        'cell:mouseleave': function(linkView) {
-            linkView.removeTools();
+        'cell:mouseleave': function(cellView) {
+            cellView.removeTools();
         },
         'blank:pointerdown': function(evt, x, y) {
             var data = evt.data = {};
