@@ -100,8 +100,21 @@ QUnit.module('elementTools', function(hooks) {
         }, {
             options: { padding: 0, useModelGeometry: true },
             bbox: { x: 100, y: 100, width: 100, height: 100  }
+        }, {
+            options: { padding: 0 },
+            bbox: { x: 99, y: 101, width: 113, height: 111 },
+            before: function() {
+                element.rotate(90);
+            }
+        }, {
+            options: { padding: 0, rotate: true },
+            bbox: { x: 87, y: 100, width: 113, height: 111 },
+            before: function() {
+                element.rotate(90);
+            }
         }].forEach(function(testCase) {
             QUnit.test('position and size (' + JSON.stringify(testCase.options) + ')', function(assert) {
+                if (testCase.before) testCase.before.call();
                 var boundary = new joint.elementTools.Boundary(testCase.options);
                 elementView.addTools(new joint.dia.ToolsView({ tools: [boundary] }));
                 var bbox = boundary.vel.getBBox({ target: paper.svg });
