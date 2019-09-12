@@ -326,6 +326,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.ok(onViewPostponedSpy.calledOnce);
                             assert.ok(onViewPostponedSpy.calledWithExactly(link.findView(paper), sinon.match.number, paper));
                             assert.equal(cellNodesCount(paper), 3);
+                            assert.equal(3, paper.getMountedViews().length);
+                            assert.equal(0, paper.getUnmountedViews().length);
                         });
                     });
                 });
@@ -361,11 +363,17 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                     assert.deepEqual(res, { batches: 1, updated: 2, priority: 0 });
                                     assert.equal(cellNodesCount(paper), 2);
                                     assert.ok(viewportSpy.calledTwice);
+                                    assert.equal(2, paper.getMountedViews().length);
+                                    assert.equal(0, paper.getUnmountedViews().length);
                                     // Unmount a view because it's not in the viewport and update views with a different viewport
                                     paper.checkViewport({ viewport: function() { return false; } });
                                     rect1.translate(10, 0);
+                                    assert.equal(0, paper.getMountedViews().length);
+                                    assert.equal(2, paper.getUnmountedViews().length);
                                     paper.updateViews({ viewport: function() { return true; } });
                                     assert.equal(cellNodesCount(paper), 1);
+                                    assert.equal(1, paper.getMountedViews().length);
+                                    assert.equal(1, paper.getUnmountedViews().length);
                                 });
 
                                 QUnit.test('view removal', function(assert) {
@@ -465,9 +473,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             rect.addTo(graph);
                             assert.ok(paper.isFrozen());
                             assert.equal(cellNodesCount(paper), 0);
+                            assert.equal(0, paper.getMountedViews().length);
+                            assert.equal(1, paper.getUnmountedViews().length);
                             paper.unfreeze();
                             assert.notOk(paper.isFrozen());
                             assert.equal(cellNodesCount(paper), 1);
+                            assert.equal(1, paper.getMountedViews().length);
+                            assert.equal(0, paper.getUnmountedViews().length);
                         });
 
                         QUnit.test('add+remove+change+add while frozen', function(assert) {

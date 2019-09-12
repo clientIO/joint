@@ -838,6 +838,28 @@ export const Paper = View.extend({
         };
     },
 
+    getUnmountedViews: function() {
+        const updates = this._updates;
+        const unmountedCids = Object.keys(updates.unmounted);
+        const n = unmountedCids.length;
+        const unmountedViews = new Array(n);
+        for (var i = 0; i < n; i++) {
+            unmountedViews[i] = views[unmountedCids[i]];
+        }
+        return unmountedViews;
+    },
+
+    getMountedViews: function() {
+        const updates = this._updates;
+        const mountedCids = Object.keys(updates.mounted);
+        const n = mountedCids.length;
+        const mountedViews = new Array(n);
+        for (var i = 0; i < n; i++) {
+            mountedViews[i] = views[mountedCids[i]];
+        }
+        return mountedViews;
+    },
+
     checkUnmountedViews: function(viewportFn, opt) {
         opt || (opt  = {});
         var mountCount = 0;
