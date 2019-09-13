@@ -792,24 +792,27 @@ export const Paper = View.extend({
                     continue;
                 }
                 var currentFlag = priorityUpdates[cid];
-                var isDetached = cid in updates.unmounted;
-                if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
-                    // Unmount View
-                    if (!isDetached) {
-                        this.registerUnmountedView(view);
-                        view.unmount();
+                if ((currentFlag & FLAG_REMOVE) === 0) {
+                    // We should never check a view for viewport if we are about to remove the view
+                    var isDetached = cid in updates.unmounted;
+                    if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
+                        // Unmount View
+                        if (!isDetached) {
+                            this.registerUnmountedView(view);
+                            view.unmount();
+                        }
+                        updates.unmounted[cid] |= currentFlag;
+                        delete priorityUpdates[cid];
+                        unmountCount++;
+                        continue;
                     }
-                    updates.unmounted[cid] |= currentFlag;
-                    delete priorityUpdates[cid];
-                    unmountCount++;
-                    continue;
+                    // Mount View
+                    if (isDetached) {
+                        currentFlag |= FLAG_INSERT;
+                        mountCount++;
+                    }
+                    currentFlag |= this.registerMountedView(view);
                 }
-                // Mount View
-                if (isDetached) {
-                    currentFlag |= FLAG_INSERT;
-                    mountCount++;
-                }
-                currentFlag |= this.registerMountedView(view);
                 var leftoverFlag = this.updateView(view, currentFlag, opt);
                 if (leftoverFlag > 0) {
                     // View update has not finished completely
@@ -833,6 +836,28 @@ export const Paper = View.extend({
             mounted: mountCount,
             empty: empty
         };
+    },
+
+    getUnmountedViews: function() {
+        const updates = this._updates;
+        const unmountedCids = Object.keys(updates.unmounted);
+        const n = unmountedCids.length;
+        const unmountedViews = new Array(n);
+        for (var i = 0; i < n; i++) {
+            unmountedViews[i] = views[unmountedCids[i]];
+        }
+        return unmountedViews;
+    },
+
+    getMountedViews: function() {
+        const updates = this._updates;
+        const mountedCids = Object.keys(updates.mounted);
+        const n = mountedCids.length;
+        const mountedViews = new Array(n);
+        for (var i = 0; i < n; i++) {
+            mountedViews[i] = views[mountedCids[i]];
+        }
+        return mountedViews;
     },
 
     checkUnmountedViews: function(viewportFn, opt) {
@@ -1246,11 +1271,16 @@ export const Paper = View.extend({
 
     removeView: function(cell) {
 
-        var id = cell.id;
-        var view = this._views[id];
+        const { id } = cell;
+        const { _views, _updates } = this;
+        const view = _views[id];
         if (view) {
+            var { cid } = view;
+            const { mounted, unmounted } = _updates;
             view.remove();
-            delete this._views[id];
+            delete _views[id];
+            delete mounted[cid];
+            delete unmounted[cid];
         }
         return view;
     },
@@ -1266,7 +1296,7 @@ export const Paper = View.extend({
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;
-            flag = FLAG_INSERT | view.getFlag(view.initFlag);
+            flag = this.registerUnmountedView(view) | view.getFlag(view.initFlag);
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;
