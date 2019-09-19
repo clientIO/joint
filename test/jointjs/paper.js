@@ -1910,6 +1910,54 @@ QUnit.module('paper', function(hooks) {
             });
         }
 
+        QUnit.module('Labels', function(hooks) {
+
+            var link, linkView;
+            hooks.beforeEach(function() {
+                link = new joint.shapes.standard.Link({
+                    labels: [{
+                        attrs: { text: { text: 'test' }}
+                    }]
+                });
+                link.addTo(this.graph);
+                linkView = link.findView(this.paper);
+            });
+
+            [true, false].forEach(function(interactive) {
+
+                QUnit.test('interactivity: ' + interactive, function(assert) {
+
+                    var spy = sinon.spy();
+                    var paper = this.paper;
+
+                    paper.setInteractivity(interactive);
+                    paper.on('all', spy);
+
+                    var labelNode = linkView.el.querySelector('.label');
+                    simulate.click({
+                        el: labelNode,
+                        clientX: 1000,
+                        clientY: 1000
+                    });
+
+                    var eventOrder = [
+                        'cell:pointerdown',
+                        'link:pointerdown',
+                        'link:pointerup',
+                        'cell:pointerup',
+                        'cell:mouseleave',
+                        'link:mouseleave',
+                        'cell:pointerclick',
+                        'link:pointerclick'
+                    ];
+
+                    assert.equal(spy.callCount, 8);
+                    assert.deepEqual(getEventNames(spy), eventOrder);
+                });
+
+            });
+        });
+
         QUnit.module('Magnets', function(hooks) {
 
             ['active', 'passive'].forEach(function(magnetType) {

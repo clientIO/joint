@@ -1755,30 +1755,32 @@ export const LinkView = CellView.extend({
         });
     },
 
-    dragLabelStart: function(evt, x, y) {
+    dragLabelStart: function(evt, _x, _y) {
 
-        if (!this.can('labelMove')) {
+        if (this.can('labelMove')) {
+
+            var labelNode = evt.currentTarget;
+            var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
+
+            var positionAngle = this._getLabelPositionAngle(labelIdx);
+            var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
+            var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+            var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
+
+            this.eventData(evt, {
+                action: 'label-move',
+                labelIdx: labelIdx,
+                positionAngle: positionAngle,
+                positionArgs: positionArgs,
+                stopPropagation: true
+            });
+
+        } else {
+
             // Backwards compatibility:
             // If labels can't be dragged no default action is triggered.
             this.eventData(evt, { stopPropagation: true });
-            return;
         }
-
-        var labelNode = evt.currentTarget;
-        var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
-
-        var positionAngle = this._getLabelPositionAngle(labelIdx);
-        var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
-        var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
-        var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
-
-        this.eventData(evt, {
-            action: 'label-move',
-            labelIdx: labelIdx,
-            positionAngle: positionAngle,
-            positionArgs: positionArgs,
-            stopPropagation: true
-        });
 
         this.paper.delegateDragEvents(this, evt.data);
     },
