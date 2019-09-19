@@ -1936,12 +1936,11 @@ QUnit.module('paper', function(hooks) {
                     var labelNode = linkView.el.querySelector('.label');
                     simulate.click({
                         el: labelNode,
-                        clientX: 13,
-                        clientY: 17
+                        clientX: 1000,
+                        clientY: 1000
                     });
 
-                    assert.equal(spy.callCount, 8);
-                    assert.deepEqual(getEventNames(spy), [
+                    var eventOrder = [
                         'cell:pointerdown',
                         'link:pointerdown',
                         'link:pointerup',
@@ -1950,7 +1949,10 @@ QUnit.module('paper', function(hooks) {
                         'link:mouseleave',
                         'cell:pointerclick',
                         'link:pointerclick'
-                    ]);
+                    ];
+
+                    assert.equal(spy.callCount, 8);
+                    assert.deepEqual(getEventNames(spy), eventOrder);
                 });
 
             });
