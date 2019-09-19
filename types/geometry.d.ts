@@ -540,7 +540,7 @@ export namespace g {
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
-        simplify(): this;
+        simplify(opt?: { threshold?: number }): this;
 
         tangentAt(ratio: number): Line | null;
 

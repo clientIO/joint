@@ -3787,37 +3787,47 @@ Polyline.prototype = {
         return this;
     },
 
-    simplify: function() {
+    simplify: function(opt) {
 
         var points = this.points;
-        var numPoints = points.length;
-        if (numPoints < 3) return this; // needs at least three points
-        // polylines of 2 points are never simplified
-        // even if the 2 points are coincident
+        if (points.length < 3) return this; // we need at least 3 points
 
-        var index = 1;
-        while (points[index + 1]) {
-            var p1 = points[index - 1];
-            var midPoint = points[index];
-            var p2 = points[index + 1];
+        // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
+        var threshold = (opt && opt.threshold) || 0; // = max distance of middle point from chord to be simplified
 
-            if (p1.equals(midPoint) || midPoint.equals(p2)) {
-                // midPoint equals first point or second point
-                // midPoint.angleBetween would return NaN
-                points.splice(index, 1);
+        // start at the beginning of the polyline and go forward
+        var currentIndex = 0;
+        // we need at least one intermediate point (3 points) in every iteration
+        // as soon as that stops being true, we know we reached the end of the polyline
+        while (points[currentIndex + 2]) {
+            var firstIndex = currentIndex;
+            var middleIndex = (currentIndex + 1);
+            var lastIndex = (currentIndex + 2);
 
-            } else if (midPoint.angleBetween(p1, p2) === 180) {
-                // midPoint lies on a straight line
-                points.splice(index, 1);
+            var firstPoint = points[firstIndex];
+            var middlePoint = points[middleIndex];
+            var lastPoint = points[lastIndex];
 
+            var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+            var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+            var closestPointDistance = closestPoint.distance(middlePoint);
+            if (closestPointDistance <= threshold) {
+                // middle point is close enough to the chord = simplify
+                // 1) remove middle point:
+                points.splice(middleIndex, 1);
+                // 2) in next iteration, investigate the newly-created triplet of points
+                //    - do not change `currentIndex`
+                //    = (first point stays, point after removed point becomes middle point)
             } else {
-                // nothing removed
-                // move index up by one
-                index += 1;
+                // middle point is far from the chord
+                // 1) preserve middle point
+                // 2) in next iteration, move `currentIndex` by one step:
+                currentIndex += 1;
+                //    = (point after first point becomes first point)
             }
         }
 
-        // points array was changed in-place
+        // `points` array was modified in-place
         return this;
     },
 
