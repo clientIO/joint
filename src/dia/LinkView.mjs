@@ -534,26 +534,36 @@ export const LinkView = CellView.extend({
         return this;
     },
 
+    // remove vertices that lie on (or nearly on) straight lines within the link
+    // return the number of removed points
     removeRedundantLinearVertices: function(opt) {
+
+        var SIMPLIFY_THRESHOLD = 0.001;
+
         var link = this.model;
         var vertices = link.vertices();
-        var conciseVertices = [];
-        var n = vertices.length;
-        var m = 0;
-        for (var i = 0; i < n; i++) {
-            var current = new Point(vertices[i]).round();
-            var prev = new Point(conciseVertices[m - 1] || this.sourceAnchor).round();
-            if (prev.equals(current)) continue;
-            var next = new Point(vertices[i + 1] || this.targetAnchor).round();
-            if (prev.equals(next)) continue;
-            var line = new Line(prev, next);
-            if (line.pointOffset(current) === 0) continue;
-            conciseVertices.push(vertices[i]);
-            m++;
-        }
-        if (n === m) return 0;
-        link.vertices(conciseVertices, opt);
-        return (n - m);
+
+        // routePoints = sourceAnchor, vertices, targetAnchor
+        var routePoints = [];
+        routePoints.push(this.sourceAnchor);
+        routePoints.push.apply(routePoints, vertices);
+        routePoints.push(this.targetAnchor);
+        var numRoutePoints = routePoints.length;
+
+        // put routePoints into a polyline and try to simplify
+        var polyline = new Polyline(routePoints);
+        polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
+        var polylinePoints = polyline.points;
+        var numPolylinePoints = polylinePoints.length;
+
+        // shortcut if simplification did not remove any redundant vertices:
+        if (numRoutePoints === numPolylinePoints) return 0;
+
+        // else: set simplified polyline points as link vertices
+        // remove first and last polyline points again (= source/target anchors)
+        polylinePoints = polylinePoints.slice(1, numPolylinePoints - 1);
+        link.vertices(polylinePoints, opt);
+        return (numRoutePoints - numPolylinePoints);
     },
 
     updateDefaultConnectionPath: function() {
