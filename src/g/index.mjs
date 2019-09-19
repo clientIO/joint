@@ -3787,30 +3787,30 @@ Polyline.prototype = {
         return this;
     },
 
-    simplify: function(opt) {
+    simplify: function(opt = {}) {
 
-        var points = this.points;
+        const points = this.points;
         if (points.length < 3) return this; // we need at least 3 points
 
         // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
-        var threshold = (opt && opt.threshold) || 0; // = max distance of middle point from chord to be simplified
+        const threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
 
         // start at the beginning of the polyline and go forward
-        var currentIndex = 0;
+        let currentIndex = 0;
         // we need at least one intermediate point (3 points) in every iteration
         // as soon as that stops being true, we know we reached the end of the polyline
         while (points[currentIndex + 2]) {
-            var firstIndex = currentIndex;
-            var middleIndex = (currentIndex + 1);
-            var lastIndex = (currentIndex + 2);
+            const firstIndex = currentIndex;
+            const middleIndex = (currentIndex + 1);
+            const lastIndex = (currentIndex + 2);
 
-            var firstPoint = points[firstIndex];
-            var middlePoint = points[middleIndex];
-            var lastPoint = points[lastIndex];
+            const firstPoint = points[firstIndex];
+            const middlePoint = points[middleIndex];
+            const lastPoint = points[lastIndex];
 
-            var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
-            var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
-            var closestPointDistance = closestPoint.distance(middlePoint);
+            const chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+            const closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+            const closestPointDistance = closestPoint.distance(middlePoint);
             if (closestPointDistance <= threshold) {
                 // middle point is close enough to the chord = simplify
                 // 1) remove middle point:

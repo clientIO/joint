@@ -538,31 +538,25 @@ export const LinkView = CellView.extend({
     // return the number of removed points
     removeRedundantLinearVertices: function(opt) {
 
-        var SIMPLIFY_THRESHOLD = 0.001;
+        const SIMPLIFY_THRESHOLD = 0.001;
 
-        var link = this.model;
-        var vertices = link.vertices();
-
-        // routePoints = sourceAnchor, vertices, targetAnchor
-        var routePoints = [];
-        routePoints.push(this.sourceAnchor);
-        routePoints.push.apply(routePoints, vertices);
-        routePoints.push(this.targetAnchor);
-        var numRoutePoints = routePoints.length;
+        const link = this.model;
+        const vertices = link.vertices();
+        const routePoints = [this.sourceAnchor, ...vertices, this.targetAnchor];
+        const numRoutePoints = routePoints.length;
 
         // put routePoints into a polyline and try to simplify
-        var polyline = new Polyline(routePoints);
+        const polyline = new Polyline(routePoints);
         polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
-        var polylinePoints = polyline.points;
-        var numPolylinePoints = polylinePoints.length;
+        const polylinePoints = polyline.points.map((point) => (point.toJSON())); // JSON of points after simplification
+        const numPolylinePoints = polylinePoints.length; // number of points after simplification
 
         // shortcut if simplification did not remove any redundant vertices:
         if (numRoutePoints === numPolylinePoints) return 0;
 
         // else: set simplified polyline points as link vertices
         // remove first and last polyline points again (= source/target anchors)
-        polylinePoints = polylinePoints.slice(1, numPolylinePoints - 1);
-        link.vertices(polylinePoints, opt);
+        link.vertices(polylinePoints.slice(1, numPolylinePoints - 1), opt);
         return (numRoutePoints - numPolylinePoints);
     },
 

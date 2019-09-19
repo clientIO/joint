@@ -51,12 +51,12 @@ export const DirectedGraph = {
 
     importLink: function(opt, edgeObj, gl) {
 
-        var SIMPLIFY_THRESHOLD = 0.001;
+        const SIMPLIFY_THRESHOLD = 0.001;
 
-        var link = this.getCell(edgeObj.name);
-        var glEdge = gl.edge(edgeObj);
-        var points = glEdge.points || [];
-        var polyline = new g.Polyline(points);
+        const link = this.getCell(edgeObj.name);
+        const glEdge = gl.edge(edgeObj);
+        const points = glEdge.points || [];
+        const polyline = new g.Polyline(points);
 
         // check the `setLinkVertices` here for backwards compatibility
         if (opt.setVertices || opt.setLinkVertices) {
@@ -65,8 +65,8 @@ export const DirectedGraph = {
             } else {
                 // simplify the `points` polyline
                 polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
-                var polylinePoints = polyline.points; // points after simplification
-                var numPolylinePoints = polylinePoints.length; // number of points after simplification
+                const polylinePoints = polyline.points.map((point) => (point.toJSON())); // JSON of points after simplification
+                const numPolylinePoints = polylinePoints.length; // number of points after simplification
                 // set simplified polyline points as link vertices
                 // remove first and last polyline points (= source/target sonnectionPoints)
                 link.set('vertices', polylinePoints.slice(1, numPolylinePoints - 1));
@@ -74,16 +74,16 @@ export const DirectedGraph = {
         }
 
         if (opt.setLabels && ('x' in glEdge) && ('y' in glEdge)) {
-            var labelPosition = { x: glEdge.x, y: glEdge.y };
+            const labelPosition = { x: glEdge.x, y: glEdge.y };
             if (util.isFunction(opt.setLabels)) {
                 opt.setLabels(link, labelPosition, points);
             } else {
                 // convert the absolute label position to a relative position
                 // towards the closest point on the edge
-                var length = polyline.closestPointLength(labelPosition);
-                var closestPoint = polyline.pointAtLength(length);
-                var distance = (length / polyline.length());
-                var offset = new g.Point(labelPosition).difference(closestPoint).toJSON();
+                const length = polyline.closestPointLength(labelPosition);
+                const closestPoint = polyline.pointAtLength(length);
+                const distance = (length / polyline.length());
+                const offset = new g.Point(labelPosition).difference(closestPoint).toJSON();
                 link.label(0, {
                     position: {
                         distance: distance,
