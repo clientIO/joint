@@ -391,7 +391,119 @@ var link10 = new joint.shapes.standard.Link({
     }
 });
 
-graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10]);
+var link11 = new joint.dia.Link({
+    markup: [{
+        tagName: 'path',
+        selector: 'line'
+    }, {
+        tagName: 'g',
+        selector: 'sourceReference',
+        children: [{
+            tagName: 'rect',
+            selector: 'sourceReferenceBody',
+            groupSelector: 'endReferenceBody'
+        }, {
+            tagName: 'text',
+            selector: 'sourceReferenceLabel',
+            groupSelector: 'endReferenceLabel'
+        }]
+    }, {
+        tagName: 'g',
+        selector: 'targetReference',
+        children: [{
+            tagName: 'rect',
+            selector: 'targetReferenceBody',
+            groupSelector: 'endReferenceBody'
+        }, {
+            tagName: 'text',
+            selector: 'targetReferenceLabel',
+            groupSelector: 'endReferenceLabel'
+        }]
+    }],
+    source: { x: 120, y: 550 },
+    target: { x: 120, y: 400 },
+    attrs: {
+        line: {
+            connection: { stabs: 40 },
+            fill: 'none',
+            stroke: 'black',
+            strokeWidth: 2,
+            strokeLinejoin: 'round',
+            sourceMarker: {
+                'type': 'circle',
+                'r': 5,
+                'cx': 5,
+                'fill': 'white',
+                'stroke': 'black',
+                'stroke-width': 2
+            },
+            targetMarker: {
+                'type': 'circle',
+                'r': 5,
+                'cx': 5,
+                'fill': 'white',
+                'stroke': 'black',
+                'stroke-width': 2
+            }
+        },
+        endReferenceBody: {
+            x: -12,
+            y: -45,
+            width: 24,
+            height: 90,
+            fill: 'white',
+            stroke: 'black',
+            strokeWidth: 2
+        },
+        sourceReference: {
+            atConnectionLength: 50,
+            event: 'link:source:click'
+        },
+        targetReference: {
+            atConnectionLength: -50,
+            event: 'link:target:click'
+        },
+        endReferenceLabel: {
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            textDecoration: 'underline',
+            writingMode: 'TB',
+            fontFamily: 'sans-sarif',
+            fontSize: 15,
+            cursor: 'pointer',
+            annotations: [{
+                start: 6,
+                end: 12,
+                attrs: {
+                    'font-weight': 'bold'
+                }
+            }]
+        },
+        sourceReferenceLabel: {
+            text: 'Go to Target'
+        },
+        targetReferenceLabel: {
+            text: 'Go to Source'
+        }
+    }
+});
+
+paper.on({
+    'link:source:click': function(linkView) {
+        linkView.model.attr({
+            sourceReferenceBody: { fill: 'white' },
+            targetReferenceBody: { fill: '#fe854f' }
+        });
+    },
+    'link:target:click': function(linkView) {
+        linkView.model.attr({
+            sourceReferenceBody: { fill: '#fe854f' },
+            targetReferenceBody: { fill: 'white' }
+        });
+    }
+});
+
+graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11]);
 
 // Custom Link Tools
 
@@ -551,6 +663,12 @@ paper.on('link:mouseenter', function(linkView) {
                     redundancyRemoval: false,
                     vertexAdding: false
                 })
+            ];
+            break;
+        case link11:
+            tools = [
+                new joint.linkTools.SourceArrowhead(),
+                new joint.linkTools.TargetArrowhead()
             ];
             break;
         default:

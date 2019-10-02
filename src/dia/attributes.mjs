@@ -562,8 +562,24 @@ const attributesNS = {
 
     connection: {
         qualify: isLinkView,
-        set: function() {
-            return { d: this.getSerializedConnection() };
+        set: function({ stabs = 0 }) {
+            let d;
+            if (isFinite(stabs) && stabs !== 0) {
+                let offset;
+                if (stabs < 0) {
+                    offset = (this.getConnectionLength() + stabs) / 2;
+                } else {
+                    offset = stabs;
+                }
+                const path = this.getConnection();
+                const { 0: sourceStub } = path.divideAtLength(offset);
+                const { 1: targetStub } = path.divideAtLength(-offset);
+                d = `${sourceStub.serialize()} ${targetStub.serialize()}`;
+            } else {
+                d = this.getSerializedConnection();
+            }
+            // Entire Path
+            return { d };
         }
     },
 
