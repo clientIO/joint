@@ -17,6 +17,8 @@ export const ToolView = mvc.View.extend({
         this.paper = view.paper;
         this.parentView = toolsView;
         this.simulateRelatedView(this.el);
+        // Delegate events in case the ToolView was removed from the DOM and reused.
+        this.delegateEvents();
         return this;
     },
 
