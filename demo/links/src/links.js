@@ -391,6 +391,8 @@ var link10 = new joint.shapes.standard.Link({
     }
 });
 
+// Stubs
+
 var link11 = new joint.dia.Link({
     markup: [{
         tagName: 'path',
@@ -424,7 +426,7 @@ var link11 = new joint.dia.Link({
     target: { x: 120, y: 400 },
     attrs: {
         line: {
-            connection: { stabs: 40 },
+            connection: { stubs: 40 },
             fill: 'none',
             stroke: 'black',
             strokeWidth: 2,
@@ -503,7 +505,52 @@ paper.on({
     }
 });
 
-graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11]);
+var link12 = new joint.dia.Link({
+    markup: [{
+        tagName: 'path',
+        selector: 'line'
+    }, {
+        tagName: 'path',
+        selector: 'crossing',
+    }],
+    source: { x: 220, y: 550 },
+    target: { x: 220, y: 400 },
+    attrs: {
+        line: {
+            connection: { stubs: -30 },
+            fill: 'none',
+            stroke: 'black',
+            strokeWidth: 2,
+            strokeLinejoin: 'round',
+            sourceMarker: {
+                'type': 'circle',
+                'r': 5,
+                'cx': 5,
+                'fill': 'white',
+                'stroke': 'black',
+                'stroke-width': 2
+            },
+            targetMarker: {
+                'type': 'circle',
+                'r': 5,
+                'cx': 5,
+                'fill': 'white',
+                'stroke': 'black',
+                'stroke-width': 2
+            }
+        },
+        crossing: {
+            atConnectionRatio: .5,
+            d: 'M -10 -20 0 20 M 0 -20 10 20',
+            fill: 'none',
+            stroke: 'black',
+            strokeWidth: 2
+        }
+    }
+});
+
+
+graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11, link12]);
 
 // Custom Link Tools
 
@@ -666,6 +713,7 @@ paper.on('link:mouseenter', function(linkView) {
             ];
             break;
         case link11:
+        case link12:
             tools = [
                 new joint.linkTools.SourceArrowhead(),
                 new joint.linkTools.TargetArrowhead()
