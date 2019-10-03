@@ -490,7 +490,8 @@ const V = (function() {
         // IE would otherwise collapse all spaces into one.
         content = V.sanitizeText(content);
         opt || (opt = {});
-
+        // Should we allow the text to be selected?
+        var selectable = opt.selectable;
         // End of Line character
         var eol = opt.eol;
         // Text along path
@@ -517,8 +518,13 @@ const V = (function() {
             // An empty text gets rendered into the DOM in webkit-based browsers.
             // In order to unify this behaviour across all browsers
             // we rather hide the text element when it's empty.
-            'display': (content || opt.editable) ? null : 'none'
+            'display': (content || selectable) ? null : 'none'
         });
+        if (selectable) {
+            this.node.style.userSelect = 'text';
+            this.attr('cursor', 'text');
+        }
+
         // Set default font-size if none
         var fontSize = parseFloat(this.attr('font-size'));
         if (!fontSize) {

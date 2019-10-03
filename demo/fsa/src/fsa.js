@@ -11,6 +11,10 @@ var paper = new joint.dia.Paper({
     frozen: true
 });
 
+paper.on('element:stop-propagation', function(_view, evt) {
+    evt.stopPropagation();
+});
+
 function state(x, y, label) {
     var circle = new joint.shapes.standard.Circle({
         position: { x: x, y: y },
@@ -18,6 +22,8 @@ function state(x, y, label) {
         attrs: {
             label : {
                 text: label,
+                selectable: true,
+                event: 'element:stop-propagation',
                 fontWeight: 'bold'
             },
             body: {
