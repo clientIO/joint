@@ -44,9 +44,9 @@ export const ElementView = CellView.extend({
 
     presentationAttributes: {
         'attrs': ['UPDATE'],
-        'position': ['TRANSLATE'],
-        'size': ['RESIZE', 'PORTS'],
-        'angle': ['ROTATE'],
+        'position': ['TRANSLATE', 'TOOLS'],
+        'size': ['RESIZE', 'PORTS', 'TOOLS'],
+        'angle': ['ROTATE', 'TOOLS'],
         'markup': ['RENDER'],
         'ports': ['PORTS']
     },
@@ -63,34 +63,42 @@ export const ElementView = CellView.extend({
         }
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
+            this.updateTools(opt);
             flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
-            return flag;
-        }
-        if (this.hasFlag(flag, 'RESIZE')) {
-            this.resize(opt);
-            // Resize method is calling `update()` internally
-            flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
-        }
-        if (this.hasFlag(flag, 'UPDATE')) {
-            this.update(this.model, null, opt);
-            flag = this.removeFlag(flag, 'UPDATE');
-            if (useCSSSelectors) {
-                // `update()` will render ports when useCSSSelectors are enabled
+        } else {
+            // Skip this branch if render is required
+            if (this.hasFlag(flag, 'RESIZE')) {
+                this.resize(opt);
+                // Resize method is calling `update()` internally
+                flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
+            }
+            if (this.hasFlag(flag, 'UPDATE')) {
+                this.update(this.model, null, opt);
+                flag = this.removeFlag(flag, 'UPDATE');
+                if (useCSSSelectors) {
+                    // `update()` will render ports when useCSSSelectors are enabled
+                    flag = this.removeFlag(flag, 'PORTS');
+                }
+            }
+            if (this.hasFlag(flag, 'TRANSLATE')) {
+                this.translate();
+                flag = this.removeFlag(flag, 'TRANSLATE');
+            }
+            if (this.hasFlag(flag, 'ROTATE')) {
+                this.rotate();
+                flag = this.removeFlag(flag, 'ROTATE');
+            }
+            if (this.hasFlag(flag, 'PORTS')) {
+                this._renderPorts();
                 flag = this.removeFlag(flag, 'PORTS');
             }
         }
-        if (this.hasFlag(flag, 'TRANSLATE')) {
-            this.translate();
-            flag = this.removeFlag(flag, 'TRANSLATE');
+
+        if (this.hasFlag(flag, 'TOOLS')) {
+            this.updateTools(opt);
+            flag = this.removeFlag(flag, 'TOOLS');
         }
-        if (this.hasFlag(flag, 'ROTATE')) {
-            this.rotate();
-            flag = this.removeFlag(flag, 'ROTATE');
-        }
-        if (this.hasFlag(flag, 'PORTS')) {
-            this._renderPorts();
-            flag = this.removeFlag(flag, 'PORTS');
-        }
+
         return flag;
     },
 
@@ -600,7 +608,7 @@ export const ElementView = CellView.extend({
         this.eventData(evt, { targetMagnet: magnet });
         evt.stopPropagation();
 
-        if (paper.options.validateMagnet(this, magnet)) {
+        if (paper.options.validateMagnet(this, magnet, evt)) {
 
             if (paper.options.magnetThreshold <= 0) {
                 this.dragLinkStart(evt, magnet, x, y);

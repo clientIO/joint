@@ -1,8 +1,8 @@
 import '../src/polyfills/index.mjs';
 
 // extend the `layout` namespace
-import * as Port from '../src/layout/ports/port.mjs'
-import * as PortLabel from '../src/layout/ports/portLabel.mjs'
+import * as Port from '../src/layout/ports/port.mjs';
+import * as PortLabel from '../src/layout/ports/portLabel.mjs';
 import { DirectedGraph } from '../src/layout/DirectedGraph/DirectedGraph.mjs';
 import * as shapes from '../src/shapes/index.mjs';
 
@@ -28,10 +28,11 @@ export {
     routers,
     util,
     linkTools,
+    elementTools,
     Vectorizer,
     V,
     version,
     g
 } from '../src/core.mjs';
 
-export { shapes }
+export { shapes };

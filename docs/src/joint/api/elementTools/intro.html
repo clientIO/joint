@@ -1,0 +1,64 @@
+<p>An element tool is a view that renders a certain type of control elements on top of the <a href="#dia.ElementView">ElementView</a> it is attached to; for example the <a href="#elementTools.Remove">Remove tool</a> creates an interactive button above the element (this button then allow the user to remove the element). Element tools all inherit from the <code>joint.dia.ToolView</code> <a href="#dia.ToolView">class</a>. A collection of tools is added to a <a href="#dia.ToolsView">ToolsView</a>; a tools view is then added to the elementView with the <code>linkView.addTools()</code> <a href="#dia.LinkView.addTools">function</a>.
+
+<p>The JointJS library comes with a collection of pre-made element tool definitions in the <code>joint.elementTools</code> namespace:
+
+<ul>
+    <li><code>Boundary</code> - <a href="#elementTools.Boundary">shows element bbox</a></li>
+    <li><code>Remove</code> - <a href="#elementTools.Remove">adds an interactive remove button</a></li>
+</ul>
+
+<p>To create a new element tool, we call its constructor. Example:</p>
+
+<pre><code>var removeTool = new joint.elementTools.Remove({
+    rotate: true
+});</code></pre>
+
+<p>In addition, the <code>joint.elementTools</code> namespace contains a customizable button class:</p>
+
+<ul>
+    <li><code>Button</code> - <a href="#elementTools.Button">adds a customizable button</a></li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>var infoTool = new joint.elementTools.Button({
+    markup: [{
+        tagName: 'circle',
+        selector: 'button',
+        attributes: {
+            'r': 7,
+            'fill': '#001DFF',
+            'cursor': 'pointer'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'icon',
+        attributes: {
+            'd': 'M -2 4 2 4 M 0 3 0 0 M -2 -1 1 -1 M -1 -4 1 -4',
+            'fill': 'none',
+            'stroke': '#FFFFFF',
+            'stroke-width': 2,
+            'pointer-events': 'none'
+        }
+    }],
+    x: '100%',
+    action: function(evt) {
+        alert('View id: ' + this.id + '\n' + 'Model id: ' + this.model.id);
+    }
+});</code></pre>
+
+<p>All of the built-in element tools accept the following optional argument, in addition to their own arguments:</p>
+
+<table>
+    <tr>
+        <th>focusOpacity</th>
+        <td><i>number</i></td>
+        <td>What should be the opacity of the tool when it is focused (e.g. with the <code>toolView.focus</code> <a href="#dia.ToolView.prototype.focus">function</a>)? Default is <code>undefined</code>, meaning that the tool's opacity is kept unchanged.</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var boundaryTool = new joint.elementTools.Boundary({
+    focusOpacity: 0.5
+});</code></pre>

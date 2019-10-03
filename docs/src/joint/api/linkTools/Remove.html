@@ -26,9 +26,9 @@
         <td><i>function</i></td>
         <td>What should happen when the user clicks the remove button? Default:
 
-            <pre><code>function(evt) {
-    this.model.remove({ ui: true, tool: this.cid });
-}</code></pre>
+            <pre><code>function(evt, linkView, toolView) {
+                linkView.model.remove({ ui: true, tool: toolView.cid });
+            }</code></pre>
 
             The callback function is expected to have the signature <code>function(evt)</code> where <code>evt</code> is a <code>jQuery.Event</code> <a href="https://api.jquery.com/category/events/event-object/">object</a>. The button view is available inside the function as <code>this</code>; the button model is available as <code>this.model</code>.</p>
         </td>

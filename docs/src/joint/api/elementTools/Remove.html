@@ -1,0 +1,48 @@
+<p>The <code>Remove</code> element tool renders a remove button at a given position above the element. It accepts a few additional arguments, which can be passed as an object to the element tool constructor:</p>
+
+
+<table>
+    <tr>
+        <th>x</th>
+        <td rowspan="2"><i>string | number</i></td>
+        <td rowspan="2">Use percentage strings (e.g. <code>'40%'</code>) to position the button relatively to the element width/height. A number means distance from the top-left corner of the element. Default is <code>0</code>.</td>
+    </tr>
+    <tr>
+        <th>y</th>
+    </tr>
+    <tr>
+        <th>rotate</th>
+        <td><i>boolean</i></td>
+        <td>Should the button rotate according to the element angle around the element center? Default is <code>false</code>.</td>
+    </tr>
+    <tr>
+        <th>offset</th>
+        <td><i>object</i></td>
+        <td>Additional offset of the button from the position defined by <code>x</code> and <code>y</code>. Default is <code>{ x: 0, y: 0 }</code>.</td>
+    </tr>
+    <tr>
+        <th>action</th>
+        <td><i>function</i></td>
+        <td>What should happen when the user clicks the remove button? Default:
+
+            <pre><code>function(evt, linkView, toolView) {
+    linkView.model.remove({ ui: true, tool: toolView.cid });
+}</code></pre>
+    </tr>
+    <tr>
+        <th>markup</th>
+        <td><i><a href="#dia.Cell.markup.json">JSONMarkup</a></i></td>
+        <td>The markup of the button, provided in the <a href="#dia.Cell.markup.json">JointJS JSON format</a>. Default is <code>undefined</code> (no content).</td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>var removeButton = new joint.elementTools.Remove({
+    focusOpacity: 0.5,
+    rotate: true,
+    // top-mid
+    x: '50%',
+    y: '0%',
+    offset: { x: 10, y: 10 }
+});</code></pre>
