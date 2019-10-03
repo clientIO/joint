@@ -812,7 +812,7 @@ QUnit.module('polyline', function() {
                 assert.equal(typeof polyline.length(), 'number');
             });
 
-            QUnit.test('returns the length of the path up to precision', function(assert) {
+            QUnit.test('returns the length of the polyline', function(assert) {
 
                 var polyline;
 
@@ -904,6 +904,89 @@ QUnit.module('polyline', function() {
                 assert.equal((new g.Polyline(['10 0', '10 10', '20 10', '20 0', '10 0'])).scale(10, 10, new g.Point('10 10')).serialize(), '10,-90 10,10 110,10 110,-90 10,-90');
                 assert.equal((new g.Polyline('10,0 10,10 20,10 20,0 10,0')).scale(10, 10, new g.Point('10 10')).serialize(), '10,-90 10,10 110,10 110,-90 10,-90');
                 assert.equal((new g.Polyline()).scale(10, 10, new g.Point('10 10')).serialize(), '');
+            });
+        });
+
+        QUnit.module('simplify()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                assert.ok((new g.Polyline(['10 0', '10 0', '10 10', '10 10', '20 10', '20 10'])).simplify() instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,0 10,10 10,10 20,10 20,10')).simplify() instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0', '10 0', '10 0'])).simplify() instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,0 10,0')).simplify() instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0', '10 0'])).simplify() instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,0')).simplify() instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0'])).simplify() instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0')).simplify() instanceof g.Polyline);
+
+                assert.ok((new g.Polyline()).simplify() instanceof g.Polyline);
+            });
+
+            QUnit.test('sanity, with precision', function(assert) {
+
+                assert.ok((new g.Polyline(['10 0', '10.1 0', '10 10', '10.1 10', '20 10.1', '20 10'])).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10.1,0 10,10 10.1,10 20,10.1 20,10')).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0', '10.1 0', '10 0'])).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10.1,0 10,0')).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0', '10.1 0', '10 0', '10 100'])).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10.1,0 10,0 10,100')).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 100', '10 0', '10.1 0', '10 0'])).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,100 10,0 10.1,0 10,0')).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0', '10 0'])).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0 10,0')).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+
+                assert.ok((new g.Polyline(['10 0'])).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+                assert.ok((new g.Polyline('10,0')).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+
+                assert.ok((new g.Polyline()).simplify({ threshold: 0.1 }) instanceof g.Polyline);
+            });
+
+            QUnit.test('returns a simplified version of self', function(assert) {
+
+                assert.equal((new g.Polyline(['10 0', '10 0', '10 10', '10 10', '20 10', '20 10'])).simplify().serialize(), '10,0 10,10 20,10');
+                assert.equal((new g.Polyline('10,0 10,0 10,10 10,10 20,10 20,10')).simplify().serialize(), '10,0 10,10 20,10');
+
+                assert.equal((new g.Polyline(['10 0', '10 0', '10 0'])).simplify().serialize(), '10,0 10,0');
+                assert.equal((new g.Polyline('10,0 10,0 10,0')).simplify().serialize(), '10,0 10,0');
+
+                assert.equal((new g.Polyline(['10 0', '10 0'])).simplify().serialize(), '10,0 10,0');
+                assert.equal((new g.Polyline('10,0 10,0')).simplify().serialize(), '10,0 10,0');
+
+                assert.equal((new g.Polyline(['10 0'])).simplify().serialize(), '10,0');
+                assert.equal((new g.Polyline('10,0')).simplify().serialize(), '10,0');
+
+                assert.equal((new g.Polyline()).simplify().serialize(), '');
+            });
+
+            QUnit.test('returns a simplified version of self, with precision', function(assert) {
+
+                assert.equal((new g.Polyline(['10 0', '10.1 0', '10 10', '9.9 10', '20 10.1', '20 10'])).simplify({ threshold: 0.1 }).serialize(), '10,0 9.9,10 20,10');
+                assert.equal((new g.Polyline('10,0 10.1,0 10,10 9.9,10 20,10.1 20,10')).simplify({ threshold: 0.1 }).serialize(), '10,0 9.9,10 20,10');
+
+                assert.equal((new g.Polyline(['10 0', '10.1 0', '10 0'])).simplify({ threshold: 0.1 }).serialize(), '10,0 10,0');
+                assert.equal((new g.Polyline('10,0 10.1,0 10,0')).simplify({ threshold: 0.1 }).serialize(), '10,0 10,0');
+
+                assert.equal((new g.Polyline(['10 0', '10.1 0', '10 0', '10 100'])).simplify({ threshold: 0.1 }).serialize(), '10,0 10,100');
+                assert.equal((new g.Polyline('10,0 10.1,0 10,0 10,100')).simplify({ threshold: 0.1 }).serialize(), '10,0 10,100');
+
+                assert.equal((new g.Polyline(['10 100', '10 0', '10.1 0', '10 0'])).simplify({ threshold: 0.1 }).serialize(), '10,100 10,0');
+                assert.equal((new g.Polyline('10,100 10,0 10.1,0 10,0')).simplify({ threshold: 0.1 }).serialize(), '10,100 10,0');
+
+                assert.equal((new g.Polyline(['10 0', '10 0'])).simplify({ threshold: 0.1 }).serialize(), '10,0 10,0');
+                assert.equal((new g.Polyline('10,0 10,0')).simplify({ threshold: 0.1 }).serialize(), '10,0 10,0');
+
+                assert.equal((new g.Polyline(['10 0'])).simplify({ threshold: 0.1 }).serialize(), '10,0');
+                assert.equal((new g.Polyline('10,0')).simplify({ threshold: 0.1 }).serialize(), '10,0');
+
+                assert.equal((new g.Polyline()).simplify({ threshold: 0.1 }).serialize(), '');
             });
         });
 

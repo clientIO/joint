@@ -3787,6 +3787,50 @@ Polyline.prototype = {
         return this;
     },
 
+    simplify: function(opt = {}) {
+
+        const points = this.points;
+        if (points.length < 3) return this; // we need at least 3 points
+
+        // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
+        const threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+        // start at the beginning of the polyline and go forward
+        let currentIndex = 0;
+        // we need at least one intermediate point (3 points) in every iteration
+        // as soon as that stops being true, we know we reached the end of the polyline
+        while (points[currentIndex + 2]) {
+            const firstIndex = currentIndex;
+            const middleIndex = (currentIndex + 1);
+            const lastIndex = (currentIndex + 2);
+
+            const firstPoint = points[firstIndex];
+            const middlePoint = points[middleIndex];
+            const lastPoint = points[lastIndex];
+
+            const chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+            const closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+            const closestPointDistance = closestPoint.distance(middlePoint);
+            if (closestPointDistance <= threshold) {
+                // middle point is close enough to the chord = simplify
+                // 1) remove middle point:
+                points.splice(middleIndex, 1);
+                // 2) in next iteration, investigate the newly-created triplet of points
+                //    - do not change `currentIndex`
+                //    = (first point stays, point after removed point becomes middle point)
+            } else {
+                // middle point is far from the chord
+                // 1) preserve middle point
+                // 2) in next iteration, move `currentIndex` by one step:
+                currentIndex += 1;
+                //    = (point after first point becomes first point)
+            }
+        }
+
+        // `points` array was modified in-place
+        return this;
+    },
+
     tangentAt: function(ratio) {
 
         var points = this.points;

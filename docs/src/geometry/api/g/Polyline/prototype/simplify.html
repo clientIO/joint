@@ -1,0 +1,6 @@
+<pre class="docs-method-signature"><code>polyline.simplify[opt])</code></pre>
+<p>Simplify the polyline by removing non-essential points (i.e. points lying along straight lines within the polyline).</p>
+
+<p>This function modifies the original polyline and returns self. If the polyline has fewer than 3 points, the polyline is not modified.</p>
+
+<p>By default, a point is considered non-essential only if it lies directly on the connection line between the previous and the following point. You can specify a tolerance range by providing a <code>threshold</code> value within the <code>opt</code> object. Polyline points that are closer to the connection line than this value (inclusive) are removed; points that are farther from the connection line (exclusive) are kept.</p>
