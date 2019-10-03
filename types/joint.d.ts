@@ -3148,7 +3148,7 @@ export namespace attributes {
         magnet?: boolean | string;
         title?: string;
         textVerticalAnchor?: 'bottom' | 'top' | 'middle' | number | string;
-        connection?: boolean;
+        connection?: boolean | { stubs?: number };
         atConnectionLength?: number;
         atConnectionLengthKeepGradient?: number; // alias for atConnectionLength
         atConnectionLengthIgnoreGradient?: number;

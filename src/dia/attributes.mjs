@@ -562,8 +562,24 @@ const attributesNS = {
 
     connection: {
         qualify: isLinkView,
-        set: function() {
-            return { d: this.getSerializedConnection() };
+        set: function({ stubs = 0 }) {
+            let d;
+            if (isFinite(stubs) && stubs !== 0) {
+                let offset;
+                if (stubs < 0) {
+                    offset = (this.getConnectionLength() + stubs) / 2;
+                } else {
+                    offset = stubs;
+                }
+                const path = this.getConnection();
+                const sourceParts = path.divideAtLength(offset);
+                const targetParts = path.divideAtLength(-offset);
+                if (sourceParts && targetParts) {
+                    d = `${sourceParts[0].serialize()} ${targetParts[1].serialize()}`;
+                }
+            }
+
+            return { d: d || this.getSerializedConnection() };
         }
     },
 
