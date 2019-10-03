@@ -8,11 +8,18 @@ var JUMP_SIZE = 5;
 // first one taken as default
 var JUMP_TYPES = ['arc', 'gap', 'cubic'];
 
+// default radius
+var RADIUS = 0;
+
 // takes care of math. error for case when jump is too close to end of line
 var CLOSE_PROXIMITY_PADDING = 1;
 
 // list of connector types not to jump over.
 var IGNORED_CONNECTORS = ['smooth'];
+
+// internal constants for round segment
+var _13 = 1 / 3;
+var _23 = 2 / 3;
 
 /**
  * Transform start/end and route into series of lines
@@ -165,9 +172,10 @@ function createJumps(line, intersections, jumpSize) {
  * Assemble `D` attribute of a SVG path by iterating given lines.
  * @param {g.line[]} lines source lines to use
  * @param {number} jumpSize the size of jump arc (length empty spot on a line)
+ * @param {number} radius the radius
  * @return {string}
  */
-function buildPath(lines, jumpSize, jumpType) {
+function buildPath(lines, jumpSize, jumpType, radius) {
 
     var path = new g.Path();
     var segment;
@@ -239,12 +247,38 @@ function buildPath(lines, jumpSize, jumpType) {
             }
 
         } else {
-            segment = g.Path.createSegment('L', line.end);
-            path.appendSegment(segment);
+            var nextLine = lines[index + 1];
+            if (radius == 0 || !nextLine || nextLine.isJump) {
+                segment = g.Path.createSegment('L', line.end);
+                path.appendSegment(segment);
+            } else {
+                buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
+            }
         }
     });
 
     return path;
+}
+
+function buildRoundedSegment(offset, path, curr, prev, next) {
+    var prevDistance = curr.distance(prev) / 2;
+    var nextDistance = curr.distance(next) / 2;
+
+    var startMove = -Math.min(offset, prevDistance);
+    var endMove = -Math.min(offset, nextDistance);
+
+    var roundedStart = curr.clone().move(prev, startMove).round();
+    var roundedEnd = curr.clone().move(next, endMove).round();
+
+    var control1 = new g.Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+    var control2 = new g.Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+
+    var segment;
+    segment = g.Path.createSegment('L', roundedStart);
+    path.appendSegment(segment);
+
+    segment = g.Path.createSegment('C', control1, control2, roundedEnd);
+    path.appendSegment(segment);
 }
 
 /**
@@ -263,6 +297,7 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) { // esli
     var raw = opt.raw;
     var jumpSize = opt.size || JUMP_SIZE;
     var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
+    var radius = opt.radius || RADIUS;
     var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
 
     // grab the first jump type as a default if specified one is invalid
@@ -278,7 +313,7 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) { // esli
     if (allLinks.length === 1) {
         return buildPath(
             createLines(sourcePoint, targetPoint, route),
-            jumpSize, jumpType
+            jumpSize, jumpType, radius
         );
     }
 
@@ -358,6 +393,6 @@ export const jumpover = function(sourcePoint, targetPoint, route, opt) { // esli
         return resultLines;
     }, []);
 
-    var path = buildPath(jumpingLines, jumpSize, jumpType);
+    var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
     return (raw) ? path : path.serialize();
 };
