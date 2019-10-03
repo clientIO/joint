@@ -932,7 +932,7 @@ export namespace dia {
             // interactions
             gridSize?: number;
             highlighting?: { [type: string]: highlighters.HighlighterJSON };
-            interactive?: ((cellView: CellView, event: string) => boolean) | boolean | CellView.InteractivityOptions
+            interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
             // validations
