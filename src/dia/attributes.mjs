@@ -151,7 +151,7 @@ function atConnectionWrapper(method, opt) {
     };
 }
 
-function isTextNotInUse(_value, _node, attrs) {
+function isTextInUse(_value, _node, attrs) {
     return (attrs.text !== undefined);
 }
 
@@ -395,27 +395,27 @@ const attributesNS = {
     },
 
     lineHeight: {
-        qualify: isTextNotInUse
+        qualify: isTextInUse
     },
 
     textVerticalAnchor: {
-        qualify: isTextNotInUse
+        qualify: isTextInUse
     },
 
     textPath: {
-        qualify: isTextNotInUse
+        qualify: isTextInUse
     },
 
     annotations: {
-        qualify: isTextNotInUse
+        qualify: isTextInUse
     },
 
     eol: {
-        qualify: isTextNotInUse
+        qualify: isTextInUse
     },
 
     editable: {
-        qualify: isTextNotInUse
+        qualify: isTextInUse
     },
 
     // `port` attribute contains the `id` of the port that the underlying magnet represents.
