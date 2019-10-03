@@ -3315,7 +3315,7 @@ export namespace elementTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
-            padding?: number;
+            padding?: number | dia.Sides;
             useModelGeometry?: boolean;
             rotate?: boolean;
         }
@@ -3447,7 +3447,7 @@ export namespace linkTools {
 
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
-            padding?: number;
+            padding?: number | dia.Sides;
             useModelGeometry?: boolean;
         }
     }

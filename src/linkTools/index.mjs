@@ -815,9 +815,14 @@ var Boundary = ToolView.extend({
     },
     update: function() {
         const { relatedView: view, options, vel } = this;
-        let { padding, useModelGeometry, rotate }= options;
-        if (!isFinite(padding)) padding = 0;
-        let bbox = getViewBBox(view, useModelGeometry).inflate(padding);
+        const { useModelGeometry, rotate } = options;
+        const padding = util.normalizeSides(options.padding);
+        let bbox = getViewBBox(view, useModelGeometry).moveAndExpand({
+            x: -padding.left,
+            y: -padding.top,
+            width: padding.left + padding.right,
+            height: padding.top + padding.bottom
+        });
         var model = view.model;
         if (model.isElement()) {
             var angle = model.angle();
