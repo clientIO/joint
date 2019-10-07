@@ -6,6 +6,8 @@ export namespace config {
 
 export namespace dia {
 
+    type Event = JQuery.TriggeredEvent;
+
     type Point = g.PlainPoint;
 
     type BBox = g.PlainRect;
@@ -633,9 +635,9 @@ export namespace dia {
 
         isNodeConnection(node: SVGElement): boolean;
 
-        getEventTarget(evt: JQuery.Event, opt?: { fromPoint?: boolean }): Element;
+        getEventTarget(evt: dia.Event, opt?: { fromPoint?: boolean }): Element;
 
-        checkMouseleave(evt: JQuery.Event): void;
+        checkMouseleave(evt: dia.Event): void;
 
         getFlag(label: CellView.FlagLabel): number;
 
@@ -647,31 +649,31 @@ export namespace dia {
 
         protected onToolEvent(eventName: string): void;
 
-        protected pointerdblclick(evt: JQuery.Event, x: number, y: number): void;
+        protected pointerdblclick(evt: dia.Event, x: number, y: number): void;
 
-        protected pointerclick(evt: JQuery.Event, x: number, y: number): void;
+        protected pointerclick(evt: dia.Event, x: number, y: number): void;
 
-        protected contextmenu(evt: JQuery.Event, x: number, y: number): void;
+        protected contextmenu(evt: dia.Event, x: number, y: number): void;
 
-        protected pointerdown(evt: JQuery.Event, x: number, y: number): void;
+        protected pointerdown(evt: dia.Event, x: number, y: number): void;
 
-        protected pointermove(evt: JQuery.Event, x: number, y: number): void;
+        protected pointermove(evt: dia.Event, x: number, y: number): void;
 
-        protected pointerup(evt: JQuery.Event, x: number, y: number): void;
+        protected pointerup(evt: dia.Event, x: number, y: number): void;
 
-        protected mouseover(evt: JQuery.Event): void;
+        protected mouseover(evt: dia.Event): void;
 
-        protected mouseout(evt: JQuery.Event): void;
+        protected mouseout(evt: dia.Event): void;
 
-        protected mouseenter(evt: JQuery.Event): void;
+        protected mouseenter(evt: dia.Event): void;
 
-        protected mouseleave(evt: JQuery.Event): void;
+        protected mouseleave(evt: dia.Event): void;
 
-        protected mousewheel(evt: JQuery.Event, x: number, y: number, delta: number): void;
+        protected mousewheel(evt: dia.Event, x: number, y: number, delta: number): void;
 
-        protected onevent(evt: JQuery.Event, eventName: string, x: number, y: number): void;
+        protected onevent(evt: dia.Event, eventName: string, x: number, y: number): void;
 
-        protected onmagnet(evt: JQuery.Event, x: number, y: number): void;
+        protected onmagnet(evt: dia.Event, x: number, y: number): void;
 
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes
     }
@@ -707,19 +709,19 @@ export namespace dia {
 
         protected renderStringMarkup(markup: string): void;
 
-        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragMagnetStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragMagnetStart(evt: dia.Event, x: number, y: number): void;
 
-        protected drag(evt: JQuery.Event, x: number, y: number): void;
+        protected drag(evt: dia.Event, x: number, y: number): void;
 
-        protected dragMagnet(evt: JQuery.Event, x: number, y: number): void;
+        protected dragMagnet(evt: dia.Event, x: number, y: number): void;
 
-        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected dragMagnetEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected dragLinkStart(evt: JQuery.Event, magnet: SVGElement, x: number, y: number): void;
+        protected dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
 
         protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
     }
@@ -830,43 +832,43 @@ export namespace dia {
 
         protected onTargetChange(element: Element, targetEnd: any, opt: { [key: string]: any }): void;
 
-        protected onlabel(evt: JQuery.Event, x: number, y: number): void;
+        protected onlabel(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnectionStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragConnectionStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragLabelStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragLabelStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragVertexStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragVertexStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragArrowheadStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragArrowheadStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragStart(evt: JQuery.Event, x: number, y: number): void;
+        protected dragStart(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnection(evt: JQuery.Event, x: number, y: number): void;
+        protected dragConnection(evt: dia.Event, x: number, y: number): void;
 
-        protected dragLabel(evt: JQuery.Event, x: number, y: number): void;
+        protected dragLabel(evt: dia.Event, x: number, y: number): void;
 
-        protected dragVertex(evt: JQuery.Event, x: number, y: number): void;
+        protected dragVertex(evt: dia.Event, x: number, y: number): void;
 
-        protected dragArrowhead(evt: JQuery.Event, x: number, y: number): void;
+        protected dragArrowhead(evt: dia.Event, x: number, y: number): void;
 
-        protected drag(evt: JQuery.Event, x: number, y: number): void;
+        protected drag(evt: dia.Event, x: number, y: number): void;
 
-        protected dragConnectionEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragConnectionEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected dragLabelEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragLabelEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected dragVertexEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragVertexEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected dragArrowheadEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragArrowheadEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected dragEnd(evt: JQuery.Event, x: number, y: number): void;
+        protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
-        protected notifyPointerdown(evt: JQuery.Event, x: number, y: number): void;
+        protected notifyPointerdown(evt: dia.Event, x: number, y: number): void;
 
-        protected notifyPointermove(evt: JQuery.Event, x: number, y: number): void;
+        protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
 
-        protected notifyPointerup(evt: JQuery.Event, x: number, y: number): void;
+        protected notifyPointerup(evt: dia.Event, x: number, y: number): void;
     }
 
     // dia.Paper
@@ -936,14 +938,14 @@ export namespace dia {
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
             // validations
-            validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: JQuery.Event) => boolean;
+            validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: dia.Event) => boolean;
             validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
             restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
             multiLinks?: boolean;
             linkPinning?: boolean;
             allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
             // events
-            guard?: (evt: JQuery.Event, view: CellView) => boolean;
+            guard?: (evt: dia.Event, view: CellView) => boolean;
             preventContextMenu?: boolean;
             preventDefaultBlankAction?: boolean;
             clickThreshold?: number;
@@ -1130,7 +1132,7 @@ export namespace dia {
 
         update(): this;
 
-        getPointerArgs(evt: JQuery.Event): [JQuery.Event, number, number];
+        getPointerArgs(evt: dia.Event): [dia.Event, number, number];
 
         // tools
 
@@ -1234,35 +1236,35 @@ export namespace dia {
 
         protected removeZPivots(): void
 
-        protected pointerdblclick(evt: JQuery.Event): void;
+        protected pointerdblclick(evt: dia.Event): void;
 
-        protected pointerclick(evt: JQuery.Event): void;
+        protected pointerclick(evt: dia.Event): void;
 
-        protected contextmenu(evt: JQuery.Event): void;
+        protected contextmenu(evt: dia.Event): void;
 
-        protected pointerdown(evt: JQuery.Event): void;
+        protected pointerdown(evt: dia.Event): void;
 
-        protected pointermove(evt: JQuery.Event): void;
+        protected pointermove(evt: dia.Event): void;
 
-        protected pointerup(evt: JQuery.Event): void;
+        protected pointerup(evt: dia.Event): void;
 
-        protected mouseover(evt: JQuery.Event): void;
+        protected mouseover(evt: dia.Event): void;
 
-        protected mouseout(evt: JQuery.Event): void;
+        protected mouseout(evt: dia.Event): void;
 
-        protected mouseenter(evt: JQuery.Event): void;
+        protected mouseenter(evt: dia.Event): void;
 
-        protected mouseleave(evt: JQuery.Event): void;
+        protected mouseleave(evt: dia.Event): void;
 
-        protected mousewheel(evt: JQuery.Event): void;
+        protected mousewheel(evt: dia.Event): void;
 
-        protected onevent(evt: JQuery.Event): void;
+        protected onevent(evt: dia.Event): void;
 
-        protected onmagnet(evt: JQuery.Event): void;
+        protected onmagnet(evt: dia.Event): void;
 
-        protected onlabel(evt: JQuery.Event): void;
+        protected onlabel(evt: dia.Event): void;
 
-        protected guard(evt: JQuery.Event, view: CellView): boolean;
+        protected guard(evt: dia.Event, view: CellView): boolean;
 
         protected drawBackgroundImage(img: HTMLImageElement, opt: { [key: string]: any }): void;
 
@@ -2210,7 +2212,7 @@ export namespace util {
 
     export function toKebabCase(str: string): string;
 
-    export function normalizeEvent(evt: JQuery.Event): JQuery.Event;
+    export function normalizeEvent(evt: dia.Event): dia.Event;
 
     export function nextFrame(callback: () => void, context?: { [key: string]: any }, ...args: any[]): number;
 
@@ -2602,11 +2604,11 @@ export namespace mvc {
 
         undelegateElementEvents(element: Element): this;
 
-        eventData(evt: JQuery.Event): viewEventData;
-        eventData(evt: JQuery.Event, data: viewEventData): this;
+        eventData(evt: dia.Event): viewEventData;
+        eventData(evt: dia.Event, data: viewEventData): this;
 
-        stopPropagation(evt: JQuery.Event): this;
-        isPropagationStopped(evt: JQuery.Event): boolean;
+        stopPropagation(evt: dia.Event): this;
+        isPropagationStopped(evt: dia.Event): boolean;
 
         renderChildren(children?: dia.MarkupJSON): this;
 
@@ -3289,7 +3291,7 @@ export namespace elementTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.LinkView) => void;
 
         interface Options extends dia.ToolView.Options {
             x?: number | string;
@@ -3306,7 +3308,7 @@ export namespace elementTools {
 
         constructor(opt?: Button.Options);
 
-        protected onPointerDown(evt: JQuery.Event): void;
+        protected onPointerDown(evt: dia.Event): void;
     }
 
     class Remove extends Button {
@@ -3374,11 +3376,11 @@ export namespace linkTools {
         ratio: number;
         arrowheadType: string;
 
-        protected onPointerDown(evt: JQuery.Event): void;
+        protected onPointerDown(evt: dia.Event): void;
 
-        protected onPointerMove(evt: JQuery.Event): void;
+        protected onPointerMove(evt: dia.Event): void;
 
-        protected onPointerUp(evt: JQuery.Event): void;
+        protected onPointerUp(evt: dia.Event): void;
     }
 
     class SourceArrowhead extends Arrowhead {
@@ -3423,7 +3425,7 @@ export namespace linkTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: JQuery.Event, view: dia.LinkView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.LinkView) => void;
 
         interface Options extends dia.ToolView.Options {
             distance?: number | string;
@@ -3438,7 +3440,7 @@ export namespace linkTools {
 
         constructor(opt?: Button.Options);
 
-        protected onPointerDown(evt: JQuery.Event): void;
+        protected onPointerDown(evt: dia.Event): void;
     }
 
     class Remove extends Button {
