@@ -2718,6 +2718,7 @@ export namespace connectors {
         raw?: boolean;
         size?: number;
         jump?: 'arc' | 'gap' | 'cubic';
+        radius?: number;
     }
 
     interface ConnectorArgumentsMap {
