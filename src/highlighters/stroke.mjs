@@ -7,8 +7,6 @@ export const stroke = {
     defaultOptions: {
 
         padding: 3,
-        rx: 0,
-        ry: 0,
         attrs: {
             'stroke-width': 3,
             'stroke': '#FEB663'
