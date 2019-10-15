@@ -3108,6 +3108,7 @@ export namespace attributes {
 
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
+        eol?: string;
         filter?: string | { [key: string]: any };
         fill?: string | { [key: string]: any };
         stroke?: string | { [key: string]: any };
@@ -3145,6 +3146,7 @@ export namespace attributes {
         refPointsResetOffset?: string; // alias for refPoints
         refPointsKeepOffset?: string;
         resetOffset?: boolean;
+        displayEmpty?: boolean;
         xAlignment?: 'middle' | 'right' | number | string;
         yAlignment?: 'middle' | 'bottom' | number | string;
         event?: string;

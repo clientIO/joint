@@ -84,7 +84,7 @@ svg.append(text);</code></pre>
         The provided <code>textPath</code> specifies the path data of the path the text should go along.
 </p>
 
-<pre><code>t.text('text that goes along a path', { textPath: 'M 0 100 Q 30 10 100 0' });</code></pre
+<pre><code>t.text('text that goes along a path', { textPath: 'M 0 100 Q 30 10 100 0' });</code></pre>
 
 <h4>object</h4>
 
@@ -102,3 +102,11 @@ svg.append(text);</code></pre>
 t.text('text that goes along an existing path', {
   textPath: { 'xlink:href': '#path1' }
 });</code></pre>
+
+<h3>Misc</h3>
+
+<p>
+        By default, the SVGTextElement without the content is not displayed (It is not clickable and occupies no space). To prevent this, use <code>opt.displayEmpty</code> and set it to <code>true</code>.
+</p>
+
+
