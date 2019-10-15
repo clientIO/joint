@@ -296,7 +296,7 @@ const attributesNS = {
             var $node = $(node);
             var cacheName = 'joint-text';
             var cache = $node.data(cacheName);
-            var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'selectable');
+            var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'displayEmpty');
             var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
             var textHash = JSON.stringify([text, textAttrs]);
             // Update the text only if there was a change in the string
@@ -414,7 +414,7 @@ const attributesNS = {
         qualify: isTextInUse
     },
 
-    selectable: {
+    displayEmpty: {
         qualify: isTextInUse
     },
 

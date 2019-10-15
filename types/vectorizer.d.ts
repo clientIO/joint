@@ -25,7 +25,7 @@ export namespace Vectorizer {
         textPath?: string | { [key: string]: any };
         annotations?: TextAnnotation[];
         includeAnnotationIndices?: boolean;
-        selectable?: boolean;
+        displayEmpty?: boolean;
     }
 
     interface GetBBoxOptions {

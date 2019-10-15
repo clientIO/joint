@@ -11,8 +11,17 @@ var paper = new joint.dia.Paper({
     frozen: true
 });
 
-paper.on('element:stop-propagation', function(_view, evt) {
+paper.on('element:label:pointerdown', function(_view, evt) {
+    // Prevent user from moving the element when interacting with the label element
     evt.stopPropagation();
+});
+
+paper.on('cell:pointerdown blank:pointerdown', function() {
+    if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+    } else if (document.selection) {
+        document.selection.empty();
+    }
 });
 
 function state(x, y, label) {
@@ -22,9 +31,12 @@ function state(x, y, label) {
         attrs: {
             label : {
                 text: label,
-                selectable: true,
-                event: 'element:stop-propagation',
-                fontWeight: 'bold'
+                event: 'element:label:pointerdown',
+                fontWeight: 'bold',
+                cursor: 'text',
+                style: {
+                    userSelect: 'text'
+                }
             },
             body: {
                 strokeWidth: 3

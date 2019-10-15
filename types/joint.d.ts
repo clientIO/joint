@@ -3143,7 +3143,7 @@ export namespace attributes {
         refPointsResetOffset?: string; // alias for refPoints
         refPointsKeepOffset?: string;
         resetOffset?: boolean;
-        selectable?: boolean;
+        displayEmpty?: boolean;
         xAlignment?: 'middle' | 'right' | number | string;
         yAlignment?: 'middle' | 'bottom' | number | string;
         event?: string;

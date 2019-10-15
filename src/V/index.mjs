@@ -491,7 +491,7 @@ const V = (function() {
         content = V.sanitizeText(content);
         opt || (opt = {});
         // Should we allow the text to be selected?
-        var selectable = opt.selectable;
+        var displayEmpty = opt.displayEmpty;
         // End of Line character
         var eol = opt.eol;
         // Text along path
@@ -518,12 +518,8 @@ const V = (function() {
             // An empty text gets rendered into the DOM in webkit-based browsers.
             // In order to unify this behaviour across all browsers
             // we rather hide the text element when it's empty.
-            'display': (content || selectable) ? null : 'none'
+            'display': (content || displayEmpty) ? null : 'none'
         });
-        if (selectable) {
-            this.node.style.userSelect = 'text';
-            this.attr('cursor', 'text');
-        }
 
         // Set default font-size if none
         var fontSize = parseFloat(this.attr('font-size'));
