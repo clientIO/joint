@@ -7,6 +7,8 @@
  * dia.Paper - validateMagnet() callback has `evt` argument
  * dia.Paper - ignore viewport when removing views, register unmounted views on render
  * dia.Graph - fix bfs() stop condition
+ * dia.Element - make sure only elements are taken into account in fitEmbeds()
+ * dia.LinkView - fix label rendering after multiple changes made to model
  * linkTools.Boundary - padding can be defined separately for each side
  * dia.ToolView - support reusable tools
  * connectors.jumpover - add `radius` option to make corners rounded
