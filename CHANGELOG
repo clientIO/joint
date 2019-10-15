@@ -12,7 +12,9 @@
  * linkTools.Boundary - padding can be defined separately for each side
  * dia.ToolView - support reusable tools
  * connectors.jumpover - add `radius` option to make corners rounded
+ * layout.DirectedGraph - remove unnecessary vertices
  * dia.attributes - add `stubs` option to `connection` attribute
+ * dia.attributes - add `displayEmpty` for text elements
  * Vectorizer - fix e2c() overflowing the stack in normalizePathData()
  * Geometry - add simplify() to Polyline (remove redundant points)
 
