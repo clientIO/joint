@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -135,9 +135,9 @@ this.joint.shapes = this.joint.shapes || {};
         attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
     });
 
+    exports.Link = Link;
     exports.Place = Place;
     exports.PlaceView = PlaceView;
     exports.Transition = Transition;
-    exports.Link = Link;
 
-}(this.joint.shapes.pn = this.joint.shapes.pn || {}, joint.shapes, joint.dia, V, joint.dia));
+}(this.joint.shapes.pn = this.joint.shapes.pn || {}, joint.shapes.basic, joint.dia, V, joint.dia));

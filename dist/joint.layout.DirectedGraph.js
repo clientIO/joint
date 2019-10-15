@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -59,19 +59,25 @@ this.joint.layout = this.joint.layout || {};
 
         importLink: function(opt, edgeObj, gl) {
 
+            var SIMPLIFY_THRESHOLD = 0.001;
+
             var link = this.getCell(edgeObj.name);
             var glEdge = gl.edge(edgeObj);
             var points = glEdge.points || [];
+            var polyline = new g.Polyline(points);
 
             // check the `setLinkVertices` here for backwards compatibility
             if (opt.setVertices || opt.setLinkVertices) {
                 if (util.isFunction(opt.setVertices)) {
                     opt.setVertices(link, points);
                 } else {
-                    // Remove the first and last point from points array.
-                    // Those are source/target element connection points
-                    // ie. they lies on the edge of connected elements.
-                    link.set('vertices', points.slice(1, points.length - 1));
+                    // simplify the `points` polyline
+                    polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
+                    var polylinePoints = polyline.points.map(function (point) { return (point.toJSON()); }); // JSON of points after simplification
+                    var numPolylinePoints = polylinePoints.length; // number of points after simplification
+                    // set simplified polyline points as link vertices
+                    // remove first and last polyline points (= source/target sonnectionPoints)
+                    link.set('vertices', polylinePoints.slice(1, numPolylinePoints - 1));
                 }
             }
 
@@ -80,16 +86,16 @@ this.joint.layout = this.joint.layout || {};
                 if (util.isFunction(opt.setLabels)) {
                     opt.setLabels(link, labelPosition, points);
                 } else {
-                    // Convert the absolute label position to a relative position
+                    // convert the absolute label position to a relative position
                     // towards the closest point on the edge
-                    var polyline = g.Polyline(points);
                     var length = polyline.closestPointLength(labelPosition);
                     var closestPoint = polyline.pointAtLength(length);
-                    var distance = length / polyline.length();
+                    var distance = (length / polyline.length());
+                    var offset = new g.Point(labelPosition).difference(closestPoint).toJSON();
                     link.label(0, {
                         position: {
                             distance: distance,
-                            offset: g.Point(labelPosition).difference(closestPoint).toJSON()
+                            offset: offset
                         }
                     });
                 }
@@ -207,7 +213,7 @@ this.joint.layout = this.joint.layout || {};
             // Width and height of the graph extended by margins.
             var glSize = glGraph.graph();
             // Return the bounding box of the graph after the layout.
-            return g.Rect(
+            return new g.Rect(
                 marginX,
                 marginY,
                 Math.abs(glSize.width - 2 * marginX),

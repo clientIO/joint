@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -261,20 +261,20 @@ this.joint.shapes = this.joint.shapes || {};
         }
     });
 
-    exports.Class = Class;
-    exports.ClassView = ClassView;
     exports.Abstract = Abstract;
     exports.AbstractView = AbstractView;
-    exports.Interface = Interface;
-    exports.InterfaceView = InterfaceView;
+    exports.Aggregation = Aggregation;
+    exports.Association = Association;
+    exports.Class = Class;
+    exports.ClassView = ClassView;
+    exports.Composition = Composition;
+    exports.EndState = EndState;
     exports.Generalization = Generalization;
     exports.Implementation = Implementation;
-    exports.Aggregation = Aggregation;
-    exports.Composition = Composition;
-    exports.Association = Association;
-    exports.State = State;
+    exports.Interface = Interface;
+    exports.InterfaceView = InterfaceView;
     exports.StartState = StartState;
-    exports.EndState = EndState;
+    exports.State = State;
     exports.Transition = Transition;
 
-}(this.joint.shapes.uml = this.joint.shapes.uml || {}, joint.dia, joint.dia, joint.shapes));
+}(this.joint.shapes.uml = this.joint.shapes.uml || {}, joint.dia, joint.dia, joint.shapes.basic));

@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -4195,6 +4195,52 @@ var joint = (function (exports, Backbone, _, $) {
             return this;
         },
 
+        simplify: function(opt) {
+            if ( opt === void 0 ) opt = {};
+
+
+            var points = this.points;
+            if (points.length < 3) { return this; } // we need at least 3 points
+
+            // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
+            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+            // start at the beginning of the polyline and go forward
+            var currentIndex = 0;
+            // we need at least one intermediate point (3 points) in every iteration
+            // as soon as that stops being true, we know we reached the end of the polyline
+            while (points[currentIndex + 2]) {
+                var firstIndex = currentIndex;
+                var middleIndex = (currentIndex + 1);
+                var lastIndex = (currentIndex + 2);
+
+                var firstPoint = points[firstIndex];
+                var middlePoint = points[middleIndex];
+                var lastPoint = points[lastIndex];
+
+                var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+                var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+                var closestPointDistance = closestPoint.distance(middlePoint);
+                if (closestPointDistance <= threshold) {
+                    // middle point is close enough to the chord = simplify
+                    // 1) remove middle point:
+                    points.splice(middleIndex, 1);
+                    // 2) in next iteration, investigate the newly-created triplet of points
+                    //    - do not change `currentIndex`
+                    //    = (first point stays, point after removed point becomes middle point)
+                } else {
+                    // middle point is far from the chord
+                    // 1) preserve middle point
+                    // 2) in next iteration, move `currentIndex` by one step:
+                    currentIndex += 1;
+                    //    = (point after first point becomes first point)
+                }
+            }
+
+            // `points` array was modified in-place
+            return this;
+        },
+
         tangentAt: function(ratio) {
 
             var points = this.points;
@@ -4770,18 +4816,21 @@ var joint = (function (exports, Backbone, _, $) {
         // @return {rect} representing the union of both rectangles.
         union: function(rect) {
 
-            rect = new Rect(rect);
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = rect.origin();
-            var rCorner = rect.corner();
-
-            var originX = min(myOrigin.x, rOrigin.x);
-            var originY = min(myOrigin.y, rOrigin.y);
-            var cornerX = max(myCorner.x, rCorner.x);
-            var cornerY = max(myCorner.y, rCorner.y);
-
-            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
+            var u = new Rect(rect);
+            var ref = this;
+            var x = ref.x;
+            var y = ref.y;
+            var width = ref.width;
+            var height = ref.height;
+            var rx = u.x;
+            var ry = u.y;
+            var rw = u.width;
+            var rh = u.height;
+            var ux = u.x = min(x, rx);
+            var uy = u.y = min(y, ry);
+            u.width = max(x + width, rx + rw) - ux;
+            u.height = max(y + height, ry + rh) - uy;
+            return u;
         }
     };
 
@@ -6339,7 +6388,8 @@ var joint = (function (exports, Backbone, _, $) {
             // IE would otherwise collapse all spaces into one.
             content = V.sanitizeText(content);
             opt || (opt = {});
-
+            // Should we allow the text to be selected?
+            var displayEmpty = opt.displayEmpty;
             // End of Line character
             var eol = opt.eol;
             // Text along path
@@ -6366,8 +6416,9 @@ var joint = (function (exports, Backbone, _, $) {
                 // An empty text gets rendered into the DOM in webkit-based browsers.
                 // In order to unify this behaviour across all browsers
                 // we rather hide the text element when it's empty.
-                'display': (content) ? null : 'none'
+                'display': (content || displayEmpty) ? null : 'none'
             });
+
             // Set default font-size if none
             var fontSize = parseFloat(this.attr('font-size'));
             if (!fontSize) {
@@ -6392,12 +6443,12 @@ var joint = (function (exports, Backbone, _, $) {
                 var dy = lineHeight;
                 var lineClassName = 'v-line';
                 var lineNode = doc.createElementNS(ns.svg, 'tspan');
-                var line$$1 = lines[i];
+                var line = lines[i];
                 var lineMetrics;
-                if (line$$1) {
+                if (line) {
                     if (annotations) {
                         // Find the *compacted* annotations for this line.
-                        var lineAnnotations = V.annotateString(line$$1, annotations, {
+                        var lineAnnotations = V.annotateString(line, annotations, {
                             offset: -offset,
                             includeAnnotationIndices: iai
                         });
@@ -6412,8 +6463,8 @@ var joint = (function (exports, Backbone, _, $) {
                         if (iLineHeight && autoLineHeight && i !== 0) { dy = iLineHeight; }
                         if (i === 0) { annotatedY = lineMetrics.maxFontSize * 0.8; }
                     } else {
-                        if (eol && i !== lastI) { line$$1 += eol; }
-                        lineNode.textContent = line$$1;
+                        if (eol && i !== lastI) { line += eol; }
+                        lineNode.textContent = line;
                     }
                 } else {
                     // Make sure the textContent is never empty. If it is, add a dummy
@@ -6434,7 +6485,7 @@ var joint = (function (exports, Backbone, _, $) {
                 if (i > 0 || textPath) { lineNode.setAttribute('x', x); }
                 lineNode.className.baseVal = lineClassName;
                 containerNode.appendChild(lineNode);
-                offset += line$$1.length + 1;      // + 1 = newline character.
+                offset += line.length + 1;      // + 1 = newline character.
             }
             // Y Alignment calculation
             if (namedVerticalAnchor) {
@@ -6774,9 +6825,9 @@ var joint = (function (exports, Backbone, _, $) {
             // previous transformations then they'd add up with the old ones. Scale is an exception as
             // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
             // element is scaled by the factor 2, not 8.
-            var scale$$1 = this.scale();
+            var scale = this.scale();
             this.attr('transform', '');
-            var bbox = this.getBBox({ target: target }).scale(scale$$1.sx, scale$$1.sy);
+            var bbox = this.getBBox({ target: target }).scale(scale.sx, scale.sy);
 
             // 1. Translate to origin.
             var translateToOrigin = V.createSVGTransform();
@@ -6801,7 +6852,7 @@ var joint = (function (exports, Backbone, _, $) {
                 translateFromOrigin.matrix.multiply(
                     rotateAroundOrigin.matrix.multiply(
                         translateToOrigin.matrix.multiply(
-                            ctm.scale(scale$$1.sx, scale$$1.sy)))));
+                            ctm.scale(scale.sx, scale.sy)))));
 
             this.attr('transform', V.matrixToTransformString(transform.matrix));
 
@@ -7028,8 +7079,8 @@ var joint = (function (exports, Backbone, _, $) {
                 // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
                 var resetRotation = svg.createSVGTransform();
                 resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-                var rect$$1 = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-                spot = (new Rect(rect$$1)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+                var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+                spot = (new Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
 
             } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
 
@@ -7295,7 +7346,7 @@ var joint = (function (exports, Backbone, _, $) {
 
         V.parseTransformString = function(transform) {
 
-            var translate, rotate, scale$$1;
+            var translate, rotate, scale;
 
             if (transform) {
 
@@ -7308,15 +7359,15 @@ var joint = (function (exports, Backbone, _, $) {
                     var decomposedMatrix = V.decomposeMatrix(matrix);
 
                     translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
-                    scale$$1 = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
+                    scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
                     rotate = [decomposedMatrix.rotation];
 
                     var transformations = [];
                     if (translate[0] !== 0 || translate[1] !== 0) {
                         transformations.push('translate(' + translate + ')');
                     }
-                    if (scale$$1[0] !== 1 || scale$$1[1] !== 1) {
-                        transformations.push('scale(' + scale$$1 + ')');
+                    if (scale[0] !== 1 || scale[1] !== 1) {
+                        transformations.push('scale(' + scale + ')');
                     }
                     if (rotate[0] !== 0) {
                         transformations.push('rotate(' + rotate + ')');
@@ -7335,12 +7386,12 @@ var joint = (function (exports, Backbone, _, $) {
                     }
                     var scaleMatch = transform.match(/scale\((.*?)\)/);
                     if (scaleMatch) {
-                        scale$$1 = scaleMatch[1].split(separator);
+                        scale = scaleMatch[1].split(separator);
                     }
                 }
             }
 
-            var sx = (scale$$1 && scale$$1[0]) ? parseFloat(scale$$1[0]) : 1;
+            var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
 
             return {
                 value: transform,
@@ -7355,15 +7406,15 @@ var joint = (function (exports, Backbone, _, $) {
                 },
                 scale: {
                     sx: sx,
-                    sy: (scale$$1 && scale$$1[1]) ? parseFloat(scale$$1[1]) : sx
+                    sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
                 }
             };
         };
 
-        V.deltaTransformPoint = function(matrix, point$$1) {
+        V.deltaTransformPoint = function(matrix, point) {
 
-            var dx = point$$1.x * matrix.a + point$$1.y * matrix.c + 0;
-            var dy = point$$1.x * matrix.b + point$$1.y * matrix.d + 0;
+            var dx = point.x * matrix.a + point.y * matrix.c + 0;
+            var dy = point.x * matrix.b + point.y * matrix.d + 0;
             return { x: dx, y: dy };
         };
 
@@ -7750,12 +7801,12 @@ var joint = (function (exports, Backbone, _, $) {
             return annotations;
         };
 
-        V.convertLineToPathData = function(line$$1) {
+        V.convertLineToPathData = function(line) {
 
-            line$$1 = V(line$$1);
+            line = V(line);
             var d = [
-                'M', line$$1.attr('x1'), line$$1.attr('y1'),
-                'L', line$$1.attr('x2'), line$$1.attr('y2')
+                'M', line.attr('x1'), line.attr('y1'),
+                'L', line.attr('x2'), line.attr('y2')
             ].join(' ');
             return d;
         };
@@ -7820,13 +7871,13 @@ var joint = (function (exports, Backbone, _, $) {
             return d;
         };
 
-        V.convertEllipseToPathData = function(ellipse$$1) {
+        V.convertEllipseToPathData = function(ellipse) {
 
-            ellipse$$1 = V(ellipse$$1);
-            var cx = parseFloat(ellipse$$1.attr('cx')) || 0;
-            var cy = parseFloat(ellipse$$1.attr('cy')) || 0;
-            var rx = parseFloat(ellipse$$1.attr('rx'));
-            var ry = parseFloat(ellipse$$1.attr('ry')) || rx;
+            ellipse = V(ellipse);
+            var cx = parseFloat(ellipse.attr('cx')) || 0;
+            var cy = parseFloat(ellipse.attr('cy')) || 0;
+            var rx = parseFloat(ellipse.attr('rx'));
+            var ry = parseFloat(ellipse.attr('ry')) || rx;
             var cdx = rx * V.KAPPA; // Control distance x.
             var cdy = ry * V.KAPPA; // Control distance y.
 
@@ -7841,17 +7892,17 @@ var joint = (function (exports, Backbone, _, $) {
             return d;
         };
 
-        V.convertRectToPathData = function(rect$$1) {
+        V.convertRectToPathData = function(rect) {
 
-            rect$$1 = V(rect$$1);
+            rect = V(rect);
 
             return V.rectToPath({
-                x: parseFloat(rect$$1.attr('x')) || 0,
-                y: parseFloat(rect$$1.attr('y')) || 0,
-                width: parseFloat(rect$$1.attr('width')) || 0,
-                height: parseFloat(rect$$1.attr('height')) || 0,
-                rx: parseFloat(rect$$1.attr('rx')) || 0,
-                ry: parseFloat(rect$$1.attr('ry')) || 0
+                x: parseFloat(rect.attr('x')) || 0,
+                y: parseFloat(rect.attr('y')) || 0,
+                width: parseFloat(rect.attr('width')) || 0,
+                height: parseFloat(rect.attr('height')) || 0,
+                rx: parseFloat(rect.attr('rx')) || 0,
+                ry: parseFloat(rect.attr('ry')) || 0
             });
         };
 
@@ -7926,21 +7977,20 @@ var joint = (function (exports, Backbone, _, $) {
                 return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
             }
 
+            function rotate(x, y, rad) {
+
+                var X = (x * cos(rad)) - (y * sin(rad));
+                var Y = (x * sin(rad)) + (y * cos(rad));
+                return { x: X, y: Y };
+            }
+
             function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
                 // for more information of where this math came from visit:
                 // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-
                 var _120 = (PI * 120) / 180;
                 var rad = (PI / 180) * (+angle || 0);
                 var res = [];
                 var xy;
-
-                var rotate = function(x, y, rad) {
-
-                    var X = (x * cos(rad)) - (y * sin(rad));
-                    var Y = (x * sin(rad)) + (y * cos(rad));
-                    return { x: X, y: Y };
-                };
 
                 if (!recursive) {
                     xy = rotate(x1, y1, -rad);
@@ -7978,8 +8028,8 @@ var joint = (function (exports, Backbone, _, $) {
                     if (f1 < 0) { f1 = (PI * 2) + f1; }
                     if (f2 < 0) { f2 = (PI * 2) + f2; }
 
-                    if ((sweep_flag && f1) > f2) { f1 = f1 - (PI * 2); }
-                    if ((!sweep_flag && f2) > f1) { f2 = f2 - (PI * 2); }
+                    if (sweep_flag && (f1 > f2)) { f1 = f1 - (PI * 2); }
+                    if (!sweep_flag && (f2 > f1)) { f2 = f2 - (PI * 2); }
 
                 } else {
                     f1 = recursive[0];
@@ -7989,16 +8039,13 @@ var joint = (function (exports, Backbone, _, $) {
                 }
 
                 var df = f2 - f1;
-
                 if (abs(df) > _120) {
                     var f2old = f2;
                     var x2old = x2;
                     var y2old = y2;
-
-                    f2 = f1 + (_120 * (((sweep_flag && f2) > f1) ? 1 : -1));
+                    f2 = f1 + (_120 * ((sweep_flag && (f2 > f1)) ? 1 : -1));
                     x2 = cx + (rx * cos(f2));
                     y2 = cy + (ry * sin(f2));
-
                     res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
                 }
 
@@ -8008,12 +8055,9 @@ var joint = (function (exports, Backbone, _, $) {
                 var s1 = sin(f1);
                 var c2 = cos(f2);
                 var s2 = sin(f2);
-
                 var t = tan(df / 4);
-
                 var hx = (4 / 3) * (rx * t);
                 var hy = (4 / 3) * (ry * t);
-
                 var m1 = [x1, y1];
                 var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
                 var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
@@ -8024,16 +8068,13 @@ var joint = (function (exports, Backbone, _, $) {
 
                 if (recursive) {
                     return [m2, m3, m4].concat(res);
-
                 } else {
                     res = [m2, m3, m4].concat(res).join().split(',');
-
                     var newres = [];
                     var ii = res.length;
                     for (var i = 0; i < ii; i++) {
                         newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
                     }
-
                     return newres;
                 }
             }
@@ -8451,13 +8492,14 @@ var joint = (function (exports, Backbone, _, $) {
         return hash;
     };
 
-    var getByPath = function(obj, path, delim) {
+    var getByPath = function(obj, path, delimiter) {
 
-        var keys = Array.isArray(path) ? path.slice() : path.split(delim || '/');
+        var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
         var key;
-
-        while (keys.length) {
-            key = keys.shift();
+        var i = 0;
+        var length = keys.length;
+        while (i < length) {
+            key = keys[i++];
             if (Object(obj) === obj && key in obj) {
                 obj = obj[key];
             } else {
@@ -8467,9 +8509,9 @@ var joint = (function (exports, Backbone, _, $) {
         return obj;
     };
 
-    var setByPath = function(obj, path, value, delim) {
+    var setByPath = function(obj, path, value, delimiter) {
 
-        var keys = Array.isArray(path) ? path : path.split(delim || '/');
+        var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
 
         var diver = obj;
         var i = 0;
@@ -8484,18 +8526,17 @@ var joint = (function (exports, Backbone, _, $) {
         return obj;
     };
 
-    var unsetByPath = function(obj, path, delim) {
+    var unsetByPath = function(obj, path, delimiter) {
 
-        delim = delim || '/';
+        delimiter || (delimiter = '/');
 
-        var pathArray = Array.isArray(path) ? path.slice() : path.split(delim);
+        var pathArray = Array.isArray(path) ? path.slice() : path.split(delimiter);
 
         var propertyToRemove = pathArray.pop();
         if (pathArray.length > 0) {
 
             // unsetting a nested attribute
-            var parent = getByPath(obj, pathArray, delim);
-
+            var parent = getByPath(obj, pathArray, delimiter);
             if (parent) {
                 delete parent[propertyToRemove];
             }
@@ -10030,28 +10071,28 @@ var joint = (function (exports, Backbone, _, $) {
 
         toArray(cells).forEach(function(cell) {
 
-            var clone$$1 = cloneMap[cell.id];
+            var clone = cloneMap[cell.id];
             // assert(clone exists)
 
-            if (clone$$1.isLink()) {
-                var source = clone$$1.source();
-                var target = clone$$1.target();
+            if (clone.isLink()) {
+                var source = clone.source();
+                var target = clone.target();
                 if (source.id && cloneMap[source.id]) {
                     // Source points to an element and the element is among the clones.
                     // => Update the source of the cloned link.
-                    clone$$1.prop('source/id', cloneMap[source.id].id);
+                    clone.prop('source/id', cloneMap[source.id].id);
                 }
                 if (target.id && cloneMap[target.id]) {
                     // Target points to an element and the element is among the clones.
                     // => Update the target of the cloned link.
-                    clone$$1.prop('target/id', cloneMap[target.id].id);
+                    clone.prop('target/id', cloneMap[target.id].id);
                 }
             }
 
             // Find the parent of the original cell
             var parent = cell.get('parent');
             if (parent && cloneMap[parent]) {
-                clone$$1.set('parent', cloneMap[parent].id);
+                clone.set('parent', cloneMap[parent].id);
             }
 
             // Find the embeds of the original cell
@@ -10065,7 +10106,7 @@ var joint = (function (exports, Backbone, _, $) {
             }, []);
 
             if (!isEmpty(embeds)) {
-                clone$$1.set('embeds', embeds);
+                clone.set('embeds', embeds);
             }
         });
 
@@ -10110,9 +10151,9 @@ var joint = (function (exports, Backbone, _, $) {
                 }
             }
 
-            var point$$1 = Point();
-            point$$1[axis] = delta || 0;
-            return point$$1;
+            var point = Point();
+            point[axis] = delta || 0;
+            return point;
         };
     }
 
@@ -10132,9 +10173,9 @@ var joint = (function (exports, Backbone, _, $) {
                 delta = 0;
             }
 
-            var point$$1 = Point();
-            point$$1[axis] = -(nodeBBox[axis] + delta);
-            return point$$1;
+            var point = Point();
+            point[axis] = -(nodeBBox[axis] + delta);
+            return point;
         };
     }
 
@@ -10220,7 +10261,7 @@ var joint = (function (exports, Backbone, _, $) {
         };
     }
 
-    function isTextInUse(lineHeight, node, attrs) {
+    function isTextInUse(_value, _node, attrs) {
         return (attrs.text !== undefined);
     }
 
@@ -10314,8 +10355,8 @@ var joint = (function (exports, Backbone, _, $) {
 
         filter: {
             qualify: isPlainObject,
-            set: function(filter$$1) {
-                return 'url(#' + this.paper.defineFilter(filter$$1) + ')';
+            set: function(filter) {
+                return 'url(#' + this.paper.defineFilter(filter) + ')';
             }
         },
 
@@ -10358,14 +10399,14 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         text: {
-            qualify: function(text, node, attrs) {
+            qualify: function(_text, _node, attrs) {
                 return !attrs.textWrap || !isPlainObject(attrs.textWrap);
             },
-            set: function(text, refBBox, node, attrs) {
+            set: function(text, _refBBox, node, attrs) {
                 var $node = $(node);
                 var cacheName = 'joint-text';
                 var cache = $node.data(cacheName);
-                var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol');
+                var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'displayEmpty');
                 var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
                 var textHash = JSON.stringify([text, textAttrs]);
                 // Update the text only if there was a change in the string
@@ -10476,6 +10517,14 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         annotations: {
+            qualify: isTextInUse
+        },
+
+        eol: {
+            qualify: isTextInUse
+        },
+
+        displayEmpty: {
             qualify: isTextInUse
         },
 
@@ -10631,8 +10680,26 @@ var joint = (function (exports, Backbone, _, $) {
 
         connection: {
             qualify: isLinkView,
-            set: function() {
-                return { d: this.getSerializedConnection() };
+            set: function(ref) {
+                var stubs = ref.stubs; if ( stubs === void 0 ) stubs = 0;
+
+                var d;
+                if (isFinite(stubs) && stubs !== 0) {
+                    var offset;
+                    if (stubs < 0) {
+                        offset = (this.getConnectionLength() + stubs) / 2;
+                    } else {
+                        offset = stubs;
+                    }
+                    var path = this.getConnection();
+                    var sourceParts = path.divideAtLength(offset);
+                    var targetParts = path.divideAtLength(-offset);
+                    if (sourceParts && targetParts) {
+                        d = (sourceParts[0].serialize()) + " " + (targetParts[1].serialize());
+                    }
+                }
+
+                return { d: d || this.getSerializedConnection() };
             }
         },
 
@@ -10690,18 +10757,18 @@ var joint = (function (exports, Backbone, _, $) {
 
         // This is the same as Backbone.Model with the only difference that is uses util.merge
         // instead of just _.extend. The reason is that we want to mixin attributes set in upper classes.
-        constructor: function(attributes$$1, options) {
+        constructor: function(attributes, options) {
 
-            var defaults$$1;
-            var attrs = attributes$$1 || {};
+            var defaults;
+            var attrs = attributes || {};
             this.cid = uniqueId('c');
             this.attributes = {};
             if (options && options.collection) { this.collection = options.collection; }
             if (options && options.parse) { attrs = this.parse(attrs, options) || {}; }
-            if ((defaults$$1 = result(this, 'defaults'))) {
+            if ((defaults = result(this, 'defaults'))) {
                 //<custom code>
                 // Replaced the call to _.defaults with util.merge.
-                attrs = merge({}, defaults$$1, attrs);
+                attrs = merge({}, defaults, attrs);
                 //</custom code>
             }
             this.set(attrs, options);
@@ -10751,10 +10818,10 @@ var joint = (function (exports, Backbone, _, $) {
                 });
             });
 
-            var attributes$$1 = cloneDeep(omit(this.attributes, 'attrs'));
-            attributes$$1.attrs = finalAttrs;
+            var attributes = cloneDeep(omit(this.attributes, 'attrs'));
+            attributes.attrs = finalAttrs;
 
-            return attributes$$1;
+            return attributes;
         },
 
         initialize: function(options) {
@@ -11110,16 +11177,16 @@ var joint = (function (exports, Backbone, _, $) {
             if (!opt.deep) {
                 // Shallow cloning.
 
-                var clone$$1 = Backbone.Model.prototype.clone.apply(this, arguments);
+                var clone = Backbone.Model.prototype.clone.apply(this, arguments);
                 // We don't want the clone to have the same ID as the original.
-                clone$$1.set('id', this.generateId());
+                clone.set('id', this.generateId());
                 // A shallow cloned element does not carry over the original embeds.
-                clone$$1.unset('embeds');
+                clone.unset('embeds');
                 // And can not be embedded in any cell
                 // as the clone is not part of the graph.
-                clone$$1.unset('parent');
+                clone.unset('parent');
 
-                return clone$$1;
+                return clone;
 
             } else {
                 // Deep cloning.
@@ -11199,9 +11266,9 @@ var joint = (function (exports, Backbone, _, $) {
                     opt.rewrite && unsetByPath(baseAttributes, path, '/');
 
                     // Merge update with the model attributes.
-                    var attributes$$1 = merge(baseAttributes, update);
+                    var attributes = merge(baseAttributes, update);
                     // Finally, set the property to the updated attributes.
-                    return this.set(property, attributes$$1[property], opt);
+                    return this.set(property, attributes[property], opt);
 
                 } else {
 
@@ -11277,14 +11344,14 @@ var joint = (function (exports, Backbone, _, $) {
 
             delim = delim || '/';
 
-            var defaults$$1 = {
+            var defaults = {
                 duration: 100,
                 delay: 10,
                 timingFunction: timing.linear,
                 valueFunction: interpolate.number
             };
 
-            opt = assign(defaults$$1, opt);
+            opt = assign(defaults, opt);
 
             var firstFrameTime = 0;
             var interpolatingFunction;
@@ -11395,13 +11462,13 @@ var joint = (function (exports, Backbone, _, $) {
             return this;
         },
 
-        getChangeFlag: function(attributes$$1) {
+        getChangeFlag: function(attributes) {
 
             var flag = 0;
-            if (!attributes$$1) { return flag; }
-            for (var key in attributes$$1) {
-                if (!attributes$$1.hasOwnProperty(key) || !this.hasChanged(key)) { continue; }
-                flag |= attributes$$1[key];
+            if (!attributes) { return flag; }
+            for (var key in attributes) {
+                if (!attributes.hasOwnProperty(key) || !this.hasChanged(key)) { continue; }
+                flag |= attributes[key];
             }
             return flag;
         },
@@ -11439,10 +11506,10 @@ var joint = (function (exports, Backbone, _, $) {
             return (defNS && defNS[attrName]) || globalDefNS[attrName];
         },
 
-        define: function(type, defaults$$1, protoProps, staticProps) {
+        define: function(type, defaults, protoProps, staticProps) {
 
             protoProps = assign({
-                defaults: defaultsDeep({ type: type }, defaults$$1, this.prototype.defaults)
+                defaults: defaultsDeep({ type: type }, defaults, this.prototype.defaults)
             }, protoProps);
 
             var Cell = this.extend(protoProps, staticProps);
@@ -11589,9 +11656,9 @@ var joint = (function (exports, Backbone, _, $) {
         cloneCells: cloneCells
     });
 
-    function portTransformAttrs(point$$1, angle, opt) {
+    function portTransformAttrs(point, angle, opt) {
 
-        var trans = point$$1.toJSON();
+        var trans = point.toJSON();
 
         trans.angle = angle || 0;
 
@@ -11616,7 +11683,7 @@ var joint = (function (exports, Backbone, _, $) {
         var ratio = elBBox.width / elBBox.height;
         var p1 = elBBox.topMiddle();
 
-        var ellipse$$1 = Ellipse.fromRect(elBBox);
+        var ellipse = Ellipse.fromRect(elBBox);
 
         return ports.map(function(port, index, ports) {
 
@@ -11625,7 +11692,7 @@ var joint = (function (exports, Backbone, _, $) {
                 .rotate(center, -angle)
                 .scale(ratio, 1, center);
 
-            var theta = port.compensateRotation ? -ellipse$$1.tangentTheta(p2) : 0;
+            var theta = port.compensateRotation ? -ellipse.tangentTheta(p2) : 0;
 
             // `dx`,`dy` per port offset option
             if (port.dx || port.dy) {
@@ -12424,12 +12491,12 @@ var joint = (function (exports, Backbone, _, $) {
 
             var attrs = {};
 
-            var source = this.source();
+            var ref = this.attributes;
+            var source = ref.source;
+            var target = ref.target;
             if (!source.id) {
                 attrs.source = fn(source);
             }
-
-            var target = this.target();
             if (!target.id) {
                 attrs.target = fn(target);
             }
@@ -12509,8 +12576,11 @@ var joint = (function (exports, Backbone, _, $) {
 
             opt = opt || {};
 
-            var sourceId = this.source().id;
-            var targetId = this.target().id;
+            var ref = this.attributes;
+            var source = ref.source;
+            var target = ref.target;
+            var sourceId = source.id;
+            var targetId = target.id;
 
             if (!sourceId || !targetId) {
                 // Link "pinned" to the paper does not have a loop.
@@ -12536,9 +12606,10 @@ var joint = (function (exports, Backbone, _, $) {
         // unlike source(), this method returns null if source is a point
         getSourceCell: function() {
 
-            var source = this.source();
-            var graph = this.graph;
-
+            var ref = this;
+            var graph = ref.graph;
+            var attributes = ref.attributes;
+            var source = attributes.source;
             return (source && source.id && graph && graph.getCell(source.id)) || null;
         },
 
@@ -12556,9 +12627,10 @@ var joint = (function (exports, Backbone, _, $) {
         // unlike target(), this method returns null if target is a point
         getTargetCell: function() {
 
-            var target = this.target();
-            var graph = this.graph;
-
+            var ref = this;
+            var graph = ref.graph;
+            var attributes = ref.attributes;
+            var target = attributes.target;
             return (target && target.id && graph && graph.getCell(target.id)) || null;
         },
 
@@ -12787,12 +12859,12 @@ var joint = (function (exports, Backbone, _, $) {
                 assign(args, position.args);
             }
 
-            var result$$1 = { args: args };
+            var result = { args: args };
 
             if (positionName) {
-                result$$1.name = positionName;
+                result.name = positionName;
             }
-            return result$$1;
+            return result;
         },
 
         _getLabel: function(item, setDefaults) {
@@ -12957,24 +13029,24 @@ var joint = (function (exports, Backbone, _, $) {
          */
         portProp: function(portId, path, value, opt) {
 
-            var index = this.getPortIndex(portId);
+            var index$1 = this.getPortIndex(portId);
 
-            if (index === -1) {
+            if (index$1 === -1) {
                 throw new Error('Element: unable to find port with id ' + portId);
             }
 
             var args = Array.prototype.slice.call(arguments, 1);
             if (Array.isArray(path)) {
-                args[0] = ['ports', 'items', index].concat(path);
+                args[0] = ['ports', 'items', index$1].concat(path);
             } else if (isString(path)) {
 
                 // Get/set an attribute by a special path syntax that delimits
                 // nested objects by the colon character.
-                args[0] = ['ports/items/', index, '/', path].join('');
+                args[0] = ['ports/items/', index$1, '/', path].join('');
 
             } else {
 
-                args = ['ports/items/' + index];
+                args = ['ports/items/' + index$1];
                 if (isPlainObject(path)) {
                     args.push(path);
                     args.push(value);
@@ -13038,10 +13110,10 @@ var joint = (function (exports, Backbone, _, $) {
             var options = opt || {};
             var ports = assign([], this.prop('ports/items'));
 
-            var index = this.getPortIndex(port);
+            var index$1 = this.getPortIndex(port);
 
-            if (index !== -1) {
-                ports.splice(index, 1);
+            if (index$1 !== -1) {
+                ports.splice(index$1, 1);
                 options.rewrite = true;
                 this.prop('ports/items', ports, options);
             }
@@ -13739,45 +13811,50 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         fitEmbeds: function(opt) {
+            if ( opt === void 0 ) opt = {};
 
-            opt = opt || {};
 
             // Getting the children's size and position requires the collection.
-            // Cell.get('embdes') helds an array of cell ids only.
-            if (!this.graph) { throw new Error('Element must be part of a graph.'); }
+            // Cell.get('embeds') helds an array of cell ids only.
+            var ref = this;
+            var graph = ref.graph;
+            if (!graph) { throw new Error('Element must be part of a graph.'); }
 
-            var embeddedCells = this.getEmbeddedCells();
+            var embeddedCells = this.getEmbeddedCells().filter(function (cell) { return cell.isElement(); });
+            if (embeddedCells.length === 0) { return this; }
 
-            if (embeddedCells.length > 0) {
+            this.startBatch('fit-embeds', opt);
 
-                this.startBatch('fit-embeds', opt);
-
-                if (opt.deep) {
-                    // Recursively apply fitEmbeds on all embeds first.
-                    invoke(embeddedCells, 'fitEmbeds', opt);
-                }
-
-                // Compute cell's size and position  based on the children bbox
-                // and given padding.
-                var bbox = this.graph.getCellsBBox(embeddedCells);
-                var padding = normalizeSides(opt.padding);
-
-                // Apply padding computed above to the bbox.
-                bbox.moveAndExpand({
-                    x: -padding.left,
-                    y: -padding.top,
-                    width: padding.right + padding.left,
-                    height: padding.bottom + padding.top
-                });
-
-                // Set new element dimensions finally.
-                this.set({
-                    position: { x: bbox.x, y: bbox.y },
-                    size: { width: bbox.width, height: bbox.height }
-                }, opt);
-
-                this.stopBatch('fit-embeds');
+            if (opt.deep) {
+                // Recursively apply fitEmbeds on all embeds first.
+                invoke(embeddedCells, 'fitEmbeds', opt);
             }
+
+            // Compute cell's size and position based on the children bbox
+            // and given padding.
+            var ref$1 = normalizeSides(opt.padding);
+            var left = ref$1.left;
+            var right = ref$1.right;
+            var top = ref$1.top;
+            var bottom = ref$1.bottom;
+            var ref$2 = graph.getCellsBBox(embeddedCells);
+            var x = ref$2.x;
+            var y = ref$2.y;
+            var width = ref$2.width;
+            var height = ref$2.height;
+            // Apply padding computed above to the bbox.
+            x -= left;
+            y -= top;
+            width += left + right;
+            height += bottom + top;
+
+            // Set new element dimensions finally.
+            this.set({
+                position: { x: x, y: y },
+                size: { width: width, height: height }
+            }, opt);
+
+            this.stopBatch('fit-embeds');
 
             return this;
         },
@@ -13964,8 +14041,9 @@ var joint = (function (exports, Backbone, _, $) {
 
             if (cell.isLink()) {
                 this._edges[cell.id] = true;
-                var source = cell.source();
-                var target = cell.target();
+                var ref = cell.attributes;
+                var source = ref.source;
+                var target = ref.target;
                 if (source.id) {
                     (this._out[source.id] || (this._out[source.id] = {}))[cell.id] = true;
                 }
@@ -13981,8 +14059,9 @@ var joint = (function (exports, Backbone, _, $) {
 
             if (cell.isLink()) {
                 delete this._edges[cell.id];
-                var source = cell.source();
-                var target = cell.target();
+                var ref = cell.attributes;
+                var source = ref.source;
+                var target = ref.target;
                 if (source.id && this._out[source.id] && this._out[source.id][cell.id]) {
                     delete this._out[source.id][cell.id];
                 }
@@ -14013,7 +14092,7 @@ var joint = (function (exports, Backbone, _, $) {
             if (prevSource.id && this._out[prevSource.id]) {
                 delete this._out[prevSource.id][link.id];
             }
-            var source = link.source();
+            var source = link.attributes.source;
             if (source.id) {
                 (this._out[source.id] || (this._out[source.id] = {}))[link.id] = true;
             }
@@ -14303,7 +14382,7 @@ var joint = (function (exports, Backbone, _, $) {
             }
 
             function addOutbounds(graph, model) {
-                forIn(graph.getOutboundEdges(model.id), function(_$$1, edge) {
+                forIn(graph.getOutboundEdges(model.id), function(_, edge) {
                     // skip links that were already added
                     // (those must be self-loop links)
                     // (because they are inbound and outbound edges of the same two elements)
@@ -14328,7 +14407,7 @@ var joint = (function (exports, Backbone, _, $) {
             }
 
             function addInbounds(graph, model) {
-                forIn(graph.getInboundEdges(model.id), function(_$$1, edge) {
+                forIn(graph.getInboundEdges(model.id), function(_, edge) {
                     // skip links that were already added
                     // (those must be self-loop links)
                     // (because they are inbound and outbound edges of the same two elements)
@@ -14371,8 +14450,11 @@ var joint = (function (exports, Backbone, _, $) {
                         forIn(this.getOutboundEdges(cell.id), function(exists, edge) {
                             if (!edges[edge]) {
                                 var edgeCell = this.getCell(edge);
-                                var sourceId = edgeCell.source().id;
-                                var targetId = edgeCell.target().id;
+                                var ref = edgeCell.attributes;
+                                var source = ref.source;
+                                var target = ref.target;
+                                var sourceId = source.id;
+                                var targetId = target.id;
 
                                 // if `includeEnclosed` option is falsy, skip enclosed links
                                 if (!opt.includeEnclosed
@@ -14390,8 +14472,11 @@ var joint = (function (exports, Backbone, _, $) {
                         forIn(this.getInboundEdges(cell.id), function(exists, edge) {
                             if (!edges[edge]) {
                                 var edgeCell = this.getCell(edge);
-                                var sourceId = edgeCell.source().id;
-                                var targetId = edgeCell.target().id;
+                                var ref = edgeCell.attributes;
+                                var source = ref.source;
+                                var target = ref.target;
+                                var sourceId = source.id;
+                                var targetId = target.id;
 
                                 // if `includeEnclosed` option is falsy, skip enclosed links
                                 if (!opt.includeEnclosed
@@ -14423,8 +14508,9 @@ var joint = (function (exports, Backbone, _, $) {
 
             var neighbors = this.getConnectedLinks(model, opt).reduce(function(res, link) {
 
-                var source = link.source();
-                var target = link.target();
+                var ref = link.attributes;
+                var source = ref.source;
+                var target = ref.target;
                 var loop = link.hasLoop(opt);
 
                 // Discard if it is a point, or if the neighbor was already added.
@@ -14571,8 +14657,9 @@ var joint = (function (exports, Backbone, _, $) {
 
             links.forEach(function(link) {
                 // For links, return their source & target (if they are elements - not points).
-                var source = link.source();
-                var target = link.target();
+                var ref = link.attributes;
+                var source = ref.source;
+                var target = ref.target;
                 if (source.id && !cellMap[source.id]) {
                     var sourceElement = this.getCell(source.id);
                     subgraph.push(sourceElement);
@@ -14591,8 +14678,9 @@ var joint = (function (exports, Backbone, _, $) {
                 // For elements, include their connected links if their source/target is in the subgraph;
                 var links = this.getConnectedLinks(element, opt);
                 links.forEach(function(link) {
-                    var source = link.source();
-                    var target = link.target();
+                    var ref = link.attributes;
+                    var source = ref.source;
+                    var target = ref.target;
                     if (!cellMap[link.id] && source.id && cellMap[source.id] && target.id && cellMap[target.id]) {
                         subgraph.push(link);
                         cellMap[link.id] = link;
@@ -14645,8 +14733,9 @@ var joint = (function (exports, Backbone, _, $) {
         // crossed till we visited the `element` for the first time. It is especially useful for tree graphs.
         // If `iteratee` explicitly returns `false`, the searching stops.
         bfs: function(element, iteratee, opt) {
+            if ( opt === void 0 ) opt = {};
 
-            opt = opt || {};
+
             var visited = {};
             var distance = {};
             var queue = [];
@@ -14656,13 +14745,14 @@ var joint = (function (exports, Backbone, _, $) {
 
             while (queue.length > 0) {
                 var next = queue.shift();
-                if (!visited[next.id]) {
-                    visited[next.id] = true;
-                    if (iteratee(next, distance[next.id]) === false) { return; }
-                    this.getNeighbors(next, opt).forEach(function(neighbor) {
-                        distance[neighbor.id] = distance[next.id] + 1;
-                        queue.push(neighbor);
-                    });
+                if (visited[next.id]) { continue; }
+                visited[next.id] = true;
+                if (iteratee.call(this, next, distance[next.id]) === false) { continue; }
+                var neighbors = this.getNeighbors(next, opt);
+                for (var i = 0, n = neighbors.length; i < n; i++) {
+                    var neighbor = neighbors[i];
+                    distance[neighbor.id] = distance[next.id] + 1;
+                    queue.push(neighbor);
                 }
             }
         },
@@ -14672,19 +14762,30 @@ var joint = (function (exports, Backbone, _, $) {
         // If `opt.inbound` is `true`, reverse the search direction (it's like reversing all the link directions).
         // `iteratee` is a function of the form `function(element, distance) {}`.
         // If `iteratee` explicitly returns `false`, the search stops.
-        dfs: function(element, iteratee, opt, _visited, _distance) {
+        dfs: function(element, iteratee, opt) {
+            if ( opt === void 0 ) opt = {};
 
-            opt = opt || {};
-            var visited = _visited || {};
-            var distance = _distance || 0;
-            if (iteratee(element, distance) === false) { return; }
-            visited[element.id] = true;
 
-            this.getNeighbors(element, opt).forEach(function(neighbor) {
-                if (!visited[neighbor.id]) {
-                    this.dfs(neighbor, iteratee, opt, visited, distance + 1);
+            var visited = {};
+            var distance = {};
+            var queue = [];
+
+            queue.push(element);
+            distance[element.id] = 0;
+
+            while (queue.length > 0) {
+                var next = queue.pop();
+                if (visited[next.id]) { continue; }
+                visited[next.id] = true;
+                if (iteratee.call(this, next, distance[next.id]) === false) { continue; }
+                var neighbors = this.getNeighbors(next, opt);
+                var lastIndex = queue.length;
+                for (var i = 0, n = neighbors.length; i < n; i++) {
+                    var neighbor = neighbors[i];
+                    distance[neighbor.id] = distance[next.id] + 1;
+                    queue.splice(lastIndex, 0, neighbor);
                 }
-            }, this);
+            }
         },
 
         // Get all the roots of the graph. Time complexity: O(|V|).
@@ -14768,8 +14869,9 @@ var joint = (function (exports, Backbone, _, $) {
 
             this.getConnectedLinks(elementA, opt).forEach(function(link) {
 
-                var source = link.source();
-                var target = link.target();
+                var ref = link.attributes;
+                var source = ref.source;
+                var target = ref.target;
 
                 // Discard if it is a point.
                 if (inbound && has(source, 'id') && (source.id === elementB.id)) {
@@ -14792,7 +14894,7 @@ var joint = (function (exports, Backbone, _, $) {
 
             this.getConnectedLinks(model).forEach(function(link) {
 
-                link.set((link.source().id === model.id ? 'source' : 'target'), { x: 0, y: 0 }, opt);
+                link.set((link.attributes.source.id === model.id ? 'source' : 'target'), { x: 0, y: 0 }, opt);
             });
         },
 
@@ -14811,15 +14913,15 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         // Find all elements in given area
-        findModelsInArea: function(rect$$1, opt) {
+        findModelsInArea: function(rect$1, opt) {
 
-            rect$$1 = rect(rect$$1);
+            rect$1 = rect(rect$1);
             opt = defaults(opt || {}, { strict: false });
 
             var method = opt.strict ? 'containsRect' : 'intersect';
 
             return this.getElements().filter(function(el) {
-                return rect$$1[method](el.getBBox());
+                return rect$1[method](el.getBBox());
             });
         },
 
@@ -14850,14 +14952,14 @@ var joint = (function (exports, Backbone, _, $) {
         getCellsBBox: function(cells, opt) {
             opt || (opt = {});
             return toArray(cells).reduce(function(memo, cell) {
-                var rect$$1 = cell.getBBox(opt);
-                if (!rect$$1) { return memo; }
+                var rect = cell.getBBox(opt);
+                if (!rect) { return memo; }
                 var angle = cell.angle();
-                if (angle) { rect$$1 = rect$$1.bbox(angle); }
+                if (angle) { rect = rect.bbox(angle); }
                 if (memo) {
-                    return memo.union(rect$$1);
+                    return memo.union(rect);
                 }
-                return rect$$1;
+                return rect;
             }, null);
         },
 
@@ -14931,8 +15033,9 @@ var joint = (function (exports, Backbone, _, $) {
             multiLinks: function(graph, link) {
 
                 // Do not allow multiple links to have the same source and target.
-                var source = link.source();
-                var target = link.target();
+                var ref = link.attributes;
+                var source = ref.source;
+                var target = ref.target;
 
                 if (source.id && target.id) {
 
@@ -14942,9 +15045,9 @@ var joint = (function (exports, Backbone, _, $) {
                         var connectedLinks = graph.getConnectedLinks(sourceModel, { outbound: true });
                         var sameLinks = connectedLinks.filter(function(_link) {
 
-                            var _source = _link.source();
-                            var _target = _link.target();
-
+                            var ref = _link.attributes;
+                            var _source = ref.source;
+                            var _target = ref.target;
                             return _source && _source.id === source.id &&
                                 (!_source.port || (_source.port === source.port)) &&
                                 _target && _target.id === target.id &&
@@ -14961,8 +15064,11 @@ var joint = (function (exports, Backbone, _, $) {
                 return true;
             },
 
-            linkPinning: function(graph, link) {
-                return link.source().id && link.target().id;
+            linkPinning: function(_graph, link) {
+                var ref = link.attributes;
+                var source = ref.source;
+                var target = ref.target;
+                return source.id && target.id;
             }
         }
 
@@ -15498,19 +15604,19 @@ var joint = (function (exports, Backbone, _, $) {
 
         getNodeBBox: function(magnet) {
 
-            var rect$$1 = this.getNodeBoundingRect(magnet);
+            var rect = this.getNodeBoundingRect(magnet);
             var magnetMatrix = this.getNodeMatrix(magnet);
             var translateMatrix = this.getRootTranslateMatrix();
             var rotateMatrix = this.getRootRotateMatrix();
-            return V.transformRect(rect$$1, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
+            return V.transformRect(rect, translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix));
         },
 
         getNodeUnrotatedBBox: function(magnet) {
 
-            var rect$$1 = this.getNodeBoundingRect(magnet);
+            var rect = this.getNodeBoundingRect(magnet);
             var magnetMatrix = this.getNodeMatrix(magnet);
             var translateMatrix = this.getRootTranslateMatrix();
-            return V.transformRect(rect$$1, translateMatrix.multiply(magnetMatrix));
+            return V.transformRect(rect, translateMatrix.multiply(magnetMatrix));
         },
 
         getRootTranslateMatrix: function() {
@@ -15842,9 +15948,9 @@ var joint = (function (exports, Backbone, _, $) {
             // Check if the node is a descendant of the scalable group.
             var sx, sy;
             if (scalableNode && scalableNode.contains(node)) {
-                var scale$$1 = scalableNode.scale();
-                sx = 1 / scale$$1.sx;
-                sy = 1 / scale$$1.sy;
+                var scale = scalableNode.scale();
+                sx = 1 / scale.sx;
+                sy = 1 / scale.sy;
             } else {
                 sx = 1;
                 sy = 1;
@@ -16352,9 +16458,9 @@ var joint = (function (exports, Backbone, _, $) {
 
         presentationAttributes: {
             'attrs': ['UPDATE'],
-            'position': ['TRANSLATE'],
-            'size': ['RESIZE', 'PORTS'],
-            'angle': ['ROTATE'],
+            'position': ['TRANSLATE', 'TOOLS'],
+            'size': ['RESIZE', 'PORTS', 'TOOLS'],
+            'angle': ['ROTATE', 'TOOLS'],
             'markup': ['RENDER'],
             'ports': ['PORTS']
         },
@@ -16371,34 +16477,42 @@ var joint = (function (exports, Backbone, _, $) {
             }
             if (this.hasFlag(flag, 'RENDER')) {
                 this.render();
+                this.updateTools(opt);
                 flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
-                return flag;
-            }
-            if (this.hasFlag(flag, 'RESIZE')) {
-                this.resize(opt);
-                // Resize method is calling `update()` internally
-                flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
-            }
-            if (this.hasFlag(flag, 'UPDATE')) {
-                this.update(this.model, null, opt);
-                flag = this.removeFlag(flag, 'UPDATE');
-                if (useCSSSelectors) {
-                    // `update()` will render ports when useCSSSelectors are enabled
+            } else {
+                // Skip this branch if render is required
+                if (this.hasFlag(flag, 'RESIZE')) {
+                    this.resize(opt);
+                    // Resize method is calling `update()` internally
+                    flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
+                }
+                if (this.hasFlag(flag, 'UPDATE')) {
+                    this.update(this.model, null, opt);
+                    flag = this.removeFlag(flag, 'UPDATE');
+                    if (useCSSSelectors) {
+                        // `update()` will render ports when useCSSSelectors are enabled
+                        flag = this.removeFlag(flag, 'PORTS');
+                    }
+                }
+                if (this.hasFlag(flag, 'TRANSLATE')) {
+                    this.translate();
+                    flag = this.removeFlag(flag, 'TRANSLATE');
+                }
+                if (this.hasFlag(flag, 'ROTATE')) {
+                    this.rotate();
+                    flag = this.removeFlag(flag, 'ROTATE');
+                }
+                if (this.hasFlag(flag, 'PORTS')) {
+                    this._renderPorts();
                     flag = this.removeFlag(flag, 'PORTS');
                 }
             }
-            if (this.hasFlag(flag, 'TRANSLATE')) {
-                this.translate();
-                flag = this.removeFlag(flag, 'TRANSLATE');
+
+            if (this.hasFlag(flag, 'TOOLS')) {
+                this.updateTools(opt);
+                flag = this.removeFlag(flag, 'TOOLS');
             }
-            if (this.hasFlag(flag, 'ROTATE')) {
-                this.rotate();
-                flag = this.removeFlag(flag, 'ROTATE');
-            }
-            if (this.hasFlag(flag, 'PORTS')) {
-                this._renderPorts();
-                flag = this.removeFlag(flag, 'PORTS');
-            }
+
             return flag;
         },
 
@@ -16409,7 +16523,7 @@ var joint = (function (exports, Backbone, _, $) {
 
         },
 
-        update: function(_$$1, renderingOnlyAttrs) {
+        update: function(_, renderingOnlyAttrs) {
 
             this.cleanNodesCache();
 
@@ -16908,7 +17022,7 @@ var joint = (function (exports, Backbone, _, $) {
             this.eventData(evt, { targetMagnet: magnet });
             evt.stopPropagation();
 
-            if (paper.options.validateMagnet(this, magnet)) {
+            if (paper.options.validateMagnet(this, magnet, evt)) {
 
                 if (paper.options.magnetThreshold <= 0) {
                     this.dragLinkStart(evt, magnet, x, y);
@@ -17626,12 +17740,12 @@ var joint = (function (exports, Backbone, _, $) {
         return this;
     };
 
-    ObstacleMap.prototype.isPointAccessible = function(point$$1) {
+    ObstacleMap.prototype.isPointAccessible = function(point) {
 
-        var mapKey = point$$1.clone().snapToGrid(this.mapGridSize).toString();
+        var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
 
         return toArray(this.map[mapKey]).every(function(obstacle) {
-            return !obstacle.containsPoint(point$$1);
+            return !obstacle.containsPoint(point);
         });
     };
 
@@ -17656,11 +17770,11 @@ var joint = (function (exports, Backbone, _, $) {
 
         this.values[item] = value;
 
-        var index = sortedIndex(this.items, item, function(i) {
+        var index$1 = sortedIndex(this.items, item, function(i) {
             return this.values[i];
         }.bind(this));
 
-        this.items.splice(index, 0, item);
+        this.items.splice(index$1, 0, item);
     };
 
     SortedSet.prototype.remove = function(item) {
@@ -17811,42 +17925,42 @@ var joint = (function (exports, Backbone, _, $) {
     }
 
     // return a clone of point snapped to grid
-    function snapToGrid$1(point$$1, grid) {
+    function snapToGrid$1(point, grid) {
 
         var source = grid.source;
 
-        var snappedX = snapToGrid(point$$1.x - source.x, grid.x) + source.x;
-        var snappedY = snapToGrid(point$$1.y - source.y, grid.y) + source.y;
+        var snappedX = snapToGrid(point.x - source.x, grid.x) + source.x;
+        var snappedY = snapToGrid(point.y - source.y, grid.y) + source.y;
 
         return new Point(snappedX, snappedY);
     }
 
     // round the point to opt.precision
-    function round$1(point$$1, precision) {
+    function round$1(point, precision) {
 
-        return point$$1.round(precision);
+        return point.round(precision);
     }
 
     // snap to grid and then round the point
-    function align(point$$1, grid, precision) {
+    function align(point, grid, precision) {
 
-        return round$1(snapToGrid$1(point$$1.clone(), grid), precision);
+        return round$1(snapToGrid$1(point.clone(), grid), precision);
     }
 
     // return a string representing the point
     // string is rounded in both dimensions
-    function getKey(point$$1) {
+    function getKey(point) {
 
-        return point$$1.clone().toString();
+        return point.clone().toString();
     }
 
     // return a normalized vector from given point
     // used to determine the direction of a difference of two points
-    function normalizePoint(point$$1) {
+    function normalizePoint(point) {
 
         return new Point(
-            point$$1.x === 0 ? 0 : Math.abs(point$$1.x) / point$$1.x,
-            point$$1.y === 0 ? 0 : Math.abs(point$$1.y) / point$$1.y
+            point.x === 0 ? 0 : Math.abs(point.x) / point.x,
+            point.y === 0 ? 0 : Math.abs(point.y) / point.y
         );
     }
 
@@ -17863,15 +17977,15 @@ var joint = (function (exports, Backbone, _, $) {
         var currentKey = getKey(tailPoint);
         var parent = parents[currentKey];
 
-        var point$$1;
+        var point;
         while (parent) {
 
             // point is assumed to be aligned already
-            point$$1 = points[currentKey];
+            point = points[currentKey];
 
-            var diff = normalizePoint(point$$1.difference(parent));
+            var diff = normalizePoint(point.difference(parent));
             if (!diff.equals(prevDiff)) {
-                route.unshift(point$$1);
+                route.unshift(point);
                 prevDiff = diff;
             }
 
@@ -17948,16 +18062,16 @@ var joint = (function (exports, Backbone, _, $) {
 
                 // if an intersection was found in this direction, it is our rectPoint
                 if (farthestIntersection) {
-                    var point$$1 = align(farthestIntersection, grid, precision);
+                    var point = align(farthestIntersection, grid, precision);
 
                     // if the rectPoint lies inside the bbox, offset it by one more step
-                    if (bbox.containsPoint(point$$1)) {
-                        point$$1 = align(point$$1.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
+                    if (bbox.containsPoint(point)) {
+                        point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
                     }
 
                     // then add the point to the result array
                     // aligned
-                    res.push(point$$1);
+                    res.push(point);
                 }
             }
 
@@ -18316,9 +18430,9 @@ var joint = (function (exports, Backbone, _, $) {
             var l2 = new Line(to, p2);
 
             var intersectionPoint = l1.intersection(l2);
-            var point$$1 = intersectionPoint ? intersectionPoint : to;
+            var point = intersectionPoint ? intersectionPoint : to;
 
-            var directionFrom = intersectionPoint ? point$$1 : from;
+            var directionFrom = intersectionPoint ? point : from;
 
             var quadrant = 360 / opt.directions.length;
             var angleTheta = directionFrom.theta(to);
@@ -18327,7 +18441,7 @@ var joint = (function (exports, Backbone, _, $) {
 
             opt.previousDirectionAngle = directionAngle;
 
-            if (point$$1) { route.push(point$$1.round()); }
+            if (point) { route.push(point.round()); }
             route.push(to);
 
             return route;
@@ -18361,11 +18475,18 @@ var joint = (function (exports, Backbone, _, $) {
     // first one taken as default
     var JUMP_TYPES = ['arc', 'gap', 'cubic'];
 
+    // default radius
+    var RADIUS = 0;
+
     // takes care of math. error for case when jump is too close to end of line
     var CLOSE_PROXIMITY_PADDING = 1;
 
     // list of connector types not to jump over.
     var IGNORED_CONNECTORS = ['smooth'];
+
+    // internal constants for round segment
+    var _13 = 1 / 3;
+    var _23 = 2 / 3;
 
     /**
      * Transform start/end and route into series of lines
@@ -18377,11 +18498,11 @@ var joint = (function (exports, Backbone, _, $) {
     function createLines(sourcePoint, targetPoint, route) {
         // make a flattened array of all points
         var points = [].concat(sourcePoint, route, targetPoint);
-        return points.reduce(function(resultLines, point$$1, idx) {
+        return points.reduce(function(resultLines, point, idx) {
             // if there is a next point, make a line with it
             var nextPoint = points[idx + 1];
             if (nextPoint != null) {
-                resultLines[idx] = line(point$$1, nextPoint);
+                resultLines[idx] = line(point, nextPoint);
             }
             return resultLines;
         }, []);
@@ -18430,11 +18551,11 @@ var joint = (function (exports, Backbone, _, $) {
      * @param {g.line[]} crossCheckLines lines to cross
      * @return {g.point[]} list of intersection points
      */
-    function findLineIntersections(line$$1, crossCheckLines) {
+    function findLineIntersections(line, crossCheckLines) {
         return toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
-            var intersection$$1 = line$$1.intersection(crossCheckLine);
-            if (intersection$$1) {
-                res.push(intersection$$1);
+            var intersection = line.intersection(crossCheckLine);
+            if (intersection) {
+                res.push(intersection);
             }
             return res;
         }, []);
@@ -18457,20 +18578,20 @@ var joint = (function (exports, Backbone, _, $) {
      * @param {number} jumpSize the size of jump arc (length empty spot on a line)
      * @return {g.line[]} list of lines being split
      */
-    function createJumps(line$$1, intersections, jumpSize) {
-        return intersections.reduce(function(resultLines, point$$1, idx) {
+    function createJumps(line$1, intersections, jumpSize) {
+        return intersections.reduce(function(resultLines, point$1, idx) {
             // skipping points that were merged with the previous line
             // to make bigger arc over multiple lines that are close to each other
-            if (point$$1.skip === true) {
+            if (point$1.skip === true) {
                 return resultLines;
             }
 
             // always grab the last line from buffer and modify it
-            var lastLine = resultLines.pop() || line$$1;
+            var lastLine = resultLines.pop() || line$1;
 
             // calculate start and end of jump by moving by a given size of jump
-            var jumpStart = point(point$$1).move(lastLine.start, -(jumpSize));
-            var jumpEnd = point(point$$1).move(lastLine.start, +(jumpSize));
+            var jumpStart = point(point$1).move(lastLine.start, -(jumpSize));
+            var jumpEnd = point(point$1).move(lastLine.start, +(jumpSize));
 
             // now try to look at the next intersection point
             var nextPoint = intersections[idx + 1];
@@ -18518,9 +18639,10 @@ var joint = (function (exports, Backbone, _, $) {
      * Assemble `D` attribute of a SVG path by iterating given lines.
      * @param {g.line[]} lines source lines to use
      * @param {number} jumpSize the size of jump arc (length empty spot on a line)
+     * @param {number} radius the radius
      * @return {string}
      */
-    function buildPath(lines, jumpSize, jumpType) {
+    function buildPath(lines, jumpSize, jumpType, radius) {
 
         var path = new Path();
         var segment;
@@ -18530,9 +18652,9 @@ var joint = (function (exports, Backbone, _, $) {
         path.appendSegment(segment);
 
         // make a paths from lines
-        toArray(lines).forEach(function(line$$1, index) {
+        toArray(lines).forEach(function(line, index) {
 
-            if (line$$1.isJump) {
+            if (line.isJump) {
                 var angle, diff;
 
                 var control1, control2;
@@ -18540,64 +18662,90 @@ var joint = (function (exports, Backbone, _, $) {
                 if (jumpType === 'arc') { // approximates semicircle with 2 curves
                     angle = -90;
                     // determine rotation of arc based on difference between points
-                    diff = line$$1.start.difference(line$$1.end);
+                    diff = line.start.difference(line.end);
                     // make sure the arc always points up (or right)
                     var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
                     if (xAxisRotate) { angle += 180; }
 
-                    var midpoint = line$$1.midpoint();
-                    var centerLine = new Line(midpoint, line$$1.end).rotate(midpoint, angle);
+                    var midpoint = line.midpoint();
+                    var centerLine = new Line(midpoint, line.end).rotate(midpoint, angle);
 
                     var halfLine;
 
                     // first half
-                    halfLine = new Line(line$$1.start, midpoint);
+                    halfLine = new Line(line.start, midpoint);
 
-                    control1 = halfLine.pointAt(2 / 3).rotate(line$$1.start, angle);
+                    control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
                     control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
 
                     segment = Path.createSegment('C', control1, control2, centerLine.end);
                     path.appendSegment(segment);
 
                     // second half
-                    halfLine = new Line(midpoint, line$$1.end);
+                    halfLine = new Line(midpoint, line.end);
 
                     control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
-                    control2 = halfLine.pointAt(1 / 3).rotate(line$$1.end, -angle);
+                    control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
 
-                    segment = Path.createSegment('C', control1, control2, line$$1.end);
+                    segment = Path.createSegment('C', control1, control2, line.end);
                     path.appendSegment(segment);
 
                 } else if (jumpType === 'gap') {
-                    segment = Path.createSegment('M', line$$1.end);
+                    segment = Path.createSegment('M', line.end);
                     path.appendSegment(segment);
 
                 } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
-                    angle = line$$1.start.theta(line$$1.end);
+                    angle = line.start.theta(line.end);
 
                     var xOffset = jumpSize * 0.6;
                     var yOffset = jumpSize * 1.35;
 
                     // determine rotation of arc based on difference between points
-                    diff = line$$1.start.difference(line$$1.end);
+                    diff = line.start.difference(line.end);
                     // make sure the arc always points up (or right)
                     xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
                     if (xAxisRotate) { yOffset *= -1; }
 
-                    control1 = Point(line$$1.start.x + xOffset, line$$1.start.y + yOffset).rotate(line$$1.start, angle);
-                    control2 = Point(line$$1.end.x - xOffset, line$$1.end.y + yOffset).rotate(line$$1.end, angle);
+                    control1 = Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+                    control2 = Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
 
-                    segment = Path.createSegment('C', control1, control2, line$$1.end);
+                    segment = Path.createSegment('C', control1, control2, line.end);
                     path.appendSegment(segment);
                 }
 
             } else {
-                segment = Path.createSegment('L', line$$1.end);
-                path.appendSegment(segment);
+                var nextLine = lines[index + 1];
+                if (radius == 0 || !nextLine || nextLine.isJump) {
+                    segment = Path.createSegment('L', line.end);
+                    path.appendSegment(segment);
+                } else {
+                    buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
+                }
             }
         });
 
         return path;
+    }
+
+    function buildRoundedSegment(offset, path, curr, prev, next) {
+        var prevDistance = curr.distance(prev) / 2;
+        var nextDistance = curr.distance(next) / 2;
+
+        var startMove = -Math.min(offset, prevDistance);
+        var endMove = -Math.min(offset, nextDistance);
+
+        var roundedStart = curr.clone().move(prev, startMove).round();
+        var roundedEnd = curr.clone().move(next, endMove).round();
+
+        var control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+        var control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+
+        var segment;
+        segment = Path.createSegment('L', roundedStart);
+        path.appendSegment(segment);
+
+        segment = Path.createSegment('C', control1, control2, roundedEnd);
+        path.appendSegment(segment);
     }
 
     /**
@@ -18616,6 +18764,7 @@ var joint = (function (exports, Backbone, _, $) {
         var raw = opt.raw;
         var jumpSize = opt.size || JUMP_SIZE;
         var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
+        var radius = opt.radius || RADIUS;
         var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
 
         // grab the first jump type as a default if specified one is invalid
@@ -18631,7 +18780,7 @@ var joint = (function (exports, Backbone, _, $) {
         if (allLinks.length === 1) {
             return buildPath(
                 createLines(sourcePoint, targetPoint, route),
-                jumpSize, jumpType
+                jumpSize, jumpType, radius
             );
         }
 
@@ -18711,7 +18860,7 @@ var joint = (function (exports, Backbone, _, $) {
             return resultLines;
         }, []);
 
-        var path = buildPath(jumpingLines, jumpSize, jumpType);
+        var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
         return (raw) ? path : path.serialize();
     };
 
@@ -18947,13 +19096,7 @@ var joint = (function (exports, Backbone, _, $) {
 
             if (this.hasFlag(flags, 'UPDATE')) {
                 this.update(model, null, opt);
-                flags = this.removeFlag(flags, ['UPDATE', 'TOOLS', 'LABELS']);
-                return flags;
-            }
-
-            if (this.hasFlag(flags, 'TOOLS')) {
-                this.renderTools().updateToolsPosition();
-                flags = this.removeFlag(flags, 'TOOLS');
+                flags = this.removeFlag(flags, 'UPDATE');
             }
 
             if (this.hasFlag(flags, 'LABELS')) {
@@ -18961,40 +19104,50 @@ var joint = (function (exports, Backbone, _, $) {
                 flags = this.removeFlag(flags, 'LABELS');
             }
 
+            if (this.hasFlag(flags, 'TOOLS')) {
+                this.renderTools().updateToolsPosition();
+                flags = this.removeFlag(flags, 'TOOLS');
+            }
+
             return flags;
         },
 
-        onLabelsChange: function(link, labels, opt) {
+        isLabelsRenderRequired: function(opt) {
+            if ( opt === void 0 ) opt = {};
 
-            var requireRender = true;
 
             var previousLabels = this.model.previous('labels');
+            if (!previousLabels) { return true; }
 
-            if (previousLabels) {
-                // Here is an optimization for cases when we know, that change does
-                // not require re-rendering of all labels.
-                if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
-                    // The label is setting by `prop()` method
-                    var pathArray = opt.propertyPathArray || [];
-                    var pathLength = pathArray.length;
-                    if (pathLength > 1) {
-                        // We are changing a single label here e.g. 'labels/0/position'
-                        var labelExists = !!previousLabels[pathArray[1]];
-                        if (labelExists) {
-                            if (pathLength === 2) {
-                                // We are changing the entire label. Need to check if the
-                                // markup is also being changed.
-                                requireRender = ('markup' in Object(opt.propertyValue));
-                            } else if (pathArray[2] !== 'markup') {
-                                // We are changing a label property but not the markup
-                                requireRender = false;
-                            }
+            // Here is an optimization for cases when we know, that change does
+            // not require re-rendering of all labels.
+            if (('propertyPathArray' in opt) && ('propertyValue' in opt)) {
+                // The label is setting by `prop()` method
+                var pathArray = opt.propertyPathArray || [];
+                var pathLength = pathArray.length;
+                if (pathLength > 1) {
+                    // We are changing a single label here e.g. 'labels/0/position'
+                    var labelExists = !!previousLabels[pathArray[1]];
+                    if (labelExists) {
+                        if (pathLength === 2) {
+                            // We are changing the entire label. Need to check if the
+                            // markup is also being changed.
+                            return ('markup' in Object(opt.propertyValue));
+                        } else if (pathArray[2] !== 'markup') {
+                            // We are changing a label property but not the markup
+                            return false;
                         }
                     }
                 }
             }
 
-            if (requireRender) {
+            return true;
+        },
+
+        onLabelsChange: function(_link, _labels, opt) {
+
+            // Note: this optimization works in async=false mode only
+            if (this.isLabelsRenderRequired(opt)) {
                 this.renderLabels();
             } else {
                 this.updateLabels();
@@ -19361,26 +19514,30 @@ var joint = (function (exports, Backbone, _, $) {
             return this;
         },
 
+        // remove vertices that lie on (or nearly on) straight lines within the link
+        // return the number of removed points
         removeRedundantLinearVertices: function(opt) {
+
+            var SIMPLIFY_THRESHOLD = 0.001;
+
             var link = this.model;
             var vertices = link.vertices();
-            var conciseVertices = [];
-            var n = vertices.length;
-            var m = 0;
-            for (var i = 0; i < n; i++) {
-                var current = new Point(vertices[i]).round();
-                var prev = new Point(conciseVertices[m - 1] || this.sourceAnchor).round();
-                if (prev.equals(current)) { continue; }
-                var next = new Point(vertices[i + 1] || this.targetAnchor).round();
-                if (prev.equals(next)) { continue; }
-                var line$$1 = new Line(prev, next);
-                if (line$$1.pointOffset(current) === 0) { continue; }
-                conciseVertices.push(vertices[i]);
-                m++;
-            }
-            if (n === m) { return 0; }
-            link.vertices(conciseVertices, opt);
-            return (n - m);
+            var routePoints = [this.sourceAnchor ].concat( vertices, [this.targetAnchor]);
+            var numRoutePoints = routePoints.length;
+
+            // put routePoints into a polyline and try to simplify
+            var polyline = new Polyline(routePoints);
+            polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
+            var polylinePoints = polyline.points.map(function (point) { return (point.toJSON()); }); // JSON of points after simplification
+            var numPolylinePoints = polylinePoints.length; // number of points after simplification
+
+            // shortcut if simplification did not remove any redundant vertices:
+            if (numRoutePoints === numPolylinePoints) { return 0; }
+
+            // else: set simplified polyline points as link vertices
+            // remove first and last polyline points again (= source/target anchors)
+            link.vertices(polylinePoints.slice(1, numPolylinePoints - 1), opt);
+            return (numRoutePoints - numPolylinePoints);
         },
 
         updateDefaultConnectionPath: function() {
@@ -19664,16 +19821,16 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
 
-        getConnectionPoint: function(connectionPointDef, view, magnet, line$$1, endType) {
+        getConnectionPoint: function(connectionPointDef, view, magnet, line, endType) {
 
             var connectionPoint;
-            var anchor = line$$1.end;
+            var anchor = line.end;
             var paperOptions = this.paper.options;
 
             // Backwards compatibility
             if (typeof paperOptions.linkConnectionPoint === 'function') {
                 var linkConnectionMagnet = (magnet === view.el) ? undefined : magnet;
-                connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line$$1.start, endType);
+                connectionPoint = paperOptions.linkConnectionPoint(this, view, linkConnectionMagnet, line.start, endType);
                 if (connectionPoint) { return connectionPoint; }
             }
 
@@ -19686,7 +19843,7 @@ var joint = (function (exports, Backbone, _, $) {
                 connectionPointFn = paperOptions.connectionPointNamespace[connectionPointName];
                 if (typeof connectionPointFn !== 'function') { throw new Error('Unknown connection point: ' + connectionPointName); }
             }
-            connectionPoint = connectionPointFn.call(this, line$$1, view, magnet, connectionPointDef.args || {}, endType, this);
+            connectionPoint = connectionPointFn.call(this, line, view, magnet, connectionPointDef.args || {}, endType, this);
             if (!connectionPoint) { return anchor; }
             return connectionPoint.round(this.decimalsRounding);
         },
@@ -19753,7 +19910,7 @@ var joint = (function (exports, Backbone, _, $) {
             // more than the `this.$('.marker-arrowhead[end="source"]')[0].bbox().width` but looking
             // this up all the time would be slow.
 
-            var scale$$1 = '';
+            var scale = '';
             var offset = this.options.linkToolsOffset;
             var connectionLength = this.getConnectionLength();
 
@@ -19763,20 +19920,20 @@ var joint = (function (exports, Backbone, _, $) {
 
                 // If the link is too short, make the tools half the size and the offset twice as low.
                 if (connectionLength < this.options.shortLinkLength) {
-                    scale$$1 = 'scale(.5)';
+                    scale = 'scale(.5)';
                     offset /= 2;
                 }
 
                 var toolPosition = this.getPointAtLength(offset);
 
-                this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale$$1);
+                this._toolCache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
 
                 if (this.options.doubleLinkTools && connectionLength >= this.options.longLinkLength) {
 
                     var doubleLinkToolsOffset = this.options.doubleLinkToolsOffset || offset;
 
                     toolPosition = this.getPointAtLength(connectionLength - doubleLinkToolsOffset);
-                    this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale$$1);
+                    this._tool2Cache.attr('transform', 'translate(' + toolPosition.x + ', ' + toolPosition.y + ') ' + scale);
                     this._tool2Cache.attr('visibility', 'visible');
 
                 } else if (this.options.doubleLinkTools) {
@@ -20187,28 +20344,28 @@ var joint = (function (exports, Backbone, _, $) {
             return path.tangentAt(ratio, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
-        getClosestPoint: function(point$$1) {
+        getClosestPoint: function(point) {
 
             var path = this.path;
             if (!path) { return null; }
 
-            return path.closestPoint(point$$1, { segmentSubdivisions: this.getConnectionSubdivisions() });
+            return path.closestPoint(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
-        getClosestPointLength: function(point$$1) {
+        getClosestPointLength: function(point) {
 
             var path = this.path;
             if (!path) { return null; }
 
-            return path.closestPointLength(point$$1, { segmentSubdivisions: this.getConnectionSubdivisions() });
+            return path.closestPointLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
-        getClosestPointRatio: function(point$$1) {
+        getClosestPointRatio: function(point) {
 
             var path = this.path;
             if (!path) { return null; }
 
-            return path.closestPointNormalizedLength(point$$1, { segmentSubdivisions: this.getConnectionSubdivisions() });
+            return path.closestPointNormalizedLength(point, { segmentSubdivisions: this.getConnectionSubdivisions() });
         },
 
         // Get label position object based on two provided coordinates, x and y.
@@ -20321,10 +20478,10 @@ var joint = (function (exports, Backbone, _, $) {
                     translation = tangent.start;
                     translation.offset(labelOffsetCoordinates);
                 } else {
-                    var normal$$1 = tangent.clone();
-                    normal$$1.rotate(tangent.start, -90);
-                    normal$$1.setLength(labelOffset);
-                    translation = normal$$1.end;
+                    var normal = tangent.clone();
+                    normal.rotate(tangent.start, -90);
+                    normal.setLength(labelOffset);
+                    translation = normal.end;
                 }
                 if (isKeepGradient) {
                     angle = (tangent.angle() + labelAngle);
@@ -20584,30 +20741,32 @@ var joint = (function (exports, Backbone, _, $) {
             });
         },
 
-        dragLabelStart: function(evt, x, y) {
+        dragLabelStart: function(evt, _x, _y) {
 
-            if (!this.can('labelMove')) {
+            if (this.can('labelMove')) {
+
+                var labelNode = evt.currentTarget;
+                var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
+
+                var positionAngle = this._getLabelPositionAngle(labelIdx);
+                var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
+                var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
+                var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
+
+                this.eventData(evt, {
+                    action: 'label-move',
+                    labelIdx: labelIdx,
+                    positionAngle: positionAngle,
+                    positionArgs: positionArgs,
+                    stopPropagation: true
+                });
+
+            } else {
+
                 // Backwards compatibility:
                 // If labels can't be dragged no default action is triggered.
                 this.eventData(evt, { stopPropagation: true });
-                return;
             }
-
-            var labelNode = evt.currentTarget;
-            var labelIdx = parseInt(labelNode.getAttribute('label-idx'), 10);
-
-            var positionAngle = this._getLabelPositionAngle(labelIdx);
-            var labelPositionArgs = this._getLabelPositionArgs(labelIdx);
-            var defaultLabelPositionArgs = this._getDefaultLabelPositionArgs();
-            var positionArgs = this._mergeLabelPositionArgs(labelPositionArgs, defaultLabelPositionArgs);
-
-            this.eventData(evt, {
-                action: 'label-move',
-                labelIdx: labelIdx,
-                positionAngle: positionAngle,
-                positionArgs: positionArgs,
-                stopPropagation: true
-            });
 
             this.paper.delegateDragEvents(this, evt.data);
         },
@@ -21410,38 +21569,38 @@ var joint = (function (exports, Backbone, _, $) {
 
     // Connection Points
 
-    function anchorIntersection(line$$1, view, magnet, opt) {
+    function anchorIntersection(line, view, magnet, opt) {
 
-        return offset(line$$1.end, line$$1.start, opt.offset);
+        return offset(line.end, line.start, opt.offset);
     }
 
-    function bboxIntersection(line$$1, view, magnet, opt) {
+    function bboxIntersection(line, view, magnet, opt) {
 
         var bbox = view.getNodeBBox(magnet);
         if (opt.stroke) { bbox.inflate(stroke$1(magnet) / 2); }
-        var intersections = line$$1.intersect(bbox);
+        var intersections = line.intersect(bbox);
         var cp = (intersections)
-            ? line$$1.start.chooseClosest(intersections)
-            : line$$1.end;
-        return offset(cp, line$$1.start, opt.offset);
+            ? line.start.chooseClosest(intersections)
+            : line.end;
+        return offset(cp, line.start, opt.offset);
     }
 
-    function rectangleIntersection(line$$1, view, magnet, opt) {
+    function rectangleIntersection(line, view, magnet, opt) {
 
         var angle = view.model.angle();
         if (angle === 0) {
-            return bboxIntersection(line$$1, view, magnet, opt);
+            return bboxIntersection(line, view, magnet, opt);
         }
 
         var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
         if (opt.stroke) { bboxWORotation.inflate(stroke$1(magnet) / 2); }
         var center = bboxWORotation.center();
-        var lineWORotation = line$$1.clone().rotate(center, angle);
+        var lineWORotation = line.clone().rotate(center, angle);
         var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
         var cp = (intersections)
             ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
-            : line$$1.end;
-        return offset(cp, line$$1.start, opt.offset);
+            : line.end;
+        return offset(cp, line.start, opt.offset);
     }
 
     function findShapeNode(magnet) {
@@ -21463,11 +21622,11 @@ var joint = (function (exports, Backbone, _, $) {
     var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
     var BNDR_SHAPE_BBOX = 'shapeBBox';
 
-    function boundaryIntersection(line$$1, view, magnet, opt) {
+    function boundaryIntersection(line, view, magnet, opt) {
 
-        var node, intersection$$1;
+        var node, intersection;
         var selector = opt.selector;
-        var anchor = line$$1.end;
+        var anchor = line.end;
 
         if (typeof selector === 'string') {
             node = view.findBySelector(selector)[0];
@@ -21488,7 +21647,7 @@ var joint = (function (exports, Backbone, _, $) {
         var rotateMatrix = view.getRootRotateMatrix();
         var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
         var localMatrix = targetMatrix.inverse();
-        var localLine = V.transformLine(line$$1, localMatrix);
+        var localLine = V.transformLine(line, localMatrix);
         var localRef = localLine.start.clone();
         var data = view.getNodeData(node);
 
@@ -21511,26 +21670,26 @@ var joint = (function (exports, Backbone, _, $) {
 
         if (opt.extrapolate === true) { localLine.setLength(1e6); }
 
-        intersection$$1 = localLine.intersect(localShape, pathOpt);
-        if (intersection$$1) {
+        intersection = localLine.intersect(localShape, pathOpt);
+        if (intersection) {
             // More than one intersection
-            if (V.isArray(intersection$$1)) { intersection$$1 = localRef.chooseClosest(intersection$$1); }
+            if (V.isArray(intersection)) { intersection = localRef.chooseClosest(intersection); }
         } else if (opt.sticky === true) {
             // No intersection, find the closest point instead
             if (localShape instanceof Rect) {
-                intersection$$1 = localShape.pointNearestToPoint(localRef);
+                intersection = localShape.pointNearestToPoint(localRef);
             } else if (localShape instanceof Ellipse) {
-                intersection$$1 = localShape.intersectionWithLineFromCenterToPoint(localRef);
+                intersection = localShape.intersectionWithLineFromCenterToPoint(localRef);
             } else {
-                intersection$$1 = localShape.closestPoint(localRef, pathOpt);
+                intersection = localShape.closestPoint(localRef, pathOpt);
             }
         }
 
-        var cp = (intersection$$1) ? V.transformPoint(intersection$$1, targetMatrix) : anchor;
+        var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
         var cpOffset = opt.offset || 0;
         if (opt.stroke) { cpOffset += stroke$1(node) / 2; }
 
-        return offset(cp, line$$1.start, cpOffset);
+        return offset(cp, line.start, cpOffset);
     }
 
     var anchor = anchorIntersection;
@@ -21795,7 +21954,7 @@ var joint = (function (exports, Backbone, _, $) {
             connectionStrategy: null,
 
             // Check whether to add a new link to the graph when user clicks on an a magnet.
-            validateMagnet: function(cellView, magnet) {
+            validateMagnet: function(_cellView, magnet, _evt) {
                 return magnet.getAttribute('magnet') !== 'passive';
             },
 
@@ -21998,7 +22157,7 @@ var joint = (function (exports, Backbone, _, $) {
                 .on('scale translate', this.update);
         },
 
-        onCellAdded: function(cell, _$$1, opt) {
+        onCellAdded: function(cell, _, opt) {
             var position = opt.position;
             if (this.isAsync() || !isNumber(position)) {
                 this.renderView(cell, opt);
@@ -22009,7 +22168,7 @@ var joint = (function (exports, Backbone, _, $) {
             }
         },
 
-        onCellRemoved: function(cell, _$$1, opt) {
+        onCellRemoved: function(cell, _, opt) {
             var view = this.findViewByModel(cell);
             if (view) { this.requestViewUpdate(view, FLAG_REMOVE, view.UPDATE_PRIORITY, opt); }
         },
@@ -22440,24 +22599,27 @@ var joint = (function (exports, Backbone, _, $) {
                         continue;
                     }
                     var currentFlag = priorityUpdates[cid];
-                    var isDetached = cid in updates.unmounted;
-                    if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
-                        // Unmount View
-                        if (!isDetached) {
-                            this.registerUnmountedView(view);
-                            view.unmount();
+                    if ((currentFlag & FLAG_REMOVE) === 0) {
+                        // We should never check a view for viewport if we are about to remove the view
+                        var isDetached = cid in updates.unmounted;
+                        if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
+                            // Unmount View
+                            if (!isDetached) {
+                                this.registerUnmountedView(view);
+                                view.unmount();
+                            }
+                            updates.unmounted[cid] |= currentFlag;
+                            delete priorityUpdates[cid];
+                            unmountCount++;
+                            continue;
                         }
-                        updates.unmounted[cid] |= currentFlag;
-                        delete priorityUpdates[cid];
-                        unmountCount++;
-                        continue;
+                        // Mount View
+                        if (isDetached) {
+                            currentFlag |= FLAG_INSERT;
+                            mountCount++;
+                        }
+                        currentFlag |= this.registerMountedView(view);
                     }
-                    // Mount View
-                    if (isDetached) {
-                        currentFlag |= FLAG_INSERT;
-                        mountCount++;
-                    }
-                    currentFlag |= this.registerMountedView(view);
                     var leftoverFlag = this.updateView(view, currentFlag, opt);
                     if (leftoverFlag > 0) {
                         // View update has not finished completely
@@ -22483,6 +22645,28 @@ var joint = (function (exports, Backbone, _, $) {
             };
         },
 
+        getUnmountedViews: function() {
+            var updates = this._updates;
+            var unmountedCids = Object.keys(updates.unmounted);
+            var n = unmountedCids.length;
+            var unmountedViews = new Array(n);
+            for (var i = 0; i < n; i++) {
+                unmountedViews[i] = views[unmountedCids[i]];
+            }
+            return unmountedViews;
+        },
+
+        getMountedViews: function() {
+            var updates = this._updates;
+            var mountedCids = Object.keys(updates.mounted);
+            var n = mountedCids.length;
+            var mountedViews = new Array(n);
+            for (var i = 0; i < n; i++) {
+                mountedViews[i] = views[mountedCids[i]];
+            }
+            return mountedViews;
+        },
+
         checkUnmountedViews: function(viewportFn, opt) {
             opt || (opt  = {});
             var mountCount = 0;
@@ -22496,7 +22680,7 @@ var joint = (function (exports, Backbone, _, $) {
                 if (!(cid in unmounted)) { continue; }
                 var view = views[cid];
                 if (!view) { continue; }
-                if (viewportFn && !viewportFn.call(this, view, true, this)) {
+                if (viewportFn && !viewportFn.call(this, view, false, this)) {
                     // Push at the end of all unmounted ids, so this can be check later again
                     unmountedCids.push(cid);
                     continue;
@@ -22523,7 +22707,7 @@ var joint = (function (exports, Backbone, _, $) {
                 if (!(cid in mounted)) { continue; }
                 var view = views[cid];
                 if (!view) { continue; }
-                if (viewportFn.call(this, view, true)) {
+                if (viewportFn.call(this, view, true, this)) {
                     // Push at the end of all mounted ids, so this can be check later again
                     mountedCids.push(cid);
                     continue;
@@ -22815,8 +22999,7 @@ var joint = (function (exports, Backbone, _, $) {
         getContentArea: function(opt) {
 
             if (opt && opt.useModelGeometry) {
-                var graph = this.model;
-                return graph.getCellsBBox(graph.getCells(), { includeLinks: true }) || new Rect();
+                return this.model.getBBox() || new Rect();
             }
 
             return V(this.cells).getBBox();
@@ -22896,10 +23079,18 @@ var joint = (function (exports, Backbone, _, $) {
         removeView: function(cell) {
 
             var id = cell.id;
-            var view = this._views[id];
+            var ref = this;
+            var _views = ref._views;
+            var _updates = ref._updates;
+            var view = _views[id];
             if (view) {
+                var cid = view.cid;
+                var mounted = _updates.mounted;
+                var unmounted = _updates.unmounted;
                 view.remove();
-                delete this._views[id];
+                delete _views[id];
+                delete mounted[cid];
+                delete unmounted[cid];
             }
             return view;
         },
@@ -22907,15 +23098,15 @@ var joint = (function (exports, Backbone, _, $) {
         renderView: function(cell, opt) {
 
             var id = cell.id;
-            var views$$1 = this._views;
+            var views = this._views;
             var view, flag;
-            if (id in views$$1) {
-                view = views$$1[id];
+            if (id in views) {
+                view = views[id];
                 flag = FLAG_INSERT;
             } else {
-                view = views$$1[cell.id] = this.createViewForModel(cell);
+                view = views[cell.id] = this.createViewForModel(cell);
                 view.paper = this;
-                flag = FLAG_INSERT | view.getFlag(view.initFlag);
+                flag = this.registerUnmountedView(view) | view.getFlag(view.initFlag);
             }
             this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
             return view;
@@ -23083,9 +23274,9 @@ var joint = (function (exports, Backbone, _, $) {
             // we must use the plain bounding box (`this.el.getBBox()` instead of the one that gives us
             // the real bounding box (`bbox()`) including transformations).
             if (cx === undefined) {
-                var bbox$$1 = this.cells.getBBox();
-                cx = bbox$$1.width / 2;
-                cy = bbox$$1.height / 2;
+                var bbox = this.cells.getBBox();
+                cx = bbox.width / 2;
+                cy = bbox.height / 2;
             }
 
             var ctm = this.matrix().translate(cx, cy).rotate(angle).translate(-cx, -cy);
@@ -23150,24 +23341,24 @@ var joint = (function (exports, Backbone, _, $) {
 
             p = new Point(p);
 
-            var views$$1 = this.model.getElements().map(this.findViewByModel, this);
+            var views = this.model.getElements().map(this.findViewByModel, this);
 
-            return views$$1.filter(function(view) {
+            return views.filter(function(view) {
                 return view && view.vel.getBBox({ target: this.cells }).containsPoint(p);
             }, this);
         },
 
         // Find all views in given area
-        findViewsInArea: function(rect$$1, opt) {
+        findViewsInArea: function(rect, opt) {
 
             opt = defaults(opt || {}, { strict: false });
-            rect$$1 = new Rect(rect$$1);
+            rect = new Rect(rect);
 
-            var views$$1 = this.model.getElements().map(this.findViewByModel, this);
+            var views = this.model.getElements().map(this.findViewByModel, this);
             var method = opt.strict ? 'containsRect' : 'intersect';
 
-            return views$$1.filter(function(view) {
-                return view && rect$$1[method](view.vel.getBBox({ target: this.cells }));
+            return views.filter(function(view) {
+                return view && rect[method](view.vel.getBBox({ target: this.cells }));
             }, this);
         },
 
@@ -23702,7 +23893,7 @@ var joint = (function (exports, Backbone, _, $) {
 
         onmagnet: function(evt) {
 
-            this.magnetEvent(evt, function(view, evt, _$$1, x, y) {
+            this.magnetEvent(evt, function(view, evt, _, x, y) {
                 view.onmagnet(evt, x, y);
             });
         },
@@ -24060,18 +24251,18 @@ var joint = (function (exports, Backbone, _, $) {
             return !!this.svg.getElementById(defId);
         },
 
-        defineFilter: function(filter$$1) {
+        defineFilter: function(filter$1) {
 
-            if (!isObject(filter$$1)) {
+            if (!isObject(filter$1)) {
                 throw new TypeError('dia.Paper: defineFilter() requires 1. argument to be an object.');
             }
 
-            var filterId = filter$$1.id;
-            var name = filter$$1.name;
+            var filterId = filter$1.id;
+            var name = filter$1.name;
             // Generate a hash code from the stringified filter definition. This gives us
             // a unique filter ID for different definitions.
             if (!filterId) {
-                filterId = name + this.svg.id + hashCode(JSON.stringify(filter$$1));
+                filterId = name + this.svg.id + hashCode(JSON.stringify(filter$1));
             }
             // If the filter already exists in the document,
             // we're done and we can just use it (reference it using `url()`).
@@ -24079,7 +24270,7 @@ var joint = (function (exports, Backbone, _, $) {
             if (!this.isDefined(filterId)) {
 
                 var namespace = filter;
-                var filterSVGString = namespace[name] && namespace[name](filter$$1.args || {});
+                var filterSVGString = namespace[name] && namespace[name](filter$1.args || {});
                 if (!filterSVGString) {
                     throw new Error('Non-existing filter ' + name);
                 }
@@ -24092,7 +24283,7 @@ var joint = (function (exports, Backbone, _, $) {
                     y: -1,
                     width: 3,
                     height: 3
-                }, filter$$1.attrs, {
+                }, filter$1.attrs, {
                     id: filterId
                 });
 
@@ -24389,6 +24580,8 @@ var joint = (function (exports, Backbone, _, $) {
             this.paper = view.paper;
             this.parentView = toolsView;
             this.simulateRelatedView(this.el);
+            // Delegate events in case the ToolView was removed from the DOM and reused.
+            this.delegateEvents();
             return this;
         },
 
@@ -24448,14 +24641,14 @@ var joint = (function (exports, Backbone, _, $) {
             if (!Array.isArray(tools)) { return this; }
             var relatedView = options.relatedView;
             if (!(relatedView instanceof CellView)) { return this; }
-            var views$$1 = this.tools = [];
+            var views = this.tools = [];
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
                 if (!(tool instanceof ToolView)) { continue; }
                 tool.configure(relatedView, this);
                 tool.render();
                 this.vel.append(tool.el);
-                views$$1.push(tool);
+                views.push(tool);
             }
             return this;
         },
@@ -24539,12 +24732,12 @@ var joint = (function (exports, Backbone, _, $) {
 
 
     var index$2 = ({
+        ElementView: ElementView,
         Graph: Graph,
-        attributes: attributes,
         Cell: Cell,
         CellView: CellView,
         Element: Element$1,
-        ElementView: ElementView,
+        attributes: attributes,
         Link: Link,
         LinkView: LinkView,
         Paper: Paper,
@@ -24601,19 +24794,25 @@ var joint = (function (exports, Backbone, _, $) {
 
         importLink: function(opt, edgeObj, gl) {
 
+            var SIMPLIFY_THRESHOLD = 0.001;
+
             var link = this.getCell(edgeObj.name);
             var glEdge = gl.edge(edgeObj);
             var points = glEdge.points || [];
+            var polyline = new Polyline(points);
 
             // check the `setLinkVertices` here for backwards compatibility
             if (opt.setVertices || opt.setLinkVertices) {
                 if (isFunction(opt.setVertices)) {
                     opt.setVertices(link, points);
                 } else {
-                    // Remove the first and last point from points array.
-                    // Those are source/target element connection points
-                    // ie. they lies on the edge of connected elements.
-                    link.set('vertices', points.slice(1, points.length - 1));
+                    // simplify the `points` polyline
+                    polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
+                    var polylinePoints = polyline.points.map(function (point) { return (point.toJSON()); }); // JSON of points after simplification
+                    var numPolylinePoints = polylinePoints.length; // number of points after simplification
+                    // set simplified polyline points as link vertices
+                    // remove first and last polyline points (= source/target sonnectionPoints)
+                    link.set('vertices', polylinePoints.slice(1, numPolylinePoints - 1));
                 }
             }
 
@@ -24622,16 +24821,16 @@ var joint = (function (exports, Backbone, _, $) {
                 if (isFunction(opt.setLabels)) {
                     opt.setLabels(link, labelPosition, points);
                 } else {
-                    // Convert the absolute label position to a relative position
+                    // convert the absolute label position to a relative position
                     // towards the closest point on the edge
-                    var polyline = Polyline(points);
                     var length = polyline.closestPointLength(labelPosition);
                     var closestPoint = polyline.pointAtLength(length);
-                    var distance = length / polyline.length();
+                    var distance = (length / polyline.length());
+                    var offset = new Point(labelPosition).difference(closestPoint).toJSON();
                     link.label(0, {
                         position: {
                             distance: distance,
-                            offset: Point(labelPosition).difference(closestPoint).toJSON()
+                            offset: offset
                         }
                     });
                 }
@@ -24749,7 +24948,7 @@ var joint = (function (exports, Backbone, _, $) {
             // Width and height of the graph extended by margins.
             var glSize = glGraph.graph();
             // Return the bounding box of the graph after the layout.
-            return Rect(
+            return new Rect(
                 marginX,
                 marginY,
                 Math.abs(glSize.width - 2 * marginX),
@@ -25206,7 +25405,7 @@ var joint = (function (exports, Backbone, _, $) {
             return flags;
         },
 
-        update: function(_$$1, renderingOnlyAttrs) {
+        update: function(_, renderingOnlyAttrs) {
 
             var model = this.model;
 
@@ -27233,6 +27432,12 @@ var joint = (function (exports, Backbone, _, $) {
         return coords;
     }
 
+    function getViewBBox(view, useModelGeometry) {
+        var model = view.model;
+        if (useModelGeometry) { return model.getBBox(); }
+        return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
+    }
+
     // Vertex Handles
     var VertexHandle = View.extend({
         tagName: 'circle',
@@ -27448,9 +27653,9 @@ var joint = (function (exports, Backbone, _, $) {
             }
         },
         onHandleRemove: function(handle, evt) {
-            var index = handle.options.index;
+            var index$1 = handle.options.index;
             var linkView = this.relatedView;
-            linkView.model.removeVertex(index, { ui: true });
+            linkView.model.removeVertex(index$1, { ui: true });
             if (this.options.vertexAdding) { this.updatePath(); }
             linkView.checkMouseleave(normalizeEvent(evt));
         },
@@ -27461,11 +27666,11 @@ var joint = (function (exports, Backbone, _, $) {
             var vertex = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
             var relatedView = this.relatedView;
             relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
-            var index = relatedView.getVertexIndex(vertex.x, vertex.y);
-            this.snapVertex(vertex, index);
-            relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
+            var index$1 = relatedView.getVertexIndex(vertex.x, vertex.y);
+            this.snapVertex(vertex, index$1);
+            relatedView.model.insertVertex(index$1, vertex, { ui: true, tool: this.cid });
             this.render();
-            var handle = this.handles[index];
+            var handle = this.handles[index$1];
             this.eventData(normalizedEvent, { vertexAdded: true });
             handle.onPointerDown(normalizedEvent);
         },
@@ -27526,11 +27731,11 @@ var joint = (function (exports, Backbone, _, $) {
             handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
 
             var viewPoint = view.getClosestPoint(new Point(x, y));
-            var line$$1 = this.childNodes.line;
-            line$$1.setAttribute('x1', x);
-            line$$1.setAttribute('y1', y);
-            line$$1.setAttribute('x2', viewPoint.x);
-            line$$1.setAttribute('y2', viewPoint.y);
+            var line = this.childNodes.line;
+            line.setAttribute('x1', x);
+            line.setAttribute('y1', y);
+            line.setAttribute('x2', viewPoint.x);
+            line.setAttribute('y2', viewPoint.y);
         },
         onPointerDown: function(evt) {
             this.trigger('change:start', this, evt);
@@ -27651,7 +27856,7 @@ var joint = (function (exports, Backbone, _, $) {
             var data = this.eventData(evt);
             var relatedView = this.relatedView;
             var paper = relatedView.paper;
-            var index = handle.options.index - 1;
+            var index$1 = handle.options.index - 1;
             var normalizedEvent = normalizeEvent(evt);
             var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
             var position = this.snapHandle(handle, coords.clone(), data);
@@ -27659,8 +27864,8 @@ var joint = (function (exports, Backbone, _, $) {
             var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
             var link = relatedView.model;
             var vertices = cloneDeep(link.vertices());
-            var vertex = vertices[index];
-            var nextVertex = vertices[index + 1];
+            var vertex = vertices[index$1];
+            var nextVertex = vertices[index$1 + 1];
             var anchorFn = this.options.anchor;
             if (typeof anchorFn !== 'function') { anchorFn = null; }
 
@@ -27681,7 +27886,7 @@ var joint = (function (exports, Backbone, _, $) {
                     this.shiftHandleIndexes(1);
                     deleteSourceAnchor = true;
                 }
-            } else if (index === 0) {
+            } else if (index$1 === 0) {
                 if (sourceBBox.containsPoint(vertex)) {
                     vertices.shift();
                     this.shiftHandleIndexes(-1);
@@ -27721,7 +27926,7 @@ var joint = (function (exports, Backbone, _, $) {
                     vertices.push(nextVertex);
                     deleteTargetAnchor = true;
                 }
-            } else if (index === vertices.length - 2) {
+            } else if (index$1 === vertices.length - 2) {
                 if (targetBBox.containsPoint(nextVertex)) {
                     vertices.pop();
                     changeTargetAnchor = true;
@@ -27749,11 +27954,11 @@ var joint = (function (exports, Backbone, _, $) {
             this.updateHandle(handle, vertex, nextVertex, offset);
         },
         onHandleChangeStart: function(handle, evt) {
-            var index = handle.options.index;
+            var index$1 = handle.options.index;
             var handles = this.handles;
             if (!Array.isArray(handles)) { return; }
             for (var i = 0, n = handles.length; i < n; i++) {
-                if (i !== index) { handles[i].hide(); }
+                if (i !== index$1) { handles[i].hide(); }
             }
             this.focus();
             var relatedView = this.relatedView;
@@ -27915,27 +28120,67 @@ var joint = (function (exports, Backbone, _, $) {
             this.update();
         },
         update: function() {
+            this.position();
+            return this;
+        },
+        position: function() {
+            var ref = this;
+            var view = ref.relatedView;
+            var vel = ref.vel;
+            var matrix = view.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
+            vel.transform(matrix, { absolute: true });
+        },
+        getElementMatrix: function getElementMatrix() {
+            var ref = this;
+            var view = ref.relatedView;
+            var options = ref.options;
+            var x = options.x; if ( x === void 0 ) x = 0;
+            var y = options.y; if ( y === void 0 ) y = 0;
+            var offset = options.offset; if ( offset === void 0 ) offset = {};
+            var useModelGeometry = options.useModelGeometry;
+            var rotate = options.rotate;
+            var bbox = getViewBBox(view, useModelGeometry);
+            var angle = view.model.angle();
+            if (!rotate) { bbox = bbox.bbox(angle); }
+            var offsetX = offset.x; if ( offsetX === void 0 ) offsetX = 0;
+            var offsetY = offset.y; if ( offsetY === void 0 ) offsetY = 0;
+            if (isPercentage(x)) {
+                x = parseFloat(x) / 100 * bbox.width;
+            }
+            if (isPercentage(y)) {
+                y = parseFloat(y) / 100 * bbox.height;
+            }
+            var matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
+            if (rotate) { matrix = matrix.rotate(angle); }
+            matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
+            return matrix;
+        },
+        getLinkMatrix: function getLinkMatrix() {
+            var ref = this;
+            var view = ref.relatedView;
+            var options = ref.options;
+            var offset = options.offset; if ( offset === void 0 ) offset = 0;
+            var distance = options.distance; if ( distance === void 0 ) distance = 0;
+            var rotate = options.rotate;
             var tangent, position, angle;
-            var distance = this.options.distance || 0;
             if (isPercentage(distance)) {
-                tangent = this.relatedView.getTangentAtRatio(parseFloat(distance) / 100);
+                tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
             } else {
-                tangent = this.relatedView.getTangentAtLength(distance);
+                tangent = view.getTangentAtLength(distance);
             }
             if (tangent) {
                 position = tangent.start;
                 angle = tangent.vector().vectorAngle(new Point(1, 0)) || 0;
             } else {
-                position = this.relatedView.getConnection().start;
+                position = view.getConnection().start;
                 angle = 0;
             }
             var matrix = V.createSVGMatrix()
                 .translate(position.x, position.y)
                 .rotate(angle)
-                .translate(0, this.options.offset || 0);
-            if (!this.options.rotate) { matrix = matrix.rotate(-angle); }
-            this.vel.transform(matrix, { absolute: true });
-            return this;
+                .translate(0, offset);
+            if (!rotate) { matrix = matrix.rotate(-angle); }
+            return matrix;
         },
         onPointerDown: function(evt) {
             evt.stopPropagation();
@@ -27981,7 +28226,8 @@ var joint = (function (exports, Backbone, _, $) {
         name: 'boundary',
         tagName: 'rect',
         options: {
-            padding: 10
+            padding: 10,
+            useModelGeometry: false,
         },
         attributes: {
             'fill': 'none',
@@ -27994,10 +28240,32 @@ var joint = (function (exports, Backbone, _, $) {
             this.update();
         },
         update: function() {
-            var padding = this.options.padding;
-            if (!isFinite(padding)) { padding = 0; }
-            var bbox = this.relatedView.getConnection().bbox().inflate(padding);
-            this.vel.attr(bbox.toJSON());
+            var ref = this;
+            var view = ref.relatedView;
+            var options = ref.options;
+            var vel = ref.vel;
+            var useModelGeometry = options.useModelGeometry;
+            var rotate = options.rotate;
+            var padding = normalizeSides(options.padding);
+            var bbox = getViewBBox(view, useModelGeometry).moveAndExpand({
+                x: -padding.left,
+                y: -padding.top,
+                width: padding.left + padding.right,
+                height: padding.top + padding.bottom
+            });
+            var model = view.model;
+            if (model.isElement()) {
+                var angle = model.angle();
+                if (angle) {
+                    if (rotate) {
+                        var origin = model.getBBox().center();
+                        vel.rotate(angle, origin.x, origin.y, { absolute: true });
+                    } else {
+                        bbox = bbox.bbox(angle);
+                    }
+                }
+            }
+            vel.attr(bbox.toJSON());
             return this;
         }
     });
@@ -28228,7 +28496,15 @@ var joint = (function (exports, Backbone, _, $) {
         Boundary: Boundary
     });
 
-    var version = "3.0.4";
+
+
+    var index$6 = ({
+        Button: Button,
+        Remove: Remove,
+        Boundary: Boundary
+    });
+
+    var version = "3.1.0";
 
     var Vectorizer = V;
     var layout = { PortLabel: PortLabel, Port: Port };
@@ -28248,28 +28524,29 @@ var joint = (function (exports, Backbone, _, $) {
     var format$1 = {};
     var ui = {};
 
-    exports.layout = layout$1;
-    exports.format = format$1;
-    exports.ui = ui;
-    exports.shapes = index$3;
-    exports.setTheme = setTheme;
-    exports.config = config;
-    exports.env = env;
+    exports.V = V;
+    exports.Vectorizer = Vectorizer;
     exports.anchors = anchors;
-    exports.linkAnchors = linkAnchors;
+    exports.config = config;
     exports.connectionPoints = connectionPoints;
     exports.connectionStrategies = index$4;
     exports.connectors = connectors;
     exports.dia = index$2;
+    exports.elementTools = index$6;
+    exports.env = env;
+    exports.format = format$1;
+    exports.g = g;
     exports.highlighters = highlighters;
+    exports.layout = layout$1;
+    exports.linkAnchors = linkAnchors;
+    exports.linkTools = index$5;
     exports.mvc = index$1;
     exports.routers = routers;
+    exports.setTheme = setTheme;
+    exports.shapes = index$3;
+    exports.ui = ui;
     exports.util = index;
-    exports.linkTools = index$5;
-    exports.Vectorizer = Vectorizer;
-    exports.V = V;
     exports.version = version;
-    exports.g = g;
 
     return exports;
 
