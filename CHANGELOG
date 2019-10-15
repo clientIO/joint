@@ -9,6 +9,7 @@
  * dia.Graph - fix bfs() stop condition
  * dia.Element - make sure only elements are taken into account in fitEmbeds()
  * dia.LinkView - fix label rendering after multiple changes made to model
+ * dia.LinkView - fix missing `pointerup` event for non-interactive labels
  * linkTools.Boundary - padding can be defined separately for each side
  * dia.ToolView - support reusable tools
  * connectors.jumpover - add `radius` option to make corners rounded
