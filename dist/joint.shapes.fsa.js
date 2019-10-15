@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -55,9 +55,9 @@ this.joint.shapes = this.joint.shapes || {};
         smooth: true
     });
 
-    exports.State = State;
-    exports.StartState = StartState;
-    exports.EndState = EndState;
     exports.Arrow = Arrow;
+    exports.EndState = EndState;
+    exports.StartState = StartState;
+    exports.State = State;
 
-}(this.joint.shapes.fsa = this.joint.shapes.fsa || {}, joint.shapes, joint.dia, joint.dia));
+}(this.joint.shapes.fsa = this.joint.shapes.fsa || {}, joint.shapes.basic, joint.dia, joint.dia));

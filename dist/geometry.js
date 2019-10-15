@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3799,6 +3799,52 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         },
 
+        simplify: function(opt) {
+            if ( opt === void 0 ) opt = {};
+
+
+            var points = this.points;
+            if (points.length < 3) { return this; } // we need at least 3 points
+
+            // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
+            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+            // start at the beginning of the polyline and go forward
+            var currentIndex = 0;
+            // we need at least one intermediate point (3 points) in every iteration
+            // as soon as that stops being true, we know we reached the end of the polyline
+            while (points[currentIndex + 2]) {
+                var firstIndex = currentIndex;
+                var middleIndex = (currentIndex + 1);
+                var lastIndex = (currentIndex + 2);
+
+                var firstPoint = points[firstIndex];
+                var middlePoint = points[middleIndex];
+                var lastPoint = points[lastIndex];
+
+                var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+                var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+                var closestPointDistance = closestPoint.distance(middlePoint);
+                if (closestPointDistance <= threshold) {
+                    // middle point is close enough to the chord = simplify
+                    // 1) remove middle point:
+                    points.splice(middleIndex, 1);
+                    // 2) in next iteration, investigate the newly-created triplet of points
+                    //    - do not change `currentIndex`
+                    //    = (first point stays, point after removed point becomes middle point)
+                } else {
+                    // middle point is far from the chord
+                    // 1) preserve middle point
+                    // 2) in next iteration, move `currentIndex` by one step:
+                    currentIndex += 1;
+                    //    = (point after first point becomes first point)
+                }
+            }
+
+            // `points` array was modified in-place
+            return this;
+        },
+
         tangentAt: function(ratio) {
 
             var points = this.points;
@@ -4374,18 +4420,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // @return {rect} representing the union of both rectangles.
         union: function(rect) {
 
-            rect = new Rect(rect);
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = rect.origin();
-            var rCorner = rect.corner();
-
-            var originX = min(myOrigin.x, rOrigin.x);
-            var originY = min(myOrigin.y, rOrigin.y);
-            var cornerX = max(myCorner.x, rCorner.x);
-            var cornerY = max(myCorner.y, rCorner.y);
-
-            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
+            var u = new Rect(rect);
+            var ref = this;
+            var x = ref.x;
+            var y = ref.y;
+            var width = ref.width;
+            var height = ref.height;
+            var rx = u.x;
+            var ry = u.y;
+            var rw = u.width;
+            var rh = u.height;
+            var ux = u.x = min(x, rx);
+            var uy = u.y = min(y, ry);
+            u.width = max(x + width, rx + rw) - ux;
+            u.height = max(y + height, ry + rh) - uy;
+            return u;
         }
     };
 
@@ -5436,7 +5485,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         return this.regexSupportedData.test(data);
     };
 
-    exports.bezier = bezier;
     exports.Curve = Curve;
     exports.Ellipse = Ellipse;
     exports.Line = Line;
@@ -5444,16 +5492,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     exports.Point = Point;
     exports.Polyline = Polyline;
     exports.Rect = Rect;
-    exports.scale = scale;
+    exports.bezier = bezier;
+    exports.ellipse = ellipse;
+    exports.line = line;
     exports.normalizeAngle = normalizeAngle;
+    exports.point = point;
+    exports.random = random;
+    exports.rect = rect;
+    exports.scale = scale;
     exports.snapToGrid = snapToGrid;
     exports.toDeg = toDeg;
     exports.toRad = toRad;
-    exports.random = random;
-    exports.ellipse = ellipse;
-    exports.line = line;
-    exports.point = point;
-    exports.rect = rect;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

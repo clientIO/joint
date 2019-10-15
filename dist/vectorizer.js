@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3799,6 +3799,52 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         },
 
+        simplify: function(opt) {
+            if ( opt === void 0 ) opt = {};
+
+
+            var points = this.points;
+            if (points.length < 3) { return this; } // we need at least 3 points
+
+            // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
+            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+            // start at the beginning of the polyline and go forward
+            var currentIndex = 0;
+            // we need at least one intermediate point (3 points) in every iteration
+            // as soon as that stops being true, we know we reached the end of the polyline
+            while (points[currentIndex + 2]) {
+                var firstIndex = currentIndex;
+                var middleIndex = (currentIndex + 1);
+                var lastIndex = (currentIndex + 2);
+
+                var firstPoint = points[firstIndex];
+                var middlePoint = points[middleIndex];
+                var lastPoint = points[lastIndex];
+
+                var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+                var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+                var closestPointDistance = closestPoint.distance(middlePoint);
+                if (closestPointDistance <= threshold) {
+                    // middle point is close enough to the chord = simplify
+                    // 1) remove middle point:
+                    points.splice(middleIndex, 1);
+                    // 2) in next iteration, investigate the newly-created triplet of points
+                    //    - do not change `currentIndex`
+                    //    = (first point stays, point after removed point becomes middle point)
+                } else {
+                    // middle point is far from the chord
+                    // 1) preserve middle point
+                    // 2) in next iteration, move `currentIndex` by one step:
+                    currentIndex += 1;
+                    //    = (point after first point becomes first point)
+                }
+            }
+
+            // `points` array was modified in-place
+            return this;
+        },
+
         tangentAt: function(ratio) {
 
             var points = this.points;
@@ -4374,18 +4420,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // @return {rect} representing the union of both rectangles.
         union: function(rect) {
 
-            rect = new Rect(rect);
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = rect.origin();
-            var rCorner = rect.corner();
-
-            var originX = min(myOrigin.x, rOrigin.x);
-            var originY = min(myOrigin.y, rOrigin.y);
-            var cornerX = max(myCorner.x, rCorner.x);
-            var cornerY = max(myCorner.y, rCorner.y);
-
-            return new Rect(originX, originY, cornerX - originX, cornerY - originY);
+            var u = new Rect(rect);
+            var ref = this;
+            var x = ref.x;
+            var y = ref.y;
+            var width = ref.width;
+            var height = ref.height;
+            var rx = u.x;
+            var ry = u.y;
+            var rw = u.width;
+            var rh = u.height;
+            var ux = u.x = min(x, rx);
+            var uy = u.y = min(y, ry);
+            u.width = max(x + width, rx + rw) - ux;
+            u.height = max(y + height, ry + rh) - uy;
+            return u;
         }
     };
 
@@ -5943,7 +5992,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // IE would otherwise collapse all spaces into one.
             content = V.sanitizeText(content);
             opt || (opt = {});
-
+            // Should we allow the text to be selected?
+            var displayEmpty = opt.displayEmpty;
             // End of Line character
             var eol = opt.eol;
             // Text along path
@@ -5970,8 +6020,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // An empty text gets rendered into the DOM in webkit-based browsers.
                 // In order to unify this behaviour across all browsers
                 // we rather hide the text element when it's empty.
-                'display': (content) ? null : 'none'
+                'display': (content || displayEmpty) ? null : 'none'
             });
+
             // Set default font-size if none
             var fontSize = parseFloat(this.attr('font-size'));
             if (!fontSize) {
@@ -5996,12 +6047,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var dy = lineHeight;
                 var lineClassName = 'v-line';
                 var lineNode = doc.createElementNS(ns.svg, 'tspan');
-                var line$$1 = lines[i];
+                var line = lines[i];
                 var lineMetrics;
-                if (line$$1) {
+                if (line) {
                     if (annotations) {
                         // Find the *compacted* annotations for this line.
-                        var lineAnnotations = V.annotateString(line$$1, annotations, {
+                        var lineAnnotations = V.annotateString(line, annotations, {
                             offset: -offset,
                             includeAnnotationIndices: iai
                         });
@@ -6016,8 +6067,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                         if (iLineHeight && autoLineHeight && i !== 0) { dy = iLineHeight; }
                         if (i === 0) { annotatedY = lineMetrics.maxFontSize * 0.8; }
                     } else {
-                        if (eol && i !== lastI) { line$$1 += eol; }
-                        lineNode.textContent = line$$1;
+                        if (eol && i !== lastI) { line += eol; }
+                        lineNode.textContent = line;
                     }
                 } else {
                     // Make sure the textContent is never empty. If it is, add a dummy
@@ -6038,7 +6089,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 if (i > 0 || textPath) { lineNode.setAttribute('x', x); }
                 lineNode.className.baseVal = lineClassName;
                 containerNode.appendChild(lineNode);
-                offset += line$$1.length + 1;      // + 1 = newline character.
+                offset += line.length + 1;      // + 1 = newline character.
             }
             // Y Alignment calculation
             if (namedVerticalAnchor) {
@@ -6378,9 +6429,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             // previous transformations then they'd add up with the old ones. Scale is an exception as
             // it doesn't add up, consider: `this.scale(2).scale(2).scale(2)`. The result is that the
             // element is scaled by the factor 2, not 8.
-            var scale$$1 = this.scale();
+            var scale = this.scale();
             this.attr('transform', '');
-            var bbox = this.getBBox({ target: target }).scale(scale$$1.sx, scale$$1.sy);
+            var bbox = this.getBBox({ target: target }).scale(scale.sx, scale.sy);
 
             // 1. Translate to origin.
             var translateToOrigin = V.createSVGTransform();
@@ -6405,7 +6456,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 translateFromOrigin.matrix.multiply(
                     rotateAroundOrigin.matrix.multiply(
                         translateToOrigin.matrix.multiply(
-                            ctm.scale(scale$$1.sx, scale$$1.sy)))));
+                            ctm.scale(scale.sx, scale.sy)))));
 
             this.attr('transform', V.matrixToTransformString(transform.matrix));
 
@@ -6632,8 +6683,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // can use `intersectionWithLineFromCenterToPoint()` passing the angle as the second argument.
                 var resetRotation = svg.createSVGTransform();
                 resetRotation.setRotate(-rectMatrixComponents.rotation, center.x, center.y);
-                var rect$$1 = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
-                spot = (new Rect(rect$$1)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
+                var rect = V.transformRect(gRect, resetRotation.matrix.multiply(rectMatrix));
+                spot = (new Rect(rect)).intersectionWithLineFromCenterToPoint(ref, rectMatrixComponents.rotation);
 
             } else if (tagName === 'PATH' || tagName === 'POLYGON' || tagName === 'POLYLINE' || tagName === 'CIRCLE' || tagName === 'ELLIPSE') {
 
@@ -6899,7 +6950,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         V.parseTransformString = function(transform) {
 
-            var translate, rotate, scale$$1;
+            var translate, rotate, scale;
 
             if (transform) {
 
@@ -6912,15 +6963,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     var decomposedMatrix = V.decomposeMatrix(matrix);
 
                     translate = [decomposedMatrix.translateX, decomposedMatrix.translateY];
-                    scale$$1 = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
+                    scale = [decomposedMatrix.scaleX, decomposedMatrix.scaleY];
                     rotate = [decomposedMatrix.rotation];
 
                     var transformations = [];
                     if (translate[0] !== 0 || translate[1] !== 0) {
                         transformations.push('translate(' + translate + ')');
                     }
-                    if (scale$$1[0] !== 1 || scale$$1[1] !== 1) {
-                        transformations.push('scale(' + scale$$1 + ')');
+                    if (scale[0] !== 1 || scale[1] !== 1) {
+                        transformations.push('scale(' + scale + ')');
                     }
                     if (rotate[0] !== 0) {
                         transformations.push('rotate(' + rotate + ')');
@@ -6939,12 +6990,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     }
                     var scaleMatch = transform.match(/scale\((.*?)\)/);
                     if (scaleMatch) {
-                        scale$$1 = scaleMatch[1].split(separator);
+                        scale = scaleMatch[1].split(separator);
                     }
                 }
             }
 
-            var sx = (scale$$1 && scale$$1[0]) ? parseFloat(scale$$1[0]) : 1;
+            var sx = (scale && scale[0]) ? parseFloat(scale[0]) : 1;
 
             return {
                 value: transform,
@@ -6959,15 +7010,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 },
                 scale: {
                     sx: sx,
-                    sy: (scale$$1 && scale$$1[1]) ? parseFloat(scale$$1[1]) : sx
+                    sy: (scale && scale[1]) ? parseFloat(scale[1]) : sx
                 }
             };
         };
 
-        V.deltaTransformPoint = function(matrix, point$$1) {
+        V.deltaTransformPoint = function(matrix, point) {
 
-            var dx = point$$1.x * matrix.a + point$$1.y * matrix.c + 0;
-            var dy = point$$1.x * matrix.b + point$$1.y * matrix.d + 0;
+            var dx = point.x * matrix.a + point.y * matrix.c + 0;
+            var dy = point.x * matrix.b + point.y * matrix.d + 0;
             return { x: dx, y: dy };
         };
 
@@ -7354,12 +7405,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return annotations;
         };
 
-        V.convertLineToPathData = function(line$$1) {
+        V.convertLineToPathData = function(line) {
 
-            line$$1 = V(line$$1);
+            line = V(line);
             var d = [
-                'M', line$$1.attr('x1'), line$$1.attr('y1'),
-                'L', line$$1.attr('x2'), line$$1.attr('y2')
+                'M', line.attr('x1'), line.attr('y1'),
+                'L', line.attr('x2'), line.attr('y2')
             ].join(' ');
             return d;
         };
@@ -7424,13 +7475,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return d;
         };
 
-        V.convertEllipseToPathData = function(ellipse$$1) {
+        V.convertEllipseToPathData = function(ellipse) {
 
-            ellipse$$1 = V(ellipse$$1);
-            var cx = parseFloat(ellipse$$1.attr('cx')) || 0;
-            var cy = parseFloat(ellipse$$1.attr('cy')) || 0;
-            var rx = parseFloat(ellipse$$1.attr('rx'));
-            var ry = parseFloat(ellipse$$1.attr('ry')) || rx;
+            ellipse = V(ellipse);
+            var cx = parseFloat(ellipse.attr('cx')) || 0;
+            var cy = parseFloat(ellipse.attr('cy')) || 0;
+            var rx = parseFloat(ellipse.attr('rx'));
+            var ry = parseFloat(ellipse.attr('ry')) || rx;
             var cdx = rx * V.KAPPA; // Control distance x.
             var cdy = ry * V.KAPPA; // Control distance y.
 
@@ -7445,17 +7496,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return d;
         };
 
-        V.convertRectToPathData = function(rect$$1) {
+        V.convertRectToPathData = function(rect) {
 
-            rect$$1 = V(rect$$1);
+            rect = V(rect);
 
             return V.rectToPath({
-                x: parseFloat(rect$$1.attr('x')) || 0,
-                y: parseFloat(rect$$1.attr('y')) || 0,
-                width: parseFloat(rect$$1.attr('width')) || 0,
-                height: parseFloat(rect$$1.attr('height')) || 0,
-                rx: parseFloat(rect$$1.attr('rx')) || 0,
-                ry: parseFloat(rect$$1.attr('ry')) || 0
+                x: parseFloat(rect.attr('x')) || 0,
+                y: parseFloat(rect.attr('y')) || 0,
+                width: parseFloat(rect.attr('width')) || 0,
+                height: parseFloat(rect.attr('height')) || 0,
+                rx: parseFloat(rect.attr('rx')) || 0,
+                ry: parseFloat(rect.attr('ry')) || 0
             });
         };
 
@@ -7530,21 +7581,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 return [(_13 * x1) + (_23 * ax), (_13 * y1) + (_23 * ay), (_13 * x2) + (_23 * ax), (_13 * y2) + (_23 * ay), x2, y2];
             }
 
+            function rotate(x, y, rad) {
+
+                var X = (x * cos(rad)) - (y * sin(rad));
+                var Y = (x * sin(rad)) + (y * cos(rad));
+                return { x: X, y: Y };
+            }
+
             function a2c(x1, y1, rx, ry, angle, large_arc_flag, sweep_flag, x2, y2, recursive) {
                 // for more information of where this math came from visit:
                 // http://www.w3.org/TR/SVG11/implnote.html#ArcImplementationNotes
-
                 var _120 = (PI * 120) / 180;
                 var rad = (PI / 180) * (+angle || 0);
                 var res = [];
                 var xy;
-
-                var rotate = function(x, y, rad) {
-
-                    var X = (x * cos(rad)) - (y * sin(rad));
-                    var Y = (x * sin(rad)) + (y * cos(rad));
-                    return { x: X, y: Y };
-                };
 
                 if (!recursive) {
                     xy = rotate(x1, y1, -rad);
@@ -7582,8 +7632,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     if (f1 < 0) { f1 = (PI * 2) + f1; }
                     if (f2 < 0) { f2 = (PI * 2) + f2; }
 
-                    if ((sweep_flag && f1) > f2) { f1 = f1 - (PI * 2); }
-                    if ((!sweep_flag && f2) > f1) { f2 = f2 - (PI * 2); }
+                    if (sweep_flag && (f1 > f2)) { f1 = f1 - (PI * 2); }
+                    if (!sweep_flag && (f2 > f1)) { f2 = f2 - (PI * 2); }
 
                 } else {
                     f1 = recursive[0];
@@ -7593,16 +7643,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 }
 
                 var df = f2 - f1;
-
                 if (abs(df) > _120) {
                     var f2old = f2;
                     var x2old = x2;
                     var y2old = y2;
-
-                    f2 = f1 + (_120 * (((sweep_flag && f2) > f1) ? 1 : -1));
+                    f2 = f1 + (_120 * ((sweep_flag && (f2 > f1)) ? 1 : -1));
                     x2 = cx + (rx * cos(f2));
                     y2 = cy + (ry * sin(f2));
-
                     res = a2c(x2, y2, rx, ry, angle, 0, sweep_flag, x2old, y2old, [f2, f2old, cx, cy]);
                 }
 
@@ -7612,12 +7659,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 var s1 = sin(f1);
                 var c2 = cos(f2);
                 var s2 = sin(f2);
-
                 var t = tan(df / 4);
-
                 var hx = (4 / 3) * (rx * t);
                 var hy = (4 / 3) * (ry * t);
-
                 var m1 = [x1, y1];
                 var m2 = [x1 + (hx * s1), y1 - (hy * c1)];
                 var m3 = [x2 + (hx * s2), y2 - (hy * c2)];
@@ -7628,16 +7672,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
                 if (recursive) {
                     return [m2, m3, m4].concat(res);
-
                 } else {
                     res = [m2, m3, m4].concat(res).join().split(',');
-
                     var newres = [];
                     var ii = res.length;
                     for (var i = 0; i < ii; i++) {
                         newres[i] = (i % 2) ? rotate(res[i - 1], res[i], rad).y : rotate(res[i], res[i + 1], rad).x;
                     }
-
                     return newres;
                 }
             }

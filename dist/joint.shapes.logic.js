@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -170,20 +170,20 @@ this.joint.shapes = this.joint.shapes || {};
         ].join('')
     });
 
+    exports.And = And;
     exports.Gate = Gate;
-    exports.IO = IO;
-    exports.Input = Input;
-    exports.Output = Output;
     exports.Gate11 = Gate11;
     exports.Gate21 = Gate21;
-    exports.Repeater = Repeater;
+    exports.IO = IO;
+    exports.Input = Input;
+    exports.Nand = Nand;
+    exports.Nor = Nor;
     exports.Not = Not;
     exports.Or = Or;
-    exports.And = And;
-    exports.Nor = Nor;
-    exports.Nand = Nand;
-    exports.Xor = Xor;
-    exports.Xnor = Xnor;
+    exports.Output = Output;
+    exports.Repeater = Repeater;
     exports.Wire = Wire;
+    exports.Xnor = Xnor;
+    exports.Xor = Xor;
 
-}(this.joint.shapes.logic = this.joint.shapes.logic || {}, joint.shapes, joint.dia));
+}(this.joint.shapes.logic = this.joint.shapes.logic || {}, joint.shapes.basic, joint.dia));

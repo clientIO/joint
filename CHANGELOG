@@ -1,3 +1,24 @@
+15-10-2019 (v3.1.0)
+
+ * add RoughJS demo
+ * add elementTools: Button, Remove, Boundary
+ * improve low-level performance for large graphs
+ * fix ES5 dependencies
+ * dia.Paper - validateMagnet() callback has `evt` argument
+ * dia.Paper - ignore viewport when removing views, register unmounted views on render
+ * dia.Graph - fix bfs() stop condition
+ * dia.Element - make sure only elements are taken into account in fitEmbeds()
+ * dia.LinkView - fix label rendering after multiple changes made to model
+ * dia.LinkView - fix missing `pointerup` event for non-interactive labels
+ * linkTools.Boundary - padding can be defined separately for each side
+ * dia.ToolView - support reusable tools
+ * connectors.jumpover - add `radius` option to make corners rounded
+ * layout.DirectedGraph - remove unnecessary vertices
+ * dia.attributes - add `stubs` option to `connection` attribute
+ * dia.attributes - add `displayEmpty` for text elements
+ * Vectorizer - fix e2c() overflowing the stack in normalizePathData()
+ * Geometry - add simplify() to Polyline (remove redundant points)
+
 02-08-2019 (v3.0.4)
 
   * package.json - add a browser key to point to dist (fix webpack build in IE11)

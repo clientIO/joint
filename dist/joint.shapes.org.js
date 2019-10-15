@@ -1,4 +1,4 @@
-/*! JointJS v3.0.4 (2019-08-02) - JavaScript diagramming library
+/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -49,7 +49,7 @@ this.joint.shapes = this.joint.shapes || {};
         z: -1
     });
 
-    exports.Member = Member;
     exports.Arrow = Arrow;
+    exports.Member = Member;
 
 }(this.joint.shapes.org = this.joint.shapes.org || {}, joint.dia, joint.dia));
