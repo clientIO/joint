@@ -1,0 +1,23 @@
+[data-tool-name="button"] > circle { fill: #333; }
+
+body {
+    background-color: #FAFAFA
+}
+
+#paper {
+    margin: 0 auto;
+}
+
+.description {
+    font-family: sans-serif;
+    font-size: 14px;
+    text-align: center;
+}
+
+.key {
+    padding: 4px;
+    border: 1px solid black;
+    border-radius: 3px;
+    display: inline-block;
+    background-color: white;
+}
