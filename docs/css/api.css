@@ -548,3 +548,10 @@ html.no-js .docs-content iframe {
     top: 16px;
     opacity: 0.2;
 }
+
+.docs-important-note {
+    border: 1px solid lightgray;
+    background: #fff7e5;
+    padding: 10px;
+    border-radius: 5px;
+}

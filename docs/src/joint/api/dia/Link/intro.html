@@ -44,6 +44,39 @@ var link2 = new joint.dia.Link({
 
 <p>As we can see, the <code>joint.shapes.standard.Link</code> shape consists of two <q>subelements</q>: one SVGPathElement named <code>'wrapper'</code> and one SVGPathElement named <code>'line'</code>. The <a href="#dia.Link.intro.styling"><code>attrs</code></a> object refers to the subelements' names (<q>selectors</q>) to provide SVG attributes to these constituent SVGElements.</p>
 
+
+<div class="docs-important-note">
+    Direct use of <code>joint.dia.Link</code> is deprecated. Use links from <a href="#shapes.standard"><code>standard</code></a> namespace.
+</div>
+
+    <p>The <code>joint.dia.Link</code> markup looks like:</p>
+
+    <pre><code data-lang="svg">&lt;path class=&quot;connection&quot;/&gt;
+&lt;path class=&quot;marker-source&quot;/&gt;
+&lt;path class=&quot;marker-target&quot;/&gt;
+&lt;path class=&quot;connection-wrap&quot;/&gt;
+&lt;g class=&quot;labels&quot; /&gt;
+&lt;g class=&quot;marker-vertices&quot;/&gt;
+&lt;g class=&quot;marker-arrowheads&quot;/&gt;
+&lt;g class=&quot;link-tools&quot; /&gt;</code></pre>
+
+    <p>As you can see, the link consists of a couple of SVG path elements and couple of SVG group elements:</p>
+
+    <ul>
+        <li><code>.connection</code> is the actual line of the link.</li>
+        <li><code>.connection-wrap</code> is an SVG path element that covers the <code>.connection</code> element and is usually thicker so that the link is able to
+            handle pointer events (mousedown, mousemove, mouseup) that didn't target the thin <code>.connection</code> path exactly. This makes it easy
+            to &quot;grab&quot; the link even though the mouse cursor didn't point exactly at the (usually thin) <code>.connection</code> path element.</li>
+        <li><code>.marker-source</code> and <code>.marker-target</code> are the arrowheads of the link.</li>
+    </ul>
+
+    <pre><code>link.attr({
+        '.connection': { stroke: 'blue' },
+        '.marker-source': { fill: 'red', d: 'M 10 0 L 0 5 L 10 10 z' },
+        '.marker-target': { fill: 'yellow', d: 'M 10 0 L 0 5 L 10 10 z' }
+    });</code></pre>
+
+
 <p>The <code>markup</code> attribute is not the only presentation attribute that may be specified for a <code>joint.dia.Link</code>. However, all the following Link properties are deprecated and included only for backwards compatibility. Use <a href="#linkTools">link tools</a> instead:</p>
 
 <ul>

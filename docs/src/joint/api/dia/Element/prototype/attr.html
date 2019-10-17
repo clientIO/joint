@@ -1,13 +1,38 @@
-<pre class="docs-method-signature"><code>element.attr(attrs)</code></pre>
+<pre class="docs-method-signature"><code>element.attr(attrs [, opt])</code></pre>
 
-<p>Set SVG attributes (and JointJS special attributes) on subelements. <code>attr</code> can either be an object or string representing a path to a nested attribute. If it is an object, the keys of the <code>attrs</code> object are CSS selectors matching the subelements. The values are objects containing SVG attributes and their values. <code>attrs</code> object will be mixined with <code>attrs</code> property of the <code>element</code> model. This is a convenient way of rewriting only some of the attributes of the subelements. For overwritting all attributes of all subelements, use <code>element.set(attrs)</code>.</p>
+<p>Set presentation attributes (<a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">SVG</a> and <a href="joint.html#dia.attributes">JointJS </a> attributes) on view subelements. <code>attr</code> can either be an object or string representing a path to a nested attribute. If it is an object, the keys of the <code>attrs</code> object are selectors (<a href="joint.html#dia.Cell.markup.json">JSON Markup Selector</a> or CSS Selector) matching the subelements. The values are objects containing SVG attributes and their values. <code>attrs</code> object will be mixed with <code>attrs</code> property of the <code>element</code> model. This is a convenient way of rewriting only some of the attributes of the subelements. For overwriting all attributes of all subelements, use <code>element.set('attrs', attrs)</code>.</p>
 
 <pre><code>element.attr({
+    // selectors as defined in the JSON markup
+    body: { refWidth: '100%', refHeight: '100%' },
+    label: { text: 'My Label' },
+    // using CSS selectors is significantly slower
     rect: { fill: 'blue' },
-    text: { fill: 'white', 'font-size': 15 },
+    text: { fill: 'white', fontSize: 15 },
     '.myrect2': { fill: 'red' }
 });</code></pre>
 
-<p>An alternative call using a string path and a value:</p>
+<div class="docs-important-note">
+The method is not suitable for storing custom data on the model. For that, use <a href="joint.html#dia.Element.prototype.prop"><code>prop()</code></a> or <code>set()</code> methods.
+<pre><code>element.set('confirmed', true);
+element.prop('data/count', 10);
+</code></pre>
+</div>
 
-<pre><code>element.attr('text/font-size', 12);</code></pre>
+<pre class="docs-method-signature"><code>element.attr(path, value [, opt])</code></pre>
+
+<p>An alternative call using a string/array path and a value:</p>
+
+<pre><code>element.attr('body/fill', 'red');
+element.attr(['label', 'fontSize'], 12);
+// Note: an equivalent expression is also
+element.prop('attrs/label/fontSize', 12);
+</code></pre>
+
+<pre class="docs-method-signature"><code>element.attr([path])</code></pre>
+
+<p>Get attribute value defined by a path. If no path provided the whole <code>attrs</code> object is returned.</p>
+
+<pre><code>element.attr('body/fill') === 'red';
+element.attr(['label', 'fontSize']) === 12;
+</code></pre>
