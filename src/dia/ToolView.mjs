@@ -61,7 +61,9 @@ export const ToolView = mvc.View.extend({
 
     guard: function(evt) {
         // Let the context-menu event bubble up to the relatedView
-        return (evt.type === 'mousedown' && evt.button === 2);
+        const { paper, relatedView } = this;
+        if (!paper || !relatedView) return true;
+        return paper.guard(evt, relatedView);
     }
 });
 
