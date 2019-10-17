@@ -57,6 +57,11 @@ export const ToolView = mvc.View.extend({
 
     update: function() {
         // to be overridden
+    },
+
+    guard: function(evt) {
+        // Let the context-menu event bubble up to the relatedView
+        return (evt.type === 'mousedown' && evt.button === 2);
     }
 });
 
