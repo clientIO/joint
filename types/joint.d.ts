@@ -1366,6 +1366,8 @@ export namespace dia {
         blur(): void;
 
         update(): void;
+
+        protected guard(evt: dia.Event): boolean;
     }
 
 }

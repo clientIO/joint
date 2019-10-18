@@ -65,6 +65,7 @@ var VertexHandle = mvc.View.extend({
         this.vel.attr({ cx: x, cy: y });
     },
     onPointerDown: function(evt) {
+        if (this.options.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
         this.options.paper.undelegateEvents();
@@ -146,7 +147,11 @@ var Vertices = ToolView.extend({
         var vertices = relatedView.model.vertices();
         for (var i = 0, n = vertices.length; i < n; i++) {
             var vertex = vertices[i];
-            var handle = new (this.options.handleClass)({ index: i, paper: this.paper });
+            var handle = new (this.options.handleClass)({
+                index: i,
+                paper: this.paper,
+                guard: evt => this.guard(evt)
+            });
             handle.render();
             handle.position(vertex.x, vertex.y);
             this.simulateRelatedView(handle.el);
@@ -247,6 +252,7 @@ var Vertices = ToolView.extend({
         linkView.checkMouseleave(util.normalizeEvent(evt));
     },
     onPathPointerDown: function(evt) {
+        if (this.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
         var normalizedEvent = util.normalizeEvent(evt);
@@ -325,6 +331,7 @@ var SegmentHandle = mvc.View.extend({
         line.setAttribute('y2', viewPoint.y);
     },
     onPointerDown: function(evt) {
+        if (this.options.guard(evt)) return;
         this.trigger('change:start', this, evt);
         evt.stopPropagation();
         evt.preventDefault();
@@ -376,7 +383,10 @@ var Segments = ToolView.extend({
         return this;
     },
     renderHandle: function(vertex, nextVertex) {
-        var handle = new (this.options.handleClass)({ paper: this.paper });
+        var handle = new (this.options.handleClass)({
+            paper: this.paper,
+            guard: evt => this.guard(evt)
+        });
         handle.render();
         this.updateHandle(handle, vertex, nextVertex);
         handle.vel.appendTo(this.el);
@@ -632,6 +642,7 @@ var Arrowhead = ToolView.extend({
         return this;
     },
     onPointerDown: function(evt) {
+        if (this.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
         var relatedView = this.relatedView;
@@ -757,6 +768,7 @@ var Button = ToolView.extend({
         return matrix;
     },
     onPointerDown: function(evt) {
+        if (this.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
         var actionFn = this.options.action;
@@ -962,6 +974,7 @@ var Anchor = ToolView.extend({
         this.childNodes.area.style.display = (visible) ? '' : 'none';
     },
     onPointerDown: function(evt) {
+        if (this.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
         this.paper.undelegateEvents();
