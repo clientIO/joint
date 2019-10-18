@@ -7,6 +7,7 @@ import {
     parseDOMJSON,
     isFunction,
     isObject,
+    isPlainObject,
     isBoolean,
     isEmpty,
     isString,
@@ -646,11 +647,12 @@ export const CellView = View.extend({
         var mergeIds = [];
         for (var selector in attrs) {
             if (!attrs.hasOwnProperty(selector)) continue;
+            nodeAttrs = attrs[selector];
+            if (!isPlainObject(nodeAttrs)) continue; // Not a valid selector-attributes pair
             var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
             for (i = 0, n = selected.length; i < n; i++) {
                 var node = selected[i];
                 nodeId = V.ensureId(node);
-                nodeAttrs = attrs[selector];
                 // "unique" selectors are selectors that referencing a single node (defined by `selector`)
                 // groupSelector referencing a single node is not "unique"
                 var unique = (selectors && selectors[selector] === node);
