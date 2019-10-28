@@ -1,3 +1,8 @@
+28-11-2019 (v3.1.1)
+
+ * dia.CellView - prevent DOM exceptions when invalid attrs provided
+ * dia.ToolView - prevent `contextmenu` event (uses paper.options.guard now)
+
 15-10-2019 (v3.1.0)
 
  * add RoughJS demo

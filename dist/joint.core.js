@@ -1,4 +1,4 @@
-/*! JointJS v3.1.0 (2019-10-15) - JavaScript diagramming library
+/*! JointJS v3.1.1 (2019-10-28) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -14255,11 +14255,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var mergeIds = [];
             for (var selector in attrs) {
                 if (!attrs.hasOwnProperty(selector)) { continue; }
+                nodeAttrs = attrs[selector];
+                if (!isPlainObject(nodeAttrs)) { continue; } // Not a valid selector-attributes pair
                 var selected = selectorCache[selector] = this.findBySelector(selector, root, selectors);
                 for (i = 0, n = selected.length; i < n; i++) {
                     var node = selected[i];
                     nodeId = V.ensureId(node);
-                    nodeAttrs = attrs[selector];
                     // "unique" selectors are selectors that referencing a single node (defined by `selector`)
                     // groupSelector referencing a single node is not "unique"
                     var unique = (selectors && selectors[selector] === node);
@@ -25852,6 +25853,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         update: function() {
             // to be overridden
+        },
+
+        guard: function(evt) {
+            // Let the context-menu event bubble up to the relatedView
+            var ref = this;
+            var paper = ref.paper;
+            var relatedView = ref.relatedView;
+            if (!paper || !relatedView) { return true; }
+            return paper.guard(evt, relatedView);
         }
     });
 
@@ -26037,6 +26047,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             this.vel.attr({ cx: x, cy: y });
         },
         onPointerDown: function(evt) {
+            if (this.options.guard(evt)) { return; }
             evt.stopPropagation();
             evt.preventDefault();
             this.options.paper.undelegateEvents();
@@ -26114,11 +26125,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
         },
         renderHandles: function() {
+            var this$1 = this;
+
             var relatedView = this.relatedView;
             var vertices = relatedView.model.vertices();
             for (var i = 0, n = vertices.length; i < n; i++) {
                 var vertex = vertices[i];
-                var handle = new (this.options.handleClass)({ index: i, paper: this.paper });
+                var handle = new (this.options.handleClass)({
+                    index: i,
+                    paper: this.paper,
+                    guard: function (evt) { return this$1.guard(evt); }
+                });
                 handle.render();
                 handle.position(vertex.x, vertex.y);
                 this.simulateRelatedView(handle.el);
@@ -26231,6 +26248,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             linkView.checkMouseleave(normalizeEvent(evt));
         },
         onPathPointerDown: function(evt) {
+            if (this.guard(evt)) { return; }
             evt.stopPropagation();
             evt.preventDefault();
             var normalizedEvent = normalizeEvent(evt);
@@ -26309,6 +26327,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             line.setAttribute('y2', viewPoint.y);
         },
         onPointerDown: function(evt) {
+            if (this.options.guard(evt)) { return; }
             this.trigger('change:start', this, evt);
             evt.stopPropagation();
             evt.preventDefault();
@@ -26360,7 +26379,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         },
         renderHandle: function(vertex, nextVertex) {
-            var handle = new (this.options.handleClass)({ paper: this.paper });
+            var this$1 = this;
+
+            var handle = new (this.options.handleClass)({
+                paper: this.paper,
+                guard: function (evt) { return this$1.guard(evt); }
+            });
             handle.render();
             this.updateHandle(handle, vertex, nextVertex);
             handle.vel.appendTo(this.el);
@@ -26616,6 +26640,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this;
         },
         onPointerDown: function(evt) {
+            if (this.guard(evt)) { return; }
             evt.stopPropagation();
             evt.preventDefault();
             var relatedView = this.relatedView;
@@ -26754,6 +26779,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return matrix;
         },
         onPointerDown: function(evt) {
+            if (this.guard(evt)) { return; }
             evt.stopPropagation();
             evt.preventDefault();
             var actionFn = this.options.action;
@@ -26963,6 +26989,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             this.childNodes.area.style.display = (visible) ? '' : 'none';
         },
         onPointerDown: function(evt) {
+            if (this.guard(evt)) { return; }
             evt.stopPropagation();
             evt.preventDefault();
             this.paper.undelegateEvents();
@@ -27075,7 +27102,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         Boundary: Boundary
     });
 
-    var version = "3.1.0";
+    var version = "3.1.1";
 
     var Vectorizer = V;
     var layout = { PortLabel: PortLabel, Port: Port };
