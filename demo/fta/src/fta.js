@@ -39,7 +39,7 @@
             var gateTypes = Object.keys(element.gateTypes);
             var index = gateTypes.indexOf(gateType);
             var newIndex = (index + 1) % gateTypes.length;
-            element.attr(['gate', 'gateType'], gateTypes[newIndex]);
+            element.setGateType(gateTypes[newIndex]);
         }
     });
 
@@ -51,7 +51,8 @@
         z: 2,
         attrs: {
             root: {
-                pointerEvents: 'bounding-box'
+                pointerEvents: 'bounding-box',
+                title: 'Intermediate Event'
             },
             body: {
                 refWidth: '100%',
@@ -106,6 +107,13 @@
             priority_and: 'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z M -20 0 0 -30 20 0',
             inhibit: 'M -10 0 -20 -15 -10 -30 10 -30 20 -15 10 0 Z',
             transfer: 'M -20 0 20 0 0 -30 z',
+        },
+        setGateType: function(type) {
+            this.attr(['gate'], {
+                gateType: type,
+                title: type
+            });
+
         }
     }, {
         attributes: {
@@ -126,7 +134,8 @@
         z: 2,
         attrs: {
             root: {
-                pointerEvents: 'bounding-box'
+                pointerEvents: 'bounding-box',
+                title: 'External Event'
             },
             body: {
                 refD: 'M 0 0 10 -10 20 0 20 40 0 40 Z',
@@ -154,7 +163,8 @@
         },
         attrs: {
             root: {
-                pointerEvents: 'bounding-box'
+                pointerEvents: 'bounding-box',
+                title: 'Undeveloped Event'
             },
             z: 2,
             body: {
@@ -183,7 +193,8 @@
         z: 2,
         attrs: {
             root: {
-                pointerEvents: 'bounding-box'
+                pointerEvents: 'bounding-box',
+                title: 'Basic Event'
             },
             body: {
                 stroke: 'purple',
@@ -210,7 +221,8 @@
         z: 2,
         attrs: {
             root: {
-                pointerEvents: 'bounding-box'
+                pointerEvents: 'bounding-box',
+                title: 'Conditioning Event'
             },
             body: {
                 stroke: 'blue',
@@ -232,10 +244,10 @@
     function event(text, type) {
         var event = new joint.shapes.fta.IntermediateEvent({
             attrs: {
-                label: { text: text },
-                gate: { gateType: type }
+                label: { text: text }
             }
         });
+        event.setGateType(type);
         return event.addTo(graph);
     }
 
