@@ -12,16 +12,35 @@
         defaultRouter: { name: 'orthogonal' },
         async: true,
         interactive: false,
-        frozen: true
+        frozen: true,
+        sorting: joint.dia.Paper.sorting.APPROX
     });
 
-    paper.on('element:gate:click', function(elementView) {
-        var element = elementView.model;
-        var gateType = element.attr(['gate', 'gateType']);
-        var gateTypes = Object.keys(element.gateTypes);
-        var index = gateTypes.indexOf(gateType);
-        var newIndex = (index + 1) % gateTypes.length;
-        element.attr(['gate', 'gateType'], gateTypes[newIndex]);
+    var boundary = new joint.elementTools.Boundary();
+    boundary.el.setAttribute('stroke-dasharray', 'none');
+    boundary.el.setAttribute('stroke-width', 2);
+    boundary.el.setAttribute('stroke', '#2cbe4e');
+    boundary.el.setAttribute('rx', 5);
+    boundary.el.setAttribute('ry', 5);
+
+    paper.on({
+        'element:mouseenter': function(elementView) {
+            var tools = new joint.dia.ToolsView({
+                tools: [boundary]
+            });
+            elementView.addTools(tools);
+        },
+        'element:mouseleave': function(elementView) {
+            elementView.removeTools();
+        },
+        'element:gate:click': function(elementView) {
+            var element = elementView.model;
+            var gateType = element.attr(['gate', 'gateType']);
+            var gateTypes = Object.keys(element.gateTypes);
+            var index = gateTypes.indexOf(gateType);
+            var newIndex = (index + 1) % gateTypes.length;
+            element.attr(['gate', 'gateType'], gateTypes[newIndex]);
+        }
     });
 
     joint.dia.Element.define('fta.IntermediateEvent', {
@@ -29,7 +48,11 @@
             width: 100,
             height: 100
         },
+        z: 2,
         attrs: {
+            root: {
+                pointerEvents: 'bounding-box'
+            },
             body: {
                 refWidth: '100%',
                 refHeight: -40,
@@ -100,7 +123,11 @@
             width: 80,
             height: 100
         },
+        z: 2,
         attrs: {
+            root: {
+                pointerEvents: 'bounding-box'
+            },
             body: {
                 refD: 'M 0 0 10 -10 20 0 20 40 0 40 Z',
                 stroke: 'orange',
@@ -126,6 +153,10 @@
             height: 80
         },
         attrs: {
+            root: {
+                pointerEvents: 'bounding-box'
+            },
+            z: 2,
             body: {
                 refD: 'M -1 0 0 1 1 0 0 -1 Z',
                 stroke: 'red',
@@ -149,7 +180,11 @@
             width: 80,
             height: 80
         },
+        z: 2,
         attrs: {
+            root: {
+                pointerEvents: 'bounding-box'
+            },
             body: {
                 stroke: 'purple',
                 fill: 'purple',
@@ -172,7 +207,11 @@
             width: 140,
             height: 80
         },
+        z: 2,
         attrs: {
+            root: {
+                pointerEvents: 'bounding-box'
+            },
             body: {
                 stroke: 'blue',
                 fill: 'blue',
@@ -239,6 +278,7 @@
 
     function connect(e1, e2) {
         var link = new joint.shapes.standard.Link({
+            z: -1,
             source: { id: e1.id, selector: 'gate' },
             target: { id: e2.id, selector: 'body' },
             attrs: {
