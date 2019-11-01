@@ -6,7 +6,7 @@
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
-        width: 1000,
+        width: 900,
         height: 800,
         model: graph,
         defaultConnectionPoint: { name: 'boundary', args: { extrapolate: true }},
@@ -62,6 +62,8 @@
             el.position(neighborPosition.x + 20, neighborPosition.y - el.size().height / 2 - 20);
         });
     }
+
+    // Original FTA Diagram: https://www.edrawsoft.com/templates/pdf/scaffolding-fall-fault-tree.pdf
 
     var events = [
         fta.IntermediateEvent.create('Fall from Scaffolding').gate('inhibit'),
