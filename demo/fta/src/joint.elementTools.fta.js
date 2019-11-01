@@ -7,7 +7,7 @@
             'fill': 'none',
             'pointer-events': 'none',
             'stroke-width': 2,
-            'stroke': '#2cbe4e',
+            'stroke': ' #31d0c6',
             'rx': 5,
             'ry': 5
         }

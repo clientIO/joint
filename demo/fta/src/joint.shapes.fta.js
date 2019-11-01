@@ -18,7 +18,7 @@
                 },
                 refX: '50%',
                 refY: '50%',
-                fontSize: 13,
+                fontSize: 16,
                 fontFamily: 'sans-serif',
                 fill: '#333333',
                 textAnchor: 'middle',
@@ -50,14 +50,14 @@
             body: {
                 refWidth: '100%',
                 refHeight: -40,
-                stroke: '#333333',
-                fill: '#333333'
+                stroke: '#3c4260',
+                fill: '#3c4260'
             },
             gate: {
                 event: 'element:gate:click',
                 gateType: 'xor',
-                fill: '#4C65DD',
-                stroke: '#4C65DD',
+                stroke: '#7c68fc',
+                fill: '#7c68fc',
                 fillOpacity: 0.2,
                 strokeWidth: 2,
                 refX: '50%',
@@ -70,8 +70,7 @@
                     height: -40,
                     width: -10,
                 },
-                refY2: -20,
-                fontSize: 16
+                refY2: -20
             }
         }
     }, {
@@ -122,8 +121,8 @@
             },
             body: {
                 refD: 'M 0 0 10 -10 20 0 20 40 0 40 Z',
-                stroke: 'orange',
-                fill: 'orange'
+                stroke: '#fe854f',
+                fill: '#fe854f'
             }
         }
     }, {
@@ -147,8 +146,8 @@
             },
             body: {
                 refD: 'M -1 0 0 1 1 0 0 -1 Z',
-                stroke: 'red',
-                fill: 'red'
+                stroke: '#feb663',
+                fill: '#feb663'
             }
         }
     }, {
@@ -175,8 +174,8 @@
                 refCx: '50%',
                 refCy: '50%',
                 refR: '50%',
-                stroke: 'purple',
-                fill: 'purple'
+                stroke: '#30d0c6',
+                fill: '#30d0c6'
             }
         }
     }, {
@@ -204,8 +203,8 @@
                 refCy: '50%',
                 refRx: '50%',
                 refRy: '50%',
-                stroke: 'blue',
-                fill: 'blue',
+                stroke: '#7c68fc',
+                fill: '#7c68fc',
                 fillOpacity: 0.2
             }
         }
