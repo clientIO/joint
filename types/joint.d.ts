@@ -675,7 +675,11 @@ export namespace dia {
 
         protected onmagnet(evt: dia.Event, x: number, y: number): void;
 
-        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes
+        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
+
+        protected getLinkEnd(magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
     }
 
     class CellView extends CellViewGeneric<Cell> {
