@@ -80,8 +80,7 @@
             // Set the position and the size of the box so that it covers the JointJS element
             // (taking the paper transformations into account).
             var bbox = this.getBBox({ useModelGeometry: true });
-            var scale = paper.scale();
-
+            var scale = this.paper.scale();
             this.$box.css({
                 transform: 'scale(' + scale.sx + ',' + scale.sy + ')',
                 transformOrigin: '0 0',
@@ -115,7 +114,7 @@
 
         onRemove: function() {
 
-            this.$box.remove();
+            if (this.$box) this.$box.remove();
         }
 
     });
