@@ -371,7 +371,7 @@ export const CellView = View.extend({
             end.selector = this.getSelector(magnet);
         }
 
-        return this.customizeLinkEnd(end, ...args);
+        return this.customizeLinkEnd(end, magnet, ...args);
     },
 
     customizeLinkEnd: function(end, magnet, x, y, link, endType) {
