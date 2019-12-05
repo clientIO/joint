@@ -398,7 +398,7 @@ export const Element = Cell.extend({
         var endDef = link.get(endType);
         if (!endDef) return center;
         var portId = endDef.port;
-        if (!portId) return center;
+        if (!portId || !this.hasPort(portId)) return center;
         var portGroup = this.portProp(portId, ['group']);
         var portsPositions = this.getPortsPositions(portGroup);
         var portCenter = new Point(portsPositions[portId]).offset(bbox.origin());
