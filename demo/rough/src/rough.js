@@ -20,7 +20,7 @@
             return new RoughLink();
         },
         validateMagnet: function(_view, magnet, evt) {
-            return evt.target.getAttribute('magnet') === 'on-shift' && evt.shiftKey;
+            return magnet.getAttribute('magnet') === 'on-shift' && evt.shiftKey;
         }
     });
 
