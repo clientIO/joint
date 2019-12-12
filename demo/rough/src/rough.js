@@ -1,4 +1,4 @@
-(function(joint, Rough, g) {
+(function(joint, Rough, g, V) {
 
     var WIDTH = 800;
     var HEIGHT = 800;
@@ -15,7 +15,7 @@
         async: true,
         sorting: joint.dia.Paper.sorting.APPROX,
         connectionStrategy: joint.connectionStrategies.pinAbsolute,
-        defaultConnectionPoint: { name: 'boundary' },
+        defaultConnectionPoint: { name: 'boundary', args: { selector: 'border' }},
         defaultLink: function() {
             return new RoughLink();
         },
@@ -54,13 +54,20 @@
             }));
         },
         'element:mouseenter': function(elementView) {
+            var model = elementView.model;
+            var bbox = model.getBBox();
+            var ellipseRadius = (1 - Math.cos(g.toRad(45)));
+            var offset = model.attr(['pointers', 'pointerShape']) === 'ellipse'
+                ? { x: -ellipseRadius * bbox.width / 2, y: ellipseRadius * bbox.height / 2  }
+                : { x: -3, y: 3 };
+
             elementView.addTools(new joint.dia.ToolsView({
                 tools: [
                     new joint.elementTools.Remove({
                         useModelGeometry: true,
                         y: '0%',
                         x: '100%',
-                        offset: { x: -3, y: 3 }
+                        offset: offset
                     })
                 ]
             }));
@@ -85,20 +92,7 @@
                 cell.target({ x: x, y: y });
             } else {
                 var type = ['rectangle', 'ellipse'][g.random(0, 1)];
-                cell = new RoughElement({
-                    attrs: {
-                        body: {
-                            rough: {
-                                type: type,
-                            }
-                        },
-                        border: {
-                            rough: {
-                                type: type
-                            }
-                        }
-                    }
-                });
+                cell = RoughElement.create(type);
                 cell.position(x, y);
                 data.x = x;
                 data.y = y;
@@ -145,21 +139,24 @@
             root: {
                 magnet: false
             },
+            pointers: {
+                refWidth: '100%',
+                refHeight: '100%',
+                pointerShape: 'rectangle'
+            },
             border: {
                 rough: {
                     fillSketch: false
                 },
                 stroke: '#333333',
-                strokeWidth: 2,
-                fill: 'none'
+                strokeWidth: 2
             },
             body: {
                 rough: {
                     fillSketch: true
                 },
                 strokeWidth: 2,
-                stroke: '#c6c7e2',
-                fill: 'none'
+                stroke: '#c6c7e2'
             },
             label: {
                 textWrap: {
@@ -184,19 +181,50 @@
     }, {
         markup: [{
             tagName: 'path',
-            selector: 'body'
+            selector: 'pointers',
+            attributes: {
+                'magnet': 'on-shift',
+                'fill': 'transparent'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'body',
+            attributes: {
+                'pointer-events': 'none'
+            }
         }, {
             tagName: 'path',
             selector: 'border',
             attributes: {
-                'pointer-events': 'bounding-box',
-                'magnet': 'on-shift'
+                'pointer-events': 'none',
+                'fill': 'none'
             }
         }, {
             tagName: 'text',
             selector: 'label'
         }]
     }, {
+
+        create: function(type) {
+            return new this({
+                attrs: {
+                    pointers: {
+                        pointerShape: type
+                    },
+                    body: {
+                        rough: {
+                            type: type
+                        }
+                    },
+                    border: {
+                        rough: {
+                            type: type
+                        }
+                    }
+                }
+            });
+        },
+
         attributes: {
             rough: {
                 set: function(opt, bbox) {
@@ -221,18 +249,36 @@
                     var sets = shape.sets;
                     return { d: r.opsToPath(sets[opt.fillSketch ? 0 : 1]) };
                 }
+            },
+            pointerShape: {
+                set: function(type, bbox) {
+                    var vel;
+                    var width = bbox.width;
+                    var height = bbox.height;
+                    switch (type) {
+                        case 'ellipse':
+                            vel = V('ellipse').attr({
+                                'cx': width / 2,
+                                'cy': height / 2,
+                                'rx': width / 2,
+                                'ry': height / 2
+                            });
+                            break;
+                        default:
+                            vel = V('rect').attr({
+                                'width': width,
+                                'height': height
+                            });
+                            break;
+                    }
+                    return { d: vel.convertToPathData() };
+                }
             }
         }
     });
 
     var RoughLink = joint.dia.Link.define('rough.Link', {
         z: 1,
-        source: {
-            selector: 'border',
-        },
-        target: {
-            selector: 'border'
-        },
         attrs: {
             line: {
                 rough: { bowing: 2 },
@@ -285,7 +331,7 @@
 
     // Elements
 
-    var r1 = new RoughElement({
+    var r1 = RoughElement.create('rectangle').prop({
         size: { width: 100, height: 50 },
         position: { x: 50, y: 50 },
         attrs: {
@@ -307,7 +353,7 @@
         }
     });
 
-    var r2 = new RoughElement({
+    var r2 = RoughElement.create('ellipse').prop({
         size: { width: 80, height: 80 },
         position: { x: 380, y: 120 },
         attrs: {
@@ -315,15 +361,9 @@
                 rough: {
                     hachureAngle: 20,
                     hachureGap: 4,
-                    fillStyle: 'zigzag-line',
-                    type: 'ellipse'
+                    fillStyle: 'zigzag-line'
                 },
                 stroke: '#fe854f'
-            },
-            border: {
-                rough: {
-                    type: 'ellipse'
-                }
             },
             label: {
                 text: 'Zigzag Line'
@@ -331,23 +371,16 @@
         }
     });
 
-    var r3 = new RoughElement({
+    var r3 = RoughElement.create('ellipse').prop({
         size: { width: 100, height: 85 },
         position: { x: 300, y: 230 },
         attrs: {
             body: {
                 rough: {
                     hachureGap: 10,
-                    fillStyle: 'starburst',
-                    type: 'ellipse'
+                    fillStyle: 'starburst'
                 },
-                stroke: '#7c68fc',
-                pointerEvents: 'bounding-box'
-            },
-            border: {
-                rough: {
-                    type: 'ellipse'
-                }
+                stroke: '#7c68fc'
             },
             label: {
                 text: 'Starburst'
@@ -355,22 +388,16 @@
         }
     });
 
-    var r4 = new RoughElement({
+    var r4 = RoughElement.create('ellipse').prop({
         size: { width: 75, height: 75 },
         position: { x: 280, y: 20 },
         attrs: {
             body: {
                 rough: {
                     hachureGap: 5,
-                    fillStyle: 'dots',
-                    type: 'ellipse'
+                    fillStyle: 'dots'
                 },
                 stroke: '#31d0c6'
-            },
-            border: {
-                rough: {
-                    type: 'ellipse'
-                }
             },
             label: {
                 text: 'Dots'
@@ -378,23 +405,17 @@
         }
     });
 
-    var r5 = new RoughElement({
+    var r5 = RoughElement.create('ellipse').prop({
         size: { width: 70, height: 70 },
         position: { x: 190, y: 250 },
         attrs: {
             body: {
                 rough: {
                     hachureGap: 5,
-                    fillStyle: 'solid',
-                    type: 'ellipse'
+                    fillStyle: 'solid'
                 },
                 stroke: '#feb663',
                 fill: '#feb663'
-            },
-            border: {
-                rough: {
-                    type: 'ellipse'
-                }
             },
             label: {
                 text: 'Solid'
@@ -404,21 +425,21 @@
     // Links
 
     var rl1 = new RoughLink();
-    rl1.source(r1, { selector: 'border' });
-    rl1.target(r2, { selector: 'border' });
+    rl1.source(r1);
+    rl1.target(r2);
 
     var rl2 = new RoughLink();
-    rl2.source(r1, { selector: 'border' });
-    rl2.target(r3, { selector: 'border' });
+    rl2.source(r1);
+    rl2.target(r3);
 
     var rl3 = new RoughLink();
-    rl3.source(r1, { selector: 'border' });
-    rl3.target(r4, { selector: 'border' });
+    rl3.source(r1);
+    rl3.target(r4);
 
     var rl4 = new RoughLink();
-    rl4.source(r1, { selector: 'border' });
-    rl4.target(r5, { selector: 'border' });
+    rl4.source(r1);
+    rl4.target(r5);
 
     graph.resetCells([r1, r2, r3, r4, r5, rl1, rl2, rl3, rl4]);
 
-})(joint, rough, g);
+})(joint, rough, g, V);
