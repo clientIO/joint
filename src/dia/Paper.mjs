@@ -595,7 +595,8 @@ export const Paper = View.extend({
                 view.updateEndMagnet('target');
             }
             if (sourceFlag === 0 && targetFlag === 0) {
-                return !!this.dumpView(view);
+                // If leftover flag is 0, all view updates were done.
+                return !this.dumpView(view);
             }
         }
         return false;
