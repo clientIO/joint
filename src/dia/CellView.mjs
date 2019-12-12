@@ -351,7 +351,7 @@ export const CellView = View.extend({
         return selector;
     },
 
-    getLinkEnd: function(magnet, x, y, link, endType) {
+    getLinkEnd: function(magnet, ...args) {
 
         var model = this.model;
         var id = model.id;
@@ -371,13 +371,16 @@ export const CellView = View.extend({
             end.selector = this.getSelector(magnet);
         }
 
-        var paper = this.paper;
-        var connectionStrategy = paper.options.connectionStrategy;
+        return this.customizeLinkEnd(end, magnet, ...args);
+    },
+
+    customizeLinkEnd: function(end, magnet, x, y, link, endType) {
+        const { paper } = this;
+        const { connectionStrategy } = paper.options;
         if (typeof connectionStrategy === 'function') {
             var strategy = connectionStrategy.call(paper, end, this, magnet, new Point(x, y), link, endType, paper);
-            if (strategy) end = strategy;
+            if (strategy) return strategy;
         }
-
         return end;
     },
 
