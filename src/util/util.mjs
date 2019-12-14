@@ -487,10 +487,9 @@ export const breakText = function(text, size, styles, opt) {
                 for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
                     eolWords.splice(2 * j + 1, 0, eol);
                 }
-                eolWords = eolWords.filter(word => word !== '');
-                words.splice(i, 1, ...eolWords);
+                words.splice(i, 1, ...eolWords.filter(word => word !== ''));
                 i--;
-                len += eolWords.length - 1;
+                len = words.length;
             } else {
                 // creates a new line
                 lines[++l] = '';
