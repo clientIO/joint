@@ -38,6 +38,19 @@
         <td>Callback function to determine whether a given view should be added to the DOM. By default, <a href="#dia.Paper.prototype.options.viewport"><code>paper.options.viewport</code></a> is used, but you may provide a different callback function. The format of the callback method is described in the <a href="#dia.Paper.prototype.options.viewport">option's documentation</a>, as are examples of usage.
         </td>
     </tr>
+    <tr>
+        <td>before</td>
+        <td><i>function</i></td>
+        <td>Callback function executed before an asynchronous rendering starts. The callback function is provided with following arguments:
+            <table>
+                <tr>
+                    <td>paper</td>
+                    <td><i>joint.dia.Paper</i></td>
+                    <td>This paper instance</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
 </table>
 
 <p>Use <a href="#dia.Paper.prototype.freeze"><code>paper.freeze()</code></a> to freeze the paper again.</p>

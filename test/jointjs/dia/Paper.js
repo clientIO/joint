@@ -655,7 +655,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 QUnit.test('progress + batchSize', function(assert) {
                     var done = assert.async();
-                    assert.expect(11);
+                    assert.expect(13);
                     var progressCounter = 0;
                     var progressSpy = sinon.spy(function(finished, processed, total) {
                         assert.equal(processed, ++progressCounter);
@@ -668,8 +668,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     });
                     paper.on('render:done', function() {
                         assert.equal(progressSpy.callCount, 3);
-                        progressSpy.alwaysCalledWith(sinon.match.boolean, sinon.match.number, sinon.match.number /* stats */);
-                        progressSpy.alwaysCalledOn(paper);
+                        assert.ok(progressSpy.alwaysCalledWith(sinon.match.bool, sinon.match.number, sinon.match.number /* stats */));
+                        assert.ok(progressSpy.alwaysCalledOn(paper));
                         progressSpy.resetHistory();
                         paper.freeze();
                     });
@@ -683,6 +683,24 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.unfreeze({ batchSize: 1, progress: progressSpy });
                 });
 
+                QUnit.test('before', function(assert) {
+                    var done = assert.async();
+                    assert.expect(3);
+                    var beforeSpy = sinon.spy();
+                    paper.on('render:done', function() {
+                        assert.equal(beforeSpy.callCount, 1);
+                        assert.ok(beforeSpy.alwaysCalledWith(paper));
+                        assert.ok(beforeSpy.alwaysCalledOn(paper));
+                        done();
+                    });
+                    paper.freeze();
+                    graph.resetCells([
+                        new joint.shapes.standard.Rectangle()
+                    ]);
+                    paper.unfreeze({ before: beforeSpy });
+                    paper.unfreeze({ before: beforeSpy });
+                    paper.unfreeze({ before: beforeSpy });
+                });
             });
         });
 
