@@ -826,6 +826,14 @@ export namespace dia {
 
         setInteractivity(value: boolean | LinkView.InteractivityOptions): void;
 
+        getEndView(endType: dia.LinkEnd): dia.CellView | null;
+
+        getEndAnchor(endType: dia.LinkEnd): g.Point;
+
+        getEndConnectionPoint(endType: dia.LinkEnd): g.Point;
+
+        getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
+
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
