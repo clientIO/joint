@@ -716,6 +716,7 @@ export const Paper = View.extend({
             updateCount += stats.updated;
             priority = Math.min(stats.priority, priority);
         } while (!stats.empty);
+        if (updateCount > 0) this.trigger('render:empty');
         return { updated: updateCount, batches: batchCount, priority };
     },
 
