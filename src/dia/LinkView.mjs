@@ -599,6 +599,17 @@ export const LinkView = CellView.extend({
         }
     },
 
+    getEndConnectionPoint: function(type) {
+        switch (type) {
+            case 'source':
+                return new Point(this.sourcePoint);
+            case 'target':
+                return new Point(this.targetPoint);
+            default:
+                throw new Error('dia.LinkView: type parameter required.');
+        }
+    },
+
     getEndMagnet: function(type) {
         switch (type) {
             case 'source':
