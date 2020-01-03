@@ -262,6 +262,8 @@ export namespace g {
 
         clone(): Line;
 
+        parallel(): Line;
+
         closestPoint(p: PlainPoint | string): Point;
 
         closestPointLength(p: PlainPoint | string): number;
@@ -318,6 +320,8 @@ export namespace g {
         vector(): Point;
 
         toString(): string;
+
+        serialize(): string;
     }
 
     class Path {
@@ -486,6 +490,8 @@ export namespace g {
         toPolar(origin?: PlainPoint | string): this;
 
         toString(): string;
+
+        serialize(): string;
 
         translate(tx?: number, ty?: number): this;
         translate(tx: PlainPoint): this;
