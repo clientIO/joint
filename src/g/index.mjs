@@ -1522,6 +1522,17 @@ Line.prototype = {
         );
     },
 
+    parallel: function(distance) {
+        const l = this.clone();
+        if (!this.isDifferentiable()) return l;
+        const { start, end } = l;
+        const eRef = start.clone().rotate(end, 270);
+        const sRef = end.clone().rotate(start, 90);
+        start.move(sRef, distance);
+        end.move(eRef, distance);
+        return l;
+    },
+
     // @return {point} my point at 't' <0,1>
     pointAt: function(t) {
 
@@ -1641,6 +1652,11 @@ Line.prototype = {
     toString: function() {
 
         return this.start.toString() + ' ' + this.end.toString();
+    },
+
+    serialize: function() {
+
+        return this.start.serialize() + ' ' + this.end.serialize();
     },
 
     translate: function(tx, ty) {
@@ -3235,6 +3251,11 @@ Point.prototype = {
     toString: function() {
 
         return this.x + '@' + this.y;
+    },
+
+    serialize: function() {
+
+        return this.x + ',' + this.y;
     },
 
     update: function(x, y) {
