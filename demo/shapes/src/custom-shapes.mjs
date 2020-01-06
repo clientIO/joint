@@ -496,3 +496,100 @@ var portIndex = shape3.getPortIndex('circle-port');
 shape3.transition('ports/items/' + portIndex + '/attrs/first/r', 5, {
     delay: 2000
 });
+
+
+
+var Progress = joint.dia.Element.define('progress', {
+    attrs: {
+        progressBackground: {
+            stroke: 'gray',
+            strokeWidth: 10,
+            fill: 'white',
+            refR: '50%',
+            refCx: '50%',
+            refCy: '50%'
+        },
+        progressForeground: {
+            stroke: 'red',
+            strokeWidth: 10,
+            strokeLinecap: 'round',
+            fill: 'none',
+        },
+        progressText: {
+            fill: 'red',
+            fontSize: 25,
+            fontWeight: 'bold',
+            fontFamily: 'sans-serif',
+            textAnchor: 'middle',
+            textVerticalAnchor: 'middle',
+            refX: '50%',
+            refY: '50%'
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'circle',
+        selector: 'progressBackground'
+    }, {
+        tagName: 'path',
+        selector: 'progressForeground'
+    }, {
+        tagName: 'text',
+        selector: 'progressText'
+    }],
+    setProgress: function(progress, opt) {
+        this.attr({
+            progressText: { text: progress + '%' },
+            progressForeground: { progressD: progress }
+        }, opt);
+    }
+}, {
+    attributes: {
+        progressD: {
+            set: function(value, bbox) {
+
+                function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+                    var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+                    return {
+                        x: centerX + (radius * Math.cos(angleInRadians)),
+                        y: centerY + (radius * Math.sin(angleInRadians))
+                    };
+                }
+
+                function describeArc(x, y, radius, startAngle, endAngle){
+                    var start = polarToCartesian(x, y, radius, endAngle);
+                    var end = polarToCartesian(x, y, radius, startAngle);
+                    var largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+                    var d = [
+                        'M', start.x, start.y,
+                        'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
+                    ].join(' ');
+                    return d;
+                }
+
+                var center = bbox.center();
+                return {
+                    d: describeArc(
+                        center.x,
+                        center.y,
+                        Math.min(bbox.width / 2, bbox.height / 2),
+                        0,
+                        Math.min(360 / 100 * value, 359.99)
+                    )
+                };
+            }
+        }
+
+    }
+
+
+
+});
+
+var progress = new Progress();
+progress.resize(100, 100);
+progress.position(400, 280);
+progress.setProgress(50);
+progress.addTo(graph);
+
+
