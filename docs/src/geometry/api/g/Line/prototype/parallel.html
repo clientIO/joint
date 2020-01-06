@@ -1,0 +1,7 @@
+<pre class="docs-method-signature"><code>line.parallel(distance)</code></pre>
+<p>Return a new line which is parallel with this line. The new line is placed <code>distance</code> from this line in clockwise direction.</p>
+
+<pre><code>var line = new g.Line('0 0', '10 0');
+line.parallel(10).toString(); // "0@10 10@10"
+line.parallel(-5).toString(); // "0@-5 10@-5"
+</code></pre>

@@ -305,6 +305,17 @@ QUnit.module('point', function() {
             });
         });
 
+        QUnit.module('serialize()', function() {
+
+            QUnit.test('returns string with values of x and y', function(assert) {
+
+                var value = (new g.Point(17, 20)).serialize();
+
+                assert.equal(typeof value, 'string');
+                assert.equal(value, '17,20');
+            });
+        });
+
         QUnit.module('update(x, y)', function() {
 
             QUnit.test('changes the values of x and y', function(assert) {

@@ -532,6 +532,42 @@ QUnit.module('line', function() {
             });
         });
 
+        QUnit.module('parallel()', function() {
+
+            QUnit.test('sanity', function(assert) {
+                var line;
+                line = new g.Line('5 5', '20 20');
+                assert.notEqual(line, line.parallel(0));
+                assert.equal(line.toString(), line.parallel(0).toString());
+                assert.ok(line.parallel(0) instanceof g.Line);
+                assert.ok(line.parallel(20) instanceof g.Line);
+                line = new g.Line('5 5', '5 5');
+                assert.ok(line.clone().parallel(20) instanceof g.Line);
+            });
+
+            QUnit.test('should return a parallel version of self', function(assert) {
+                var line, p1, p2;
+                line = new g.Line('5 5', '20 5');
+                p1 = line.parallel(5);
+                p1.start.round();
+                p1.end.round();
+                assert.equal(p1.toString(), '5@10 20@10');
+                p2 = line.parallel(-5);
+                p2.start.round();
+                p2.end.round();
+                assert.equal(p2.toString(), '5@0 20@0');
+                line = new g.Line('5 5', '5 20');
+                p1 = line.parallel(5);
+                p1.start.round();
+                p1.end.round();
+                assert.equal(p1.toString(), '0@5 0@20');
+                p2 = line.parallel(-5);
+                p2.start.round();
+                p2.end.round();
+                assert.equal(p2.toString(), '10@5 10@20');
+            });
+        });
+
         QUnit.module('rotate()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -833,5 +869,17 @@ QUnit.module('line', function() {
         QUnit.module('toString()', function() {
 
         });
+
+        QUnit.module('serialize()', function() {
+
+            QUnit.test('returns string with values of start and end points', function(assert) {
+
+                var value = (new g.Line('11 12', '13 14')).serialize();
+
+                assert.equal(typeof value, 'string');
+                assert.equal(value, '11,12 13,14');
+            });
+        });
+
     });
 });
