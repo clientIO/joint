@@ -726,6 +726,10 @@ export const Paper = View.extend({
         var id = updates.id;
         if (id) {
             cancelFrame(id);
+            if (data.processed === 0) {
+                var beforeFn = opt.before;
+                if (typeof beforeFn === 'function') beforeFn.call(this, this);
+            }
             var stats = this.updateViewsBatch(opt);
             var passingOpt = defaults({}, opt, {
                 mountBatchSize: MOUNT_BATCH_SIZE - stats.mounted,

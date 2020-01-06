@@ -933,6 +933,7 @@ export namespace dia {
 
         type ViewportCallback = (view: mvc.View<any>, isDetached: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
+        type BeforeRenderCallback = (paper: Paper) => void;
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -1169,6 +1170,7 @@ export namespace dia {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
             progress?: Paper.ProgressCallback;
+            before?: Paper.BeforeRenderCallback
         }): void;
 
         isFrozen(): boolean;
@@ -1223,6 +1225,7 @@ export namespace dia {
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
             progress?: Paper.ProgressCallback;
+            before?: Paper.BeforeRenderCallback
         }): void;
 
         protected updateViewsBatch(opt?: {
