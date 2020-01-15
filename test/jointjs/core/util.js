@@ -179,6 +179,29 @@ QUnit.module('util', function(hooks) {
             r = joint.util.breakText(t, { width: WIDTH }, styles, { hyphen: /h/ });
             assert.equal(r, 'test-h\nyphen');
         });
+
+
+        QUnit.test('new line', function(assert) {
+
+            var WIDTH = 50;
+            var r;
+
+            r = joint.util.breakText('a\n', { width: 2 * WIDTH }, styles);
+            assert.equal(r, 'a\n');
+
+            r = joint.util.breakText('a\n\n', { width: WIDTH }, styles);
+            assert.equal(r, 'a\n\n');
+
+            r = joint.util.breakText('\na', { width: WIDTH }, styles);
+            assert.equal(r, '\na');
+
+            r = joint.util.breakText('\n\na', { width: WIDTH }, styles);
+            assert.equal(r, '\n\na');
+
+            r = joint.util.breakText('\na\n\nb\n\n', { width: WIDTH }, styles);
+            assert.equal(r, '\na\n\nb\n\n');
+        });
+
     });
 
     QUnit.test('util.parseCssNumeric', function(assert) {

@@ -480,19 +480,19 @@ export const breakText = function(text, size, styles, opt) {
         if (!word) continue;
 
         if (eol && word.indexOf(eol) >= 0) {
-            // word cotains end-of-line character
+            // word contains end-of-line character
             if (word.length > 1) {
                 // separate word and continue cycle
                 var eolWords = word.split(eol);
                 for (var j = 0, jl = eolWords.length - 1; j < jl; j++) {
                     eolWords.splice(2 * j + 1, 0, eol);
                 }
-                Array.prototype.splice.apply(words, [i, 1].concat(eolWords));
+                words.splice(i, 1, ...eolWords.filter(word => word !== ''));
                 i--;
-                len += eolWords.length - 1;
+                len = words.length;
             } else {
-                // creates new line
-                l++;
+                // creates a new line
+                lines[++l] = '';
             }
             continue;
         }
@@ -624,6 +624,7 @@ export const breakText = function(text, size, styles, opt) {
                 if (typeof ellipsis !== 'string') ellipsis = '\u2026';
 
                 var lastLine = lines[lastL];
+                if (!lastLine) break;
                 var k = lastLine.length;
                 var lastLineWithOmission, lastChar, separatorChar;
                 do {
