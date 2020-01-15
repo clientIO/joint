@@ -17,11 +17,59 @@ function stroke(magnet) {
     return parseFloat(stroke) || 0;
 }
 
+function alignLine(line, type, offset = 0) {
+    let coordinate, a, b, direction;
+    const { start, end } = line;
+    switch (type) {
+        case 'left':
+            coordinate = 'x';
+            a = end;
+            b = start;
+            direction = -1;
+            break;
+        case 'right':
+            coordinate = 'x';
+            a = start;
+            b = end;
+            direction = 1;
+            break;
+        case 'top':
+            coordinate = 'y';
+            a = end;
+            b = start;
+            direction = -1;
+            break;
+        case 'bottom':
+            coordinate = 'y';
+            a = start;
+            b = end;
+            direction = 1;
+            break;
+        default:
+            return;
+    }
+    if (start[coordinate] < end[coordinate]) {
+        a[coordinate] = b[coordinate];
+    } else {
+        b[coordinate] = a[coordinate];
+    }
+    if (isFinite(offset)) {
+        a[coordinate] += direction * offset;
+        b[coordinate] += direction * offset;
+    }
+}
+
 // Connection Points
 
-function anchorIntersection(line, view, magnet, opt) {
-
-    return offset(line.end, line.start, opt.offset);
+function anchorIntersection(line, _view, _magnet, opt) {
+    let { offset: distance, alignOffset, align } = opt;
+    if (align) alignLine(line, align, alignOffset);
+    if (util.isPlainObject(distance)) {
+        const { x, y } = distance;
+        if (isFinite(y)) line = line.parallel(y);
+        distance = x;
+    }
+    return offset(line.end, line.start, distance);
 }
 
 function bboxIntersection(line, view, magnet, opt) {

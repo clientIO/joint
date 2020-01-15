@@ -367,7 +367,7 @@ var link9 = new joint.dia.Link({
 });
 
 var el1 = new joint.shapes.standard.Path({
-    position: { x: 500, y: 450 },
+    position: { x: 500, y: 430 },
     size: { width: 100, height: 100 },
     attrs: {
         body: {
@@ -549,8 +549,92 @@ var link12 = new joint.dia.Link({
     }
 });
 
+var link13 = new joint.shapes.standard.Link({
+    source: {
+        id: el1.id,
+        anchor: { name: 'bottomRight' },
+        connectionPoint: { name: 'anchor', args: { align: 'bottom', alignOffset: 20 }}
+    },
+    target: {
+        id: el1.id,
+        anchor: { name: 'bottomLeft' },
+        connectionPoint: { name: 'anchor', args: { align: 'bottom', alignOffset: 20 }}
+    },
+    attrs: {
+        line: {
+            strokeWidth: 3,
+            strokeDasharray: '3,1',
+            sourceMarker: {
+                'd': 'M 0 -10 0 10',
+                'stroke-width': 3
+            },
+            targetMarker: {
+                'd': 'M 0 -10 0 10',
+                'stroke-width': 3
+            }
+        }
+    }
+});
 
-graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11, link12]);
+var link14 = new joint.dia.Link({
+    markup: [{
+        tagName: 'path',
+        selector: 'line1',
+        groupSelector: 'lines'
+    }, {
+        tagName: 'path',
+        selector: 'line2',
+        groupSelector: 'lines'
+    }, {
+        tagName: 'path',
+        selector: 'line3',
+        groupSelector: 'lines'
+    }],
+    connector: { name: 'rounded' },
+    source: { x: 30, y: 550 },
+    target: { x: 30, y: 400 },
+    attrs: {
+        lines: {
+            connection: true,
+            strokeDasharray: '10,20',
+            strokeLinejoin: 'round',
+            fill: 'none'
+        },
+        line1: {
+            stroke: '#fe854f',
+            strokeWidth: 10
+        },
+        line2: {
+            stroke: '#7c68fc',
+            strokeDashoffset: 10,
+            strokeWidth: 10,
+        },
+        line3: {
+            stroke: '#222138',
+            strokeDashoffset: 20,
+            strokeWidth: 5,
+            sourceMarker: {
+                'type': 'circle',
+                'r': 10,
+                'cx': 5,
+                'fill': '#fe854f',
+                'stroke': '#222138',
+                'stroke-width': 5
+            },
+            targetMarker: {
+                'type': 'circle',
+                'r': 10,
+                'cx': 5,
+                'fill': '#7c68fc',
+                'stroke': '#222138',
+                'stroke-width': 5
+            }
+        }
+    }
+});
+
+
+graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11, link12, link13, link14]);
 
 // Custom Link Tools
 
@@ -719,6 +803,13 @@ paper.on('link:mouseenter', function(linkView) {
                 new joint.linkTools.TargetArrowhead()
             ];
             break;
+        case link14:
+            tools = [
+                new joint.linkTools.Vertices(),
+                new joint.linkTools.SourceArrowhead(),
+                new joint.linkTools.TargetArrowhead()
+            ];
+            break;
         default:
             return;
     }
@@ -744,6 +835,30 @@ link10.findView(paper).addTools(new joint.dia.ToolsView({
     ]
 }));
 
+link13.findView(paper).addTools(new joint.dia.ToolsView({
+    name: 'permanent',
+    tools: [
+        new joint.linkTools.TargetAnchor({
+            restrictArea: false,
+            snap: function(coords) {
+                var bbox = this.model.getTargetCell().getBBox();
+                coords.y = bbox.bottomMiddle().y;
+                coords.x = Math.min(bbox.x + bbox.width, coords.x);
+                return coords;
+            }
+        }),
+        new joint.linkTools.SourceAnchor({
+            restrictArea: false,
+            snap: function(coords) {
+                var bbox = this.model.getSourceCell().getBBox();
+                coords.x = bbox.bottomRight().x;
+                coords.y = Math.max(bbox.y, coords.y);
+                return coords;
+            }
+        }),
+    ]
+}));
+
 // Attribute Event
 
 paper.on('myclick:circle', function(linkView, evt) {
@@ -758,3 +873,38 @@ paper.on('myclick:circle', function(linkView, evt) {
     link.transition('attrs/c1/atConnectionRatio', t, transitionOpt);
     link.transition('attrs/c2/atConnectionRatio', t, transitionOpt);
 });
+
+
+var shape1 = new joint.shapes.standard.Path({
+    size: { width: 100, height: 50 },
+    attrs: {
+        body: {
+            refD: 'M 0 0 10 0 8 10 2 10 Z',
+            fill: 'red'
+        }
+    }
+});
+shape1.addTo(graph);
+
+var shape2 = new joint.shapes.standard.Path({
+    size: { width: 100, height: 100 },
+    attrs: {
+        body: {
+            refD: 'M 2 0 8 0 10 2 10 8 8 10 2 10 0 8 0 2 Z',
+            fill: 'red'
+        }
+    }
+});
+shape2.addTo(graph);
+
+var shape3 = new joint.shapes.standard.Path({
+    size: { width: 100, height: 100 },
+    attrs: {
+        body: {
+            refD: 'm -755.71429,139.50504 -12.9691,47.17829 -37.72502,-31.15783 -38.22292,30.54499 -12.20607,-47.38143 -48.87689,2.24455 17.97519,-45.50693 -40.86155,-26.913233 41.29054,-26.250331 -17.23849,-45.7910798 48.8343,3.03300547 12.9691,-47.17828967 37.72502,31.157837 38.22292,-30.544997 12.20607,47.38143418 48.87689,-2.24455348 -17.97519,45.5069333 40.86155,26.913233 -41.29054,26.250332 17.23849,45.791079 z',
+            fill: 'red'
+        }
+    }
+});
+shape3.addTo(graph);
+
