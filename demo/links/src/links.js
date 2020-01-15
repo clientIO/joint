@@ -873,38 +873,3 @@ paper.on('myclick:circle', function(linkView, evt) {
     link.transition('attrs/c1/atConnectionRatio', t, transitionOpt);
     link.transition('attrs/c2/atConnectionRatio', t, transitionOpt);
 });
-
-
-var shape1 = new joint.shapes.standard.Path({
-    size: { width: 100, height: 50 },
-    attrs: {
-        body: {
-            refD: 'M 0 0 10 0 8 10 2 10 Z',
-            fill: 'red'
-        }
-    }
-});
-shape1.addTo(graph);
-
-var shape2 = new joint.shapes.standard.Path({
-    size: { width: 100, height: 100 },
-    attrs: {
-        body: {
-            refD: 'M 2 0 8 0 10 2 10 8 8 10 2 10 0 8 0 2 Z',
-            fill: 'red'
-        }
-    }
-});
-shape2.addTo(graph);
-
-var shape3 = new joint.shapes.standard.Path({
-    size: { width: 100, height: 100 },
-    attrs: {
-        body: {
-            refD: 'm -755.71429,139.50504 -12.9691,47.17829 -37.72502,-31.15783 -38.22292,30.54499 -12.20607,-47.38143 -48.87689,2.24455 17.97519,-45.50693 -40.86155,-26.913233 41.29054,-26.250331 -17.23849,-45.7910798 48.8343,3.03300547 12.9691,-47.17828967 37.72502,31.157837 38.22292,-30.544997 12.20607,47.38143418 48.87689,-2.24455348 -17.97519,45.5069333 40.86155,26.913233 -41.29054,26.250332 17.23849,45.791079 z',
-            fill: 'red'
-        }
-    }
-});
-shape3.addTo(graph);
-
