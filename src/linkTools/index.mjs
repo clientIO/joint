@@ -363,7 +363,8 @@ var Segments = ToolView.extend({
         redundancyRemoval: true,
         anchor: getAnchor,
         snapRadius: 10,
-        snapHandle: true
+        snapHandle: true,
+        stopPropagation: true
     },
     handles: null,
     onRender: function() {
@@ -450,6 +451,7 @@ var Segments = ToolView.extend({
 
     onHandleChanging: function(handle, evt) {
 
+        const { options } = this;
         var data = this.eventData(evt);
         var relatedView = this.relatedView;
         var paper = relatedView.paper;
@@ -549,34 +551,39 @@ var Segments = ToolView.extend({
 
         link.vertices(vertices, { ui: true, tool: this.cid });
         this.updateHandle(handle, vertex, nextVertex, offset);
+        if (!options.stopPropagation) relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y);
     },
     onHandleChangeStart: function(handle, evt) {
+        const { options, handles, relatedView: linkView } = this;
+        const { model, paper } = linkView;
         var index = handle.options.index;
-        var handles = this.handles;
         if (!Array.isArray(handles)) return;
         for (var i = 0, n = handles.length; i < n; i++) {
             if (i !== index) handles[i].hide();
         }
         this.focus();
-        var relatedView = this.relatedView;
-        var relatedModel = relatedView.model;
         this.eventData(evt, {
-            sourceAnchor: relatedView.sourceAnchor.clone(),
-            targetAnchor: relatedView.targetAnchor.clone(),
-            sourceAnchorDef: util.clone(relatedModel.prop(['source', 'anchor'])),
-            targetAnchorDef: util.clone(relatedModel.prop(['target', 'anchor']))
+            sourceAnchor: linkView.sourceAnchor.clone(),
+            targetAnchor: linkView.targetAnchor.clone(),
+            sourceAnchorDef: util.clone(model.prop(['source', 'anchor'])),
+            targetAnchorDef: util.clone(model.prop(['target', 'anchor']))
         });
-        relatedView.model.startBatch('segment-move', { ui: true, tool: this.cid });
+        model.startBatch('segment-move', { ui: true, tool: this.cid });
+        if (!options.stopPropagation) linkView.notifyPointerdown(...paper.getPointerArgs(evt));
     },
     onHandleChangeEnd: function(_handle, evt) {
-        var linkView = this.relatedView;
-        if (this.options.redundancyRemoval) {
+        const { options, relatedView: linkView }= this;
+        const { paper, model } = linkView;
+        if (options.redundancyRemoval) {
             linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
         }
+        const normalizedEvent = util.normalizeEvent(evt);
+        const coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
         this.render();
         this.blur();
-        linkView.model.stopBatch('segment-move', { ui: true, tool: this.cid });
-        linkView.checkMouseleave(util.normalizeEvent(evt));
+        model.stopBatch('segment-move', { ui: true, tool: this.cid });
+        if (!options.stopPropagation) linkView.notifyPointerup(normalizedEvent, coords.x, coords.y);
+        linkView.checkMouseleave(normalizedEvent);
     },
     updateHandle: function(handle, vertex, nextVertex, offset) {
         var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;

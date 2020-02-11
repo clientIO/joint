@@ -604,8 +604,8 @@ paper.on('link:mouseenter', function(linkView) {
         case link3:
         case link4:
             tools = [
-                new joint.linkTools.Vertices(),
-                new joint.linkTools.Segments()
+                new joint.linkTools.Vertices({ stopPropagation: false }),
+                new joint.linkTools.Segments({ stopPropagation: false })
             ];
             break;
         case link2:
