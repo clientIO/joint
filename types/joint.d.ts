@@ -3383,6 +3383,7 @@ export namespace linkTools {
             redundancyRemoval?: boolean;
             segmentLengthThreshold?: number;
             anchor?: AnchorCallback<anchors.AnchorJSON>;
+            stopPropagation?: boolean;
         }
     }
 
