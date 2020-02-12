@@ -924,15 +924,17 @@ export namespace dia {
         type UpdateStats = {
             priority: number;
             updated: number;
-            postponed: number;
-            unmounted: number;
-            mounted: number;
-            empty: boolean;
+            empty?: boolean;
+            postponed?: number;
+            unmounted?: number;
+            mounted?: number;
+            batches?: number;
         };
 
         type ViewportCallback = (view: mvc.View<any>, isDetached: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
-        type BeforeRenderCallback = (paper: Paper) => void;
+        type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
+        type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -991,6 +993,8 @@ export namespace dia {
             viewport?: ViewportCallback | null;
             onViewUpdate?: (view: mvc.View<any>, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
+            beforeRender?: Paper.BeforeRenderCallback
+            afterRender?: Paper.AfterRenderCallback
         }
 
         interface ScaleContentOptions {
@@ -1169,7 +1173,8 @@ export namespace dia {
             batchSize?: number;
             viewport?: Paper.ViewportCallback;
             progress?: Paper.ProgressCallback;
-            before?: Paper.BeforeRenderCallback
+            beforeRender?: Paper.BeforeRenderCallback
+            afterRender?: Paper.AfterRenderCallback
         }): void;
 
         isFrozen(): boolean;

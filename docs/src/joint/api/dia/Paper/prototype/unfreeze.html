@@ -39,10 +39,15 @@
         </td>
     </tr>
     <tr>
-        <td>before</td>
+        <td>beforeRender</td>
         <td><i>function</i></td>
         <td>Callback function executed before an asynchronous rendering starts. The callback function is provided with the following arguments:
             <table>
+                <tr>
+                    <td>options</td>
+                    <td><i>object</i></td>
+                    <td>Parameters the current updates were scheduled with.</td>
+                </tr>
                 <tr>
                     <td>paper</td>
                     <td><i>joint.dia.Paper</i></td>

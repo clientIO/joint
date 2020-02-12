@@ -683,13 +683,13 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.unfreeze({ batchSize: 1, progress: progressSpy });
                 });
 
-                QUnit.test('before', function(assert) {
+                QUnit.test('beforeRender', function(assert) {
                     var done = assert.async();
                     assert.expect(3);
                     var beforeSpy = sinon.spy();
                     paper.on('render:done', function() {
                         assert.equal(beforeSpy.callCount, 1);
-                        assert.ok(beforeSpy.alwaysCalledWith(paper));
+                        assert.ok(beforeSpy.alwaysCalledWith(opt3, paper));
                         assert.ok(beforeSpy.alwaysCalledOn(paper));
                         done();
                     });
@@ -697,9 +697,10 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     graph.resetCells([
                         new joint.shapes.standard.Rectangle()
                     ]);
-                    paper.unfreeze({ before: beforeSpy });
-                    paper.unfreeze({ before: beforeSpy });
-                    paper.unfreeze({ before: beforeSpy });
+                    paper.unfreeze({ i: 1, beforeRender: beforeSpy });
+                    paper.unfreeze({ i: 2, beforeRender: beforeSpy });
+                    var opt3 = { i: 3, beforeRender: beforeSpy };
+                    paper.unfreeze(opt3);
                 });
             });
         });

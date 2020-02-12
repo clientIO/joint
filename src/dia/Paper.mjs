@@ -218,13 +218,28 @@ export const Paper = View.extend({
 
         frozen: false,
 
+        // no docs yet
         onViewUpdate: function(view, flag, opt, paper) {
             if ((flag & FLAG_INSERT) || opt.mounting) return;
             paper.requestConnectedLinksUpdate(view, opt);
         },
 
+        // no docs yet
         onViewPostponed: function(view, flag /* paper */) {
             return this.forcePostponedViewUpdate(view, flag);
+        },
+
+        // no docs yet
+        beforeRender: null, // function(opt, paper) { },
+
+        // no docs yet
+        afterRender: function(stats, opt, paper) {
+            if (paper.isAsync()) {
+                paper.trigger('render:done', stats, opt);
+            } else {
+                // triggering `render:done` event here could be a breaking change
+                paper.trigger('render:sync:done', stats, opt);
+            }
         },
 
         viewport: null,
@@ -609,7 +624,7 @@ export const Paper = View.extend({
         if (this.isFrozen() || (isAsync && opt.async !== false)) return;
         if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
         var stats = this.updateViews(opt);
-        if (isAsync) this.trigger('render:done', stats, opt);
+        if (isAsync) this.notifyAfterRender(stats, opt);
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
@@ -706,6 +721,7 @@ export const Paper = View.extend({
     },
 
     updateViews: function(opt) {
+        this.notifyBeforeRender(opt);
         var stats;
         var updateCount = 0;
         var batchCount = 0;
@@ -716,7 +732,9 @@ export const Paper = View.extend({
             updateCount += stats.updated;
             priority = Math.min(stats.priority, priority);
         } while (!stats.empty);
-        return { updated: updateCount, batches: batchCount, priority };
+        const overallStats = { updated: updateCount, batches: batchCount, priority };
+        this.notifyAfterRender(overallStats, opt);
+        return overallStats;
     },
 
     updateViewsAsync: function(opt, data) {
@@ -727,8 +745,7 @@ export const Paper = View.extend({
         if (id) {
             cancelFrame(id);
             if (data.processed === 0) {
-                var beforeFn = opt.before;
-                if (typeof beforeFn === 'function') beforeFn.call(this, this);
+                this.notifyBeforeRender(opt);
             }
             var stats = this.updateViewsBatch(opt);
             var passingOpt = defaults({}, opt, {
@@ -749,7 +766,7 @@ export const Paper = View.extend({
                     stats.unmounted += unmountCount;
                     stats.mounted += mountCount;
                     stats.priority = data.priority;
-                    this.trigger('render:done', stats, opt);
+                    this.notifyAfterRender(stats, opt);
                     data.processed = 0;
                     updates.count = 0;
                 } else {
@@ -765,6 +782,24 @@ export const Paper = View.extend({
             if (updates.id !== id) return;
         }
         updates.id = nextFrame(this.updateViewsAsync, this, opt, data);
+    },
+
+    notifyBeforeRender: function(opt = {}) {
+        let beforeFn = opt.beforeRender;
+        if (typeof beforeFn !== 'function') {
+            beforeFn = this.options.beforeRender;
+            if (typeof beforeFn !== 'function') return;
+        }
+        beforeFn.call(this, opt, this);
+    },
+
+    notifyAfterRender: function(stats, opt = {}) {
+        let afterFn = opt.afterRender;
+        if (typeof afterFn !== 'function') {
+            afterFn = this.options.afterRender;
+            if (typeof afterFn !== 'function') return;
+        }
+        afterFn.call(this, stats, opt, this);
     },
 
     updateViewsBatch: function(opt) {
