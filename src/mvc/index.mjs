@@ -268,6 +268,15 @@ export const View = Backbone.View.extend({
 
     isPropagationStopped: function(evt) {
         return !!this.eventData(evt).propagationStopped;
+    },
+
+    preventDefault: function(evt) {
+        this.eventData(evt, { defaultPrevented: true });
+        return this;
+    },
+
+    isDefaultPrevented: function(evt) {
+        return !!this.eventData(evt).defaultPrevented;
     }
 
 }, {

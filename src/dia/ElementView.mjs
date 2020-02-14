@@ -490,14 +490,20 @@ export const ElementView = CellView.extend({
     pointerdown: function(evt, x, y) {
 
         if (this.isPropagationStopped(evt)) return;
-
         this.notifyPointerdown(evt, x, y);
+
+        if (this.isDefaultPrevented(evt)) return;
         this.dragStart(evt, x, y);
     },
 
     pointermove: function(evt, x, y) {
 
         var data = this.eventData(evt);
+
+        if (data.defaultPrevented)  {
+            this.notifyPointermove(evt, x, y);
+            return;
+        }
 
         switch (data.action) {
             case 'magnet':

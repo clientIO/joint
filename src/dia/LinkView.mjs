@@ -1592,6 +1592,8 @@ export const LinkView = CellView.extend({
 
         this.notifyPointerdown(evt, x, y);
 
+        if (this.isDefaultPrevented(evt)) return;
+
         // Backwards compatibility for the default markup
         var className = evt.target.getAttribute('class');
         switch (className) {
