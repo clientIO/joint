@@ -2627,6 +2627,9 @@ export namespace mvc {
         stopPropagation(evt: dia.Event): this;
         isPropagationStopped(evt: dia.Event): boolean;
 
+        preventDefault(evt: dia.Event): this;
+        isDefaultPrevented(evt: dia.Event): boolean;
+
         renderChildren(children?: dia.MarkupJSON): this;
 
         findAttribute(attributeName: string, node: Element): string | null;
