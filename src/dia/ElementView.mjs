@@ -499,15 +499,14 @@ export const ElementView = CellView.extend({
     pointermove: function(evt, x, y) {
 
         const data = this.eventData(evt);
-        const { action, delegatedView } = data;
 
-        switch (action) {
+        switch (data.action) {
             case 'magnet': {
                 this.dragMagnet(evt, x, y);
                 break;
             }
             case 'move': {
-                const view = delegatedView || this;
+                const view = data.delegatedView || this;
                 view.drag(evt, x, y);
                 this.notifyPointermove(evt, x, y);
                 break;
