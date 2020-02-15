@@ -4,6 +4,7 @@ import {
     assign,
     nextFrame,
     isObject,
+    isEmpty,
     cancelFrame,
     defaults,
     defaultsDeep,
@@ -52,7 +53,7 @@ var FLAG_REMOVE = 1<<29;
 
 var MOUNT_BATCH_SIZE = 1000;
 var UPDATE_BATCH_SIZE = Infinity;
-var MIN_PRIORITY = 2;
+var MIN_PRIORITY = Number.MAX_SAFE_INTEGER;
 
 export const Paper = View.extend({
 
@@ -722,19 +723,26 @@ export const Paper = View.extend({
 
     updateViews: function(opt) {
         this.notifyBeforeRender(opt);
-        var stats;
-        var updateCount = 0;
-        var batchCount = 0;
-        var priority = MIN_PRIORITY;
+        let batchStats;
+        let updateCount = 0;
+        let batchCount = 0;
+        let priority = MIN_PRIORITY;
         do {
             batchCount++;
-            stats = this.updateViewsBatch(opt);
-            updateCount += stats.updated;
-            priority = Math.min(stats.priority, priority);
-        } while (!stats.empty);
-        const overallStats = { updated: updateCount, batches: batchCount, priority };
-        this.notifyAfterRender(overallStats, opt);
-        return overallStats;
+            batchStats = this.updateViewsBatch(opt);
+            updateCount += batchStats.updated;
+            priority = Math.min(batchStats.priority, priority);
+        } while (!batchStats.empty);
+        const stats = { updated: updateCount, batches: batchCount, priority };
+        this.notifyAfterRender(stats, opt);
+        return stats;
+    },
+
+    hasScheduledUpdates: function() {
+        const priorities = Object.values(this._updates.priorities); // convert to a dense array
+        let i = priorities.length;
+        while (i--) if (!isEmpty(priorities[i])) return true;
+        return false;
     },
 
     updateViewsAsync: function(opt, data) {
@@ -818,7 +826,9 @@ export const Paper = View.extend({
         if (typeof viewportFn !== 'function') viewportFn = null;
         var postponeViewFn = options.onViewPostponed;
         if (typeof postponeViewFn !== 'function') postponeViewFn = null;
-        main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
+        var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
+        main: for (var i = 0, n = priorityIndexes.length; i < n; i++) {
+            var priority = priorityIndexes[i];
             var priorityUpdates = priorities[priority];
             for (var cid in priorityUpdates) {
                 if (updateCount >= batchSize) {
