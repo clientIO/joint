@@ -2416,7 +2416,7 @@ export const Paper = View.extend({
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
             } else if (backgroundSize === undefined) {
-                // calcule the tile size if no provided
+                // calculate the tile size if no provided
                 opt.size = {
                     width: canvas.width / backgroundQuality,
                     height: canvas.height / backgroundQuality
