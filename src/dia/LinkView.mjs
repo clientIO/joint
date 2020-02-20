@@ -1958,12 +1958,6 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _getSnapDistance: function(bbox, point) {
-        const boundaryPoint = bbox.intersectionWithLineFromCenterToPoint(point);
-        if (!boundaryPoint) return 0;
-        return boundaryPoint.distance(point);
-    },
-
     _snapArrowhead: function(x, y, data) {
 
         // checking view in close area of the pointer
@@ -1981,42 +1975,37 @@ export const LinkView = CellView.extend({
         var paper = this.paper;
 
         viewsInArea.forEach(function(view) {
-
+            const candidates = [];
             // skip connecting to the element in case '.': { magnet: false } attribute present
             if (view.el.getAttribute('magnet') !== 'false') {
-
-                // find distance from the center of the model to pointer coordinates
-                const distance = this._getSnapDistance(view.model.getBBox(), pointer);
-
-                // the connection is looked up in a circle area by `distance < r`
-                if (distance < r && distance < minDistance) {
-
-                    if (prevClosestMagnet === view.el || paper.options.validateConnection.apply(
-                        paper, data.validateConnectionArgs(view, null)
-                    )) {
-                        minDistance = distance;
-                        data.closestView = view;
-                        data.closestMagnet = view.el;
-                    }
-                }
+                candidates.push({
+                    bbox: view.model.getBBox(),
+                    magnet: view.el
+                });
             }
 
-            view.$('[magnet]').each(function(_index, magnet) {
+            view.$('[magnet]').toArray().forEach(magnet => {
+                candidates.push({
+                    bbox: view.getNodeBBox(magnet),
+                    magnet
+                });
+            });
 
-                const distance = this._getSnapDistance(view.getNodeBBox(magnet),  pointer);
-
-                if (distance < r && distance < minDistance) {
-
-                    if (prevClosestMagnet === magnet || paper.options.validateConnection.apply(
-                        paper, data.validateConnectionArgs(view, magnet)
+            candidates.forEach(candidate => {
+                const { magnet, bbox } = candidate;
+                // find distance from the center of the model to pointer coordinates
+                const distance = bbox.center().squaredDistance(pointer);
+                // the connection is looked up in a circle area by `distance < r`
+                if (distance < minDistance) {
+                    if (prevClosestMagnet === view.el || paper.options.validateConnection.apply(
+                        paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
                     )) {
                         minDistance = distance;
                         data.closestView = view;
                         data.closestMagnet = magnet;
                     }
                 }
-
-            }.bind(this));
+            });
 
         }, this);
 
