@@ -1958,6 +1958,12 @@ export const LinkView = CellView.extend({
         }
     },
 
+    _getSnapDistance: function(bbox, point) {
+        const boundaryPoint = bbox.intersectionWithLineFromCenterToPoint(point);
+        if (!boundaryPoint) return 0;
+        return boundaryPoint.distance(point);
+    },
+
     _snapArrowhead: function(x, y, data) {
 
         // checking view in close area of the pointer
@@ -1970,9 +1976,8 @@ export const LinkView = CellView.extend({
 
         data.closestView = data.closestMagnet = null;
 
-        var distance;
         var minDistance = Number.MAX_VALUE;
-        var pointer = Point(x, y);
+        var pointer = new Point(x, y);
         var paper = this.paper;
 
         viewsInArea.forEach(function(view) {
@@ -1981,7 +1986,7 @@ export const LinkView = CellView.extend({
             if (view.el.getAttribute('magnet') !== 'false') {
 
                 // find distance from the center of the model to pointer coordinates
-                distance = view.model.getBBox().center().distance(pointer);
+                const distance = this._getSnapDistance(view.model.getBBox(), pointer);
 
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < r && distance < minDistance) {
@@ -1996,14 +2001,9 @@ export const LinkView = CellView.extend({
                 }
             }
 
-            view.$('[magnet]').each(function(index, magnet) {
+            view.$('[magnet]').each(function(_index, magnet) {
 
-                var bbox = view.getNodeBBox(magnet);
-
-                distance = pointer.distance({
-                    x: bbox.x + bbox.width / 2,
-                    y: bbox.y + bbox.height / 2
-                });
+                const distance = this._getSnapDistance(view.getNodeBBox(magnet),  pointer);
 
                 if (distance < r && distance < minDistance) {
 
