@@ -226,8 +226,8 @@ export namespace dia {
         constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
 
         id: string | number;
-
         graph: Graph;
+        markup: string | MarkupJSON;
 
         protected generateId(): string | number;
 
@@ -484,7 +484,6 @@ export namespace dia {
 
     class Link extends Cell {
 
-        markup: string;
         toolMarkup: string;
         doubleToolMarkup?: string;
         vertexMarkup: string;
