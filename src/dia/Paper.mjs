@@ -225,21 +225,15 @@ export const Paper = View.extend({
         },
 
         // no docs yet
-        onViewPostponed: function(view, flag /* paper */) {
-            return this.forcePostponedViewUpdate(view, flag);
+        onViewPostponed: function(view, flag, paper) {
+            return paper.forcePostponedViewUpdate(view, flag);
         },
 
-        // no docs yet
         beforeRender: null, // function(opt, paper) { },
 
         // no docs yet
         afterRender: function(stats, opt, paper) {
-            if (paper.isAsync()) {
-                paper.trigger('render:done', stats, opt);
-            } else {
-                // triggering `render:done` event here could be a breaking change
-                paper.trigger('render:sync:done', stats, opt);
-            }
+            paper.trigger('render:done', stats, opt);
         },
 
         viewport: null,

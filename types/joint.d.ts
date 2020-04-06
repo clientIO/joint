@@ -1209,6 +1209,8 @@ export namespace dia {
             batches: number;
         };
 
+        hasScheduledUpdates(): boolean;
+
         // protected
 
         protected scheduleViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
