@@ -231,10 +231,7 @@ export const Paper = View.extend({
 
         beforeRender: null, // function(opt, paper) { },
 
-        // no docs yet
-        afterRender: function(stats, opt, paper) {
-            paper.trigger('render:done', stats, opt);
-        },
+        afterRender: null, // function(stats, opt, paper) {
 
         viewport: null,
 
@@ -736,7 +733,7 @@ export const Paper = View.extend({
         const priorities = Object.values(this._updates.priorities); // convert to a dense array
         let i = priorities.length;
         while (i > 0 && i--) {
-            // a faster way how check if an object is empty
+            // a faster way how to check if an object is empty
             for (let _key in priorities[i]) return true;
         }
         return false;
@@ -799,6 +796,7 @@ export const Paper = View.extend({
     },
 
     notifyAfterRender: function(stats, opt = {}) {
+        this.trigger('render:done', stats, opt);
         let afterFn = opt.afterRender;
         if (typeof afterFn !== 'function') {
             afterFn = this.options.afterRender;
