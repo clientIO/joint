@@ -4,7 +4,6 @@ import {
     assign,
     nextFrame,
     isObject,
-    isEmpty,
     cancelFrame,
     defaults,
     defaultsDeep,
@@ -721,6 +720,7 @@ export const Paper = View.extend({
         this.updateViews(passingOpt);
     },
 
+    // Synchronous views update
     updateViews: function(opt) {
         this.notifyBeforeRender(opt);
         let batchStats;
@@ -741,7 +741,10 @@ export const Paper = View.extend({
     hasScheduledUpdates: function() {
         const priorities = Object.values(this._updates.priorities); // convert to a dense array
         let i = priorities.length;
-        while (i--) if (!isEmpty(priorities[i])) return true;
+        while (i > 0 && i--) {
+            // a faster way how check if an object is empty
+            for (let _key in priorities[i]) return true;
+        }
         return false;
     },
 
@@ -752,7 +755,7 @@ export const Paper = View.extend({
         var id = updates.id;
         if (id) {
             cancelFrame(id);
-            if (data.processed === 0) {
+            if (data.processed === 0 && this.hasScheduledUpdates()) {
                 this.notifyBeforeRender(opt);
             }
             var stats = this.updateViewsBatch(opt);
