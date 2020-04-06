@@ -609,7 +609,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.dumpViews();
             assert.equal(cellNodesCount(paper), 3);
         });
-
     });
 
     QUnit.module('async = TRUE, frozen = FALSE', function(hooks) {
@@ -651,6 +650,21 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 });
             });
 
+            QUnit.test('hasScheduledUpdates()', function(assert) {
+                var done = assert.async();
+                assert.expect(4);
+                assert.notOk(paper.hasScheduledUpdates());
+                paper.on('render:done', function() {
+                    assert.notOk(paper.hasScheduledUpdates());
+                    done();
+                });
+                var rect = new joint.shapes.standard.Rectangle();
+                rect.addTo(graph);
+                assert.ok(paper.hasScheduledUpdates());
+                paper.unfreeze();
+                assert.ok(paper.hasScheduledUpdates());
+            });
+
             QUnit.module('options', function() {
 
                 QUnit.test('progress + batchSize', function(assert) {
@@ -685,13 +699,18 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 QUnit.test('beforeRender', function(assert) {
                     var done = assert.async();
-                    assert.expect(3);
+                    assert.expect(4);
                     var beforeSpy = sinon.spy();
                     paper.on('render:done', function() {
                         assert.equal(beforeSpy.callCount, 1);
                         assert.ok(beforeSpy.alwaysCalledWith(opt3, paper));
                         assert.ok(beforeSpy.alwaysCalledOn(paper));
-                        done();
+                        beforeSpy.resetHistory();
+                        setTimeout(function() {
+                            // Make sure, the beforeRender callback is not called on every tick
+                            assert.notOk(beforeSpy.called);
+                            done();
+                        }, 200);
                     });
                     paper.freeze();
                     graph.resetCells([
