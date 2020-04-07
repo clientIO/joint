@@ -41,18 +41,18 @@ import * as anchors from '../anchors/index.mjs';
 import $ from 'jquery';
 import Backbone from 'backbone';
 
-var sortingTypes = {
+const sortingTypes = {
     NONE: 'sorting-none',
     APPROX: 'sorting-approximate',
     EXACT: 'sorting-exact'
 };
 
-var FLAG_INSERT = 1<<30;
-var FLAG_REMOVE = 1<<29;
+const FLAG_INSERT = 1<<30;
+const FLAG_REMOVE = 1<<29;
 
-var MOUNT_BATCH_SIZE = 1000;
-var UPDATE_BATCH_SIZE = Infinity;
-var MIN_PRIORITY = 2;
+const MOUNT_BATCH_SIZE = 1000;
+const UPDATE_BATCH_SIZE = Infinity;
+const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
 export const Paper = View.extend({
 
@@ -218,14 +218,20 @@ export const Paper = View.extend({
 
         frozen: false,
 
+        // no docs yet
         onViewUpdate: function(view, flag, opt, paper) {
             if ((flag & FLAG_INSERT) || opt.mounting) return;
             paper.requestConnectedLinksUpdate(view, opt);
         },
 
-        onViewPostponed: function(view, flag /* paper */) {
-            return this.forcePostponedViewUpdate(view, flag);
+        // no docs yet
+        onViewPostponed: function(view, flag, paper) {
+            return paper.forcePostponedViewUpdate(view, flag);
         },
+
+        beforeRender: null, // function(opt, paper) { },
+
+        afterRender: null, // function(stats, opt, paper) {
 
         viewport: null,
 
@@ -609,7 +615,7 @@ export const Paper = View.extend({
         if (this.isFrozen() || (isAsync && opt.async !== false)) return;
         if (this.model.hasActiveBatch(this.UPDATE_DELAYING_BATCHES)) return;
         var stats = this.updateViews(opt);
-        if (isAsync) this.trigger('render:done', stats, opt);
+        if (isAsync) this.notifyAfterRender(stats, opt);
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
@@ -705,18 +711,33 @@ export const Paper = View.extend({
         this.updateViews(passingOpt);
     },
 
+    // Synchronous views update
     updateViews: function(opt) {
-        var stats;
-        var updateCount = 0;
-        var batchCount = 0;
-        var priority = MIN_PRIORITY;
+        this.notifyBeforeRender(opt);
+        let batchStats;
+        let updateCount = 0;
+        let batchCount = 0;
+        let priority = MIN_PRIORITY;
         do {
             batchCount++;
-            stats = this.updateViewsBatch(opt);
-            updateCount += stats.updated;
-            priority = Math.min(stats.priority, priority);
-        } while (!stats.empty);
-        return { updated: updateCount, batches: batchCount, priority };
+            batchStats = this.updateViewsBatch(opt);
+            updateCount += batchStats.updated;
+            priority = Math.min(batchStats.priority, priority);
+        } while (!batchStats.empty);
+        const stats = { updated: updateCount, batches: batchCount, priority };
+        this.notifyAfterRender(stats, opt);
+        return stats;
+    },
+
+    hasScheduledUpdates: function() {
+        const priorities = this._updates.priorities;
+        const priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
+        let i = priorityIndexes.length;
+        while (i > 0 && i--) {
+            // a faster way how to check if an object is empty
+            for (let _key in priorities[priorityIndexes[i]]) return true;
+        }
+        return false;
     },
 
     updateViewsAsync: function(opt, data) {
@@ -726,9 +747,8 @@ export const Paper = View.extend({
         var id = updates.id;
         if (id) {
             cancelFrame(id);
-            if (data.processed === 0) {
-                var beforeFn = opt.before;
-                if (typeof beforeFn === 'function') beforeFn.call(this, this);
+            if (data.processed === 0 && this.hasScheduledUpdates()) {
+                this.notifyBeforeRender(opt);
             }
             var stats = this.updateViewsBatch(opt);
             var passingOpt = defaults({}, opt, {
@@ -749,7 +769,7 @@ export const Paper = View.extend({
                     stats.unmounted += unmountCount;
                     stats.mounted += mountCount;
                     stats.priority = data.priority;
-                    this.trigger('render:done', stats, opt);
+                    this.notifyAfterRender(stats, opt);
                     data.processed = 0;
                     updates.count = 0;
                 } else {
@@ -765,6 +785,26 @@ export const Paper = View.extend({
             if (updates.id !== id) return;
         }
         updates.id = nextFrame(this.updateViewsAsync, this, opt, data);
+    },
+
+    notifyBeforeRender: function(opt = {}) {
+        let beforeFn = opt.beforeRender;
+        if (typeof beforeFn !== 'function') {
+            beforeFn = this.options.beforeRender;
+            if (typeof beforeFn !== 'function') return;
+        }
+        beforeFn.call(this, opt, this);
+    },
+
+    notifyAfterRender: function(stats, opt = {}) {
+        let afterFn = opt.afterRender;
+        if (typeof afterFn !== 'function') {
+            afterFn = this.options.afterRender;
+        }
+        if (typeof afterFn === 'function') {
+            afterFn.call(this, stats, opt, this);
+        }
+        this.trigger('render:done', stats, opt);
     },
 
     updateViewsBatch: function(opt) {
@@ -783,7 +823,9 @@ export const Paper = View.extend({
         if (typeof viewportFn !== 'function') viewportFn = null;
         var postponeViewFn = options.onViewPostponed;
         if (typeof postponeViewFn !== 'function') postponeViewFn = null;
-        main: for (var priority = 0, n = priorities.length; priority < n; priority++) {
+        var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
+        main: for (var i = 0, n = priorityIndexes.length; i < n; i++) {
+            var priority = priorityIndexes[i];
             var priorityUpdates = priorities[priority];
             for (var cid in priorityUpdates) {
                 if (updateCount >= batchSize) {
@@ -2371,7 +2413,7 @@ export const Paper = View.extend({
                 backgroundSize.width *= canvas.width / img.width;
                 backgroundSize.height *= canvas.height / img.height;
             } else if (backgroundSize === undefined) {
-                // calcule the tile size if no provided
+                // calculate the tile size if no provided
                 opt.size = {
                     width: canvas.width / backgroundQuality,
                     height: canvas.height / backgroundQuality

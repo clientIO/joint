@@ -609,7 +609,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.dumpViews();
             assert.equal(cellNodesCount(paper), 3);
         });
-
     });
 
     QUnit.module('async = TRUE, frozen = FALSE', function(hooks) {
@@ -651,6 +650,21 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 });
             });
 
+            QUnit.test('hasScheduledUpdates()', function(assert) {
+                var done = assert.async();
+                assert.expect(4);
+                assert.notOk(paper.hasScheduledUpdates());
+                paper.on('render:done', function() {
+                    assert.notOk(paper.hasScheduledUpdates());
+                    done();
+                });
+                var rect = new joint.shapes.standard.Rectangle();
+                rect.addTo(graph);
+                assert.ok(paper.hasScheduledUpdates());
+                paper.unfreeze();
+                assert.ok(paper.hasScheduledUpdates());
+            });
+
             QUnit.module('options', function() {
 
                 QUnit.test('progress + batchSize', function(assert) {
@@ -683,24 +697,67 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                     paper.unfreeze({ batchSize: 1, progress: progressSpy });
                 });
 
-                QUnit.test('before', function(assert) {
+                QUnit.test('afterRender, beforeRender', function(assert) {
                     var done = assert.async();
-                    assert.expect(3);
+                    assert.expect(8);
                     var beforeSpy = sinon.spy();
+                    var afterSpy = sinon.spy();
                     paper.on('render:done', function() {
                         assert.equal(beforeSpy.callCount, 1);
-                        assert.ok(beforeSpy.alwaysCalledWith(paper));
+                        assert.ok(beforeSpy.alwaysCalledWith(opt3, paper));
                         assert.ok(beforeSpy.alwaysCalledOn(paper));
-                        done();
+                        assert.equal(afterSpy.callCount, 1);
+                        assert.ok(afterSpy.alwaysCalledWith(sinon.match.object, opt3, paper));
+                        assert.ok(afterSpy.alwaysCalledOn(paper));
+                        beforeSpy.resetHistory();
+                        afterSpy.resetHistory();
+                        setTimeout(function() {
+                            // Make sure, the beforeRender callback is not called on every tick
+                            assert.notOk(beforeSpy.called);
+                            assert.notOk(afterSpy.called);
+                            done();
+                        }, 200);
                     });
                     paper.freeze();
                     graph.resetCells([
                         new joint.shapes.standard.Rectangle()
                     ]);
-                    paper.unfreeze({ before: beforeSpy });
-                    paper.unfreeze({ before: beforeSpy });
-                    paper.unfreeze({ before: beforeSpy });
+                    paper.unfreeze({ i: 1, beforeRender: beforeSpy, afterRender: afterSpy });
+                    paper.unfreeze({ i: 2, beforeRender: beforeSpy, afterRender: afterSpy });
+                    var opt3 = { i: 3, beforeRender: beforeSpy, afterRender: afterSpy };
+                    paper.unfreeze(opt3);
                 });
+
+                QUnit.test('beforeRender, afterRender + viewport', function(assert) {
+                    var done = assert.async();
+                    assert.expect(4);
+                    var beforeSpy = sinon.spy();
+                    var afterSpy = sinon.spy();
+                    paper.freeze();
+                    var el = new joint.shapes.standard.Rectangle();
+                    graph.resetCells([el]);
+                    paper.dumpViews({ viewport: function() { return false; } });
+                    el.translate(10, 10);
+                    // el view needs to be mounted first and then an update can be done
+                    paper.on('render:done', function() {
+                        assert.equal(beforeSpy.callCount, 1);
+                        assert.equal(afterSpy.callCount, 1);
+                        beforeSpy.resetHistory();
+                        afterSpy.resetHistory();
+                        setTimeout(function() {
+                            // Make sure, the beforeRender callback is not called on every tick
+                            assert.notOk(beforeSpy.called);
+                            assert.notOk(afterSpy.called);
+                            done();
+                        }, 200);
+                    });
+                    paper.unfreeze({
+                        beforeRender: beforeSpy,
+                        afterRender: afterSpy,
+                        viewport: function() { return true; }
+                    });
+                });
+
             });
         });
 
