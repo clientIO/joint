@@ -796,13 +796,14 @@ export const Paper = View.extend({
     },
 
     notifyAfterRender: function(stats, opt = {}) {
-        this.trigger('render:done', stats, opt);
         let afterFn = opt.afterRender;
         if (typeof afterFn !== 'function') {
             afterFn = this.options.afterRender;
-            if (typeof afterFn !== 'function') return;
         }
-        afterFn.call(this, stats, opt, this);
+        if (typeof afterFn === 'function') {
+            afterFn.call(this, stats, opt, this);
+        }
+        this.trigger('render:done', stats, opt);
     },
 
     updateViewsBatch: function(opt) {
