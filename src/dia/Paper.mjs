@@ -41,18 +41,18 @@ import * as anchors from '../anchors/index.mjs';
 import $ from 'jquery';
 import Backbone from 'backbone';
 
-var sortingTypes = {
+const sortingTypes = {
     NONE: 'sorting-none',
     APPROX: 'sorting-approximate',
     EXACT: 'sorting-exact'
 };
 
-var FLAG_INSERT = 1<<30;
-var FLAG_REMOVE = 1<<29;
+const FLAG_INSERT = 1<<30;
+const FLAG_REMOVE = 1<<29;
 
-var MOUNT_BATCH_SIZE = 1000;
-var UPDATE_BATCH_SIZE = Infinity;
-var MIN_PRIORITY = Number.MAX_SAFE_INTEGER;
+const MOUNT_BATCH_SIZE = 1000;
+const UPDATE_BATCH_SIZE = Infinity;
+const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
 export const Paper = View.extend({
 
@@ -730,11 +730,12 @@ export const Paper = View.extend({
     },
 
     hasScheduledUpdates: function() {
-        const priorities = Object.values(this._updates.priorities); // convert to a dense array
-        let i = priorities.length;
+        const priorities = this._updates.priorities;
+        const priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
+        let i = priorityIndexes.length;
         while (i > 0 && i--) {
             // a faster way how to check if an object is empty
-            for (let _key in priorities[i]) return true;
+            for (let _key in priorities[priorityIndexes[i]]) return true;
         }
         return false;
     },
