@@ -886,6 +886,28 @@ QUnit.module('links', function(hooks) {
             updateSpy.resetHistory();
         });
 
+        QUnit.test('change:labels + change:source', function(assert) {
+            var graph = this.graph;
+            var paper = this.paper;
+            var l = new joint.dia.Link({
+                source: { x: 0, y: 0 },
+                target: { x: 100, y: 100 }
+            }).addTo(graph);
+            var view = l.findView(paper);
+            assert.notOk(view.el.querySelector('.labels'));
+            paper.freeze();
+            l.set({
+                source: { x: 20, y: 20 },
+                labels: [
+                    { position: 20, attrs: { text: { text: 'label1' }}},
+                    { position: -20, attrs: { text: { text: 'label2' }}}
+                ]
+            });
+            paper.unfreeze();
+            assert.ok(view.el.querySelector('.labels'));
+        });
+
+
     });
 
     QUnit.test('magnets & ports', function(assert) {

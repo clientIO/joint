@@ -115,20 +115,32 @@ export const LinkView = CellView.extend({
 
         const { model } = this;
         const { attributes } = model;
+        let updateLabels = this.hasFlag(flags, 'LABELS');
+        let updateTools = this.hasFlag(flags, 'TOOLS');
 
-        if (this.hasFlag(flags, 'UPDATE')) {
-            this.update(model, null, opt);
-            flags = this.removeFlag(flags, 'UPDATE');
-        }
-
-        if (this.hasFlag(flags, 'LABELS')) {
+        if (updateLabels) {
             this.onLabelsChange(model, attributes.labels, opt);
             flags = this.removeFlag(flags, 'LABELS');
         }
 
-        if (this.hasFlag(flags, 'TOOLS')) {
-            this.renderTools().updateToolsPosition();
+        if (updateTools) {
+            this.renderTools();
             flags = this.removeFlag(flags, 'TOOLS');
+        }
+
+        if (this.hasFlag(flags, 'UPDATE')) {
+            this.update(model, null, opt);
+            flags = this.removeFlag(flags, 'UPDATE');
+            updateLabels = false;
+            updateTools = false;
+        }
+
+        if (updateLabels) {
+            this.updateLabelPositions();
+        }
+
+        if (updateTools) {
+            this.updateToolsPosition();
         }
 
         return flags;
@@ -172,8 +184,6 @@ export const LinkView = CellView.extend({
         } else {
             this.updateLabels();
         }
-
-        this.updateLabelPositions();
     },
 
     // Rendering.
@@ -922,11 +932,13 @@ export const LinkView = CellView.extend({
         var defaultPosition = merge({}, builtinDefaultLabelPosition, defaultLabelPosition);
 
         for (var idx = 0, n = labels.length; idx < n; idx++) {
+            var labelNode = this._labelCache[idx];
+            if (!labelNode) continue;
             var label = labels[idx];
             var labelPosition = this._normalizeLabelPosition(label.position);
             var position = merge({}, defaultPosition, labelPosition);
             var transformationMatrix = this._getLabelTransformationMatrix(position);
-            this._labelCache[idx].setAttribute('transform', V.matrixToTransformString(transformationMatrix));
+            labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
         }
 
         return this;
