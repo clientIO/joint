@@ -98,7 +98,7 @@ grunt test:code-style
 
 To output a code coverage report in HTML:
 ```
-grunt test:coverage"
+grunt test:coverage
 ```
 
 To output a code coverage report in [lcov format](http://ltp.sourceforge.net/coverage/lcov/geninfo.1.php):
