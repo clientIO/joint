@@ -2596,6 +2596,9 @@ export namespace mvc {
         constructor(opt?: ViewOptions<T>);
 
         UPDATE_PRIORITY: number;
+        DETACHABLE: boolean;
+        FLAG_INSERT: number;
+        FLAG_REMOVE: number;
 
         vel: Vectorizer | null;
 

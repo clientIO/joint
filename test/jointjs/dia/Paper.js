@@ -385,6 +385,17 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                                     paper.updateViews({ viewport: function() { return false; } });
                                     assert.notOk(paper.findViewByModel(rect1));
                                 });
+
+                                QUnit.test('detachable', function(assert) {
+                                    paper.options.elementView = joint.dia.ElementView.extend({
+                                        DETACHABLE: false
+                                    });
+                                    var rect1 = new joint.shapes.standard.Rectangle();
+                                    rect1.addTo(graph);
+                                    paper.freeze();
+                                    paper.checkViewport({ viewport: function() { return false; } });
+                                    assert.equal(cellNodesCount(paper), 1);
+                                });
                             });
                         });
                     });
