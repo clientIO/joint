@@ -47,9 +47,6 @@ const sortingTypes = {
     EXACT: 'sorting-exact'
 };
 
-const FLAG_INSERT = 1<<30;
-const FLAG_REMOVE = 1<<29;
-
 const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
@@ -220,7 +217,7 @@ export const Paper = View.extend({
 
         // no docs yet
         onViewUpdate: function(view, flag, opt, paper) {
-            if ((flag & FLAG_INSERT) || opt.mounting) return;
+            if ((flag & view.FLAG_INSERT) || opt.mounting) return;
             paper.requestConnectedLinksUpdate(view, opt);
         },
 
@@ -377,14 +374,14 @@ export const Paper = View.extend({
 
     onCellRemoved: function(cell, _, opt) {
         const view = this.findViewByModel(cell);
-        if (view) this.requestViewUpdate(view, FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
+        if (view) this.requestViewUpdate(view, view.FLAG_REMOVE, view.UPDATE_PRIORITY, opt);
     },
 
     onCellChange: function(cell, opt) {
         if (cell === this.model.attributes.cells) return;
         if (cell.hasChanged('z') && this.options.sorting === sortingTypes.APPROX) {
             const view = this.findViewByModel(cell);
-            if (view) this.requestViewUpdate(view, FLAG_INSERT, view.UPDATE_PRIORITY, opt);
+            if (view) this.requestViewUpdate(view, view.FLAG_INSERT, view.UPDATE_PRIORITY, opt);
         }
     },
 
@@ -619,22 +616,23 @@ export const Paper = View.extend({
     },
 
     scheduleViewUpdate: function(view, type, priority, opt) {
-        var updates = this._updates;
+        const { _updates: updates, options } = this;
         var priorityUpdates = updates.priorities[priority];
         if (!priorityUpdates) priorityUpdates = updates.priorities[priority] = {};
-        var currentType = priorityUpdates[view.cid] || 0;
+        const { FLAG_REMOVE, FLAG_INSERT, cid } = view;
+        const currentType = priorityUpdates[cid] || 0;
         // prevent cycling
         if ((currentType & type) === type) return;
         if (!currentType) updates.count++;
         if (type & FLAG_REMOVE && currentType & FLAG_INSERT) {
             // When a view is removed we need to remove the insert flag as this is a reinsert
-            priorityUpdates[view.cid] ^= FLAG_INSERT;
+            priorityUpdates[cid] ^= FLAG_INSERT;
         } else if (type & FLAG_INSERT && currentType & FLAG_REMOVE) {
             // When a view is added we need to remove the remove flag as this is view was previously removed
-            priorityUpdates[view.cid] ^= FLAG_REMOVE;
+            priorityUpdates[cid] ^= FLAG_REMOVE;
         }
-        priorityUpdates[view.cid] |= type;
-        var viewUpdateFn = this.options.onViewUpdate;
+        priorityUpdates[cid] |= type;
+        const viewUpdateFn = options.onViewUpdate;
         if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, opt || {}, this);
     },
 
@@ -656,9 +654,10 @@ export const Paper = View.extend({
 
     updateView: function(view, flag, opt) {
         if (!view) return 0;
+        const { FLAG_REMOVE, FLAG_INSERT, model } = view;
         if (view instanceof CellView) {
             if (flag & FLAG_REMOVE) {
-                this.removeView(view.model);
+                this.removeView(model);
                 return 0;
             }
             if (flag & FLAG_INSERT) {
@@ -681,7 +680,7 @@ export const Paper = View.extend({
         var cid = view.cid;
         var updates = this._updates;
         if (cid in updates.unmounted) return 0;
-        var flag = updates.unmounted[cid] |= FLAG_INSERT;
+        var flag = updates.unmounted[cid] |= view.FLAG_INSERT;
         updates.unmountedCids.push(cid);
         delete updates.mounted[cid];
         return flag;
@@ -839,10 +838,10 @@ export const Paper = View.extend({
                     continue;
                 }
                 var currentFlag = priorityUpdates[cid];
-                if ((currentFlag & FLAG_REMOVE) === 0) {
+                if ((currentFlag & view.FLAG_REMOVE) === 0) {
                     // We should never check a view for viewport if we are about to remove the view
                     var isDetached = cid in updates.unmounted;
-                    if (viewportFn && !viewportFn.call(this, view, isDetached, this)) {
+                    if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, isDetached, this)) {
                         // Unmount View
                         if (!isDetached) {
                             this.registerUnmountedView(view);
@@ -855,7 +854,7 @@ export const Paper = View.extend({
                     }
                     // Mount View
                     if (isDetached) {
-                        currentFlag |= FLAG_INSERT;
+                        currentFlag |= view.FLAG_INSERT;
                         mountCount++;
                     }
                     currentFlag |= this.registerMountedView(view);
@@ -920,7 +919,7 @@ export const Paper = View.extend({
             if (!(cid in unmounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (viewportFn && !viewportFn.call(this, view, false, this)) {
+            if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, false, this)) {
                 // Push at the end of all unmounted ids, so this can be check later again
                 unmountedCids.push(cid);
                 continue;
@@ -947,7 +946,7 @@ export const Paper = View.extend({
             if (!(cid in mounted)) continue;
             var view = views[cid];
             if (!view) continue;
-            if (viewportFn.call(this, view, true, this)) {
+            if (!view.DETACHABLE || viewportFn.call(this, view, true, this)) {
                 // Push at the end of all mounted ids, so this can be check later again
                 mountedCids.push(cid);
                 continue;
@@ -1339,7 +1338,7 @@ export const Paper = View.extend({
         var view, flag;
         if (id in views) {
             view = views[id];
-            flag = FLAG_INSERT;
+            flag = view.FLAG_INSERT;
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;

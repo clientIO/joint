@@ -16,7 +16,10 @@ export const View = Backbone.View.extend({
     children: null,
     childNodes: null,
 
+    DETACHABLE: true,
     UPDATE_PRIORITY: 2,
+    FLAG_INSERT: 1<<30,
+    FLAG_REMOVE: 1<<29,
 
     constructor: function(options) {
 
