@@ -48,6 +48,29 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         assert.ok(paper.svg.id);
     });
 
+    QUnit.module('options', function() {
+
+        QUnit.test('cloning', function(assert) {
+            var protoOptions = Paper.prototype.options;
+            var protoDefaultAnchor = protoOptions.defaultAnchor;
+            paper = new Paper({
+                el: paperEl,
+                defaultConnector: function() { return new g.Path(); },
+                defaultAnchor: { name: 'test', args: { testArg: 1 }},
+                // defaultRouter
+            });
+            // overridden with a function
+            var options = paper.options;
+            assert.ok(typeof options.defaultConnector === 'function');
+            // overridden with an object
+            assert.notEqual(options.defaultAnchor, protoOptions.defaultAnchor);
+            options.defaultAnchor.args.testArg = 2;
+            assert.deepEqual(protoDefaultAnchor, protoOptions.defaultAnchor);
+            // default
+            assert.notEqual(options.defaultRouter, protoOptions.defaultRouter);
+        });
+    });
+
     QUnit.module('async = FALSE', function(hooks) {
 
         hooks.beforeEach(function() {
