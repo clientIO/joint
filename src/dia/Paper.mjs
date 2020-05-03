@@ -51,6 +51,27 @@ const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
+const defaultHighlighting = {
+    'default': {
+        name: 'stroke',
+        options: {
+            padding: 3
+        }
+    },
+    magnetAvailability: {
+        name: 'addClass',
+        options: {
+            className: 'available-magnet'
+        }
+    },
+    elementAvailability: {
+        name: 'addClass',
+        options: {
+            className: 'available-cell'
+        }
+    }
+};
+
 export const Paper = View.extend({
 
     className: 'paper',
@@ -85,26 +106,7 @@ export const Paper = View.extend({
             return false;
         },
 
-        highlighting: {
-            'default': {
-                name: 'stroke',
-                options: {
-                    padding: 3
-                }
-            },
-            magnetAvailability: {
-                name: 'addClass',
-                options: {
-                    className: 'available-magnet'
-                }
-            },
-            elementAvailability: {
-                name: 'addClass',
-                options: {
-                    className: 'available-cell'
-                }
-            }
-        },
+        highlighting: defaultHighlighting,
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,
@@ -160,7 +162,7 @@ export const Paper = View.extend({
 
         // Check whether to allow or disallow the link connection while an arrowhead end (source/target)
         // being changed.
-        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+        validateConnection: function(cellViewS, _magnetS, cellViewT, _magnetT, end, _linkView) {
             return (end === 'target' ? cellViewT : cellViewS) instanceof ElementView;
         },
 
@@ -413,26 +415,49 @@ export const Paper = View.extend({
 
     cloneOptions: function() {
 
-        var options = this.options;
-
-        // This is a fix for the case where two papers share the same options.
-        // Changing origin.x for one paper would change the value of origin.x for the other.
-        // This prevents that behavior.
-        options.origin = assign({}, options.origin);
-        options.defaultConnector = assign({}, options.defaultConnector);
-        // Return the default highlighting options into the user specified options.
-        options.highlighting = defaultsDeep(
-            {},
-            options.highlighting,
-            this.constructor.prototype.options.highlighting
-        );
+        const { options } = this;
+        const {
+            defaultConnector,
+            defaultRouter,
+            defaultConnectionPoint,
+            defaultAnchor,
+            defaultLinkAnchor,
+            origin,
+            highlighting,
+            cellViewNamespace,
+            interactive
+        } = options;
 
         // Default cellView namespace for ES5
         /* global joint: true */
-        if (!options.cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
+        if (!cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
             options.cellViewNamespace = joint.shapes;
         }
         /* global joint: false */
+
+        // Here if a function was provided, we can not clone it, as this would result in loosing the function.
+        // If the default is used, the cloning is necessary in order to prevent modifying the options on prototype.
+        if (!isFunction(defaultConnector)) {
+            options.defaultConnector = cloneDeep(defaultConnector);
+        }
+        if (!isFunction(defaultRouter)) {
+            options.defaultRouter = cloneDeep(defaultRouter);
+        }
+        if (!isFunction(defaultConnectionPoint)) {
+            options.defaultConnectionPoint = cloneDeep(defaultConnectionPoint);
+        }
+        if (!isFunction(defaultAnchor)) {
+            options.defaultAnchor = cloneDeep(defaultAnchor);
+        }
+        if (!isFunction(defaultLinkAnchor)) {
+            options.defaultLinkAnchor = cloneDeep(defaultLinkAnchor);
+        }
+        if (!isFunction(interactive)) {
+            options.interactive = assign({}, interactive);
+        }
+        options.origin = assign({}, origin);
+        // Return the default highlighting options into the user specified options.
+        options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
     },
 
     children: function() {
@@ -1250,7 +1275,7 @@ export const Paper = View.extend({
         return this.localToPaperRect(this.getContentArea(opt));
     },
 
-    // Returns a geometry rectangle represeting the entire
+    // Returns a geometry rectangle representing the entire
     // paper area (coordinates from the left paper border to the right one
     // and the top border to the bottom one).
     getArea: function() {
