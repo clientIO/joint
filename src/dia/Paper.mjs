@@ -10,6 +10,7 @@ import {
     addClassNamePrefix,
     normalizeSides,
     isFunction,
+    isPlainObject,
     getByPath,
     sortElements,
     isString,
@@ -452,7 +453,7 @@ export const Paper = View.extend({
         if (!isFunction(defaultLinkAnchor)) {
             options.defaultLinkAnchor = cloneDeep(defaultLinkAnchor);
         }
-        if (!isFunction(interactive)) {
+        if (isPlainObject(interactive)) {
             options.interactive = assign({}, interactive);
         }
         options.origin = assign({}, origin);
