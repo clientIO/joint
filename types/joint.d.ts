@@ -2253,6 +2253,7 @@ export namespace util {
         eol?: string;
         ellipsis?: boolean | string;
         hyphen?: string | RegExp;
+        maxLineCount?: number;
     }): string;
 
     export function sanitizeHTML(html: string): string;
@@ -3129,6 +3130,7 @@ export namespace attributes {
         height?: string | number;
         ellipsis?: boolean | string;
         hyphen?: string;
+        maxLineCount?: number;
         [key: string]: any
     }
 
