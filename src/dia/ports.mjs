@@ -262,6 +262,14 @@ export const elementPortPrototype = {
     },
 
     /**
+     * @returns {Array<object>}
+     */
+    getGroupPorts: function(groupName) {
+        const groupPorts = util.toArray(this.prop(['ports','items'])).filter(port => port.group === groupName);
+        return util.cloneDeep(groupPorts);
+    },
+
+    /**
      * @param {string} id
      * @returns {object}
      */

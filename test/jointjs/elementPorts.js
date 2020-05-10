@@ -674,6 +674,33 @@ QUnit.module('element ports', function() {
         });
     });
 
+    QUnit.module('getGroupPorts', function() {
+
+        QUnit.test('return ports with given group', function(assert) {
+
+            var shape = create({
+                groups: {
+                    a: { position: 'left' },
+                    b: { position: 'right' }
+                },
+                items: [
+                    { id: 'one', group: 'a' },
+                    { id: 'two', group: 'b' },
+                    { id: 'three', group: 'b' },
+                    { id: 'four', group: 'b' }
+                ]
+            });
+
+            var portsA = shape.getGroupPorts('a');
+            var portsB = shape.getGroupPorts('b');
+
+            assert.equal(portsA.length, 1);
+            assert.equal(portsB.length, 3);
+            assert.ok(portsA.every(function(port) { return port.group === 'a'; }));
+            assert.ok(portsB.every(function(port) { return port.group === 'b'; }));
+        });
+    });
+
     QUnit.module('portProp', function() {
 
         QUnit.test('set port properties', function(assert) {
