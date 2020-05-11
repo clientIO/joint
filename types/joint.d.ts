@@ -199,6 +199,7 @@ export namespace dia {
 
         interface Constructor<T extends Backbone.Model> {
             new (opt?: { id: string }): T
+            define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<dia.Element>;
         }
 
         interface Options {
