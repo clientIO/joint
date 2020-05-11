@@ -431,10 +431,7 @@ export const parseCssNumeric = function(val, restrictUnits) {
     return output;
 };
 
-export const breakText = function(text, size, styles, opt) {
-
-    opt = opt || {};
-    styles = styles || {};
+export const breakText = function(text, size, styles = {}, opt = {}) {
 
     var width = size.width;
     var height = size.height;
@@ -466,6 +463,8 @@ export const breakText = function(text, size, styles, opt) {
     var separator = opt.separator || ' ';
     var eol = opt.eol || '\n';
     var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
+    var maxLineCount = opt.maxLineCount;
+    if (!isNumber(maxLineCount)) maxLineCount = Infinity;
 
     var words = text.split(separator);
     var full = [];
@@ -591,9 +590,16 @@ export const breakText = function(text, size, styles, opt) {
             i--;
         }
 
-        // if size.height is defined we have to check whether the height of the entire
-        // text exceeds the rect height
-        if (height !== undefined) {
+        var lastL = null;
+
+        if (lines.length > maxLineCount) {
+
+            lastL = maxLineCount - 1;
+
+        } else if (height !== undefined) {
+
+            // if size.height is defined we have to check whether the height of the entire
+            // text exceeds the rect height
 
             if (lineHeight === undefined) {
 
@@ -615,37 +621,41 @@ export const breakText = function(text, size, styles, opt) {
             if (lineHeight * lines.length > height) {
 
                 // remove overflowing lines
-                var lastL = Math.floor(height / lineHeight) - 1;
-                lines.splice(lastL + 1);
-
-                // add ellipsis
-                var ellipsis = opt.ellipsis;
-                if (!ellipsis || lastL < 0) break;
-                if (typeof ellipsis !== 'string') ellipsis = '\u2026';
-
-                var lastLine = lines[lastL];
-                if (!lastLine) break;
-                var k = lastLine.length;
-                var lastLineWithOmission, lastChar, separatorChar;
-                do {
-                    lastChar = lastLine[k];
-                    lastLineWithOmission = lastLine.substring(0, k);
-                    if (!lastChar) {
-                        separatorChar = (typeof separator === 'string') ? separator : ' ';
-                        lastLineWithOmission += separatorChar;
-                    } else if (lastChar.match(separator)) {
-                        lastLineWithOmission += lastChar;
-                    }
-                    lastLineWithOmission += ellipsis;
-                    textNode.data = lastLineWithOmission;
-                    if (textSpan.getComputedTextLength() <= width) {
-                        lines[lastL] = lastLineWithOmission;
-                        break;
-                    }
-                    k--;
-                } while (k >= 0);
-                break;
+                lastL = Math.floor(height / lineHeight) - 1;
             }
+        }
+
+        if (lastL !== null) {
+
+            lines.splice(lastL + 1);
+
+            // add ellipsis
+            var ellipsis = opt.ellipsis;
+            if (!ellipsis || lastL < 0) break;
+            if (typeof ellipsis !== 'string') ellipsis = '\u2026';
+
+            var lastLine = lines[lastL];
+            if (!lastLine) break;
+            var k = lastLine.length;
+            var lastLineWithOmission, lastChar, separatorChar;
+            do {
+                lastChar = lastLine[k];
+                lastLineWithOmission = lastLine.substring(0, k);
+                if (!lastChar) {
+                    separatorChar = (typeof separator === 'string') ? separator : ' ';
+                    lastLineWithOmission += separatorChar;
+                } else if (lastChar.match(separator)) {
+                    lastLineWithOmission += lastChar;
+                }
+                lastLineWithOmission += ellipsis;
+                textNode.data = lastLineWithOmission;
+                if (textSpan.getComputedTextLength() <= width) {
+                    lines[lastL] = lastLineWithOmission;
+                    break;
+                }
+                k--;
+            } while (k >= 0);
+            break;
         }
     }
 

@@ -120,6 +120,25 @@ QUnit.module('util', function(hooks) {
             return bbox;
         }
 
+        QUnit.test('maxLineCount', function(assert) {
+
+            var WIDTH = 100;
+            var t, r;
+
+            t = text;
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { maxLineCount: 0 });
+            assert.equal(r, '');
+
+            t = text;
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { maxLineCount: 1 });
+            assert.equal(r.split('\n').length, 1);
+
+            t = text;
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { maxLineCount: 2 });
+            assert.equal(r.split('\n').length, 2);
+        });
+
+
         QUnit.test('ellipsis', function(assert) {
 
             var WIDTH = 100;
