@@ -2428,6 +2428,11 @@ export namespace util {
     type IterateeFunction = (value: any) => NotVoid;
     type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
 
+    interface Cancelable {
+        cancel(): void;
+        flush(): void;
+    }
+
     type SourceObjectsOptionalFinalCustomizer = Array<object | CustomizerFunction>; // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
     type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
 
@@ -2471,7 +2476,7 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
-    export function debounce(func: Function, wait?: number, options?: object): Function;
+    export function debounce<T extends Function>(func: T, wait?: number, options?: object): T & Cancelable;
 
     export function groupBy(collection: Collection, iteratee?: Iteratee): object;
 
