@@ -259,7 +259,7 @@ export namespace dia {
 
         removeProp(path: string | string[], opt?: Cell.Options): this;
 
-        attr(key?: string): any;
+        attr(key?: string | string[]): any;
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
         attr(key: string, value: any, opt?: Cell.Options): this;
 
@@ -405,6 +405,8 @@ export namespace dia {
         hasPort(id: string): boolean;
 
         getPorts(): Element.Port[];
+
+        getGroupPorts(groupName: string): Element.Port[];
 
         getPort(id: string): Element.Port;
 
