@@ -406,6 +406,8 @@ export namespace dia {
 
         getPorts(): Element.Port[];
 
+        getGroupPorts(groupName: string): Element.Port[];
+
         getPort(id: string): Element.Port;
 
         getPortsPositions(groupName: string): { [id: string]: Element.PortPosition };
