@@ -58,6 +58,8 @@ export namespace dia {
 
     type MarkupJSON = MarkupNodeJSON[];
 
+    type Path = string | Array<string | number>;
+
     export namespace Graph {
 
         interface Options {
@@ -253,20 +255,20 @@ export namespace dia {
 
         isEmbedded(): boolean;
 
-        prop(key: string | string[]): any;
+        prop(key: Path): any;
         prop(object: Cell.Attributes, opt?: Cell.Options): this;
-        prop(key: string | string[], value: any, opt?: Cell.Options): this;
+        prop(key: Path, value: any, opt?: Cell.Options): this;
 
-        removeProp(path: string | string[], opt?: Cell.Options): this;
+        removeProp(path: Path, opt?: Cell.Options): this;
 
-        attr(key?: string | string[]): any;
+        attr(key?: Path): any;
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
-        attr(key: string | string[], value: any, opt?: Cell.Options): this;
+        attr(key: Path, value: any, opt?: Cell.Options): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
 
-        removeAttr(path: string | string[], opt?: Cell.Options): this;
+        removeAttr(path: Path, opt?: Cell.Options): this;
 
         transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
