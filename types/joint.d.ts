@@ -939,6 +939,21 @@ export namespace dia {
         type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
 
+        interface FreezeOptions {
+            key?: string
+        }
+
+        interface UnfreezeOptions {
+            key?: string;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            batchSize?: number;
+            viewport?: ViewportCallback;
+            progress?: ProgressCallback;
+            beforeRender?: BeforeRenderCallback
+            afterRender?: AfterRenderCallback
+        }
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
             width?: Dimension;
@@ -1165,20 +1180,9 @@ export namespace dia {
 
         // rendering
 
-        freeze(opt?: {
-            key?: string
-        }): void;
+        freeze(opt?: Paper.FeezeOptions): void;
 
-        unfreeze(opt?: {
-            key?: string;
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            batchSize?: number;
-            viewport?: Paper.ViewportCallback;
-            progress?: Paper.ProgressCallback;
-            beforeRender?: Paper.BeforeRenderCallback
-            afterRender?: Paper.AfterRenderCallback
-        }): void;
+        unfreeze(opt?: Paper.UnfreezeOptions): void;
 
         isFrozen(): boolean;
 
