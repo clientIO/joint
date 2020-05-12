@@ -261,7 +261,7 @@ export namespace dia {
 
         attr(key?: string | string[]): any;
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
-        attr(key: string, value: any, opt?: Cell.Options): this;
+        attr(key: string | string[], value: any, opt?: Cell.Options): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
