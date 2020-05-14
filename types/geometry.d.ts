@@ -673,7 +673,7 @@ export namespace g {
             p3: string | PlainPoint
         ): (t: number) => [IBezierCurve, IBezierCurve];
 
-        export function getFirectControlPoints(rhs: number[]): number[];
+        export function getFirstControlPoints(rhs: number[]): number[];
 
         export function getInversionSolver(
             p0: PlainPoint,
