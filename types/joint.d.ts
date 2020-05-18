@@ -416,7 +416,9 @@ export namespace dia {
 
         getPortIndex(port: string | Element.Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: Cell.Options): Element;
+        portProp(portId: string, path: dia.Path): any;
+
+        portProp(portId: string, path: dia.Path, value?: any, opt?: Cell.Options): Element;
 
         protected generatePortId(): string | number;
 
