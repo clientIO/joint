@@ -420,45 +420,39 @@ export const elementPortPrototype = {
     },
 
     removePort: function(port, opt) {
-
-        var options = opt || {};
-        var ports = util.assign([], this.prop('ports/items'));
-
-        var index = this.getPortIndex(port);
-
+        const options = opt || {};
+        const index = this.getPortIndex(port);
         if (index !== -1) {
+            const ports = util.assign([], this.prop(['ports', 'items']));
             ports.splice(index, 1);
             options.rewrite = true;
-            this.prop('ports/items', ports, options);
+            this.startBatch('port-remove');
+            this.prop(['ports', 'items'], ports, options);
+            this.stopBatch('port-remove');
         }
-
         return this;
     },
 
     removePorts: function(portsForRemoval, opt) {
-
-        var options;
-
+        let options, newPorts;
         if (Array.isArray(portsForRemoval)) {
             options = opt || {};
-
-            if (portsForRemoval.length) {
-                options.rewrite = true;
-                var currentPorts = util.assign([], this.prop('ports/items'));
-                var remainingPorts = currentPorts.filter(function(cp) {
-                    return !portsForRemoval.some(function(rp) {
-                        var rpId = util.isObject(rp) ? rp.id : rp;
-                        return cp.id === rpId;
-                    });
+            if (portsForRemoval.length === 0) return this.this;
+            const currentPorts = util.assign([], this.prop(['ports', 'items']));
+            newPorts = currentPorts.filter(function(cp) {
+                return !portsForRemoval.some(function(rp) {
+                    const rpId = util.isObject(rp) ? rp.id : rp;
+                    return cp.id === rpId;
                 });
-                this.prop('ports/items', remainingPorts, options);
-            }
+            });
         } else {
             options = portsForRemoval || {};
-            options.rewrite = true;
-            this.prop('ports/items', [], options);
+            newPorts = [];
         }
-
+        this.startBatch('port-remove');
+        options.rewrite = true;
+        this.prop(['ports', 'items'], newPorts, options);
+        this.stopBatch('port-remove');
         return this;
     },
 
