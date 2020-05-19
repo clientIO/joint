@@ -944,7 +944,7 @@ export namespace dia {
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
 
         interface FreezeOptions {
-            key?: string
+            key?: string;
         }
 
         interface UnfreezeOptions {
@@ -954,8 +954,8 @@ export namespace dia {
             batchSize?: number;
             viewport?: ViewportCallback;
             progress?: ProgressCallback;
-            beforeRender?: BeforeRenderCallback
-            afterRender?: AfterRenderCallback
+            beforeRender?: BeforeRenderCallback;
+            afterRender?: AfterRenderCallback;
         }
 
         interface Options extends mvc.ViewOptions<Graph> {
@@ -1184,7 +1184,7 @@ export namespace dia {
 
         // rendering
 
-        freeze(opt?: Paper.FeezeOptions): void;
+        freeze(opt?: Paper.FreezeOptions): void;
 
         unfreeze(opt?: Paper.UnfreezeOptions): void;
 
