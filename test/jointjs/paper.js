@@ -542,6 +542,77 @@ QUnit.module('paper', function(hooks) {
 
     });
 
+    QUnit.module('link:snap:connect/link:snap:disconnect events ', function(hooks) {
+
+        var disconnectSpy;
+        var connectSpy;
+        var element;
+        var link;
+
+        hooks.beforeEach(function() {
+            link = new joint.dia.Link();
+            element = new joint.shapes.devs.Model({
+                position: { x: 500, y: 250 },
+                size: { width: 100, height: 100 },
+                inPorts: ['in1', 'in2']
+            });
+            this.graph.addCells([element, link]);
+            disconnectSpy = sinon.spy();
+            connectSpy = sinon.spy();
+            this.paper.on('link:snap:disconnect', disconnectSpy);
+            this.paper.on('link:snap:connect', connectSpy);
+            this.paper.options.snapLinks = true;
+        });
+
+        ['source', 'target'].forEach(function(end) {
+
+            QUnit.test('snapping ' + end + ' to ports', function(assert) {
+
+                var paper = this.paper;
+                var linkView = link.findView(paper);
+                var elementView = element.findView(paper);
+                var arrowhead = linkView.el.querySelector('.marker-arrowhead[end=' + end + ']');
+                var ports = element.getPortsPositions('in');
+                var position = element.position();
+                var in1PortEl = elementView.el.querySelector('.port-body[port="in1"]');
+                var in2PortEl = elementView.el.querySelector('.port-body[port="in2"]');
+
+                var x, y, evt;
+                var data = {};
+                linkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                // Connect to IN1
+                x = position.x + ports.in1.x;
+                y = position.y + ports.in1.y;
+                evt = { target: paper.svg, type: 'mousemove', data: data };
+                linkView.pointermove(evt, x, y);
+                assert.ok(connectSpy.calledOnce);
+                assert.ok(connectSpy.calledWithExactly(linkView, evt, elementView, in1PortEl, end));
+                assert.notOk(disconnectSpy.called);
+                // Disconnect from IN1, Connect to IN2
+                x = position.x + ports.in2.x;
+                y = position.y + ports.in2.y;
+                evt = { target: paper.svg, type: 'mousemove', data: data };
+                linkView.pointermove(evt, x, y);
+                assert.ok(connectSpy.calledTwice);
+                assert.ok(connectSpy.calledWithExactly(linkView, evt, elementView, in2PortEl, end));
+                assert.ok(disconnectSpy.calledOnce);
+                assert.ok(disconnectSpy.calledWithExactly(linkView, evt, elementView, in1PortEl, end));
+                // Disconnect from IN2, Connect to a point
+                x = 0;
+                y = 0;
+                evt = { target: paper.svg, type: 'mousemove', data: data };
+                linkView.pointermove(evt, x, y);
+                assert.ok(connectSpy.calledTwice);
+                assert.ok(disconnectSpy.calledTwice);
+                assert.ok(disconnectSpy.calledWithExactly(linkView, evt, elementView, in2PortEl, end));
+
+                linkView.pointerup({ target: paper.svg, type: 'mouseup', data: data }, 0, 0);
+                assert.ok(connectSpy.calledTwice);
+                assert.ok(disconnectSpy.calledTwice);
+            });
+        });
+    });
+
     QUnit.module('connect/disconnect to ports event ', function(hooks) {
 
         var disconnectSpy;
