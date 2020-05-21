@@ -1871,15 +1871,13 @@ export const LinkView = CellView.extend({
 
     dragArrowhead: function(evt, x, y) {
 
-        var data = this.eventData(evt);
-
         if (this.paper.options.snapLinks) {
 
-            this._snapArrowhead(x, y, data);
+            this._snapArrowhead(evt, x, y);
 
         } else {
 
-            this._connectArrowhead(this.getEventTarget(evt), x, y, data);
+            this._connectArrowhead(this.getEventTarget(evt), x, y, this.eventData(evt));
         }
     },
 
@@ -1970,8 +1968,9 @@ export const LinkView = CellView.extend({
         }
     },
 
-    _snapArrowhead: function(x, y, data) {
+    _snapArrowhead: function(evt, x, y) {
 
+        const data = this.eventData(evt);
         // checking view in close area of the pointer
 
         var r = this.paper.options.snapLinks.radius || 50;
@@ -2044,10 +2043,19 @@ export const LinkView = CellView.extend({
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
 
         } else {
+
+
             end = { x: x, y: y };
         }
 
         this.model.set(endType, end || { x: x, y: y }, { ui: true });
+
+        if (prevClosestView) {
+            this.notify('link:snap:disconnect', evt, prevClosestView, prevClosestMagnet, endType);
+        }
+        if (closestView) {
+            this.notify('link:snap:connect', evt, closestView, closestMagnet, endType);
+        }
     },
 
     _snapArrowheadEnd: function(data) {

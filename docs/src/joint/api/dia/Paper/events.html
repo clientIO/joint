@@ -350,14 +350,28 @@
   <tr>
     <th>link:connect</th>
     <td>
-      <p>Triggered when a link is connected to a cell.</p>
+      <p>Triggered when a link is connected to a cell. The event is triggered after the user reconnects a link.</p>
       <p>The callback function is passed <code>linkView</code>, <code>evt</code>, <code>elementViewConnected</code>, <code>magnet</code> and <code>arrowhead</code> as arguments.</p>
     </td>
   </tr>
   <tr>
     <th>link:disconnect</th>
     <td>
-      <p>Triggered when a link is disconnected from a cell.</p>
+      <p>Triggered when a link is disconnected from a cell. The event is triggered after the user reconnects a link.</p>
+      <p>The callback function is passed <code>linkView</code>, <code>evt</code>, <code>elementViewDisconnected</code>, <code>magnet</code> and <code>arrowhead</code> as arguments.</p>
+    </td>
+  </tr>
+  <tr>
+    <th>link:snap:connect</th>
+    <td>
+      <p>Triggered when a link is connected to a cell. The event (or multiple events) can be triggered while the user is reconnecting a link and <a href="#dia.Paper.prototype.options.snapLinks">snapLinks</a> option is enabled.</p>
+      <p>The callback function is passed <code>linkView</code>, <code>evt</code>, <code>elementViewConnected</code>, <code>magnet</code> and <code>arrowhead</code> as arguments.</p>
+    </td>
+  </tr>
+  <tr>
+    <th>link:snap:disconnect</th>
+    <td>
+      <p>Triggered when a link is disconnected from a cell. The event (or multiple events) can be triggered while the user is reconnecting a link and <a href="#dia.Paper.prototype.options.snapLinks">snapLinks</a> option is enabled.</p>
       <p>The callback function is passed <code>linkView</code>, <code>evt</code>, <code>elementViewDisconnected</code>, <code>magnet</code> and <code>arrowhead</code> as arguments.</p>
     </td>
   </tr>
