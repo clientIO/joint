@@ -5,6 +5,7 @@ var paper = new joint.dia.Paper({
     width: 1000,
     height: 600,
     gridSize: 10,
+    async: true,
     model: graph
 });
 
@@ -76,7 +77,9 @@ link.toBack();
 graph.on('change:position', function(cell) {
 
     // has an obstacle been moved? Then reroute the link.
-    if (obstacles.indexOf(cell) > -1) paper.findViewByModel(link).update();
+    if (obstacles.indexOf(cell) > -1) {
+        link.findView(paper).requestConnectionUpdate();
+    }
 });
 
 paper.on('link:mouseenter', function(linkView) {

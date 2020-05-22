@@ -1838,6 +1838,8 @@ export namespace dia {
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
+        requestConnectionUpdate(opt?: { [key: string]: any }): void;
+
         setInteractivity(value: boolean | LinkView.InteractivityOptions): void;
 
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
