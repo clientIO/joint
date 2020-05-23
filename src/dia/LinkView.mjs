@@ -146,6 +146,11 @@ export const LinkView = CellView.extend({
         return flags;
     },
 
+    requestConnectionUpdate: function(opt) {
+        const { paper, UPDATE_PRIORITY } = this;
+        if (paper) paper.requestViewUpdate(this, this.getFlag('UPDATE'), UPDATE_PRIORITY, opt);
+    },
+
     isLabelsRenderRequired: function(opt = {}) {
 
         const previousLabels = this.model.previous('labels');
