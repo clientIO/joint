@@ -282,12 +282,12 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             rect.addTo(graph, { test1: true });
                             var rectView = rect.findView(paper);
                             assert.ok(onViewUpdateSpy.calledOnce);
-                            assert.ok(onViewUpdateSpy.calledWithExactly(rectView, sinon.match.number, sinon.match({ test1: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rectView, sinon.match.number, sinon.match.number, sinon.match({ test1: true }), paper));
                             assert.ok(onViewUpdateSpy.calledOn(paper));
                             onViewUpdateSpy.resetHistory();
                             rect.translate(10, 0, { test2: true });
                             assert.ok(onViewUpdateSpy.calledOnce);
-                            assert.ok(onViewUpdateSpy.calledWithExactly(rectView, sinon.match.number, sinon.match({ test2: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rectView, sinon.match.number, sinon.match.number, sinon.match({ test2: true }), paper));
                         });
 
                         QUnit.test('update connected links', function(assert) {
@@ -305,9 +305,30 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             var onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
                             rect1.translate(10, 0, { test: true });
                             assert.ok(onViewUpdateSpy.calledThrice);
-                            assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, sinon.match({ test: true }), paper));
-                            assert.ok(onViewUpdateSpy.calledWithExactly(link2.findView(paper), sinon.match.number, sinon.match({ test: true }), paper));
-                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1.findView(paper), sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link2.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(rect1.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                        });
+
+                        QUnit.test('update cycled links', function(assert) {
+                            var link1 = new joint.shapes.standard.Link();
+                            var link2 = new joint.shapes.standard.Link();
+                            link1.source(link2);
+                            link2.source(link1);
+                            paper.freeze();
+                            link1.addTo(graph);
+                            link2.addTo(graph);
+                            paper.unfreeze();
+                            var onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
+                            var confirmUpdateSpy = sinon.spy(joint.dia.LinkView.prototype, 'confirmUpdate');
+                            // This will trigger onViewUpdate thrice (link1 attrs, link2 source/target, link1 source/target)
+                            link1.attr('line/stroke', 'red', { test: true });
+                            assert.ok(onViewUpdateSpy.calledThrice);
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link1.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(link2.findView(paper), sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(confirmUpdateSpy.calledTwice);
+                            onViewUpdateSpy.restore();
+                            confirmUpdateSpy.restore();
                         });
                     });
 

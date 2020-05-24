@@ -16,11 +16,11 @@
         background: { color:  '#F3F7F6' },
         moveThreshold: 5,
         restrictTranslate: function(elementView) {
-            var padding = 20;
-            var bbox = elementView.model.getBBox();
+            var element = elementView.model;
+            var padding = (element.isEmbedded()) ? 20 : 10;
             return {
                 x: padding,
-                y: bbox.y,
+                y: element.getBBox().y,
                 width: paperWidth - 2 * padding,
                 height: 0
             };
@@ -29,7 +29,7 @@
             var cell = cellView.model;
             return (cell.isLink())
                 ? { linkMove: false, labelMove: false }
-                : { elementMove: cell instanceof sd.Role };
+                : true;
         }
     });
 
@@ -60,9 +60,9 @@
     role3.addTo(graph);
 
     var backend = new sd.RoleGroup();
-    backend.addTo(graph);
     backend.embed(role2);
     backend.embed(role3);
+    backend.addTo(graph);
     backend.fitRoles();
     backend.listenTo(graph, 'change:position', function(cell) {
         if (cell.isEmbeddedIn(this)) this.fitRoles();
@@ -83,26 +83,30 @@
     var message1 = new sd.Message();
     message1.setFromTo(lifeline1, lifeline2);
     message1.setStart(50);
-    message1.setDescription('HTTP GET Request');
+    message1.setDescription('HTTP GET Request →');
     message1.addTo(graph);
 
     var message2 = new sd.Message();
     message2.setFromTo(lifeline2, lifeline3);
     message2.setStart(150);
-    message2.setDescription('SQL Command');
+    message2.setDescription('SQL Command →');
     message2.addTo(graph);
 
     var message3 = new sd.Message();
     message3.setFromTo(lifeline3, lifeline2);
     message3.setStart(250);
-    message3.setDescription('Result Set');
+    message3.setDescription('← Result Set');
     message3.addTo(graph);
 
     var message4 = new sd.Message();
     message4.setFromTo(lifeline2, lifeline1);
     message4.setStart(350);
-    message4.setDescription('HTTP Response');
+    message4.setDescription('← HTTP Response');
     message4.addTo(graph);
+
+    var lifespan1 = new sd.LifeSpan();
+    lifespan1.attachToMessages(message2, message3);
+    lifespan1.addTo(graph);
 
     paper.unfreeze();
 

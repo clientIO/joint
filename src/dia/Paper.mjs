@@ -219,9 +219,9 @@ export const Paper = View.extend({
         frozen: false,
 
         // no docs yet
-        onViewUpdate: function(view, flag, opt, paper) {
+        onViewUpdate: function(view, flag, priority, opt, paper) {
             if ((flag & view.FLAG_INSERT) || opt.mounting) return;
-            paper.requestConnectedLinksUpdate(view, opt);
+            paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 
         // no docs yet
@@ -588,7 +588,7 @@ export const Paper = View.extend({
         return V.createSVGMatrix(this.cells.getScreenCTM());
     },
 
-    requestConnectedLinksUpdate: function(view, opt) {
+    requestConnectedLinksUpdate: function(view, priority, opt) {
         if (view instanceof CellView) {
             var model = view.model;
             var links = this.model.getConnectedLinks(model);
@@ -599,7 +599,8 @@ export const Paper = View.extend({
                 var flagLabels = ['UPDATE'];
                 if (link.getTargetCell() === model) flagLabels.push('TARGET');
                 if (link.getSourceCell() === model) flagLabels.push('SOURCE');
-                this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), linkView.UPDATE_PRIORITY, opt);
+                var nextPriority = Math.max(priority + 1, linkView.UPDATE_PRIORITY);
+                this.scheduleViewUpdate(linkView, linkView.getFlag(flagLabels), nextPriority, opt);
             }
         }
     },
@@ -643,11 +644,25 @@ export const Paper = View.extend({
 
     scheduleViewUpdate: function(view, type, priority, opt) {
         const { _updates: updates, options } = this;
-        var priorityUpdates = updates.priorities[priority];
+        const { FLAG_REMOVE, FLAG_INSERT, UPDATE_PRIORITY, cid } = view;
+        let priorityUpdates = updates.priorities[priority];
         if (!priorityUpdates) priorityUpdates = updates.priorities[priority] = {};
-        const { FLAG_REMOVE, FLAG_INSERT, cid } = view;
-        const currentType = priorityUpdates[cid] || 0;
-        // prevent cycling
+        // Move higher priority updates to this priority
+        if (priority > UPDATE_PRIORITY) {
+            // Not the default priority for this view. It's most likely a link view
+            // connected to another link view, which triggered the update.
+            // TODO: If there is an update scheduled with a lower priority already, we should
+            // change the requested priority to the lowest one. Does not seem to be critical
+            // right now, as it "only" results in multiple updates on the same view.
+            for (let i = priority - 1; i >= UPDATE_PRIORITY; i--) {
+                const prevPriorityUpdates = updates.priorities[i];
+                if (!prevPriorityUpdates || !(cid in prevPriorityUpdates)) continue;
+                priorityUpdates[cid] |= prevPriorityUpdates[cid];
+                delete prevPriorityUpdates[cid];
+            }
+        }
+        let currentType = priorityUpdates[cid] || 0;
+        // Prevent cycling
         if ((currentType & type) === type) return;
         if (!currentType) updates.count++;
         if (type & FLAG_REMOVE && currentType & FLAG_INSERT) {
@@ -659,7 +674,7 @@ export const Paper = View.extend({
         }
         priorityUpdates[cid] |= type;
         const viewUpdateFn = options.onViewUpdate;
-        if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, opt || {}, this);
+        if (typeof viewUpdateFn === 'function') viewUpdateFn.call(this, view, type, priority, opt || {}, this);
     },
 
     dumpViewUpdate: function(view) {
