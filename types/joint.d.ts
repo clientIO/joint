@@ -1013,7 +1013,7 @@ export namespace dia {
             sorting?: sorting;
             frozen?: boolean;
             viewport?: ViewportCallback | null;
-            onViewUpdate?: (view: mvc.View<any>, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewUpdate?: (view: mvc.View<any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
             beforeRender?: Paper.BeforeRenderCallback
             afterRender?: Paper.AfterRenderCallback
