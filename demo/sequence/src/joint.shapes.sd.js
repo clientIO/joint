@@ -1,12 +1,14 @@
-(function(standard) {
+(function(joint) {
+
+    var standard = joint.shapes.standard;
+    var dia = joint.dia;
 
     standard.Rectangle.define('sd.RoleGroup', {
         z: 1,
         attrs: {
             body: {
-                stroke: '#A0A0A0',
+                stroke: '#DDDDDD',
                 strokeWidth: 1,
-                strokeDasharray: '1,1',
                 fill: '#F9FBFA'
             }
         }
@@ -23,8 +25,8 @@
             body: {
                 stroke: '#A0A0A0',
                 strokeWidth: 1,
-                rx: 3,
-                ry: 3
+                rx: 2,
+                ry: 2
             },
             label: {
                 fontSize: 18,
@@ -61,16 +63,45 @@
         }
     });
 
-    standard.Link.define('sd.LifeSpan', {
+    dia.Link.define('sd.LifeSpan', {
         z: 4,
         attrs: {
             line: {
-                stroke: '#FF4365',
-                strokeWidth: 2,
-                targetMarker: null
+                connection: true,
+                stroke: '#222222',
+                strokeWidth: 2
             },
+            icon: {
+                atConnectionRatioIgnoreGradient: 0.5
+            }
         }
     }, {
+        markup: [{
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none',
+                'pointer-events': 'none'
+            }
+        }, {
+            tagName: 'g',
+            selector: 'icon',
+            children: [{
+                tagName: 'circle',
+                attributes: {
+                    'r': 12,
+                    'fill': '#222222'
+                }
+            }, {
+                tagName: 'path',
+                attributes: {
+                    'd': 'M -3 -4 3 -4 3 -2 -3  2 -3 4 3 4 3 2 -3 -2 Z',
+                    'stroke': '#FFFFFF',
+                    'stroke-width': 1,
+                    'fill': 'none'
+                }
+            }]
+        }],
         attachToMessages: function(from, to) {
             this.source(from, { anchor: { name: 'connectionRatio', args: { ratio: 1 }}});
             this.target(to, { anchor: { name: 'connectionRatio', args: { ratio: 0 }}});
@@ -86,7 +117,7 @@
                 stroke: '#4666E5',
                 sourceMarker: {
                     'type': 'path',
-                    'd': 'M 0 -6 0 6',
+                    'd': 'M -3 -3 -3 3 3 3 3 -3 z',
                     'stroke-width': 3
                 }
             },
@@ -113,17 +144,16 @@
                     refHeight2: 10,
                     refX: -10,
                     refY: -5,
-                    rx: 3,
-                    ry: 3,
-                    fill: '#22222'
+                    rx: 2,
+                    ry: 2,
+                    fill: '#4666E5'
                 },
                 labelText: {
-                    refY: 10,
                     fill: '#FFFFFF',
                     fontSize: 12,
                     fontFamily: 'sans-serif',
                     textAnchor: 'middle',
-                    textVerticalAnchor: 'top',
+                    textVerticalAnchor: 'middle',
                     cursor: 'grab'
                 }
             }
@@ -142,4 +172,4 @@
         }
     });
 
-})(joint.shapes.standard);
+})(joint);
