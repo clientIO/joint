@@ -17,7 +17,7 @@ Or check out our [mind-map documentation](https://resources.jointjs.com/mmap/joi
 * ready-to-use diagram elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...)
 * custom diagram elements based on SVG or programmatically rendered
 * interactive elements and links
-* connecting diagram elements with links or create a link to link connections
+* connecting diagram elements with links or links with links
 * customizable links, their arrowheads and labels
 * links smoothing (bezier interpolation)
 * magnets (link connection points) can be placed basically anywhere
