@@ -17,7 +17,7 @@ Or check out our [mind-map documentation](https://resources.jointjs.com/mmap/joi
 * ready-to-use diagram elements of well-known diagrams (ERD, Org chart, FSA, UML, PN, DEVS, ...)
 * custom diagram elements based on SVG or programmatically rendered
 * interactive elements and links
-* connecting diagram elements with links
+* connecting diagram elements with links or create a link to link connections
 * customizable links, their arrowheads and labels
 * links smoothing (bezier interpolation)
 * magnets (link connection points) can be placed basically anywhere
@@ -38,7 +38,7 @@ Or check out our [mind-map documentation](https://resources.jointjs.com/mmap/joi
 * Latest Safari (including mobile)
 * Latest MSEdge
 * Latest Opera
-* IE 10+
+* IE 11
 * PhantomJS
 
 Any problem with JointJS in the above browsers should be reported as a bug in JointJS.
@@ -66,11 +66,20 @@ Change into the joint directory:
 cd joint
 ```
 
-Run installation
+Install all NPM dependencies:
 ```
 npm install
 ```
-This will install all npm dependencies as well as run a full build.
+
+Generate build files from the source code:
+```
+grunt install
+```
+
+You are ready now to browse our demos:
+```
+cd demo
+```
 
 ### Tests
 
