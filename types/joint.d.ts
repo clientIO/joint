@@ -830,6 +830,8 @@ export namespace dia {
 
         update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
 
+        requestConnectionUpdate(opt?: { [key: string]: any }): void;
+
         setInteractivity(value: boolean | LinkView.InteractivityOptions): void;
 
         getEndView(endType: dia.LinkEnd): dia.CellView | null;

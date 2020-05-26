@@ -95,7 +95,7 @@
             }, {
                 tagName: 'path',
                 attributes: {
-                    'd': 'M -3 -4 3 -4 3 -2 -3  2 -3 4 3 4 3 2 -3 -2 Z',
+                    'd': 'M -3 -5 3 -5 3 -2 -3  2 -3 5 3 5 3 2 -3 -2 Z',
                     'stroke': '#FFFFFF',
                     'stroke-width': 1,
                     'fill': 'none'
