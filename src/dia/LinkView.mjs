@@ -1756,6 +1756,7 @@ export const LinkView = CellView.extend({
             }
 
             this.notifyPointerdown(evt, x, y);
+            this.paper.delegateDragEvents(this, evt.data);
 
         } else {
             CellView.prototype.onevent.apply(this, arguments);
