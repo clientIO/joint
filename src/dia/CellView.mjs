@@ -947,9 +947,11 @@ export const CellView = View.extend({
 
     pointerdown: function(evt, x, y) {
 
-        if (this.model.graph) {
-            this.model.startBatch('pointer');
-            this._graph = this.model.graph;
+        const { model } = this;
+        const { graph } = model;
+        if (graph) {
+            model.startBatch('pointer');
+            this.eventData(evt, { graph });
         }
 
         this.notify('cell:pointerdown', evt, x, y);
@@ -962,13 +964,14 @@ export const CellView = View.extend({
 
     pointerup: function(evt, x, y) {
 
+        const { graph } = this.eventData(evt);
+
         this.notify('cell:pointerup', evt, x, y);
 
-        if (this._graph) {
+        if (graph) {
             // we don't want to trigger event on model as model doesn't
             // need to be member of collection anymore (remove)
-            this._graph.stopBatch('pointer', { cell: this.model });
-            delete this._graph;
+            graph.stopBatch('pointer', { cell: this.model });
         }
     },
 
