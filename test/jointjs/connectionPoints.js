@@ -84,6 +84,12 @@ QUnit.module('connectionPoints', function(hooks) {
                 line = new g.Line(tp.clone(), sp.clone());
                 cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { offset: 1e6 });
                 assert.ok(cp.distance(sp) < sp.distance(tp));
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { offset: { x: 11, y: 0 }});
+                assert.ok(cp.round().equals(sp.move(tp, -11).round()));
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { offset: { x: 11, y: 13 }});
+                assert.equal(cp.distance(sp), Math.sqrt(13 * 13 + 11 * 11));
             });
         });
     });

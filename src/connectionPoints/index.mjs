@@ -2,8 +2,17 @@ import * as g from '../g/index.mjs';
 import V from '../V/index.mjs';
 import * as util from '../util/index.mjs';
 
-function offset(p1, p2, offset) {
-
+function offsetPoint(p1, p2, offset) {
+    if (util.isPlainObject(offset)) {
+        const { x, y } = offset;
+        if (isFinite(y)) {
+            const line =  new g.Line(p2, p1);
+            const { start, end } = line.parallel(y);
+            p2 = start;
+            p1 = end;
+        }
+        offset = x;
+    }
     if (!isFinite(offset)) return p1;
     var length = p1.distance(p2);
     if (offset === 0 && length > 0) return p1;
@@ -61,15 +70,10 @@ function alignLine(line, type, offset = 0) {
 
 // Connection Points
 
-function anchorIntersection(line, _view, _magnet, opt) {
-    let { offset: distance, alignOffset, align } = opt;
+function anchorConnectionPoint(line, _view, _magnet, opt) {
+    let { offset, alignOffset, align } = opt;
     if (align) alignLine(line, align, alignOffset);
-    if (util.isPlainObject(distance)) {
-        const { x, y } = distance;
-        if (isFinite(y)) line = line.parallel(y);
-        distance = x;
-    }
-    return offset(line.end, line.start, distance);
+    return offsetPoint(line.end, line.start, offset);
 }
 
 function bboxIntersection(line, view, magnet, opt) {
@@ -80,7 +84,7 @@ function bboxIntersection(line, view, magnet, opt) {
     var cp = (intersections)
         ? line.start.chooseClosest(intersections)
         : line.end;
-    return offset(cp, line.start, opt.offset);
+    return offsetPoint(cp, line.start, opt.offset);
 }
 
 function rectangleIntersection(line, view, magnet, opt) {
@@ -98,7 +102,7 @@ function rectangleIntersection(line, view, magnet, opt) {
     var cp = (intersections)
         ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
         : line.end;
-    return offset(cp, line.start, opt.offset);
+    return offsetPoint(cp, line.start, opt.offset);
 }
 
 function findShapeNode(magnet) {
@@ -187,10 +191,10 @@ function boundaryIntersection(line, view, magnet, opt) {
     var cpOffset = opt.offset || 0;
     if (opt.stroke) cpOffset += stroke(node) / 2;
 
-    return offset(cp, line.start, cpOffset);
+    return offsetPoint(cp, line.start, cpOffset);
 }
 
-export const anchor = anchorIntersection;
+export const anchor = anchorConnectionPoint;
 export const bbox = bboxIntersection;
 export const rectangle = rectangleIntersection;
 export const boundary = boundaryIntersection;
