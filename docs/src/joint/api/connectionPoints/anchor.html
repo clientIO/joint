@@ -1,4 +1,33 @@
-<p>The <code>'anchor'</code> connection point function is the simplest connection point function. It places the connection point at the link end's anchor point (determined either by the <code>anchor</code> <a href="#anchors">function</a> or by the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a>).
+<p>The <code>'anchor'</code> connection point function is the simplest connection point function. It places the connection point at the link end's anchor point (determined either by the <code>anchor</code> <a href="#anchors">function</a> or by the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a>). It accepts a few additional arguments, which can be passed within the <code>connectionPoint.args</code> property:</p>
+
+<table>
+    <tr>
+        <th>offset</th>
+        <td><i>number | object</i></td>
+        <td>An object with <code>x</code> and <code>y</code> properties. The connection point will be moved:
+            <ul>
+                <li>
+                    from the anchor point by <code>x</code> points in the direction of the first link path end segment.
+                </li>
+                <li>
+                    by <code>y</code> points in the direction of the first link path end segment rotated by 90 degrees anti-clockwise around the anchor point.
+                </li>
+            </ul>
+            If a number is provided, the <code>x</code> offset will be performed.
+        </td>
+    </tr>
+    <tr>
+        <th>align</th>
+        <td><i>'top' | 'bottom' | 'left' | 'right'</i></td>
+        <td>Align the connection point with the first link path end segment opposite point.</td>
+    </tr>
+    <tr>
+        <th>alignOffset</th>
+        <td><i>number</i></td>
+        <td>Offset the connection point in the direction of the alignment.</td>
+    </tr>
+</table>
+
 
 <p>Example:</p>
 
