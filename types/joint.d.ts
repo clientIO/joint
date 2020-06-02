@@ -3447,6 +3447,7 @@ export namespace linkTools {
         interface Options extends dia.ToolView.Options {
             snap?: AnchorCallback<dia.Point>,
             anchor?: AnchorCallback<anchors.AnchorJSON>,
+            resetAnchor?: boolean | anchors.AnchorJSON;
             customAnchorAttributes?: attributes.NativeSVGAttributes;
             defaultAnchorAttributes?: attributes.NativeSVGAttributes;
             areaPadding?: number;

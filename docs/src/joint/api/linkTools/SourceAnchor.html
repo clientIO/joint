@@ -22,6 +22,17 @@
         <td>While the user is moving the anchor, from how far away should the segment snap in order to arrange itself in line with the anchor reference? Default is <code>10</code>. (For link source, the anchor reference is the first vertex. If there are no vertices, it is the target anchor.)</td>
     </tr>
     <tr>
+        <th>resetAnchor</th>
+        <td><i>boolean | object</i></td>
+        <td>When the user double clicks the anchor tool, the following action should be performed:
+            <ul>
+                <li><code>true</code> - remove the current source anchor from the link. It is a default.</li>
+                <li><code>false</code> - do nothing</li>
+                <li><code>{ name: [AnchorName], args: [AnchorArguments] }</code> - replace the current source anchor with the option value.</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
         <th>snap</th>
         <td><i>function</i></td>
         <td>What snap function should be applied when the user moves the anchor? Default is a simple function that emulates the snapping behavior of <a href="#linkTools.Vertices">Vertices</a> and <a href="#linkTools.Segments">Segments</a> link tools: If the value of one of the user pointer coordinates is within <code>snapRadius</code> of the value of a coordinate of the anchor reference, snap to the reference value. (For link source, the anchor reference is the first vertex. If there are no vertices, it is the target anchor.)<br><br>

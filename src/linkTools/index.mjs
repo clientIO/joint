@@ -895,6 +895,7 @@ var Anchor = ToolView.extend({
     options: {
         snap: snapAnchor,
         anchor: getAnchor,
+        resetAnchor: true,
         customAnchorAttributes: {
             'stroke-width': 4,
             'stroke': '#33334F',
@@ -1059,7 +1060,10 @@ var Anchor = ToolView.extend({
     },
 
     onPointerDblClick: function() {
-        this.resetAnchor();
+        var anchor = this.options.resetAnchor;
+        if (anchor === false) return; // reset anchor disabled
+        if (anchor === true) anchor = null; // remove the current anchor
+        this.resetAnchor(util.cloneDeep(anchor));
         this.update();
     }
 });
