@@ -1,4 +1,4 @@
-<p>The <code>'anchor'</code> connection point function is the simplest connection point function. It places the connection point at the link end's anchor point (determined either by the <code>anchor</code> <a href="#anchors">function</a> or by the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a>). It accepts several additional arguments, which can be passed within the <code>connectionPoint.args</code> property:</p>
+<p>The <code>'anchor'</code> places the connection point so that it coincides with the link end's anchor point (determined either by the <code>anchor</code> <a href="#anchors">function</a> or by the <code>defaultAnchor</code> <a href="#dia.Paper.prototype.options.defaultAnchor">paper option</a>). The position of the connection point may be modified by several additional arguments, which may be passed within the <code>connectionPoint.args</code> property:</p>
 
 <table>
     <tr>
@@ -7,10 +7,10 @@
         <td>An object with <code>x</code> and <code>y</code> properties. The connection point will be moved:
             <ul>
                 <li>
-                    from the anchor point by <code>x</code> points in the direction of the first link path end segment.
+                    from the anchor point by <code>x</code> pixels in the direction of the corresponding link end's path segment.
                 </li>
                 <li>
-                    by <code>y</code> points in the direction of the first link path end segment rotated by 90 degrees anti-clockwise around the anchor point.
+                    by <code>y</code> pixels in the direction of the corresponding link end's path segment, rotated by 90 degrees anti-clockwise around the anchor point.
                 </li>
             </ul>
             If a number is provided, it will be used as the <code>x</code> offset.
