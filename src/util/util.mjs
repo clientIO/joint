@@ -698,7 +698,7 @@ export const sanitizeHTML = function(html) {
 
             // Remove attribute names that start with "on" (e.g. onload, onerror...).
             // Remove attribute values that start with "javascript:" pseudo protocol (e.g. `href="javascript:alert(1)"`).
-            if (attrName.indexOf('on') === 0 || attrValue.indexOf('javascript:') === 0) {
+            if (attrName.startsWith('on') || attrValue.startsWith('javascript:') || attrValue.startsWith('data:') || attrValue.startsWith('vbscript:')) {
                 $(currentNode).removeAttr(attrName);
             }
         });
