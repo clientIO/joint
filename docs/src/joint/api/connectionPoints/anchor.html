@@ -18,13 +18,18 @@
     </tr>
     <tr>
         <th>align</th>
-        <td><i>'top' | 'bottom' | 'left' | 'right'</i></td>
-        <td>Align the connection point with the first link path end segment opposite point.</td>
+        <td><i>'top' | 'left' | 'bottom' | 'right'</i></td>
+        <td>Offset the connection point to the point given by projecting the first vertex onto the vector which points from the anchor point in the direction specified. (If there are no vertices, use the projection of the other anchor point instead.) Notably, if the reference point is not the <q>direction</q>-most point of the two, the connection point is set to be the same as the anchor point. Let us illustrate that outcome and the other possible outcome on the `'top'` direction:
+    <ul>
+        <li>The reference point lies below the anchor point. The anchor point is the topmost point of the two, so the connection point receives both the `x` and `y` coordinates from the anchor point. The connection point is set to be coincident with the anchor point.</li>
+        <li>The reference point lies above the anchor point. In this case, the reference point is the topmost point of the two, so the connection point receives the `y` coordinate from the reference point. The connection point still receives the `x` coordinate from the anchor point. This means that the connection point is offset from the anchor point in the `'top'` direction. The three points create a right-angled triangle, with the right angle at the connection point.</li>
+    </ul>
+    </td>
     </tr>
     <tr>
         <th>alignOffset</th>
         <td><i>number</i></td>
-        <td>Offset the connection point in the direction of the alignment.</td>
+        <td>After having determined the position of the connection point according to the `align` algorithm (see above), additionally offset the connection point by the specified amount in the direction specified by `align`.</td>
     </tr>
 </table>
 
