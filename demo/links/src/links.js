@@ -367,7 +367,7 @@ var link9 = new joint.dia.Link({
 });
 
 var el1 = new joint.shapes.standard.Path({
-    position: { x: 500, y: 450 },
+    position: { x: 500, y: 430 },
     size: { width: 100, height: 100 },
     attrs: {
         body: {
@@ -549,8 +549,92 @@ var link12 = new joint.dia.Link({
     }
 });
 
+var link13 = new joint.shapes.standard.Link({
+    source: {
+        id: el1.id,
+        anchor: { name: 'bottomRight' },
+        connectionPoint: { name: 'anchor', args: { align: 'bottom', alignOffset: 20 }}
+    },
+    target: {
+        id: el1.id,
+        anchor: { name: 'bottomLeft' },
+        connectionPoint: { name: 'anchor', args: { align: 'bottom', alignOffset: 20 }}
+    },
+    attrs: {
+        line: {
+            strokeWidth: 3,
+            strokeDasharray: '3,1',
+            sourceMarker: {
+                'd': 'M 0 -10 0 10',
+                'stroke-width': 3
+            },
+            targetMarker: {
+                'd': 'M 0 -10 0 10',
+                'stroke-width': 3
+            }
+        }
+    }
+});
 
-graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11, link12]);
+var link14 = new joint.dia.Link({
+    markup: [{
+        tagName: 'path',
+        selector: 'line1',
+        groupSelector: 'lines'
+    }, {
+        tagName: 'path',
+        selector: 'line2',
+        groupSelector: 'lines'
+    }, {
+        tagName: 'path',
+        selector: 'line3',
+        groupSelector: 'lines'
+    }],
+    connector: { name: 'rounded' },
+    source: { x: 30, y: 550 },
+    target: { x: 30, y: 400 },
+    attrs: {
+        lines: {
+            connection: true,
+            strokeDasharray: '10,20',
+            strokeLinejoin: 'round',
+            fill: 'none'
+        },
+        line1: {
+            stroke: '#fe854f',
+            strokeWidth: 10
+        },
+        line2: {
+            stroke: '#7c68fc',
+            strokeDashoffset: 10,
+            strokeWidth: 10,
+        },
+        line3: {
+            stroke: '#222138',
+            strokeDashoffset: 20,
+            strokeWidth: 5,
+            sourceMarker: {
+                'type': 'circle',
+                'r': 10,
+                'cx': 5,
+                'fill': '#fe854f',
+                'stroke': '#222138',
+                'stroke-width': 5
+            },
+            targetMarker: {
+                'type': 'circle',
+                'r': 10,
+                'cx': 5,
+                'fill': '#7c68fc',
+                'stroke': '#222138',
+                'stroke-width': 5
+            }
+        }
+    }
+});
+
+
+graph.resetCells([el1, link1, link2, link3, link4, link5, link6, link7, link8, link9, link10, link11, link12, link13, link14]);
 
 // Custom Link Tools
 
@@ -719,6 +803,13 @@ paper.on('link:mouseenter', function(linkView) {
                 new joint.linkTools.TargetArrowhead()
             ];
             break;
+        case link14:
+            tools = [
+                new joint.linkTools.Vertices(),
+                new joint.linkTools.SourceArrowhead(),
+                new joint.linkTools.TargetArrowhead()
+            ];
+            break;
         default:
             return;
     }
@@ -741,6 +832,30 @@ link10.findView(paper).addTools(new joint.dia.ToolsView({
     tools: [
         new joint.linkTools.TargetAnchor(),
         new RectangleSourceArrowhead()
+    ]
+}));
+
+link13.findView(paper).addTools(new joint.dia.ToolsView({
+    name: 'permanent',
+    tools: [
+        new joint.linkTools.TargetAnchor({
+            restrictArea: false,
+            snap: function(coords) {
+                var bbox = this.model.getTargetCell().getBBox();
+                coords.y = bbox.bottomMiddle().y;
+                coords.x = Math.min(bbox.x + bbox.width, coords.x);
+                return coords;
+            }
+        }),
+        new joint.linkTools.SourceAnchor({
+            restrictArea: false,
+            snap: function(coords) {
+                var bbox = this.model.getSourceCell().getBBox();
+                coords.x = bbox.bottomRight().x;
+                coords.y = Math.max(bbox.y, coords.y);
+                return coords;
+            }
+        }),
     ]
 }));
 

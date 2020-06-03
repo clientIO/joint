@@ -2919,8 +2919,15 @@ export namespace linkAnchors {
 
 export namespace connectionPoints {
 
+    type ConnectionPointAlignment = 'top' | 'bottom' | 'left' | 'right';
+
     interface DefaultConnectionPointArguments {
-        offset?: number;
+        offset?: number | dia.Point;
+    }
+
+    interface AlignConnectionPointArguments extends DefaultConnectionPointArguments {
+        align?: ConnectionPointAlignment | null;
+        alignOffset?: number;
     }
 
     interface StrokeConnectionPointArguments extends DefaultConnectionPointArguments {

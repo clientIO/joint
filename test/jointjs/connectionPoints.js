@@ -84,6 +84,46 @@ QUnit.module('connectionPoints', function(hooks) {
                 line = new g.Line(tp.clone(), sp.clone());
                 cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { offset: 1e6 });
                 assert.ok(cp.distance(sp) < sp.distance(tp));
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { offset: { x: 11, y: 0 }});
+                assert.ok(cp.round().equals(sp.move(tp, -11).round()));
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { offset: { x: 11, y: 13 }});
+                assert.equal(cp.distance(sp), Math.sqrt(13 * 13 + 11 * 11));
+            });
+
+            QUnit.test('align, alignOffset', function(assert) {
+                var connectionPointFn = joint.connectionPoints.anchor;
+                var cp, line;
+                var length = sp.distance(tp);
+                // bottom
+                line = new g.Line(tp.clone().translate(0, 100), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'bottom' });
+                assert.ok(cp.round().translate(0, -100).equals(sp));
+                line = new g.Line(tp.clone().translate(0, 100), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'bottom', alignOffset: 20 });
+                assert.ok(cp.round().translate(0, -100 - 20).equals(sp));
+                // top
+                line = new g.Line(tp.clone().translate(0, -100), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'top' });
+                assert.ok(cp.round().translate(0, 100).equals(sp));
+                line = new g.Line(tp.clone().translate(0, -100), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'top', alignOffset: 20 });
+                assert.ok(cp.round().translate(0, 100 + 20).equals(sp));
+                // left
+                line = new g.Line(tp.clone().translate(-length - 100, 0), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'left' });
+                assert.ok(cp.round().equals(sp.clone().translate(-100, 0)));
+                line = new g.Line(tp.clone().translate(-length - 100, 0), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'left', alignOffset: 20 });
+                assert.ok(cp.round().equals(sp.clone().translate(-100 - 20, 0)));
+                // right
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'right' });
+                assert.ok(cp.round().equals(sp.clone().translate(length, 0)));
+                line = new g.Line(tp.clone(), sp.clone());
+                cp = connectionPointFn.call(lv1, line, rv1, rv1.el, { align: 'right', alignOffset: 20 });
+                assert.ok(cp.round().equals(sp.clone().translate(length + 20, 0)));
             });
         });
     });
