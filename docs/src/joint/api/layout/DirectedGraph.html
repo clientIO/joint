@@ -57,17 +57,29 @@ number of pixels to use as a margin around the top and bottom of the graph.</td>
     </tr>
     <tr><th>dagre</th>
         <td>
-            Optional. The DirectedGraph plugin has the dependency to the <a href="https://github.com/dagrejs/dagre">dagre</a> lay-outing tool. The DirectedGraph is expecting to have the <code>dagre</code> variable in the global namespace, you can, however, pass your own instance of the <code>dagre</code> using this property.</td>
+            Optional. The DirectedGraph plugin has the dependency to the <a target="_blank" href="https://github.com/dagrejs/dagre">dagre</a> lay-outing tool. The DirectedGraph is expecting to have the <code>dagre</code> variable in the global namespace, you can, however, pass your own instance of the <code>dagre</code> using this property.</td>
     </tr>
     <tr><th>graphlib</th>
         <td>
-            Optional. The DirectedGraph plugin has the dependency to the <a href="https://github.com/dagrejs/graphlib">graphlib</a> - a directed multi-graph library. The DirectedGraph is expecting to have the <code>grpahlib</code> variable in the global namespace, you can, however, pass your own instance of the <code>graphlib</code> using this property.</td>
+            Optional. The DirectedGraph plugin has the dependency to the <a target="_blank" href="https://github.com/dagrejs/graphlib">graphlib</a> - a directed multi-graph library. The DirectedGraph is expecting to have the <code>grpahlib</code> variable in the global namespace, you can, however, pass your own instance of the <code>graphlib</code> using this property.</td>
+    </tr>
+    <tr><th>exportElement(element)</th>
+        <td>
+            Convert element attributes into dagre <a target="_blank" href="https://github.com/dagrejs/dagre/wiki#configuring-the-layout">node</a> attributes.
+            By default, it returns the <a href="#layout.DirectedGraph.cellAttributes">element attributes</a> below.
+        </td>
+    </tr>
+    <tr><th>exportLink(link)</th>
+        <td>
+            Convert link attributes into dagre <a target="_blank" href="https://github.com/dagrejs/dagre/wiki#configuring-the-layout">edge</a> attributes.
+            By default, it returns the <a href="#layout.DirectedGraph.cellAttributes">link attributes</a> below.
+        </td>
     </tr>
 </table>
 
 <p>Additionally, the layout engine takes into account some properties on elements/links to fine tune the layout further. These are:</p>
 
-<table>
+<table id="layout.DirectedGraph.cellAttributes">
     <tr>
         <th>size</th>
         <td>element</td>
