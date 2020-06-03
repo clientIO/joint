@@ -9,7 +9,7 @@
         "dagre": "0.8.4",
         "graphlib": "2.1.7",
         "jquery": "3.4.1",
-        "lodash": "4.17.11"
+        "lodash": "4.17.13"
     },
     "devDependencies": {
         "@types/backbone": "1.3.43",
