@@ -1,3 +1,31 @@
+04-6-2020 (v3.2.0)
+ * add Sequence Diagram demo
+ * add HTML Elements demo
+ * upgrade jQuery dependency
+ * dia.Paper - add beforeRender and afterRender options, add hasScheduledUpdates(), trigger `render:done` in sync mode
+ * dia.Paper - fix missing initial render:done event
+ * dia.Paper - prevent the prototype options modification, persist functions passed as options
+ * dia.Paper - scaleContentToFit() padding option accepts object
+ * dia.Paper - fix isMounted argument of viewport() option
+ * dia.Paper - dynamic link update priorities (fix for "link connected to other two links" update bug)
+ * dia.Element - port removal runs in batch
+ * dia.Element - add getGroupPorts()
+ * dia.Element - prevent exception in getPointFromConnectedLink() when port does not exist
+ * dia.LinkView - fix never ending batch for legacy link tools
+ * dia.LinkView - add requestConnectionUpdate()
+ * dia.LinkView - trigger link:snap:connect and link:snap:disconnect events
+ * dia.LinkView - prevent exception when labels and connection require update
+ * dia.LinkView - measure snap distance for links from magnet's boundary
+ * dia.LinkView - add getEndConnectionPoint()
+ * mvc.View - add DETACHABLE property to ignore viewport matching, FLAG_INSERT & FLAG_REMOVE defined on per view basis
+ * linkTools.Anchor: add resetAnchor option
+ * linkTools.Segments: add stopPropagation option
+ * connectionPoints.anchor - add align and alignOffset options
+ * attributes.textWrap: add maxLineCount option
+ * util.breakText - retain new line characters, add maxLineCount option
+ * util.sanitizeHTML: sanitize attribute values with "data:" and "vbscript:"
+ * Geometry - add parallel() to Line, add serialize() to Point and Line
+
 28-11-2019 (v3.1.1)
 
  * dia.CellView - prevent DOM exceptions when invalid attrs provided

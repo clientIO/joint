@@ -1,4 +1,4 @@
-/*! JointJS v3.1.1 (2019-10-28) - JavaScript diagramming library
+/*! JointJS v3.2.0 (2020-06-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -286,6 +286,8 @@ export namespace g {
 
         clone(): Line;
 
+        parallel(): Line;
+
         closestPoint(p: PlainPoint | string): Point;
 
         closestPointLength(p: PlainPoint | string): number;
@@ -342,6 +344,8 @@ export namespace g {
         vector(): Point;
 
         toString(): string;
+
+        serialize(): string;
     }
 
     class Path {
@@ -510,6 +514,8 @@ export namespace g {
         toPolar(origin?: PlainPoint | string): this;
 
         toString(): string;
+
+        serialize(): string;
 
         translate(tx?: number, ty?: number): this;
         translate(tx: PlainPoint): this;
@@ -691,7 +697,7 @@ export namespace g {
             p3: string | PlainPoint
         ): (t: number) => [IBezierCurve, IBezierCurve];
 
-        export function getFirectControlPoints(rhs: number[]): number[];
+        export function getFirstControlPoints(rhs: number[]): number[];
 
         export function getInversionSolver(
             p0: PlainPoint,
@@ -1074,6 +1080,8 @@ export namespace dia {
 
     type MarkupJSON = MarkupNodeJSON[];
 
+    type Path = string | Array<string | number>;
+
     export namespace Graph {
 
         interface Options {
@@ -1215,6 +1223,7 @@ export namespace dia {
 
         interface Constructor<T extends Backbone.Model> {
             new (opt?: { id: string }): T
+            define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
         interface Options {
@@ -1242,8 +1251,8 @@ export namespace dia {
         constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
 
         id: string | number;
-
         graph: Graph;
+        markup: string | MarkupJSON;
 
         protected generateId(): string | number;
 
@@ -1268,20 +1277,20 @@ export namespace dia {
 
         isEmbedded(): boolean;
 
-        prop(key: string | string[]): any;
+        prop(key: Path): any;
         prop(object: Cell.Attributes, opt?: Cell.Options): this;
-        prop(key: string | string[], value: any, opt?: Cell.Options): this;
+        prop(key: Path, value: any, opt?: Cell.Options): this;
 
-        removeProp(path: string | string[], opt?: Cell.Options): this;
+        removeProp(path: Path, opt?: Cell.Options): this;
 
-        attr(key?: string): any;
+        attr(key?: Path): any;
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
-        attr(key: string, value: any, opt?: Cell.Options): this;
+        attr(key: Path, value: any, opt?: Cell.Options): this;
 
         clone(): Cell;
         clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
 
-        removeAttr(path: string | string[], opt?: Cell.Options): this;
+        removeAttr(path: Path, opt?: Cell.Options): this;
 
         transition(path: string, value?: any, opt?: Cell.TransitionOptions, delim?: string): number;
 
@@ -1429,7 +1438,9 @@ export namespace dia {
 
         getPortIndex(port: string | Element.Port): number;
 
-        portProp(portId: string, path: any, value?: any, opt?: Cell.Options): Element;
+        portProp(portId: string, path: dia.Path): any;
+
+        portProp(portId: string, path: dia.Path, value?: any, opt?: Cell.Options): Element;
 
         protected generatePortId(): string | number;
 
@@ -1502,7 +1513,6 @@ export namespace dia {
 
     class Link extends Cell {
 
-        markup: string;
         toolMarkup: string;
         doubleToolMarkup?: string;
         vertexMarkup: string;
@@ -1693,7 +1703,11 @@ export namespace dia {
 
         protected onmagnet(evt: dia.Event, x: number, y: number): void;
 
-        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes
+        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
+
+        protected getLinkEnd(magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -1842,6 +1856,14 @@ export namespace dia {
 
         setInteractivity(value: boolean | LinkView.InteractivityOptions): void;
 
+        getEndView(endType: dia.LinkEnd): dia.CellView | null;
+
+        getEndAnchor(endType: dia.LinkEnd): g.Point;
+
+        getEndConnectionPoint(endType: dia.LinkEnd): g.Point;
+
+        getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
+
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
@@ -1933,14 +1955,32 @@ export namespace dia {
         type UpdateStats = {
             priority: number;
             updated: number;
-            postponed: number;
-            unmounted: number;
-            mounted: number;
-            empty: boolean;
+            empty?: boolean;
+            postponed?: number;
+            unmounted?: number;
+            mounted?: number;
+            batches?: number;
         };
 
-        type ViewportCallback = (view: mvc.View<any>, isDetached: boolean, paper: Paper) => boolean;
+        type ViewportCallback = (view: mvc.View<any>, isMounted: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
+        type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
+        type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
+
+        interface FreezeOptions {
+            key?: string;
+        }
+
+        interface UnfreezeOptions {
+            key?: string;
+            mountBatchSize?: number;
+            unmountBatchSize?: number;
+            batchSize?: number;
+            viewport?: ViewportCallback;
+            progress?: ProgressCallback;
+            beforeRender?: BeforeRenderCallback;
+            afterRender?: AfterRenderCallback;
+        }
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -1997,12 +2037,14 @@ export namespace dia {
             sorting?: sorting;
             frozen?: boolean;
             viewport?: ViewportCallback | null;
-            onViewUpdate?: (view: mvc.View<any>, flag: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewUpdate?: (view: mvc.View<any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
+            beforeRender?: Paper.BeforeRenderCallback
+            afterRender?: Paper.AfterRenderCallback
         }
 
         interface ScaleContentOptions {
-            padding?: number;
+            padding?: Padding;
             preserveAspectRatio?: boolean;
             minScale?: number;
             minScaleX?: number;
@@ -2166,18 +2208,9 @@ export namespace dia {
 
         // rendering
 
-        freeze(opt?: {
-            key?: string
-        }): void;
+        freeze(opt?: Paper.FreezeOptions): void;
 
-        unfreeze(opt?: {
-            key?: string;
-            mountBatchSize?: number;
-            unmountBatchSize?: number;
-            batchSize?: number;
-            viewport?: Paper.ViewportCallback;
-            progress?: Paper.ProgressCallback;
-        }): void;
+        unfreeze(opt?: Paper.UnfreezeOptions): void;
 
         isFrozen(): boolean;
 
@@ -2211,6 +2244,8 @@ export namespace dia {
             batches: number;
         };
 
+        hasScheduledUpdates(): boolean;
+
         // protected
 
         protected scheduleViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
@@ -2231,6 +2266,7 @@ export namespace dia {
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
             progress?: Paper.ProgressCallback;
+            before?: Paper.BeforeRenderCallback
         }): void;
 
         protected updateViewsBatch(opt?: {
@@ -3252,6 +3288,7 @@ export namespace util {
         eol?: string;
         ellipsis?: boolean | string;
         hyphen?: string | RegExp;
+        maxLineCount?: number;
     }): string;
 
     export function sanitizeHTML(html: string): string;
@@ -3417,6 +3454,11 @@ export namespace util {
     type IterateeFunction = (value: any) => NotVoid;
     type IterateeShorthand = PropertyPath; // there are other shorthands in Lodash but not in the methods we duplicate
 
+    interface Cancelable {
+        cancel(): void;
+        flush(): void;
+    }
+
     type SourceObjectsOptionalFinalCustomizer = Array<object | CustomizerFunction>; // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
     type CustomizerFunction = (objValue: any, srcValue: any, key: string, object: any, source: any, stack: any) => NotVoid;
 
@@ -3460,7 +3502,7 @@ export namespace util {
 
     export function toArray(value: any): any[];
 
-    export function debounce(func: Function, wait?: number, options?: object): Function;
+    export function debounce<T extends Function>(func: T, wait?: number, options?: object): T & Cancelable;
 
     export function groupBy(collection: Collection, iteratee?: Iteratee): object;
 
@@ -3595,6 +3637,9 @@ export namespace mvc {
         constructor(opt?: ViewOptions<T>);
 
         UPDATE_PRIORITY: number;
+        DETACHABLE: boolean;
+        FLAG_INSERT: number;
+        FLAG_REMOVE: number;
 
         vel: Vectorizer | null;
 
@@ -3896,8 +3941,15 @@ export namespace linkAnchors {
 
 export namespace connectionPoints {
 
+    type ConnectionPointAlignment = 'top' | 'bottom' | 'left' | 'right';
+
     interface DefaultConnectionPointArguments {
-        offset?: number;
+        offset?: number | dia.Point;
+    }
+
+    interface AlignConnectionPointArguments extends DefaultConnectionPointArguments {
+        align?: ConnectionPointAlignment | null;
+        alignOffset?: number;
     }
 
     interface StrokeConnectionPointArguments extends DefaultConnectionPointArguments {
@@ -4125,6 +4177,7 @@ export namespace attributes {
         height?: string | number;
         ellipsis?: boolean | string;
         hyphen?: string;
+        maxLineCount?: number;
         [key: string]: any
     }
 
@@ -4388,6 +4441,7 @@ export namespace linkTools {
             redundancyRemoval?: boolean;
             segmentLengthThreshold?: number;
             anchor?: AnchorCallback<anchors.AnchorJSON>;
+            stopPropagation?: boolean;
         }
     }
 
@@ -4422,6 +4476,7 @@ export namespace linkTools {
         interface Options extends dia.ToolView.Options {
             snap?: AnchorCallback<dia.Point>,
             anchor?: AnchorCallback<anchors.AnchorJSON>,
+            resetAnchor?: boolean | anchors.AnchorJSON;
             customAnchorAttributes?: attributes.NativeSVGAttributes;
             defaultAnchorAttributes?: attributes.NativeSVGAttributes;
             areaPadding?: number;
