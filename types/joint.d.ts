@@ -1022,7 +1022,7 @@ export namespace dia {
         }
 
         interface ScaleContentOptions {
-            padding?: number;
+            padding?: Padding;
             preserveAspectRatio?: boolean;
             minScale?: number;
             minScaleX?: number;

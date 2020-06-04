@@ -5,7 +5,7 @@
 
 <ul>
   <li><code>opt.gridWidth</code> and <code>opt.gridHeight</code> – snap the resulting width and height of the paper to a grid defined by these dimensions.</li>
-  <li><code>opt.padding</code> – additional padding around the resulting paper. It may be specified as a number, in which case it represents the padding width on all sides of the paper. It may be an object of the form <code>{ top: [number], right: [number], bottom: [number], left: [number] }</code>.</li>
+  <li><code>opt.padding</code> – additional padding around the resulting paper. It may be specified as a number, in which case it represents the padding width on all sides of the paper. It may be an object of the form <code>{ top?: [number], right?: [number], bottom?: [number], left?: [number], vertical?: [number], horizontal?: [number] }</code>.</li>
   <li><code>opt.allowNewOrigin</code> – should the origin of the resulting paper be adjusted to match the origin of the paper content? In addition to no value being set, three values are recognized by this option: <code>'positive'</code>,&nbsp;<code>'negative'</code>,&nbsp;<code>'any'</code>.
     <ul>
       <li>By default, the method only recognizes the content at positive coordinates and puts the origin of resulting paper at the original point (0,0).</li>

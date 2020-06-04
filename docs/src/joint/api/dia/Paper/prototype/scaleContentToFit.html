@@ -4,7 +4,7 @@
 <p>The function accepts an object with additional settings (all optional):</p>
 
 <ul>
-  <li><code>opt.padding</code> – a number that specifies the width of additional padding that should be added around the resulting (scaled) paper content. Default is <code>0</code>.</li>
+  <li><code>opt.padding</code> – a number or an object of the form <code>{ top?: [number], right?: [number], bottom?: [number], left?: [number], vertical?: [number], horizontal?: [number] }</code> that specifies the width of additional padding that should be added around the resulting (scaled) paper content. Default is <code>0</code>.</li>
   <li><code>opt.preserveAspectRatio</code> – should the original aspect ratio of the paper content be preserved in the scaled version? Default is <code>true</code>.</li>
   <li><code>opt.minScaleX</code>, <code>opt.minScaleY</code>, <code>opt.maxScaleX</code>, <code>opt.maxScaleY</code> – the minimum and maximum allowed scale factors for both axes.</li>
   <li><code>opt.scaleGrid</code> – a number to be used as a rounding factor for the resulting scale. For example, if you pass <code>0.2</code> to this option and the scale factor is calculated as <code>1.15</code>, then the resulting scale factor will be rounded to <code>1.2</code>.</li>
