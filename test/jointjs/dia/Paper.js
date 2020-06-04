@@ -257,18 +257,21 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             rect.addTo(graph);
                             var rectView = rect.findView(paper);
                             assert.ok(viewportSpy.calledOnce);
-                            assert.ok(viewportSpy.calledWithExactly(rectView, true, paper));
+                            // 1. view is not mounted yet (not rendered)
+                            assert.ok(viewportSpy.calledWithExactly(rectView, false, paper));
                             assert.ok(viewportSpy.calledOn(paper));
                             assert.equal(rectView.el.parentNode, paper.cells);
                             viewportSpy.resetHistory();
                             visible = false;
                             rect.translate(10, 0);
                             assert.ok(viewportSpy.calledOnce);
-                            assert.ok(viewportSpy.calledWithExactly(rectView, false, paper));
+                            // 2. view was mounted yet in step 1.
+                            assert.ok(viewportSpy.calledWithExactly(rectView, true, paper));
                             viewportSpy.resetHistory();
                             rect.translate(10, 0);
                             assert.ok(viewportSpy.calledOnce);
-                            assert.ok(viewportSpy.calledWithExactly(rectView, true, paper));
+                            // 3. view was unmounted in step 2.
+                            assert.ok(viewportSpy.calledWithExactly(rectView, false, paper));
                             assert.notOk(rectView.el.parentNode);
                         });
                     });
