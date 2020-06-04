@@ -1,4 +1,4 @@
-<code>viewport</code> - a callback function that is used to determine whether a given view should be shown in an <a href="#dia.Paper.prototype.options.async"><code>async</code></a> paper. If the function returns <code>true</code>, the view is attached to the DOM; if it returns <code>false</code>, the view is detached from the DOM. The callback function is provided with three arguments:</p>
+<code>viewport</code> - a callback function that is used to determine whether a given view should be shown in an <a href="#dia.Paper.prototype.options.async"><code>async</code></a> paper. If the function returns <code>true</code>, the view is attached to the DOM; if it returns <code>false</code>, the view is detached/unmounted from the DOM. The callback function is provided with three arguments:</p>
 
 <table>
     <tr>
@@ -7,9 +7,9 @@
         <td>The view in question</td>
     </tr>
     <tr>
-        <td>isDetached</td>
+        <td>isMounted</td>
         <td><i>boolean</i></td>
-        <td>Is the view currently hidden from the paper?</td>
+        <td>Is the view currently visible in the paper?</td>
     </tr>
     <tr>
         <td>paper</td>
