@@ -1962,7 +1962,7 @@ export namespace dia {
             batches?: number;
         };
 
-        type ViewportCallback = (view: mvc.View<any>, isDetached: boolean, paper: Paper) => boolean;
+        type ViewportCallback = (view: mvc.View<any>, isMounted: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
         type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;

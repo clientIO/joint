@@ -22847,7 +22847,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     if ((currentFlag & view.FLAG_REMOVE) === 0) {
                         // We should never check a view for viewport if we are about to remove the view
                         var isDetached = cid in updates.unmounted;
-                        if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, isDetached, this)) {
+                        if (view.DETACHABLE && viewportFn && !viewportFn.call(this, view, !isDetached, this)) {
                             // Unmount View
                             if (!isDetached) {
                                 this.registerUnmountedView(view);

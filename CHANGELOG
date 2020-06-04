@@ -6,6 +6,7 @@
  * dia.Paper - fix missing initial render:done event
  * dia.Paper - prevent the prototype options modification, persist functions passed as options
  * dia.Paper - scaleContentToFit() padding option accepts object
+ * dia.Paper - fix isMounted argument of viewport() option
  * dia.Element - port removal runs in batch
  * dia.Element - add getGroupPorts()
  * dia.Element - prevent exception in getPointFromConnectedLink() when port does not exist
