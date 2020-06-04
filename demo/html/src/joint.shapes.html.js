@@ -5,6 +5,12 @@
 
     Element.define('html.Element', {
         size: { width: 250, height: 228 },
+        fields: {
+            header: 'Task',
+            name: '',
+            resource: '',
+            state: ''
+        },
         attrs: {
             placeholder: {
                 refWidth: '100%',
@@ -22,6 +28,7 @@
             tagName: 'div',
             className: 'html-element',
             selector: 'htmlRoot',
+            groupSelector: 'field',
             style: {
                 'position': 'absolute',
                 'pointer-events': 'none',
@@ -29,7 +36,7 @@
                 'box-sizing': 'border-box'
             },
             attributes: {
-                'data-color': 'red'
+                'data-attribute': 'state'
             },
             children: [{
                 tagName: 'label',
@@ -141,7 +148,7 @@
             var fields = doc.groupSelectors.field;
             // React on all box changes. e.g. input change
             html.addEventListener('change', this.onFieldChange.bind(this), false);
-            this.paper.htmlElements.appendChild(doc.fragment);
+            this.paper.htmlContainer.appendChild(doc.fragment);
             this.html = html;
             this.fields = fields;
         },
@@ -149,7 +156,7 @@
         removeHTMLMarkup: function() {
             var html = this.html;
             if (!html) return;
-            this.paper.htmlElements.removeChild(html);
+            this.paper.htmlContainer.removeChild(html);
             this.html = null;
             this.fields = null;
         },
@@ -173,7 +180,8 @@
 
         updateFields: function() {
             this.fields.forEach(function(field) {
-                var value = this.model.prop(['fields', field.dataset.attribute]);
+                var attribute = field.dataset.attribute;
+                var value = this.model.prop(['fields', attribute]);
                 switch (field.tagName.toUpperCase()) {
                     case 'LABEL':
                         field.textContent = value;
@@ -186,6 +194,9 @@
                         } else {
                             field.classList.add('field-empty');
                         }
+                        break;
+                    case 'DIV':
+                        field.dataset[attribute] = value;
                         break;
                 }
             }.bind(this));
