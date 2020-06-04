@@ -265,7 +265,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             visible = false;
                             rect.translate(10, 0);
                             assert.ok(viewportSpy.calledOnce);
-                            // 2. view was mounted yet in step 1.
+                            // 2. view was already mounted in step 1.
                             assert.ok(viewportSpy.calledWithExactly(rectView, true, paper));
                             viewportSpy.resetHistory();
                             rect.translate(10, 0);
