@@ -1,0 +1,141 @@
+html, body {
+    margin: 0;
+    padding: 0
+}
+#paper {
+    border: 1px solid #E2E2E2;
+    background-color: #F3F7F6;
+    overflow: hidden;
+    margin: 8px auto;
+}
+/* JointJS HTML Element */
+.html-element {
+    box-sizing: border-box;
+    font-family: sans-serif;
+    box-shadow: 4px 4px 4px -1px rgba(0,0,0,0.18);
+    padding: 8px 16px;
+    background-color: #FCFCFC;
+}
+.html-element:after {
+    content: ' ';
+    background: #6C6C6C;
+    height: 8px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+.html-element:before {
+    content: ' ';
+    position: absolute;
+    top: 24px;
+    right: 16px;
+    width: 20px;
+    height: 20px;
+    background-position: 50% 50%;
+    background-repeat: no-repeat;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMTEuOTkgMkM2LjQ3IDIgMiA2LjQ4IDIgMTJzNC40NyAxMCA5Ljk5IDEwQzE3LjUyIDIyIDIyIDE3LjUyIDIyIDEyUzE3LjUyIDIgMTEuOTkgMnpNMTIgMjBjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4em0uNS0xM0gxMXY2bDUuMjUgMy4xNS43NS0xLjIzLTQuNS0yLjY3eiIvPjwvc3ZnPg==);
+}
+.html-element[data-state="done"]:after {
+    background:#4666E5;
+}
+.html-element[data-state="done"]:before {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDBWMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMTIgMkM2LjQ4IDIgMiA2LjQ4IDIgMTJzNC40OCAxMCAxMCAxMCAxMC00LjQ4IDEwLTEwUzE3LjUyIDIgMTIgMnptMCAxOGMtNC40MSAwLTgtMy41OS04LThzMy41OS04IDgtOCA4IDMuNTkgOCA4LTMuNTkgOC04IDh6bTQuNTktMTIuNDJMMTAgMTQuMTdsLTIuNTktMi41OEw2IDEzbDQgNCA4LTh6Ii8+PC9zdmc+);
+}
+.html-element[data-state="at-risk"]:after {
+    background: #FF4365;
+}
+.html-element[data-state="at-risk"]:before {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0Ij48cGF0aCBkPSJNMTEgMTVoMnYyaC0ydi0yem0wLThoMnY2aC0yVjd6bS45OS01QzYuNDcgMiAyIDYuNDggMiAxMnM0LjQ3IDEwIDkuOTkgMTBDMTcuNTIgMjIgMjIgMTcuNTIgMjIgMTJTMTcuNTIgMiAxMS45OSAyek0xMiAyMGMtNC40MiAwLTgtMy41OC04LThzMy41OC04IDgtOCA4IDMuNTggOCA4LTMuNTggOC04IDh6Ii8+PC9zdmc+
+    );
+}
+.html-element-header {
+    position: relative;
+    display: block;
+    color: #222222;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 16px 0;
+    margin-bottom: 8px;
+}
+.html-element-header:after {
+    content: '';
+    height: 1px;
+    background-color: #DDDDDD;
+    left: -16px;
+    right: -16px;
+    bottom: 0;
+    position: absolute;
+}
+.html-element-label {
+    display: block;
+    font-size: 13px;
+    color: #222222;
+    padding: 8px 0 0 0;
+}
+.html-element-field {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    margin: 8px 0;
+    outline: none;
+    background: #FFFFFF;
+    border: 1px solid #DDDDDD;
+    text-align: left;
+    letter-spacing: 0;
+    color: #222222;
+    border-radius: 0px;
+    font-size: 14px;
+}
+select.html-element-field:not([multiple]) {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-position: calc(100% - 8px) 50%;
+    background-repeat: no-repeat;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSI3LjQxIiB2aWV3Qm94PSIwIDAgMTIgNy40MSI+PHBhdGggZD0iTTE2LjU5LDguNTksMTIsMTMuMTcsNy40MSw4LjU5LDYsMTBsNiw2LDYtNloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC02IC04LjU5KSIvPjwvc3ZnPgo=);
+}
+select.html-element-field:-moz-focusring {
+    color: transparent;
+    text-shadow: 0 0 0 #000000;
+}
+select.html-element-field.field-empty {
+    color: #9A9A9A
+}
+.html-element-field::placeholder {
+    color: #9A9A9A;
+    opacity: 1;
+}
+.html-element-field:-ms-input-placeholder {
+    color: #9A9A9A;
+}
+.html-element-field::-ms-input-placeholder {
+    color: #9A9A9A
+}
+/* Toolbar */
+.toolbar {
+    position: absolute;
+    width: 300px;
+    left: calc(50% - 150px);
+    top: 18px;
+    text-align: center;
+}
+.toolbar-button {
+    outline: none;
+    background: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 16px;
+    text-align: center;
+    font-family: sans-serif;
+    font-size: 12px;
+    padding: 6px 12px;
+    letter-spacing: 0.25px;
+    color: #222222;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+.toolbar-button:hover {
+    background: #F7F8F9;
+}
