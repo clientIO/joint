@@ -1,4 +1,4 @@
-/*! JointJS v3.1.1 (2019-10-28) - JavaScript diagramming library
+/*! JointJS v3.2.0 (2020-06-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1535,6 +1535,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             );
         },
 
+        parallel: function(distance) {
+            var l = this.clone();
+            if (!this.isDifferentiable()) { return l; }
+            var start = l.start;
+            var end = l.end;
+            var eRef = start.clone().rotate(end, 270);
+            var sRef = end.clone().rotate(start, 90);
+            start.move(sRef, distance);
+            end.move(eRef, distance);
+            return l;
+        },
+
         // @return {point} my point at 't' <0,1>
         pointAt: function(t) {
 
@@ -1654,6 +1666,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         toString: function() {
 
             return this.start.toString() + ' ' + this.end.toString();
+        },
+
+        serialize: function() {
+
+            return this.start.serialize() + ' ' + this.end.serialize();
         },
 
         translate: function(tx, ty) {
@@ -3247,6 +3264,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         toString: function() {
 
             return this.x + '@' + this.y;
+        },
+
+        serialize: function() {
+
+            return this.x + ',' + this.y;
         },
 
         update: function(x, y) {
