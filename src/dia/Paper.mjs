@@ -1222,7 +1222,7 @@ export const Paper = View.extend({
             //fittingBBox
         });
 
-        var padding = opt.padding;
+        var padding = normalizeSides(opt.padding);
 
         var minScaleX = opt.minScaleX || opt.minScale;
         var maxScaleX = opt.maxScaleX || opt.maxScale;
@@ -1243,7 +1243,12 @@ export const Paper = View.extend({
             };
         }
 
-        fittingBBox = new Rect(fittingBBox).inflate(-padding);
+        fittingBBox = new Rect(fittingBBox).moveAndExpand({
+            x: padding.left,
+            y: padding.top,
+            width: -padding.left - padding.right,
+            height: -padding.top - padding.bottom
+        });
 
         var currentScale = this.scale();
 
