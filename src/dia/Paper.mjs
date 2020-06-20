@@ -23,7 +23,7 @@ import {
     invoke,
     hashCode,
     filter as _filter,
-    template,
+    parseDOMJSON,
     toArray,
     has
 } from '../util/index.mjs';
@@ -2645,6 +2645,38 @@ export const Paper = View.extend({
         return id;
     },
 
+    definePattern: function(pattern) {
+        if (!isObject(pattern)) {
+            throw new TypeError('dia.Paper: definePattern() requires 1. argument to be an object.');
+        }
+        const { svg, defs } = this;
+        const {
+            // Generate a hash code from the stringified filter definition. This gives us
+            // a unique filter ID for different definitions.
+            id = svg.id + hashCode(JSON.stringify(pattern)),
+            markup,
+            attrs = {}
+        } = pattern;
+        if (!markup) {
+            throw new TypeError('dia.Paper: definePattern() requires markup.');
+        }
+        // If the gradient already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        if (this.isDefined(id)) return id;
+        // If not, create one.
+        const patternVEl = V('pattern');
+        patternVEl.id = id;
+        patternVEl.attr(attrs);
+        if (typeof markup === 'string') {
+            patternVEl.append(V(markup));
+        } else {
+            const { fragment } = parseDOMJSON(markup);
+            patternVEl.append(fragment);
+        }
+        patternVEl.appendTo(defs);
+        return id;
+    },
+
     defineMarker: function(marker) {
         if (!isObject(marker)) {
             throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
@@ -2655,10 +2687,10 @@ export const Paper = View.extend({
             // a unique filter ID for different definitions.
             id = svg.id + hashCode(JSON.stringify(marker)),
             type = 'path',
+            markup,
             markerUnits = 'userSpaceOnUse'
         } = marker;
         if (this.isDefined(id)) return id;
-        const markerContentVEl = V(type, omit(marker, 'type', 'markerUnit', 'markerAttrs'));
         const markerVEl = V('marker');
         markerVEl.id = id;
         markerVEl.attr({
@@ -2666,7 +2698,18 @@ export const Paper = View.extend({
             overflow: 'visible',
             markerUnits: markerUnits
         });
-        markerVEl.append(markerContentVEl).appendTo(defs);
+        markerVEl.appendTo(defs);
+        if (markup) {
+            if (typeof markup === 'string') {
+                markerVEl.append(V(markup));
+            } else {
+                const { fragment } = parseDOMJSON(markup);
+                markerVEl.append(fragment);
+            }
+        } else {
+            const markerContentVEl = V(type, omit(marker, 'type', 'markerUnit', 'markerAttrs'));
+            markerVEl.append(markerContentVEl);
+        }
         return id;
     }
 

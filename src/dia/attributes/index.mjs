@@ -254,14 +254,22 @@ const attributesNS = {
     fill: {
         qualify: isPlainObject,
         set: function(fill) {
-            return 'url(#' + this.paper.defineGradient(fill) + ')';
+            const { paper } = this;
+            const url = (fill.type === 'pattern')
+                ? paper.definePattern(fill)
+                : paper.defineGradient(fill);
+            return `url(#${url})`;
         }
     },
 
     stroke: {
         qualify: isPlainObject,
         set: function(stroke) {
-            return 'url(#' + this.paper.defineGradient(stroke) + ')';
+            const { paper } = this;
+            const url = (stroke.type === 'pattern')
+                ? paper.definePattern(stroke)
+                : paper.defineGradient(stroke);
+            return `url(#${url})`;
         }
     },
 
