@@ -1,4 +1,5 @@
 # JointJS - JavaScript diagramming library
+"这是我自己加的内容"
 
 [![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)
 [![Code Quality: Javascript](https://img.shields.io/lgtm/grade/javascript/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/context:javascript)
