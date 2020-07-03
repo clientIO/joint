@@ -2,7 +2,7 @@ import * as joint from '../../../build/joint';
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorker from 'elkjs/lib/elk-worker.js';
 import { Child, Label, Edge } from "./shapes";
-import { exampleGraph } from './exampleGraph';
+import elkGraph from '../elkGraph.json';
 
 export const init = () => {
     const canvas = document.getElementById('canvas');
@@ -134,7 +134,7 @@ export const init = () => {
         });
     };
 
-    elk.layout(exampleGraph).then(res => {
+    elk.layout(elkGraph).then(res => {
         const children = res.children || [];
         const edges = res.edges || [];
 
