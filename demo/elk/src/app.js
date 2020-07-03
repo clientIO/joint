@@ -1,6 +1,6 @@
 import * as joint from '../../../build/joint';
 import ELK from 'elkjs/lib/elk.bundled.js';
-import { Custom, Label, Link } from "./shapes";
+import { Child, Label, Edge } from "./shapes";
 import { exampleGraph } from './exampleGraph';
 
 export const init = () => {
@@ -25,7 +25,7 @@ export const init = () => {
 
     const addChildren = (children, parent) => {
         children.forEach(child => {
-            const shape = new Custom({
+            const shape = new Child({
                 id: child.id,
                 position: { x: child.x, y: child.y },
                 size: { width: child.width, height: child.height },
@@ -109,7 +109,7 @@ export const init = () => {
             const sourceElementId = mapPortIdToShapeId[sourcePortId];
             const targetElementId = mapPortIdToShapeId[targetPortId];
 
-            const shape = new Link({
+            const shape = new Edge({
                 source: {
                     id: sourceElementId,
                     port: sourcePortId
@@ -176,22 +176,22 @@ const getLabelPlacement = label => {
     const nodeLabelPlacements = label.layoutOptions['nodeLabels.placement'];
     if (nodeLabelPlacements.includes(placementsOptions.H_RIGHT)) {
         placement.textAnchor = 'end';
-        placement.refX2 = label.width;
+        placement.refX = label.width;
     } else if (nodeLabelPlacements.includes(placementsOptions.H_LEFT)) {
         placement.textAnchor = 'start';
     } else if (nodeLabelPlacements.includes(placementsOptions.H_CENTER)) {
         placement.textAnchor = 'middle';
-        placement.refX2 = label.width / 2;
+        placement.refX = label.width / 2;
     }
 
     if (nodeLabelPlacements.includes(placementsOptions.V_TOP)) {
         placement.textVerticalAnchor = 'top';
     } else if (nodeLabelPlacements.includes(placementsOptions.V_BOTTOM)) {
         placement.textVerticalAnchor = 'bottom';
-        placement.refY2 = label.height;
+        placement.refY = label.height;
     } else if (nodeLabelPlacements.includes(placementsOptions.V_CENTER)) {
         placement.textVerticalAnchor = 'middle';
-        placement.refY2 = label.height / 2;
+        placement.refY = label.height / 2;
     }
 
     return placement;
