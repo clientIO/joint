@@ -15,9 +15,13 @@
     "lodash": "4.17.15"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.4",
+    "@babel/polyfill": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
     "@types/backbone": "1.4.1",
     "@types/jquery": "3.3.30",
     "@types/lodash": "4.14.135",
+    "babel-loader": "^8.1.0",
     "concurrently": "4.1.0",
     "copy-webpack-plugin": "5.0.4",
     "css-loader": "3.5.3",
