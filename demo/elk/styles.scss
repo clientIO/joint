@@ -1,9 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
-
 body {
     width: 100vw;
     height: 100vh;
     margin: 0;
+    overflow: hidden;
 }
 
 .canvas {
@@ -14,8 +13,8 @@ body {
     align-items: center;
 
     .joint-paper {
+        position: absolute;
         border: 1px solid #E2E2E2;
-        margin: 0 auto;
     }
 }
 

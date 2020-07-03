@@ -6,6 +6,7 @@ export const Child = joint.shapes.standard.Rectangle.define('app.Child', {
         body: {
             fill: 'rgba(70,101,229,0.15)',
             stroke: '#4665E5',
+            strokeWidth: 1,
             rx: 2,
             ry: 2,
         }
@@ -25,9 +26,9 @@ export const Child = joint.shapes.standard.Rectangle.define('app.Child', {
                     }
                 },
                 markup: [{
-                        tagName: 'rect',
-                        selector: 'portBody'
-                    }]
+                    tagName: 'rect',
+                    selector: 'portBody'
+                }]
             }
         }
     }
@@ -42,9 +43,9 @@ export const Label = joint.dia.Element.define('app.Label', {
     }
 }, {
     markup: [{
-            tagName: 'text',
-            selector: 'label'
-        }]
+        tagName: 'text',
+        selector: 'label'
+    }]
 });
 
 export const Edge = joint.dia.Link.define('app.Edge', {
@@ -63,7 +64,7 @@ export const Edge = joint.dia.Link.define('app.Edge', {
     }
 }, {
     markup: [{
-            tagName: 'path',
-            selector: 'line'
-        }]
+        tagName: 'path',
+        selector: 'line'
+    }]
 });
