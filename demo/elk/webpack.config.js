@@ -1,3 +1,4 @@
+var CopyPlugin = require('copy-webpack-plugin');
 var path = process.cwd() + '/dist';
 
 module.exports = {
