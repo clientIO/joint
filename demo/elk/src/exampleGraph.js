@@ -7,7 +7,7 @@ export const exampleGraph = {
                 {
                     'text': 'DatagramReader',
                     'layoutOptions': {
-                        'nodeLabels.placement': '[H_RIGHT, V_BOTTOM, OUTSIDE]'
+                        'nodeLabels.placement': '[H_LEFT, V_TOP, OUTSIDE]'
                     },
                     'width': 100.0,
                     'height': 12.0

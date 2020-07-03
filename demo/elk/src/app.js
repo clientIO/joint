@@ -60,21 +60,13 @@ export const init = () => {
 
             const labels = child.labels || [];
             labels.forEach(label => {
-                const placements = {
-                    H_RIGHT: 'H_RIGHT',
-                    H_LEFT: 'H_LEFT',
-                    H_CENTER: 'H_CENTER',
-                    V_TOP: 'V_TOP',
-                    V_BOTTOM: 'V_BOTTOM',
-                    V_CENTER: 'V_CENTER',
-                }
-                // layoutOptions:
-                //     nodeLabels.placement: "[H_RIGHT, V_BOTTOM, OUTSIDE]"
+
                 const labelElement = new Label({
                     attrs: {
                         label: {
+                            fontSize: label.height,
                             text: label.text,
-
+                            ...getLabelPlacement(label)
                         }
                     }
                 });
@@ -118,7 +110,6 @@ export const init = () => {
             const targetElementId = mapPortIdToShapeId[targetPortId];
 
             const shape = new Link({
-                z: 1,
                 source: {
                     id: sourceElementId,
                     port: sourcePortId
@@ -140,8 +131,6 @@ export const init = () => {
 
         addChildren(children);
         addEdges(edges);
-
-        console.log(res);
 
         if (paper.hasScheduledUpdates()) {
             paper.once('render:done', () => {
@@ -174,4 +163,40 @@ const addZoomListeners = paper => {
         zoomLevel = Math.max(0.2, zoomLevel - 0.2);
         zoom(zoomLevel);
     });
+}
+
+const placementsOptions = {
+    H_RIGHT: 'H_RIGHT',
+    H_LEFT: 'H_LEFT',
+    H_CENTER: 'H_CENTER',
+    V_TOP: 'V_TOP',
+    V_BOTTOM: 'V_BOTTOM',
+    V_CENTER: 'V_CENTER',
+}
+
+const getLabelPlacement = label => {
+    const placement = {};
+
+    const nodeLabelPlacements = label.layoutOptions['nodeLabels.placement'];
+    if (~nodeLabelPlacements.indexOf(placementsOptions.H_RIGHT)) {
+        placement.textAnchor = 'end';
+        placement.refX2 = label.width;
+    } else if (~nodeLabelPlacements.indexOf(placementsOptions.H_LEFT)) {
+        placement.textAnchor = 'start';
+    } else if (~nodeLabelPlacements.indexOf(placementsOptions.H_CENTER)) {
+        placement.textAnchor = 'middle';
+        placement.refX2 = label.width / 2;
+    }
+
+    if (~nodeLabelPlacements.indexOf(placementsOptions.V_TOP)) {
+        placement.textVerticalAnchor = 'top';
+    } else if (~nodeLabelPlacements.indexOf(placementsOptions.V_BOTTOM)) {
+        placement.textVerticalAnchor = 'bottom';
+        placement.refY2 = label.height;
+    } else if (~nodeLabelPlacements.indexOf(placementsOptions.V_CENTER)) {
+        placement.textVerticalAnchor = 'middle';
+        placement.refY2 = label.height / 2;
+    }
+
+    return placement;
 }

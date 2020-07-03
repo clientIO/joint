@@ -36,9 +36,7 @@ export const Custom = joint.shapes.standard.Rectangle.define('app.Custom', {
 export const Label = joint.dia.Element.define('app.Label', {
     attrs: {
         label: {
-            fontSize: 10,
-            fontFamily: 'sans-serif',
-            textAnchor: 'start'
+            fontFamily: 'sans-serif'
         }
     }
 }, {
