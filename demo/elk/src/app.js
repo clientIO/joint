@@ -13,7 +13,7 @@ export const init = () => {
         width: 1000,
         height: 600,
         gridSize: 1,
-        interactive: true,
+        interactive: false,
         async: true,
         frozen: true,
         sorting: joint.dia.Paper.sorting.APPROX,
@@ -132,15 +132,11 @@ export const init = () => {
         addChildren(children);
         addEdges(edges);
 
-        if (paper.hasScheduledUpdates()) {
-            paper.once('render:done', () => {
-                paper.fitToContent({ padding: 50 });
-            });
-        }
+        paper.unfreeze();
+        paper.fitToContent({ useModelGeometry: true, padding: 100 })
     });
 
     canvas.appendChild(paper.el);
-    paper.unfreeze();
 
     addZoomListeners(paper);
 };
@@ -178,22 +174,22 @@ const getLabelPlacement = label => {
     const placement = {};
 
     const nodeLabelPlacements = label.layoutOptions['nodeLabels.placement'];
-    if (~nodeLabelPlacements.indexOf(placementsOptions.H_RIGHT)) {
+    if (nodeLabelPlacements.includes(placementsOptions.H_RIGHT)) {
         placement.textAnchor = 'end';
         placement.refX2 = label.width;
-    } else if (~nodeLabelPlacements.indexOf(placementsOptions.H_LEFT)) {
+    } else if (nodeLabelPlacements.includes(placementsOptions.H_LEFT)) {
         placement.textAnchor = 'start';
-    } else if (~nodeLabelPlacements.indexOf(placementsOptions.H_CENTER)) {
+    } else if (nodeLabelPlacements.includes(placementsOptions.H_CENTER)) {
         placement.textAnchor = 'middle';
         placement.refX2 = label.width / 2;
     }
 
-    if (~nodeLabelPlacements.indexOf(placementsOptions.V_TOP)) {
+    if (nodeLabelPlacements.includes(placementsOptions.V_TOP)) {
         placement.textVerticalAnchor = 'top';
-    } else if (~nodeLabelPlacements.indexOf(placementsOptions.V_BOTTOM)) {
+    } else if (nodeLabelPlacements.includes(placementsOptions.V_BOTTOM)) {
         placement.textVerticalAnchor = 'bottom';
         placement.refY2 = label.height;
-    } else if (~nodeLabelPlacements.indexOf(placementsOptions.V_CENTER)) {
+    } else if (nodeLabelPlacements.includes(placementsOptions.V_CENTER)) {
         placement.textVerticalAnchor = 'middle';
         placement.refY2 = label.height / 2;
     }

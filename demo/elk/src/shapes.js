@@ -56,22 +56,13 @@ export const Link = joint.dia.Link.define('Link', {
             fill: 'none',
             connection: true,
             stroke: '#464454',
-            strokeWidth: 1
-        },
-        arrowhead: {
-            d: 'M -5 -2.5 0 0 -5 2.5 Z',
-            stroke: '#464454',
-            fill: '#464454',
-            atConnectionRatio: 1,
-            strokeWidth: 1
+            strokeWidth: 1,
+            targetMarker: { 'd': 'M 5 2.5 0 0 5 -2.5 Z' }
         }
     }
 }, {
     markup: [{
             tagName: 'path',
             selector: 'line'
-        }, {
-            tagName: 'path',
-            selector: 'arrowhead'
         }]
 });
