@@ -98,7 +98,7 @@ export const init = () => {
                     y: point.y - SIZE / 2 + (parent ? parent.get('position').y : 0)
                 };
                 const junctionPoint = new joint.shapes.standard.Circle({
-                    size: { height: SIZE, width: 4 },
+                    size: { height: SIZE, width: SIZE },
                 });
                 junctionPoint.addTo(graph);
                 junctionPoint.position(position.x, position.y);
