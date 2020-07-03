@@ -35,7 +35,7 @@ var source = new joint.shapes.standard.Rectangle({
     }
 });
 
-var target = source.clone().translate(750, 400).attr('text/text', 'Target');
+var target = source.clone().translate(750, 400).attr('label/text', 'Target');
 
 var link = new joint.shapes.standard.Link({
     source: { id: source.id },
