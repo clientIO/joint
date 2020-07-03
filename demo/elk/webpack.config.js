@@ -14,6 +14,7 @@ module.exports = {
     devtool: 'source-map',
     watch: true,
     devServer: {
+        disableHostCheck: true,
         contentBase: path,
         watchContentBase: true,
         hot: true,
