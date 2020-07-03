@@ -15,6 +15,9 @@ body {
 
     .joint-paper {
         position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         border: 1px solid #E2E2E2;
     }
 }
