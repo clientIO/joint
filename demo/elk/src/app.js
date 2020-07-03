@@ -136,7 +136,7 @@ export const init = () => {
         addEdges(edges);
 
         paper.unfreeze();
-        paper.fitToContent({ useModelGeometry: true, padding: 100 })
+        paper.fitToContent({ useModelGeometry: true, padding: 100, allowNewOrigin: 'any' })
     });
 
     canvas.appendChild(paper.el);
@@ -148,9 +148,8 @@ const addZoomListeners = paper => {
     let zoomLevel = 1;
 
     const zoom = zoomLevel => {
-        const size = paper.getComputedSize();
-        paper.translate(0, 0);
-        paper.scale(zoomLevel, zoomLevel, size.width / 2, size.height / 2);
+        paper.scale(zoomLevel);
+        paper.fitToContent({ useModelGeometry: true, padding: 100 * zoomLevel, allowNewOrigin: 'any' })
     }
 
     document.getElementById('zoom-in').addEventListener('click', () => {
