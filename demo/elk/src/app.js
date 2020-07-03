@@ -102,6 +102,12 @@ export const init = () => {
                 };
                 const junctionPoint = new joint.shapes.standard.Circle({
                     size: { height: SIZE, width: SIZE },
+                    attrs: {
+                        body: {
+                            fill: '#464454',
+                            stroke: '#464454',
+                        }
+                    }
                 });
                 junctionPoint.addTo(graph);
                 junctionPoint.position(position.x, position.y);

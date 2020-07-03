@@ -1,6 +1,6 @@
 import * as joint from '../../../build/joint';
 
-export const Child = joint.shapes.standard.Rectangle.define('app.Custom', {
+export const Child = joint.shapes.standard.Rectangle.define('app.Child', {
     z: 1,
     attrs: {
         body: {
@@ -47,7 +47,7 @@ export const Label = joint.dia.Element.define('app.Label', {
         }]
 });
 
-export const Edge = joint.dia.Link.define('Link', {
+export const Edge = joint.dia.Link.define('app.Edge', {
     z: 2,
     attrs: {
         root: {
