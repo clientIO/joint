@@ -11,6 +11,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    transform: translateZ(0);
 
     .joint-paper {
         position: absolute;
