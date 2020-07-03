@@ -36,5 +36,10 @@ module.exports = {
                 ]
             }
         ]
-    }
+    },
+    plugins: [
+        new CopyPlugin([
+            { from: './index.html', to: './' }
+        ])
+    ]
 };

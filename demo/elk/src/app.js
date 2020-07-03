@@ -1,5 +1,6 @@
 import * as joint from '../../../build/joint';
-import ELK from 'elkjs/lib/elk.bundled.js';
+import ELK from 'elkjs/lib/elk-api.js';
+import elkWorker from 'elkjs/lib/elk-worker.js';
 import { Child, Label, Edge } from "./shapes";
 import { exampleGraph } from './exampleGraph';
 
@@ -20,7 +21,9 @@ export const init = () => {
         background: { color: '#F3F7F6' }
     });
 
-    const elk = new ELK();
+    const elk = new ELK({
+        workerFactory: url => new elkWorker.Worker(url)
+    });
     const mapPortIdToShapeId = {};
 
     const addChildren = (children, parent) => {
