@@ -1,0 +1,40 @@
+{
+  "name": "elk-graph-demo",
+  "version": "1.0.0",
+  "description": "Elk graph demo",
+  "main": "index.html",
+  "author": "client IO",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "start": "concurrently \"npm run build\" \"webpack-dev-server --config webpack.config.js\""
+  },
+  "dependencies": {
+    "backbone": "1.4.0",
+    "jquery": "3.5.0",
+    "lodash": "4.17.15"
+  },
+  "devDependencies": {
+    "@babel/core": "7.10.4",
+    "@babel/preset-env": "7.10.4",
+    "@types/backbone": "1.4.1",
+    "@types/jquery": "3.3.30",
+    "@types/lodash": "4.14.135",
+    "babel-loader": "8.1.0",
+    "concurrently": "4.1.0",
+    "copy-webpack-plugin": "5.0.4",
+    "core-js": "3.6.1",
+    "css-loader": "3.5.3",
+    "elkjs": "0.6.2",
+    "file-loader": "6.0.0",
+    "regenerator-runtime": "0.13.5",
+    "sass": "1.26.8",
+    "sass-loader": "8.0.2",
+    "shelljs": "0.8.4",
+    "style-loader": "1.2.1",
+    "typescript": "3.8.3",
+    "webpack": "4.43.0",
+    "webpack-cli": "3.3.11",
+    "webpack-dev-server": "3.11.0"
+  }
+}
