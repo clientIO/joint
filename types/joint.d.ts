@@ -3352,7 +3352,7 @@ export namespace elementTools {
         interface Options extends dia.ToolView.Options {
             x?: number | string;
             y?: number | string;
-            offset?: number;
+            offset?: { x?: number, y?: number };
             rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
