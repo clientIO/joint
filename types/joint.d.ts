@@ -994,7 +994,8 @@ export namespace dia {
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
             embeddingMode?: boolean;
-            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
+            frontParentOnly?: boolean,
+            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | ((elementView: ElementView) => Element[]);
             validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
