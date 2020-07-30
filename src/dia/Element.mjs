@@ -207,34 +207,35 @@ export const Element = Cell.extend({
             // Get the angle and clamp its value between 0 and 360 degrees.
             var angle = normalizeAngle(this.get('angle') || 0);
 
-            var quadrant = {
-                'top-right': 0,
-                'right': 0,
-                'top-left': 1,
-                'top': 1,
-                'bottom-left': 2,
-                'left': 2,
-                'bottom-right': 3,
-                'bottom': 3
-            }[opt.direction];
-
-            if (opt.absolute) {
-
-                // We are taking the element's rotation into account
-                quadrant += Math.floor((angle + 45) / 90);
-                quadrant %= 4;
-            }
-
             // This is a rectangle in size of the un-rotated element.
             var bbox = this.getBBox();
-
-            // Pick the corner point on the element, which meant to stay on its place before and
-            // after the rotation.
-            var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
 
             var origin;
 
             if (angle) {
+
+                var quadrant = {
+                    'top-right': 0,
+                    'right': 0,
+                    'top-left': 1,
+                    'top': 1,
+                    'bottom-left': 2,
+                    'left': 2,
+                    'bottom-right': 3,
+                    'bottom': 3
+                }[opt.direction];
+
+                if (opt.absolute) {
+
+                    // We are taking the element's rotation into account
+                    quadrant += Math.floor((angle + 45) / 90);
+                    quadrant %= 4;
+                }
+
+                // Pick the corner point on the element, which meant to stay on its place before and
+                // after the rotation.
+                var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
+
                 // Find  an image of the previous indent point. This is the position, where is the
                 // point actually located on the screen.
                 var imageFixedPoint = Point(fixedPoint).rotate(bbox.center(), -angle);
@@ -275,6 +276,7 @@ export const Element = Cell.extend({
                 // and half a height to the top from the center. This will be the origin of rectangle
                 // we were looking for.
                 origin = Point(center).offset(width / -2, height / -2);
+
             } else {
                 // calculation for the origin Point when there is no rotation of the element
                 origin = bbox.topLeft();
