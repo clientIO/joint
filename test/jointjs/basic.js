@@ -430,6 +430,38 @@ QUnit.module('basic', function(hooks) {
             width: 20,
             height: 20
         }, 'resize([new width], [new height], { direction: "top-left" }) should scale both width and height, should change position');
+
+        myrect.resize(100, 100, { direction: 'left' });
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: -30,
+            y: 60,
+            width: 100,
+            height: 20
+        }, 'resize([new width], [new height], { direction: "left" }) should scale only width, should change position');
+
+        myrect.resize(30, 30, { direction: 'top' });
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: -30,
+            y: 50,
+            width: 100,
+            height: 30
+        }, 'resize([new width], [new height], { direction: "top" }) should scale only height, should change position');
+
+        myrect.resize(200, 200, { direction: 'top-right' });
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: -30,
+            y: -120,
+            width: 200,
+            height: 200
+        }, 'resize([new width], [new height], { direction: "top-right" }) should scale both width and height, should change position');
+
+        myrect.resize(10, 10, { direction: 'bottom-left' });
+        assert.checkBboxApproximately(1/* +- */, myrect.getBBox(), {
+            x: 160,
+            y: -120,
+            width: 10,
+            height: 10
+        }, 'resize([new width], [new height], { direction: "bottom-left" }) should scale both width and height, should change position');
     });
 
     QUnit.test('rotate()', function(assert) {

@@ -207,71 +207,94 @@ export const Element = Cell.extend({
             // Get the angle and clamp its value between 0 and 360 degrees.
             var angle = normalizeAngle(this.get('angle') || 0);
 
-            var quadrant = {
-                'top-right': 0,
-                'right': 0,
-                'top-left': 1,
-                'top': 1,
-                'bottom-left': 2,
-                'left': 2,
-                'bottom-right': 3,
-                'bottom': 3
-            }[opt.direction];
-
-            if (opt.absolute) {
-
-                // We are taking the element's rotation into account
-                quadrant += Math.floor((angle + 45) / 90);
-                quadrant %= 4;
-            }
-
             // This is a rectangle in size of the un-rotated element.
             var bbox = this.getBBox();
 
-            // Pick the corner point on the element, which meant to stay on its place before and
-            // after the rotation.
-            var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
+            var origin;
 
-            // Find  an image of the previous indent point. This is the position, where is the
-            // point actually located on the screen.
-            var imageFixedPoint = Point(fixedPoint).rotate(bbox.center(), -angle);
+            if (angle) {
 
-            // Every point on the element rotates around a circle with the centre of rotation
-            // in the middle of the element while the whole element is being rotated. That means
-            // that the distance from a point in the corner of the element (supposed its always rect) to
-            // the center of the element doesn't change during the rotation and therefore it equals
-            // to a distance on un-rotated element.
-            // We can find the distance as DISTANCE = (ELEMENTWIDTH/2)^2 + (ELEMENTHEIGHT/2)^2)^0.5.
-            var radius = Math.sqrt((width * width) + (height * height)) / 2;
+                var quadrant = {
+                    'top-right': 0,
+                    'right': 0,
+                    'top-left': 1,
+                    'top': 1,
+                    'bottom-left': 2,
+                    'left': 2,
+                    'bottom-right': 3,
+                    'bottom': 3
+                }[opt.direction];
 
-            // Now we are looking for an angle between x-axis and the line starting at image of fixed point
-            // and ending at the center of the element. We call this angle `alpha`.
+                if (opt.absolute) {
 
-            // The image of a fixed point is located in n-th quadrant. For each quadrant passed
-            // going anti-clockwise we have to add 90 degrees. Note that the first quadrant has index 0.
-            //
-            // 3 | 2
-            // --c-- Quadrant positions around the element's center `c`
-            // 0 | 1
-            //
-            var alpha = quadrant * Math.PI / 2;
+                    // We are taking the element's rotation into account
+                    quadrant += Math.floor((angle + 45) / 90);
+                    quadrant %= 4;
+                }
 
-            // Add an angle between the beginning of the current quadrant (line parallel with x-axis or y-axis
-            // going through the center of the element) and line crossing the indent of the fixed point and the center
-            // of the element. This is the angle we need but on the un-rotated element.
-            alpha += Math.atan(quadrant % 2 == 0 ? height / width : width / height);
+                // Pick the corner point on the element, which meant to stay on its place before and
+                // after the rotation.
+                var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
 
-            // Lastly we have to deduct the original angle the element was rotated by and that's it.
-            alpha -= toRad(angle);
+                // Find  an image of the previous indent point. This is the position, where is the
+                // point actually located on the screen.
+                var imageFixedPoint = Point(fixedPoint).rotate(bbox.center(), -angle);
 
-            // With this angle and distance we can easily calculate the centre of the un-rotated element.
-            // Note that fromPolar constructor accepts an angle in radians.
-            var center = Point.fromPolar(radius, alpha, imageFixedPoint);
+                // Every point on the element rotates around a circle with the centre of rotation
+                // in the middle of the element while the whole element is being rotated. That means
+                // that the distance from a point in the corner of the element (supposed its always rect) to
+                // the center of the element doesn't change during the rotation and therefore it equals
+                // to a distance on un-rotated element.
+                // We can find the distance as DISTANCE = (ELEMENTWIDTH/2)^2 + (ELEMENTHEIGHT/2)^2)^0.5.
+                var radius = Math.sqrt((width * width) + (height * height)) / 2;
 
-            // The top left corner on the un-rotated element has to be half a width on the left
-            // and half a height to the top from the center. This will be the origin of rectangle
-            // we were looking for.
-            var origin = Point(center).offset(width / -2, height / -2);
+                // Now we are looking for an angle between x-axis and the line starting at image of fixed point
+                // and ending at the center of the element. We call this angle `alpha`.
+
+                // The image of a fixed point is located in n-th quadrant. For each quadrant passed
+                // going anti-clockwise we have to add 90 degrees. Note that the first quadrant has index 0.
+                //
+                // 3 | 2
+                // --c-- Quadrant positions around the element's center `c`
+                // 0 | 1
+                //
+                var alpha = quadrant * Math.PI / 2;
+
+                // Add an angle between the beginning of the current quadrant (line parallel with x-axis or y-axis
+                // going through the center of the element) and line crossing the indent of the fixed point and the center
+                // of the element. This is the angle we need but on the un-rotated element.
+                alpha += Math.atan(quadrant % 2 == 0 ? height / width : width / height);
+
+                // Lastly we have to deduct the original angle the element was rotated by and that's it.
+                alpha -= toRad(angle);
+
+                // With this angle and distance we can easily calculate the centre of the un-rotated element.
+                // Note that fromPolar constructor accepts an angle in radians.
+                var center = Point.fromPolar(radius, alpha, imageFixedPoint);
+
+                // The top left corner on the un-rotated element has to be half a width on the left
+                // and half a height to the top from the center. This will be the origin of rectangle
+                // we were looking for.
+                origin = Point(center).offset(width / -2, height / -2);
+
+            } else {
+                // calculation for the origin Point when there is no rotation of the element
+                origin = bbox.topLeft();
+
+                switch (opt.direction) {
+                    case 'top':
+                    case 'top-right':
+                        origin.offset(0, bbox.height - height);
+                        break;
+                    case 'left':
+                    case 'bottom-left':
+                        origin.offset(bbox.width -width, 0);
+                        break;
+                    case 'top-left':
+                        origin.offset(bbox.width - width, bbox.height - height);
+                        break;
+                }
+            }
 
             // Resize the element (before re-positioning it).
             this.set('size', { width: width, height: height }, opt);
