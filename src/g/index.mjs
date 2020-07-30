@@ -2972,7 +2972,7 @@ export const Point = function(x, y) {
 // @param {point} [optional] Origin.
 Point.fromPolar = function(distance, angle, origin) {
 
-    origin = (origin && new Point(origin)) || new Point(0, 0);
+    origin = new Point(origin);
     var x = abs(distance * cos(angle));
     var y = abs(distance * sin(angle));
     var deg = normalizeAngle(toDeg(angle));
@@ -3167,6 +3167,8 @@ Point.prototype = {
     // Rotate point by angle around origin.
     // Angle is flipped because this is a left-handed coord system (y-axis points downward).
     rotate: function(origin, angle) {
+
+        if (angle === 0) return this;
 
         origin = origin || new Point(0, 0);
 
