@@ -57,8 +57,8 @@ var config = {
 
         return [
             { offsetX: step, offsetY: 0, cost: cost },
-            { offsetX: 0, offsetY: step, cost: cost },
             { offsetX: -step, offsetY: 0, cost: cost },
+            { offsetX: 0, offsetY: step, cost: cost },
             { offsetX: 0, offsetY: -step, cost: cost }
         ];
     },
