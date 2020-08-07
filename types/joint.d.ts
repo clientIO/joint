@@ -700,6 +700,7 @@ export namespace dia {
         interface InteractivityOptions {
             elementMove?: boolean;
             addLinkFromMagnet?: boolean;
+            stopDelegation?: boolean;
         }
     }
 
