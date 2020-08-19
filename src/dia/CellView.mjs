@@ -272,24 +272,34 @@ export const CellView = View.extend({
         return mr;
     },
 
-    highlight: function(el, opt) {
+    highlight: function(el, opt = {}) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
         // set partial flag if the highlighted element is not the entire view.
-        opt = opt || {};
         opt.partial = (el !== this.el);
+
+        if (opt.connecting) {
+            el = this.findProxyNode(el, 'magnet');
+        } else if (opt.embedding) {
+            el = this.findProxyNode(el, 'container');
+        }
 
         this.notify('cell:highlight', el, opt);
         return this;
     },
 
-    unhighlight: function(el, opt) {
+    unhighlight: function(el, opt = {}) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        opt = opt || {};
         opt.partial = el != this.el;
+
+        if (opt.connecting) {
+            el = this.findProxyNode(el, 'magnet');
+        } else if (opt.embedding) {
+            el = this.findProxyNode(el, 'container');
+        }
 
         this.notify('cell:unhighlight', el, opt);
         return this;
@@ -322,6 +332,15 @@ export const CellView = View.extend({
         // This is especially useful to set on cells that have 'ports'. In this case,
         // only the ports have set `magnet === true` and the overall element has `magnet === false`.
         return undefined;
+    },
+
+    findProxyNode: function(el, type) {
+        const magnetSelector = el.getAttribute(`${type}-selector`);
+        if (magnetSelector) {
+            const [delegatedMagnetEl] = this.findBySelector(magnetSelector);
+            if (delegatedMagnetEl) return delegatedMagnetEl;
+        }
+        return el;
     },
 
     // Construct a unique selector for the `el` element within this view.

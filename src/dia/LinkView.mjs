@@ -809,7 +809,13 @@ export const LinkView = CellView.extend({
             var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
             var sourcePointRef = firstWaypoint || targetAnchor;
             var sourceLine = new Line(sourcePointRef, sourceAnchor);
-            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
+            sourcePoint = this.getConnectionPoint(
+                sourceConnectionPointDef,
+                sourceView,
+                sourceView.findProxyNode(sourceMagnet, 'magnet'),
+                sourceLine,
+                'source'
+            );
         } else {
             sourcePoint = sourceAnchor;
         }
@@ -820,7 +826,13 @@ export const LinkView = CellView.extend({
             var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
             var targetPointRef = lastWaypoint || sourceAnchor;
             var targetLine = new Line(targetPointRef, targetAnchor);
-            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
+            targetPoint = this.getConnectionPoint(
+                targetConnectionPointDef,
+                targetView,
+                targetView.findProxyNode(targetMagnet, 'magnet'),
+                targetLine,
+                'target'
+            );
         } else {
             targetPoint = targetAnchor;
         }
@@ -861,7 +873,15 @@ export const LinkView = CellView.extend({
             anchorFn = paperOptions[anchorNamespace][anchorName];
             if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
         }
-        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
+        var anchor = anchorFn.call(
+            this,
+            cellView,
+            cellView.findProxyNode(magnet, 'magnet'),
+            ref,
+            anchorDef.args || {},
+            endType,
+            this
+        );
         if (!anchor) return new Point();
         return anchor.round(this.decimalsRounding);
     },
