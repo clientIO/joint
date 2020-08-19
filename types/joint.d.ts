@@ -3350,7 +3350,7 @@ export namespace elementTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.LinkView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.ElementView, tool: dia.ToolView) => void;
 
         interface Options extends dia.ToolView.Options {
             x?: number | string;
@@ -3486,7 +3486,7 @@ export namespace linkTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.LinkView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: dia.ToolView) => void;
 
         interface Options extends dia.ToolView.Options {
             distance?: number | string;
