@@ -399,6 +399,8 @@ export namespace g {
 
         toPolylines(opt?: SegmentSubdivisionsOpt): Polyline[] | null;
 
+        toSubpathsSegments(): Segment[][];
+
         translate(tx?: number, ty?: number): this;
         translate(tx: PlainPoint): this;
 

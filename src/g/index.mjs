@@ -2844,6 +2844,22 @@ Path.prototype = {
         return polylines;
     },
 
+    toSubpathsSegments: function() {
+        const subpaths = [];
+        const { segments } = this;
+        let j = -1;
+        let startSegment;
+        for (let i = 0, n = segments.length; i < n; i++) {
+            const currentSegment = segments[i];
+            if (currentSegment.subpathStartSegment !== startSegment) {
+                subpaths[++j] = [];
+                startSegment = currentSegment;
+            }
+            subpaths[j].push(currentSegment);
+        }
+        return subpaths;
+    },
+
     toString: function() {
 
         var segments = this.segments;
