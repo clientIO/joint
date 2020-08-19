@@ -3001,6 +3001,7 @@ export namespace highlighters {
         padding?: number;
         rx?: number;
         ry?: number;
+        useFirstSubpath?: boolean;
         attrs?: attributes.NativeSVGAttributes;
     }
 

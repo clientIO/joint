@@ -1,4 +1,4 @@
-<p>Adds a stroke around the cell view's <code>$el</code>.</p>
+<p>Adds a stroke around the cell view's <code>el</code>.</p>
 
 <p>Available options:</p>
 <ul>
@@ -6,6 +6,7 @@
     <li><b>rx</b> - the stroke's border radius on the x-axis</li>
     <li><b>ry</b> - the stroke's border radius on the y-axis</li>
     <li><b>attrs</b> - an object with SVG attributes to be set on the highlighter element</li>
+    <li><b>useFirstSubpath</b> - draw the stroke by using the first subpath of the target <code>el</code> compound path.</li>
 </ul>
 
 <p>Example usage:</p>
@@ -16,9 +17,10 @@
             padding: 10,
             rx: 5,
             ry: 5,
+            useFirstSubpath: true,
             attrs: {
                 'stroke-width': 3,
-                stroke: '#FF0000'
+                'stroke': '#FF0000'
             }
         }
     }

@@ -9,6 +9,7 @@ export const stroke = {
         padding: 3,
         rx: 0,
         ry: 0,
+        useFirstSubpath: false,
         attrs: {
             'stroke-width': 3,
             'stroke': '#FEB663'
@@ -36,34 +37,22 @@ export const stroke = {
      */
     highlight: function(cellView, magnetEl, opt) {
 
-        var id = this.getHighlighterId(magnetEl, opt);
+        const id = this.getHighlighterId(magnetEl, opt);
 
         // Only highlight once.
         if (this._views[id]) return;
 
-        var options = util.defaults(opt || {}, this.defaultOptions);
+        const options = util.defaults(opt || {}, this.defaultOptions);
+        const { padding, useFirstSubpath, attrs } = options;
 
-        var magnetVel = V(magnetEl);
-        var magnetBBox;
-
-        try {
-
-            var pathData = magnetVel.convertToPathData();
-
-        } catch (error) {
-
-            // Failed to get path data from magnet element.
-            // Draw a rectangle around the entire cell view instead.
-            magnetBBox = magnetVel.bbox(true/* without transforms */);
-            pathData = V.rectToPath(util.assign({}, options, magnetBBox));
-        }
-
-        var highlightVel = V('path').attr({
-            'd': pathData,
-            'pointer-events': 'none',
-            'vector-effect': 'non-scaling-stroke',
-            'fill': 'none'
-        }).attr(options.attrs);
+        const magnetVel = V(magnetEl);
+        const highlightVel = V('path')
+            .attr({
+                'pointer-events': 'none',
+                'vector-effect': 'non-scaling-stroke',
+                'fill': 'none'
+            })
+            .attr(attrs);
 
         if (cellView.isNodeConnection(magnetEl)) {
 
@@ -71,23 +60,41 @@ export const stroke = {
 
         } else {
 
-            var highlightMatrix = magnetVel.getTransformToElement(cellView.el);
+            let pathData;
+            let magnetBBox;
+            try {
+                pathData = magnetVel.convertToPathData().trim();
+                if (magnetVel.tagName() === 'PATH' && useFirstSubpath) {
+                    const secondSubpathIndex = pathData.search(/.M/i) + 1;
+                    if (secondSubpathIndex > 0) {
+                        pathData = pathData.substr(0, secondSubpathIndex);
+                    }
+                }
+            } catch (error) {
+                // Failed to get path data from magnet element.
+                // Draw a rectangle around the entire cell view instead.
+                magnetBBox = cellView.getNodeBoundingRect(magnetEl);
+                pathData = V.rectToPath(Object.assign({}, options, magnetBBox));
+            }
+
+            highlightVel.attr('d', pathData);
+
+            let highlightMatrix = magnetVel.getTransformToElement(cellView.el);
 
             // Add padding to the highlight element.
-            var padding = options.padding;
             if (padding) {
 
-                magnetBBox || (magnetBBox = magnetVel.bbox(true));
+                magnetBBox || (magnetBBox = cellView.getNodeBoundingRect(magnetEl));
 
-                var cx = magnetBBox.x + (magnetBBox.width / 2);
-                var cy = magnetBBox.y + (magnetBBox.height / 2);
+                const cx = magnetBBox.x + (magnetBBox.width / 2);
+                const cy = magnetBBox.y + (magnetBBox.height / 2);
 
                 magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
 
-                var width = Math.max(magnetBBox.width, 1);
-                var height = Math.max(magnetBBox.height, 1);
-                var sx = (width + padding) / width;
-                var sy = (height + padding) / height;
+                const width = Math.max(magnetBBox.width, 1);
+                const height = Math.max(magnetBBox.height, 1);
+                const sx = (width + padding) / width;
+                const sy = (height + padding) / height;
 
                 var paddingMatrix = V.createSVGMatrix({
                     a: sx,
@@ -105,15 +112,15 @@ export const stroke = {
         }
 
         // joint.mvc.View will handle the theme class name and joint class name prefix.
-        var highlightView = this._views[id] = new mvc.View({
+        const highlightView = this._views[id] = new mvc.View({
             svgElement: true,
             className: 'highlight-stroke',
             el: highlightVel.node
         });
 
         // Remove the highlight view when the cell is removed from the graph.
-        var removeHandler = this.removeHighlighter.bind(this, id);
-        var cell = cellView.model;
+        const removeHandler = this.removeHighlighter.bind(this, id);
+        const cell = cellView.model;
         highlightView.listenTo(cell, 'remove', removeHandler);
         highlightView.listenTo(cell.graph, 'reset', removeHandler);
 
