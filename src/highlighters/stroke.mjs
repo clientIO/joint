@@ -74,7 +74,7 @@ export const stroke = {
                 // Failed to get path data from magnet element.
                 // Draw a rectangle around the entire cell view instead.
                 magnetBBox = cellView.getNodeBoundingRect(magnetEl);
-                pathData = V.rectToPath(Object.assign({}, options, magnetBBox));
+                pathData = V.rectToPath(util.assign({}, options, magnetBBox));
             }
 
             highlightVel.attr('d', pathData);
