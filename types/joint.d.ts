@@ -3219,6 +3219,8 @@ export namespace attributes {
         atConnectionRatio?: number;
         atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
         atConnectionRatioIgnoreGradient?: number;
+        magnetSelector: string;
+        containerSelector: string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;
