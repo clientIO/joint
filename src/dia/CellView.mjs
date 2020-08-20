@@ -335,6 +335,7 @@ export const CellView = View.extend({
     },
 
     findProxyNode: function(el, type) {
+        el || (el = this.el);
         const magnetSelector = el.getAttribute(`${type}-selector`);
         if (magnetSelector) {
             const [delegatedMagnetEl] = this.findBySelector(magnetSelector);
