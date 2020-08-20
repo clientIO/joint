@@ -326,8 +326,8 @@ export const CellView = View.extend({
         el || (el = this.el);
         const magnetSelector = el.getAttribute(`${type}-selector`);
         if (magnetSelector) {
-            const [delegatedMagnetEl] = this.findBySelector(magnetSelector);
-            if (delegatedMagnetEl) return delegatedMagnetEl;
+            const [proxyMagnetEl] = this.findBySelector(magnetSelector);
+            if (proxyMagnetEl) return proxyMagnetEl;
         }
         return el;
     },
