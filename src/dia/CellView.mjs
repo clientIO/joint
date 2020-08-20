@@ -279,12 +279,6 @@ export const CellView = View.extend({
         // set partial flag if the highlighted element is not the entire view.
         opt.partial = (el !== this.el);
 
-        if (opt.connecting) {
-            el = this.findProxyNode(el, 'magnet');
-        } else if (opt.embedding) {
-            el = this.findProxyNode(el, 'container');
-        }
-
         this.notify('cell:highlight', el, opt);
         return this;
     },
@@ -295,12 +289,6 @@ export const CellView = View.extend({
 
         opt.partial = el != this.el;
 
-        if (opt.connecting) {
-            el = this.findProxyNode(el, 'magnet');
-        } else if (opt.embedding) {
-            el = this.findProxyNode(el, 'container');
-        }
-
         this.notify('cell:unhighlight', el, opt);
         return this;
     },
@@ -309,28 +297,28 @@ export const CellView = View.extend({
     // an element found, return the root element of the cell view.
     findMagnet: function(el) {
 
-        var $el = this.$(el);
-        var $rootEl = this.$el;
-
-        if ($el.length === 0) {
-            $el = $rootEl;
+        const root = this.el;
+        let magnet = this.$(el)[0];
+        if (!magnet) {
+            magnet = root;
         }
 
         do {
-
-            var magnet = $el.attr('magnet');
-            if ((magnet || $el.is($rootEl)) && magnet !== 'false') {
-                return $el[0];
+            const magnetAttribute = magnet.getAttribute('magnet');
+            const isMagnetRoot = (magnet === root);
+            if ((magnetAttribute || isMagnetRoot) && magnetAttribute !== 'false') {
+                return this.findProxyNode(magnet, 'magnet');
             }
+            if (isMagnetRoot) {
+                // If the overall cell has set `magnet === false`, then return `undefined` to
+                // announce there is no magnet found for this cell.
+                // This is especially useful to set on cells that have 'ports'. In this case,
+                // only the ports have set `magnet === true` and the overall element has `magnet === false`.
+                return undefined;
+            }
+            magnet = magnet.parentNode;
+        } while (magnet);
 
-            $el = $el.parent();
-
-        } while ($el.length > 0);
-
-        // If the overall cell has set `magnet === false`, then return `undefined` to
-        // announce there is no magnet found for this cell.
-        // This is especially useful to set on cells that have 'ports'. In this case,
-        // only the ports have set `magnet === true` and the overall element has `magnet === false`.
         return undefined;
     },
 
