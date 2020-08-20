@@ -422,7 +422,7 @@ export const CellView = View.extend({
             magnet = this.findBySelector(selector, root, this.selectors)[0];
         }
 
-        return magnet;
+        return this.findProxyNode(magnet, 'magnet');
     },
 
     getAttributeDefinition: function(attrName) {

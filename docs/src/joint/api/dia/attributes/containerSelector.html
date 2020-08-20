@@ -1,0 +1,13 @@
+<p>The node denoted by the attribute value (a selector) will act as a proxy for the container (when the cell becomes the target of embedding). This will affect the following areas:
+    <ul>
+        <li>embedding highlighter</li>
+    </ul>
+</p>
+
+<pre><code>// `standard.Rectangle` has `root`, `body` and `label` subelements.
+const rect = new joint.shapes.standard.Rectangle();
+// The label is below the rectangle body
+rect.attr(['label'], { refY: '100%', textVerticalAnchor: 'top' });
+// The rectangle body only will be highlighted when the user tries to embed a child to this element.
+rect.attr(['root', 'containerSelector'], 'body');
+</code></pre>

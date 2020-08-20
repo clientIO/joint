@@ -1,0 +1,17 @@
+<p>The node denoted by the attribute value (a selector) will act as a proxy for the magnet (when the subelement becomes a source/target of a link). This will affect the following areas:
+    <ul>
+        <li>link anchor</li>
+        <li>link connection point</li>
+        <li>magnet highlighter</li>
+        <li>connector</li>
+        <li>router</li>
+    </ul>
+</p>
+
+<pre><code>// `standard.Rectangle` has `root`, `body` and `label` subelements.
+const rect = new joint.shapes.standard.Rectangle();
+// The label is below the rectangle body
+rect.attr(['label'], { refY: '100%', textVerticalAnchor: 'top' });
+// A link will be visually connected to the rectangle body instead of the wrapping group,
+// which contains both the label and the body.
+rect.attr(['root','magnetSelector'], 'body');</code></pre>

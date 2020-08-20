@@ -812,7 +812,7 @@ export const LinkView = CellView.extend({
             sourcePoint = this.getConnectionPoint(
                 sourceConnectionPointDef,
                 sourceView,
-                sourceView.findProxyNode(sourceMagnet, 'magnet'),
+                sourceMagnet,
                 sourceLine,
                 'source'
             );
@@ -829,7 +829,7 @@ export const LinkView = CellView.extend({
             targetPoint = this.getConnectionPoint(
                 targetConnectionPointDef,
                 targetView,
-                targetView.findProxyNode(targetMagnet, 'magnet'),
+                targetMagnet,
                 targetLine,
                 'target'
             );
@@ -876,7 +876,7 @@ export const LinkView = CellView.extend({
         var anchor = anchorFn.call(
             this,
             cellView,
-            cellView.findProxyNode(magnet, 'magnet'),
+            magnet,
             ref,
             anchorDef.args || {},
             endType,
