@@ -363,6 +363,10 @@ export namespace g {
 
         getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
+        getSubpath(index: number): Path | null;
+
+        getSubpaths(): Path[];
+
         insertSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         intersectionWithLine(l: Line, opt?: SegmentSubdivisionsOpt): Point[] | null;

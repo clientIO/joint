@@ -2237,6 +2237,48 @@ Path.prototype = {
         return segmentSubdivisions;
     },
 
+    // Accepts negative indices.
+    // Throws an error if path has no segments.
+    // Throws an error if index is out of range.
+    getSubpath: function(index) {
+
+        const subpaths = this.getSubpaths();
+        const numSubpaths = subpaths.length;
+        if (numSubpaths === 0) throw new Error('Path has no subpaths.');
+
+        if (index < 0) index = numSubpaths + index; // convert negative indices to positive
+        if (index >= numSubpaths || index < 0) throw new Error('Index out of range.');
+
+        return subpaths[index];
+    },
+
+    // Returns an array of subpaths of this path.
+    // The path does not have to be valid.
+    // Returns `[]` if path has no segments.
+    getSubpaths: function() {
+
+        const segments = this.segments;
+        const numSegments = segments.length;
+
+        const subpaths = [];
+        for (let i = 0; i < numSegments; i++) {
+
+            const segment = segments[i];
+            if (i === 0 || segment.isSubpathStart) {
+                // we encountered a subpath start segment
+                // (or the first segment of an invalid path)
+                // create a new path for segment, and push it to list of subpaths
+                subpaths.push(new Path(segment));
+
+            } else {
+                // append current segment to the last subpath
+                subpaths[subpaths.length - 1].appendSegment(segment);
+            }
+        }
+
+        return subpaths;
+    },
+
     // Insert `arg` at given `index`.
     // `index = 0` means insert at the beginning.
     // `index = segments.length` means insert at the end.
