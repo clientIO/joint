@@ -2920,7 +2920,8 @@ Path.prototype = {
     // Path with no segments is considered valid, so nothing is inserted.
     validate: function() {
 
-        if (!this.isValid) this.insertSegment(0, Path.createSegment('M', 0, 0));
+        if (!this.isValid()) this.insertSegment(0, Path.createSegment('M', 0, 0));
+        return this;
     }
 };
 

@@ -408,7 +408,7 @@ export namespace g {
 
         toString(): string;
 
-        validate(): void;
+        validate(): this;
 
         private closestPointT(p: Point, opt?: SegmentSubdivisionsOpt): PathT | null;
 
