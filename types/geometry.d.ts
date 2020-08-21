@@ -363,8 +363,6 @@ export namespace g {
 
         getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
-        getSubpath(index: number): Path | null;
-
         getSubpaths(): Path[];
 
         insertSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
@@ -409,6 +407,8 @@ export namespace g {
         serialize(): string;
 
         toString(): string;
+
+        validate(): void;
 
         private closestPointT(p: Point, opt?: SegmentSubdivisionsOpt): PathT | null;
 

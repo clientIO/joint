@@ -2237,36 +2237,22 @@ Path.prototype = {
         return segmentSubdivisions;
     },
 
-    // Accepts negative indices.
-    // Throws an error if path has no segments.
-    // Throws an error if index is out of range.
-    getSubpath: function(index) {
-
-        const subpaths = this.getSubpaths();
-        const numSubpaths = subpaths.length;
-        if (numSubpaths === 0) throw new Error('Path has no subpaths.');
-
-        if (index < 0) index = numSubpaths + index; // convert negative indices to positive
-        if (index >= numSubpaths || index < 0) throw new Error('Index out of range.');
-
-        return subpaths[index];
-    },
-
     // Returns an array of subpaths of this path.
-    // The path does not have to be valid.
+    // Invalid paths are validated first.
     // Returns `[]` if path has no segments.
     getSubpaths: function() {
 
-        const segments = this.segments;
+        const validatedPath = this.clone().validate();
+
+        const segments = validatedPath.segments;
         const numSegments = segments.length;
 
         const subpaths = [];
         for (let i = 0; i < numSegments; i++) {
 
             const segment = segments[i];
-            if (i === 0 || segment.isSubpathStart) {
+            if (segment.isSubpathStart) {
                 // we encountered a subpath start segment
-                // (or the first segment of an invalid path)
                 // create a new path for segment, and push it to list of subpaths
                 subpaths.push(new Path(segment));
 
@@ -2928,6 +2914,13 @@ Path.prototype = {
             previousSegment = segment;
             segment = segment.nextSegment; // move on to the segment after etc.
         }
+    },
+
+    // If the path is not valid, insert M 0 0 at the beginning.
+    // Path with no segments is considered valid, so nothing is inserted.
+    validate: function() {
+
+        if (!this.isValid) this.insertSegment(0, Path.createSegment('M', 0, 0));
     }
 };
 
