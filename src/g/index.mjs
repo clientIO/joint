@@ -2237,6 +2237,34 @@ Path.prototype = {
         return segmentSubdivisions;
     },
 
+    // Returns an array of subpaths of this path.
+    // Invalid paths are validated first.
+    // Returns `[]` if path has no segments.
+    getSubpaths: function() {
+
+        const validatedPath = this.clone().validate();
+
+        const segments = validatedPath.segments;
+        const numSegments = segments.length;
+
+        const subpaths = [];
+        for (let i = 0; i < numSegments; i++) {
+
+            const segment = segments[i];
+            if (segment.isSubpathStart) {
+                // we encountered a subpath start segment
+                // create a new path for segment, and push it to list of subpaths
+                subpaths.push(new Path(segment));
+
+            } else {
+                // append current segment to the last subpath
+                subpaths[subpaths.length - 1].appendSegment(segment);
+            }
+        }
+
+        return subpaths;
+    },
+
     // Insert `arg` at given `index`.
     // `index = 0` means insert at the beginning.
     // `index = segments.length` means insert at the end.
@@ -2886,6 +2914,14 @@ Path.prototype = {
             previousSegment = segment;
             segment = segment.nextSegment; // move on to the segment after etc.
         }
+    },
+
+    // If the path is not valid, insert M 0 0 at the beginning.
+    // Path with no segments is considered valid, so nothing is inserted.
+    validate: function() {
+
+        if (!this.isValid()) this.insertSegment(0, Path.createSegment('M', 0, 0));
+        return this;
     }
 };
 

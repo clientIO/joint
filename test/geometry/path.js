@@ -2065,6 +2065,183 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('getSubpaths()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+                var subpaths;
+
+                path = new g.Path();
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 0);
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('Z'));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z'),
+                    g.Path.createSegment('M', 200, 200),
+                    g.Path.createSegment('L', 210, 210),
+                    g.Path.createSegment('C', 220, 230, 230, 230, 230, 220),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 2);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+                assert.equal(typeof subpaths[1].toString(), 'string');
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z'),
+                    g.Path.createSegment('M', 200, 200),
+                    g.Path.createSegment('L', 210, 210),
+                    g.Path.createSegment('C', 220, 230, 230, 230, 230, 220),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 2);
+                assert.equal(typeof subpaths[0].toString(), 'string');
+                assert.equal(typeof subpaths[1].toString(), 'string');
+            });
+
+            QUnit.test('get subpaths', function(assert) {
+
+                var path;
+                var subpaths;
+
+                path = new g.Path();
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 0);
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(subpaths[0].toString(), 'M 100 100');
+
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(subpaths[0].toString(), 'M 0 0 L 100 100');
+
+                path = new g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(subpaths[0].toString(), 'M 0 0 C 100 110 110 110 110 100');
+
+                path = new g.Path(g.Path.createSegment('Z'));
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(subpaths[0].toString(), 'M 0 0 Z');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(subpaths[0].toString(), 'M 100 100 L 110 110 C 120 130 130 130 130 120 Z');
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 1);
+                assert.equal(subpaths[0].toString(), 'M 0 0 L 110 110 C 120 130 130 130 130 120 Z');
+
+                path = new g.Path([
+                    g.Path.createSegment('M', 100, 100),
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z'),
+                    g.Path.createSegment('M', 200, 200),
+                    g.Path.createSegment('L', 210, 210),
+                    g.Path.createSegment('C', 220, 230, 230, 230, 230, 220),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 2);
+                assert.equal(subpaths[0].toString(), 'M 100 100 L 110 110 C 120 130 130 130 130 120 Z');
+                assert.equal(subpaths[1].toString(), 'M 200 200 L 210 210 C 220 230 230 230 230 220 Z');
+
+                path = new g.Path([
+                    g.Path.createSegment('L', 110, 110),
+                    g.Path.createSegment('C', 120, 130, 130, 130, 130, 120),
+                    g.Path.createSegment('Z'),
+                    g.Path.createSegment('M', 200, 200),
+                    g.Path.createSegment('L', 210, 210),
+                    g.Path.createSegment('C', 220, 230, 230, 230, 230, 220),
+                    g.Path.createSegment('Z')
+                ]);
+                subpaths = path.getSubpaths();
+                assert.equal(Array.isArray(subpaths), true);
+                assert.equal(subpaths.length, 2);
+                assert.equal(subpaths[0].toString(), 'M 0 0 L 110 110 C 120 130 130 130 130 120 Z');
+                assert.equal(subpaths[1].toString(), 'M 200 200 L 210 210 C 220 230 230 230 230 220 Z');
+            });
+        });
+
         QUnit.module('insertSegment()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -3780,6 +3957,41 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('serialize()', function(assert) {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                var error;
+
+                try {
+                    path = new g.Path(g.Path.createSegment('L', 100, 100));
+                    path.serialize();
+                } catch (e) {
+                    error = e;
+                }
+                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on a path that does not start with a Moveto segment.');
+
+                path = new g.Path();
+                assert.equal(typeof path.toString(), 'string');
+
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(typeof path.serialize(), 'string');
+            });
+
+            QUnit.test('toString with extra checks', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.toString(), '');
+
+                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.serialize(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+            });
+        });
+
         QUnit.module('tangentAt()', function() {
 
             QUnit.test('sanity', function(assert) {
@@ -4125,61 +4337,9 @@ QUnit.module('path', function(hooks) {
             });
         });
 
-        QUnit.module('translate()', function() {
+        // toPoints
 
-            QUnit.test('sanity', function(assert) {
-
-                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                assert.ok(path.clone().translate(0, 0) instanceof g.Path);
-                assert.ok(path.clone().translate(0, 10) instanceof g.Path);
-                assert.ok(path.clone().translate(10, 0) instanceof g.Path);
-                assert.ok(path.clone().translate(10, 10) instanceof g.Path);
-            });
-
-            QUnit.test('should return a translated version of self', function(assert) {
-
-                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                assert.equal(path.clone().translate(0, 0).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                assert.equal(path.clone().translate(0, 10).toString(), 'M 150 110 L 100 110 C 100 110 0 160 100 210 Z');
-                assert.equal(path.clone().translate(10, 0).toString(), 'M 160 100 L 110 100 C 110 100 10 150 110 200 Z');
-                assert.equal(path.clone().translate(10, 10).toString(), 'M 160 110 L 110 110 C 110 110 10 160 110 210 Z');
-            });
-        });
-
-        QUnit.module('serialize()', function(assert) {
-
-            QUnit.test('sanity', function(assert) {
-
-                var path;
-
-                var error;
-
-                try {
-                    path = new g.Path(g.Path.createSegment('L', 100, 100));
-                    path.serialize();
-                } catch (e) {
-                    error = e;
-                }
-                assert.ok(typeof error !== 'undefined', 'Should throw an error when called on a path that does not start with a Moveto segment.');
-
-                path = new g.Path();
-                assert.equal(typeof path.toString(), 'string');
-
-                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                assert.equal(typeof path.serialize(), 'string');
-            });
-
-            QUnit.test('toString with extra checks', function(assert) {
-
-                var path;
-
-                path = new g.Path();
-                assert.equal(path.toString(), '');
-
-                path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-                assert.equal(path.serialize(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
-            });
-        });
+        // toPolylines
 
         QUnit.module('toString()', function(assert) {
 
@@ -4209,6 +4369,70 @@ QUnit.module('path', function(hooks) {
 
                 path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
                 assert.equal(path.toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+            });
+        });
+
+        QUnit.module('translate()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.ok(path.clone().translate(0, 0) instanceof g.Path);
+                assert.ok(path.clone().translate(0, 10) instanceof g.Path);
+                assert.ok(path.clone().translate(10, 0) instanceof g.Path);
+                assert.ok(path.clone().translate(10, 10) instanceof g.Path);
+            });
+
+            QUnit.test('should return a translated version of self', function(assert) {
+
+                var path = new g.Path('M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().translate(0, 0).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().translate(0, 10).toString(), 'M 150 110 L 100 110 C 100 110 0 160 100 210 Z');
+                assert.equal(path.clone().translate(10, 0).toString(), 'M 160 100 L 110 100 C 110 100 10 150 110 200 Z');
+                assert.equal(path.clone().translate(10, 10).toString(), 'M 160 110 L 110 110 C 110 110 10 160 110 210 Z');
+            });
+        });
+
+        QUnit.module('validate()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(typeof path.validate().toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                assert.equal(typeof path.validate().toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
+                assert.equal(typeof path.validate().toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                assert.equal(typeof path.validate().toString(), 'string');
+
+                path = new g.Path(g.Path.createSegment('Z'));
+                assert.equal(typeof path.validate().toString(), 'string');
+            });
+
+            QUnit.test('validate path', function(assert) {
+
+                var path;
+
+                path = new g.Path();
+                assert.equal(path.validate().toString(), '');
+
+                path = new g.Path(g.Path.createSegment('M', 100, 100));
+                assert.equal(path.validate().toString(), 'M 100 100');
+
+                path = new g.Path(g.Path.createSegment('L', 100, 100));
+                assert.equal(path.validate().toString(), 'M 0 0 L 100 100');
+
+                path = new g.Path(g.Path.createSegment('C', 100, 110, 110, 110, 110, 100));
+                assert.equal(path.validate().toString(), 'M 0 0 C 100 110 110 110 110 100');
+
+                path = new g.Path(g.Path.createSegment('Z'));
+                assert.equal(path.validate().toString(), 'M 0 0 Z');
             });
         });
     });
