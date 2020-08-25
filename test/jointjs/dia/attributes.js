@@ -183,7 +183,7 @@ QUnit.module('Attributes', function() {
                 assert.equal(linkView.sourceMagnet, body);
                 // Validation
                 assert.ok(validateSpy.calledOnce);
-                assert.ok(validateSpy.calledWithExactly(cellView, body, undefined, undefined, 'source', linkView));
+                assert.ok(validateSpy.calledWithExactly(cellView, undefined, undefined, undefined, 'source', linkView));
             });
         });
 

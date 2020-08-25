@@ -307,7 +307,7 @@ export const CellView = View.extend({
             const magnetAttribute = magnet.getAttribute('magnet');
             const isMagnetRoot = (magnet === root);
             if ((magnetAttribute || isMagnetRoot) && magnetAttribute !== 'false') {
-                return this.findProxyNode(magnet, 'magnet');
+                return magnet;
             }
             if (isMagnetRoot) {
                 // If the overall cell has set `magnet === false`, then return `undefined` to
