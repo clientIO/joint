@@ -149,7 +149,6 @@ QUnit.module('Attributes', function() {
 
             QUnit.test('highlighting, magnet, validation', function(assert) {
 
-                paper.options.embeddingMode = true;
                 cell.attr(['root', 'magnetSelector'], 'body');
                 var body = cellView.findBySelector('body')[0];
 
