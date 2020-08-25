@@ -272,23 +272,21 @@ export const CellView = View.extend({
         return mr;
     },
 
-    highlight: function(el, opt) {
+    highlight: function(el, opt = {}) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
         // set partial flag if the highlighted element is not the entire view.
-        opt = opt || {};
         opt.partial = (el !== this.el);
 
         this.notify('cell:highlight', el, opt);
         return this;
     },
 
-    unhighlight: function(el, opt) {
+    unhighlight: function(el, opt = {}) {
 
         el = !el ? this.el : this.$(el)[0] || this.el;
 
-        opt = opt || {};
         opt.partial = el != this.el;
 
         this.notify('cell:unhighlight', el, opt);
@@ -299,29 +297,39 @@ export const CellView = View.extend({
     // an element found, return the root element of the cell view.
     findMagnet: function(el) {
 
-        var $el = this.$(el);
-        var $rootEl = this.$el;
-
-        if ($el.length === 0) {
-            $el = $rootEl;
+        const root = this.el;
+        let magnet = this.$(el)[0];
+        if (!magnet) {
+            magnet = root;
         }
 
         do {
-
-            var magnet = $el.attr('magnet');
-            if ((magnet || $el.is($rootEl)) && magnet !== 'false') {
-                return $el[0];
+            const magnetAttribute = magnet.getAttribute('magnet');
+            const isMagnetRoot = (magnet === root);
+            if ((magnetAttribute || isMagnetRoot) && magnetAttribute !== 'false') {
+                return magnet;
             }
+            if (isMagnetRoot) {
+                // If the overall cell has set `magnet === false`, then return `undefined` to
+                // announce there is no magnet found for this cell.
+                // This is especially useful to set on cells that have 'ports'. In this case,
+                // only the ports have set `magnet === true` and the overall element has `magnet === false`.
+                return undefined;
+            }
+            magnet = magnet.parentNode;
+        } while (magnet);
 
-            $el = $el.parent();
-
-        } while ($el.length > 0);
-
-        // If the overall cell has set `magnet === false`, then return `undefined` to
-        // announce there is no magnet found for this cell.
-        // This is especially useful to set on cells that have 'ports'. In this case,
-        // only the ports have set `magnet === true` and the overall element has `magnet === false`.
         return undefined;
+    },
+
+    findProxyNode: function(el, type) {
+        el || (el = this.el);
+        const magnetSelector = el.getAttribute(`${type}-selector`);
+        if (magnetSelector) {
+            const [proxyMagnetEl] = this.findBySelector(magnetSelector);
+            if (proxyMagnetEl) return proxyMagnetEl;
+        }
+        return el;
     },
 
     // Construct a unique selector for the `el` element within this view.
@@ -403,7 +411,7 @@ export const CellView = View.extend({
             magnet = this.findBySelector(selector, root, this.selectors)[0];
         }
 
-        return magnet;
+        return this.findProxyNode(magnet, 'magnet');
     },
 
     getAttributeDefinition: function(attrName) {

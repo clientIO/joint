@@ -394,7 +394,10 @@ export const ElementView = CellView.extend({
         if (newCandidateView && newCandidateView != prevCandidateView) {
             // A new candidate view found. Highlight the new one.
             this.clearEmbedding(data);
-            data.candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
+            data.candidateEmbedView = newCandidateView.highlight(
+                newCandidateView.findProxyNode(null, 'container'),
+                { embedding: true }
+            );
         }
 
         if (!newCandidateView && prevCandidateView) {
@@ -410,7 +413,10 @@ export const ElementView = CellView.extend({
         var candidateView = data.candidateEmbedView;
         if (candidateView) {
             // No candidate view found. Unhighlight the previous candidate.
-            candidateView.unhighlight(null, { embedding: true });
+            candidateView.unhighlight(
+                candidateView.findProxyNode(null, 'container'),
+                { embedding: true }
+            );
             data.candidateEmbedView = null;
         }
     },
@@ -427,7 +433,10 @@ export const ElementView = CellView.extend({
 
             // We finished embedding. Candidate view is chosen to become the parent of the model.
             candidateView.model.embed(model, { ui: true });
-            candidateView.unhighlight(null, { embedding: true });
+            candidateView.unhighlight(
+                candidateView.findProxyNode(null, 'container'),
+                { embedding: true }
+            );
 
             data.candidateEmbedView = null;
         }

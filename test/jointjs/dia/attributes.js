@@ -92,4 +92,100 @@ QUnit.module('Attributes', function() {
             });
         });
     });
+
+    QUnit.module('Proxy Attributes', function(hooks) {
+
+        var paper, graph, cell, cellView;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph;
+            var fixtures = document.getElementById('qunit-fixture');
+            var paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            cell = new joint.shapes.standard.Rectangle({ width: 100, height: 100 });
+            cell.addTo(graph);
+            cellView = cell.findView(paper);
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+
+        QUnit.module('containerSelector', function() {
+
+            QUnit.test('highlighting', function(assert) {
+
+                paper.options.embeddingMode = true;
+                cell.attr(['root', 'containerSelector'], 'body');
+                var body = cellView.findBySelector('body')[0];
+
+                var highlightSpy = sinon.spy();
+                var unhighlightSpy = sinon.spy();
+                paper.on('cell:highlight', highlightSpy);
+                paper.on('cell:unhighlight', unhighlightSpy);
+
+                var cell2 = new joint.shapes.standard.Rectangle({ width: 100, height: 100 });
+                cell2.addTo(graph);
+                var cellView2 = cell2.findView(paper);
+                var data = {};
+                var clientCellCenter = paper.localToClientPoint(cell.getBBox().center());
+                simulate.mousedown({ el: cellView2.el, clientX: clientCellCenter.x, clientY: clientCellCenter.y, data: data });
+                simulate.mousemove({ el: cellView2.el, clientX: clientCellCenter.x, clientY: clientCellCenter.y, data: data });
+                // Highlight
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(highlightSpy.calledWithExactly(cellView, body, sinon.match({ embedding: true })));
+                assert.notOk(unhighlightSpy.called);
+                simulate.mouseup({ el: cellView2.el, clientX: clientCellCenter.x, clientY: clientCellCenter.y, data: data });
+                // Unhighlight
+                assert.ok(unhighlightSpy.calledOnce);
+                assert.ok(unhighlightSpy.calledWithExactly(cellView, body, sinon.match({ embedding: true })));
+                assert.notOk(highlightSpy.callCount > 1);
+            });
+        });
+
+        QUnit.module('magnetSelector', function() {
+
+            QUnit.test('highlighting, magnet, validation', function(assert) {
+
+                cell.attr(['root', 'magnetSelector'], 'body');
+                var body = cellView.findBySelector('body')[0];
+
+                var highlightSpy = sinon.spy();
+                var unhighlightSpy = sinon.spy();
+                var validateSpy = sinon.spy(function() { return true; });
+                paper.on('cell:highlight', highlightSpy);
+                paper.on('cell:unhighlight', unhighlightSpy);
+                paper.options.validateConnection = validateSpy;
+
+                var link = new joint.dia.Link({ width: 100, height: 100 });
+                link.addTo(graph);
+                var linkView = link.findView(paper);
+                assert.equal(linkView.sourceMagnet, null);
+                var cellCenter = cell.getBBox().center();
+                var evt = { type: 'mousemove' };
+                linkView.startArrowheadMove('source');
+                evt.target = paper.el;
+                linkView.pointermove(evt, cellCenter.x, cellCenter.y);
+                evt.target = cellView.el;
+                linkView.pointermove(evt, cellCenter.x, cellCenter.t);
+                // Highlight
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(highlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
+                assert.notOk(unhighlightSpy.called);
+                linkView.pointerup(evt, cellCenter.x, cellCenter.y);
+                // Unhighlight
+                assert.ok(unhighlightSpy.calledOnce);
+                assert.ok(unhighlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
+                assert.notOk(highlightSpy.callCount > 1);
+                assert.equal(linkView.sourceMagnet, body);
+                // Validation
+                assert.ok(validateSpy.calledOnce);
+                assert.ok(validateSpy.calledWithExactly(cellView, undefined, undefined, undefined, 'source', linkView));
+            });
+        });
+
+    });
+
 });

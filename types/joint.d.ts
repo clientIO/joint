@@ -613,6 +613,8 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
+        findProxyNode(el: SVGElement | null, type: string);
+
         getSelector(el: SVGElement, prevSelector?: string): string;
 
         notify(eventName: string, ...eventArguments: any[]): void;
@@ -3217,6 +3219,8 @@ export namespace attributes {
         atConnectionRatio?: number;
         atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
         atConnectionRatioIgnoreGradient?: number;
+        magnetSelector: string;
+        containerSelector: string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;

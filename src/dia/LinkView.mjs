@@ -809,7 +809,13 @@ export const LinkView = CellView.extend({
             var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
             var sourcePointRef = firstWaypoint || targetAnchor;
             var sourceLine = new Line(sourcePointRef, sourceAnchor);
-            sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
+            sourcePoint = this.getConnectionPoint(
+                sourceConnectionPointDef,
+                sourceView,
+                sourceMagnet,
+                sourceLine,
+                'source'
+            );
         } else {
             sourcePoint = sourceAnchor;
         }
@@ -820,7 +826,13 @@ export const LinkView = CellView.extend({
             var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
             var targetPointRef = lastWaypoint || sourceAnchor;
             var targetLine = new Line(targetPointRef, targetAnchor);
-            targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
+            targetPoint = this.getConnectionPoint(
+                targetConnectionPointDef,
+                targetView,
+                targetMagnet,
+                targetLine,
+                'target'
+            );
         } else {
             targetPoint = targetAnchor;
         }
@@ -861,7 +873,15 @@ export const LinkView = CellView.extend({
             anchorFn = paperOptions[anchorNamespace][anchorName];
             if (typeof anchorFn !== 'function') throw new Error('Unknown anchor: ' + anchorName);
         }
-        var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
+        var anchor = anchorFn.call(
+            this,
+            cellView,
+            magnet,
+            ref,
+            anchorDef.args || {},
+            endType,
+            this
+        );
         if (!anchor) return new Point();
         return anchor.round(this.decimalsRounding);
     },
@@ -1984,8 +2004,9 @@ export const LinkView = CellView.extend({
 
         var prevClosestView = data.closestView || null;
         var prevClosestMagnet = data.closestMagnet || null;
+        var prevMagnetProxy = data.magnetProxy || null;
 
-        data.closestView = data.closestMagnet = null;
+        data.closestView = data.closestMagnet = data.magnetProxy = null;
 
         var minDistance = Number.MAX_VALUE;
         var pointer = new Point(x, y);
@@ -2027,12 +2048,16 @@ export const LinkView = CellView.extend({
         }, this);
 
         var end;
+        var magnetProxy = null;
         var closestView = data.closestView;
         var closestMagnet = data.closestMagnet;
+        if (closestMagnet) {
+            magnetProxy = data.magnetProxy = closestView.findProxyNode(closestMagnet, 'magnet');
+        }
         var endType = data.arrowhead;
         var newClosestMagnet = (prevClosestMagnet !== closestMagnet);
         if (prevClosestView && newClosestMagnet) {
-            prevClosestView.unhighlight(prevClosestMagnet, {
+            prevClosestView.unhighlight(prevMagnetProxy, {
                 connecting: true,
                 snapping: true
             });
@@ -2042,14 +2067,13 @@ export const LinkView = CellView.extend({
 
             if (!newClosestMagnet) return;
 
-            closestView.highlight(closestMagnet, {
+            closestView.highlight(magnetProxy, {
                 connecting: true,
                 snapping: true
             });
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
 
         } else {
-
 
             end = { x: x, y: y };
         }
@@ -2072,7 +2096,7 @@ export const LinkView = CellView.extend({
         var closestMagnet = data.closestMagnet;
         if (closestView && closestMagnet) {
 
-            closestView.unhighlight(closestMagnet, { connecting: true, snapping: true });
+            closestView.unhighlight(data.magnetProxy, { connecting: true, snapping: true });
             data.magnetUnderPointer = closestView.findMagnet(closestMagnet);
         }
 
@@ -2082,59 +2106,64 @@ export const LinkView = CellView.extend({
     _connectArrowhead: function(target, x, y, data) {
 
         // checking views right under the pointer
+        const { paper, model } = this;
 
         if (data.eventTarget !== target) {
             // Unhighlight the previous view under pointer if there was one.
-            if (data.magnetUnderPointer) {
-                data.viewUnderPointer.unhighlight(data.magnetUnderPointer, {
+            if (data.magnetProxy) {
+                data.viewUnderPointer.unhighlight(data.magnetProxy, {
                     connecting: true
                 });
             }
 
-            data.viewUnderPointer = this.paper.findView(target);
-            if (data.viewUnderPointer) {
+            const viewUnderPointer = data.viewUnderPointer = paper.findView(target);
+            if (viewUnderPointer) {
                 // If we found a view that is under the pointer, we need to find the closest
                 // magnet based on the real target element of the event.
-                data.magnetUnderPointer = data.viewUnderPointer.findMagnet(target);
+                const magnetUnderPointer = data.magnetUnderPointer = viewUnderPointer.findMagnet(target);
+                const magnetProxy = data.magnetProxy = viewUnderPointer.findProxyNode(magnetUnderPointer, 'magnet');
 
-                if (data.magnetUnderPointer && this.paper.options.validateConnection.apply(
-                    this.paper,
-                    data.validateConnectionArgs(data.viewUnderPointer, data.magnetUnderPointer)
+                if (magnetUnderPointer && this.paper.options.validateConnection.apply(
+                    paper,
+                    data.validateConnectionArgs(viewUnderPointer, magnetUnderPointer)
                 )) {
                     // If there was no magnet found, do not highlight anything and assume there
                     // is no view under pointer we're interested in reconnecting to.
                     // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                    if (data.magnetUnderPointer) {
-                        data.viewUnderPointer.highlight(data.magnetUnderPointer, {
+                    if (magnetProxy) {
+                        viewUnderPointer.highlight(magnetProxy, {
                             connecting: true
                         });
                     }
                 } else {
                     // This type of connection is not valid. Disregard this magnet.
                     data.magnetUnderPointer = null;
+                    data.magnetProxy = null;
                 }
             } else {
                 // Make sure we'll unset previous magnet.
                 data.magnetUnderPointer = null;
+                data.magnetProxy = null;
             }
         }
 
         data.eventTarget = target;
 
-        this.model.set(data.arrowhead, { x: x, y: y }, { ui: true });
+        model.set(data.arrowhead, { x: x, y: y }, { ui: true });
     },
 
-    _connectArrowheadEnd: function(data, x, y) {
+    _connectArrowheadEnd: function(data = {}, x, y) {
 
-        var view = data.viewUnderPointer;
-        var magnet = data.magnetUnderPointer;
-        if (!magnet || !view) return;
+        const { model } = this;
+        const { viewUnderPointer, magnetUnderPointer, magnetProxy, arrowhead } = data;
 
-        view.unhighlight(magnet, { connecting: true });
+        if (!magnetUnderPointer || !magnetProxy || !viewUnderPointer) return;
 
-        var endType = data.arrowhead;
-        var end = view.getLinkEnd(magnet, x, y, this.model, endType);
-        this.model.set(endType, end, { ui: true });
+        viewUnderPointer.unhighlight(magnetProxy, { connecting: true });
+
+        // The link end is taken from the magnet under the pointer, not the proxy.
+        const end = viewUnderPointer.getLinkEnd(magnetUnderPointer, x, y, model, arrowhead);
+        model.set(arrowhead, end, { ui: true });
     },
 
     _beforeArrowheadMove: function(data) {

@@ -1,0 +1,16 @@
+<p>Designate another subelement of the cell as a proxy target for the cell's container, whenever this subelement (the one on which this attribute is defined) becomes the target of an embedding. (Usually, this attribute needs to be defined on the `'root'` subelement of the cell, since that is the default target for the cell's container.) Expects a selector.</p>
+
+<p>A change in the cell's container affects the following characteristics of the cell view:
+    <ul>
+        <li>embedding highlighter</li>
+    </ul>
+</p>
+
+<pre><code>// `standard.Rectangle` has `root`, `body` and `label` subelements
+const rect = new joint.shapes.standard.Rectangle();
+// we want to have the `label` on the outside and under the `body` of the rectangle:
+rect.attr(['label'], { refY: '100%', textVerticalAnchor: 'top' });
+// normally, when a user tries to embed a child to the rectangle, the `root` subelement would be highlighted (the wrapper of `body` and `label`)
+// however, we want only the `body` to be highlighted, so we need to specify it as a proxy for `root`:
+rect.attr(['root', 'containerSelector'], 'body');
+</code></pre>
