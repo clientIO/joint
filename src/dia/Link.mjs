@@ -443,11 +443,11 @@ export const Link = Cell.extend({
     },
 
     getPolyline: function() {
-        var points = [this.getSourcePoint(), this.getTargetPoint()];
-        var vertices = this.vertices();
-        if (vertices.length > 0) {
-            Array.prototype.push.apply(points, vertices.map(Point));
-        }
+        const points = [
+            this.getSourcePoint(),
+            ...this.vertices().map(Point),
+            this.getTargetPoint()
+        ];
         return new Polyline(points);
     },
 

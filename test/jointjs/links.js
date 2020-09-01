@@ -1778,6 +1778,24 @@ QUnit.module('links', function(hooks) {
         });
     });
 
+    QUnit.module('getPolyline()', function() {
+
+        QUnit.test('sanity', function(assert) {
+            var el = new joint.shapes.standard.Rectangle({
+                size: { width: 200, height: 202 },
+                position: { x: 0, y: 0 }
+            });
+            var link = new joint.shapes.standard.Link();
+            link.source({ id: el.id });
+            link.vertices([{ x: 200, y: 201 }, { x: 300, y: 301 }]);
+            link.target({ x: 400, y: 401 });
+            this.graph.resetCells([el, link]);
+            var polyline = link.getPolyline();
+            assert.ok(polyline instanceof g.Polyline);
+            assert.equal(polyline.serialize(), '100,101 200,201 300,301 400,401');
+        });
+    });
+
     QUnit.test('reparent()', function(assert) {
 
         var Rectangle = joint.shapes.standard.Rectangle;
