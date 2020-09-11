@@ -200,7 +200,7 @@ export namespace dia {
         }
 
         interface Constructor<T extends Backbone.Model> {
-            new (opt?: { id: string }): T
+            new (opt?: { id?: string, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
@@ -3219,8 +3219,8 @@ export namespace attributes {
         atConnectionRatio?: number;
         atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
         atConnectionRatioIgnoreGradient?: number;
-        magnetSelector: string;
-        containerSelector: string;
+        magnetSelector?: string;
+        containerSelector?: string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;
