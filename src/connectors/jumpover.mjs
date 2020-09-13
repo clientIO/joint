@@ -47,7 +47,7 @@ function setupUpdating(jumpOverLinkView) {
     // first time setup for this paper
     if (updateList == null) {
         updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
-        jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
+        jumpOverLinkView.paper.on('batch:stop', updateJumpOver);
         jumpOverLinkView.paper.model.on('reset', function() {
             updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
         });
