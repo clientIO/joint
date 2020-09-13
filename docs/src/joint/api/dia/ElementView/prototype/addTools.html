@@ -1,0 +1,33 @@
+<pre class="docs-method-signature"><code>elementView.addTools(toolsView)</code></pre>
+<p>Add the provided <code>toolsView</code> (of the <code>joint.dia.ToolsView</code> <a href="#dia.ToolsView">type</a>) to the element view.</p>
+
+<p>Adding a tools view to an element view is the last (third) step in the process of setting up element tools on an element view:</p>
+
+<pre><code>// 1) creating element tools
+var boundaryTool = new joint.elementTools.Boundary();
+var removeButton = new joint.elementTools.Remove();
+
+// 2) creating a tools view
+var toolsView = new joint.dia.ToolsView({
+    name: 'basic-tools',
+    tools: [boundaryTool, removeButton]
+});
+
+// 3) attaching to an element view
+var elementView = element.findView(paper);
+elementView.addTools(toolsView);</code></pre>
+
+<p>Every element view we want to attach to requires its own tools view object (<code>ToolsView</code> objects are automatically reassigned to the last element view they are added to). Similarly, every tools view we create requires its own set of tools (<code>ToolView</code> objects are automatically reassigned to the last <code>toolsView.tools</code> array they were made part of).</p>
+
+<p>The element tools are added in the visible state. Use the <code>elementView.hideTools</code> <a href="#dia.ElementView.prototype.hideTools">function</a> if this behavior is not desirable (e.g. if you want the element tools to appear in response to user interaction). Example:</p>
+
+<pre><code>elementView.addTools(toolsView);
+elementView.hideTools();
+
+paper.on('element:mouseenter', function(elementView) {
+    elementView.showTools();
+});
+
+paper.on('element:mouseleave', function(elementView) {
+    elementView.hideTools();
+});</code></pre>
