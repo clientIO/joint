@@ -124,11 +124,10 @@ QUnit.module('elementTools', function(hooks) {
     });
 
     QUnit.test('Rendering', function(assert) {
-        paper.options.defaultConnectionPoint = { name: 'anchor' };
         element.remove();
         paper.freeze();
         element.addTo(graph);
-        var boundary = new joint.linkTools.Boundary({ padding: 0 });
+        var boundary = new joint.elementTools.Boundary({ padding: 0 });
         var toolsView = new joint.dia.ToolsView({
             tools: [
                 boundary
