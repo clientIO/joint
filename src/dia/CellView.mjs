@@ -150,8 +150,14 @@ export const CellView = View.extend({
         // TODO: tool changes does not need to be sync
         // Fix Segments tools
         if (opt.tool) opt.async = false;
-        var paper = this.paper;
-        if (paper) paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt);
+        this.requestUpdate(flag, opt);
+    },
+
+    requestUpdate: function(flags, opt) {
+        const { paper } = this;
+        if (paper && flags > 0) {
+            paper.requestViewUpdate(this, flags, this.UPDATE_PRIORITY, opt);
+        }
     },
 
     parseDOMJSON: function(markup, root) {

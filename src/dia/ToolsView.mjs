@@ -8,6 +8,7 @@ export const ToolsView = mvc.View.extend({
     className: 'tools',
     svgElement: true,
     tools: null,
+    isRendered: false,
     options: {
         tools: null,
         relatedView: null,
@@ -26,10 +27,11 @@ export const ToolsView = mvc.View.extend({
             var tool = tools[i];
             if (!(tool instanceof ToolView)) continue;
             tool.configure(relatedView, this);
-            tool.render();
             this.vel.append(tool.el);
             views.push(tool);
         }
+        this.isRendered = false;
+        relatedView.requestUpdate(relatedView.getFlag('TOOLS'));
         return this;
     },
 
@@ -41,13 +43,18 @@ export const ToolsView = mvc.View.extend({
 
         opt || (opt = {});
         var tools = this.tools;
-        if (!tools) return;
+        if (!tools) return this;
+        var isRendered = this.isRendered;
         for (var i = 0, n = tools.length; i < n; i++) {
             var tool = tools[i];
-            if (opt.tool !== tool.cid && tool.isVisible()) {
+            if (!isRendered) {
+                // First update executes render()
+                tool.render();
+            } else if (opt.tool !== tool.cid && tool.isVisible()) {
                 tool.update();
             }
         }
+        this.isRendered = true;
         return this;
     },
 

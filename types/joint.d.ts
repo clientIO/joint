@@ -649,6 +649,8 @@ export namespace dia {
 
         getFlag(label: CellView.FlagLabel): number;
 
+        requestUpdate(flags: number, opt?: { [key: string]: any }): void;
+
         protected hasFlag(flags: number, label: CellView.FlagLabel): boolean;
 
         protected removeFlag(flags: number, label: CellView.FlagLabel): number;
@@ -1355,6 +1357,8 @@ export namespace dia {
     class ToolsView extends mvc.View<undefined> {
 
         constructor(opt?: ToolsView.Options);
+
+        isRendered: boolean;
 
         options: ToolsView.Options;
 

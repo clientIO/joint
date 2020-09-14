@@ -64,7 +64,7 @@ export const ElementView = CellView.extend({
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
             this.updateTools(opt);
-            flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
+            flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS', 'TOOLS']);
         } else {
             // Skip this branch if render is required
             if (this.hasFlag(flag, 'RESIZE')) {
