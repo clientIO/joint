@@ -122,4 +122,29 @@ QUnit.module('elementTools', function(hooks) {
             });
         });
     });
+
+    QUnit.test('Rendering', function(assert) {
+        paper.options.defaultConnectionPoint = { name: 'anchor' };
+        element.remove();
+        paper.freeze();
+        element.addTo(graph);
+        var boundary = new joint.linkTools.Boundary({ padding: 0 });
+        var toolsView = new joint.dia.ToolsView({
+            tools: [
+                boundary
+            ]
+        });
+        var spy = sinon.spy(toolsView, 'update');
+        element.findView(paper).addTools(toolsView);
+        assert.equal(spy.callCount, 0);
+        assert.notOk(toolsView.isRendered);
+        paper.unfreeze();
+        assert.equal(spy.callCount, 1);
+        assert.ok(toolsView.isRendered);
+        assert.equal(boundary.vel.getBBox().toString(), '100@100 211@213');
+        element.translate(10, 10);
+        assert.equal(spy.callCount, 2);
+        element.remove();
+        assert.equal(spy.callCount, 2);
+    });
 });
