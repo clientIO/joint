@@ -86,4 +86,38 @@ QUnit.module('linkTools', function(hooks) {
             });
         });
     });
+
+    QUnit.test('Rendering', function(assert) {
+        paper.options.defaultConnectionPoint = { name: 'anchor' };
+        link.remove();
+        paper.freeze();
+        link.addTo(graph);
+        var target = link.getTargetCell();
+        target.position(300, 100);
+        link.vertices([{ x: 200, y: 200 }]);
+        var vertices = new joint.linkTools.Vertices();
+        var boundary = new joint.linkTools.Boundary({ padding: 0 });
+        var toolsView = new joint.dia.ToolsView({
+            tools: [
+                boundary,
+                vertices
+            ]
+        });
+        var spy = sinon.spy(toolsView, 'update');
+        link.findView(paper).addTools(toolsView);
+        assert.equal(spy.callCount, 0);
+        assert.notOk(toolsView.isRendered);
+        paper.unfreeze();
+        assert.equal(spy.callCount, 1);
+        assert.ok(toolsView.isRendered);
+        assert.equal(boundary.vel.getBBox().toString(), '150@150 350@200');
+        assert.equal(vertices.vel.getBBox().toString(), '150@150 350@206');
+        assert.equal(vertices.vel.children().length, 2);
+        target.translate(10, 10);
+        assert.equal(spy.callCount, 2);
+        link.remove();
+        assert.equal(spy.callCount, 2);
+    });
+
+
 });

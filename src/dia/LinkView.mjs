@@ -69,7 +69,7 @@ export const LinkView = CellView.extend({
         connector: ['UPDATE'],
         smooth: ['UPDATE'],
         manhattan: ['UPDATE'],
-        toolMarkup: ['TOOLS'],
+        toolMarkup: ['LEGACY_TOOLS'],
         labels: ['LABELS'],
         labelMarkup: ['LABELS'],
         vertices: ['VERTICES', 'UPDATE'],
@@ -78,7 +78,7 @@ export const LinkView = CellView.extend({
         target: ['TARGET', 'UPDATE']
     },
 
-    initFlag: ['RENDER', 'SOURCE', 'TARGET'],
+    initFlag: ['RENDER', 'SOURCE', 'TARGET', 'TOOLS'],
 
     UPDATE_PRIORITY: 1,
 
@@ -104,7 +104,8 @@ export const LinkView = CellView.extend({
 
         if (this.hasFlag(flags, 'RENDER')) {
             this.render();
-            flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'TOOLS', 'LABELS']);
+            this.updateTools(opt);
+            flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'LABELS', 'TOOLS', 'LEGACY_TOOLS']);
             return flags;
         }
 
@@ -116,39 +117,44 @@ export const LinkView = CellView.extend({
         const { model } = this;
         const { attributes } = model;
         let updateLabels = this.hasFlag(flags, 'LABELS');
-        let updateTools = this.hasFlag(flags, 'TOOLS');
+        let updateLegacyTools = this.hasFlag(flags, 'LEGACY_TOOLS');
 
         if (updateLabels) {
             this.onLabelsChange(model, attributes.labels, opt);
             flags = this.removeFlag(flags, 'LABELS');
         }
 
-        if (updateTools) {
+        if (updateLegacyTools) {
             this.renderTools();
-            flags = this.removeFlag(flags, 'TOOLS');
+            flags = this.removeFlag(flags, 'LEGACY_TOOLS');
         }
 
         if (this.hasFlag(flags, 'UPDATE')) {
             this.update(model, null, opt);
-            flags = this.removeFlag(flags, 'UPDATE');
+            this.updateTools(opt);
+            flags = this.removeFlag(flags, ['UPDATE', 'TOOLS']);
             updateLabels = false;
-            updateTools = false;
+            updateLegacyTools = false;
         }
 
         if (updateLabels) {
             this.updateLabelPositions();
         }
 
-        if (updateTools) {
+        if (updateLegacyTools) {
             this.updateToolsPosition();
+        }
+
+        if (this.hasFlag(flags, 'TOOLS')) {
+            this.updateTools(opt);
+            flags = this.removeFlag(flags, 'TOOLS');
         }
 
         return flags;
     },
 
     requestConnectionUpdate: function(opt) {
-        const { paper, UPDATE_PRIORITY } = this;
-        if (paper) paper.requestViewUpdate(this, this.getFlag('UPDATE'), UPDATE_PRIORITY, opt);
+        this.requestUpdate(this.getFlag('UPDATE', opt));
     },
 
     isLabelsRenderRequired: function(opt = {}) {
@@ -537,8 +543,6 @@ export const LinkView = CellView.extend({
         this.updateLabelPositions();
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
-
-        this.updateTools(opt);
 
         // *Deprecated*
         // Local perpendicular flag (as opposed to one defined on paper).
