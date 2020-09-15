@@ -884,7 +884,6 @@ export const CellView = View.extend({
             this._toolsView = toolsView;
             toolsView.configure({ relatedView: this });
             toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
-            toolsView.mount();
         }
         return this;
     },

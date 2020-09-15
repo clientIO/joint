@@ -104,6 +104,7 @@ export const LinkView = CellView.extend({
 
         if (this.hasFlag(flags, 'RENDER')) {
             this.render();
+            this.updateTools(opt);
             flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'LABELS', 'TOOLS', 'LEGACY_TOOLS']);
             return flags;
         }
@@ -130,6 +131,7 @@ export const LinkView = CellView.extend({
 
         if (this.hasFlag(flags, 'UPDATE')) {
             this.update(model, null, opt);
+            this.updateTools(opt);
             flags = this.removeFlag(flags, ['UPDATE', 'TOOLS']);
             updateLabels = false;
             updateLegacyTools = false;
@@ -541,8 +543,6 @@ export const LinkView = CellView.extend({
         this.updateLabelPositions();
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
-
-        this.updateTools(opt);
 
         // *Deprecated*
         // Local perpendicular flag (as opposed to one defined on paper).

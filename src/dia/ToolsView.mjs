@@ -54,7 +54,10 @@ export const ToolsView = mvc.View.extend({
                 tool.update();
             }
         }
-        this.isRendered = true;
+        if (!isRendered) {
+            this.mount();
+            this.isRendered = true;
+        }
         return this;
     },
 
