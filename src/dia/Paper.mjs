@@ -38,6 +38,7 @@ import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
 import * as anchors from '../anchors/index.mjs';
+import { StrokeHighlighterView } from '../highlighters/stroke.mjs';
 
 import $ from 'jquery';
 import Backbone from 'backbone';
@@ -109,6 +110,7 @@ export const Paper = View.extend({
         },
 
         highlighting: defaultHighlighting,
+        highlighterView: StrokeHighlighterView,
 
         // Prevent the default context menu from being displayed.
         preventContextMenu: true,

@@ -865,6 +865,7 @@ export const CellView = View.extend({
 
     onRemove: function() {
         this.removeTools();
+        this.removeHighlighters();
     },
 
     _toolsView: null,
@@ -930,6 +931,15 @@ export const CellView = View.extend({
             case 'show':
                 this.showTools();
                 break;
+        }
+    },
+
+    removeHighlighters: function() {
+        const { paper } = this;
+        if (!paper) return;
+        const { highlighterView } = paper.options;
+        if (highlighterView) {
+            highlighterView.remove(this);
         }
     },
 
