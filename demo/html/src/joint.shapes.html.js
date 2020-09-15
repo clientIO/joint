@@ -31,7 +31,7 @@
             groupSelector: 'field',
             style: {
                 'position': 'absolute',
-                'pointer-events': 'none',
+                'pointer-events': 'auto',
                 'user-select': 'none',
                 'box-sizing': 'border-box'
             },
@@ -114,13 +114,15 @@
         presentationAttributes: ElementView.addPresentationAttributes({
             position: ['HTML_UPDATE'],
             size: ['HTML_UPDATE'],
-            fields: ['HTML_FIELD_UPDATE']
+            fields: ['HTML_FIELD_UPDATE'],
+            z: ['HTML_Z_INDEX']
         }),
 
         // Run these upon first render
         initFlag: ElementView.prototype.initFlag.concat([
             'HTML_UPDATE',
-            'HTML_FIELD_UPDATE'
+            'HTML_FIELD_UPDATE',
+            'HTML_Z_INDEX'
         ]),
 
         confirmUpdate: function() {
@@ -132,6 +134,10 @@
             if (this.hasFlag(flags, 'HTML_FIELD_UPDATE')) {
                 this.updateFields();
                 flags = this.removeFlag(flags, 'HTML_FIELD_UPDATE');
+            }
+            if (this.hasFlag(flags, 'HTML_Z_INDEX')) {
+                this.updateZIndex();
+                flags = this.removeFlag(flags, 'HTML_Z_INDEX');
             }
             return flags;
         },
@@ -151,6 +157,7 @@
             this.paper.htmlContainer.appendChild(doc.fragment);
             this.html = html;
             this.fields = fields;
+            html.setAttribute('model-id', this.model.id);
         },
 
         removeHTMLMarkup: function() {
@@ -200,6 +207,10 @@
                         break;
                 }
             }.bind(this));
+        },
+
+        updateZIndex: function() {
+            this.html.style.zIndex = this.model.get('z') || 0;
         },
 
         onRemove: function() {
