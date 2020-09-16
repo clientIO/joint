@@ -13,7 +13,11 @@
         model: graph,
         async: true,
         frozen: true,
-        sorting: joint.dia.Paper.sorting.NONE
+        sorting: joint.dia.Paper.sorting.NONE,
+        guard: function(evt) {
+            var inputs = ['INPUT', 'SELECT', 'TEXTAREA'];
+            return inputs.indexOf(evt.target.tagName.toUpperCase()) > -1;
+        }
     });
 
     // Container for all HTML views inside paper
