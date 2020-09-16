@@ -544,6 +544,7 @@ export const LinkView = CellView.extend({
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
+        this.updateHighlighters();
         // *Deprecated*
         // Local perpendicular flag (as opposed to one defined on paper).
         // Could be enabled inside a connector/router. It's valid only

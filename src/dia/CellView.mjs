@@ -19,6 +19,7 @@ import {
 import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from 'jquery';
+import { HighlighterView } from '../highlighters/HighlighterView.mjs';
 
 // CellView base view and controller.
 // --------------------------------------------
@@ -280,7 +281,13 @@ export const CellView = View.extend({
 
     highlight: function(el, opt = {}) {
 
-        el = !el ? this.el : this.$(el)[0] || this.el;
+        if (!el) {
+            el = this.el;
+        } else if (typeof el === 'string') {
+            el = this.findBySelector(el)[0] || this.el;
+        } else {
+            el = this.$(el)[0] || this.el;
+        }
 
         // set partial flag if the highlighted element is not the entire view.
         opt.partial = (el !== this.el);
@@ -291,7 +298,13 @@ export const CellView = View.extend({
 
     unhighlight: function(el, opt = {}) {
 
-        el = !el ? this.el : this.$(el)[0] || this.el;
+        if (!el) {
+            el = this.el;
+        } else if (typeof el === 'string') {
+            el = this.findBySelector(el)[0] || this.el;
+        } else {
+            el = this.$(el)[0] || this.el;
+        }
 
         opt.partial = el != this.el;
 
@@ -935,12 +948,11 @@ export const CellView = View.extend({
     },
 
     removeHighlighters: function() {
-        const { paper } = this;
-        if (!paper) return;
-        const { highlighterView } = paper.options;
-        if (highlighterView) {
-            highlighterView.remove(this);
-        }
+        HighlighterView.remove(this);
+    },
+
+    updateHighlighters: function() {
+        HighlighterView.update(this);
     },
 
     // Interaction. The controller part.
