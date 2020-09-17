@@ -1,8 +1,8 @@
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
-import { HighlighterView } from './HighlighterView.mjs';
+import { HighlighterView } from '../dia/HighlighterView.mjs';
 
-export const StrokeHighlighterView = HighlighterView.extend({
+export const stroke = HighlighterView.extend({
 
     tagName: 'path',
     className: 'highlight-stroke',
@@ -88,19 +88,10 @@ export const StrokeHighlighterView = HighlighterView.extend({
             vel.transform(highlightMatrix);
         }
 
-        this.mount(cellView);
-    }
-});
-
-export const stroke = {
-
-    highlight: function(cellView, magnetEl, opt) {
-        const id = StrokeHighlighterView.getId(magnetEl, opt);
-        StrokeHighlighterView.add(cellView, magnetEl, id, opt);
+        this.mount();
     },
 
-    unhighlight: function(cellView, magnetEl, opt) {
-        const id = HighlighterView.getId(magnetEl, opt);
-        StrokeHighlighterView.remove(cellView, id);
+    unhighlight() {
+        this.vel.remove();
     }
-};
+});

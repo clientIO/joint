@@ -129,6 +129,8 @@ export const ElementView = CellView.extend({
         });
 
         if (useCSSSelectors) this._renderPorts();
+
+        this.updateHighlighters();
     },
 
     rotatableSelector: 'rotatable',

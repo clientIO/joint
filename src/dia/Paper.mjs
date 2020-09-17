@@ -498,6 +498,10 @@ export const Paper = View.extend({
                     selector: 'cells',
                 }, {
                     tagName: 'g',
+                    className: addClassNamePrefix('highlighters-layer'),
+                    selector: 'highlighters',
+                }, {
+                    tagName: 'g',
                     className: addClassNamePrefix('tools-layer'),
                     selector: 'tools'
                 }]
@@ -509,13 +513,14 @@ export const Paper = View.extend({
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, cells, defs, tools, layers, background, grid } = childNodes;
+        const { svg, cells, defs, tools, layers, highlighters, background, grid } = childNodes;
 
         this.svg = svg;
         this.defs = defs;
         this.tools = tools;
         this.cells = cells;
         this.layers = layers;
+        this.highlighters = highlighters;
         this.$background = $(background);
         this.$grid = $(grid);
 
@@ -1874,23 +1879,20 @@ export const Paper = View.extend({
 
         opt = this.resolveHighlighter(opt);
         if (!opt) return;
-        if (!magnetEl.id) {
-            magnetEl.id = V.uniqueId();
-        }
+        const magnetId = V.ensureId(magnetEl);
+        const key = opt.name + magnetId + JSON.stringify(opt.options);
 
-        var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
-        if (!this._highlights[key]) {
+        if (this._highlights[key]) return;
 
-            var highlighter = opt.highlighter;
-            highlighter.highlight(cellView, magnetEl, assign({}, opt.options));
+        const highlighter = opt.highlighter;
+        highlighter.highlight(cellView, magnetEl, assign({}, opt.options));
 
-            this._highlights[key] = {
-                cellView: cellView,
-                magnetEl: magnetEl,
-                opt: opt.options,
-                highlighter: highlighter
-            };
-        }
+        this._highlights[key] = {
+            cellView: cellView,
+            magnetEl: magnetEl,
+            opt: opt.options,
+            highlighter: highlighter
+        };
     },
 
     onCellUnhighlight: function(cellView, magnetEl, opt) {

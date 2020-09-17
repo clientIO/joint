@@ -1,7 +1,7 @@
 import V from '../V/index.mjs';
-import { HighlighterView } from './HighlighterView.mjs';
+import { HighlighterView } from '../dia/HighlighterView.mjs';
 
-export const MaskHighlighterView = HighlighterView.extend({
+export const mask = HighlighterView.extend({
 
     tagName: 'rect',
     className: 'highlight-mask',
@@ -78,6 +78,14 @@ export const MaskHighlighterView = HighlighterView.extend({
         ]);
     },
 
+    removeMask(cellView) {
+        const { paper } = cellView;
+        const maskNode = paper.svg.getElementById(this.getMaskId());
+        if (maskNode) {
+            paper.defs.removeChild(maskNode);
+        }
+    },
+
     highlight(cellView, node) {
 
         const { options } = this;
@@ -103,36 +111,19 @@ export const MaskHighlighterView = HighlighterView.extend({
         cellView.paper.defs.appendChild(maskEl.node);
 
         this.vel
-            .transform(cellView.getNodeMatrix(node))
             .attr(highlighterBBox.toJSON())
             .attr({
+                'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
                 'mask': `url(#${maskEl.id})`,
                 'fill': color
             });
 
-        this.mount(cellView);
+        this.mount();
     },
 
     unhighlight(cellView) {
         this.vel.remove();
-        const { paper } = cellView;
-        const maskNode = paper.svg.getElementById(this.getMaskId());
-        if (maskNode) {
-            paper.defs.removeChild(maskNode);
-        }
+        this.removeMask(cellView);
     }
 
 });
-
-export const mask = {
-
-    highlight: function(cellView, magnetEl, opt) {
-        const id = MaskHighlighterView.getId(magnetEl, opt);
-        MaskHighlighterView.add(cellView, magnetEl, id, opt);
-    },
-
-    unhighlight: function(cellView, magnetEl, opt) {
-        const id = MaskHighlighterView.getId(magnetEl, opt);
-        HighlighterView.remove(cellView, id);
-    }
-};

@@ -9,10 +9,16 @@ export const HighlighterView = mvc.View.extend({
     HIGHLIGHT_FLAG: 1,
     UPDATE_PRIORITY: 3,
     DETACHABLE: false,
+    UPDATABLE: true,
 
-    requestUpdate() {
-        const { cellView } = this.options;
+    cellView: null,
+    nodeSelector: null,
+    node: null,
+
+    requestUpdate(cellView, el) {
         const { paper } = cellView;
+        this.cellView = cellView;
+        this.nodeSelector = el;
         if (paper) {
             paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
         }
@@ -20,27 +26,40 @@ export const HighlighterView = mvc.View.extend({
 
     confirmUpdate() {
         // The cellView is now rendered/updated as it has higher update priority.
-        const { cellView, nodeSelector } = this.options;
+        const { cellView, nodeSelector } = this;
+        const node = this.findNode(cellView, nodeSelector);
+        this.node = node;
+        this.highlight(cellView, node);
+        return 0;
+    },
+
+    findNode(cellView, nodeSelector) {
         let el;
         if (typeof nodeSelector === 'string') {
             [el = cellView.el] = cellView.findBySelector(nodeSelector);
         } else {
             el = V.toNode(nodeSelector);
         }
-        this.highlight(cellView, el);
-        return 0;
+        return el;
     },
 
-    highlight() {
-
-    },
-
-    unhighlight() {
-        this.vel.remove();
-    },
-
-    mount(cellView) {
+    mount() {
+        const { cellView } = this;
         cellView.vel.append(this.el);
+        // cellView.paper.highlighters.appendChild(this.el);
+    },
+
+    update(cellView, node) {
+        this.unhighlight(cellView, node);
+        this.highlight(cellView, node);
+    },
+
+    highlight(_cellView, _node) {
+        // to be overridden
+    },
+
+    unhighlight(_cellView, _node) {
+        // to be overridden
     }
 
 }, {
@@ -61,13 +80,9 @@ export const HighlighterView = mvc.View.extend({
         if (view) return view;
         const { cid } = cellView;
         const { _views } = this;
-        const options = Object.assign({
-            cellView,
-            nodeSelector: el
-        }, opt);
         _views[cid] || (_views[cid] = {});
-        view = _views[cid][id] = new this(options);
-        view.requestUpdate(cellView);
+        view = _views[cid][id] = new this(opt);
+        view.requestUpdate(cellView, el);
         return view;
     },
 
@@ -85,8 +100,10 @@ export const HighlighterView = mvc.View.extend({
             views.push(highlighters[id]);
         }
         views.forEach(view => {
-            view.unhighlight(cellView);
-            view.requestUpdate(cellView);
+            const { node, UPDATABLE } = view;
+            if (node && UPDATABLE) {
+                view.update(cellView, node);
+            }
         });
     },
 
@@ -106,12 +123,23 @@ export const HighlighterView = mvc.View.extend({
             delete highlighters[id];
         }
         views.forEach(view => {
-            view.unhighlight(cellView);
+            view.unhighlight(cellView, view.node);
             view.remove();
         });
     },
 
     getId(el, opt) {
         return el.id + JSON.stringify(opt);
+    },
+
+    highlight: function(cellView, magnetEl, opt) {
+        const id = this.getId(magnetEl, opt);
+        this.add(cellView, magnetEl, id, opt);
+    },
+
+    unhighlight: function(cellView, magnetEl, opt) {
+        const id = this.getId(magnetEl, opt);
+        this.remove(cellView, id);
     }
+
 });

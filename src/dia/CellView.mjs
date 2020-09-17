@@ -19,7 +19,7 @@ import {
 import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from 'jquery';
-import { HighlighterView } from '../highlighters/HighlighterView.mjs';
+import { HighlighterView } from './HighlighterView.mjs';
 
 // CellView base view and controller.
 // --------------------------------------------
@@ -281,16 +281,14 @@ export const CellView = View.extend({
 
     highlight: function(el, opt = {}) {
 
-        if (!el) {
-            el = this.el;
-        } else if (typeof el === 'string') {
-            el = this.findBySelector(el)[0] || this.el;
+        const { el: root } = this;
+        if (typeof el === 'string') {
+            [el = root] = this.findBySelector(el);
         } else {
-            el = this.$(el)[0] || this.el;
+            [el = root] = this.$(el);
         }
-
         // set partial flag if the highlighted element is not the entire view.
-        opt.partial = (el !== this.el);
+        opt.partial = (el !== root);
 
         this.notify('cell:highlight', el, opt);
         return this;
@@ -298,15 +296,14 @@ export const CellView = View.extend({
 
     unhighlight: function(el, opt = {}) {
 
-        if (!el) {
-            el = this.el;
-        } else if (typeof el === 'string') {
-            el = this.findBySelector(el)[0] || this.el;
+        const { el: root } = this;
+        if (typeof el === 'string') {
+            [el = root] = this.findBySelector(el);
         } else {
-            el = this.$(el)[0] || this.el;
+            [el = root] = this.$(el);
         }
 
-        opt.partial = el != this.el;
+        opt.partial = el != root;
 
         this.notify('cell:unhighlight', el, opt);
         return this;
@@ -947,12 +944,12 @@ export const CellView = View.extend({
         }
     },
 
-    removeHighlighters: function() {
-        HighlighterView.remove(this);
+    removeHighlighters: function(id) {
+        HighlighterView.remove(this, id);
     },
 
-    updateHighlighters: function() {
-        HighlighterView.update(this);
+    updateHighlighters: function(id) {
+        HighlighterView.update(this, id);
     },
 
     // Interaction. The controller part.
