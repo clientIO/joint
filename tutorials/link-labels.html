@@ -361,6 +361,52 @@ link.appendLabel({
                 <a href="special-attributes.html#text-relative-dimensions">These are discussed in detail elsewhere in
                 the tutorial.</a></p>
 
+            <h3>Interaction</h3>
+
+            <p>By default, users cannot interact with link labels in any way.
+                However, you can enable label dragging for all labels with the <code>paper.options.interactive</code> <a href="/docs/jointjs#dia.Paper.prototype.options.interactive">paper option</a>:</p>
+
+            <div class="paper" id="paper-link-labels-interaction"></div>
+
+            <pre><code>var paper = new joint.dia.Paper({
+    // ...
+    interactive: {
+        linkMove: false,
+        labelMove: true,
+        arrowheadMove: false,
+        vertexMove: false,
+        vertexAdd: false,
+        vertexRemove: false,
+        useLinkTools: false
+    }
+});</code></pre>
+
+            <p>JointJS source code: <a href="js/link-labels-interaction.js" target="_blank">link-labels-interaction.js</a></p>
+
+            <p>The new position of dragged labels is recorded relatively to the link path.
+                That means that the label will reposition itself when the link changes.
+                (Unfortunately, it also means that the label can never be dragged beyond the endpoints of the link.)</p>
+
+            <p>If you only want to allow the label to be dragged along the length of the link (and not outside of it), you can do so by specifying the <code>paper.options.snapLabels</code> <a href="/docs/jointjs#dia.Paper.prototype.options.snapLabels">paper option</a>:</p>
+
+            <div class="paper" id="paper-link-labels-interaction-snap-labels"></div>
+
+            <pre><code>var paper = new joint.dia.Paper({
+    // ...
+    snapLabels: true,
+    interactive: {
+        linkMove: false,
+        labelMove: true,
+        arrowheadMove: false,
+        vertexMove: false,
+        vertexAdd: false,
+        vertexRemove: false,
+        useLinkTools: false
+    }
+});</code></pre>
+
+            <p>JointJS source code: <a href="js/link-labels-interaction-snap-labels.js" target="_blank">link-labels-interaction-snap-labels.js</a></p>
+
             <p><a href="element-tools.html">In the next section of the intermediate tutorial, we will learn about element
                 tools.</a></p>
 
@@ -373,5 +419,7 @@ link.appendLabel({
         <script src="js/link-labels-offset.js"></script>
         <script src="js/link-labels-rotation.js"></script>
         <script src="js/link-labels-styling.js"></script>
+        <script src="js/link-labels-interaction.js"></script>
+        <script src="js/link-labels-interaction-snap-labels.js"></script>
     </body>
 </html>

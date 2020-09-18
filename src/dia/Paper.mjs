@@ -95,6 +95,7 @@ export const Paper = View.extend({
         perpendicularLinks: false,
         elementView: ElementView,
         linkView: LinkView,
+        snapLabels: false, // false, true
         snapLinks: false, // false, true, { radius: value }
 
         // When set to FALSE, an element may not have more than 1 link with the same source and target element.

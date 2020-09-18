@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>dia.Paper - interactive - labelMove with snapLabels</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../../css/lib/joint.min.css"/>
+
+    <style>
+        .joint-paper {
+            border: 1px solid gray;
+            width: 800px
+        }
+
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+
+<!-- Dependencies: -->
+<script src="../../../../js/lib/jquery.min.js"></script>
+<script src="../../../../js/lib/lodash.min.js"></script>
+<script src="../../../../js/lib/backbone.min.js"></script>
+
+<script src="../../../../js/lib/joint.min.js"></script>
+
+</body>
+<script>
+    var graph = new joint.dia.Graph;
+
+    var paper = new joint.dia.Paper({
+        el: $('<div/>').appendTo(document.body),
+        width: 190,
+        height: 90,
+        gridSize: 1,
+        snapLabels: true,
+        interactive: function(view) {
+            return {
+                linkMove: false,
+                labelMove: view.model.get('enabled'),
+                arrowheadMove: false,
+                vertexMove: false,
+                vertexAdd: false,
+                vertexRemove: false,
+                useLinkTools: false
+            };
+        },
+        model: graph
+    });
+
+    var linkEnabled = new joint.shapes.standard.DoubleLink({
+        enabled: true
+    });
+    var linkDisabled = new joint.shapes.standard.DoubleLink({
+        enabled: false
+    });
+    linkEnabled.source({ x: 20, y: 10 }).target({ x: 80, y: 80 });
+    linkEnabled.appendLabel({
+        attrs: {
+            text: { text: 'Enabled' },
+            rect: { cursor: 'move' }
+        }
+    });
+    linkDisabled.source({ x: 100, y: 10 }).target({ x: 160, y: 80 });
+    linkDisabled.appendLabel({
+        attrs: {
+            text: { text: 'Disabled' },
+            rect: { cursor: 'not-allowed' }
+        }
+    });
+
+    graph.addCells(linkEnabled, linkDisabled);
+
+</script>
+</html>

@@ -1890,6 +1890,7 @@ export const LinkView = CellView.extend({
 
         var data = this.eventData(evt);
         var label = { position: this.getLabelPosition(x, y, data.positionAngle, data.positionArgs) };
+        if (this.paper.options.snapLabels) delete label.position.offset;
         this.model.label(data.labelIdx, label);
     },
 
