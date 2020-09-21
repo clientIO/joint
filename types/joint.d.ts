@@ -976,7 +976,7 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: { [type: string]: highlighters.HighlighterJSON };
+            highlighting?: { [type: string]: highlighters.HighlighterJSON | boolean } | boolean;
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
