@@ -1821,7 +1821,8 @@ export const Paper = View.extend({
     resolveHighlighter: function(opt = {}) {
 
         let { highlighter: highlighterDef } = opt;
-        const paperOpt = this.options;
+        const { highlighting,highlighterNamespace  } = this.options;
+
         /*
             Expecting opt.highlighter to have the following structure:
             {
@@ -1841,7 +1842,6 @@ export const Paper = View.extend({
                 'elementAvailability'
             ].find(type => !!opt[type]);
 
-            const { highlighting } = paperOpt;
             // Is highlighting disabled?
             if (!highlighting) return false;
             if (type) {
@@ -1868,7 +1868,7 @@ export const Paper = View.extend({
         }
 
         const name = highlighterDef.name;
-        const highlighter = paperOpt.highlighterNamespace[name];
+        const highlighter = highlighterNamespace[name];
 
         // Highlighter validation
         if (!highlighter) {
