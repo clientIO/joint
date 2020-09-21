@@ -56,25 +56,30 @@ export const ElementView = CellView.extend({
     UPDATE_PRIORITY: 0,
 
     confirmUpdate: function(flag, opt) {
+
         const { useCSSSelectors } = config;
         if (this.hasFlag(flag, 'PORTS')) {
             this._removePorts();
             this._cleanPortsCache();
         }
+        let updateHighlighters = false;
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
             this.updateTools(opt);
+            updateHighlighters = true;
             flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS', 'TOOLS']);
         } else {
             // Skip this branch if render is required
             if (this.hasFlag(flag, 'RESIZE')) {
                 this.resize(opt);
+                updateHighlighters = true;
                 // Resize method is calling `update()` internally
                 flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
             }
             if (this.hasFlag(flag, 'UPDATE')) {
                 this.update(this.model, null, opt);
                 flag = this.removeFlag(flag, 'UPDATE');
+                updateHighlighters = true;
                 if (useCSSSelectors) {
                     // `update()` will render ports when useCSSSelectors are enabled
                     flag = this.removeFlag(flag, 'PORTS');
@@ -90,8 +95,13 @@ export const ElementView = CellView.extend({
             }
             if (this.hasFlag(flag, 'PORTS')) {
                 this._renderPorts();
+                updateHighlighters = true;
                 flag = this.removeFlag(flag, 'PORTS');
             }
+        }
+
+        if (updateHighlighters) {
+            this.updateHighlighters();
         }
 
         if (this.hasFlag(flag, 'TOOLS')) {
@@ -128,9 +138,9 @@ export const ElementView = CellView.extend({
             roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
         });
 
-        if (useCSSSelectors) this._renderPorts();
-
-        this.updateHighlighters();
+        if (useCSSSelectors) {
+            this._renderPorts();
+        }
     },
 
     rotatableSelector: 'rotatable',

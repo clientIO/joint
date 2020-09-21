@@ -14,30 +14,33 @@ export const HighlighterView = mvc.View.extend({
     cellView: null,
     nodeSelector: null,
     node: null,
+    updateRequested: false,
 
-    requestUpdate(cellView, el) {
+    requestUpdate(cellView, nodeSelector) {
         const { paper } = cellView;
         this.cellView = cellView;
-        this.nodeSelector = el;
+        this.nodeSelector = nodeSelector;
         if (paper) {
+            this.updateRequested = true;
             paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
         }
     },
 
     confirmUpdate() {
         // The cellView is now rendered/updated as it has higher update priority.
+        this.updateRequested = false;
         const { cellView, nodeSelector } = this;
-        const node = this.findNode(cellView, nodeSelector);
-        this.node = node;
-        this.highlight(cellView, node);
+        this.update(cellView, nodeSelector);
         return 0;
     },
 
-    findNode(cellView, nodeSelector) {
+    findNode(cellView, nodeSelector = null) {
         let el;
         if (typeof nodeSelector === 'string') {
-            [el = cellView.el] = cellView.findBySelector(nodeSelector);
-        } else {
+            [el = null] = cellView.findBySelector(nodeSelector);
+        } else if (Array.isArray(nodeSelector)) {
+            el = cellView.findPortNode(...nodeSelector);
+        } else if (nodeSelector) {
             el = V.toNode(nodeSelector);
         }
         return el;
@@ -49,9 +52,15 @@ export const HighlighterView = mvc.View.extend({
         // cellView.paper.highlighters.appendChild(this.el);
     },
 
-    update(cellView, node) {
-        this.unhighlight(cellView, node);
-        this.highlight(cellView, node);
+    update(cellView, nodeSelector) {
+        const { node: prevNode } = this;
+        const node = this.node = this.findNode(cellView, nodeSelector);
+        if (prevNode) {
+            this.unhighlight(cellView, prevNode);
+        }
+        if (node) {
+            this.highlight(cellView, node);
+        }
     },
 
     highlight(_cellView, _node) {
@@ -82,6 +91,7 @@ export const HighlighterView = mvc.View.extend({
         const { _views } = this;
         _views[cid] || (_views[cid] = {});
         view = _views[cid][id] = new this(opt);
+        view.id = id;
         view.requestUpdate(cellView, el);
         return view;
     },
@@ -99,12 +109,19 @@ export const HighlighterView = mvc.View.extend({
         } else if (highlighters[id]) {
             views.push(highlighters[id]);
         }
-        views.forEach(view => {
-            const { node, UPDATABLE } = view;
-            if (node && UPDATABLE) {
-                view.update(cellView, node);
+        views.forEach(view => this.updateView(view));
+    },
+
+    updateView(view) {
+        const { id, updateRequested, nodeSelector,cellView, UPDATABLE } = view;
+        if (UPDATABLE && !updateRequested) {
+            view.update(cellView, nodeSelector);
+            if (!view.node) {
+                // Node has been removed from the cellView
+                // TODO: should be the highlighter disposed?
+                this.remove(cellView, id);
             }
-        });
+        }
     },
 
     remove(cellView, id = null) {
@@ -121,24 +138,32 @@ export const HighlighterView = mvc.View.extend({
         } else if (highlighters[id]) {
             views.push(highlighters[id]);
             delete highlighters[id];
+            if (Object.keys(highlighters).length === 0) {
+                delete _views[cid];
+            }
         }
-        views.forEach(view => {
-            view.unhighlight(cellView, view.node);
-            view.remove();
-        });
+        views.forEach(view => this.removeView(view));
     },
 
-    getId(el, opt) {
-        return el.id + JSON.stringify(opt);
+    removeView(view) {
+        const { node, cellView } = view;
+        if (node) {
+            view.unhighlight(cellView, node);
+        }
+        view.remove();
     },
 
-    highlight: function(cellView, magnetEl, opt) {
-        const id = this.getId(magnetEl, opt);
-        this.add(cellView, magnetEl, id, opt);
+    uniqueId(node, opt = '') {
+        return node.id + JSON.stringify(opt);
     },
 
-    unhighlight: function(cellView, magnetEl, opt) {
-        const id = this.getId(magnetEl, opt);
+    highlight: function(cellView, node, opt) {
+        const id = this.uniqueId(node, opt);
+        this.add(cellView, node, id, opt);
+    },
+
+    unhighlight: function(cellView, node, opt) {
+        const id = this.uniqueId(node, opt);
         this.remove(cellView, id);
     }
 

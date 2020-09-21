@@ -9,3 +9,4 @@ export * from './LinkView.mjs';
 export * from './Paper.mjs';
 export * from './ToolView.mjs';
 export * from './ToolsView.mjs';
+export * from './HighlighterView.mjs';
