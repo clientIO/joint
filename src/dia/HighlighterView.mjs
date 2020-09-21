@@ -154,7 +154,7 @@ export const HighlighterView = mvc.View.extend({
     },
 
     uniqueId(node, opt = '') {
-        return node.id + JSON.stringify(opt);
+        return V.ensureId(node) + JSON.stringify(opt);
     },
 
     highlight: function(cellView, node, opt) {
