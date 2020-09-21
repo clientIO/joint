@@ -613,7 +613,7 @@ export namespace dia {
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
 
-        findProxyNode(el: SVGElement | null, type: string);
+        findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
         getSelector(el: SVGElement, prevSelector?: string): string;
 
