@@ -458,8 +458,11 @@ export const Paper = View.extend({
             options.interactive = assign({}, interactive);
         }
         options.origin = assign({}, origin);
-        // Return the default highlighting options into the user specified options.
-        options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
+
+        if (options.highlighting !== false) {
+            // Return the default highlighting options into the user specified options.
+            options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
+        }
     },
 
     children: function() {
@@ -1817,32 +1820,43 @@ export const Paper = View.extend({
     // Cell highlighting.
     // ------------------
 
-    resolveHighlighter: function(opt) {
+    resolveHighlighter: function(opt = {}) {
 
-        opt = opt || {};
-        var highlighterDef = opt.highlighter;
-        var paperOpt = this.options;
-
+        let { highlighter: highlighterDef } = opt;
+        const paperOpt = this.options;
         /*
-                Expecting opt.highlighter to have the following structure:
-                {
-                    name: 'highlighter-name',
-                    options: {
-                        some: 'value'
-                    }
+            Expecting opt.highlighter to have the following structure:
+            {
+                name: 'highlighter-name',
+                options: {
+                    some: 'value'
                 }
-            */
+            }
+        */
         if (highlighterDef === undefined) {
 
             // check for built-in types
-            var type = ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].find(function(type) {
-                return !!opt[type];
-            });
+            const type = [
+                'embedding',
+                'connecting',
+                'magnetAvailability',
+                'elementAvailability'
+            ].find(type => !!opt[type]);
 
-            highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
+            const { highlighting } = paperOpt;
+            // Is highlighting disabled?
+            if (!highlighting) return false;
+            if (type) {
+                highlighterDef = highlighting[type];
+                // Is a specific type highlight disabled?
+                if (highlighterDef === false) return false;
+            }
+            if (!highlighterDef) {
+                highlighterDef = highlighting['default'];
+            }
         }
 
-        // Do nothing if opt.highlighter is falsey.
+        // Do nothing if opt.highlighter is falsy.
         // This allows the case to not highlight cell(s) in certain cases.
         // For example, if you want to NOT highlight when embedding elements.
         if (!highlighterDef) return false;
@@ -1854,8 +1868,8 @@ export const Paper = View.extend({
             };
         }
 
-        var name = highlighterDef.name;
-        var highlighter = paperOpt.highlighterNamespace[name];
+        const name = highlighterDef.name;
+        const highlighter = paperOpt.highlighterNamespace[name];
 
         // Highlighter validation
         if (!highlighter) {
@@ -1869,9 +1883,9 @@ export const Paper = View.extend({
         }
 
         return {
-            highlighter: highlighter,
+            highlighter,
             options: highlighterDef.options || {},
-            name: name
+            name
         };
     },
 
