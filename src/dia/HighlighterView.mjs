@@ -165,6 +165,14 @@ export const HighlighterView = mvc.View.extend({
     unhighlight: function(cellView, node, opt) {
         const id = this.uniqueId(node, opt);
         this.remove(cellView, id);
+    },
+
+    Types: {
+        CUSTOM: 'custom',
+        EMBEDDING: 'embedding',
+        CONNECTING: 'connecting',
+        MAGNET_AVAILABILITY: 'magnetAvailability',
+        ELEMENT_AVAILABILITY: 'elementAvailability'
     }
 
 });

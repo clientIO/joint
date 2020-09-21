@@ -279,8 +279,7 @@ export const CellView = View.extend({
         return mr;
     },
 
-    highlight: function(el, opt = {}) {
-
+    _notifyHighlight: function(eventName, el, opt = {}) {
         const { el: root } = this;
         if (typeof el === 'string') {
             [el = root] = this.findBySelector(el);
@@ -289,24 +288,39 @@ export const CellView = View.extend({
         }
         // set partial flag if the highlighted element is not the entire view.
         opt.partial = (el !== root);
-
-        this.notify('cell:highlight', el, opt);
+        // translate type flag into a type string
+        if (!opt.type) {
+            let type;
+            const { Types } = HighlighterView;
+            switch (true) {
+                case opt.embedding:
+                    type = Types.EMBEDDING;
+                    break;
+                case opt.connecting:
+                    type = Types.CONNECTING;
+                    break;
+                case opt.magnetAvailability:
+                    type = Types.MAGNET_AVAILABILITY;
+                    break;
+                case opt.elementAvailability:
+                    type = Types.ELEMENT_AVAILABILITY;
+                    break;
+                default:
+                    type = Types.CUSTOM;
+                    break;
+            }
+            opt.type = type;
+        }
+        this.notify(eventName, el, opt);
         return this;
     },
 
+    highlight: function(el, opt) {
+        return this._notifyHighlight('cell:highlight', el, opt);
+    },
+
     unhighlight: function(el, opt = {}) {
-
-        const { el: root } = this;
-        if (typeof el === 'string') {
-            [el = root] = this.findBySelector(el);
-        } else {
-            [el = root] = this.$(el);
-        }
-
-        opt.partial = el != root;
-
-        this.notify('cell:unhighlight', el, opt);
-        return this;
+        return this._notifyHighlight('cell:unhighlight', el, opt);
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such

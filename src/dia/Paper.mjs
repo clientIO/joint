@@ -41,7 +41,6 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from 'jquery';
 import Backbone from 'backbone';
-import { HighlighterView } from './HighlighterView.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -1820,7 +1819,7 @@ export const Paper = View.extend({
 
     resolveHighlighter: function(opt = {}) {
 
-        let { highlighter: highlighterDef } = opt;
+        let { highlighter: highlighterDef, type } = opt;
         const { highlighting,highlighterNamespace  } = this.options;
 
         /*
@@ -1834,16 +1833,9 @@ export const Paper = View.extend({
         */
         if (highlighterDef === undefined) {
 
-            // check for built-in types
-            const type = [
-                'embedding',
-                'connecting',
-                'magnetAvailability',
-                'elementAvailability'
-            ].find(type => !!opt[type]);
-
             // Is highlighting disabled?
             if (!highlighting) return false;
+            // check for built-in types
             if (type) {
                 highlighterDef = highlighting[type];
                 // Is a specific type highlight disabled?
