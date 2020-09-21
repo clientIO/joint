@@ -2,12 +2,14 @@ import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
 import { HighlighterView } from '../dia/HighlighterView.mjs';
 
+const className = util.addClassNamePrefix('highlighted');
+
 export const addClass = HighlighterView.extend({
 
     UPDATABLE: false,
 
     options: {
-        className: util.addClassNamePrefix('highlighted')
+        className
     },
 
     highlight: function(_cellView, node) {
@@ -18,4 +20,7 @@ export const addClass = HighlighterView.extend({
         V(node).removeClass(this.options.className);
     }
 
+}, {
+    // Backwards Compatibility
+    className
 });
