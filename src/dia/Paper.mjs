@@ -41,6 +41,7 @@ import * as anchors from '../anchors/index.mjs';
 
 import $ from 'jquery';
 import Backbone from 'backbone';
+import { HighlighterView } from './HighlighterView.mjs';
 
 const sortingTypes = {
     NONE: 'sorting-none',
@@ -292,7 +293,6 @@ export const Paper = View.extend({
     $grid: null,
     $document: null,
 
-    _highlights: null,
     _zPivots: null,
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
@@ -329,8 +329,6 @@ export const Paper = View.extend({
         this._zPivots = {};
         // Reference to the paper owner document
         this.$document = $(el.ownerDocument);
-        // Highlighters references
-        this._highlights = {};
         // Render existing cells in the graph
         this.resetViews(model.attributes.cells.models);
         // Start the Rendering Loop
@@ -1852,6 +1850,7 @@ export const Paper = View.extend({
                 if (highlighterDef === false) return false;
             }
             if (!highlighterDef) {
+                // Type not defined use default highlight
                 highlighterDef = highlighting['default'];
             }
         }
@@ -1890,39 +1889,17 @@ export const Paper = View.extend({
     },
 
     onCellHighlight: function(cellView, magnetEl, opt) {
-
-        opt = this.resolveHighlighter(opt);
-        if (!opt) return;
-        const magnetId = V.ensureId(magnetEl);
-        const key = opt.name + magnetId + JSON.stringify(opt.options);
-
-        if (this._highlights[key]) return;
-
-        const highlighter = opt.highlighter;
-        highlighter.highlight(cellView, magnetEl, assign({}, opt.options));
-
-        this._highlights[key] = {
-            cellView: cellView,
-            magnetEl: magnetEl,
-            opt: opt.options,
-            highlighter: highlighter
-        };
+        const highlighterDescriptor = this.resolveHighlighter(opt);
+        if (!highlighterDescriptor) return;
+        const { highlighter, options } = highlighterDescriptor;
+        highlighter.highlight(cellView, magnetEl, options);
     },
 
     onCellUnhighlight: function(cellView, magnetEl, opt) {
-
-        opt = this.resolveHighlighter(opt);
-        if (!opt) return;
-
-        var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
-        var highlight = this._highlights[key];
-        if (highlight) {
-
-            // Use the cellView and magnetEl that were used by the highlighter.highlight() method.
-            highlight.highlighter.unhighlight(highlight.cellView, highlight.magnetEl, highlight.opt);
-
-            this._highlights[key] = null;
-        }
+        const highlighterDescriptor = this.resolveHighlighter(opt);
+        if (!highlighterDescriptor) return;
+        const { highlighter, options } = highlighterDescriptor;
+        highlighter.unhighlight(cellView, magnetEl, options);
     },
 
     // Interaction.
