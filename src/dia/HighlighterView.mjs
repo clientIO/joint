@@ -73,7 +73,25 @@ export const HighlighterView = mvc.View.extend({
 
 }, {
 
+    Types: {
+        CUSTOM: 'custom',
+        EMBEDDING: 'embedding',
+        CONNECTING: 'connecting',
+        MAGNET_AVAILABILITY: 'magnetAvailability',
+        ELEMENT_AVAILABILITY: 'elementAvailability'
+    },
+
     _views: {},
+
+    highlight: function(cellView, node, opt) {
+        const id = this.uniqueId(node, opt);
+        this.add(cellView, node, id, opt);
+    },
+
+    unhighlight: function(cellView, node, opt) {
+        const id = this.uniqueId(node, opt);
+        this.remove(cellView, id);
+    },
 
     get(cellView, id) {
         const { cid } = cellView;
@@ -94,6 +112,27 @@ export const HighlighterView = mvc.View.extend({
         view.id = id;
         view.requestUpdate(cellView, el);
         return view;
+    },
+
+    remove(cellView, id = null) {
+        const { cid } = cellView;
+        const { _views } = this;
+        const highlighters = _views[cid];
+        if (!highlighters) return;
+        const views = [];
+        if (!id) {
+            for (let hid in highlighters) {
+                views.push(highlighters[hid]);
+            }
+            delete _views[cid];
+        } else if (highlighters[id]) {
+            views.push(highlighters[id]);
+            delete highlighters[id];
+            if (Object.keys(highlighters).length === 0) {
+                delete _views[cid];
+            }
+        }
+        views.forEach(view => this.removeView(view));
     },
 
     update(cellView, id = null) {
@@ -124,27 +163,6 @@ export const HighlighterView = mvc.View.extend({
         }
     },
 
-    remove(cellView, id = null) {
-        const { cid } = cellView;
-        const { _views } = this;
-        const highlighters = _views[cid];
-        if (!highlighters) return;
-        const views = [];
-        if (!id) {
-            for (let hid in highlighters) {
-                views.push(highlighters[hid]);
-            }
-            delete _views[cid];
-        } else if (highlighters[id]) {
-            views.push(highlighters[id]);
-            delete highlighters[id];
-            if (Object.keys(highlighters).length === 0) {
-                delete _views[cid];
-            }
-        }
-        views.forEach(view => this.removeView(view));
-    },
-
     removeView(view) {
         const { node, cellView } = view;
         if (node) {
@@ -155,24 +173,6 @@ export const HighlighterView = mvc.View.extend({
 
     uniqueId(node, opt = '') {
         return V.ensureId(node) + JSON.stringify(opt);
-    },
-
-    highlight: function(cellView, node, opt) {
-        const id = this.uniqueId(node, opt);
-        this.add(cellView, node, id, opt);
-    },
-
-    unhighlight: function(cellView, node, opt) {
-        const id = this.uniqueId(node, opt);
-        this.remove(cellView, id);
-    },
-
-    Types: {
-        CUSTOM: 'custom',
-        EMBEDDING: 'embedding',
-        CONNECTING: 'connecting',
-        MAGNET_AVAILABILITY: 'magnetAvailability',
-        ELEMENT_AVAILABILITY: 'elementAvailability'
     }
 
 });

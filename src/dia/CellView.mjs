@@ -280,16 +280,17 @@ export const CellView = View.extend({
     },
 
     _notifyHighlight: function(eventName, el, opt = {}) {
-        const { el: root } = this;
+        const { el: rootNode } = this;
+        let node;
         if (typeof el === 'string') {
-            [el = root] = this.findBySelector(el);
+            [node = rootNode] = this.findBySelector(el);
         } else {
-            [el = root] = this.$(el);
+            [node = rootNode] = this.$(el);
         }
         // set partial flag if the highlighted element is not the entire view.
-        opt.partial = (el !== root);
+        opt.partial = (node !== rootNode);
         // translate type flag into a type string
-        if (!opt.type) {
+        if (opt.type === undefined) {
             let type;
             const { Types } = HighlighterView;
             switch (true) {
@@ -311,7 +312,7 @@ export const CellView = View.extend({
             }
             opt.type = type;
         }
-        this.notify(eventName, el, opt);
+        this.notify(eventName, node, opt);
         return this;
     },
 
