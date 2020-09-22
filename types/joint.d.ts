@@ -1413,6 +1413,138 @@ export namespace dia {
         protected guard(evt: dia.Event): boolean;
     }
 
+
+    namespace HighlighterView {
+
+        enum Types {
+            CUSTOM = 'custom',
+            EMBEDDING = 'embedding',
+            CONNECTING = 'connecting',
+            MAGNET_AVAILABILITY = 'magnetAvailability',
+            ELEMENT_AVAILABILITY = 'elementAvailability'
+        }
+
+        type Constructor<T> = { new (): T }
+    }
+
+    class HighlighterView<Options> extends mvc.View<undefined> {
+
+        UPDATABLE: boolean;
+
+        protected highlight(cellView: dia.CellView, node: SVGElement): void;
+
+        protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
+
+        options: Options;
+
+        static add<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView,
+            selector: SVGElement | string,
+            id: string,
+            options?: any // TODO
+        ): T;
+
+        static remove(
+            cellView: dia.CellView,
+            id?: string
+        ): void;
+
+        static get<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView,
+            id: string
+        ): T | null;
+    }
+}
+
+// highlighters
+
+export namespace highlighters {
+
+    interface HighlighterArguments {
+
+    }
+
+    interface AddClassHighlighterArguments extends HighlighterArguments {
+        className?: string;
+    }
+
+    interface OpacityHighlighterArguments extends HighlighterArguments {
+
+    }
+
+    interface StrokeHighlighterArguments extends HighlighterArguments {
+        padding?: number;
+        rx?: number;
+        ry?: number;
+        useFirstSubpath?: boolean;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface MaskHighlighterArguments extends HighlighterArguments {
+        padding?: number;
+        maskClip?: number;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface HighlighterArgumentsMap {
+        'addClass': AddClassHighlighterArguments;
+        'opacity': OpacityHighlighterArguments;
+        'stroke': StrokeHighlighterArguments;
+        'mask': MaskHighlighterArguments;
+        [key: string]: { [key: string]: any };
+    }
+
+    type HighlighterType = keyof HighlighterArgumentsMap;
+
+    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
+
+    interface GenericHighlighter<K extends HighlighterType> {
+
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
+
+    interface GenericHighlighterJSON<K extends HighlighterType> {
+        name: K;
+        options?: GenericHighlighterArguments<K>;
+    }
+
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+
+    type Highlighter = GenericHighlighter<HighlighterType>;
+
+    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
+
+    class mask extends dia.HighlighterView<MaskHighlighterArguments> {
+
+        VISIBLE: string;
+        INVISIBLE: string;
+        MASK_ATTRIBUTE_BLACKLIST: string[];
+
+        public getMaskId(): string;
+
+        protected getMaskShape(vel: V, bbox: dia.BBox): V;
+
+        protected getMask(vel: V, bbox: dia.BBox): V;
+
+        protected removeMask(cellView: dia.CellView): void;
+    }
+
+    class stroke extends dia.HighlighterView<StrokeHighlighterArguments> {
+
+    }
+
+    class addClass extends dia.HighlighterView<AddClassHighlighterArguments> {
+
+    }
+
+    class opacity extends dia.HighlighterView<OpacityHighlighterArguments> {
+
+        opacityClassName: string;
+    }
 }
 
 export namespace shapes {
@@ -2990,59 +3122,6 @@ export namespace connectionPoints {
     export var bbox: GenericConnectionPoint<'bbox'>;
     export var rectangle: GenericConnectionPoint<'rectangle'>;
     export var boundary: GenericConnectionPoint<'boundary'>;
-}
-
-// highlighters
-
-export namespace highlighters {
-
-    interface AddClassHighlighterArguments {
-        className?: string;
-    }
-
-    interface OpacityHighlighterArguments {
-
-    }
-
-    interface StrokeHighlighterArguments {
-        padding?: number;
-        rx?: number;
-        ry?: number;
-        useFirstSubpath?: boolean;
-        attrs?: attributes.NativeSVGAttributes;
-    }
-
-    interface HighlighterArgumentsMap {
-        'addClass': AddClassHighlighterArguments;
-        'opacity': OpacityHighlighterArguments;
-        'stroke': StrokeHighlighterArguments;
-        [key: string]: { [key: string]: any };
-    }
-
-    type HighlighterType = keyof HighlighterArgumentsMap;
-
-    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
-
-    interface GenericHighlighter<K extends HighlighterType> {
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-    }
-
-    interface GenericHighlighterJSON<K extends HighlighterType> {
-        name: K;
-        options?: GenericHighlighterArguments<K>;
-    }
-
-    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
-
-    type Highlighter = GenericHighlighter<HighlighterType>;
-
-    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
-
-    export var addClass: GenericHighlighter<'addClass'>;
-    export var opacity: GenericHighlighter<'opacity'>;
-    export var stroke: GenericHighlighter<'stroke'>;
 }
 
 export namespace connectionStrategies {
