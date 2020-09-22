@@ -58,7 +58,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                 defaultConnector: function() { return new g.Path(); },
                 defaultAnchor: { name: 'test', args: { testArg: 1 }},
                 // defaultRouter
-                interactive: false
+                interactive: false,
+                highlighting: false
             });
             // overridden with a function
             var options = paper.options;
@@ -71,6 +72,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             assert.notEqual(options.defaultRouter, protoOptions.defaultRouter);
             // boolean
             assert.equal(options.interactive, false);
+            assert.equal(options.highlighting, false);
         });
     });
 

@@ -454,12 +454,11 @@ export const Paper = View.extend({
         if (isPlainObject(interactive)) {
             options.interactive = assign({}, interactive);
         }
-        options.origin = assign({}, origin);
-
-        if (options.highlighting !== false) {
+        if (isPlainObject(highlighting)) {
             // Return the default highlighting options into the user specified options.
             options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         }
+        options.origin = assign({}, origin);
     },
 
     children: function() {
@@ -1849,7 +1848,8 @@ export const Paper = View.extend({
 
         // Do nothing if opt.highlighter is falsy.
         // This allows the case to not highlight cell(s) in certain cases.
-        // For example, if you want to NOT highlight when embedding elements.
+        // For example, if you want to NOT highlight when embedding elements
+        // or use a custom highlighter.
         if (!highlighterDef) return false;
 
         // Allow specifying a highlighter by name.
