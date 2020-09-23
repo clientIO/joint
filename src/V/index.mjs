@@ -745,10 +745,6 @@ const V = (function() {
         return this;
     };
 
-    VPrototype.parent = function() {
-        return V(this.node.parentNode) || null;
-    },
-
     VPrototype.prepend = function(els) {
 
         var child = this.node.firstChild;
@@ -840,6 +836,11 @@ const V = (function() {
         }
         return outputArray;
     };
+
+    // Returns the V element from parentNode of this.node.
+    VPrototype.parent = function() {
+        return V(this.node.parentNode) || null;
+    },
 
     // Find an index of an element inside its container.
     VPrototype.index = function() {

@@ -42,10 +42,12 @@ export const mask = HighlighterView.extend({
         'marker-mid'
     ],
 
+    // TODO: change the list to a function callback
     MASK_REPLACE_TAGS: [
         'TEXT' // Experimental: it's currently not in use since the text is always removed
     ],
 
+    // TODO: change the list to a function callback
     MASK_REMOVE_TAGS: [
         'TEXT'
     ],
@@ -119,7 +121,7 @@ export const mask = HighlighterView.extend({
 
         const strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
         const hasNodeFill = vel.attr('fill') !== 'none';
-        let magnetStrokeWidth = parseFloat(vel.attr('stroke-width'), 10);
+        let magnetStrokeWidth = parseFloat(vel.attr('stroke-width'));
         if (isNaN(magnetStrokeWidth)) magnetStrokeWidth = 1;
         // stroke of the invisible shape
         const minStrokeWidth = magnetStrokeWidth + padding * 2;
