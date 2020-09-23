@@ -1429,20 +1429,22 @@ export namespace dia {
 
     class HighlighterView<Options> extends mvc.View<undefined> {
 
+        constructor(options?: Options);
+
+        options: Options;
+
         UPDATABLE: boolean;
 
         protected highlight(cellView: dia.CellView, node: SVGElement): void;
 
         protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
 
-        options: Options;
-
         static add<T extends HighlighterView>(
             this: HighlighterView.Constructor<T>,
             cellView: dia.CellView,
             selector: SVGElement | string,
             id: string,
-            options?: any // TODO
+            options?: any
         ): T;
 
         static remove(

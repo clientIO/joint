@@ -27,7 +27,7 @@ export const HighlighterView = mvc.View.extend({
     },
 
     confirmUpdate() {
-        // The cellView is now rendered/updated as it has higher update priority.
+        // The cellView is now rendered/updated since it has a higher update priority.
         this.updateRequested = false;
         const { cellView, nodeSelector } = this;
         this.update(cellView, nodeSelector);
