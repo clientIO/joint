@@ -12,6 +12,7 @@ export const mask = HighlighterView.extend({
     options: {
         padding: 3,
         maskClip: 20,
+        deep: false,
         attrs: {
             'stroke': '#FEB663',
             'stroke-width': 3,
@@ -23,31 +24,95 @@ export const mask = HighlighterView.extend({
     VISIBLE: 'white',
     INVISIBLE: 'black',
 
-    MASK_ATTRIBUTE_BLACKLIST: [
-        'joint-selector',
+    MASK_ROOT_ATTRIBUTE_BLACKLIST: [
         'marker-start',
         'marker-end',
         'marker-mid',
         'transform'
     ],
 
-    getMaskShape(vel, bbox) {
-        if (vel.tagName() === 'G') {
-            return V('rect', bbox.toJSON());
-        }
-        const shapeEl = vel.clone();
-        this.MASK_ATTRIBUTE_BLACKLIST.forEach(attr => {
-            shapeEl.removeAttr(attr);
-        });
+    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
+        'stroke',
+        'fill',
+        'stroke-width',
+        'stroke-opacity',
+        'fill-opacity',
+        'marker-start',
+        'marker-end',
+        'marker-mid'
+    ],
 
-        return shapeEl;
+    MASK_REPLACE_TAGS: [
+        'TEXT' // Experimental: it's currently not in use since the text is always removed
+    ],
+
+    MASK_REMOVE_TAGS: [
+        'TEXT'
+    ],
+
+    transformMaskChild(cellView, childEl) {
+        const {
+            MASK_CHILD_ATTRIBUTE_BLACKLIST,
+            MASK_REPLACE_TAGS,
+            MASK_REMOVE_TAGS
+        } = this;
+        const childTagName = childEl.tagName();
+        if (MASK_REMOVE_TAGS.includes(childTagName)) {
+            childEl.remove();
+        } else if (MASK_REPLACE_TAGS.includes(childTagName)) {
+            // Replace the child with a rectangle
+            // Note: clone() method does not change the children ids
+            const originalChild = cellView.vel.findOne(`#${childEl.id}`);
+            if (originalChild) {
+                const { node: originalNode } = originalChild;
+                let childBBox = cellView.getNodeBoundingRect(originalNode);
+                if (cellView.model.isElement()) {
+                    childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
+                }
+                const replacement = V('rect', childBBox.toJSON());
+                const { x: ox, y: oy } = childBBox.center();
+                const { angle, cx = ox, cy = oy } = originalChild.rotate();
+                if (angle) replacement.rotate(angle, cx, cy);
+                // Note: it's not important to keep the same sibling index since all subnodes are filled
+                childEl.parent().append(replacement);
+            }
+            childEl.remove();
+        } else {
+            // Clean the child from certain attributes
+            MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(attrName => {
+                if (attrName === 'fill' && childEl.attr('fill') === 'none') return;
+                childEl.removeAttr(attrName);
+            });
+        }
+    },
+
+    transformMaskRoot(_cellView, rootEl) {
+        const { MASK_ROOT_ATTRIBUTE_BLACKLIST } = this;
+        MASK_ROOT_ATTRIBUTE_BLACKLIST.forEach(attrName => {
+            rootEl.removeAttr(attrName);
+        });
+    },
+
+    getMaskShape(cellView, vel) {
+        const { options } = this;
+        const { deep } = options;
+        let maskRoot;
+        if (vel.tagName() === 'G') {
+            if (!deep) return null;
+            maskRoot = vel.clone();
+            maskRoot.find('*').forEach(maskChild => this.transformMaskChild(cellView, maskChild));
+        } else {
+            maskRoot = vel.clone();
+        }
+        this.transformMaskRoot(cellView, maskRoot);
+        return maskRoot;
     },
 
     getMaskId() {
         return `highlight-mask-${this.cid}`;
     },
 
-    getMask(vel, bbox) {
+    getMask(cellView, vel) {
 
         const { VISIBLE, INVISIBLE, options } = this;
         const { padding, attrs } = options;
@@ -60,17 +125,20 @@ export const mask = HighlighterView.extend({
         const minStrokeWidth = magnetStrokeWidth + padding * 2;
         // stroke of the visible shape
         const maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
-        const maskShape = this.getMaskShape(vel, bbox).attr(attrs);
-
+        let maskEl = this.getMaskShape(cellView, vel);
+        if (!maskEl) {
+            maskEl =  V('rect', cellView.getNodeBoundingRect(vel.node).toJSON());
+        }
+        maskEl.attr(attrs);
         return V('mask', {
             'id': this.getMaskId()
         }).append([
-            maskShape.clone().attr({
+            maskEl.clone().attr({
                 'fill': hasNodeFill ? VISIBLE : 'none',
                 'stroke': VISIBLE,
                 'stroke-width': maxStrokeWidth
             }),
-            maskShape.clone().attr({
+            maskEl.clone().attr({
                 'fill': hasNodeFill ? INVISIBLE : 'none',
                 'stroke': INVISIBLE,
                 'stroke-width': minStrokeWidth
@@ -78,12 +146,15 @@ export const mask = HighlighterView.extend({
         ]);
     },
 
-    removeMask(cellView) {
-        const { paper } = cellView;
+    removeMask(paper) {
         const maskNode = paper.svg.getElementById(this.getMaskId());
         if (maskNode) {
             paper.defs.removeChild(maskNode);
         }
+    },
+
+    addMask(paper, maskEl) {
+        paper.defs.appendChild(maskEl.node);
     },
 
     highlight(cellView, node) {
@@ -91,24 +162,9 @@ export const mask = HighlighterView.extend({
         const { options } = this;
         const { padding, attrs, maskClip } = options;
         const color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
-
-        let maskImageEl, magnetBBox;
-        if (cellView.isNodeConnection(node)) {
-            magnetBBox = cellView.getConnection().bbox();
-            maskImageEl = V('path')
-                .attr({
-                    'fill': 'none',
-                    'd': cellView.getSerializedConnection(),
-                });
-        } else {
-            magnetBBox = cellView.getNodeBoundingRect(node);
-            maskImageEl = V(node);
-        }
-
-        const maskEl = this.getMask(maskImageEl, magnetBBox);
-        const highlighterBBox = magnetBBox.clone().inflate(padding + maskClip);
-
-        cellView.paper.defs.appendChild(maskEl.node);
+        const highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
+        const maskEl = this.getMask(cellView, V(node));
+        this.addMask(cellView.paper, maskEl);
 
         this.vel
             .attr(highlighterBBox.toJSON())
@@ -123,7 +179,7 @@ export const mask = HighlighterView.extend({
 
     unhighlight(cellView) {
         this.vel.remove();
-        this.removeMask(cellView);
+        this.removeMask(cellView.paper);
     }
 
 });

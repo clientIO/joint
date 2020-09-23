@@ -745,6 +745,10 @@ const V = (function() {
         return this;
     };
 
+    VPrototype.parent = function() {
+        return V(this.node.parentNode) || null;
+    },
+
     VPrototype.prepend = function(els) {
 
         var child = this.node.firstChild;

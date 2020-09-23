@@ -1487,6 +1487,7 @@ export namespace highlighters {
     interface MaskHighlighterArguments extends HighlighterArguments {
         padding?: number;
         maskClip?: number;
+        deep?: boolean;
         attrs?: attributes.NativeSVGAttributes;
     }
 
@@ -1524,15 +1525,24 @@ export namespace highlighters {
 
         VISIBLE: string;
         INVISIBLE: string;
-        MASK_ATTRIBUTE_BLACKLIST: string[];
+        MASK_ROOT_ATTRIBUTE_BLACKLIST: string[];
+        MASK_CHILD_ATTRIBUTE_BLACKLIST: string[];
+        MASK_REPLACE_TAGS: string[];
+        MASK_REMOVE_TAGS: string[];
 
         public getMaskId(): string;
 
-        protected getMaskShape(vel: V, bbox: dia.BBox): V;
+        protected getMask(cellView: dia.CellView, vel: V): V;
 
-        protected getMask(vel: V, bbox: dia.BBox): V;
+        protected getMaskShape(cellView: dia.CellView, vel: V): V;
 
-        protected removeMask(cellView: dia.CellView): void;
+        protected transformMaskRoot(cellView: dia.CellView, root: V): void;
+
+        protected transformMaskChild(cellView: dia.CellView, child: V): void;
+
+        protected addMask(paper: dia.Paper, mask: V): void;
+
+        protected removeMask(paper: dia.Paper): void;
     }
 
     class stroke extends dia.HighlighterView<StrokeHighlighterArguments> {

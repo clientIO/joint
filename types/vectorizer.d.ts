@@ -163,6 +163,8 @@ export class Vectorizer {
 
     appendTo(el: SVGElement | Vectorizer) : this;
 
+    parent(): Vectorizer | null;
+
     // returns either this or Vectorizer, no point in specifying this.
     svg(): Vectorizer;
 
