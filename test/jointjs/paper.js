@@ -2043,15 +2043,8 @@ QUnit.module('paper', function(hooks) {
 
                     paper.on('all', spy);
                     paper.options.magnetThreshold = 'onleave';
+                    paper.options.highlighting = false;
                     // Events Order
-                    var localPoint = el.getBBox().center();
-                    var clientPoint = paper.localToClientPoint(localPoint);
-                    simulate.click({
-                        el: elRect,
-                        clientX: clientPoint.x,
-                        clientY: clientPoint.y
-                    });
-
                     var eventOrder;
                     if (magnetType === 'passive') {
                         eventOrder = [
@@ -2075,12 +2068,21 @@ QUnit.module('paper', function(hooks) {
                         ];
                     }
 
+                    var localPoint = el.getBBox().center();
+                    var clientPoint = paper.localToClientPoint(localPoint);
+                    simulate.click({
+                        el: elRect,
+                        clientX: clientPoint.x,
+                        clientY: clientPoint.y
+                    });
+                    var eventOrder1 = eventOrder.slice();
                     if (document.elementFromPoint(clientPoint.x, clientPoint.y)) {
-                        eventOrder.splice(eventOrder.indexOf('cell:mouseleave'), 2);
+                        // For a headless browser only
+                        eventOrder1.splice(eventOrder1.indexOf('cell:mouseleave'), 2);
                     }
+                    assert.equal(spy.callCount, eventOrder1.length);
+                    assert.deepEqual(getEventNames(spy), eventOrder1);
 
-                    assert.equal(spy.callCount, eventOrder.length);
-                    assert.deepEqual(getEventNames(spy), eventOrder);
                     // Stop propagation
                     paper.on(eventName, function(_, evt) {
                         evt.stopPropagation();
@@ -2091,9 +2093,14 @@ QUnit.module('paper', function(hooks) {
                         clientX: 13,
                         clientY: 17
                     });
-                    assert.equal(spy.callCount, eventOrder.length - 2);
+                    var eventOrder2 = eventOrder.slice();
+                    if (document.elementFromPoint(clientPoint.x, clientPoint.y)) {
+                        // For a headless browser only
+                        eventOrder1.splice(eventOrder2.indexOf('cell:mouseleave'), 2);
+                    }
+                    assert.equal(spy.callCount, eventOrder2.length - 2);
                     localPoint = paper.snapToGrid(13, 17);
-                    var eventIndex = eventOrder.indexOf(eventName);
+                    var eventIndex = eventOrder2.indexOf(eventName);
                     assert.ok(spy.getCall(eventIndex).calledWithExactly(
                         eventName,
                         elView,
