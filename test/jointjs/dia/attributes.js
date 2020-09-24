@@ -172,12 +172,12 @@ QUnit.module('Attributes', function() {
                 linkView.pointermove(evt, cellCenter.x, cellCenter.t);
                 // Highlight
                 assert.ok(highlightSpy.calledOnce);
-                assert.ok(highlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
+                assert.ok(highlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.HighlighterView.Types.CONNECTING })));
                 assert.notOk(unhighlightSpy.called);
                 linkView.pointerup(evt, cellCenter.x, cellCenter.y);
                 // Unhighlight
                 assert.ok(unhighlightSpy.calledOnce);
-                assert.ok(unhighlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
+                assert.ok(unhighlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.HighlighterView.Types.CONNECTING })));
                 assert.notOk(highlightSpy.callCount > 1);
                 assert.equal(linkView.sourceMagnet, body);
                 // Validation
@@ -186,6 +186,48 @@ QUnit.module('Attributes', function() {
             });
         });
 
-    });
+        QUnit.module('highlighterSelector', function() {
 
+            QUnit.test('highlighting, magnet, validation', function(assert) {
+
+                cell.attr(['root', 'highlighterSelector'], 'body');
+                var body = cellView.findBySelector('body')[0];
+
+                var highlightSpy = sinon.spy();
+                var unhighlightSpy = sinon.spy();
+                var validateSpy = sinon.spy(function() { return true; });
+
+                paper.on('cell:highlight', highlightSpy);
+                paper.on('cell:unhighlight', unhighlightSpy);
+                paper.options.validateConnection = validateSpy;
+
+                var link = new joint.dia.Link({ width: 100, height: 100 });
+                link.addTo(graph);
+                var linkView = link.findView(paper);
+                assert.equal(linkView.sourceMagnet, null);
+                var cellCenter = cell.getBBox().center();
+                var evt = { type: 'mousemove' };
+                linkView.startArrowheadMove('source');
+                evt.target = paper.el;
+                linkView.pointermove(evt, cellCenter.x, cellCenter.y);
+                evt.target = cellView.el;
+                linkView.pointermove(evt, cellCenter.x, cellCenter.t);
+                // Highlight
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(highlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
+                assert.notOk(unhighlightSpy.called);
+                linkView.pointerup(evt, cellCenter.x, cellCenter.y);
+                // Unhighlight
+                assert.ok(unhighlightSpy.calledOnce);
+                assert.ok(unhighlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
+                assert.notOk(highlightSpy.callCount > 1);
+                assert.equal(linkView.sourceMagnet, null);
+                // Validation
+                assert.ok(validateSpy.calledOnce);
+                assert.ok(validateSpy.calledWithExactly(cellView, undefined, undefined, undefined, 'source', linkView));
+            });
+        });
+
+
+    });
 });

@@ -2058,7 +2058,7 @@ export const LinkView = CellView.extend({
         var closestView = data.closestView;
         var closestMagnet = data.closestMagnet;
         if (closestMagnet) {
-            magnetProxy = data.magnetProxy = closestView.findProxyNode(closestMagnet, 'highlight');
+            magnetProxy = data.magnetProxy = closestView.findProxyNode(closestMagnet, 'highlighter');
         }
         var endType = data.arrowhead;
         var newClosestMagnet = (prevClosestMagnet !== closestMagnet);
@@ -2127,7 +2127,7 @@ export const LinkView = CellView.extend({
                 // If we found a view that is under the pointer, we need to find the closest
                 // magnet based on the real target element of the event.
                 const magnetUnderPointer = data.magnetUnderPointer = viewUnderPointer.findMagnet(target);
-                const magnetProxy = data.magnetProxy = viewUnderPointer.findProxyNode(magnetUnderPointer, 'highlight');
+                const magnetProxy = data.magnetProxy = viewUnderPointer.findProxyNode(magnetUnderPointer, 'highlighter');
 
                 if (magnetUnderPointer && this.paper.options.validateConnection.apply(
                     paper,
