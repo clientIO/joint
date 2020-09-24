@@ -739,7 +739,7 @@ const V = (function() {
         }
 
         for (var i = 0, len = els.length; i < len; i++) {
-            this.node.appendChild(V.toNode(els[i]));
+            this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
         }
 
         return this;

@@ -2043,7 +2043,6 @@ QUnit.module('paper', function(hooks) {
 
                     paper.on('all', spy);
                     paper.options.magnetThreshold = 'onleave';
-                    paper.options.highlighting = false;
                     // Events Order
                     var eventOrder;
                     if (magnetType === 'passive') {
