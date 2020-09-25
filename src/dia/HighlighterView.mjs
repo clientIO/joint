@@ -43,13 +43,13 @@ export const HighlighterView = mvc.View.extend({
     findNode(cellView, nodeSelector = null) {
         let el;
         if (typeof nodeSelector === 'string') {
-            [el = null] = cellView.findBySelector(nodeSelector);
+            [el] = cellView.findBySelector(nodeSelector);
         } else if (Array.isArray(nodeSelector)) {
             el = cellView.findPortNode(...nodeSelector);
         } else if (nodeSelector) {
             el = V.toNode(nodeSelector);
         }
-        return el;
+        return el ? el : null;
     },
 
     mount() {
@@ -59,7 +59,7 @@ export const HighlighterView = mvc.View.extend({
         if (options.layer) {
             // TODO: paper layers (e.g. change ordering)
             this.transformGroup = V('g')
-                .addClass('highlighter-transform-group')
+                .addClass('highlight-transform')
                 .append(el)
                 .appendTo(paper.highlighters);
         } else if (!transformGroup) {
@@ -92,7 +92,7 @@ export const HighlighterView = mvc.View.extend({
     },
 
     update() {
-        const { node: prevNode, cellView, nodeSelector, updateRequested } = this;
+        const { node: prevNode, cellView, nodeSelector, updateRequested, id } = this;
         if (updateRequested) return;
         const node = this.node = this.findNode(cellView, nodeSelector);
         if (prevNode) {
@@ -101,6 +101,8 @@ export const HighlighterView = mvc.View.extend({
         if (node) {
             this.highlight(cellView, node);
             this.mount();
+        } else {
+            cellView.notify('cell:highlight:invalid', id, this);
         }
     },
 

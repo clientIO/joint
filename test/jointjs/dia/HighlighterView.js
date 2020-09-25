@@ -176,6 +176,104 @@ QUnit.module('HighlighterView', function(hooks) {
             unhighlightSpy.restore();
         });
 
+        QUnit.test('Highlight port by a selector', function(assert) {
+
+            var portId = 'port1';
+
+            var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
+            var unhighlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'unhighlight');
+            var invalidSpy = sinon.spy();
+
+            paper.on('cell:highlight:invalid', invalidSpy);
+
+            element.addPort({ id: portId });
+            var id = 'highlighter-id';
+            var node = elementView.findPortNode(portId, 'circle');
+
+            // Highlight
+            var highlighter = joint.dia.HighlighterView.add(elementView, [portId, 'circle'], id);
+            assert.equal(highlighter, joint.dia.HighlighterView.get(elementView, id));
+            assert.ok(highlighter instanceof joint.dia.HighlighterView);
+            assert.ok(highlightSpy.calledOnce);
+            assert.ok(highlightSpy.calledOnceWithExactly(elementView, node));
+            assert.ok(highlightSpy.calledOn(highlighter));
+            assert.ok(unhighlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            // Remove Target Node
+            element.removePorts();
+            assert.ok(invalidSpy.calledOnce);
+            assert.ok(invalidSpy.calledOnceWithExactly(elementView, id, highlighter));
+            assert.ok(highlightSpy.notCalled);
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node));
+            assert.ok(unhighlightSpy.calledOn(highlighter));
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            element.addPort({ id: portId });
+            var node2 = elementView.findPortNode(portId, 'circle');
+            assert.ok(invalidSpy.notCalled);
+            assert.ok(unhighlightSpy.notCalled);
+            assert.ok(highlightSpy.calledOnceWithExactly(elementView, node2));
+            assert.ok(highlightSpy.calledOn(highlighter));
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            // // Unhighlight
+            joint.dia.HighlighterView.remove(elementView, id);
+            assert.equal(joint.dia.HighlighterView.get(elementView, id), null);
+            assert.ok(invalidSpy.notCalled);
+            assert.ok(unhighlightSpy.calledOnce);
+            assert.ok(unhighlightSpy.calledOnceWithExactly(elementView, node2));
+            assert.ok(unhighlightSpy.calledOn(highlighter));
+            assert.ok(highlightSpy.notCalled);
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            highlightSpy.restore();
+            unhighlightSpy.restore();
+        });
+
+        QUnit.test('Highlight invalid by a selector', function(assert) {
+
+            var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
+            var unhighlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'unhighlight');
+            var invalidSpy = sinon.spy();
+
+            paper.on('cell:highlight:invalid', invalidSpy);
+
+            var id = 'highlighter-id';
+
+            // Highlight
+            var highlighter = joint.dia.HighlighterView.add(elementView, 'invalidSelector', id);
+            assert.equal(highlighter, joint.dia.HighlighterView.get(elementView, id));
+            assert.ok(highlighter instanceof joint.dia.HighlighterView);
+            assert.ok(highlightSpy.notCalled);
+            assert.ok(unhighlightSpy.notCalled);
+            assert.ok(invalidSpy.calledOnce);
+            assert.ok(invalidSpy.calledOnceWithExactly(elementView, id, highlighter));
+            highlightSpy.resetHistory();
+            unhighlightSpy.resetHistory();
+            invalidSpy.resetHistory();
+
+            // Unhighlight / Remove
+            highlighter.remove();
+            assert.ok(highlightSpy.notCalled);
+            assert.ok(unhighlightSpy.notCalled);
+            assert.ok(invalidSpy.notCalled);
+            assert.equal(null, joint.dia.HighlighterView.get(elementView, id));
+
+            highlightSpy.restore();
+            unhighlightSpy.restore();
+        });
+
         QUnit.test('Highlight link by a node', function(assert) {
 
             var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
@@ -266,7 +364,6 @@ QUnit.module('HighlighterView', function(hooks) {
 
             highlightSpy.restore();
             unhighlightSpy.restore();
-
         });
     });
 
