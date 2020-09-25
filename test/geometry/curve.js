@@ -1051,6 +1051,37 @@ QUnit.module('curve', function() {
             });
         });
 
+        QUnit.module('round()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var curve = new g.Curve('11.123456789 11.123456789', '11.123456789 41.123456789', '51.123456789 41.123456789', '51.123456789 11.123456789');
+                assert.ok(curve.clone().round() instanceof g.Curve);
+                assert.ok(curve.clone().round(0) instanceof g.Curve);
+                assert.ok(curve.clone().round(1) instanceof g.Curve);
+                assert.ok(curve.clone().round(2) instanceof g.Curve);
+                assert.ok(curve.clone().round(3) instanceof g.Curve);
+                assert.ok(curve.clone().round(4) instanceof g.Curve);
+                assert.ok(curve.clone().round(10) instanceof g.Curve);
+                assert.ok(curve.clone().round(-1) instanceof g.Curve);
+                assert.ok(curve.clone().round(-10) instanceof g.Curve);
+            });
+
+            QUnit.test('should return a rounded version of self', function(assert) {
+
+                var curve = new g.Curve('11.123456789 11.123456789', '11.123456789 41.123456789', '51.123456789 41.123456789', '51.123456789 11.123456789');
+                assert.equal(curve.clone().round().toString(), '11@11 11@41 51@41 51@11');
+                assert.equal(curve.clone().round(0).toString(), '11@11 11@41 51@41 51@11');
+                assert.equal(curve.clone().round(1).toString(), '11.1@11.1 11.1@41.1 51.1@41.1 51.1@11.1');
+                assert.equal(curve.clone().round(2).toString(), '11.12@11.12 11.12@41.12 51.12@41.12 51.12@11.12');
+                assert.equal(curve.clone().round(3).toString(), '11.123@11.123 11.123@41.123 51.123@41.123 51.123@11.123');
+                assert.equal(curve.clone().round(4).toString(), '11.1235@11.1235 11.1235@41.1235 51.1235@41.1235 51.1235@11.1235');
+                assert.equal(curve.clone().round(10).toString(), '11.123456789@11.123456789 11.123456789@41.123456789 51.123456789@41.123456789 51.123456789@11.123456789');
+                assert.equal(curve.clone().round(-1).toString(), '10@10 10@40 50@40 50@10');
+                assert.equal(curve.clone().round(-10).toString(), '0@0 0@0 0@0 0@0');
+            });
+        });
+
         QUnit.module('scale()', function() {
 
             QUnit.test('sanity', function(assert) {

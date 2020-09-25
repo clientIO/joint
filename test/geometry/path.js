@@ -3570,6 +3570,39 @@ QUnit.module('path', function(hooks) {
             });
         });
 
+        QUnit.module('round()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var path = new g.Path('M 151.123456789 101.123456789 L 101.123456789 101.123456789 C 101.123456789 101.123456789 1.123456789 151.123456789 101.123456789 201.123456789 Z');
+
+                assert.ok(path.clone().round() instanceof g.Path);
+                assert.ok(path.clone().round(0) instanceof g.Path);
+                assert.ok(path.clone().round(1) instanceof g.Path);
+                assert.ok(path.clone().round(2) instanceof g.Path);
+                assert.ok(path.clone().round(3) instanceof g.Path);
+                assert.ok(path.clone().round(4) instanceof g.Path);
+                assert.ok(path.clone().round(10) instanceof g.Path);
+                assert.ok(path.clone().round(-1) instanceof g.Path);
+                assert.ok(path.clone().round(-10) instanceof g.Path);
+            });
+
+            QUnit.test('should return a rounded version of self', function(assert) {
+
+                var path = new g.Path('M 151.123456789 101.123456789 L 101.123456789 101.123456789 C 101.123456789 101.123456789 1.123456789 151.123456789 101.123456789 201.123456789 Z');
+
+                assert.equal(path.clone().round().toString(), 'M 151 101 L 101 101 C 101 101 1 151 101 201 Z');
+                assert.equal(path.clone().round(0).toString(), 'M 151 101 L 101 101 C 101 101 1 151 101 201 Z');
+                assert.equal(path.clone().round(1).toString(), 'M 151.1 101.1 L 101.1 101.1 C 101.1 101.1 1.1 151.1 101.1 201.1 Z');
+                assert.equal(path.clone().round(2).toString(), 'M 151.12 101.12 L 101.12 101.12 C 101.12 101.12 1.12 151.12 101.12 201.12 Z');
+                assert.equal(path.clone().round(3).toString(), 'M 151.123 101.123 L 101.123 101.123 C 101.123 101.123 1.123 151.123 101.123 201.123 Z');
+                assert.equal(path.clone().round(4).toString(), 'M 151.1235 101.1235 L 101.1235 101.1235 C 101.1235 101.1235 1.1235 151.1235 101.1235 201.1235 Z');
+                assert.equal(path.clone().round(10).toString(), 'M 151.123456789 101.123456789 L 101.123456789 101.123456789 C 101.123456789 101.123456789 1.123456789 151.123456789 101.123456789 201.123456789 Z');
+                assert.equal(path.clone().round(-1).toString(), 'M 150 100 L 100 100 C 100 100 0 150 100 200 Z');
+                assert.equal(path.clone().round(-10).toString(), 'M 0 0 L 0 0 C 0 0 0 0 0 0 Z');
+            });
+        });
+
         QUnit.module('scale()', function() {
 
             QUnit.test('sanity', function(assert) {

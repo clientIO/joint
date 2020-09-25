@@ -148,6 +148,37 @@ QUnit.module('ellipse', function() {
 
         });
 
+        QUnit.module('round()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var ellipse = new g.Ellipse({ x: 11.123456789, y: 21.123456789 }, 31.123456789, 41.123456789);
+                assert.ok(ellipse.clone().round() instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(0) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(1) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(2) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(3) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(4) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(10) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(-1) instanceof g.Ellipse);
+                assert.ok(ellipse.clone().round(-10) instanceof g.Ellipse);
+            });
+
+            QUnit.test('should return a rounded version of self', function(assert) {
+
+                var ellipse = new g.Ellipse({ x: 11.123456789, y: 21.123456789 }, 31.123456789, 41.123456789);
+                assert.equal(ellipse.clone().round().toString(), '11@21 31 41');
+                assert.equal(ellipse.clone().round(0).toString(), '11@21 31 41');
+                assert.equal(ellipse.clone().round(1).toString(), '11.1@21.1 31.1 41.1');
+                assert.equal(ellipse.clone().round(2).toString(), '11.12@21.12 31.12 41.12');
+                assert.equal(ellipse.clone().round(3).toString(), '11.123@21.123 31.123 41.123');
+                assert.equal(ellipse.clone().round(4).toString(), '11.1235@21.1235 31.1235 41.1235');
+                assert.equal(ellipse.clone().round(10).toString(), '11.123456789@21.123456789 31.123456789 41.123456789');
+                assert.equal(ellipse.clone().round(-1).toString(), '10@20 30 40');
+                assert.equal(ellipse.clone().round(-10).toString(), '0@0 0 0');
+            });
+        });
+
         QUnit.module('toString()', function() {
 
         });

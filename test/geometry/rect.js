@@ -203,50 +203,35 @@ QUnit.module('rect', function() {
 
         QUnit.module('round(precision)', function() {
 
-            QUnit.test('no precision', function(assert) {
+            QUnit.test('sanity', function(assert) {
 
-                assert.deepEqual(
-                    (new g.Rect(1, 2, 3, 4)).round().toJSON(),
-                    (new g.Rect(1, 2, 3, 4)).toJSON()
-                );
-                assert.deepEqual(
-                    (new g.Rect(1.1, 2.2, 3.3, 4.4)).round().toJSON(),
-                    (new g.Rect(1, 2, 3, 4)).toJSON()
-                );
+                var rect = new g.Rect(11.123456789, 21.123456789, 31.123456789, 41.123456789);
+
+                assert.ok(rect.clone().round() instanceof g.Rect);
+                assert.ok(rect.clone().round(0) instanceof g.Rect);
+                assert.ok(rect.clone().round(1) instanceof g.Rect);
+                assert.ok(rect.clone().round(2) instanceof g.Rect);
+                assert.ok(rect.clone().round(3) instanceof g.Rect);
+                assert.ok(rect.clone().round(4) instanceof g.Rect);
+                assert.ok(rect.clone().round(10) instanceof g.Rect);
+                assert.ok(rect.clone().round(-1) instanceof g.Rect);
+                assert.ok(rect.clone().round(-10) instanceof g.Rect);
             });
 
-            QUnit.test('with precision', function(assert) {
+            QUnit.test('should return a rounded version of self', function(assert) {
 
-                assert.deepEqual(
-                    (new g.Rect(1, 2, 3, 4)).round(1).toJSON(),
-                    (new g.Rect(1, 2, 3, 4)).toJSON()
-                );
-                assert.deepEqual(
-                    (new g.Rect(1.11, 2.22, 3.33, 6.66)).round(1).toJSON(),
-                    (new g.Rect(1.1, 2.2, 3.3, 6.7)).toJSON()
-                );
-                assert.deepEqual(
-                    (new g.Rect(1, 2, 3, 4)).round(2).toJSON(),
-                    (new g.Rect(1, 2, 3, 4)).toJSON()
-                );
-                assert.deepEqual(
-                    (new g.Rect(1.111, 2.222, 3.333, 6.666)).round(2).toJSON(),
-                    (new g.Rect(1.11, 2.22, 3.33, 6.67)).toJSON()
-                );
+                var rect = new g.Rect(11.123456789, 21.123456789, 11.123456789, 21.123456789);
+
+                assert.equal(rect.clone().round().toString(), '11@21 22@42');
+                assert.equal(rect.clone().round(0).toString(), '11@21 22@42');
+                assert.equal(rect.clone().round(1).toString(), '11.1@21.1 22.2@42.2');
+                assert.equal(rect.clone().round(2).toString(), '11.12@21.12 22.24@42.24');
+                assert.equal(rect.clone().round(3).toString(), '11.123@21.123 22.246@42.246');
+                assert.equal(rect.clone().round(4).toString(), '11.1235@21.1235 22.247@42.247');
+                assert.equal(rect.clone().round(10).toString(), '11.123456789@21.123456789 22.246913578@42.246913578');
+                assert.equal(rect.clone().round(-1).toString(), '10@20 20@40');
+                assert.equal(rect.clone().round(-10).toString(), '0@0 0@0');
             });
-
-            QUnit.test('with negative precision', function(assert) {
-
-                assert.deepEqual(
-                    (new g.Rect(11, 22, 33, 66)).round(-1).toJSON(),
-                    (new g.Rect(10, 20, 30, 70)).toJSON()
-                );
-                assert.deepEqual(
-                    (new g.Rect(11.1,22.2,33.3,66.6)).round(-1).toJSON(),
-                    (new g.Rect(10, 20, 30, 70)).toJSON()
-                );
-            });
-
         });
 
         QUnit.module('scale(sx, sy, origin)', function() {

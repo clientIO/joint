@@ -665,7 +665,10 @@ QUnit.module('line', function() {
 
                 assert.ok(line.clone().rotate(point, angle).round() instanceof g.Line);
                 assert.ok(line.clone().rotate(point, angle).round(0) instanceof g.Line);
+                assert.ok(line.clone().rotate(point, angle).round(1) instanceof g.Line);
+                assert.ok(line.clone().rotate(point, angle).round(2) instanceof g.Line);
                 assert.ok(line.clone().rotate(point, angle).round(3) instanceof g.Line);
+                assert.ok(line.clone().rotate(point, angle).round(4) instanceof g.Line);
                 assert.ok(line.clone().rotate(point, angle).round(10) instanceof g.Line);
                 assert.ok(line.clone().rotate(point, angle).round(-1) instanceof g.Line);
                 assert.ok(line.clone().rotate(point, angle).round(-10) instanceof g.Line);
@@ -679,7 +682,10 @@ QUnit.module('line', function() {
 
                 assert.equal(line.clone().rotate(point, angle).round().toString(), '22@11 15@-9');
                 assert.equal(line.clone().rotate(point, angle).round(0).toString(), '22@11 15@-9');
+                assert.equal(line.clone().rotate(point, angle).round(1).toString(), '21.7@10.8 14.7@-9.2');
+                assert.equal(line.clone().rotate(point, angle).round(2).toString(), '21.65@10.84 14.74@-9.21');
                 assert.equal(line.clone().rotate(point, angle).round(3).toString(), '21.651@10.844 14.744@-9.213');
+                assert.equal(line.clone().rotate(point, angle).round(4).toString(), '21.6508@10.8441 14.7444@-9.2133');
                 assert.equal(line.clone().rotate(point, angle).round(10).toString(), '21.6507752699@10.8441343674 14.7444317773@-9.2133435289');
                 assert.equal(line.clone().rotate(point, angle).round(-1).toString(), '20@10 10@-10');
                 assert.equal(line.clone().rotate(point, angle).round(-10).toString(), '0@0 0@0');

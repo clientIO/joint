@@ -882,6 +882,39 @@ QUnit.module('polyline', function() {
             });
         });
 
+        QUnit.module('round()', function() {
+
+            QUnit.test('sanity', function(assert) {
+
+                var polyline = new g.Polyline(['151.123456789 101.123456789', '101.123456789 101.123456789', '101.123456789 201.123456789']);
+
+                assert.ok(polyline.clone().round() instanceof g.Polyline);
+                assert.ok(polyline.clone().round(0) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(1) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(2) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(3) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(4) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(10) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(-1) instanceof g.Polyline);
+                assert.ok(polyline.clone().round(-10) instanceof g.Polyline);
+            });
+
+            QUnit.test('should return a rounded version of self', function(assert) {
+
+                var polyline = new g.Polyline(['151.123456789 101.123456789', '101.123456789 101.123456789', '101.123456789 201.123456789']);
+
+                assert.equal(polyline.clone().round().serialize(), '151,101 101,101 101,201');
+                assert.equal(polyline.clone().round(0).serialize(), '151,101 101,101 101,201');
+                assert.equal(polyline.clone().round(1).serialize(), '151.1,101.1 101.1,101.1 101.1,201.1');
+                assert.equal(polyline.clone().round(2).serialize(), '151.12,101.12 101.12,101.12 101.12,201.12');
+                assert.equal(polyline.clone().round(3).serialize(), '151.123,101.123 101.123,101.123 101.123,201.123');
+                assert.equal(polyline.clone().round(4).serialize(), '151.1235,101.1235 101.1235,101.1235 101.1235,201.1235');
+                assert.equal(polyline.clone().round(10).serialize(), '151.123456789,101.123456789 101.123456789,101.123456789 101.123456789,201.123456789');
+                assert.equal(polyline.clone().round(-1).serialize(), '150,100 100,100 100,200');
+                assert.equal(polyline.clone().round(-10).serialize(), '0,0 0,0 0,0');
+            });
+        });
+
         QUnit.module('scale()', function() {
 
             QUnit.test('sanity', function(assert) {
