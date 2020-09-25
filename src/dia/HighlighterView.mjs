@@ -1,5 +1,6 @@
 import * as mvc from '../mvc/index.mjs';
 import V from '../V/index.mjs';
+import { toArray } from '../util/util.mjs';
 
 export const HighlighterView = mvc.View.extend({
 
@@ -82,8 +83,8 @@ export const HighlighterView = mvc.View.extend({
     },
 
     transform() {
-        const { transformGroup, cellView } = this;
-        if (!transformGroup || cellView.model.isLink()) return;
+        const { transformGroup, cellView, updateRequested } = this;
+        if (!transformGroup || cellView.model.isLink() || updateRequested) return;
         const translateMatrix = cellView.getRootTranslateMatrix();
         const rotateMatrix = cellView.getRootRotateMatrix();
         const transformMatrix = translateMatrix.multiply(rotateMatrix);
@@ -91,7 +92,8 @@ export const HighlighterView = mvc.View.extend({
     },
 
     update() {
-        const { node: prevNode, cellView, nodeSelector } = this;
+        const { node: prevNode, cellView, nodeSelector, updateRequested } = this;
+        if (updateRequested) return;
         const node = this.node = this.findNode(cellView, nodeSelector);
         if (prevNode) {
             this.unhighlight(cellView, prevNode);
@@ -103,7 +105,12 @@ export const HighlighterView = mvc.View.extend({
     },
 
     onRemove() {
+        const { node, cellView, id, constructor } = this;
+        if (node) {
+            this.unhighlight(cellView, node);
+        }
         this.unmount();
+        constructor.clean(cellView, id);
     },
 
     highlight(_cellView, _node) {
@@ -139,20 +146,20 @@ export const HighlighterView = mvc.View.extend({
     get(cellView, id = null) {
         const { cid } = cellView;
         const { _views } = this;
-        const cellHighlighters = _views[cid];
+        const refs = _views[cid];
         if (id === null) {
             // all highlighters
             const views = [];
-            if (!cellHighlighters) return views;
-            for (let hid in cellHighlighters) {
-                views.push(cellHighlighters[hid]);
+            if (!refs) return views;
+            for (let hid in refs) {
+                views.push(refs[hid]);
             }
             return views;
         } else {
             // single highlighter
-            if (!cellHighlighters) return null;
-            if (id in cellHighlighters) {
-                return cellHighlighters[id];
+            if (!refs) return null;
+            if (id in refs) {
+                return refs[id];
             }
             return null;
         }
@@ -170,60 +177,35 @@ export const HighlighterView = mvc.View.extend({
         return view;
     },
 
-    remove(cellView, id = null) {
+    clean(cellView, id) {
         const { cid } = cellView;
         const { _views } = this;
-        const cellHighlighters = _views[cid];
-        if (!cellHighlighters) return;
-        const views = [];
-        if (!id) {
-            for (let hid in cellHighlighters) {
-                views.push(cellHighlighters[hid]);
-            }
-            delete _views[cid];
-        } else if (cellHighlighters[id]) {
-            views.push(cellHighlighters[id]);
-            delete cellHighlighters[id];
-            if (Object.keys(cellHighlighters).length === 0) {
-                delete _views[cid];
-            }
-        }
-        views.forEach(view => this.removeView(view));
+        const refs = _views[cid];
+        if (!refs) return;
+        if (id) delete refs[id];
+        for (let _ in refs) return;
+        delete _views[cid];
     },
 
-    update(cellView) {
-        this.get(cellView).forEach(view => this.updateView(view));
-    },
-
-    transform(cellView) {
-        this.get(cellView).forEach(view => this.transformView(view));
-    },
-
-    updateView(view) {
-        const { id, updateRequested, UPDATABLE } = view;
-        if (UPDATABLE && !updateRequested) {
-            view.update();
-            if (!view.node) {
-                // Node has been removed from the cellView
-                // TODO: should be the highlighter disposed?
-                this.remove(view.cellView, id);
-            }
+    remove(cellView, id = null) {
+        if (id) {
+            const view = this.get(cellView, id);
+            if (view) view.remove();
+        } else {
+            this.get(cellView).forEach(view => view.remove());
         }
     },
 
-    transformView(view) {
-        const { updateRequested, UPDATABLE } = view;
-        if (UPDATABLE && !updateRequested) {
-            view.transform();
-        }
+    update(cellView, id = null) {
+        toArray(this.get(cellView, id)).forEach(view => {
+            if (view.UPDATABLE) view.update();
+        });
     },
 
-    removeView(view) {
-        const { node, cellView } = view;
-        if (node) {
-            view.unhighlight(cellView, node);
-        }
-        view.remove();
+    transform(cellView, id = null) {
+        toArray(this.get(cellView, id)).forEach(view => {
+            if (view.UPDATABLE) view.transform();
+        });
     },
 
     uniqueId(node, opt = '') {

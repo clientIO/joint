@@ -651,6 +651,12 @@ export namespace dia {
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
 
+        protected removeHighlighters(): void;
+
+        protected updateHighlighters(): void;
+
+        protected transformHighlighters(): void;
+
         protected hasFlag(flags: number, label: CellView.FlagLabel): boolean;
 
         protected removeFlag(flags: number, label: CellView.FlagLabel): number;
@@ -1457,6 +1463,8 @@ export namespace dia {
 
         protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
 
+        static uniqueId(node: SVGElement, options?: any): string;
+
         static add<T extends HighlighterView>(
             this: HighlighterView.Constructor<T>,
             cellView: dia.CellView,
@@ -1480,21 +1488,15 @@ export namespace dia {
             cellView: dia.CellView
         ): T[];
 
-        static uniqueId(node: SVGElement, options?: any): string;
+        static update(cellView: dia.CellView, id?: string): void;
 
-        static update(cellView: dia.CellView): void;
+        static transform(cellView: dia.CellView, id?: string): void;
 
-        static transform(cellView: dia.CellView): void;
+        static clean(cellView: dia.CellView, id?: string): void;
 
         static highlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
 
         static unhighlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
-
-        protected static updateView(view: HighlighterView): void;
-
-        protected static transformView(view: HighlighterView): void;
-
-        protected static removeView(view: HighlighterView): void;
     }
 }
 

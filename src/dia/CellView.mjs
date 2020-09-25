@@ -959,16 +959,16 @@ export const CellView = View.extend({
         }
     },
 
-    removeHighlighters: function(id) {
-        HighlighterView.remove(this, id);
+    removeHighlighters: function() {
+        HighlighterView.remove(this);
     },
 
-    updateHighlighters: function(id) {
-        HighlighterView.update(this, id);
+    updateHighlighters: function() {
+        HighlighterView.update(this);
     },
 
-    transformHighlighters: function(id) {
-        HighlighterView.transform(this, id);
+    transformHighlighters: function() {
+        HighlighterView.transform(this);
     },
 
     // Interaction. The controller part.

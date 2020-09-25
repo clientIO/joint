@@ -117,22 +117,25 @@ export const mask = HighlighterView.extend({
         return `highlight-mask-${this.cid}`;
     },
 
-    getMask(cellView, vel) {
+    getMask(cellView, vNode) {
 
         const { VISIBLE, INVISIBLE, options } = this;
         const { padding, attrs } = options;
 
         const strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
-        const hasNodeFill = vel.attr('fill') !== 'none';
-        let magnetStrokeWidth = parseFloat(vel.attr('stroke-width'));
+        const hasNodeFill = vNode.attr('fill') !== 'none';
+        let magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
         if (isNaN(magnetStrokeWidth)) magnetStrokeWidth = 1;
         // stroke of the invisible shape
         const minStrokeWidth = magnetStrokeWidth + padding * 2;
         // stroke of the visible shape
         const maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
-        let maskEl = this.getMaskShape(cellView, vel);
+        let maskEl = this.getMaskShape(cellView, vNode);
         if (!maskEl) {
-            maskEl =  V('rect', cellView.getNodeBoundingRect(vel.node).toJSON());
+            const nodeBBox = cellView.getNodeBoundingRect(vNode.node);
+            // Make sure the rect is visible
+            nodeBBox.inflate(nodeBBox.width ? 0 : 0.5, nodeBBox.height ? 0 : 0.5);
+            maskEl =  V('rect', nodeBBox.toJSON());
         }
         maskEl.attr(attrs);
         return V('mask', {
