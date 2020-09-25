@@ -4833,6 +4833,12 @@ var segmentPrototype = {
 
     previousSegment: null, // needed to get segment start property
 
+    // virtual
+    round: function() {
+
+        throw new Error('Declaration missing for virtual function.');
+    },
+
     subpathStartSegment: null, // needed to get Closepath segment end property
 
     // virtual
