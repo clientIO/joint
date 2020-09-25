@@ -872,6 +872,15 @@ Curve.prototype = {
     // Default precision
     PRECISION: 3,
 
+    round: function(precision) {
+
+        this.start.round(precision);
+        this.controlPoint1.round(precision);
+        this.controlPoint2.round(precision);
+        this.end.round(precision);
+        return this;
+    },
+
     scale: function(sx, sy, origin) {
 
         this.start.scale(sx, sy, origin);
@@ -1268,6 +1277,25 @@ Ellipse.prototype = {
         return ((x0 - x) * (x0 - x)) / (a * a) + ((y0 - y) * (y0 - y)) / (b * b);
     },
 
+    round: function(precision) {
+
+        let f = 1; // case 0
+        if (precision) {
+            switch (precision) {
+                case 1: f = 10; break;
+                case 2: f = 100; break;
+                case 3: f = 1000; break;
+                default: f = pow(10, precision); break;
+            }
+        }
+
+        this.x = round(this.x * f) / f;
+        this.y = round(this.y * f) / f;
+        this.a = round(this.a * f) / f;
+        this.b = round(this.b * f) / f;
+        return this;
+    },
+
     /** Compute angle between tangent and x axis
      * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
      * @returns {number} angle between tangent and x axis
@@ -1583,11 +1611,8 @@ Line.prototype = {
 
     round: function(precision) {
 
-        var f = pow(10, precision || 0);
-        this.start.x = round(this.start.x * f) / f;
-        this.start.y = round(this.start.y * f) / f;
-        this.end.x = round(this.end.x * f) / f;
-        this.end.y = round(this.end.y * f) / f;
+        this.start.round(precision);
+        this.end.round(precision);
         return this;
     },
 
@@ -2631,6 +2656,20 @@ Path.prototype = {
         if (updateSubpathStart && nextSegment) this.updateSubpathStartSegment(nextSegment);
     },
 
+    round: function(precision) {
+
+        var segments = this.segments;
+        var numSegments = segments.length;
+
+        for (var i = 0; i < numSegments; i++) {
+
+            var segment = segments[i];
+            segment.round(precision);
+        }
+
+        return this;
+    },
+
     scale: function(sx, sy, origin) {
 
         var segments = this.segments;
@@ -3222,7 +3261,16 @@ Point.prototype = {
 
     round: function(precision) {
 
-        var f = pow(10, precision || 0);
+        let f = 1; // case 0
+        if (precision) {
+            switch (precision) {
+                case 1: f = 10; break;
+                case 2: f = 100; break;
+                case 3: f = 1000; break;
+                default: f = pow(10, precision); break;
+            }
+        }
+
         this.x = round(this.x * f) / f;
         this.y = round(this.y * f) / f;
         return this;
@@ -3833,11 +3881,22 @@ Polyline.prototype = {
         return lastPoint.clone();
     },
 
+    round: function(precision) {
+
+        var points = this.points;
+        var numPoints = points.length;
+
+        for (var i = 0; i < numPoints; i++) {
+            points[i].round(precision);
+        }
+
+        return this;
+    },
+
     scale: function(sx, sy, origin) {
 
         var points = this.points;
         var numPoints = points.length;
-        if (numPoints === 0) return this; // if points array is empty
 
         for (var i = 0; i < numPoints; i++) {
             points[i].scale(sx, sy, origin);
@@ -3960,7 +4019,6 @@ Polyline.prototype = {
 
         var points = this.points;
         var numPoints = points.length;
-        if (numPoints === 0) return this; // if points array is empty
 
         for (var i = 0; i < numPoints; i++) {
             points[i].translate(tx, ty);
@@ -4380,7 +4438,16 @@ Rect.prototype = {
 
     round: function(precision) {
 
-        var f = pow(10, precision || 0);
+        let f = 1; // case 0
+        if (precision) {
+            switch (precision) {
+                case 1: f = 10; break;
+                case 2: f = 100; break;
+                case 3: f = 1000; break;
+                default: f = pow(10, precision); break;
+            }
+        }
+
         this.x = round(this.x * f) / f;
         this.y = round(this.y * f) / f;
         this.width = round(this.width * f) / f;
@@ -4958,6 +5025,12 @@ var linetoPrototype = {
         return !this.start.equals(this.end);
     },
 
+    round: function(precision) {
+
+        this.end.round(precision);
+        return this;
+    },
+
     scale: function(sx, sy, origin) {
 
         this.end.scale(sx, sy, origin);
@@ -5113,6 +5186,14 @@ var curvetoPrototype = {
         var end = this.end;
 
         return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+    },
+
+    round: function(precision) {
+
+        this.controlPoint1.round(precision);
+        this.controlPoint2.round(precision);
+        this.end.round(precision);
+        return this;
     },
 
     scale: function(sx, sy, origin) {
@@ -5328,6 +5409,12 @@ var movetoPrototype = {
         return this.end.clone();
     },
 
+    round: function(precision) {
+
+        this.end.round(precision);
+        return this;
+    },
+
     scale: function(sx, sy, origin) {
 
         this.end.scale(sx, sy, origin);
@@ -5448,6 +5535,11 @@ var closepathPrototype = {
         if (!this.previousSegment || !this.subpathStartSegment) return false;
 
         return !this.start.equals(this.end);
+    },
+
+    round: function() {
+
+        return this;
     },
 
     scale: function() {
