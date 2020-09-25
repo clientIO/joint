@@ -967,6 +967,10 @@ export const CellView = View.extend({
         HighlighterView.update(this, id);
     },
 
+    transformHighlighters: function(id) {
+        HighlighterView.transform(this, id);
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 

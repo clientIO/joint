@@ -5,16 +5,19 @@ export const HighlighterView = mvc.View.extend({
 
     tagName: 'g',
     svgElement: true,
+    className: 'highlight',
 
     HIGHLIGHT_FLAG: 1,
     UPDATE_PRIORITY: 3,
     DETACHABLE: false,
     UPDATABLE: true,
+    MOUNTABLE: true,
 
     cellView: null,
     nodeSelector: null,
     node: null,
     updateRequested: false,
+    transformGroup: null,
 
     requestUpdate(cellView, nodeSelector) {
         const { paper } = cellView;
@@ -31,6 +34,8 @@ export const HighlighterView = mvc.View.extend({
         this.updateRequested = false;
         const { cellView, nodeSelector } = this;
         this.update(cellView, nodeSelector);
+        this.mount();
+        this.transform(cellView);
         return 0;
     },
 
@@ -47,20 +52,58 @@ export const HighlighterView = mvc.View.extend({
     },
 
     mount() {
-        const { cellView } = this;
-        cellView.vel.append(this.el);
-        // cellView.paper.highlighters.appendChild(this.el);
+        const { MOUNTABLE, cellView, el, options, transformGroup } = this;
+        if (!MOUNTABLE) return;
+        const { vel: cellViewRoot, paper } = cellView;
+        if (options.layer) {
+            // TODO: paper layers (e.g. change ordering)
+            this.transformGroup = V('g')
+                .addClass('highlighter-transform-group')
+                .append(el)
+                .appendTo(paper.highlighters);
+        } else if (!transformGroup) {
+            // TODO: prepend vs append
+            if (!el.parentNode || el.nextSibling) {
+                // Not appended yet or not the last child
+                cellViewRoot.append(el);
+            }
+        }
     },
 
-    update(cellView, nodeSelector) {
-        const { node: prevNode } = this;
+    unmount() {
+        const { MOUNTABLE, transformGroup, vel } = this;
+        if (!MOUNTABLE) return;
+        if (transformGroup) {
+            this.transformGroup = null;
+            transformGroup.remove();
+        } else {
+            vel.remove();
+        }
+    },
+
+    transform() {
+        const { transformGroup, cellView } = this;
+        if (!transformGroup || cellView.model.isLink()) return;
+        const translateMatrix = cellView.getRootTranslateMatrix();
+        const rotateMatrix = cellView.getRootRotateMatrix();
+        const transformMatrix = translateMatrix.multiply(rotateMatrix);
+        transformGroup.attr('transform', V.matrixToTransformString(transformMatrix));
+    },
+
+    update() {
+        const { node: prevNode, cellView, nodeSelector } = this;
         const node = this.node = this.findNode(cellView, nodeSelector);
         if (prevNode) {
             this.unhighlight(cellView, prevNode);
         }
         if (node) {
             this.highlight(cellView, node);
+            this.mount();
         }
+    },
+
+    onRemove() {
+        this.unmount();
     },
 
     highlight(_cellView, _node) {
@@ -93,13 +136,26 @@ export const HighlighterView = mvc.View.extend({
         this.remove(cellView, id);
     },
 
-    get(cellView, id) {
+    get(cellView, id = null) {
         const { cid } = cellView;
         const { _views } = this;
-        if ((cid in _views) && (id in _views[cid])) {
-            return _views[cid][id];
+        const cellHighlighters = _views[cid];
+        if (id === null) {
+            // all highlighters
+            const views = [];
+            if (!cellHighlighters) return views;
+            for (let hid in cellHighlighters) {
+                views.push(cellHighlighters[hid]);
+            }
+            return views;
+        } else {
+            // single highlighter
+            if (!cellHighlighters) return null;
+            if (id in cellHighlighters) {
+                return cellHighlighters[id];
+            }
+            return null;
         }
-        return null;
     },
 
     add(cellView, el, id, opt = {}) {
@@ -117,49 +173,48 @@ export const HighlighterView = mvc.View.extend({
     remove(cellView, id = null) {
         const { cid } = cellView;
         const { _views } = this;
-        const highlighters = _views[cid];
-        if (!highlighters) return;
+        const cellHighlighters = _views[cid];
+        if (!cellHighlighters) return;
         const views = [];
         if (!id) {
-            for (let hid in highlighters) {
-                views.push(highlighters[hid]);
+            for (let hid in cellHighlighters) {
+                views.push(cellHighlighters[hid]);
             }
             delete _views[cid];
-        } else if (highlighters[id]) {
-            views.push(highlighters[id]);
-            delete highlighters[id];
-            if (Object.keys(highlighters).length === 0) {
+        } else if (cellHighlighters[id]) {
+            views.push(cellHighlighters[id]);
+            delete cellHighlighters[id];
+            if (Object.keys(cellHighlighters).length === 0) {
                 delete _views[cid];
             }
         }
         views.forEach(view => this.removeView(view));
     },
 
-    update(cellView, id = null) {
-        const { cid } = cellView;
-        const { _views } = this;
-        const highlighters = _views[cid];
-        if (!highlighters) return;
-        const views = [];
-        if (!id) {
-            for (let hid in highlighters) {
-                views.push(highlighters[hid]);
-            }
-        } else if (highlighters[id]) {
-            views.push(highlighters[id]);
-        }
-        views.forEach(view => this.updateView(view));
+    update(cellView) {
+        this.get(cellView).forEach(view => this.updateView(view));
+    },
+
+    transform(cellView) {
+        this.get(cellView).forEach(view => this.transformView(view));
     },
 
     updateView(view) {
-        const { id, updateRequested, nodeSelector,cellView, UPDATABLE } = view;
+        const { id, updateRequested, UPDATABLE } = view;
         if (UPDATABLE && !updateRequested) {
-            view.update(cellView, nodeSelector);
+            view.update();
             if (!view.node) {
                 // Node has been removed from the cellView
                 // TODO: should be the highlighter disposed?
-                this.remove(cellView, id);
+                this.remove(view.cellView, id);
             }
+        }
+    },
+
+    transformView(view) {
+        const { updateRequested, UPDATABLE } = view;
+        if (UPDATABLE && !updateRequested) {
+            view.transform();
         }
     },
 

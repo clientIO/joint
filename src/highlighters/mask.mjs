@@ -1,6 +1,8 @@
 import V from '../V/index.mjs';
 import { HighlighterView } from '../dia/HighlighterView.mjs';
 
+const MASK_CLIP = 20;
+
 export const mask = HighlighterView.extend({
 
     tagName: 'rect',
@@ -10,8 +12,9 @@ export const mask = HighlighterView.extend({
     },
 
     options: {
+        component: true,
         padding: 3,
-        maskClip: 20,
+        maskClip: MASK_CLIP,
         deep: false,
         attrs: {
             'stroke': '#FEB663',
@@ -160,27 +163,27 @@ export const mask = HighlighterView.extend({
     },
 
     highlight(cellView, node) {
-
-        const { options } = this;
-        const { padding, attrs, maskClip } = options;
+        const { options, vel } = this;
+        const { padding, attrs, maskClip = MASK_CLIP, layer } = options;
         const color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
+        if (!layer && node === cellView.el) {
+            // If the highlighter is appended to the cellView
+            // and we measure the size of the cellView wrapping group
+            // it's necessary to remove the highlighter first
+            vel.remove();
+        }
         const highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
         const maskEl = this.getMask(cellView, V(node));
         this.addMask(cellView.paper, maskEl);
-
-        this.vel
-            .attr(highlighterBBox.toJSON())
-            .attr({
-                'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
-                'mask': `url(#${maskEl.id})`,
-                'fill': color
-            });
-
-        this.mount();
+        vel.attr(highlighterBBox.toJSON());
+        vel.attr({
+            'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
+            'mask': `url(#${maskEl.id})`,
+            'fill': color
+        });
     },
 
     unhighlight(cellView) {
-        this.vel.remove();
         this.removeMask(cellView.paper);
     }
 

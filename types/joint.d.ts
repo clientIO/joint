@@ -1069,6 +1069,7 @@ export namespace dia {
         tools: SVGGElement;
         layers: SVGGElement;
         viewport: SVGGElement;
+        highlighters: SVGGElement;
 
         $document: JQuery;
         $grid: JQuery;
@@ -1425,6 +1426,8 @@ export namespace dia {
         }
 
         type Constructor<T> = { new (): T }
+
+        type NodeSelector = string | string[] | SVGElement;
     }
 
     class HighlighterView<Options> extends mvc.View<undefined> {
@@ -1434,6 +1437,21 @@ export namespace dia {
         options: Options;
 
         UPDATABLE: boolean;
+        MOUNTABLE: boolean;
+
+        cellView: dia.CellView;
+        nodeSelector: HighlighterView.NodeSelector | null;
+        node: SVGElement | null;
+        updateRequested: boolean;
+        transformGroup: V | null;
+
+        protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
+
+        protected unmount(): void;
+
+        protected transform(): void;
+
+        protected update(): void;
 
         protected highlight(cellView: dia.CellView, node: SVGElement): void;
 
@@ -1442,7 +1460,7 @@ export namespace dia {
         static add<T extends HighlighterView>(
             this: HighlighterView.Constructor<T>,
             cellView: dia.CellView,
-            selector: SVGElement | string,
+            selector: HighlighterView.NodeSelector,
             id: string,
             options?: any
         ): T;
@@ -1457,6 +1475,26 @@ export namespace dia {
             cellView: dia.CellView,
             id: string
         ): T | null;
+        static get<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView
+        ): T[];
+
+        static uniqueId(node: SVGElement, options?: any): string;
+
+        static update(cellView: dia.CellView): void;
+
+        static transform(cellView: dia.CellView): void;
+
+        static highlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        static unhighlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        protected static updateView(view: HighlighterView): void;
+
+        protected static transformView(view: HighlighterView): void;
+
+        protected static removeView(view: HighlighterView): void;
     }
 }
 
@@ -1465,7 +1503,7 @@ export namespace dia {
 export namespace highlighters {
 
     interface HighlighterArguments {
-
+        layer: string | null;
     }
 
     interface AddClassHighlighterArguments extends HighlighterArguments {
@@ -1547,6 +1585,11 @@ export namespace highlighters {
 
     class stroke extends dia.HighlighterView<StrokeHighlighterArguments> {
 
+        protected getPathData(cellView: dia.CellView, node: SVGElement): string;
+
+        protected highlightConnection(cellView: dia.CellView): void;
+
+        protected highlightNode(cellView: dia.CellView, node: SVGElement): void;
     }
 
     class addClass extends dia.HighlighterView<AddClassHighlighterArguments> {

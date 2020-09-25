@@ -5,6 +5,7 @@ import { HighlighterView } from '../dia/HighlighterView.mjs';
 export const opacity = HighlighterView.extend({
 
     UPDATABLE: false,
+    MOUNTABLE: false,
 
     opacityClassName: util.addClassNamePrefix('highlight-opacity'),
 

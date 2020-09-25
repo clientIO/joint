@@ -7,6 +7,7 @@ const className = util.addClassNamePrefix('highlighted');
 export const addClass = HighlighterView.extend({
 
     UPDATABLE: false,
+    MOUNTABLE: false,
 
     options: {
         className
