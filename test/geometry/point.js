@@ -178,13 +178,34 @@ QUnit.module('point', function() {
 
         QUnit.module('round(precision)', function() {
 
-            QUnit.test('rounds the x and y properties to the given precision', function(assert) {
+            QUnit.test('sanity', function(assert) {
 
-                var point = new g.Point(17.231, 4.01);
-                point.round(2);
-                assert.equal(point.toString(), '17.23@4.01');
-                point.round(0);
-                assert.equal(point.toString(), '17@4');
+                var point = new g.Point(151.123456789, 101.123456789);
+
+                assert.ok(point.clone().round() instanceof g.Point);
+                assert.ok(point.clone().round(0) instanceof g.Point);
+                assert.ok(point.clone().round(1) instanceof g.Point);
+                assert.ok(point.clone().round(2) instanceof g.Point);
+                assert.ok(point.clone().round(3) instanceof g.Point);
+                assert.ok(point.clone().round(4) instanceof g.Point);
+                assert.ok(point.clone().round(10) instanceof g.Point);
+                assert.ok(point.clone().round(-1) instanceof g.Point);
+                assert.ok(point.clone().round(-10) instanceof g.Point);
+            });
+
+            QUnit.test('should return a rounded version of self', function(assert) {
+
+                var point = new g.Point(151.123456789, 101.123456789);
+
+                assert.equal(point.clone().round().toString(), '151@101');
+                assert.equal(point.clone().round(0).toString(), '151@101');
+                assert.equal(point.clone().round(1).toString(), '151.1@101.1');
+                assert.equal(point.clone().round(2).toString(), '151.12@101.12');
+                assert.equal(point.clone().round(3).toString(), '151.123@101.123');
+                assert.equal(point.clone().round(4).toString(), '151.1235@101.1235');
+                assert.equal(point.clone().round(10).toString(), '151.123456789@101.123456789');
+                assert.equal(point.clone().round(-1).toString(), '150@100');
+                assert.equal(point.clone().round(-10).toString(), '0@0');
             });
         });
 

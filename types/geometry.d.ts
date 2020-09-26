@@ -92,6 +92,8 @@ export namespace g {
 
         pointAtT(t: number): Point;
 
+        round(precision?: number): this;
+
         scale(sx: number, sy: number, origin?: PlainPoint): this;
 
         tangentAt(ratio: number): Line | null;
@@ -186,6 +188,8 @@ export namespace g {
 
         pointAtT(t: number): Point;
 
+        round(precision?: number): this;
+
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
         tangentAt(ratio: number, opt?: SubdivisionsOpt): Line | null;
@@ -237,6 +241,8 @@ export namespace g {
         intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
 
         normalizedDistance(point: PlainPoint): number;
+
+        round(precision?: number): this;
 
         tangentTheta(p: PlainPoint): number;
 
@@ -382,6 +388,8 @@ export namespace g {
         removeSegment(index: number): void;
 
         replaceSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
+
+        round(precision?: number): this;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
@@ -547,6 +555,8 @@ export namespace g {
         pointAt(ratio: number): Point | null;
 
         pointAtLength(length: number): Point | null;
+
+        round(precision?: number): this;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
