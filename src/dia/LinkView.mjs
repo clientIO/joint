@@ -104,10 +104,13 @@ export const LinkView = CellView.extend({
 
         if (this.hasFlag(flags, 'RENDER')) {
             this.render();
+            this.updateHighlighters(true);
             this.updateTools(opt);
             flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'LABELS', 'TOOLS', 'LEGACY_TOOLS']);
             return flags;
         }
+
+        let updateHighlighters = false;
 
         if (this.hasFlag(flags, 'VERTICES')) {
             this.renderVertexMarkers();
@@ -122,6 +125,7 @@ export const LinkView = CellView.extend({
         if (updateLabels) {
             this.onLabelsChange(model, attributes.labels, opt);
             flags = this.removeFlag(flags, 'LABELS');
+            updateHighlighters = true;
         }
 
         if (updateLegacyTools) {
@@ -135,6 +139,7 @@ export const LinkView = CellView.extend({
             flags = this.removeFlag(flags, ['UPDATE', 'TOOLS']);
             updateLabels = false;
             updateLegacyTools = false;
+            updateHighlighters = true;
         }
 
         if (updateLabels) {
@@ -143,6 +148,10 @@ export const LinkView = CellView.extend({
 
         if (updateLegacyTools) {
             this.updateToolsPosition();
+        }
+
+        if (updateHighlighters) {
+            this.updateHighlighters();
         }
 
         if (this.hasFlag(flags, 'TOOLS')) {
@@ -380,6 +389,15 @@ export const LinkView = CellView.extend({
         return this;
     },
 
+    findLabelNode: function(labelIndex, selector) {
+        const labelRoot = this._labelCache[labelIndex];
+        if (!labelRoot) return null;
+        const labelSelectors = this._labelSelectors[labelIndex];
+        const [node = null] = this.findBySelector(selector, labelRoot, labelSelectors);
+        return node;
+    },
+
+
     // merge default label attrs into label attrs
     // keep `undefined` or `null` because `{}` means something else
     _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
@@ -544,7 +562,6 @@ export const LinkView = CellView.extend({
         this.updateToolsPosition();
         this.updateArrowheadMarkers();
 
-        this.updateHighlighters();
         // *Deprecated*
         // Local perpendicular flag (as opposed to one defined on paper).
         // Could be enabled inside a connector/router. It's valid only
@@ -969,9 +986,23 @@ export const LinkView = CellView.extend({
             var position = merge({}, defaultPosition, labelPosition);
             var transformationMatrix = this._getLabelTransformationMatrix(position);
             labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
+            this._cleanLabelMatrices(idx);
         }
 
         return this;
+    },
+
+    _cleanLabelMatrices: function(index) {
+        // Clean magnetMatrix for all nodes of the label.
+        // Cached BoundingRect does not need to updated when the position changes
+        // TODO: this doesn't work for labels with XML String markups.
+        const { metrics, _labelSelectors } = this;
+        const selectors = _labelSelectors[index];
+        if (!selectors) return;
+        for (let selector in selectors) {
+            const { id } = selectors[selector];
+            if (id && (id in metrics)) delete metrics[id].magnetMatrix;
+        }
     },
 
     updateToolsPosition: function() {

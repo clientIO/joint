@@ -189,9 +189,10 @@ QUnit.module('HighlighterView', function(hooks) {
             element.addPort({ id: portId });
             var id = 'highlighter-id';
             var node = elementView.findPortNode(portId, 'circle');
+            var selector = { port: portId, selector: 'circle' };
 
             // Highlight
-            var highlighter = joint.dia.HighlighterView.add(elementView, [portId, 'circle'], id);
+            var highlighter = joint.dia.HighlighterView.add(elementView, selector, id);
             assert.equal(highlighter, joint.dia.HighlighterView.get(elementView, id));
             assert.ok(highlighter instanceof joint.dia.HighlighterView);
             assert.ok(highlightSpy.calledOnce);
@@ -384,12 +385,35 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(el.hasClass(className));
 
             // Update (Default will unhighlight and highlight)
-            // element.attr(['body', 'fill'], 'red', { dirty: true });
-            // var el2 = elementView.vel.findOne('[joint-selector="body"]');
-            // assert.ok(el2.hasClass('test-class'));
+            element.attr(['body', 'fill'], 'red', { dirty: true });
+            var el2 = elementView.vel.findOne('[joint-selector="body"]');
+            assert.ok(el2.hasClass(className));
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);
+            assert.notOk(el.hasClass(className));
+        });
+
+        QUnit.test('Highlight link by a selector', function(assert) {
+
+            var HighlighterView = joint.highlighters.addClass;
+            var id = 'highlighter-id';
+            var el = linkView.vel.findOne('[joint-selector="line"]');
+            var className = 'test-class';
+            // Highlight
+            var highlighter = HighlighterView.add(linkView, 'line', id, {
+                className: className
+            });
+            assert.ok(highlighter instanceof HighlighterView);
+            assert.ok(el.hasClass(className));
+
+            // Render (Default will unhighlight and highlight)
+            link.attr(['line', 'stroke'], 'red', { dirty: true });
+            var el2 = linkView.vel.findOne('[joint-selector="line"]');
+            assert.ok(el2.hasClass(className));
+
+            // Unhighlight
+            joint.dia.HighlighterView.remove(linkView, id);
             assert.notOk(el.hasClass(className));
         });
 
@@ -409,10 +433,10 @@ QUnit.module('HighlighterView', function(hooks) {
             assert.ok(highlighter instanceof HighlighterView);
             assert.ok(el.hasClass(className));
 
-            // Update (Default will unhighlight and highlight)
-            // element.attr(['body', 'fill'], 'red', { dirty: true });
-            // var el2 = elementView.vel.findOne('[joint-selector="body"]');
-            // assert.ok(el2.hasClass('test-class'));
+            // Render (Default will unhighlight and highlight)
+            element.attr(['body', 'fill'], 'red', { dirty: true });
+            var el2 = elementView.vel.findOne('[joint-selector="body"]');
+            assert.ok(el2.hasClass(className));
 
             // Unhighlight
             joint.dia.HighlighterView.remove(elementView, id);

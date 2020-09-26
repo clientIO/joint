@@ -722,7 +722,7 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
-        findPortNode(portId: string | number, selector?: string): SVGElement;
+        findPortNode(portId: string | number, selector?: string): SVGElement | null;
 
         protected renderMarkup(): void;
 
@@ -852,6 +852,8 @@ export namespace dia {
         getEndConnectionPoint(endType: dia.LinkEnd): g.Point;
 
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
+
+        findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
 
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 

@@ -1,6 +1,12 @@
 import * as mvc from '../mvc/index.mjs';
 import V from '../V/index.mjs';
-import { toArray } from '../util/util.mjs';
+import { isPlainObject } from '../util/util.mjs';
+
+function toArray(obj) {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    return [obj];
+}
 
 export const HighlighterView = mvc.View.extend({
 
@@ -44,10 +50,22 @@ export const HighlighterView = mvc.View.extend({
         let el;
         if (typeof nodeSelector === 'string') {
             [el] = cellView.findBySelector(nodeSelector);
-        } else if (Array.isArray(nodeSelector)) {
-            el = cellView.findPortNode(...nodeSelector);
+        } else if (isPlainObject(nodeSelector)) {
+            const isLink = cellView.model.isLink();
+            const { label = null, port, selector } = nodeSelector;
+            if (isLink && label !== null) {
+                // Link Label Selector
+                el = cellView.findLabelNode(label, selector);
+            } else if (!isLink && port) {
+                // Element Port Selector
+                el = cellView.findPortNode(port, selector);
+            } else {
+                // Cell Selector
+                [el] = cellView.findBySelector(selector);
+            }
         } else if (nodeSelector) {
             el = V.toNode(nodeSelector);
+            if (!(el instanceof SVGElement)) el = null;
         }
         return el ? el : null;
     },
@@ -102,6 +120,7 @@ export const HighlighterView = mvc.View.extend({
             this.highlight(cellView, node);
             this.mount();
         } else {
+            this.unmount();
             cellView.notify('cell:highlight:invalid', id, this);
         }
     },
@@ -190,17 +209,14 @@ export const HighlighterView = mvc.View.extend({
     },
 
     remove(cellView, id = null) {
-        if (id) {
-            const view = this.get(cellView, id);
-            if (view) view.remove();
-        } else {
-            this.get(cellView).forEach(view => view.remove());
-        }
+        toArray(this.get(cellView, id)).forEach(view => {
+            view.remove();
+        });
     },
 
-    update(cellView, id = null) {
+    update(cellView, id = null, dirty = false) {
         toArray(this.get(cellView, id)).forEach(view => {
-            if (view.UPDATABLE) view.update();
+            if (dirty || view.UPDATABLE) view.update();
         });
     },
 

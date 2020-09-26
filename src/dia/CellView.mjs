@@ -963,8 +963,8 @@ export const CellView = View.extend({
         HighlighterView.remove(this);
     },
 
-    updateHighlighters: function() {
-        HighlighterView.update(this);
+    updateHighlighters: function(dirty = false) {
+        HighlighterView.update(this, null, dirty);
     },
 
     transformHighlighters: function() {

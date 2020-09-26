@@ -62,15 +62,16 @@ export const ElementView = CellView.extend({
             this._removePorts();
             this._cleanPortsCache();
         }
-        let updateHighlighters = false;
         let transformHighlighters = false;
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
             this.updateTools(opt);
-            updateHighlighters = true;
+            this.updateHighlighters(true);
             transformHighlighters = true;
             flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS', 'TOOLS']);
         } else {
+            let updateHighlighters = false;
+
             // Skip this branch if render is required
             if (this.hasFlag(flag, 'RESIZE')) {
                 this.resize(opt);
@@ -102,11 +103,12 @@ export const ElementView = CellView.extend({
                 updateHighlighters = true;
                 flag = this.removeFlag(flag, 'PORTS');
             }
+
+            if (updateHighlighters) {
+                this.updateHighlighters(false);
+            }
         }
 
-        if (updateHighlighters) {
-            this.updateHighlighters();
-        }
         if (transformHighlighters) {
             this.transformHighlighters();
         }
