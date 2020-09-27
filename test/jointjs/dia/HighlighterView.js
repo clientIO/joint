@@ -84,6 +84,33 @@ QUnit.module('HighlighterView', function(hooks) {
 
     QUnit.module('base class', function() {
 
+        QUnit.module('options', function() {
+
+            QUnit.test('layer', function(assert) {
+
+                var highlighter;
+                var id = 'highlighter-id';
+
+                // Layer = Highlighters
+                highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
+                    layer: 'highlighters'
+                });
+                assert.ok(highlighter.vel.parent().hasClass('highlight-transform'));
+                assert.ok(V(paper.highlighters).contains(highlighter.el));
+                joint.dia.HighlighterView.remove(elementView, id);
+
+                // Layer = Null
+                highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
+                    layer: null
+                });
+                assert.notOk(highlighter.vel.parent().hasClass('highlight-transform'));
+                assert.equal(highlighter.el.parentNode, elementView.el);
+                joint.dia.HighlighterView.remove(elementView, id);
+
+            });
+
+        });
+
         QUnit.test('Highlight element by a node', function(assert) {
 
             var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
@@ -366,6 +393,92 @@ QUnit.module('HighlighterView', function(hooks) {
             highlightSpy.restore();
             unhighlightSpy.restore();
         });
+
+        QUnit.test('Highlight label by a selector', function(assert) {
+
+            link.set('defaultLabel', {
+                markup: [{
+                    tagName: 'rect',
+                    selector: 'labelBody'
+                }, {
+                    tagName: 'text',
+                    selector: 'labelText'
+                }],
+                attrs: {
+                    labelText: {
+                        text: 'First',
+                    },
+                    labelBody: {
+                        ref: 'labelText',
+                        refWidth: '100%',
+                        refHeight: '100%',
+                    }
+                }
+            });
+
+            var labels = [{
+                attrs: {
+                    labelText: {
+                        text: 'One',
+                    },
+                }
+            }, {
+                attrs: {
+                    labelText: {
+                        text: 'Two',
+                    },
+                }
+            }];
+
+            link.labels(labels);
+
+            labels.forEach(function(label, index) {
+
+                var highlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'highlight');
+                var unhighlightSpy = sinon.spy(joint.dia.HighlighterView.prototype, 'unhighlight');
+
+                var id = 'highlighter-id';
+                var selector = { label: index, selector: 'labelBody' };
+                var node = linkView.findLabelNode(selector.label, selector.selector);
+
+                // Highlight
+                var highlighter = joint.dia.HighlighterView.add(linkView, selector, id);
+                assert.equal(highlighter, joint.dia.HighlighterView.get(linkView, id));
+                assert.ok(highlighter instanceof joint.dia.HighlighterView);
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(highlightSpy.calledOnceWithExactly(linkView, node));
+                assert.ok(highlightSpy.calledOn(highlighter));
+                assert.ok(unhighlightSpy.notCalled);
+                highlightSpy.resetHistory();
+                unhighlightSpy.resetHistory();
+
+                // Update (Default will unhighlight and highlight)
+                link.attr(['line', 'stroke'], ['red','green'][index], { dirty: true });
+                var node2 = linkView.findLabelNode(selector.label, selector.selector);
+                assert.notEqual(node, node2);
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(highlightSpy.calledOnceWithExactly(linkView, node2));
+                assert.ok(highlightSpy.calledOn(highlighter));
+                assert.ok(unhighlightSpy.calledOnce);
+                assert.ok(unhighlightSpy.calledOnceWithExactly(linkView, node));
+                assert.ok(unhighlightSpy.calledOn(highlighter));
+                highlightSpy.resetHistory();
+                unhighlightSpy.resetHistory();
+
+                // Unhighlight
+                joint.dia.HighlighterView.remove(linkView, id);
+                assert.equal(joint.dia.HighlighterView.get(linkView, id), null);
+                assert.ok(unhighlightSpy.calledOnce);
+                assert.ok(unhighlightSpy.calledOnceWithExactly(linkView, node2));
+                assert.ok(unhighlightSpy.calledOn(highlighter));
+                assert.ok(highlightSpy.notCalled);
+                highlightSpy.resetHistory();
+                unhighlightSpy.resetHistory();
+
+                highlightSpy.restore();
+                unhighlightSpy.restore();
+            });
+        });
     });
 
 
@@ -401,7 +514,7 @@ QUnit.module('HighlighterView', function(hooks) {
             var el = linkView.vel.findOne('[joint-selector="line"]');
             var className = 'test-class';
             // Highlight
-            var highlighter = HighlighterView.add(linkView, 'line', id, {
+            var highlighter = HighlighterView.add(linkView, { selector: 'line' }, id, {
                 className: className
             });
             assert.ok(highlighter instanceof HighlighterView);
