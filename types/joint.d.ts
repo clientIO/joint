@@ -1435,7 +1435,13 @@ export namespace dia {
 
         type Constructor<T> = { new (): T }
 
-        type NodeSelector = string | string[] | SVGElement;
+        type NodeSelectorJSON = {
+            selector?: string;
+            port?: string;
+            label?: number;
+        };
+
+        type NodeSelector = string | SVGElement | NodeSelectorJSON;
     }
 
     class HighlighterView<Options> extends mvc.View<undefined> {
@@ -1494,11 +1500,13 @@ export namespace dia {
 
         static transform(cellView: dia.CellView, id?: string): void;
 
-        static clean(cellView: dia.CellView, id?: string): void;
-
         static highlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
 
         static unhighlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        protected static _addRef(cellView: dia.CellView, id: string, view: HighlighterView): void;
+
+        protected static _removeRef(cellView: dia.CellView, id?: string): void;
     }
 }
 

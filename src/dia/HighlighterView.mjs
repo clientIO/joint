@@ -131,7 +131,7 @@ export const HighlighterView = mvc.View.extend({
             this.unhighlight(cellView, node);
         }
         this.unmount();
-        constructor.clean(cellView, id);
+        constructor._removeRef(cellView, id);
     },
 
     highlight(_cellView, _node) {
@@ -186,19 +186,25 @@ export const HighlighterView = mvc.View.extend({
         }
     },
 
-    add(cellView, el, id, opt = {}) {
+    add(cellView, nodeSelector, id, opt = {}) {
         let view = this.get(cellView, id);
         if (view) return view;
-        const { cid } = cellView;
-        const { _views } = this;
-        _views[cid] || (_views[cid] = {});
-        view = _views[cid][id] = new this(opt);
+        view = new this(opt);
         view.id = id;
-        view.requestUpdate(cellView, el);
+        this._addRef(cellView, id, view);
+        view.requestUpdate(cellView, nodeSelector);
         return view;
     },
 
-    clean(cellView, id) {
+    _addRef(cellView, id, view) {
+        const { cid } = cellView;
+        const { _views } = this;
+        let refs = _views[cid];
+        if (!refs) refs = _views[cid] = {};
+        refs[id] = view;
+    },
+
+    _removeRef(cellView, id) {
         const { cid } = cellView;
         const { _views } = this;
         const refs = _views[cid];
