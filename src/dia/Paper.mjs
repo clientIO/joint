@@ -300,6 +300,8 @@ export const Paper = View.extend({
     _viewportTransformString: null,
     // Updates data (priorities, unmounted views etc.)
     _updates: null,
+    // Paper Layers
+    _layers: null,
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
@@ -315,6 +317,10 @@ export const Paper = View.extend({
         }
 
         const model = this.model = options.model || new Graph;
+
+        // Layers (SVGGroups)
+        // TODO: layer classes
+        this._layers = {};
 
         this.setGrid(options.drawGrid);
         this.cloneOptions();
@@ -493,12 +499,16 @@ export const Paper = View.extend({
                 selector: 'layers',
                 children: [{
                     tagName: 'g',
+                    className: addClassNamePrefix('back-layer'),
+                    selector: 'back',
+                }, {
+                    tagName: 'g',
                     className: addClassNamePrefix('cells-layer viewport'),
                     selector: 'cells',
                 }, {
                     tagName: 'g',
-                    className: addClassNamePrefix('highlighters-layer'),
-                    selector: 'highlighters',
+                    className: addClassNamePrefix('front-layer'),
+                    selector: 'front',
                 }, {
                     tagName: 'g',
                     className: addClassNamePrefix('tools-layer'),
@@ -508,20 +518,32 @@ export const Paper = View.extend({
         }];
     },
 
+    getLayerNode(layerName) {
+        const { _layers } = this;
+        if (layerName in _layers) return _layers[layerName];
+        throw new Error(`dia.Paper: Unknown layer "${layerName}"`);
+    },
+
     render: function() {
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, cells, defs, tools, layers, highlighters, background, grid } = childNodes;
+        const { svg, cells, defs, tools, layers, back, front, background, grid } = childNodes;
 
         this.svg = svg;
         this.defs = defs;
         this.tools = tools;
         this.cells = cells;
         this.layers = layers;
-        this.highlighters = highlighters;
         this.$background = $(background);
         this.$grid = $(grid);
+
+        assign(this._layers, {
+            back,
+            cells,
+            front,
+            tools
+        });
 
         V.ensureId(svg);
 

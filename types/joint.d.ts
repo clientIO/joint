@@ -1077,7 +1077,6 @@ export namespace dia {
         tools: SVGGElement;
         layers: SVGGElement;
         viewport: SVGGElement;
-        highlighters: SVGGElement;
 
         $document: JQuery;
         $grid: JQuery;
@@ -1199,6 +1198,10 @@ export namespace dia {
         showTools(): this;
 
         dispatchToolsEvent(eventName: string, ...args: any[]): void;
+
+        // layers
+
+        getLayerNode(layerName: string): SVGGElement;
 
         // rendering
 

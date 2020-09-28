@@ -13,7 +13,6 @@ export const stroke = HighlighterView.extend({
     },
 
     options: {
-        component: true,
         padding: 3,
         rx: 0,
         ry: 0,

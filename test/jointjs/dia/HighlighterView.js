@@ -93,10 +93,10 @@ QUnit.module('HighlighterView', function(hooks) {
 
                 // Layer = Highlighters
                 highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
-                    layer: 'highlighters'
+                    layer: 'front'
                 });
                 assert.ok(highlighter.vel.parent().hasClass('highlight-transform'));
-                assert.ok(V(paper.highlighters).contains(highlighter.el));
+                assert.ok(V(paper.getLayerNode('front')).contains(highlighter.el));
                 joint.dia.HighlighterView.remove(elementView, id);
 
                 // Layer = Null

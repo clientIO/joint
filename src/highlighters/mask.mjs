@@ -12,7 +12,6 @@ export const mask = HighlighterView.extend({
     },
 
     options: {
-        component: true,
         padding: 3,
         maskClip: MASK_CLIP,
         deep: false,

@@ -74,12 +74,12 @@ export const HighlighterView = mvc.View.extend({
         const { MOUNTABLE, cellView, el, options, transformGroup } = this;
         if (!MOUNTABLE) return;
         const { vel: cellViewRoot, paper } = cellView;
-        if (options.layer) {
-            // TODO: paper layers (e.g. change ordering)
+        const { layer: layerName } = options;
+        if (layerName) {
             this.transformGroup = V('g')
                 .addClass('highlight-transform')
                 .append(el)
-                .appendTo(paper.highlighters);
+                .appendTo(paper.getLayerNode(layerName));
         } else if (!transformGroup) {
             // TODO: prepend vs append
             if (!el.parentNode || el.nextSibling) {
