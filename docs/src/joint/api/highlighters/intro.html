@@ -128,7 +128,7 @@ joint.highlighters.mask.add(elementView, elementView.findPortNode('port1'), 'por
 
 <p>If a node (determined by the node selector) stops to exist (e.g. a port is removed) the <code>cell:highlight:invalid</code> event is triggered on the paper.</p>
 
-<pre><code>// If we don't want the highlighter wait for the port to reappear, we can remove it, when the event occurs.
+<pre><code>// If we don't want the highlighter wait for the port to reappear, we can remove it when the event occurs.
 paper.on('cell:highlight:invalid', (cellView, id) => {
     joint.dia.HighlighterView.remove(cellView, id);
 })</code></pre>
