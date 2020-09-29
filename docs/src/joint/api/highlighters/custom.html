@@ -1,0 +1,42 @@
+<p>New highlighter can be defined by extending the <a href="#dia.HighlighterView">joint.dia.HighlighterView</a> base class.</p>
+
+<pre><code>// A simple highlighter, which draws a rectangle over the entire CellView
+const MyHighlighter = joint.dia.HighlighterView.extend({
+
+    tagName: 'rect',
+
+    attributes: {
+        'stroke': 'blue',
+        'fill': 'blue',
+        'fill-opacity': 0.1,
+        'pointer-events': 'none'
+    },
+
+    options: {
+        padding: 5
+    },
+
+    // Method called to highlight a CellView
+    highlight(cellView, _node) {
+        const { padding } = this.options;
+        const bbox = celView.model.getBBox();
+        // Highlighter is always rendered relatively to the CellView origin
+        bbox.x = bbox.y = 0;
+        // Increase the size of the highlighter
+        bbox.inflate(padding);
+        this.vel.attr(bbox.toJSON());
+    },
+
+    // Method called to unhighlight a CellView
+    unhighlight(_cellView, _node) {
+        // Cleaning required when the highlighter adds
+        // attributes/nodes to the CellView or Paper.
+        // This highlighter only renders a rectangle.
+    }
+
+});
+
+MyHighlighter.add(el1.findView(paper), 'root', 'my-custom-highlighter', {
+    layer: 'front', // "layer" is an option inherited from the base class
+    padding: 10
+});</code></pre>
