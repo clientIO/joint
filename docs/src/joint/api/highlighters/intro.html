@@ -122,7 +122,7 @@ joint.highlighters.mask.add(elementView, { port: 'port1' }, 'port-highlight');
 joint.highlighters.mask.add(elementView, elementView.findPortNode('port1'), 'port-highlight');</code></pre>
     <ul>
         <li>Using the node selector supports asynchronous rendering. No need to wait for an element to be rendered, when adding the highlighter.</li>
-        <li>Using the node reference highlights the specific node only. If the view was redrawn the node could have been replaced with another.</li>
+        <li>Using the node reference highlights the specific node only. If the view is redrawn, the node could have been replaced with another node which wouldn't be highlighted.</li>
     </ul>
 </div>
 
