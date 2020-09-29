@@ -599,7 +599,7 @@ export namespace dia {
 
         paper: Paper | null;
 
-        initFlag: number;
+        initFlag: CellView.FlagLabel;
 
         presentationAttributes: CellView.PresentationAttributes;
 
@@ -943,6 +943,14 @@ export namespace dia {
             APPROX = 'sorting-approximate',
             NONE = 'sorting-none'
         }
+
+        enum layers {
+            Cells = 'cells',
+            Back = 'back',
+            Front = 'front',
+            Tools = 'tools'
+        }
+
         type UpdateStats = {
             priority: number;
             updated: number;
@@ -1201,7 +1209,7 @@ export namespace dia {
 
         // layers
 
-        getLayerNode(layerName: string): SVGGElement;
+        getLayerNode(layerName: Paper.layers | string): SVGGElement;
 
         // rendering
 
@@ -1518,7 +1526,7 @@ export namespace dia {
 export namespace highlighters {
 
     interface HighlighterArguments {
-        layer: string | null;
+        layer?: dia.Paper.layers | string | null;
     }
 
     interface AddClassHighlighterArguments extends HighlighterArguments {

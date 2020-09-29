@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     text: 'Label',
                     fill: '#000000',
                     fontSize: 14,
+                    fontFamily: 'sans-serif',
                     textAnchor: 'middle',
                     textVerticalAnchor: 'middle',
                     pointerEvents: 'none'
@@ -106,7 +107,10 @@ document.addEventListener('DOMContentLoaded', function() {
         clickThreshold: 5,
         highlighting: false,
         async: true,
-        sorting: joint.dia.Paper.sorting.APPROX
+        sorting: joint.dia.Paper.sorting.APPROX,
+        background: {
+            color: '#F3F7F6'
+        }
     });
 
     graph.addCells(rect1, rect2, rect3, link1, link2, link3);

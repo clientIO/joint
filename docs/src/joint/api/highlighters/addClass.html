@@ -1,4 +1,4 @@
-<p>Toggles a class name on the cell view's <code>$el</code>.</p>
+<p>Toggles a class name on an arbitrary cell view's <code>node</code>.</p>
 
 <p>Available options:</p>
 <ul>
@@ -6,11 +6,6 @@
 </ul>
 
 <p>Example usage:</p>
-<pre><code>cellView.highlight(null/* defaults to cellView.el */, {
-    highlighter: {
-        name: 'addClass',
-        options: {
-            className: 'some-custom-class'
-        }
-    }
+<pre><code>joint.highlighters.addClass.add(cellView, 'root', 'my-highlighter-id', {
+    className: 'some-custom-class'
 });</code></pre>

@@ -33,22 +33,54 @@ QUnit.module('HighlighterView', function(hooks) {
 
     QUnit.module('static get()', function() {
 
-        QUnit.test('find by id', function(assert) {
+        QUnit.test('get by id', function(assert) {
             var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
             var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
             assert.equal(joint.dia.HighlighterView.get(elementView, 'highlighter-id-1'), h1);
             assert.equal(joint.dia.HighlighterView.get(elementView, 'highlighter-id-2'), h2);
             assert.equal(joint.dia.HighlighterView.get(elementView, 'highlighter-id-3'), null);
+            // Extended Class
+            var Child = joint.dia.HighlighterView.extend({});
+            assert.equal(Child.get(elementView, 'highlighter-id-1'), null);
+            var h3 = Child.add(elementView, 'body', 'highlighter-id-3');
+            assert.equal(Child.get(elementView, 'highlighter-id-3'), h3);
+            assert.equal(joint.dia.HighlighterView.get(elementView, 'highlighter-id-3'), h3);
         });
+
+        QUnit.test('get all', function(assert) {
+            var res;
+            assert.deepEqual(joint.dia.HighlighterView.get(elementView), []);
+            var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1');
+            var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2');
+            res = joint.util.sortBy(joint.dia.HighlighterView.get(elementView), 'id');
+            assert.deepEqual(res, [h1, h2]);
+            // Extended Class
+            var Child = joint.dia.HighlighterView.extend({});
+            assert.deepEqual(Child.get(elementView), []);
+            var h3 = Child.add(elementView, 'body', 'highlighter-id-3');
+            assert.deepEqual(Child.get(elementView), [h3]);
+            res = joint.util.sortBy(joint.dia.HighlighterView.get(elementView), 'id');
+            assert.deepEqual(res, [h1, h2, h3]);
+        });
+
     });
 
     QUnit.module('static add()', function() {
 
+        QUnit.test('no id', function(assert) {
+            assert.throws(function() {
+                joint.dia.HighlighterView.add(elementView, 'body');
+            }, /An ID required/);
+        });
+
         QUnit.test('duplicate id', function(assert) {
             var id = 'highlighter-id';
             var highlighter = joint.dia.HighlighterView.add(elementView, 'body', id);
+            assert.equal(highlighter.el.parentNode, elementView.el);
             var highlighter2 = joint.dia.HighlighterView.add(elementView, 'body', id);
-            assert.equal(highlighter, highlighter2);
+            assert.equal(highlighter2.el.parentNode, elementView.el);
+            assert.equal(highlighter.el.parentNode, null);
+            assert.notEqual(highlighter, highlighter2);
         });
 
         QUnit.test('different id', function(assert) {

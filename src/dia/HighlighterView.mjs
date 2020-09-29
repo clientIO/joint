@@ -42,7 +42,7 @@ export const HighlighterView = mvc.View.extend({
         const { cellView, nodeSelector } = this;
         this.update(cellView, nodeSelector);
         this.mount();
-        this.transform(cellView);
+        this.transform();
         return 0;
     },
 
@@ -154,11 +154,13 @@ export const HighlighterView = mvc.View.extend({
 
     _views: {},
 
+    // Used internally by CellView highlight()
     highlight: function(cellView, node, opt) {
         const id = this.uniqueId(node, opt);
         this.add(cellView, node, id, opt);
     },
 
+    // Used internally by CellView unhighlight()
     unhighlight: function(cellView, node, opt) {
         const id = this.uniqueId(node, opt);
         this.remove(cellView, id);
@@ -173,23 +175,29 @@ export const HighlighterView = mvc.View.extend({
             const views = [];
             if (!refs) return views;
             for (let hid in refs) {
-                views.push(refs[hid]);
+                const ref = refs[hid];
+                if (ref instanceof this) {
+                    views.push(ref);
+                }
             }
             return views;
         } else {
             // single highlighter
             if (!refs) return null;
             if (id in refs) {
-                return refs[id];
+                const ref = refs[id];
+                if (ref instanceof this) return ref;
             }
             return null;
         }
     },
 
     add(cellView, nodeSelector, id, opt = {}) {
-        let view = this.get(cellView, id);
-        if (view) return view;
-        view = new this(opt);
+        if (!id) throw new Error('dia.HighlighterView: An ID required.');
+        // Search the existing view amongst all the highlighters
+        const previousView = HighlighterView.get(cellView, id);
+        if (previousView) previousView.remove();
+        const view = new this(opt);
         view.id = id;
         this._addRef(cellView, id, view);
         view.requestUpdate(cellView, nodeSelector);

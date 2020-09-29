@@ -208,3 +208,27 @@ vText.text('This is a rich text.\nThis text goes to multiple lines.', {
 svg.append(vText);
 
 (<any>window).joint = joint;
+
+
+// Highlighters
+const h1 = joint.dia.HighlighterView.add(circle.findView(paper), 'body', 'my-id1');
+h1.remove();
+
+const { mask } = joint.highlighters;
+const m1 = mask.add(
+    circle.findView(paper),
+    { selector: 'body' },
+    'my-id2',
+    <joint.highlighters.MaskHighlighterArguments>{
+        layer: joint.dia.Paper.layers.Front,
+        maskClip: 10,
+        padding: 5
+    }
+);
+
+const m2 = mask.get(circle.findView(paper), 'my-id2');
+console.log(m2.getMaskId() === 'my-id2');
+console.log(m1 === m2);
+
+const m3 = mask.add(circle.findView(paper), 'root', 'my-id3');
+joint.highlighters.mask.remove(circle.findView(paper), 'my-id3');

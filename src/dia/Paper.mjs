@@ -48,6 +48,13 @@ const sortingTypes = {
     EXACT: 'sorting-exact'
 };
 
+const layersNames = {
+    Cells: 'cells',
+    Back: 'back',
+    Front: 'front',
+    Tools: 'tools'
+};
+
 const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
@@ -539,10 +546,10 @@ export const Paper = View.extend({
         this.$grid = $(grid);
 
         assign(this._layers, {
-            back,
-            cells,
-            front,
-            tools
+            [layersNames.Back]: back,
+            [layersNames.Cells]: cells,
+            [layersNames.Front]: front,
+            [layersNames.Tools]: tools
         });
 
         V.ensureId(svg);
@@ -2652,6 +2659,8 @@ export const Paper = View.extend({
 }, {
 
     sorting: sortingTypes,
+
+    layers: layersNames,
 
     backgroundPatterns: {
 
