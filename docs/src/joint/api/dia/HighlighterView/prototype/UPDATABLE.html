@@ -1,0 +1,21 @@
+<pre class="docs-method-signature"><code>HighlighterView.prototype.UPDATABLE</code></pre>
+
+<p>If the property is <i>true</i>, the highlighter is updated (<i>highlight()</i> function is called) every time when the related <i>cellView</i> requires an update.</p>
+<p>If the property is <i>false</i>, the <i>highlight()</i> method is called only once when the highlighter is added.</p>
+
+<p>The default is <i>true</i>.</p>
+
+<pre><code>const ChildView = joint.dia.HighlighterView.extend({
+
+    MOUNTABLE: false,
+    UPDATABLE: false,
+
+    highlight(_cellView, node) {
+        node.classList.add('my-class');
+    },
+
+    unhighlight(_cellView, node) {
+        node.classList.remove('my-class');
+    }
+
+});</code></pre>

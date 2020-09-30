@@ -16,24 +16,7 @@
 
 <p>Available options:</p>
 <ul>
-    <li><b>layer</b> - the stacking order of the highlighter.
-        <p>
-            <table>
-                <tr>
-                    <td><code>null</code></td>
-                    <td>Render the highlighter above the cell. It can be hidden by a cell with a higher <b>z</b> index.</td>
-                </tr>
-                <tr>
-                    <td><code>"back"</code></td>
-                    <td>Render the highlighter behind all the cells.</td>
-                </tr>
-                <tr>
-                    <td><code>"front"</code></td>
-                    <td>Render the highlighter in front of all the cells.</td>
-                </tr>
-            </table>
-        </p>
-    </li>
+    <li><b>layer</b> - the stacking order of the highlighter. See <a href="#dia.HighlighterView.prototype.options.layer">dia.Highlighter</a> for supported values.</li>
     <li><b>padding</b> - the space between the stroke and the node</li>
     <li><b>deep</b> - if the node is a container element (e.g. <i>SVGGroupElement</i>), draw the mask around its descending nodes. Otherwise a rectangular mask is drawn.</li>
     <li><b>attrs</b> - an object with SVG attributes to be set on the mask element</li>
