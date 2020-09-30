@@ -48,31 +48,33 @@ const sortingTypes = {
     EXACT: 'sorting-exact'
 };
 
-const layersNames = {
-    Cells: 'cells',
-    Back: 'back',
-    Front: 'front',
-    Tools: 'tools'
+const LayersNames = {
+    CELLS: 'cells',
+    BACK: 'back',
+    FRONT: 'front',
+    TOOLS: 'tools'
 };
 
 const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
+const HighlightingTypes = CellView.Highlighting;
+
 const defaultHighlighting = {
-    'default': {
+    [HighlightingTypes.DEFAULT]: {
         name: 'stroke',
         options: {
             padding: 3
         }
     },
-    magnetAvailability: {
+    [HighlightingTypes.MAGNET_AVAILABILITY]: {
         name: 'addClass',
         options: {
             className: 'available-magnet'
         }
     },
-    elementAvailability: {
+    [HighlightingTypes.ELEMENT_AVAILABILITY]: {
         name: 'addClass',
         options: {
             className: 'available-cell'
@@ -546,10 +548,10 @@ export const Paper = View.extend({
         this.$grid = $(grid);
 
         assign(this._layers, {
-            [layersNames.Back]: back,
-            [layersNames.Cells]: cells,
-            [layersNames.Front]: front,
-            [layersNames.Tools]: tools
+            [LayersNames.BACK]: back,
+            [LayersNames.CELLS]: cells,
+            [LayersNames.FRONT]: front,
+            [LayersNames.TOOLS]: tools
         });
 
         V.ensureId(svg);
@@ -2660,7 +2662,7 @@ export const Paper = View.extend({
 
     sorting: sortingTypes,
 
-    layers: layersNames,
+    Layers: LayersNames,
 
     backgroundPatterns: {
 

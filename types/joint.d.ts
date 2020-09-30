@@ -581,6 +581,14 @@ export namespace dia {
 
     export namespace CellView {
 
+        enum Highlighting {
+            DEFAULT = 'default',
+            EMBEDDING = 'embedding',
+            CONNECTING = 'connecting',
+            MAGNET_AVAILABILITY = 'magnetAvailability',
+            ELEMENT_AVAILABILITY = 'elementAvailability'
+        }
+
         interface Options<T extends Cell> extends mvc.ViewOptions<T> {
             id?: string
         }
@@ -944,11 +952,11 @@ export namespace dia {
             NONE = 'sorting-none'
         }
 
-        enum layers {
-            Cells = 'cells',
-            Back = 'back',
-            Front = 'front',
-            Tools = 'tools'
+        enum Layers {
+            CELLS = 'cells',
+            BACK = 'back',
+            FRONT = 'front',
+            TOOLS = 'tools'
         }
 
         type UpdateStats = {
@@ -992,7 +1000,9 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: { [type: string]: highlighters.HighlighterJSON | boolean } | boolean;
+            highlighting?: boolean | {
+                [type: string | dia.CellView.Highlighting]: highlighters.HighlighterJSON | boolean
+            };
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
@@ -1209,7 +1219,7 @@ export namespace dia {
 
         // layers
 
-        getLayerNode(layerName: Paper.layers | string): SVGGElement;
+        getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
         // rendering
 
@@ -1436,14 +1446,6 @@ export namespace dia {
 
     namespace HighlighterView {
 
-        enum Types {
-            CUSTOM = 'custom',
-            EMBEDDING = 'embedding',
-            CONNECTING = 'connecting',
-            MAGNET_AVAILABILITY = 'magnetAvailability',
-            ELEMENT_AVAILABILITY = 'elementAvailability'
-        }
-
         type Constructor<T> = { new (): T }
 
         type NodeSelectorJSON = {
@@ -1526,7 +1528,7 @@ export namespace dia {
 export namespace highlighters {
 
     interface HighlighterArguments {
-        layer?: dia.Paper.layers | string | null;
+        layer?: dia.Paper.Layers | string | null;
     }
 
     interface AddClassHighlighterArguments extends HighlighterArguments {

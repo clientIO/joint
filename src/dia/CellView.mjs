@@ -21,6 +21,14 @@ import V from '../V/index.mjs';
 import $ from 'jquery';
 import { HighlighterView } from './HighlighterView.mjs';
 
+const HighlightingTypes = {
+    CUSTOM: 'custom',
+    EMBEDDING: 'embedding',
+    CONNECTING: 'connecting',
+    MAGNET_AVAILABILITY: 'magnetAvailability',
+    ELEMENT_AVAILABILITY: 'elementAvailability'
+};
+
 // CellView base view and controller.
 // --------------------------------------------
 
@@ -292,22 +300,21 @@ export const CellView = View.extend({
         // translate type flag into a type string
         if (opt.type === undefined) {
             let type;
-            const { Types } = HighlighterView;
             switch (true) {
                 case opt.embedding:
-                    type = Types.EMBEDDING;
+                    type = HighlightingTypes.EMBEDDING;
                     break;
                 case opt.connecting:
-                    type = Types.CONNECTING;
+                    type = HighlightingTypes.CONNECTING;
                     break;
                 case opt.magnetAvailability:
-                    type = Types.MAGNET_AVAILABILITY;
+                    type = HighlightingTypes.MAGNET_AVAILABILITY;
                     break;
                 case opt.elementAvailability:
-                    type = Types.ELEMENT_AVAILABILITY;
+                    type = HighlightingTypes.ELEMENT_AVAILABILITY;
                     break;
                 default:
-                    type = Types.CUSTOM;
+                    type = HighlightingTypes.DEFAULT;
                     break;
             }
             opt.type = type;
@@ -1092,6 +1099,8 @@ export const CellView = View.extend({
         this.options.interactive = value;
     }
 }, {
+
+    Highlighting: HighlightingTypes,
 
     addPresentationAttributes: function(presentationAttributes) {
         return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {

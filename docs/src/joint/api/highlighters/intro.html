@@ -5,7 +5,7 @@
 <p>In the above demo, we listen to the paper for the <code>element:pointerclick</code> event and highlight the entire element we clicked on.</p>
 
 <pre><code>paper.on('element:pointerclick', (elementView) => {
-    joint.highlighters.mask.add(elementView, { selector: 'body' }, 'my-element-highlight', {
+    joint.highlighters.mask.add(elementView, { selector: 'root' }, 'my-element-highlight', {
         deep: true,
         attrs: {
             'stroke': '#FF4365',

@@ -348,6 +348,15 @@
     </td>
   </tr>
   <tr>
+    <th>cell:highlight:invalid</th>
+    <td>
+      <p>Triggered when the <code>cellView.unhighlight</code> <a href="#dia.CellView.prototype.unhighlight">method</a> is called on a link or element view.</p>
+      <p>The callback function is passed <code>cellView</code> and <code>el</code> as arguments.</p>
+      <p>The default handler method removes the <code data-lang="css">"highlighted"</code> CSS class from the cell. To use a different method, first unregister the default handler with <code>paper.off('cell:unhighlight')</code> and then register a custom handler with <code>paper.on('cell:unhighlight', myHandler)</code>.</p>
+      <p>It is important to note that if a cell was highlighted using custom options, those exact same options must be provided to the unhighlight handler.</p>
+    </td>
+  </tr>
+  <tr>
     <th>link:connect</th>
     <td>
       <p>Triggered when a link is connected to a cell. The event is triggered after the user reconnects a link.</p>

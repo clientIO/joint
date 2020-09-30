@@ -144,14 +144,6 @@ export const HighlighterView = mvc.View.extend({
 
 }, {
 
-    Types: {
-        CUSTOM: 'custom',
-        EMBEDDING: 'embedding',
-        CONNECTING: 'connecting',
-        MAGNET_AVAILABILITY: 'magnetAvailability',
-        ELEMENT_AVAILABILITY: 'elementAvailability'
-    },
-
     _views: {},
 
     // Used internally by CellView highlight()

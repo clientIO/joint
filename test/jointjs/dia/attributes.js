@@ -172,12 +172,12 @@ QUnit.module('Attributes', function() {
                 linkView.pointermove(evt, cellCenter.x, cellCenter.t);
                 // Highlight
                 assert.ok(highlightSpy.calledOnce);
-                assert.ok(highlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.HighlighterView.Types.CONNECTING })));
+                assert.ok(highlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.CellView.Highlighting.CONNECTING })));
                 assert.notOk(unhighlightSpy.called);
                 linkView.pointerup(evt, cellCenter.x, cellCenter.y);
                 // Unhighlight
                 assert.ok(unhighlightSpy.calledOnce);
-                assert.ok(unhighlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.HighlighterView.Types.CONNECTING })));
+                assert.ok(unhighlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.CellView.Highlighting.CONNECTING })));
                 assert.notOk(highlightSpy.callCount > 1);
                 assert.equal(linkView.sourceMagnet, body);
                 // Validation
