@@ -22,7 +22,7 @@ import $ from 'jquery';
 import { HighlighterView } from './HighlighterView.mjs';
 
 const HighlightingTypes = {
-    CUSTOM: 'custom',
+    DEFAULT: 'default',
     EMBEDDING: 'embedding',
     CONNECTING: 'connecting',
     MAGNET_AVAILABILITY: 'magnetAvailability',

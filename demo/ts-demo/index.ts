@@ -230,5 +230,5 @@ const m2 = mask.get(circle.findView(paper), 'my-id2');
 console.log(m2.getMaskId() === 'my-id2');
 console.log(m1 === m2);
 
-const m3 = mask.add(circle.findView(paper), 'root', 'my-id3');
+mask.add(circle.findView(paper), 'root', 'my-id3');
 joint.highlighters.mask.remove(circle.findView(paper), 'my-id3');
