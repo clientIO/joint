@@ -362,10 +362,10 @@ export const CellView = View.extend({
 
     findProxyNode: function(el, type) {
         el || (el = this.el);
-        const magnetSelector = el.getAttribute(`${type}-selector`);
-        if (magnetSelector) {
-            const [proxyMagnetEl] = this.findBySelector(magnetSelector);
-            if (proxyMagnetEl) return proxyMagnetEl;
+        const nodeSelector = el.getAttribute(`${type}-selector`);
+        if (nodeSelector) {
+            const [proxyNode] = this.findBySelector(nodeSelector);
+            if (proxyNode) return proxyNode;
         }
         return el;
     },

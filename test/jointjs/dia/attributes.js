@@ -169,7 +169,7 @@ QUnit.module('Attributes', function() {
                 evt.target = paper.el;
                 linkView.pointermove(evt, cellCenter.x, cellCenter.y);
                 evt.target = cellView.el;
-                linkView.pointermove(evt, cellCenter.x, cellCenter.t);
+                linkView.pointermove(evt, cellCenter.x, cellCenter.y);
                 // Highlight
                 assert.ok(highlightSpy.calledOnce);
                 assert.ok(highlightSpy.calledWithExactly(cellView, cellView.el, sinon.match({ connecting: true, type: joint.dia.CellView.Highlighting.CONNECTING })));
@@ -211,7 +211,7 @@ QUnit.module('Attributes', function() {
                 evt.target = paper.el;
                 linkView.pointermove(evt, cellCenter.x, cellCenter.y);
                 evt.target = cellView.el;
-                linkView.pointermove(evt, cellCenter.x, cellCenter.t);
+                linkView.pointermove(evt, cellCenter.x, cellCenter.y);
                 // Highlight
                 assert.ok(highlightSpy.calledOnce);
                 assert.ok(highlightSpy.calledWithExactly(cellView, body, sinon.match({ connecting: true })));
@@ -225,6 +225,76 @@ QUnit.module('Attributes', function() {
                 // Validation
                 assert.ok(validateSpy.calledOnce);
                 assert.ok(validateSpy.calledWithExactly(cellView, undefined, undefined, undefined, 'source', linkView));
+            });
+
+            QUnit.test('port highlighting, validation', function(assert) {
+
+                cell.prop('ports', {
+                    groups: {
+                        'group1': {
+                            markup: [{
+                                position: 'bottom',
+                                tagName: 'rect',
+                                selector: 'portBody',
+                                attributes: {
+                                    'width': 20,
+                                    'height': 20,
+                                    'x': -10,
+                                    'y': -10,
+                                    'fill': 'white',
+                                    'stroke': 'black'
+                                }
+                            }],
+                            attrs: {
+                                portBody: {
+                                    highlighterSelector: 'root',
+                                    magnet: true,
+                                    rx: 10,
+                                    ry: 10
+                                }
+                            }
+                        }
+                    }
+                });
+
+                cell.addPort({ id: 'port1', group: 'group1' });
+
+                var body = cellView.findPortNode('port1', 'portBody');
+                var root = cellView.findPortNode('port1', 'root');
+
+                var highlightSpy = sinon.spy();
+                var unhighlightSpy = sinon.spy();
+                var validateSpy = sinon.spy(function() { return true; });
+
+                paper.on('cell:highlight', highlightSpy);
+                paper.on('cell:unhighlight', unhighlightSpy);
+                paper.options.validateConnection = validateSpy;
+
+                var link = new joint.dia.Link({ width: 100, height: 100 });
+                link.addTo(graph);
+                var linkView = link.findView(paper);
+                assert.equal(linkView.sourceMagnet, null);
+                var portPosition = cell.getPortsPositions('group1')['port1'];
+                var portCenter = cell.position().offset(portPosition.x, portPosition.y);
+                var evt = { type: 'mousemove' };
+                linkView.startArrowheadMove('source');
+                evt.target = paper.el;
+                linkView.pointermove(evt, portCenter.x, portCenter.y);
+                evt.target = body;
+                linkView.pointermove(evt, portCenter.x, portCenter.y);
+                // Highlight
+                assert.ok(highlightSpy.calledOnce);
+                assert.ok(highlightSpy.calledWithExactly(cellView, root, sinon.match({ connecting: true })));
+                assert.notOk(unhighlightSpy.called);
+                linkView.pointerup(evt, portCenter.x, portCenter.y);
+                // Unhighlight
+                assert.ok(unhighlightSpy.calledOnce);
+                assert.ok(unhighlightSpy.calledWithExactly(cellView, root, sinon.match({ connecting: true })));
+                assert.notOk(highlightSpy.callCount > 1);
+                assert.equal(linkView.sourceMagnet, body);
+                // Validation
+                assert.ok(validateSpy.calledOnce);
+                assert.ok(validateSpy.calledWithExactly(cellView, body, undefined, undefined, 'source', linkView));
             });
         });
 

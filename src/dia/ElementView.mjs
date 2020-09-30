@@ -481,6 +481,22 @@ export const ElementView = CellView.extend({
         return null;
     },
 
+    findProxyNode: function(el, type) {
+        el || (el = this.el);
+        const nodeSelector = el.getAttribute(`${type}-selector`);
+        if (nodeSelector) {
+            const port = this.findAttribute('port', el);
+            if (port) {
+                const proxyPortNode = this.findPortNode(port, nodeSelector);
+                if (proxyPortNode) return proxyPortNode;
+            } else {
+                const [proxyNode] = this.findBySelector(nodeSelector);
+                if (proxyNode) return proxyNode;
+            }
+        }
+        return el;
+    },
+
     // Interaction. The controller part.
     // ---------------------------------
 
