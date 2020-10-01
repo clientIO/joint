@@ -287,6 +287,29 @@ QUnit.module('linkView', function(hooks) {
         });
     });
 
+    QUnit.module('findLabelNode', function(hooks) {
+
+        QUnit.test('root', function(assert) {
+            link.labels([{ }, { }]);
+            assert.equal(linkView.findLabelNode(0).getAttribute('label-idx'), '0');
+            assert.equal(linkView.findLabelNode(1).getAttribute('label-idx'), '1');
+            assert.equal(linkView.findLabelNode(2), null);
+        });
+
+        QUnit.test('by selector', function(assert) {
+            link.labels([{ }, { }]);
+            var rect0 = linkView.findLabelNode(0, 'rect');
+            assert.ok(rect0 instanceof SVGRectElement);
+            assert.equal(rect0.parentNode.getAttribute('label-idx'), '0');
+            var text1 = linkView.findLabelNode(1, 'text');
+            assert.ok(text1 instanceof SVGTextElement);
+            assert.equal(text1.parentNode.getAttribute('label-idx'), '1');
+            // Edge Cases
+            assert.equal(linkView.findLabelNode(1, 'invalid-selector'), null);
+            assert.equal(linkView.findLabelNode(2, 'rect'), null);
+        });
+    });
+
     QUnit.module('getLabelPosition', function(hooks) {
 
         QUnit.test('default args', function(assert) {
