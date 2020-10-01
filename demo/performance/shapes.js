@@ -1,10 +1,10 @@
 'use strict';
 
-// JointJS v2.0.0 Performance tips
+// JointJS Performance tips
 
 // Overall goals
 // -------------
-// 1. reduce number of DOM elements
+// 1. reduce number of DOM elements (See async.html demo)
 // 2. avoid asking the browser for element bounding boxes as much as possible
 
 // Number of elements 0 - ?
@@ -19,7 +19,9 @@ var paper = new joint.dia.Paper({
     width: COUNT / 2 * 110,
     height: 500,
     model: graph,
-    async: ASYNC
+    async: ASYNC,
+    frozen: true,
+    sorting: joint.dia.Paper.sorting.APPROX
 });
 
 var Shape = joint.dia.Element.define('Shape', {
@@ -30,7 +32,7 @@ var Shape = joint.dia.Element.define('Shape', {
     attrs: {
         body: {
             // Using of special 'ref-like` attributes it's not generally the most
-            // performer. In this particular case it's different though.
+            // efficient. In this particular case it's different though.
             // If the `ref` attribute is not defined all the metrics (width, height, x, y)
             // are taken from the model. There is no need to ask the browser for
             // an element bounding box.
@@ -104,9 +106,16 @@ var l = new Link();
 var cells = [];
 
 Array.from({ length: COUNT / 2 }).forEach(function(_, n) {
-    var a = el.clone().position(n * 110, 100).attr('label/text', n + 1);
-    var b = el.clone().position(n * 100, 300).attr('label/text', n + 1 + (COUNT / 2));
-    var ab = l.clone().prop('source/id', a.id).prop('target/id', b.id);
+    var a = el.clone().position(n * 110, 100);
+    var b = el.clone().position(n * 100, 300);
+    // Since at this point the elements are not in the graph / are not rendered
+    // we can change the text label silently (instead of calling attr(), that would deep clone all `attrs`)
+    a.attributes.attrs.label.text = n + 1;
+    b.attributes.attrs.label.text = n + 1 + (COUNT / 2);
+    var ab = l.clone().set({
+        source: { id: a.id },
+        target: { id: b.id }
+    });
     cells.push(a, b, ab);
 });
 
@@ -121,14 +130,13 @@ function showResult() {
 // SVG as oppose to HTML does not know `z-index` attribute.
 // The "z" coordinate is determined by the order of the sibling elements. The JointJS
 // paper makes sure the DOM elements are sorted based on the "z" stored on each element model.
-graph.resetCells(cells);
+graph.resetCells(cells, {
+    sort: false // do not sort cells in the graph
+});
 
-
-if (ASYNC) {
-    paper.on('render:done', showResult);
-} else {
-    showResult();
-}
-
-// There is still room for improvements in JointJS from the performance perspective.
-// We're definitely going to address this in the upcoming releases.
+paper.unfreeze({
+    afterRender: function() {
+        showResult();
+        paper.unfreeze();
+    }
+});
