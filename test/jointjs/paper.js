@@ -410,7 +410,9 @@ QUnit.module('paper', function(hooks) {
 
         QUnit.module('snapLinks enabled', function(hooks) {
 
-            QUnit.test('test name', function(assert) {
+            QUnit.test('events', function(assert) {
+
+                this.paper.options.snapLinks = true;
 
                 var arrowhead = soloLinkView.el.querySelector('.marker-arrowhead[end=target]');
                 var targetView = graphCells[1].findView(this.paper);
@@ -425,8 +427,30 @@ QUnit.module('paper', function(hooks) {
                 assert.ok(connectSpy.calledOnce, 'connect should be called once');
                 assert.notOk(disconnectSpy.called, 'disconnect should not be called');
             });
-        });
 
+            QUnit.test('validateConnection', function(assert) {
+
+                var validateConnectionSpy = sinon.spy(function() { return true; });
+                this.paper.options.validateConnection = validateConnectionSpy;
+                this.paper.options.snapLinks = true;
+
+                var arrowhead = soloLinkView.el.querySelector('.marker-arrowhead[end=target]');
+                var targetView = graphCells[1].findView(this.paper);
+                var soloView = graphCells[2].findView(this.paper);
+
+                var data = {};
+                soloLinkView.pointerdown({ target: arrowhead, type: 'mousedown', data: data }, 0, 0);
+                assert.equal(validateConnectionSpy.callCount, 0);
+                soloLinkView.pointermove({ target: soloView.el, type: 'mousemove', data: data }, 450, 450);
+                assert.equal(validateConnectionSpy.callCount, 1);
+                soloLinkView.pointermove({ target: soloView.el, type: 'mousemove', data: data }, 450, 450);
+                assert.equal(validateConnectionSpy.callCount, 1);
+                soloLinkView.pointermove({ target: targetView.el, type: 'mousemove', data: data }, 450, 150);
+                assert.equal(validateConnectionSpy.callCount, 2);
+                soloLinkView.pointerup({ target: targetView.el, type: 'mouseup', data: data }, 450, 450);
+                assert.equal(validateConnectionSpy.callCount, 2);
+            });
+        });
 
         QUnit.module('linkPinning', function(hooks) {
 

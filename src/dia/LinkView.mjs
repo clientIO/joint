@@ -2072,7 +2072,8 @@ export const LinkView = CellView.extend({
                 const distance = bbox.center().squaredDistance(pointer);
                 // the connection is looked up in a circle area by `distance < r`
                 if (distance < minDistance) {
-                    if (prevClosestMagnet === view.el || paper.options.validateConnection.apply(
+                    const isAlreadyValidated = prevClosestMagnet === magnet;
+                    if (isAlreadyValidated || paper.options.validateConnection.apply(
                         paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
                     )) {
                         minDistance = distance;
