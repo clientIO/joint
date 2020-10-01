@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="x-ua-compatible" content="IE=Edge">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <title>JointJS - Demo - highlighters.mask</title>
+    <link rel="stylesheet" type="text/css" href="../../css/lib/joint.min.css">
+    <style>
+        html, body, #paper {
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+        }
+        body {
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        #paper {
+            box-shadow: 0 0 3px #888;
+        }
+    </style>
+</head>
+<body>
+
+    <p>Click an element, link, label or a port to highlight it. Click a blank area of the paper to unhighlight all cells. (<a href="./js/mask.js" target="_blank">Source Code</a>)</p><br>
+    <div id="paper"></div>
+
+    <!-- JointJS/Rappid dependencies: -->
+    <script src="../../js/lib/jquery.min.js"></script>
+    <script src="../../js/lib/lodash.min.js"></script>
+    <script src="../../js/lib/backbone.min.js"></script>
+
+    <script src="../../js/lib/joint.min.js"></script>
+    <script src="./js/mask.js"></script>
+
+    <script>
+    </script>
+
+</body>
+</html>

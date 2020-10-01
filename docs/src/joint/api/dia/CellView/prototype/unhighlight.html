@@ -1,5 +1,11 @@
 <pre class="docs-method-signature"><code>cellView.unhighlight([el[, options]])</code></pre>
 
-<p>Removes the highlighting being done to the cell.</p>
+<p>Removes a highlighter added to the cell view.</p>
 
-<p>It is <b>important</b> to note that if you highlighted a cell using custom options, you must provide those exact same options when using the unhighlight method.</p>
+<p>When the method is called, the <code>cell:unhighlight</code> <a href="#dia.Paper.events">paper event</a> is triggered.</p>
+
+<div class="docs-important-note">
+    It is <b>important</b> to note that if you highlighted a cell using custom options, you must provide those exact same options when using the unhighlight method.<br><br>
+
+    To avoid this and for greater flexibility use <a href="#highlighters">highlighters</a> API instead.
+</div>

@@ -8,6 +8,7 @@ var paper = new joint.dia.Paper({
     height: 600,
     model: graph,
     linkPinning: false,
+    highlighting: false,
     defaultConnectionPoint: function(line, view) {
         var element = view.model;
         return element.getConnectionPoint(line.start) || element.getBBox().center();
@@ -79,10 +80,6 @@ erd.ISA.prototype.getConnectionPoint = function(referencePoint) {
         line.intersection(new g.Line(bbox.topRight(), bbox.bottomMiddle()))
     );
 };
-
-
-// Unbind orignal highligting handlers.
-paper.off('cell:highlight cell:unhighlight');
 
 // Bind custom ones.
 paper.on('cell:highlight', function(cellView) {

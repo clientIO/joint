@@ -1,0 +1,45 @@
+<pre class="docs-method-signature"><code>HighlighterView.add(cellView, selector, id, options)</code></pre>
+
+<p>Create an instance of the highlighter and add it to the <i>cellView</i>.</p>
+
+<p>It returns an instance of the <i>HighlighterView</i>.</p>
+
+<p>If a highlighter with the same <i>id</i> exists on the CellView, it is removed and a new highlighter is added and returned. You can check if a highlighter already exists by calling <a href="#dia.HighlighterView.get">HighlighterView.get()</a>.</p>
+
+<ul>
+    <li><b>cellView</b> is an instance of <a href="#dia.CellView">dia.CellView</a>.</li>
+    <li><b>selector</b> points to an SVGElement of the <i>cellView</i>. It must be one of the following types:
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Example</th>
+            </tr>
+            <tr>
+                <td>String</td>
+                <td>A selector from the cell's <a href="#dia.Cell.markup">markup</a>.</td>
+                <td><pre><code>'root'
+'body'</code></pre></td>
+            </tr>
+            <tr>
+                <td>Object</td>
+                <td>An object with property <i>selector</i>, which is a selector from the (cell/label/port) <a href="#dia.Cell.markup">markup</a>.<br>
+                    There is additional property <i>port</i> (id of a port) available for <a href="#dia.ElementView">dia.ElementView</a>.<br>
+                    And property <i>label</i> (index of a label) is available for <a href="#dia.LinkView">dia.LinkView</a>.<br>
+                    <p>If no <i>selector</i> property is provided, the <i>root</i> is used.</p>
+                </td>
+                <td><pre><code>{ selector: 'body' } // cells
+{ port: 'port1', selector: 'portBody' } // elements
+{ label: 1, selector: 'labelBody' } // links</code></pre></td>
+            </tr>
+            <tr>
+                <td>SVGElement</td>
+                <td>An SVGElement, the descendant of <i>cellView.el</i> or the root itself.</td>
+                <td><pre><code>cellView.el // the root
+cellView.el.querySelector('rect') // an SVGRectangle</code></pre></td>
+            </tr>
+        </table>
+    </li>
+    <li><b>id</b> is a unique identifier of the highlighter. Only single highlighter with given <i>id</i> can exist on the CellView at one time.</li>
+    <li><b>options</b> passed to the constructor of the highlighter view.</li>
+</ul>

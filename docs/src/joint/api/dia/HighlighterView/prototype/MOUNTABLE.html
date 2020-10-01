@@ -1,0 +1,21 @@
+<pre class="docs-method-signature"><code>HighlighterView.prototype.MOUNTABLE</code></pre>
+
+<p>If the property is <i>true</i>, the highlighter view is attached to the DOM.</p>
+<p>If the property is <i>false</i>, it is not attached upon highlight.</p>
+
+<p>The default is <i>true</i>.</p>
+
+<pre><code>const ChildView = joint.dia.HighlighterView.extend({
+
+    // HighlighterView `el` is not meant to be appended
+    MOUNTABLE: false,
+
+    highlight(cellView, node) {
+        node.setAttribute('my-attribute', String(cellView.model.get('highlightAttribute')));
+    },
+
+    unhighlight(cellView, node) {
+        node.removeAttribute('my-attribute');
+    }
+
+});</code></pre>

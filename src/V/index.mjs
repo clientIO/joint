@@ -739,7 +739,7 @@ const V = (function() {
         }
 
         for (var i = 0, len = els.length; i < len; i++) {
-            this.node.appendChild(V.toNode(els[i]));
+            this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
         }
 
         return this;
@@ -836,6 +836,11 @@ const V = (function() {
         }
         return outputArray;
     };
+
+    // Returns the V element from parentNode of this.node.
+    VPrototype.parent = function() {
+        return V(this.node.parentNode) || null;
+    },
 
     // Find an index of an element inside its container.
     VPrototype.index = function() {

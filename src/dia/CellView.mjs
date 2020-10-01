@@ -19,6 +19,15 @@ import {
 import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from 'jquery';
+import { HighlighterView } from './HighlighterView.mjs';
+
+const HighlightingTypes = {
+    DEFAULT: 'default',
+    EMBEDDING: 'embedding',
+    CONNECTING: 'connecting',
+    MAGNET_AVAILABILITY: 'magnetAvailability',
+    ELEMENT_AVAILABILITY: 'elementAvailability'
+};
 
 // CellView base view and controller.
 // --------------------------------------------
@@ -278,25 +287,48 @@ export const CellView = View.extend({
         return mr;
     },
 
-    highlight: function(el, opt = {}) {
-
-        el = !el ? this.el : this.$(el)[0] || this.el;
-
+    _notifyHighlight: function(eventName, el, opt = {}) {
+        const { el: rootNode } = this;
+        let node;
+        if (typeof el === 'string') {
+            [node = rootNode] = this.findBySelector(el);
+        } else {
+            [node = rootNode] = this.$(el);
+        }
         // set partial flag if the highlighted element is not the entire view.
-        opt.partial = (el !== this.el);
-
-        this.notify('cell:highlight', el, opt);
+        opt.partial = (node !== rootNode);
+        // translate type flag into a type string
+        if (opt.type === undefined) {
+            let type;
+            switch (true) {
+                case opt.embedding:
+                    type = HighlightingTypes.EMBEDDING;
+                    break;
+                case opt.connecting:
+                    type = HighlightingTypes.CONNECTING;
+                    break;
+                case opt.magnetAvailability:
+                    type = HighlightingTypes.MAGNET_AVAILABILITY;
+                    break;
+                case opt.elementAvailability:
+                    type = HighlightingTypes.ELEMENT_AVAILABILITY;
+                    break;
+                default:
+                    type = HighlightingTypes.DEFAULT;
+                    break;
+            }
+            opt.type = type;
+        }
+        this.notify(eventName, node, opt);
         return this;
     },
 
+    highlight: function(el, opt) {
+        return this._notifyHighlight('cell:highlight', el, opt);
+    },
+
     unhighlight: function(el, opt = {}) {
-
-        el = !el ? this.el : this.$(el)[0] || this.el;
-
-        opt.partial = el != this.el;
-
-        this.notify('cell:unhighlight', el, opt);
-        return this;
+        return this._notifyHighlight('cell:unhighlight', el, opt);
     },
 
     // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
@@ -330,10 +362,10 @@ export const CellView = View.extend({
 
     findProxyNode: function(el, type) {
         el || (el = this.el);
-        const magnetSelector = el.getAttribute(`${type}-selector`);
-        if (magnetSelector) {
-            const [proxyMagnetEl] = this.findBySelector(magnetSelector);
-            if (proxyMagnetEl) return proxyMagnetEl;
+        const nodeSelector = el.getAttribute(`${type}-selector`);
+        if (nodeSelector) {
+            const [proxyNode] = this.findBySelector(nodeSelector);
+            if (proxyNode) return proxyNode;
         }
         return el;
     },
@@ -865,6 +897,7 @@ export const CellView = View.extend({
 
     onRemove: function() {
         this.removeTools();
+        this.removeHighlighters();
     },
 
     _toolsView: null,
@@ -931,6 +964,18 @@ export const CellView = View.extend({
                 this.showTools();
                 break;
         }
+    },
+
+    removeHighlighters: function() {
+        HighlighterView.remove(this);
+    },
+
+    updateHighlighters: function(dirty = false) {
+        HighlighterView.update(this, null, dirty);
+    },
+
+    transformHighlighters: function() {
+        HighlighterView.transform(this);
     },
 
     // Interaction. The controller part.
@@ -1054,6 +1099,8 @@ export const CellView = View.extend({
         this.options.interactive = value;
     }
 }, {
+
+    Highlighting: HighlightingTypes,
 
     addPresentationAttributes: function(presentationAttributes) {
         return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {

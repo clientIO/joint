@@ -48,24 +48,33 @@ const sortingTypes = {
     EXACT: 'sorting-exact'
 };
 
+const LayersNames = {
+    CELLS: 'cells',
+    BACK: 'back',
+    FRONT: 'front',
+    TOOLS: 'tools'
+};
+
 const MOUNT_BATCH_SIZE = 1000;
 const UPDATE_BATCH_SIZE = Infinity;
 const MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
+const HighlightingTypes = CellView.Highlighting;
+
 const defaultHighlighting = {
-    'default': {
+    [HighlightingTypes.DEFAULT]: {
         name: 'stroke',
         options: {
             padding: 3
         }
     },
-    magnetAvailability: {
+    [HighlightingTypes.MAGNET_AVAILABILITY]: {
         name: 'addClass',
         options: {
             className: 'available-magnet'
         }
     },
-    elementAvailability: {
+    [HighlightingTypes.ELEMENT_AVAILABILITY]: {
         name: 'addClass',
         options: {
             className: 'available-cell'
@@ -292,7 +301,6 @@ export const Paper = View.extend({
     $grid: null,
     $document: null,
 
-    _highlights: null,
     _zPivots: null,
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
@@ -301,6 +309,8 @@ export const Paper = View.extend({
     _viewportTransformString: null,
     // Updates data (priorities, unmounted views etc.)
     _updates: null,
+    // Paper Layers
+    _layers: null,
 
     SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
     UPDATE_DELAYING_BATCHES: ['translate'],
@@ -317,6 +327,10 @@ export const Paper = View.extend({
 
         const model = this.model = options.model || new Graph;
 
+        // Layers (SVGGroups)
+        // TODO: layer classes
+        this._layers = {};
+
         this.setGrid(options.drawGrid);
         this.cloneOptions();
         this.render();
@@ -329,8 +343,6 @@ export const Paper = View.extend({
         this._zPivots = {};
         // Reference to the paper owner document
         this.$document = $(el.ownerDocument);
-        // Highlighters references
-        this._highlights = {};
         // Render existing cells in the graph
         this.resetViews(model.attributes.cells.models);
         // Start the Rendering Loop
@@ -457,9 +469,11 @@ export const Paper = View.extend({
         if (isPlainObject(interactive)) {
             options.interactive = assign({}, interactive);
         }
+        if (isPlainObject(highlighting)) {
+            // Return the default highlighting options into the user specified options.
+            options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
+        }
         options.origin = assign({}, origin);
-        // Return the default highlighting options into the user specified options.
-        options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
     },
 
     children: function() {
@@ -494,8 +508,16 @@ export const Paper = View.extend({
                 selector: 'layers',
                 children: [{
                     tagName: 'g',
+                    className: addClassNamePrefix('back-layer'),
+                    selector: 'back',
+                }, {
+                    tagName: 'g',
                     className: addClassNamePrefix('cells-layer viewport'),
                     selector: 'cells',
+                }, {
+                    tagName: 'g',
+                    className: addClassNamePrefix('front-layer'),
+                    selector: 'front',
                 }, {
                     tagName: 'g',
                     className: addClassNamePrefix('tools-layer'),
@@ -505,11 +527,17 @@ export const Paper = View.extend({
         }];
     },
 
+    getLayerNode(layerName) {
+        const { _layers } = this;
+        if (layerName in _layers) return _layers[layerName];
+        throw new Error(`dia.Paper: Unknown layer "${layerName}"`);
+    },
+
     render: function() {
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, cells, defs, tools, layers, background, grid } = childNodes;
+        const { svg, cells, defs, tools, layers, back, front, background, grid } = childNodes;
 
         this.svg = svg;
         this.defs = defs;
@@ -518,6 +546,13 @@ export const Paper = View.extend({
         this.layers = layers;
         this.$background = $(background);
         this.$grid = $(grid);
+
+        assign(this._layers, {
+            [LayersNames.BACK]: back,
+            [LayersNames.CELLS]: cells,
+            [LayersNames.FRONT]: front,
+            [LayersNames.TOOLS]: tools
+        });
 
         V.ensureId(svg);
 
@@ -1812,34 +1847,40 @@ export const Paper = View.extend({
     // Cell highlighting.
     // ------------------
 
-    resolveHighlighter: function(opt) {
+    resolveHighlighter: function(opt = {}) {
 
-        opt = opt || {};
-        var highlighterDef = opt.highlighter;
-        var paperOpt = this.options;
+        let { highlighter: highlighterDef, type } = opt;
+        const { highlighting,highlighterNamespace  } = this.options;
 
         /*
-                Expecting opt.highlighter to have the following structure:
-                {
-                    name: 'highlighter-name',
-                    options: {
-                        some: 'value'
-                    }
+            Expecting opt.highlighter to have the following structure:
+            {
+                name: 'highlighter-name',
+                options: {
+                    some: 'value'
                 }
-            */
+            }
+        */
         if (highlighterDef === undefined) {
 
+            // Is highlighting disabled?
+            if (!highlighting) return false;
             // check for built-in types
-            var type = ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].find(function(type) {
-                return !!opt[type];
-            });
-
-            highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
+            if (type) {
+                highlighterDef = highlighting[type];
+                // Is a specific type highlight disabled?
+                if (highlighterDef === false) return false;
+            }
+            if (!highlighterDef) {
+                // Type not defined use default highlight
+                highlighterDef = highlighting['default'];
+            }
         }
 
-        // Do nothing if opt.highlighter is falsey.
+        // Do nothing if opt.highlighter is falsy.
         // This allows the case to not highlight cell(s) in certain cases.
-        // For example, if you want to NOT highlight when embedding elements.
+        // For example, if you want to NOT highlight when embedding elements
+        // or use a custom highlighter.
         if (!highlighterDef) return false;
 
         // Allow specifying a highlighter by name.
@@ -1849,8 +1890,8 @@ export const Paper = View.extend({
             };
         }
 
-        var name = highlighterDef.name;
-        var highlighter = paperOpt.highlighterNamespace[name];
+        const name = highlighterDef.name;
+        const highlighter = highlighterNamespace[name];
 
         // Highlighter validation
         if (!highlighter) {
@@ -1864,49 +1905,24 @@ export const Paper = View.extend({
         }
 
         return {
-            highlighter: highlighter,
+            highlighter,
             options: highlighterDef.options || {},
-            name: name
+            name
         };
     },
 
     onCellHighlight: function(cellView, magnetEl, opt) {
-
-        opt = this.resolveHighlighter(opt);
-        if (!opt) return;
-        if (!magnetEl.id) {
-            magnetEl.id = V.uniqueId();
-        }
-
-        var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
-        if (!this._highlights[key]) {
-
-            var highlighter = opt.highlighter;
-            highlighter.highlight(cellView, magnetEl, assign({}, opt.options));
-
-            this._highlights[key] = {
-                cellView: cellView,
-                magnetEl: magnetEl,
-                opt: opt.options,
-                highlighter: highlighter
-            };
-        }
+        const highlighterDescriptor = this.resolveHighlighter(opt);
+        if (!highlighterDescriptor) return;
+        const { highlighter, options } = highlighterDescriptor;
+        highlighter.highlight(cellView, magnetEl, options);
     },
 
     onCellUnhighlight: function(cellView, magnetEl, opt) {
-
-        opt = this.resolveHighlighter(opt);
-        if (!opt) return;
-
-        var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
-        var highlight = this._highlights[key];
-        if (highlight) {
-
-            // Use the cellView and magnetEl that were used by the highlighter.highlight() method.
-            highlight.highlighter.unhighlight(highlight.cellView, highlight.magnetEl, highlight.opt);
-
-            this._highlights[key] = null;
-        }
+        const highlighterDescriptor = this.resolveHighlighter(opt);
+        if (!highlighterDescriptor) return;
+        const { highlighter, options } = highlighterDescriptor;
+        highlighter.unhighlight(cellView, magnetEl, options);
     },
 
     // Interaction.
@@ -2645,6 +2661,8 @@ export const Paper = View.extend({
 }, {
 
     sorting: sortingTypes,
+
+    Layers: LayersNames,
 
     backgroundPatterns: {
 

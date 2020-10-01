@@ -639,11 +639,12 @@ export const elementViewPortPrototype = {
     },
 
     findPortNode: function(portId, selector) {
-        var portCache = this._portElementsCache[portId];
+        const portCache = this._portElementsCache[portId];
         if (!portCache) return null;
-        var portRoot = portCache.portContentElement.node;
-        var portSelectors = portCache.portContentSelectors;
-        return this.findBySelector(selector, portRoot, portSelectors)[0];
+        const portRoot = portCache.portContentElement.node;
+        const portSelectors = portCache.portContentSelectors;
+        const [node = null] = this.findBySelector(selector, portRoot, portSelectors);
+        return node;
     },
 
     /**

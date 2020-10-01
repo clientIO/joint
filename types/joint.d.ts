@@ -581,6 +581,14 @@ export namespace dia {
 
     export namespace CellView {
 
+        enum Highlighting {
+            DEFAULT = 'default',
+            EMBEDDING = 'embedding',
+            CONNECTING = 'connecting',
+            MAGNET_AVAILABILITY = 'magnetAvailability',
+            ELEMENT_AVAILABILITY = 'elementAvailability'
+        }
+
         interface Options<T extends Cell> extends mvc.ViewOptions<T> {
             id?: string
         }
@@ -599,7 +607,7 @@ export namespace dia {
 
         paper: Paper | null;
 
-        initFlag: number;
+        initFlag: CellView.FlagLabel;
 
         presentationAttributes: CellView.PresentationAttributes;
 
@@ -650,6 +658,12 @@ export namespace dia {
         getFlag(label: CellView.FlagLabel): number;
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
+
+        protected removeHighlighters(): void;
+
+        protected updateHighlighters(): void;
+
+        protected transformHighlighters(): void;
 
         protected hasFlag(flags: number, label: CellView.FlagLabel): boolean;
 
@@ -716,7 +730,7 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
-        findPortNode(portId: string | number, selector?: string): SVGElement;
+        findPortNode(portId: string | number, selector?: string): SVGElement | null;
 
         protected renderMarkup(): void;
 
@@ -847,6 +861,8 @@ export namespace dia {
 
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
+        findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
@@ -935,6 +951,14 @@ export namespace dia {
             APPROX = 'sorting-approximate',
             NONE = 'sorting-none'
         }
+
+        enum Layers {
+            CELLS = 'cells',
+            BACK = 'back',
+            FRONT = 'front',
+            TOOLS = 'tools'
+        }
+
         type UpdateStats = {
             priority: number;
             updated: number;
@@ -976,7 +1000,9 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: { [type: string]: highlighters.HighlighterJSON };
+            highlighting?: boolean | {
+                [type: string | dia.CellView.Highlighting]: highlighters.HighlighterJSON | boolean
+            };
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
@@ -1190,6 +1216,10 @@ export namespace dia {
         showTools(): this;
 
         dispatchToolsEvent(eventName: string, ...args: any[]): void;
+
+        // layers
+
+        getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
         // rendering
 
@@ -1413,6 +1443,188 @@ export namespace dia {
         protected guard(evt: dia.Event): boolean;
     }
 
+
+    namespace HighlighterView {
+
+        type Constructor<T> = { new (): T }
+
+        type NodeSelectorJSON = {
+            selector?: string;
+            port?: string;
+            label?: number;
+        };
+
+        type NodeSelector = string | SVGElement | NodeSelectorJSON;
+    }
+
+    class HighlighterView<Options> extends mvc.View<undefined> {
+
+        constructor(options?: Options);
+
+        options: Options;
+
+        UPDATABLE: boolean;
+        MOUNTABLE: boolean;
+
+        cellView: dia.CellView;
+        nodeSelector: HighlighterView.NodeSelector | null;
+        node: SVGElement | null;
+        updateRequested: boolean;
+        transformGroup: V | null;
+
+        protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
+
+        protected unmount(): void;
+
+        protected transform(): void;
+
+        protected update(): void;
+
+        protected highlight(cellView: dia.CellView, node: SVGElement): void;
+
+        protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
+
+        static uniqueId(node: SVGElement, options?: any): string;
+
+        static add<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView,
+            selector: HighlighterView.NodeSelector,
+            id: string,
+            options?: any
+        ): T;
+
+        static remove(
+            cellView: dia.CellView,
+            id?: string
+        ): void;
+
+        static get<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView,
+            id: string
+        ): T | null;
+        static get<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView
+        ): T[];
+
+        static update(cellView: dia.CellView, id?: string): void;
+
+        static transform(cellView: dia.CellView, id?: string): void;
+
+        static highlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        static unhighlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        protected static _addRef(cellView: dia.CellView, id: string, view: HighlighterView): void;
+
+        protected static _removeRef(cellView: dia.CellView, id?: string): void;
+    }
+}
+
+// highlighters
+
+export namespace highlighters {
+
+    interface HighlighterArguments {
+        layer?: dia.Paper.Layers | string | null;
+    }
+
+    interface AddClassHighlighterArguments extends HighlighterArguments {
+        className?: string;
+    }
+
+    interface OpacityHighlighterArguments extends HighlighterArguments {
+
+    }
+
+    interface StrokeHighlighterArguments extends HighlighterArguments {
+        padding?: number;
+        rx?: number;
+        ry?: number;
+        useFirstSubpath?: boolean;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface MaskHighlighterArguments extends HighlighterArguments {
+        padding?: number;
+        maskClip?: number;
+        deep?: boolean;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface HighlighterArgumentsMap {
+        'addClass': AddClassHighlighterArguments;
+        'opacity': OpacityHighlighterArguments;
+        'stroke': StrokeHighlighterArguments;
+        'mask': MaskHighlighterArguments;
+        [key: string]: { [key: string]: any };
+    }
+
+    type HighlighterType = keyof HighlighterArgumentsMap;
+
+    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
+
+    interface GenericHighlighter<K extends HighlighterType> {
+
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
+
+    interface GenericHighlighterJSON<K extends HighlighterType> {
+        name: K;
+        options?: GenericHighlighterArguments<K>;
+    }
+
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+
+    type Highlighter = GenericHighlighter<HighlighterType>;
+
+    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
+
+    class mask extends dia.HighlighterView<MaskHighlighterArguments> {
+
+        VISIBLE: string;
+        INVISIBLE: string;
+        MASK_ROOT_ATTRIBUTE_BLACKLIST: string[];
+        MASK_CHILD_ATTRIBUTE_BLACKLIST: string[];
+        MASK_REPLACE_TAGS: string[];
+        MASK_REMOVE_TAGS: string[];
+
+        public getMaskId(): string;
+
+        protected getMask(cellView: dia.CellView, vel: V): V;
+
+        protected getMaskShape(cellView: dia.CellView, vel: V): V;
+
+        protected transformMaskRoot(cellView: dia.CellView, root: V): void;
+
+        protected transformMaskChild(cellView: dia.CellView, child: V): void;
+
+        protected addMask(paper: dia.Paper, mask: V): void;
+
+        protected removeMask(paper: dia.Paper): void;
+    }
+
+    class stroke extends dia.HighlighterView<StrokeHighlighterArguments> {
+
+        protected getPathData(cellView: dia.CellView, node: SVGElement): string;
+
+        protected highlightConnection(cellView: dia.CellView): void;
+
+        protected highlightNode(cellView: dia.CellView, node: SVGElement): void;
+    }
+
+    class addClass extends dia.HighlighterView<AddClassHighlighterArguments> {
+
+    }
+
+    class opacity extends dia.HighlighterView<OpacityHighlighterArguments> {
+
+        opacityClassName: string;
+    }
 }
 
 export namespace shapes {
@@ -2992,59 +3204,6 @@ export namespace connectionPoints {
     export var boundary: GenericConnectionPoint<'boundary'>;
 }
 
-// highlighters
-
-export namespace highlighters {
-
-    interface AddClassHighlighterArguments {
-        className?: string;
-    }
-
-    interface OpacityHighlighterArguments {
-
-    }
-
-    interface StrokeHighlighterArguments {
-        padding?: number;
-        rx?: number;
-        ry?: number;
-        useFirstSubpath?: boolean;
-        attrs?: attributes.NativeSVGAttributes;
-    }
-
-    interface HighlighterArgumentsMap {
-        'addClass': AddClassHighlighterArguments;
-        'opacity': OpacityHighlighterArguments;
-        'stroke': StrokeHighlighterArguments;
-        [key: string]: { [key: string]: any };
-    }
-
-    type HighlighterType = keyof HighlighterArgumentsMap;
-
-    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
-
-    interface GenericHighlighter<K extends HighlighterType> {
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-    }
-
-    interface GenericHighlighterJSON<K extends HighlighterType> {
-        name: K;
-        options?: GenericHighlighterArguments<K>;
-    }
-
-    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
-
-    type Highlighter = GenericHighlighter<HighlighterType>;
-
-    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
-
-    export var addClass: GenericHighlighter<'addClass'>;
-    export var opacity: GenericHighlighter<'opacity'>;
-    export var stroke: GenericHighlighter<'stroke'>;
-}
-
 export namespace connectionStrategies {
 
     interface ConnectionStrategy {
@@ -3225,6 +3384,7 @@ export namespace attributes {
         atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
         atConnectionRatioIgnoreGradient?: number;
         magnetSelector?: string;
+        highlighterSelector?: string;
         containerSelector?: string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;

@@ -1,31 +1,27 @@
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
+import { HighlighterView } from '../dia/HighlighterView.mjs';
 
-export const addClass = {
+const className = util.addClassNamePrefix('highlighted');
 
-    className: util.addClassNamePrefix('highlighted'),
+export const addClass = HighlighterView.extend({
 
-    /**
-     * @param {joint.dia.CellView} cellView
-     * @param {Element} magnetEl
-     * @param {object=} opt
-     */
-    highlight: function(cellView, magnetEl, opt) {
+    UPDATABLE: false,
+    MOUNTABLE: false,
 
-        var options = opt || {};
-        var className = options.className || this.className;
-        V(magnetEl).addClass(className);
+    options: {
+        className
     },
 
-    /**
-     * @param {joint.dia.CellView} cellView
-     * @param {Element} magnetEl
-     * @param {object=} opt
-     */
-    unhighlight: function(cellView, magnetEl, opt) {
+    highlight: function(_cellView, node) {
+        V(node).addClass(this.options.className);
+    },
 
-        var options = opt || {};
-        var className = options.className || this.className;
-        V(magnetEl).removeClass(className);
+    unhighlight: function(_cellView, node) {
+        V(node).removeClass(this.options.className);
     }
-};
+
+}, {
+    // Backwards Compatibility
+    className
+});

@@ -56,25 +56,33 @@ export const ElementView = CellView.extend({
     UPDATE_PRIORITY: 0,
 
     confirmUpdate: function(flag, opt) {
+
         const { useCSSSelectors } = config;
         if (this.hasFlag(flag, 'PORTS')) {
             this._removePorts();
             this._cleanPortsCache();
         }
+        let transformHighlighters = false;
         if (this.hasFlag(flag, 'RENDER')) {
             this.render();
             this.updateTools(opt);
+            this.updateHighlighters(true);
+            transformHighlighters = true;
             flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS', 'TOOLS']);
         } else {
+            let updateHighlighters = false;
+
             // Skip this branch if render is required
             if (this.hasFlag(flag, 'RESIZE')) {
                 this.resize(opt);
+                updateHighlighters = true;
                 // Resize method is calling `update()` internally
                 flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
             }
             if (this.hasFlag(flag, 'UPDATE')) {
                 this.update(this.model, null, opt);
                 flag = this.removeFlag(flag, 'UPDATE');
+                updateHighlighters = true;
                 if (useCSSSelectors) {
                     // `update()` will render ports when useCSSSelectors are enabled
                     flag = this.removeFlag(flag, 'PORTS');
@@ -83,15 +91,26 @@ export const ElementView = CellView.extend({
             if (this.hasFlag(flag, 'TRANSLATE')) {
                 this.translate();
                 flag = this.removeFlag(flag, 'TRANSLATE');
+                transformHighlighters = true;
             }
             if (this.hasFlag(flag, 'ROTATE')) {
                 this.rotate();
                 flag = this.removeFlag(flag, 'ROTATE');
+                transformHighlighters = true;
             }
             if (this.hasFlag(flag, 'PORTS')) {
                 this._renderPorts();
+                updateHighlighters = true;
                 flag = this.removeFlag(flag, 'PORTS');
             }
+
+            if (updateHighlighters) {
+                this.updateHighlighters(false);
+            }
+        }
+
+        if (transformHighlighters) {
+            this.transformHighlighters();
         }
 
         if (this.hasFlag(flag, 'TOOLS')) {
@@ -128,7 +147,9 @@ export const ElementView = CellView.extend({
             roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
         });
 
-        if (useCSSSelectors) this._renderPorts();
+        if (useCSSSelectors) {
+            this._renderPorts();
+        }
     },
 
     rotatableSelector: 'rotatable',
@@ -458,6 +479,22 @@ export const ElementView = CellView.extend({
         }
 
         return null;
+    },
+
+    findProxyNode: function(el, type) {
+        el || (el = this.el);
+        const nodeSelector = el.getAttribute(`${type}-selector`);
+        if (nodeSelector) {
+            const port = this.findAttribute('port', el);
+            if (port) {
+                const proxyPortNode = this.findPortNode(port, nodeSelector);
+                if (proxyPortNode) return proxyPortNode;
+            } else {
+                const [proxyNode] = this.findBySelector(nodeSelector);
+                if (proxyNode) return proxyNode;
+            }
+        }
+        return el;
     },
 
     // Interaction. The controller part.

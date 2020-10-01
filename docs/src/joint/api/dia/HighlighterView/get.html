@@ -1,0 +1,33 @@
+<pre class="docs-method-signature"><code>HighlighterView.get(cellView)</code></pre>
+
+<p>Return an array of highlighters on the <i>cellView</i>. Only highlighters, which are instances of this class are returned.</p>
+
+<pre><code>// Extend the Base Highlighter Class
+const ChildHighlighterView = joint.dia.Highlighter.extend({});
+
+const h1 = joint.dia.HighlighterView.add(cellView, 'root', 'id1');
+const c1 = ChildHighlighterView.add(cellView, 'root', 'id2');
+
+const parentHighlighters = joint.dia.Highlighters.get(cellView);
+assert.ok(parentHighlighters.includes(h1));
+assert.ok(parentHighlighters.includes(c1));
+const childHighlighters = ChildHighlighterView.get(cellView);
+assert.notOk(parentHighlighters.includes(h1));
+assert.ok(parentHighlighters.includes(c1));</code></pre>
+
+<pre class="docs-method-signature"><code>HighlighterView.get(cellView, id)</code></pre>
+
+<p>Return the highlighter with given <i>id</i> on the <i>cellView</i>. The highlighter returned must be an instance of this class. If such a highlighter does not exist, <code>null</code> is returned.</p>
+
+<pre><code>// Extend the Base Highlighter Class
+const ChildHighlighterView = joint.dia.Highlighter.extend({});
+
+const h1 = joint.dia.HighlighterView.add(cellView, 'root', 'h1');
+const c1 = ChildHighlighterView.add(cellView, 'root', 'c1');
+
+assert.equal(h1, joint.dia.Highlighters.get(cellView, 'h1));
+assert.equal(c1, joint.dia.Highlighters.get(cellView, 'c1));
+// There is no instance of ChildHighlighterView on the CellView
+assert.equal(null, ChildHighlighterView.get(cellView, 'h1));
+assert.equal(c1, ChildHighlighterView.get(cellView, 'c1));</code></pre>
+

@@ -1,23 +1,20 @@
 import * as util from '../util/index.mjs';
 import V from '../V/index.mjs';
+import { HighlighterView } from '../dia/HighlighterView.mjs';
 
-export const opacity = {
+export const opacity = HighlighterView.extend({
 
-    /**
-     * @param {joint.dia.CellView} cellView
-     * @param {Element} magnetEl
-     */
-    highlight: function(cellView, magnetEl) {
+    UPDATABLE: false,
+    MOUNTABLE: false,
 
-        V(magnetEl).addClass(util.addClassNamePrefix('highlight-opacity'));
+    opacityClassName: util.addClassNamePrefix('highlight-opacity'),
+
+    highlight: function(_cellView, node) {
+        V(node).addClass(this.opacityClassName);
     },
 
-    /**
-     * @param {joint.dia.CellView} cellView
-     * @param {Element} magnetEl
-     */
-    unhighlight: function(cellView, magnetEl) {
-
-        V(magnetEl).removeClass(util.addClassNamePrefix('highlight-opacity'));
+    unhighlight: function(_cellView, node) {
+        V(node).removeClass(this.opacityClassName);
     }
-};
+
+});

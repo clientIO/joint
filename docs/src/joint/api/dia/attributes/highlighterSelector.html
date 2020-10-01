@@ -2,19 +2,16 @@
 
 <p>A change in the cell's magnet affects the following characteristics of the cell view:
     <ul>
-        <li>link anchor</li>
-        <li>link connection point</li>
-        <li>connector</li>
-        <li>router</li>
+        <li>magnet highlight</li>
     </ul>
 </p>
 
-<p>It has no effect on the connection validation, magnet highlighter and the <code>source</code> and <code>target</code> link model attributes.</p>
+<p>It has no effect on the connection validation and link model attributes.</p>
 
 <pre><code>// `standard.Rectangle` has `root`, `body` and `label` subelements
 const rect = new joint.shapes.standard.Rectangle();
 // we want to have the `label` on the outside and under the `body` of the rectangle:
 rect.attr(['label'], { refY: '100%', textVerticalAnchor: 'top' });
-// normally, links would connect to the `root` subelement (the wrapper of `body` and `label`)
-// however, we want links to connect only to the `body` subelement, so we need to specify it as a proxy for `root`:
-rect.attr(['root','magnetSelector'], 'body');</code></pre>
+// normally, highlighters would appear around the `root` subelement (the wrapper of `body` and `label`)
+// however, we want highlighters to highlight only to the `body` subelement, so we need to specify it as a proxy for `root`:
+rect.attr(['root','highlighterSelector'], 'body');</code></pre>
