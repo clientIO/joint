@@ -40,7 +40,8 @@ export const mask = HighlighterView.extend({
         'marker-start',
         'marker-end',
         'marker-mid',
-        'transform'
+        'transform',
+        'stroke-dasharray'
     ],
 
     MASK_CHILD_ATTRIBUTE_BLACKLIST: [
@@ -48,6 +49,7 @@ export const mask = HighlighterView.extend({
         'fill',
         'stroke-width',
         'stroke-opacity',
+        'stroke-dasharray',
         'fill-opacity',
         'marker-start',
         'marker-end',
