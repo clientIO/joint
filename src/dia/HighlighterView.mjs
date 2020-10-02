@@ -72,7 +72,7 @@ export const HighlighterView = mvc.View.extend({
 
     mount() {
         const { MOUNTABLE, cellView, el, options, transformGroup } = this;
-        if (!MOUNTABLE) return;
+        if (!MOUNTABLE || transformGroup) return;
         const { vel: cellViewRoot, paper } = cellView;
         const { layer: layerName } = options;
         if (layerName) {
@@ -80,7 +80,7 @@ export const HighlighterView = mvc.View.extend({
                 .addClass('highlight-transform')
                 .append(el)
                 .appendTo(paper.getLayerNode(layerName));
-        } else if (!transformGroup) {
+        } else {
             // TODO: prepend vs append
             if (!el.parentNode || el.nextSibling) {
                 // Not appended yet or not the last child

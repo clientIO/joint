@@ -3,6 +3,16 @@ import { HighlighterView } from '../dia/HighlighterView.mjs';
 
 const MASK_CLIP = 20;
 
+function forEachDescendant(vel, fn) {
+    const descendants = vel.children();
+    while (descendants.length > 0) {
+        const descendant = descendants.shift();
+        if (fn(descendant)) {
+            descendants.push(...descendant.children());
+        }
+    }
+}
+
 export const mask = HighlighterView.extend({
 
     tagName: 'rect',
@@ -46,12 +56,16 @@ export const mask = HighlighterView.extend({
 
     // TODO: change the list to a function callback
     MASK_REPLACE_TAGS: [
-        'TEXT' // Experimental: it's currently not in use since the text is always removed
+        'FOREIGNOBJECT',
+        'IMAGE',
+        'USE',
+        'TEXT', // Experimental: it's currently not in use since the text is always removed
     ],
 
     // TODO: change the list to a function callback
     MASK_REMOVE_TAGS: [
-        'TEXT'
+        'TEXT',
+        'TSPAN'
     ],
 
     transformMaskChild(cellView, childEl) {
@@ -61,9 +75,11 @@ export const mask = HighlighterView.extend({
             MASK_REMOVE_TAGS
         } = this;
         const childTagName = childEl.tagName();
-        if (MASK_REMOVE_TAGS.includes(childTagName)) {
+        if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
             childEl.remove();
-        } else if (MASK_REPLACE_TAGS.includes(childTagName)) {
+            return false;
+        }
+        if (MASK_REPLACE_TAGS.includes(childTagName)) {
             // Replace the child with a rectangle
             // Note: clone() method does not change the children ids
             const originalChild = cellView.vel.findOne(`#${childEl.id}`);
@@ -81,13 +97,14 @@ export const mask = HighlighterView.extend({
                 childEl.parent().append(replacement);
             }
             childEl.remove();
-        } else {
-            // Clean the child from certain attributes
-            MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(attrName => {
-                if (attrName === 'fill' && childEl.attr('fill') === 'none') return;
-                childEl.removeAttr(attrName);
-            });
+            return false;
         }
+        // Clean the child from certain attributes
+        MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(attrName => {
+            if (attrName === 'fill' && childEl.attr('fill') === 'none') return;
+            childEl.removeAttr(attrName);
+        });
+        return true;
     },
 
     transformMaskRoot(_cellView, rootEl) {
@@ -101,10 +118,11 @@ export const mask = HighlighterView.extend({
         const { options } = this;
         const { deep } = options;
         let maskRoot;
-        if (vel.tagName() === 'G') {
+        const tagName = vel.tagName();
+        if (tagName === 'G' || tagName === 'IMAGE' || tagName === 'USE') {
             if (!deep) return null;
             maskRoot = vel.clone();
-            maskRoot.find('*').forEach(maskChild => this.transformMaskChild(cellView, maskChild));
+            forEachDescendant(maskRoot, maskChild => this.transformMaskChild(cellView, maskChild));
         } else {
             maskRoot = vel.clone();
         }
