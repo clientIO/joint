@@ -60,14 +60,14 @@ export const mask = HighlighterView.extend({
     MASK_REPLACE_TAGS: [
         'FOREIGNOBJECT',
         'IMAGE',
-        'USE',
-        'TEXT', // Experimental: it's currently not in use since the text is always removed
+        'USE'
     ],
 
     // TODO: change the list to a function callback
     MASK_REMOVE_TAGS: [
         'TEXT',
-        'TSPAN'
+        'TSPAN',
+        'TEXTPATH'
     ],
 
     transformMaskChild(cellView, childEl) {
@@ -77,12 +77,13 @@ export const mask = HighlighterView.extend({
             MASK_REMOVE_TAGS
         } = this;
         const childTagName = childEl.tagName();
+        // Do not include the element in the mask's image
         if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
             childEl.remove();
             return false;
         }
+        // Replace the element with a rectangle
         if (MASK_REPLACE_TAGS.includes(childTagName)) {
-            // Replace the child with a rectangle
             // Note: clone() method does not change the children ids
             const originalChild = cellView.vel.findOne(`#${childEl.id}`);
             if (originalChild) {
@@ -101,7 +102,7 @@ export const mask = HighlighterView.extend({
             childEl.remove();
             return false;
         }
-        // Clean the child from certain attributes
+        // Keep the element, but clean it from certain attributes
         MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(attrName => {
             if (attrName === 'fill' && childEl.attr('fill') === 'none') return;
             childEl.removeAttr(attrName);
