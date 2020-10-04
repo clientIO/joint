@@ -1554,11 +1554,12 @@ export const Paper = View.extend({
             oy = 0;
         }
 
+        var scale = this.scale();
         var translate = this.translate();
 
         if (ox || oy || translate.tx || translate.ty) {
-            var newTx = translate.tx - ox * (sx - 1);
-            var newTy = translate.ty - oy * (sy - 1);
+            var newTx = translate.tx - ox * (sx - scale.sx);
+            var newTy = translate.ty - oy * (sy - scale.sy);
             this.translate(newTx, newTy);
         }
 
