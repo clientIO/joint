@@ -1601,7 +1601,7 @@ export namespace highlighters {
 
         protected transformMaskRoot(cellView: dia.CellView, root: V): void;
 
-        protected transformMaskChild(cellView: dia.CellView, child: V): void;
+        protected transformMaskChild(cellView: dia.CellView, child: V): boolean;
 
         protected addMask(paper: dia.Paper, mask: V): void;
 

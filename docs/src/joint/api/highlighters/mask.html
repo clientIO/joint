@@ -11,6 +11,7 @@
     <ul>
         <li><b>lesser performance</b> - uses <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/mask" target="_blank">SVG masking</a> to find the outline</li>
         <li><b>no fill</b> - the color inside the mask must stay transparent.</li>
+        <li><b>no dasharray</b> - the stroke patterns of dashes and gaps are not applicable.</li>
     </ul>
 </div>
 
@@ -33,7 +34,9 @@
         'stroke-linejoin': 'round',
         // round the mask at the end of open subpaths
         'stroke-linecap': 'round'
-        // experimental opacity effect
-        'stroke-opacity': 0.5
+        // to change the opacity use `rgba` color format
+        // 'stroke': 'rgba(255, 0, 0, 0.5)',
+        // this would affect the opacity of the stroke and the padding
+        // 'stroke-opacity': 0.5
     }
 });</code></pre>

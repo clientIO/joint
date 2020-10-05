@@ -123,13 +123,21 @@ QUnit.module('HighlighterView', function(hooks) {
                 var highlighter;
                 var id = 'highlighter-id';
 
-                // Layer = Highlighters
-                highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
-                    layer: 'front'
+                // Layer = Back/Front
+                ['back', 'front'].forEach(function(layer) {
+                    var vLayer = V(paper.getLayerNode(layer));
+                    var backChildrenCount = vLayer.children().length;
+                    highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
+                        layer: layer
+                    });
+                    assert.ok(highlighter.vel.parent().hasClass('highlight-transform'));
+                    assert.ok(vLayer.contains(highlighter.el));
+                    assert.equal(vLayer.children().length, backChildrenCount + 1);
+                    joint.dia.HighlighterView.update(elementView, id);
+                    assert.equal(vLayer.children().length, backChildrenCount + 1);
+                    joint.dia.HighlighterView.remove(elementView, id);
+                    assert.equal(vLayer.children().length, backChildrenCount);
                 });
-                assert.ok(highlighter.vel.parent().hasClass('highlight-transform'));
-                assert.ok(V(paper.getLayerNode('front')).contains(highlighter.el));
-                joint.dia.HighlighterView.remove(elementView, id);
 
                 // Layer = Null
                 highlighter = joint.dia.HighlighterView.add(elementView, 'body', id, {
