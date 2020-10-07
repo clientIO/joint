@@ -1454,7 +1454,9 @@ export namespace dia {
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
 
-        type Options = Record<string, any>;
+        type Options = {
+            layer?: dia.Paper.Layers | string | null;
+        };
     }
 
     class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
@@ -1527,19 +1529,17 @@ export namespace dia {
 
 export namespace highlighters {
 
-    interface HighlighterArguments {
-        layer?: dia.Paper.Layers | string | null;
-    }
+    import HighlighterView = dia.HighlighterView;
 
-    interface AddClassHighlighterArguments extends HighlighterArguments {
+    interface AddClassHighlighterArguments extends HighlighterView.Options {
         className?: string;
     }
 
-    interface OpacityHighlighterArguments extends HighlighterArguments {
+    interface OpacityHighlighterArguments extends HighlighterView.Options {
 
     }
 
-    interface StrokeHighlighterArguments extends HighlighterArguments {
+    interface StrokeHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         rx?: number;
         ry?: number;
@@ -1547,7 +1547,7 @@ export namespace highlighters {
         attrs?: attributes.NativeSVGAttributes;
     }
 
-    interface MaskHighlighterArguments extends HighlighterArguments {
+    interface MaskHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         maskClip?: number;
         deep?: boolean;
@@ -1578,7 +1578,10 @@ export namespace highlighters {
         options?: GenericHighlighterArguments<K>;
     }
 
-    // type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+    /**
+     * @deprecated
+     */
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
 
     type Highlighter = GenericHighlighter<HighlighterType>;
 
