@@ -1461,7 +1461,7 @@ export namespace dia {
 
         constructor(options?: Options);
 
-        options: HighlighterView.Options;
+        options: Options;
 
         UPDATABLE: boolean;
         MOUNTABLE: boolean;
