@@ -1000,9 +1000,7 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: boolean | {
-                [type: string | dia.CellView.Highlighting]: highlighters.HighlighterJSON | boolean
-            };
+            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
@@ -1455,13 +1453,15 @@ export namespace dia {
         };
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
+
+        type Options = Record<string, any>;
     }
 
-    class HighlighterView<Options> extends mvc.View<undefined> {
+    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
 
         constructor(options?: Options);
 
-        options: Options;
+        options: HighlighterView.Options;
 
         UPDATABLE: boolean;
         MOUNTABLE: boolean;
@@ -1470,11 +1470,11 @@ export namespace dia {
         nodeSelector: HighlighterView.NodeSelector | null;
         node: SVGElement | null;
         updateRequested: boolean;
-        transformGroup: V | null;
+        transformGroup: Vectorizer | null;
+
+        public unmount(): void;
 
         protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
-
-        protected unmount(): void;
 
         protected transform(): void;
 
@@ -1578,7 +1578,7 @@ export namespace highlighters {
         options?: GenericHighlighterArguments<K>;
     }
 
-    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+    // type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
 
     type Highlighter = GenericHighlighter<HighlighterType>;
 
@@ -1595,15 +1595,15 @@ export namespace highlighters {
 
         public getMaskId(): string;
 
-        protected getMask(cellView: dia.CellView, vel: V): V;
+        protected getMask(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
 
-        protected getMaskShape(cellView: dia.CellView, vel: V): V;
+        protected getMaskShape(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
 
-        protected transformMaskRoot(cellView: dia.CellView, root: V): void;
+        protected transformMaskRoot(cellView: dia.CellView, root: Vectorizer): void;
 
-        protected transformMaskChild(cellView: dia.CellView, child: V): boolean;
+        protected transformMaskChild(cellView: dia.CellView, child: Vectorizer): boolean;
 
-        protected addMask(paper: dia.Paper, mask: V): void;
+        protected addMask(paper: dia.Paper, mask: Vectorizer): void;
 
         protected removeMask(paper: dia.Paper): void;
     }
