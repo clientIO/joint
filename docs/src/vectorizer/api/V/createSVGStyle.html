@@ -1,0 +1,10 @@
+        <pre class="docs-method-signature"><code>V.createSVGStyle(stylesheet)</code></pre>
+        <p>Return an <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/style">SVGStyleElement</a> containing the CSS <code>stylesheet</code>.</p>
+
+        <pre><code>const style = V.createSVGStyle(`
+  rect, circle {
+    fill: white;
+    stroke: black;
+  }
+`);
+document.getElementById('my-svg').appendChild(style);</code></pre>

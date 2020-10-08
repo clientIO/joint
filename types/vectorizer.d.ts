@@ -216,6 +216,10 @@ export class Vectorizer {
 
     static createSVGDocument(content: string): Document;
 
+    static createSVGStyle(stylesheet: string): SVGStyleElement;
+
+    static createCDATASection(data: string): CDATASection;
+
     static uniqueId(): string;
 
     static ensureId(node: SVGElement | Vectorizer): string;

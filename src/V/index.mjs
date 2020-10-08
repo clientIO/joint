@@ -1278,6 +1278,18 @@ const V = (function() {
         return svg;
     };
 
+    V.createSVGStyle = function(stylesheet) {
+        const { node } = V('style', { type: 'text/css' }, [
+            V.createCDATASection(stylesheet)
+        ]);
+        return node;
+    },
+
+    V.createCDATASection = function(data = '') {
+        const xml = document.implementation.createDocument(null, 'xml', null);
+        return xml.createCDATASection(data);
+    };
+
     V.idCounter = 0;
 
     // A function returning a unique identifier for this client session with every call.
