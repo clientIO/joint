@@ -220,7 +220,7 @@ const m1 = mask.add(
     { selector: 'body' },
     'my-id2',
     <joint.highlighters.MaskHighlighterArguments>{
-        layer: joint.dia.Paper.layers.Front,
+        layer: joint.dia.Paper.Layers.FRONT,
         maskClip: 10,
         padding: 5
     }
