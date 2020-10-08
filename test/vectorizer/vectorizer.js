@@ -1288,6 +1288,35 @@ QUnit.module('vectorizer', function(hooks) {
         });
     });
 
+    QUnit.module('createCDATASection', function() {
+
+        QUnit.test('creates CDATASection with a content', function(assert) {
+
+            var cdata1 = V.createCDATASection();
+            assert.ok(cdata1 instanceof CDATASection);
+            assert.equal(cdata1.textContent, '');
+
+            var cdata2 = V.createCDATASection('data');
+            assert.ok(cdata2 instanceof CDATASection);
+            assert.equal(cdata2.textContent, 'data');
+        });
+    });
+
+    QUnit.module('createSVGStyle', function() {
+
+        QUnit.test('creates SVGStyleElement with CSS content', function(assert) {
+
+            var s1 = V.createSVGStyle();
+            assert.ok(s1 instanceof SVGStyleElement);
+            assert.equal(s1.textContent, '');
+
+            var stylesheet = 'rect { fill: red; }';
+            var s2 = V.createSVGStyle(stylesheet);
+            assert.ok(s2 instanceof SVGStyleElement);
+            assert.equal(s2.textContent, stylesheet);
+        });
+    });
+
     QUnit.module('className', function() {
 
         QUnit.test('addClass()', function(assert) {
