@@ -1000,9 +1000,7 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: boolean | {
-                [type: string | dia.CellView.Highlighting]: highlighters.HighlighterJSON | boolean
-            };
+            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
@@ -1455,9 +1453,13 @@ export namespace dia {
         };
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
+
+        type Options = {
+            layer?: dia.Paper.Layers | string | null;
+        };
     }
 
-    class HighlighterView<Options> extends mvc.View<undefined> {
+    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
 
         constructor(options?: Options);
 
@@ -1470,11 +1472,11 @@ export namespace dia {
         nodeSelector: HighlighterView.NodeSelector | null;
         node: SVGElement | null;
         updateRequested: boolean;
-        transformGroup: V | null;
+        transformGroup: Vectorizer | null;
+
+        public unmount(): void;
 
         protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
-
-        protected unmount(): void;
 
         protected transform(): void;
 
@@ -1527,19 +1529,17 @@ export namespace dia {
 
 export namespace highlighters {
 
-    interface HighlighterArguments {
-        layer?: dia.Paper.Layers | string | null;
-    }
+    import HighlighterView = dia.HighlighterView;
 
-    interface AddClassHighlighterArguments extends HighlighterArguments {
+    interface AddClassHighlighterArguments extends HighlighterView.Options {
         className?: string;
     }
 
-    interface OpacityHighlighterArguments extends HighlighterArguments {
+    interface OpacityHighlighterArguments extends HighlighterView.Options {
 
     }
 
-    interface StrokeHighlighterArguments extends HighlighterArguments {
+    interface StrokeHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         rx?: number;
         ry?: number;
@@ -1547,7 +1547,7 @@ export namespace highlighters {
         attrs?: attributes.NativeSVGAttributes;
     }
 
-    interface MaskHighlighterArguments extends HighlighterArguments {
+    interface MaskHighlighterArguments extends HighlighterView.Options {
         padding?: number;
         maskClip?: number;
         deep?: boolean;
@@ -1566,21 +1566,10 @@ export namespace highlighters {
 
     type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
 
-    interface GenericHighlighter<K extends HighlighterType> {
-
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-    }
-
     interface GenericHighlighterJSON<K extends HighlighterType> {
         name: K;
         options?: GenericHighlighterArguments<K>;
     }
-
-    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
-
-    type Highlighter = GenericHighlighter<HighlighterType>;
 
     type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
 
@@ -1595,15 +1584,15 @@ export namespace highlighters {
 
         public getMaskId(): string;
 
-        protected getMask(cellView: dia.CellView, vel: V): V;
+        protected getMask(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
 
-        protected getMaskShape(cellView: dia.CellView, vel: V): V;
+        protected getMaskShape(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
 
-        protected transformMaskRoot(cellView: dia.CellView, root: V): void;
+        protected transformMaskRoot(cellView: dia.CellView, root: Vectorizer): void;
 
-        protected transformMaskChild(cellView: dia.CellView, child: V): boolean;
+        protected transformMaskChild(cellView: dia.CellView, child: Vectorizer): boolean;
 
-        protected addMask(paper: dia.Paper, mask: V): void;
+        protected addMask(paper: dia.Paper, mask: Vectorizer): void;
 
         protected removeMask(paper: dia.Paper): void;
     }
@@ -1625,6 +1614,26 @@ export namespace highlighters {
 
         opacityClassName: string;
     }
+
+    /**
+     * @deprecated
+     */
+    interface GenericHighlighter<K extends HighlighterType> {
+
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
+
+    /**
+     * @deprecated
+     */
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+
+    /**
+     * @deprecated
+     */
+    type Highlighter = GenericHighlighter<HighlighterType>;
 }
 
 export namespace shapes {
