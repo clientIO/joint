@@ -1566,24 +1566,10 @@ export namespace highlighters {
 
     type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
 
-    interface GenericHighlighter<K extends HighlighterType> {
-
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-    }
-
     interface GenericHighlighterJSON<K extends HighlighterType> {
         name: K;
         options?: GenericHighlighterArguments<K>;
     }
-
-    /**
-     * @deprecated
-     */
-    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
-
-    type Highlighter = GenericHighlighter<HighlighterType>;
 
     type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
 
@@ -1628,6 +1614,26 @@ export namespace highlighters {
 
         opacityClassName: string;
     }
+
+    /**
+     * @deprecated
+     */
+    interface GenericHighlighter<K extends HighlighterType> {
+
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
+
+    /**
+     * @deprecated
+     */
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+
+    /**
+     * @deprecated
+     */
+    type Highlighter = GenericHighlighter<HighlighterType>;
 }
 
 export namespace shapes {
