@@ -58,7 +58,8 @@ module.exports = function(grunt) {
             'shell:rollup-test-bundle',
             'test:server',
             'test:client',
-            'test:code-style'
+            'test:code-style',
+            'ts:test'
         ],
         'test:server': ['mochaTest:server'],
         'test:client': [

@@ -11,6 +11,7 @@ module.exports = {
     test: {
         src: [
             'test/**/*.js',
+            '!test/ts/*.js',
             '!test/**/lodash3/**'
         ],
         options: {
