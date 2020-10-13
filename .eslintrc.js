@@ -17,7 +17,8 @@ module.exports = {
         'node': true
     },
     'globals': {
-       'Uint8Array': true
+       'Uint8Array': true,
+       'CDATASection': true
     },
     'parserOptions': {
         'ecmaVersion': 6,
