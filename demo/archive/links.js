@@ -27,16 +27,7 @@ var paper = new joint.dia.Paper({
         options: joint.util.defaults({
             doubleLinkTools: true,
         }, joint.dia.LinkView.prototype.options)
-    }),
-    restrictTranslate: function() {
-        return function(x, y) {
-            var p = new g.Point(x, y);
-            var ellipse = new g.Ellipse(new g.Point(300, 200), 100, 100);
-            if (ellipse.containsPoint(p)) return p;
-            var intersection = ellipse.intersectionWithLineFromCenterToPoint(p);
-            return intersection || p;
-        }
-    }
+    })
 });
 
 paper.on('link:pointerdown', function(evt, linkView, x, y) {

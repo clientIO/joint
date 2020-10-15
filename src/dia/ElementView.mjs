@@ -641,7 +641,7 @@ export const ElementView = CellView.extend({
 
         view.eventData(evt, {
             pointerOffset: view.model.position().difference(x, y),
-            restrictedArea: this.paper.getRestrictedArea(view)
+            restrictedArea: this.paper.getRestrictedArea(view, x, y)
         });
     },
 

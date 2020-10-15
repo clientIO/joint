@@ -101,7 +101,7 @@ export const Element = Cell.extend({
 
             if (typeof ra === 'function') {
 
-                var newPosition = ra.call(this, position.x + tx, position.y + ty);
+                var newPosition = ra.call(this, position.x + tx, position.y + ty, opt);
 
                 tx = newPosition.x - position.x;
                 ty = newPosition.y - position.y;
