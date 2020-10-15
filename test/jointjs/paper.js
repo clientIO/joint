@@ -236,6 +236,60 @@ QUnit.module('paper', function(hooks) {
             'Paper area returns correct results for scaled and translated viewport.');
     });
 
+    QUnit.module('paper.getRestrictedArea()', function() {
+
+        QUnit.test('function', function(assert) {
+            var constraintPoint = function() {};
+            var spy = sinon.spy(function() { return constraintPoint; });
+            this.paper.options.restrictTranslate = spy;
+            assert.equal(this.paper.getRestrictedArea(1,2,3), constraintPoint);
+            assert.ok(spy.calledWithExactly(1,2,3));
+        });
+
+        QUnit.test('boolean', function(assert) {
+            this.paper.options.restrictTranslate = true;
+            assert.ok(this.paper.getRestrictedArea().equals(this.paper.getArea()));
+        });
+
+        QUnit.test('rectangle', function(assert) {
+            this.paper.options.restrictTranslate = { x: 1, y: 2, width: 3, height: 4 };
+            assert.ok(this.paper.getRestrictedArea() instanceof g.Rect);
+            assert.ok(this.paper.getRestrictedArea().equals(new g.Rect(1,2,3,4)));
+        });
+    });
+
+    QUnit.module('paper.options: restrictTranslate', function() {
+
+        QUnit.test('function => function', function(assert) {
+            var pointSpy = sinon.spy(function() { return new g.Point(); });
+            var rtSpy = sinon.spy(function() { return pointSpy; });
+            this.paper.options.gridSize = 1;
+            this.paper.options.restrictTranslate = rtSpy;
+
+            var el = new joint.shapes.standard.Rectangle();
+            el.resize(100, 100);
+            el.addTo(this.graph);
+            var view = el.findView(this.paper);
+            var data = {};
+            // down
+            view.pointerdown({ target: view.el, type: 'mousedown', data: data }, 1, 2);
+            assert.ok(rtSpy.calledOnce);
+            assert.ok(rtSpy.calledWithExactly(view, 1, 2));
+            // move
+            view.pointermove({ target: view.el, type: 'mousemove', data: data }, 3, 7);
+            assert.ok(pointSpy.calledOnce);
+            assert.ok(pointSpy.calledWithExactly(3 - 1, 7 - 2, sinon.match.object));
+            view.pointermove({ target: view.el, type: 'mousemove', data: data }, 11, 13);
+            assert.ok(pointSpy.calledTwice);
+            assert.ok(pointSpy.calledWithExactly(11 - 1, 13 - 2, sinon.match.object));
+            // up
+            view.pointerup({ target: view.el, type: 'mouseup', data: data }, 11, 13);
+            assert.ok(rtSpy.calledOnce);
+            assert.ok(pointSpy.calledTwice);
+        });
+
+    });
+
     QUnit.test('paper.options: linkView & elementView', function(assert) {
 
         assert.expect(8);
