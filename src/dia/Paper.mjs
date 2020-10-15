@@ -1340,19 +1340,23 @@ export const Paper = View.extend({
         return this.paperToLocalRect(this.getComputedSize());
     },
 
-    getRestrictedArea: function() {
+    getRestrictedArea: function(...args) {
 
-        var restrictedArea;
+        const { restrictTranslate } = this.options;
 
-        if (isFunction(this.options.restrictTranslate)) {
+        let restrictedArea;
+        if (isFunction(restrictTranslate)) {
             // A method returning a bounding box
-            restrictedArea = this.options.restrictTranslate.apply(this, arguments);
-        } else if (this.options.restrictTranslate === true) {
+            restrictedArea = restrictTranslate.apply(this, args);
+        } else if (restrictTranslate === true) {
             // The paper area
             restrictedArea = this.getArea();
+        } else if (!restrictTranslate) {
+            // falsy value
+            restrictedArea = null;
         } else {
-            // Either false or a bounding box
-            restrictedArea = this.options.restrictTranslate || null;
+            // any other value
+            restrictedArea = new Rect(restrictTranslate);
         }
 
         return restrictedArea;

@@ -989,6 +989,9 @@ export namespace dia {
             afterRender?: AfterRenderCallback;
         }
 
+        type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
+        type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
             width?: Dimension;
@@ -1008,7 +1011,7 @@ export namespace dia {
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: dia.Event) => boolean;
             validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
-            restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
+            restrictTranslate?: RestrictTranslateCallback | boolean | BBox;
             multiLinks?: boolean;
             linkPinning?: boolean;
             allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
@@ -1158,7 +1161,8 @@ export namespace dia {
 
         getArea(): g.Rect;
 
-        getRestrictedArea(): g.Rect | undefined;
+        getRestrictedArea(): g.Rect | null;
+        getRestrictedArea(elementView: ElementView, x: number, y: number): g.Rect | null | Paper.PointConstraintCallback;
 
         getContentArea(opt?: { useModelGeometry: boolean }): g.Rect;
 
