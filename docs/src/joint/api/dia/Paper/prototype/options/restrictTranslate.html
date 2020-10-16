@@ -10,7 +10,7 @@ This option also accepts a function with signature <code>function(elementView, x
         <b>null</b> - no restriction for element translation
     </li>
     <li>
-        <b>(x, y) => Position</b> - For given local coordinates <code>x,y</code> return an element position <code>{ x: Number, y: Number }</code>. The function is invoked every time the pointer coordinates change.
+        <b>(x, y) => Position</b> - For a given element position <code>x,y</code> return a new position <code>{ x: Number, y: Number }</code>. The function is invoked every time the user moves the pointer.
     </li>
 </ul>
 
