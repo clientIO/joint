@@ -60,7 +60,10 @@ export const mask = HighlighterView.extend({
     MASK_REPLACE_TAGS: [
         'FOREIGNOBJECT',
         'IMAGE',
-        'USE'
+        'USE',
+        'TEXT',
+        'TSPAN',
+        'TEXTPATH'
     ],
 
     // TODO: change the list to a function callback
@@ -118,15 +121,16 @@ export const mask = HighlighterView.extend({
     },
 
     getMaskShape(cellView, vel) {
-        const { options } = this;
+        const { options, MASK_REPLACE_TAGS } = this;
         const { deep } = options;
-        let maskRoot;
         const tagName = vel.tagName();
-        if (tagName === 'G' || tagName === 'IMAGE' || tagName === 'USE') {
+        let maskRoot;
+        if (tagName === 'G') {
             if (!deep) return null;
             maskRoot = vel.clone();
             forEachDescendant(maskRoot, maskChild => this.transformMaskChild(cellView, maskChild));
         } else {
+            if (MASK_REPLACE_TAGS.includes(tagName)) return null;
             maskRoot = vel.clone();
         }
         this.transformMaskRoot(cellView, maskRoot);
