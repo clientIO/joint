@@ -478,6 +478,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
         if (!word) continue;
 
+        var isEol = false;
         if (eol && word.indexOf(eol) >= 0) {
             // word contains end-of-line character
             if (word.length > 1) {
@@ -489,107 +490,108 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
                 words.splice(i, 1, ...eolWords.filter(word => word !== ''));
                 i--;
                 len = words.length;
+                continue;
             } else {
                 // creates a new line
                 lines[++l] = '';
+                isEol = true;
             }
-            continue;
         }
 
+        if (!isEol) {
+            textNode.data = lines[l] ? lines[l] + ' ' + word : word;
 
-        textNode.data = lines[l] ? lines[l] + ' ' + word : word;
+            if (textSpan.getComputedTextLength() <= width) {
 
-        if (textSpan.getComputedTextLength() <= width) {
+                // the current line fits
+                lines[l] = textNode.data;
 
-            // the current line fits
-            lines[l] = textNode.data;
-
-            if (p || h) {
+                if (p || h) {
                 // We were partitioning. Put rest of the word onto next line
-                full[l++] = true;
+                    full[l++] = true;
 
-                // cancel partitioning and splitting by hyphens
-                p = 0;
-                h = 0;
-            }
-
-        } else {
-
-            if (!lines[l] || p) {
-
-                var partition = !!p;
-
-                p = word.length - 1;
-
-                if (partition || !p) {
-
-                    // word has only one character.
-                    if (!p) {
-
-                        if (!lines[l]) {
-
-                            // we won't fit this text within our rect
-                            lines = [];
-
-                            break;
-                        }
-
-                        // partitioning didn't help on the non-empty line
-                        // try again, but this time start with a new line
-
-                        // cancel partitions created
-                        words.splice(i, 2, word + words[i + 1]);
-
-                        // adjust word length
-                        len--;
-
-                        full[l++] = true;
-                        i--;
-
-                        continue;
-                    }
-
-                    // move last letter to the beginning of the next word
-                    words[i] = word.substring(0, p);
-                    words[i + 1] = word.substring(p) + words[i + 1];
-
-                } else {
-
-                    if (h) {
-                        // cancel splitting and put the words together again
-                        words.splice(i, 2, words[i] + words[i + 1]);
-                        h = 0;
-                    } else {
-                        var hyphenIndex = word.search(hyphen);
-                        if (hyphenIndex > -1 && hyphenIndex !== word.length - 1 && hyphenIndex !== 0) {
-                            h = hyphenIndex + 1;
-                            p = 0;
-                        }
-
-                        // We initiate partitioning or splitting
-                        // split the long word into two words
-                        words.splice(i, 1, word.substring(0, h || p), word.substring(h|| p));
-                        // adjust words length
-                        len++;
-
-                    }
-
-                    if (l && !full[l - 1]) {
-                        // if the previous line is not full, try to fit max part of
-                        // the current word there
-                        l--;
-                    }
+                    // cancel partitioning and splitting by hyphens
+                    p = 0;
+                    h = 0;
                 }
 
+            } else {
+
+                if (!lines[l] || p) {
+
+                    var partition = !!p;
+
+                    p = word.length - 1;
+
+                    if (partition || !p) {
+
+                        // word has only one character.
+                        if (!p) {
+
+                            if (!lines[l]) {
+
+                                // we won't fit this text within our rect
+                                lines = [];
+
+                                break;
+                            }
+
+                            // partitioning didn't help on the non-empty line
+                            // try again, but this time start with a new line
+
+                            // cancel partitions created
+                            words.splice(i, 2, word + words[i + 1]);
+
+                            // adjust word length
+                            len--;
+
+                            full[l++] = true;
+                            i--;
+
+                            continue;
+                        }
+
+                        // move last letter to the beginning of the next word
+                        words[i] = word.substring(0, p);
+                        words[i + 1] = word.substring(p) + words[i + 1];
+
+                    } else {
+
+                        if (h) {
+                        // cancel splitting and put the words together again
+                            words.splice(i, 2, words[i] + words[i + 1]);
+                            h = 0;
+                        } else {
+                            var hyphenIndex = word.search(hyphen);
+                            if (hyphenIndex > -1 && hyphenIndex !== word.length - 1 && hyphenIndex !== 0) {
+                                h = hyphenIndex + 1;
+                                p = 0;
+                            }
+
+                            // We initiate partitioning or splitting
+                            // split the long word into two words
+                            words.splice(i, 1, word.substring(0, h || p), word.substring(h|| p));
+                            // adjust words length
+                            len++;
+
+                        }
+
+                        if (l && !full[l - 1]) {
+                        // if the previous line is not full, try to fit max part of
+                        // the current word there
+                            l--;
+                        }
+                    }
+
+                    i--;
+
+                    continue;
+                }
+
+                l++;
                 i--;
-
-                continue;
             }
-
-            l++;
-            i--;
         }
-
         var lastL = null;
 
         if (lines.length > maxLineCount) {
@@ -635,7 +637,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
             if (typeof ellipsis !== 'string') ellipsis = '\u2026';
 
             var lastLine = lines[lastL];
-            if (!lastLine) break;
+            if (!lastLine && !isEol) break;
             var k = lastLine.length;
             var lastLineWithOmission, lastChar, separatorChar;
             do {
