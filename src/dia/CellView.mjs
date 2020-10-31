@@ -818,16 +818,20 @@ export const CellView = View.extend({
                     allAttributes: nodeAllAttrs
                 };
 
-                // If an element in the list is positioned relative to this one, then
-                // we want to insert this one before it in the list.
-                var itemIndex = relativeItems.findIndex(function(item) {
-                    return item.refNode === node;
-                });
+                if (refNode) {
+                    // If an element in the list is positioned relative to this one, then
+                    // we want to insert this one before it in the list.
+                    var itemIndex = relativeItems.findIndex(function(item) {
+                        return item.refNode === node;
+                    });
 
-                if (itemIndex > -1) {
-                    relativeItems.splice(itemIndex, 0, item);
+                    if (itemIndex > -1) {
+                        relativeItems.splice(itemIndex, 0, item);
+                    } else {
+                        relativeItems.push(item);
+                    }
                 } else {
-                    relativeItems.push(item);
+                    relativeItems.unshift(item);
                 }
             }
         }
