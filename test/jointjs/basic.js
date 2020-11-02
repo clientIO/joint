@@ -1189,7 +1189,7 @@ QUnit.module('basic', function(hooks) {
 
         assert.throws(function() {
             el.attr({ '.small': { 'ref': '.not-existing-reference' }});
-        }, /dia.ElementView/, 'Use of an invalid reference throws an error.');
+        }, /dia.CellView/, 'Use of an invalid reference throws an error.');
     });
 
     QUnit.test('ref-dx, ref-dy, ref', function(assert) {

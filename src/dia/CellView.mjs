@@ -774,6 +774,7 @@ export const CellView = View.extend({
         var selectorCache = {};
         var bboxCache = {};
         var relativeItems = [];
+        var relativeRefItems = [];
         var item, node, nodeAttrs, nodeData, processedAttrs;
 
         var roAttrs = opt.roAttributes;
@@ -805,7 +806,7 @@ export const CellView = View.extend({
                 if (refSelector) {
                     refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode, opt.selectors))[0];
                     if (!refNode) {
-                        throw new Error('dia.ElementView: "' + refSelector + '" reference does not exist.');
+                        throw new Error('dia.CellView: "' + refSelector + '" reference does not exist.');
                     }
                 } else {
                     refNode = null;
@@ -818,19 +819,27 @@ export const CellView = View.extend({
                     allAttributes: nodeAllAttrs
                 };
 
-                // If an element in the list is positioned relative to this one, then
-                // we want to insert this one before it in the list.
-                var itemIndex = relativeItems.findIndex(function(item) {
-                    return item.refNode === node;
-                });
+                if (refNode) {
+                    // If an element in the list is positioned relative to this one, then
+                    // we want to insert this one before it in the list.
+                    var itemIndex = relativeRefItems.findIndex(function(item) {
+                        return item.refNode === node;
+                    });
 
-                if (itemIndex > -1) {
-                    relativeItems.splice(itemIndex, 0, item);
+                    if (itemIndex > -1) {
+                        relativeRefItems.splice(itemIndex, 0, item);
+                    } else {
+                        relativeRefItems.push(item);
+                    }
                 } else {
+                    // A node with no ref attribute. To be updated before the nodes referencing other nodes.
+                    // The order of no-ref-items is not specified/important.
                     relativeItems.push(item);
                 }
             }
         }
+
+        relativeItems.push(...relativeRefItems);
 
         var rotatableMatrix;
         for (var i = 0, n = relativeItems.length; i < n; i++) {
