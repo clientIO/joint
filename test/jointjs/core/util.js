@@ -296,18 +296,31 @@ QUnit.module('util', function(hooks) {
         assert.equal(joint.util.getByPath(obj, ['a/b/c', 'd']), 'abcd', 'path as array, separator in name');
     });
 
-    QUnit.test('util.setByPath()', function(assert) {
+    QUnit.module('util.setByPath()', function() {
 
-        assert.deepEqual(joint.util.setByPath({}, 'property', 1), { property: 1 }, 'non-existing property in an obj set as a number');
-        assert.deepEqual(joint.util.setByPath({ property: 2 }, 'property', 3), { property: 3 }, 'existing property in an obj set as a number');
-        assert.deepEqual(joint.util.setByPath([], '0', 4), [4], 'add an item to an empty array');
-        assert.deepEqual(joint.util.setByPath([5, 6], '1', 7), [5, 7], 'change an item in an array');
-        assert.deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 }}}, 'populate an empty object with nested objects');
-        assert.deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 }}}, 'same but this time with a custom delimiter');
-        assert.deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
-        assert.deepEqual(joint.util.setByPath({ array: [] }, 'array/1', 'index'), { array: [undefined, 'index'] }, 'define array');
-        assert.deepEqual(joint.util.setByPath({ object: {}}, 'object/1', 'property'), { object: { '1': 'property' }}, 'define property');
+        QUnit.test('sets a value at any given path', function(assert) {
+
+            assert.deepEqual(joint.util.setByPath({}, 'property', 1), { property: 1 }, 'non-existing property in an obj set as a number');
+            assert.deepEqual(joint.util.setByPath({ property: 2 }, 'property', 3), { property: 3 }, 'existing property in an obj set as a number');
+            assert.deepEqual(joint.util.setByPath([], '0', 4), [4], 'add an item to an empty array');
+            assert.deepEqual(joint.util.setByPath([5, 6], '1', 7), [5, 7], 'change an item in an array');
+            assert.deepEqual(joint.util.setByPath({}, 'first/second/third', 8), { first: { second: { third: 8 }}}, 'populate an empty object with nested objects');
+            assert.deepEqual(joint.util.setByPath({}, 'first.second.third', 9, '.'), { first: { second: { third: 9 }}}, 'same but this time with a custom delimiter');
+            assert.deepEqual(joint.util.setByPath([null], '0/property', 10), [{ property: 10 }], 'replace null item with an object');
+            assert.deepEqual(joint.util.setByPath({ array: [] }, 'array/1', 'index'), { array: [undefined, 'index'] }, 'define array');
+            assert.deepEqual(joint.util.setByPath({ object: {}}, 'object/1', 'property'), { object: { '1': 'property' }}, 'define property');
+        });
+
+        ['__proto__/polluted', 'constructor/prototype/polluted'].forEach(function(path) {
+            QUnit.test('setting "' + path + '" does not pollute prototype' , function(assert) {
+                var obj = {};
+                assert.notOk(obj.polluted);
+                joint.util.setByPath({}, path, true, '/');
+                assert.notOk(obj.polluted);
+            });
+        });
     });
+
 
     QUnit.module('util.unsetByPath', function(hooks) {
 
