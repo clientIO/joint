@@ -139,17 +139,28 @@ export const getByPath = function(obj, path, delimiter) {
 
 export const setByPath = function(obj, path, value, delimiter) {
 
-    var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
+    const keys = Array.isArray(path) ? path : path.split(delimiter || '/');
+    const last = keys.length - 1;
+    let diver = obj;
+    let i = 0;
 
-    var diver = obj;
-    var i = 0;
-
-    for (var len = keys.length; i < len - 1; i++) {
+    for (; i < last; i++) {
+        const key = keys[i];
+        const value = diver[key];
+        // Prevent prototype pollution
+        // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
+        if (key === 'constructor' && typeof value === 'function') {
+            return obj;
+        }
+        if (key === '__proto__') {
+            return obj;
+        }
         // diver creates an empty object if there is no nested object under such a key.
         // This means that one can populate an empty nested object with setByPath().
-        diver = diver[keys[i]] || (diver[keys[i]] = {});
+        diver = value || (diver[key] = {});
     }
-    diver[keys[len - 1]] = value;
+
+    diver[keys[last]] = value;
 
     return obj;
 };
