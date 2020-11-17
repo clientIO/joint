@@ -136,6 +136,10 @@ QUnit.module('util', function(hooks) {
             t = text;
             r = joint.util.breakText(t, { width: WIDTH }, styles, { maxLineCount: 2 });
             assert.equal(r.split('\n').length, 2);
+
+            t = 'test\n\n\n\n';
+            r = joint.util.breakText(t, { width: WIDTH }, styles, { maxLineCount: 2 });
+            assert.equal(r.split('\n').length, 2);
         });
 
 
@@ -174,6 +178,12 @@ QUnit.module('util', function(hooks) {
                 r = joint.util.breakText(t, { width: w, height: HEIGHT }, styles, { ellipsis: true });
                 assert.ok(r[r.length - 1 - ELLIPSIS.length] === ' ');
             });
+
+            t = 'text\n\n\n\n\n';
+            r = joint.util.breakText(t, { width: WIDTH, height: HEIGHT }, styles, { ellipsis: true });
+            assert.ok(r.indexOf(ELLIPSIS) === r.length - ELLIPSIS.length);
+            assert.ok(measureText(r, styles).width < WIDTH);
+            assert.ok(measureText(r, styles).height < HEIGHT);
         });
 
         QUnit.test('hyphen', function(assert) {
