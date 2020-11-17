@@ -54,8 +54,6 @@ const GraphCells = Backbone.Collection.extend({
 
 export const Graph = Backbone.Model.extend({
 
-    _batches: {},
-
     initialize: function(attrs, opt) {
 
         opt = opt || {};
@@ -99,6 +97,8 @@ export const Graph = Backbone.Model.extend({
         // having to go through the whole cells array.
         // [edgeId] -> true
         this._edges = {};
+
+        this._batches = {};
 
         cells.on('add', this._restructureOnAdd, this);
         cells.on('remove', this._restructureOnRemove, this);
@@ -1072,7 +1072,7 @@ export const Graph = Backbone.Model.extend({
         let names;
 
         if (arguments.length === 0) {
-            names = util.toArray(batches);
+            names = Object.keys(batches);
         } else if (Array.isArray(name)) {
             names = name;
         } else {
