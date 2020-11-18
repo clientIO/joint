@@ -66,6 +66,47 @@ QUnit.module('element ports', function() {
             assert.ok(typeof shape.getPorts()[0].id === 'string');
         });
 
+        QUnit.test('insertPort by index', function(assert) {
+
+            var shape = create({ items: [{ group: 'in' }] });
+
+            var eventOrder = ['ports:add', 'change:ports', 'change'];
+
+            shape.on('all', function(eventName) {
+                assert.equal(eventName, eventOrder.shift());
+            });
+
+            shape.insertPort(0, { id: 'a' });
+
+            assert.equal(shape.getPorts().length, 2);
+            assert.equal(shape.getPorts()[0].id, 'a');
+            assert.ok(typeof shape.getPorts()[1].id === 'string');
+        });
+
+        QUnit.test('insertPort by port', function(assert) {
+
+            var shape = create({ items: [{ group: 'in' }] });
+
+            shape.insertPort(shape.getPorts()[0], { id: 'a' });
+
+            assert.equal(shape.getPorts().length, 2);
+            assert.equal(shape.getPorts()[0].id, 'a');
+            assert.ok(typeof shape.getPorts()[1].id === 'string');
+        });
+
+        QUnit.test('insertPort by id', function(assert) {
+
+            var shape = create({ items: [{ group: 'in' }] });
+            
+            shape.insertPort(0, { id: 'a' });
+            shape.insertPort('a', { id: 'b' });
+
+            assert.equal(shape.getPorts().length, 3);
+            assert.equal(shape.getPorts()[0].id, 'b');
+            assert.equal(shape.getPorts()[1].id, 'a');
+            assert.ok(typeof shape.getPorts()[2].id === 'string');
+        });
+
         QUnit.test('remove port - by object', function(assert) {
 
             var shape = create({ items: [{ id: 'aaa', 'group': 'in' }, { id: 'xxx', 'group': 'in' }] });

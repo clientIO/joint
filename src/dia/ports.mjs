@@ -335,6 +335,26 @@ export const elementPortPrototype = {
     },
 
     /**
+     * @param {string|Port|number} before
+     * @param {object} port
+     * @param {object} [opt]
+     * @returns {joint.dia.Element}
+     */
+    insertPort: function(before, port, opt) {
+        const index = (typeof before === 'number') ? before : this.getPortIndex(before);
+
+        if (!util.isObject(port) || Array.isArray(port)) {
+            throw new Error('dia.Element: insertPort requires an object.');
+        }
+
+        var ports = util.assign([], this.prop('ports/items'));
+        ports.splice(index, 0, port);
+        this.prop('ports/items', ports, opt);
+
+        return this;
+    },
+
+    /**
      * @param {string} portId
      * @param {string|object=} path
      * @param {*=} value
