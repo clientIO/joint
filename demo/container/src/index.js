@@ -18,7 +18,7 @@
         viewport: function(view) {
             var element = view.model;
             var hidden = element.getAncestors().some(function(ancestor) {
-                return ancestor.get('collapsed');
+                return ancestor.isCollapsed();
             });
             return !hidden;
         }
@@ -67,7 +67,7 @@
 
     var child_5 = new Child({
         z: 4,
-        position: { x: 480, y: 360 },
+        position: { x: 500, y: 360 },
         attrs: { label: { text: 'B' }}
     });
 

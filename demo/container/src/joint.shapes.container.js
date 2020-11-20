@@ -164,6 +164,10 @@
             this.set('collapsed', collapsed);
         },
 
+        isCollapsed: function() {
+            return Boolean(this.get('collapsed'));
+        },
+
         fitChildren: function() {
             var padding = 10;
             this.fitEmbeds({
