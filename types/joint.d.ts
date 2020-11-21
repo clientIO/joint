@@ -397,6 +397,8 @@ export namespace dia {
 
         addPorts(ports: Element.Port[], opt?: Cell.Options): this;
 
+        insertPort(before: number | string | Element.Port, port: Element.Port, opt?: Cell.Options): this;
+
         removePort(port: string | Element.Port, opt?: Cell.Options): this;
 
         removePorts(opt?: Cell.Options): this;
