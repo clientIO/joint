@@ -63,13 +63,13 @@
     var child_4 = new Child({
         z: 4,
         position: { x: 400, y: 290 },
-        attrs: { label: { text: 'A' }}
+        attrs: { label: { text: '4' }}
     });
 
     var child_5 = new Child({
         z: 4,
         position: { x: 500, y: 360 },
-        attrs: { label: { text: 'B' }}
+        attrs: { label: { text: '5' }}
     });
 
     var link_1_2 = new Link({
