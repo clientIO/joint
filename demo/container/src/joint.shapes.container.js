@@ -63,6 +63,9 @@
     joint.dia.Element.define('container.Parent', {
         collapsed: false,
         attrs: {
+            root: {
+                magnetSelector: 'body'
+            },
             shadow: {
                 refWidth: '100%',
                 refHeight: '100%',

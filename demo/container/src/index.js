@@ -17,6 +17,7 @@
         sorting: joint.dia.Paper.sorting.APPROX,
         viewport: function(view) {
             var element = view.model;
+            // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
             var hidden = element.getAncestors().some(function(ancestor) {
                 return ancestor.isCollapsed();
             });
@@ -30,12 +31,12 @@
     var Child = joint.shapes.container.Child;
     var Link = joint.shapes.container.Link;
 
-    var container_1 = new Container({
+    var container_a = new Container({
         z: 1,
         attrs: { headerText: { text: 'Container A' }}
     });
 
-    var container_2 = new Container({
+    var container_b = new Container({
         z: 3,
         size: { width: 50, height: 50 },
         attrs: { headerText: { text: 'Container B' }}
@@ -61,7 +62,7 @@
 
     var child_4 = new Child({
         z: 4,
-        position: { x: 400, y: 300 },
+        position: { x: 400, y: 290 },
         attrs: { label: { text: 'A' }}
     });
 
@@ -89,24 +90,32 @@
         target: { id: child_5.id }
     });
 
+    var link_1_b = new Link({
+        z: 4,
+        source: { id: child_1.id },
+        target: { id: container_b.id }
+    });
+
     graph.addCells([
-        container_1, container_2,
+        container_a, container_b,
         child_1, child_2, child_3, child_4, child_5,
-        link_1_2, link_1_3, link_4_5
+        link_1_2, link_1_3, link_4_5, link_1_b
     ]);
 
-    container_1.embed(child_1);
-    container_1.embed(child_2);
-    container_1.embed(child_3);
-    container_1.embed(link_1_2);
-    container_1.embed(link_1_3);
-    container_1.embed(container_2);
-    container_2.embed(child_4);
-    container_2.embed(child_5);
-    container_2.embed(link_4_5);
+    container_a.embed(child_1);
+    container_a.embed(child_2);
+    container_a.embed(child_3);
+    container_a.embed(container_b);
+    container_b.embed(child_4);
+    container_b.embed(child_5);
 
-    container_2.toggle(false);
-    container_1.toggle(false);
+    link_1_2.reparent();
+    link_1_3.reparent();
+    link_4_5.reparent();
+    link_1_b.reparent();
+
+    container_b.toggle(false);
+    container_a.toggle(false);
 
     paper.on('element:button:pointerdown', function(elementView) {
         var element = elementView.model;
