@@ -9,6 +9,7 @@ function createEverything(selector, modulus, callback) {
         height: 350,
         gridSize: 1,
         model: graph,
+        async: true,
         defaultLink: function() {
             return new joint.shapes.standard.Link();
         }

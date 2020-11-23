@@ -1410,4 +1410,20 @@ QUnit.module('graph', function(hooks) {
             assert.equal(json.cells.length, 3);
         });
     });
+
+    QUnit.module('graph.hasActiveBatch()', function() {
+
+        QUnit.test('w/o parameters', function(assert) {
+            var graph = this.graph;
+            assert.notOk(graph.hasActiveBatch());
+            this.graph.startBatch('test1');
+            assert.ok(graph.hasActiveBatch());
+            this.graph.startBatch('test2');
+            assert.ok(graph.hasActiveBatch());
+            this.graph.stopBatch('test2');
+            assert.ok(graph.hasActiveBatch());
+            this.graph.stopBatch('test1');
+            assert.notOk(graph.hasActiveBatch());
+        });
+    });
 });

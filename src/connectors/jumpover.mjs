@@ -42,14 +42,19 @@ function createLines(sourcePoint, targetPoint, route) {
 }
 
 function setupUpdating(jumpOverLinkView) {
-    var updateList = jumpOverLinkView.paper._jumpOverUpdateList;
+    var paper = jumpOverLinkView.paper;
+    var updateList = paper._jumpOverUpdateList;
 
     // first time setup for this paper
     if (updateList == null) {
-        updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
-        jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
-        jumpOverLinkView.paper.model.on('reset', function() {
-            updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
+        updateList = paper._jumpOverUpdateList = [];
+        var graph = paper.model;
+        graph.on('batch:stop', function() {
+            if (this.hasActiveBatch()) return;
+            updateJumpOver(paper);
+        });
+        graph.on('reset', function() {
+            updateList = paper._jumpOverUpdateList = [];
         });
     }
 
@@ -70,15 +75,15 @@ function setupUpdating(jumpOverLinkView) {
  * update of all registered links with jump over connector
  * @param {object} batchEvent optional object with info about batch
  */
-function updateJumpOver() {
-    var updateList = this._jumpOverUpdateList;
+function updateJumpOver(paper) {
+    var updateList = paper._jumpOverUpdateList;
     for (var i = 0; i < updateList.length; i++) {
-        updateList[i].update();
+        updateList[i].requestConnectionUpdate();
     }
 }
 
 /**
- * Utility function to collect all intersection poinst of a single
+ * Utility function to collect all intersection points of a single
  * line against group of other lines.
  * @param {g.line} line where to find points
  * @param {g.line[]} crossCheckLines lines to cross
@@ -107,7 +112,7 @@ function sortPoints(p1, p2) {
 /**
  * Split input line into multiple based on intersection points.
  * @param {g.line} line input line to split
- * @param {g.point[]} intersections poinst where to split the line
+ * @param {g.point[]} intersections points where to split the line
  * @param {number} jumpSize the size of jump arc (length empty spot on a line)
  * @return {g.line[]} list of lines being split
  */
