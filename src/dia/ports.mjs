@@ -347,7 +347,7 @@ export const elementPortPrototype = {
             throw new Error('dia.Element: insertPort requires an object.');
         }
 
-        var ports = util.assign([], this.prop('ports/items'));
+        const ports = util.assign([], this.prop('ports/items'));
         ports.splice(index, 0, port);
         this.prop('ports/items', ports, opt);
 
