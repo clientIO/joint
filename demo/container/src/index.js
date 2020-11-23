@@ -1,5 +1,6 @@
-(function(joint) {
+(function(joint, g) {
 
+    var connectionPoint = joint.connectionPoints.boundary;
     var graph = new joint.dia.Graph();
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper'),
@@ -11,10 +12,22 @@
             color: '#F3F7F6'
         },
         interactive: { linkMove: false },
-        defaultConnectionPoint: {
-            name: 'boundary'
-        },
         sorting: joint.dia.Paper.sorting.APPROX,
+        defaultConnectionPoint: function(line, view, magnet, args, endType, linkView) {
+            var element = view.model;
+            var hidden = element.getAncestors().some(function(ancestor) {
+                return ancestor.isCollapsed();
+            });
+            if (!hidden) {
+                return connectionPoint.call(this, line, view, magnet, args, endType, linkView);
+            }
+            var parent = element.getParentCell();
+            var bbox = parent.getBBox();
+            var line2 = new g.Line(line.start, bbox.center());
+            var view2 = parent.findView(this.paper);
+            var magnet2 = view2.findBySelector('body')[0];
+            return connectionPoint.call(this, line2, view2, magnet2, args, endType, linkView);
+        },
         viewport: function(view) {
             var element = view.model;
             // Hide any element or link which is embedded inside a collapsed parent (or parent of the parent).
@@ -90,16 +103,16 @@
         target: { id: child_5.id }
     });
 
-    var link_1_b = new Link({
+    var link_1_4 = new Link({
         z: 4,
         source: { id: child_1.id },
-        target: { id: container_b.id }
+        target: { id: child_4.id }
     });
 
     graph.addCells([
         container_a, container_b,
         child_1, child_2, child_3, child_4, child_5,
-        link_1_2, link_1_3, link_4_5, link_1_b
+        link_1_2, link_1_3, link_4_5, link_1_4
     ]);
 
     container_a.embed(child_1);
@@ -112,7 +125,7 @@
     link_1_2.reparent();
     link_1_3.reparent();
     link_4_5.reparent();
-    link_1_b.reparent();
+    link_1_4.reparent();
 
     container_b.toggle(false);
     container_a.toggle(false);
@@ -121,6 +134,9 @@
         var element = elementView.model;
         element.toggle();
         fitAncestors(element);
+        graph.getConnectedLinks(element, { deep: true }).forEach(function(link) {
+            link.findView(paper).requestConnectionUpdate();
+        });
     });
 
     paper.on('element:pointermove', function(elementView) {
@@ -134,4 +150,4 @@
         });
     }
 
-})(joint);
+})(joint, g);
