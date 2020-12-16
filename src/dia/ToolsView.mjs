@@ -89,6 +89,19 @@ export const ToolsView = mvc.View.extend({
         return this;
     },
 
+    blurTools: function() {
+        var tools = this.tools;
+        if (!tools) return this;
+        for (var i = 0, n = tools.length; i < n; i++) {
+            var tool = tools[i];
+            if (!tool.isVisible()) {
+                tool.show();
+                tool.update();
+            }
+        }
+        return this;
+    },
+
     hide: function() {
         return this.focusTool(null);
     },
@@ -98,9 +111,9 @@ export const ToolsView = mvc.View.extend({
     },
 
     onRemove: function() {
-
         var tools = this.tools;
         if (!tools) return this;
+        this.blurTools();
         for (var i = 0, n = tools.length; i < n; i++) {
             tools[i].remove();
         }
