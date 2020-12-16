@@ -2,6 +2,7 @@ import * as joint from './vendor/joint';
 import './custom';
 import {V, g} from './vendor/joint';
 import * as $ from 'jquery';
+import { MyShape } from './shape';
 
 const $body = $('body');
 
@@ -20,6 +21,7 @@ const paper = new joint.dia.Paper({
     model: graph,
     markAvailable: true,
     frozen: true,
+    async: true,
     defaultLink: new joint.shapes.app.Link(),
     connectionStrategy: joint.connectionStrategies.pinAbsolute,
     sorting: joint.dia.Paper.sorting.APPROX,
@@ -55,6 +57,12 @@ let customRect = new joint.shapes.app.CustomRect()
 
 customRect.test();
 joint.shapes.app.CustomRect.staticTest();
+
+const myShape1 = new MyShape({ attrs: { label: { text: 'My Shape' }}});
+myShape1.position(300, 50);
+myShape1.addTo(graph);
+myShape1.test();
+MyShape.staticTest(2);
 
 let link = new joint.shapes.standard.Link()
     .source(rect, {
