@@ -1405,6 +1405,8 @@ export namespace dia {
 
         blurTool(tool: ToolView): this;
 
+        blurTools(): this;
+
         show(): this;
 
         hide(): this;
