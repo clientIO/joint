@@ -120,20 +120,6 @@ export const hashCode = function(str) {
     return hash;
 };
 
-
-const safeGet = function(obj, key) {
-    const value = obj[key];
-    // Prevent prototype pollution
-    // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
-    if (key === 'constructor' && typeof value === 'function') {
-        return null;
-    }
-    if (key === '__proto__') {
-        return null;
-    }
-    return value;
-};
-
 export const getByPath = function(obj, path, delimiter) {
 
     var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
