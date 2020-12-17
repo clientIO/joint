@@ -120,6 +120,20 @@ export const hashCode = function(str) {
     return hash;
 };
 
+
+const safeGet = function(obj, key) {
+    const value = obj[key];
+    // Prevent prototype pollution
+    // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
+    if (key === 'constructor' && typeof value === 'function') {
+        return null;
+    }
+    if (key === '__proto__') {
+        return null;
+    }
+    return value;
+};
+
 export const getByPath = function(obj, path, delimiter) {
 
     var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
@@ -137,6 +151,18 @@ export const getByPath = function(obj, path, delimiter) {
     return obj;
 };
 
+const isGetSafe = function(obj, key) {
+    // Prevent prototype pollution
+    // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
+    if (key === 'constructor' && typeof obj[key] === 'function') {
+        return false;
+    }
+    if (key === '__proto__') {
+        return false;
+    }
+    return true;
+};
+
 export const setByPath = function(obj, path, value, delimiter) {
 
     const keys = Array.isArray(path) ? path : path.split(delimiter || '/');
@@ -146,15 +172,8 @@ export const setByPath = function(obj, path, value, delimiter) {
 
     for (; i < last; i++) {
         const key = keys[i];
+        if (!isGetSafe(diver, key)) return obj;
         const value = diver[key];
-        // Prevent prototype pollution
-        // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
-        if (key === 'constructor' && typeof value === 'function') {
-            return obj;
-        }
-        if (key === '__proto__') {
-            return obj;
-        }
         // diver creates an empty object if there is no nested object under such a key.
         // This means that one can populate an empty nested object with setByPath().
         diver = value || (diver[key] = {});
@@ -167,24 +186,20 @@ export const setByPath = function(obj, path, value, delimiter) {
 
 export const unsetByPath = function(obj, path, delimiter) {
 
-    delimiter || (delimiter = '/');
+    const keys = Array.isArray(path) ? path : path.split(delimiter || '/');
+    const last = keys.length - 1;
+    let diver = obj;
+    let i = 0;
 
-    var pathArray = Array.isArray(path) ? path.slice() : path.split(delimiter);
-
-    var propertyToRemove = pathArray.pop();
-    if (pathArray.length > 0) {
-
-        // unsetting a nested attribute
-        var parent = getByPath(obj, pathArray, delimiter);
-        if (parent) {
-            delete parent[propertyToRemove];
-        }
-
-    } else {
-
-        // unsetting a primitive attribute
-        delete obj[propertyToRemove];
+    for (; i < last; i++) {
+        const key = keys[i];
+        if (!isGetSafe(diver, key)) return obj;
+        const value = diver[key];
+        if (!value) return obj;
+        diver = value;
     }
+
+    delete diver[keys[last]];
 
     return obj;
 };
