@@ -401,6 +401,15 @@ QUnit.module('util', function(hooks) {
             joint.util.unsetByPath(obj, ['c', 'd']);
             assert.deepEqual(obj, { a: 1 }, 'Attempt to delete non-existing attribute doesn\'t affect object.');
         });
+
+        ['__proto__/toString', 'constructor/prototype/toString'].forEach(function(path) {
+            QUnit.test('unsetting "' + path + '" does not modify prototype' , function(assert) {
+                var obj = {};
+                assert.equal(typeof obj.toString, 'function');
+                joint.util.unsetByPath({}, path, '/');
+                assert.equal(typeof obj.toString, 'function');
+            });
+        });
     });
 
     QUnit.test('util.normalizeSides()', function(assert) {
