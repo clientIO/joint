@@ -3,7 +3,7 @@
 
 <p>This method mimics jQuery element search methods in that it always returns an array. If you are only expecting to find a single subelement (most common scenario), you can get it by accessing the first element in the returned array – e.g. <code>this.findBySelector('body')[0]</code>.</p>
 
-<p>The value <code>selector = '.'</code> is a special value; the <code>root</code> of the CellView is returned as the only element of the return array. By default <code>root = this.el</code> (the wrapping <code>&lt;g&gt;</code> SVGElement of the CellView), but if you provide a different <code>root</code> (see below), then that value is returned instead.</p>
+<p>If you do not specify a <code>selector</code>, the <code>root</code> of the CellView is returned as the only element of the return array. For backwards compatibility, the same applies also if you provide the special value <code>selector = '.'</code>. By default <code>root = this.el</code> (the wrapping <code>&lt;g&gt;</code> SVGElement of the CellView), but if you provide a different <code>root</code> (see below), then that value is returned instead.</p>
 
 <p>By default, JointJS searches for matching subelements among descendants of <code>this.el</code> SVGElement. As an advanced feature, you may provide a different <code>root</code> – e.g. an <code>el</code> SVGElement of another CellView. Then JointJS searches for matching subelements among the descendants of that SVGElement.</p>
 
