@@ -1,0 +1,12 @@
+<pre class="docs-method-signature"><code>cellView.findBySelector([selector, root, selectors])</code></pre>
+<p>Return an array of subelements of this CellView which are identified by <code>selector</code>. If no such subelements are found, return an empty array.</p>
+
+<p>This method mimics jQuery element search methods in that it always returns an array. If you are only expecting to find a single subelement (most common scenario), you can get it by accessing the first element in the returned array – e.g. <code>this.findBySelector('body')[0]</code>.</p>
+
+<p>If you do not specify a <code>selector</code>, the <code>root</code> of the CellView is returned as the only element of the return array. For backwards compatibility, the same applies also if you provide the special value <code>selector = '.'</code>. By default <code>root = this.el</code> (the wrapping <code>&lt;g&gt;</code> SVGElement of the CellView), but if you provide a different <code>root</code> (see below), then that value is returned instead.</p>
+
+<p>By default, JointJS searches for matching subelements among descendants of <code>this.el</code> SVGElement. As an advanced feature, you may provide a different <code>root</code> – e.g. an <code>el</code> SVGElement of another CellView. Then JointJS searches for matching subelements among the descendants of that SVGElement.</p>
+
+<p>By default, JointJS uses <code>this.selectors</code> array for reference. (The <code>selectors</code> array is a cached structure of this CellView's SVGElement descendants as defined by the <code>markup</code> <a href="#dia.Cell.markup">attribute of the Cell model</a> from which the CellView was initialized.) As an advanced feature, you may provide a different <code>selectors</code> array for the search – e.g. a <code>selectors</code> array of another CellView.</p>
+
+<p><i>(Deprecated)</i> For backwards compatibility, if no matching subelement is found among <code>selectors</code>, then jQuery is used to try and find an element through CSS selectors (<code>$(root).find(selector).toArray()</code>). If you are using <a href="#shapes.standard">standard shapes</a>, you may disable this functionality for increased performance by setting <code>useCSSSelectors = false</code> in the global config.</p>
