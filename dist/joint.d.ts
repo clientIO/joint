@@ -1,4 +1,4 @@
-/*! JointJS v3.2.0 (2020-06-04) - JavaScript diagramming library
+/*! JointJS v3.3.0 (2021-01-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -116,6 +116,8 @@ export namespace g {
 
         pointAtT(t: number): Point;
 
+        round(precision?: number): this;
+
         scale(sx: number, sy: number, origin?: PlainPoint): this;
 
         tangentAt(ratio: number): Line | null;
@@ -210,6 +212,8 @@ export namespace g {
 
         pointAtT(t: number): Point;
 
+        round(precision?: number): this;
+
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
         tangentAt(ratio: number, opt?: SubdivisionsOpt): Line | null;
@@ -261,6 +265,8 @@ export namespace g {
         intersectionWithLineFromCenterToPoint(p: PlainPoint, angle?: number): Point;
 
         normalizedDistance(point: PlainPoint): number;
+
+        round(precision?: number): this;
 
         tangentTheta(p: PlainPoint): number;
 
@@ -387,6 +393,8 @@ export namespace g {
 
         getSegmentSubdivisions(opt?: PrecisionOpt): Curve[][];
 
+        getSubpaths(): Path[];
+
         insertSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
 
         intersectionWithLine(l: Line, opt?: SegmentSubdivisionsOpt): Point[] | null;
@@ -404,6 +412,8 @@ export namespace g {
         removeSegment(index: number): void;
 
         replaceSegment(index: number, segments: PathSegmentUnit | PathSegmentUnit[]): void;
+
+        round(precision?: number): this;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
@@ -429,6 +439,8 @@ export namespace g {
         serialize(): string;
 
         toString(): string;
+
+        validate(): this;
 
         private closestPointT(p: Point, opt?: SegmentSubdivisionsOpt): PathT | null;
 
@@ -567,6 +579,8 @@ export namespace g {
         pointAt(ratio: number): Point | null;
 
         pointAtLength(length: number): Point | null;
+
+        round(precision?: number): this;
 
         scale(sx: number, sy: number, origin?: PlainPoint | string): this;
 
@@ -878,6 +892,8 @@ export class Vectorizer {
 
     appendTo(el: SVGElement | Vectorizer) : this;
 
+    parent(): Vectorizer | null;
+
     // returns either this or Vectorizer, no point in specifying this.
     svg(): Vectorizer;
 
@@ -928,6 +944,10 @@ export class Vectorizer {
     private setAttribute(name: string, value: string): this;
 
     static createSVGDocument(content: string): Document;
+
+    static createSVGStyle(stylesheet: string): SVGStyleElement;
+
+    static createCDATASection(data: string): CDATASection;
 
     static uniqueId(): string;
 
@@ -1222,7 +1242,7 @@ export namespace dia {
         }
 
         interface Constructor<T extends Backbone.Model> {
-            new (opt?: { id: string }): T
+            new (opt?: { id?: string, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
@@ -1419,6 +1439,8 @@ export namespace dia {
 
         addPorts(ports: Element.Port[], opt?: Cell.Options): this;
 
+        insertPort(before: number | string | Element.Port, port: Element.Port, opt?: Cell.Options): this;
+
         removePort(port: string | Element.Port, opt?: Cell.Options): this;
 
         removePorts(opt?: Cell.Options): this;
@@ -1603,6 +1625,14 @@ export namespace dia {
 
     export namespace CellView {
 
+        enum Highlighting {
+            DEFAULT = 'default',
+            EMBEDDING = 'embedding',
+            CONNECTING = 'connecting',
+            MAGNET_AVAILABILITY = 'magnetAvailability',
+            ELEMENT_AVAILABILITY = 'elementAvailability'
+        }
+
         interface Options<T extends Cell> extends mvc.ViewOptions<T> {
             id?: string
         }
@@ -1621,7 +1651,7 @@ export namespace dia {
 
         paper: Paper | null;
 
-        initFlag: number;
+        initFlag: CellView.FlagLabel;
 
         presentationAttributes: CellView.PresentationAttributes;
 
@@ -1634,6 +1664,8 @@ export namespace dia {
         findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
 
         findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
+
+        findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
         getSelector(el: SVGElement, prevSelector?: string): string;
 
@@ -1668,6 +1700,14 @@ export namespace dia {
         checkMouseleave(evt: dia.Event): void;
 
         getFlag(label: CellView.FlagLabel): number;
+
+        requestUpdate(flags: number, opt?: { [key: string]: any }): void;
+
+        protected removeHighlighters(): void;
+
+        protected updateHighlighters(): void;
+
+        protected transformHighlighters(): void;
 
         protected hasFlag(flags: number, label: CellView.FlagLabel): boolean;
 
@@ -1722,6 +1762,7 @@ export namespace dia {
         interface InteractivityOptions {
             elementMove?: boolean;
             addLinkFromMagnet?: boolean;
+            stopDelegation?: boolean;
         }
     }
 
@@ -1733,7 +1774,7 @@ export namespace dia {
 
         getDelegatedView(): ElementView | null;
 
-        findPortNode(portId: string | number, selector?: string): SVGElement;
+        findPortNode(portId: string | number, selector?: string): SVGElement | null;
 
         protected renderMarkup(): void;
 
@@ -1864,6 +1905,8 @@ export namespace dia {
 
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
+        findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
         protected onToolsChange(link: Link, toolsMarkup: string, opt: { [key: string]: any }): void;
@@ -1952,6 +1995,14 @@ export namespace dia {
             APPROX = 'sorting-approximate',
             NONE = 'sorting-none'
         }
+
+        enum Layers {
+            CELLS = 'cells',
+            BACK = 'back',
+            FRONT = 'front',
+            TOOLS = 'tools'
+        }
+
         type UpdateStats = {
             priority: number;
             updated: number;
@@ -1982,6 +2033,9 @@ export namespace dia {
             afterRender?: AfterRenderCallback;
         }
 
+        type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
+        type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
+
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
             width?: Dimension;
@@ -1993,14 +2047,15 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: { [type: string]: highlighters.HighlighterJSON };
+            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>
             interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
+            snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
             // validations
             validateMagnet?: (cellView: CellView, magnet: SVGElement, evt: dia.Event) => boolean;
             validateConnection?: (cellViewS: CellView, magnetS: SVGElement, cellViewT: CellView, magnetT: SVGElement, end: LinkEnd, linkView: LinkView) => boolean;
-            restrictTranslate?: ((elementView: ElementView) => BBox) | boolean;
+            restrictTranslate?: RestrictTranslateCallback | boolean | BBox;
             multiLinks?: boolean;
             linkPinning?: boolean;
             allowLink?: ((linkView: LinkView, paper: Paper) => boolean) | null;
@@ -2016,7 +2071,8 @@ export namespace dia {
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
             embeddingMode?: boolean;
-            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft';
+            frontParentOnly?: boolean,
+            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | ((elementView: ElementView) => Element[]);
             validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
@@ -2149,7 +2205,8 @@ export namespace dia {
 
         getArea(): g.Rect;
 
-        getRestrictedArea(): g.Rect | undefined;
+        getRestrictedArea(): g.Rect | null;
+        getRestrictedArea(elementView: ElementView, x: number, y: number): g.Rect | null | Paper.PointConstraintCallback;
 
         getContentArea(opt?: { useModelGeometry: boolean }): g.Rect;
 
@@ -2205,6 +2262,10 @@ export namespace dia {
         showTools(): this;
 
         dispatchToolsEvent(eventName: string, ...args: any[]): void;
+
+        // layers
+
+        getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
         // rendering
 
@@ -2374,6 +2435,8 @@ export namespace dia {
 
         constructor(opt?: ToolsView.Options);
 
+        isRendered: boolean;
+
         options: ToolsView.Options;
 
         configure(opt?: ToolsView.Options): this;
@@ -2382,7 +2445,7 @@ export namespace dia {
 
         focusTool(tool: ToolView): this;
 
-        blurTool(tool: ToolView): this;
+        blurTool(tool?: ToolView): this;
 
         show(): this;
 
@@ -2426,6 +2489,199 @@ export namespace dia {
         protected guard(evt: dia.Event): boolean;
     }
 
+
+    namespace HighlighterView {
+
+        type Constructor<T> = { new (): T }
+
+        type NodeSelectorJSON = {
+            selector?: string;
+            port?: string;
+            label?: number;
+        };
+
+        type NodeSelector = string | SVGElement | NodeSelectorJSON;
+
+        type Options = {
+            layer?: dia.Paper.Layers | string | null;
+        };
+    }
+
+    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
+
+        constructor(options?: Options);
+
+        options: Options;
+
+        UPDATABLE: boolean;
+        MOUNTABLE: boolean;
+
+        cellView: dia.CellView;
+        nodeSelector: HighlighterView.NodeSelector | null;
+        node: SVGElement | null;
+        updateRequested: boolean;
+        transformGroup: Vectorizer | null;
+
+        public unmount(): void;
+
+        protected findNode(cellView: dia.CellView, nodeSelector: HighlighterView.NodeSelector): SVGElement | null;
+
+        protected transform(): void;
+
+        protected update(): void;
+
+        protected highlight(cellView: dia.CellView, node: SVGElement): void;
+
+        protected unhighlight(cellView: dia.CellView, node: SVGElement): void;
+
+        static uniqueId(node: SVGElement, options?: any): string;
+
+        static add<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView,
+            selector: HighlighterView.NodeSelector,
+            id: string,
+            options?: any
+        ): T;
+
+        static remove(
+            cellView: dia.CellView,
+            id?: string
+        ): void;
+
+        static get<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView,
+            id: string
+        ): T | null;
+        static get<T extends HighlighterView>(
+            this: HighlighterView.Constructor<T>,
+            cellView: dia.CellView
+        ): T[];
+
+        static update(cellView: dia.CellView, id?: string): void;
+
+        static transform(cellView: dia.CellView, id?: string): void;
+
+        static highlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        static unhighlight(cellView: dia.CellView, node: SVGElement, options?: any): void;
+
+        protected static _addRef(cellView: dia.CellView, id: string, view: HighlighterView): void;
+
+        protected static _removeRef(cellView: dia.CellView, id?: string): void;
+    }
+}
+
+// highlighters
+
+export namespace highlighters {
+
+    import HighlighterView = dia.HighlighterView;
+
+    interface AddClassHighlighterArguments extends HighlighterView.Options {
+        className?: string;
+    }
+
+    interface OpacityHighlighterArguments extends HighlighterView.Options {
+
+    }
+
+    interface StrokeHighlighterArguments extends HighlighterView.Options {
+        padding?: number;
+        rx?: number;
+        ry?: number;
+        useFirstSubpath?: boolean;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface MaskHighlighterArguments extends HighlighterView.Options {
+        padding?: number;
+        maskClip?: number;
+        deep?: boolean;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface HighlighterArgumentsMap {
+        'addClass': AddClassHighlighterArguments;
+        'opacity': OpacityHighlighterArguments;
+        'stroke': StrokeHighlighterArguments;
+        'mask': MaskHighlighterArguments;
+        [key: string]: { [key: string]: any };
+    }
+
+    type HighlighterType = keyof HighlighterArgumentsMap;
+
+    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
+
+    interface GenericHighlighterJSON<K extends HighlighterType> {
+        name: K;
+        options?: GenericHighlighterArguments<K>;
+    }
+
+    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
+
+    class mask extends dia.HighlighterView<MaskHighlighterArguments> {
+
+        VISIBLE: string;
+        INVISIBLE: string;
+        MASK_ROOT_ATTRIBUTE_BLACKLIST: string[];
+        MASK_CHILD_ATTRIBUTE_BLACKLIST: string[];
+        MASK_REPLACE_TAGS: string[];
+        MASK_REMOVE_TAGS: string[];
+
+        public getMaskId(): string;
+
+        protected getMask(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
+
+        protected getMaskShape(cellView: dia.CellView, vel: Vectorizer): Vectorizer;
+
+        protected transformMaskRoot(cellView: dia.CellView, root: Vectorizer): void;
+
+        protected transformMaskChild(cellView: dia.CellView, child: Vectorizer): boolean;
+
+        protected addMask(paper: dia.Paper, mask: Vectorizer): void;
+
+        protected removeMask(paper: dia.Paper): void;
+    }
+
+    class stroke extends dia.HighlighterView<StrokeHighlighterArguments> {
+
+        protected getPathData(cellView: dia.CellView, node: SVGElement): string;
+
+        protected highlightConnection(cellView: dia.CellView): void;
+
+        protected highlightNode(cellView: dia.CellView, node: SVGElement): void;
+    }
+
+    class addClass extends dia.HighlighterView<AddClassHighlighterArguments> {
+
+    }
+
+    class opacity extends dia.HighlighterView<OpacityHighlighterArguments> {
+
+        opacityClassName: string;
+    }
+
+    /**
+     * @deprecated
+     */
+    interface GenericHighlighter<K extends HighlighterType> {
+
+        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+
+        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
+    }
+
+    /**
+     * @deprecated
+     */
+    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
+
+    /**
+     * @deprecated
+     */
+    type Highlighter = GenericHighlighter<HighlighterType>;
 }
 
 export namespace shapes {
@@ -3588,6 +3844,7 @@ export namespace layout {
         interface LayoutOptions {
             dagre?: any;
             graphlib?: any;
+            align?: 'UR' | 'UL' |'DR' | 'DL';
             rankDir?: 'TB' | 'BT' | 'LR' | 'RL';
             ranker?: 'network-simplex' | 'tight-tree' | 'longest-path';
             nodeSep?: number;
@@ -4004,69 +4261,17 @@ export namespace connectionPoints {
     export var boundary: GenericConnectionPoint<'boundary'>;
 }
 
-// highlighters
-
-export namespace highlighters {
-
-    interface AddClassHighlighterArguments {
-        className?: string;
-    }
-
-    interface OpacityHighlighterArguments {
-
-    }
-
-    interface StrokeHighlighterArguments {
-        padding?: number;
-        rx?: number;
-        ry?: number;
-        attrs?: attributes.NativeSVGAttributes;
-    }
-
-    interface HighlighterArgumentsMap {
-        'addClass': AddClassHighlighterArguments;
-        'opacity': OpacityHighlighterArguments;
-        'stroke': StrokeHighlighterArguments;
-        [key: string]: { [key: string]: any };
-    }
-
-    type HighlighterType = keyof HighlighterArgumentsMap;
-
-    type GenericHighlighterArguments<K extends HighlighterType> = HighlighterArgumentsMap[K];
-
-    interface GenericHighlighter<K extends HighlighterType> {
-        highlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-
-        unhighlight(cellView: dia.CellView, magnetEl: SVGElement, opt?: GenericHighlighterArguments<K>): void;
-    }
-
-    interface GenericHighlighterJSON<K extends HighlighterType> {
-        name: K;
-        options?: GenericHighlighterArguments<K>;
-    }
-
-    type HighlighterArguments = GenericHighlighterArguments<HighlighterType>;
-
-    type Highlighter = GenericHighlighter<HighlighterType>;
-
-    type HighlighterJSON = GenericHighlighterJSON<HighlighterType>;
-
-    export var addClass: GenericHighlighter<'addClass'>;
-    export var opacity: GenericHighlighter<'opacity'>;
-    export var stroke: GenericHighlighter<'stroke'>;
-}
-
 export namespace connectionStrategies {
 
     interface ConnectionStrategy {
         (
-            endDefinition: dia.Cell,
+            endDefinition: dia.Link.EndJSON,
             endView: dia.CellView,
             endMagnet: SVGElement,
             coords: dia.Point,
-            //link: dia.Link,
-            //endType: string
-        ): dia.Element;
+            link: dia.Link,
+            endType: dia.LinkEnd
+        ): dia.Link.EndJSON;
     }
 
     export var useDefaults: ConnectionStrategy;
@@ -4235,6 +4440,9 @@ export namespace attributes {
         atConnectionRatio?: number;
         atConnectionRatioKeepGradient?: number; // alias for atConnectionRatio
         atConnectionRatioIgnoreGradient?: number;
+        magnetSelector?: string;
+        highlighterSelector?: string;
+        containerSelector?: string;
         // CamelCase variants of native attributes
         alignmentBaseline?: any;
         baselineShift?: any;
@@ -4369,12 +4577,12 @@ export namespace elementTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.LinkView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.ElementView, tool: dia.ToolView) => void;
 
         interface Options extends dia.ToolView.Options {
             x?: number | string;
             y?: number | string;
-            offset?: number;
+            offset?: { x?: number, y?: number };
             rotate?: boolean;
             action?: ActionCallback;
             markup?: dia.MarkupJSON;
@@ -4505,7 +4713,7 @@ export namespace linkTools {
 
     namespace Button {
 
-        type ActionCallback = (evt: dia.Event, view: dia.LinkView) => void;
+        type ActionCallback = (evt: dia.Event, view: dia.LinkView, tool: dia.ToolView) => void;
 
         interface Options extends dia.ToolView.Options {
             distance?: number | string;

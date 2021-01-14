@@ -1,4 +1,4 @@
-/*! JointJS v3.2.0 (2020-06-04) - JavaScript diagramming library
+/*! JointJS v3.3.0 (2021-01-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1278,6 +1278,15 @@ var joint = (function (exports, Backbone, _, $) {
         // Default precision
         PRECISION: 3,
 
+        round: function(precision) {
+
+            this.start.round(precision);
+            this.controlPoint1.round(precision);
+            this.controlPoint2.round(precision);
+            this.end.round(precision);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
@@ -1674,6 +1683,25 @@ var joint = (function (exports, Backbone, _, $) {
             return ((x0 - x) * (x0 - x)) / (a * a) + ((y0 - y) * (y0 - y)) / (b * b);
         },
 
+        round: function(precision) {
+
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
+                }
+            }
+
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
+            this.a = round(this.a * f) / f;
+            this.b = round(this.b * f) / f;
+            return this;
+        },
+
         /** Compute angle between tangent and x axis
          * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
          * @returns {number} angle between tangent and x axis
@@ -1990,11 +2018,8 @@ var joint = (function (exports, Backbone, _, $) {
 
         round: function(precision) {
 
-            var f = pow(10, precision || 0);
-            this.start.x = round(this.start.x * f) / f;
-            this.start.y = round(this.start.y * f) / f;
-            this.end.x = round(this.end.x * f) / f;
-            this.end.y = round(this.end.y * f) / f;
+            this.start.round(precision);
+            this.end.round(precision);
             return this;
         },
 
@@ -2646,6 +2671,34 @@ var joint = (function (exports, Backbone, _, $) {
             return segmentSubdivisions;
         },
 
+        // Returns an array of subpaths of this path.
+        // Invalid paths are validated first.
+        // Returns `[]` if path has no segments.
+        getSubpaths: function() {
+
+            var validatedPath = this.clone().validate();
+
+            var segments = validatedPath.segments;
+            var numSegments = segments.length;
+
+            var subpaths = [];
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                if (segment.isSubpathStart) {
+                    // we encountered a subpath start segment
+                    // create a new path for segment, and push it to list of subpaths
+                    subpaths.push(new Path(segment));
+
+                } else {
+                    // append current segment to the last subpath
+                    subpaths[subpaths.length - 1].appendSegment(segment);
+                }
+            }
+
+            return subpaths;
+        },
+
         // Insert `arg` at given `index`.
         // `index = 0` means insert at the beginning.
         // `index = segments.length` means insert at the end.
@@ -3012,6 +3065,20 @@ var joint = (function (exports, Backbone, _, $) {
             if (updateSubpathStart && nextSegment) { this.updateSubpathStartSegment(nextSegment); }
         },
 
+        round: function(precision) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                segment.round(precision);
+            }
+
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             var segments = this.segments;
@@ -3295,6 +3362,14 @@ var joint = (function (exports, Backbone, _, $) {
                 previousSegment = segment;
                 segment = segment.nextSegment; // move on to the segment after etc.
             }
+        },
+
+        // If the path is not valid, insert M 0 0 at the beginning.
+        // Path with no segments is considered valid, so nothing is inserted.
+        validate: function() {
+
+            if (!this.isValid()) { this.insertSegment(0, Path.createSegment('M', 0, 0)); }
+            return this;
         }
     };
 
@@ -3381,7 +3456,7 @@ var joint = (function (exports, Backbone, _, $) {
     // @param {point} [optional] Origin.
     Point.fromPolar = function(distance, angle, origin) {
 
-        origin = (origin && new Point(origin)) || new Point(0, 0);
+        origin = new Point(origin);
         var x = abs(distance * cos(angle));
         var y = abs(distance * sin(angle));
         var deg = normalizeAngle(toDeg(angle));
@@ -3577,6 +3652,8 @@ var joint = (function (exports, Backbone, _, $) {
         // Angle is flipped because this is a left-handed coord system (y-axis points downward).
         rotate: function(origin, angle) {
 
+            if (angle === 0) { return this; }
+
             origin = origin || new Point(0, 0);
 
             angle = toRad(normalizeAngle(-angle));
@@ -3593,7 +3670,16 @@ var joint = (function (exports, Backbone, _, $) {
 
         round: function(precision) {
 
-            var f = pow(10, precision || 0);
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
+                }
+            }
+
             this.x = round(this.x * f) / f;
             this.y = round(this.y * f) / f;
             return this;
@@ -4204,11 +4290,22 @@ var joint = (function (exports, Backbone, _, $) {
             return lastPoint.clone();
         },
 
+        round: function(precision) {
+
+            var points = this.points;
+            var numPoints = points.length;
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].round(precision);
+            }
+
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             var points = this.points;
             var numPoints = points.length;
-            if (numPoints === 0) { return this; } // if points array is empty
 
             for (var i = 0; i < numPoints; i++) {
                 points[i].scale(sx, sy, origin);
@@ -4333,7 +4430,6 @@ var joint = (function (exports, Backbone, _, $) {
 
             var points = this.points;
             var numPoints = points.length;
-            if (numPoints === 0) { return this; } // if points array is empty
 
             for (var i = 0; i < numPoints; i++) {
                 points[i].translate(tx, ty);
@@ -4753,7 +4849,16 @@ var joint = (function (exports, Backbone, _, $) {
 
         round: function(precision) {
 
-            var f = pow(10, precision || 0);
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
+                }
+            }
+
             this.x = round(this.x * f) / f;
             this.y = round(this.y * f) / f;
             this.width = round(this.width * f) / f;
@@ -5148,6 +5253,12 @@ var joint = (function (exports, Backbone, _, $) {
 
         previousSegment: null, // needed to get segment start property
 
+        // virtual
+        round: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         subpathStartSegment: null, // needed to get Closepath segment end property
 
         // virtual
@@ -5342,6 +5453,12 @@ var joint = (function (exports, Backbone, _, $) {
             return !this.start.equals(this.end);
         },
 
+        round: function(precision) {
+
+            this.end.round(precision);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.end.scale(sx, sy, origin);
@@ -5499,6 +5616,14 @@ var joint = (function (exports, Backbone, _, $) {
             var end = this.end;
 
             return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+        },
+
+        round: function(precision) {
+
+            this.controlPoint1.round(precision);
+            this.controlPoint2.round(precision);
+            this.end.round(precision);
+            return this;
         },
 
         scale: function(sx, sy, origin) {
@@ -5716,6 +5841,12 @@ var joint = (function (exports, Backbone, _, $) {
             return this.end.clone();
         },
 
+        round: function(precision) {
+
+            this.end.round(precision);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.end.scale(sx, sy, origin);
@@ -5838,6 +5969,11 @@ var joint = (function (exports, Backbone, _, $) {
             if (!this.previousSegment || !this.subpathStartSegment) { return false; }
 
             return !this.start.equals(this.end);
+        },
+
+        round: function() {
+
+            return this;
         },
 
         scale: function() {
@@ -6659,7 +6795,7 @@ var joint = (function (exports, Backbone, _, $) {
             }
 
             for (var i = 0, len = els.length; i < len; i++) {
-                this.node.appendChild(V.toNode(els[i]));
+                this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
             }
 
             return this;
@@ -6756,6 +6892,11 @@ var joint = (function (exports, Backbone, _, $) {
             }
             return outputArray;
         };
+
+        // Returns the V element from parentNode of this.node.
+        VPrototype.parent = function() {
+            return V(this.node.parentNode) || null;
+        },
 
         // Find an index of an element inside its container.
         VPrototype.index = function() {
@@ -7192,6 +7333,21 @@ var joint = (function (exports, Backbone, _, $) {
             svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
             svg.setAttribute('version', SVGVersion);
             return svg;
+        };
+
+        V.createSVGStyle = function(stylesheet) {
+            var ref = V('style', { type: 'text/css' }, [
+                V.createCDATASection(stylesheet)
+            ]);
+            var node = ref.node;
+            return node;
+        },
+
+        V.createCDATASection = function(data) {
+            if ( data === void 0 ) data = '';
+
+            var xml = document.implementation.createDocument(null, 'xml', null);
+            return xml.createCDATASection(data);
         };
 
         V.idCounter = 0;
@@ -8531,43 +8687,55 @@ var joint = (function (exports, Backbone, _, $) {
         return obj;
     };
 
+    var isGetSafe = function(obj, key) {
+        // Prevent prototype pollution
+        // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
+        if (key === 'constructor' && typeof obj[key] === 'function') {
+            return false;
+        }
+        if (key === '__proto__') {
+            return false;
+        }
+        return true;
+    };
+
     var setByPath = function(obj, path, value, delimiter) {
 
         var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
-
+        var last = keys.length - 1;
         var diver = obj;
         var i = 0;
 
-        for (var len = keys.length; i < len - 1; i++) {
+        for (; i < last; i++) {
+            var key = keys[i];
+            if (!isGetSafe(diver, key)) { return obj; }
+            var value$1 = diver[key];
             // diver creates an empty object if there is no nested object under such a key.
             // This means that one can populate an empty nested object with setByPath().
-            diver = diver[keys[i]] || (diver[keys[i]] = {});
+            diver = value$1 || (diver[key] = {});
         }
-        diver[keys[len - 1]] = value;
+
+        diver[keys[last]] = value;
 
         return obj;
     };
 
     var unsetByPath = function(obj, path, delimiter) {
 
-        delimiter || (delimiter = '/');
+        var keys = Array.isArray(path) ? path : path.split(delimiter || '/');
+        var last = keys.length - 1;
+        var diver = obj;
+        var i = 0;
 
-        var pathArray = Array.isArray(path) ? path.slice() : path.split(delimiter);
-
-        var propertyToRemove = pathArray.pop();
-        if (pathArray.length > 0) {
-
-            // unsetting a nested attribute
-            var parent = getByPath(obj, pathArray, delimiter);
-            if (parent) {
-                delete parent[propertyToRemove];
-            }
-
-        } else {
-
-            // unsetting a primitive attribute
-            delete obj[propertyToRemove];
+        for (; i < last; i++) {
+            var key = keys[i];
+            if (!isGetSafe(diver, key)) { return obj; }
+            var value = diver[key];
+            if (!value) { return obj; }
+            diver = value;
         }
+
+        delete diver[keys[last]];
 
         return obj;
     };
@@ -8878,6 +9046,7 @@ var joint = (function (exports, Backbone, _, $) {
 
             if (!word) { continue; }
 
+            var isEol = false;
             if (eol && word.indexOf(eol) >= 0) {
                 // word contains end-of-line character
                 if (word.length > 1) {
@@ -8889,107 +9058,108 @@ var joint = (function (exports, Backbone, _, $) {
                     words.splice.apply(words, [ i, 1 ].concat( eolWords.filter(function (word) { return word !== ''; }) ));
                     i--;
                     len = words.length;
+                    continue;
                 } else {
                     // creates a new line
                     lines[++l] = '';
+                    isEol = true;
                 }
-                continue;
             }
 
+            if (!isEol) {
+                textNode.data = lines[l] ? lines[l] + ' ' + word : word;
 
-            textNode.data = lines[l] ? lines[l] + ' ' + word : word;
+                if (textSpan.getComputedTextLength() <= width) {
 
-            if (textSpan.getComputedTextLength() <= width) {
+                    // the current line fits
+                    lines[l] = textNode.data;
 
-                // the current line fits
-                lines[l] = textNode.data;
-
-                if (p || h) {
+                    if (p || h) {
                     // We were partitioning. Put rest of the word onto next line
-                    full[l++] = true;
+                        full[l++] = true;
 
-                    // cancel partitioning and splitting by hyphens
-                    p = 0;
-                    h = 0;
-                }
-
-            } else {
-
-                if (!lines[l] || p) {
-
-                    var partition = !!p;
-
-                    p = word.length - 1;
-
-                    if (partition || !p) {
-
-                        // word has only one character.
-                        if (!p) {
-
-                            if (!lines[l]) {
-
-                                // we won't fit this text within our rect
-                                lines = [];
-
-                                break;
-                            }
-
-                            // partitioning didn't help on the non-empty line
-                            // try again, but this time start with a new line
-
-                            // cancel partitions created
-                            words.splice(i, 2, word + words[i + 1]);
-
-                            // adjust word length
-                            len--;
-
-                            full[l++] = true;
-                            i--;
-
-                            continue;
-                        }
-
-                        // move last letter to the beginning of the next word
-                        words[i] = word.substring(0, p);
-                        words[i + 1] = word.substring(p) + words[i + 1];
-
-                    } else {
-
-                        if (h) {
-                            // cancel splitting and put the words together again
-                            words.splice(i, 2, words[i] + words[i + 1]);
-                            h = 0;
-                        } else {
-                            var hyphenIndex = word.search(hyphen);
-                            if (hyphenIndex > -1 && hyphenIndex !== word.length - 1 && hyphenIndex !== 0) {
-                                h = hyphenIndex + 1;
-                                p = 0;
-                            }
-
-                            // We initiate partitioning or splitting
-                            // split the long word into two words
-                            words.splice(i, 1, word.substring(0, h || p), word.substring(h|| p));
-                            // adjust words length
-                            len++;
-
-                        }
-
-                        if (l && !full[l - 1]) {
-                            // if the previous line is not full, try to fit max part of
-                            // the current word there
-                            l--;
-                        }
+                        // cancel partitioning and splitting by hyphens
+                        p = 0;
+                        h = 0;
                     }
 
+                } else {
+
+                    if (!lines[l] || p) {
+
+                        var partition = !!p;
+
+                        p = word.length - 1;
+
+                        if (partition || !p) {
+
+                            // word has only one character.
+                            if (!p) {
+
+                                if (!lines[l]) {
+
+                                    // we won't fit this text within our rect
+                                    lines = [];
+
+                                    break;
+                                }
+
+                                // partitioning didn't help on the non-empty line
+                                // try again, but this time start with a new line
+
+                                // cancel partitions created
+                                words.splice(i, 2, word + words[i + 1]);
+
+                                // adjust word length
+                                len--;
+
+                                full[l++] = true;
+                                i--;
+
+                                continue;
+                            }
+
+                            // move last letter to the beginning of the next word
+                            words[i] = word.substring(0, p);
+                            words[i + 1] = word.substring(p) + words[i + 1];
+
+                        } else {
+
+                            if (h) {
+                            // cancel splitting and put the words together again
+                                words.splice(i, 2, words[i] + words[i + 1]);
+                                h = 0;
+                            } else {
+                                var hyphenIndex = word.search(hyphen);
+                                if (hyphenIndex > -1 && hyphenIndex !== word.length - 1 && hyphenIndex !== 0) {
+                                    h = hyphenIndex + 1;
+                                    p = 0;
+                                }
+
+                                // We initiate partitioning or splitting
+                                // split the long word into two words
+                                words.splice(i, 1, word.substring(0, h || p), word.substring(h|| p));
+                                // adjust words length
+                                len++;
+
+                            }
+
+                            if (l && !full[l - 1]) {
+                            // if the previous line is not full, try to fit max part of
+                            // the current word there
+                                l--;
+                            }
+                        }
+
+                        i--;
+
+                        continue;
+                    }
+
+                    l++;
                     i--;
-
-                    continue;
                 }
-
-                l++;
-                i--;
             }
-
             var lastL = null;
 
             if (lines.length > maxLineCount) {
@@ -9035,7 +9205,7 @@ var joint = (function (exports, Backbone, _, $) {
                 if (typeof ellipsis !== 'string') { ellipsis = '\u2026'; }
 
                 var lastLine = lines[lastL];
-                if (!lastLine) { break; }
+                if (!lastLine && !isEol) { break; }
                 var k = lastLine.length;
                 var lastLineWithOmission, lastChar, separatorChar;
                 do {
@@ -10499,7 +10669,8 @@ var joint = (function (exports, Backbone, _, $) {
                         'font-weight': attrs['font-weight'] || attrs.fontWeight,
                         'font-size': attrs['font-size'] || attrs.fontSize,
                         'font-family': attrs['font-family'] || attrs.fontFamily,
-                        'lineHeight': attrs.lineHeight
+                        'lineHeight': attrs.lineHeight,
+                        'letter-spacing': 'letter-spacing' in attrs ? attrs['letter-spacing'] : attrs.letterSpacing
                     }, {
                         // Provide an existing SVG Document here
                         // instead of creating a temporary one over again.
@@ -12563,11 +12734,10 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         getPolyline: function() {
-            var points = [this.getSourcePoint(), this.getTargetPoint()];
-            var vertices = this.vertices();
-            if (vertices.length > 0) {
-                Array.prototype.push.apply(points, vertices.map(Point));
-            }
+            var points = [
+                this.getSourcePoint() ].concat( this.vertices().map(Point),
+                [this.getTargetPoint()]
+            );
             return new Polyline(points);
         },
 
@@ -13066,6 +13236,26 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         /**
+         * @param {string|Port|number} before
+         * @param {object} port
+         * @param {object} [opt]
+         * @returns {joint.dia.Element}
+         */
+        insertPort: function(before, port, opt) {
+            var index$1 = (typeof before === 'number') ? before : this.getPortIndex(before);
+
+            if (!isObject(port) || Array.isArray(port)) {
+                throw new Error('dia.Element: insertPort requires an object.');
+            }
+
+            var ports = assign([], this.prop('ports/items'));
+            ports.splice(index$1, 0, port);
+            this.prop('ports/items', ports, opt);
+
+            return this;
+        },
+
+        /**
          * @param {string} portId
          * @param {string|object=} path
          * @param {*=} value
@@ -13374,7 +13564,9 @@ var joint = (function (exports, Backbone, _, $) {
             if (!portCache) { return null; }
             var portRoot = portCache.portContentElement.node;
             var portSelectors = portCache.portContentSelectors;
-            return this.findBySelector(selector, portRoot, portSelectors)[0];
+            var ref = this.findBySelector(selector, portRoot, portSelectors);
+            var node = ref[0]; if ( node === void 0 ) node = null;
+            return node;
         },
 
         /**
@@ -13645,34 +13837,42 @@ var joint = (function (exports, Backbone, _, $) {
             opt.translateBy = opt.translateBy || this.id;
 
             var position = this.get('position') || { x: 0, y: 0 };
+            var ra = opt.restrictedArea;
+            if (ra && opt.translateBy === this.id) {
 
-            if (opt.restrictedArea && opt.translateBy === this.id) {
+                if (typeof ra === 'function') {
 
-                // We are restricting the translation for the element itself only. We get
-                // the bounding box of the element including all its embeds.
-                // All embeds have to be translated the exact same way as the element.
-                var bbox = this.getBBox({ deep: true });
-                var ra = opt.restrictedArea;
-                //- - - - - - - - - - - - -> ra.x + ra.width
-                // - - - -> position.x      |
-                // -> bbox.x
-                //                ▓▓▓▓▓▓▓   |
-                //         ░░░░░░░▓▓▓▓▓▓▓
-                //         ░░░░░░░░░        |
-                //   ▓▓▓▓▓▓▓▓░░░░░░░
-                //   ▓▓▓▓▓▓▓▓               |
-                //   <-dx->                     | restricted area right border
-                //         <-width->        |   ░ translated element
-                //   <- - bbox.width - ->       ▓ embedded element
-                var dx = position.x - bbox.x;
-                var dy = position.y - bbox.y;
-                // Find the maximal/minimal coordinates that the element can be translated
-                // while complies the restrictions.
-                var x = Math.max(ra.x + dx, Math.min(ra.x + ra.width + dx - bbox.width, position.x + tx));
-                var y = Math.max(ra.y + dy, Math.min(ra.y + ra.height + dy - bbox.height, position.y + ty));
-                // recalculate the translation taking the restrictions into account.
-                tx = x - position.x;
-                ty = y - position.y;
+                    var newPosition = ra.call(this, position.x + tx, position.y + ty, opt);
+
+                    tx = newPosition.x - position.x;
+                    ty = newPosition.y - position.y;
+
+                } else  {
+                    // We are restricting the translation for the element itself only. We get
+                    // the bounding box of the element including all its embeds.
+                    // All embeds have to be translated the exact same way as the element.
+                    var bbox = this.getBBox({ deep: true });
+                    //- - - - - - - - - - - - -> ra.x + ra.width
+                    // - - - -> position.x      |
+                    // -> bbox.x
+                    //                ▓▓▓▓▓▓▓   |
+                    //         ░░░░░░░▓▓▓▓▓▓▓
+                    //         ░░░░░░░░░        |
+                    //   ▓▓▓▓▓▓▓▓░░░░░░░
+                    //   ▓▓▓▓▓▓▓▓               |
+                    //   <-dx->                     | restricted area right border
+                    //         <-width->        |   ░ translated element
+                    //   <- - bbox.width - ->       ▓ embedded element
+                    var dx = position.x - bbox.x;
+                    var dy = position.y - bbox.y;
+                    // Find the maximal/minimal coordinates that the element can be translated
+                    // while complies the restrictions.
+                    var x = Math.max(ra.x + dx, Math.min(ra.x + ra.width + dx - bbox.width, position.x + tx));
+                    var y = Math.max(ra.y + dy, Math.min(ra.y + ra.height + dy - bbox.height, position.y + ty));
+                    // recalculate the translation taking the restrictions into account.
+                    tx = x - position.x;
+                    ty = y - position.y;
+                }
             }
 
             var translatedPosition = {
@@ -13756,71 +13956,94 @@ var joint = (function (exports, Backbone, _, $) {
                 // Get the angle and clamp its value between 0 and 360 degrees.
                 var angle = normalizeAngle(this.get('angle') || 0);
 
-                var quadrant = {
-                    'top-right': 0,
-                    'right': 0,
-                    'top-left': 1,
-                    'top': 1,
-                    'bottom-left': 2,
-                    'left': 2,
-                    'bottom-right': 3,
-                    'bottom': 3
-                }[opt.direction];
-
-                if (opt.absolute) {
-
-                    // We are taking the element's rotation into account
-                    quadrant += Math.floor((angle + 45) / 90);
-                    quadrant %= 4;
-                }
-
                 // This is a rectangle in size of the un-rotated element.
                 var bbox = this.getBBox();
 
-                // Pick the corner point on the element, which meant to stay on its place before and
-                // after the rotation.
-                var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
+                var origin;
 
-                // Find  an image of the previous indent point. This is the position, where is the
-                // point actually located on the screen.
-                var imageFixedPoint = Point(fixedPoint).rotate(bbox.center(), -angle);
+                if (angle) {
 
-                // Every point on the element rotates around a circle with the centre of rotation
-                // in the middle of the element while the whole element is being rotated. That means
-                // that the distance from a point in the corner of the element (supposed its always rect) to
-                // the center of the element doesn't change during the rotation and therefore it equals
-                // to a distance on un-rotated element.
-                // We can find the distance as DISTANCE = (ELEMENTWIDTH/2)^2 + (ELEMENTHEIGHT/2)^2)^0.5.
-                var radius = Math.sqrt((width * width) + (height * height)) / 2;
+                    var quadrant = {
+                        'top-right': 0,
+                        'right': 0,
+                        'top-left': 1,
+                        'top': 1,
+                        'bottom-left': 2,
+                        'left': 2,
+                        'bottom-right': 3,
+                        'bottom': 3
+                    }[opt.direction];
 
-                // Now we are looking for an angle between x-axis and the line starting at image of fixed point
-                // and ending at the center of the element. We call this angle `alpha`.
+                    if (opt.absolute) {
 
-                // The image of a fixed point is located in n-th quadrant. For each quadrant passed
-                // going anti-clockwise we have to add 90 degrees. Note that the first quadrant has index 0.
-                //
-                // 3 | 2
-                // --c-- Quadrant positions around the element's center `c`
-                // 0 | 1
-                //
-                var alpha = quadrant * Math.PI / 2;
+                        // We are taking the element's rotation into account
+                        quadrant += Math.floor((angle + 45) / 90);
+                        quadrant %= 4;
+                    }
 
-                // Add an angle between the beginning of the current quadrant (line parallel with x-axis or y-axis
-                // going through the center of the element) and line crossing the indent of the fixed point and the center
-                // of the element. This is the angle we need but on the un-rotated element.
-                alpha += Math.atan(quadrant % 2 == 0 ? height / width : width / height);
+                    // Pick the corner point on the element, which meant to stay on its place before and
+                    // after the rotation.
+                    var fixedPoint = bbox[['bottomLeft', 'corner', 'topRight', 'origin'][quadrant]]();
 
-                // Lastly we have to deduct the original angle the element was rotated by and that's it.
-                alpha -= toRad(angle);
+                    // Find  an image of the previous indent point. This is the position, where is the
+                    // point actually located on the screen.
+                    var imageFixedPoint = Point(fixedPoint).rotate(bbox.center(), -angle);
 
-                // With this angle and distance we can easily calculate the centre of the un-rotated element.
-                // Note that fromPolar constructor accepts an angle in radians.
-                var center = Point.fromPolar(radius, alpha, imageFixedPoint);
+                    // Every point on the element rotates around a circle with the centre of rotation
+                    // in the middle of the element while the whole element is being rotated. That means
+                    // that the distance from a point in the corner of the element (supposed its always rect) to
+                    // the center of the element doesn't change during the rotation and therefore it equals
+                    // to a distance on un-rotated element.
+                    // We can find the distance as DISTANCE = (ELEMENTWIDTH/2)^2 + (ELEMENTHEIGHT/2)^2)^0.5.
+                    var radius = Math.sqrt((width * width) + (height * height)) / 2;
 
-                // The top left corner on the un-rotated element has to be half a width on the left
-                // and half a height to the top from the center. This will be the origin of rectangle
-                // we were looking for.
-                var origin = Point(center).offset(width / -2, height / -2);
+                    // Now we are looking for an angle between x-axis and the line starting at image of fixed point
+                    // and ending at the center of the element. We call this angle `alpha`.
+
+                    // The image of a fixed point is located in n-th quadrant. For each quadrant passed
+                    // going anti-clockwise we have to add 90 degrees. Note that the first quadrant has index 0.
+                    //
+                    // 3 | 2
+                    // --c-- Quadrant positions around the element's center `c`
+                    // 0 | 1
+                    //
+                    var alpha = quadrant * Math.PI / 2;
+
+                    // Add an angle between the beginning of the current quadrant (line parallel with x-axis or y-axis
+                    // going through the center of the element) and line crossing the indent of the fixed point and the center
+                    // of the element. This is the angle we need but on the un-rotated element.
+                    alpha += Math.atan(quadrant % 2 == 0 ? height / width : width / height);
+
+                    // Lastly we have to deduct the original angle the element was rotated by and that's it.
+                    alpha -= toRad(angle);
+
+                    // With this angle and distance we can easily calculate the centre of the un-rotated element.
+                    // Note that fromPolar constructor accepts an angle in radians.
+                    var center = Point.fromPolar(radius, alpha, imageFixedPoint);
+
+                    // The top left corner on the un-rotated element has to be half a width on the left
+                    // and half a height to the top from the center. This will be the origin of rectangle
+                    // we were looking for.
+                    origin = Point(center).offset(width / -2, height / -2);
+
+                } else {
+                    // calculation for the origin Point when there is no rotation of the element
+                    origin = bbox.topLeft();
+
+                    switch (opt.direction) {
+                        case 'top':
+                        case 'top-right':
+                            origin.offset(0, bbox.height - height);
+                            break;
+                        case 'left':
+                        case 'bottom-left':
+                            origin.offset(bbox.width -width, 0);
+                            break;
+                        case 'top-left':
+                            origin.offset(bbox.width - width, bbox.height - height);
+                            break;
+                    }
+                }
 
                 // Resize the element (before re-positioning it).
                 this.set('size', { width: width, height: height }, opt);
@@ -14017,8 +14240,6 @@ var joint = (function (exports, Backbone, _, $) {
 
     var Graph = Backbone.Model.extend({
 
-        _batches: {},
-
         initialize: function(attrs, opt) {
 
             opt = opt || {};
@@ -14062,6 +14283,8 @@ var joint = (function (exports, Backbone, _, $) {
             // having to go through the whole cells array.
             // [edgeId] -> true
             this._edges = {};
+
+            this._batches = {};
 
             cells.on('add', this._restructureOnAdd, this);
             cells.on('remove', this._restructureOnRemove, this);
@@ -15055,7 +15278,7 @@ var joint = (function (exports, Backbone, _, $) {
             var names;
 
             if (arguments.length === 0) {
-                names = toArray(batches);
+                names = Object.keys(batches);
             } else if (Array.isArray(name)) {
                 names = name;
             } else {
@@ -15431,6 +15654,294 @@ var joint = (function (exports, Backbone, _, $) {
         View: View
     });
 
+    function toArray$1(obj) {
+        if (!obj) { return []; }
+        if (Array.isArray(obj)) { return obj; }
+        return [obj];
+    }
+
+    var HighlighterView = View.extend({
+
+        tagName: 'g',
+        svgElement: true,
+        className: 'highlight',
+
+        HIGHLIGHT_FLAG: 1,
+        UPDATE_PRIORITY: 3,
+        DETACHABLE: false,
+        UPDATABLE: true,
+        MOUNTABLE: true,
+
+        cellView: null,
+        nodeSelector: null,
+        node: null,
+        updateRequested: false,
+        transformGroup: null,
+
+        requestUpdate: function requestUpdate(cellView, nodeSelector) {
+            var paper = cellView.paper;
+            this.cellView = cellView;
+            this.nodeSelector = nodeSelector;
+            if (paper) {
+                this.updateRequested = true;
+                paper.requestViewUpdate(this, this.HIGHLIGHT_FLAG, this.UPDATE_PRIORITY);
+            }
+        },
+
+        confirmUpdate: function confirmUpdate() {
+            // The cellView is now rendered/updated since it has a higher update priority.
+            this.updateRequested = false;
+            var ref = this;
+            var cellView = ref.cellView;
+            var nodeSelector = ref.nodeSelector;
+            this.update(cellView, nodeSelector);
+            this.mount();
+            this.transform();
+            return 0;
+        },
+
+        findNode: function findNode(cellView, nodeSelector) {
+            var assign, assign$1;
+
+            if ( nodeSelector === void 0 ) nodeSelector = null;
+            var el;
+            if (typeof nodeSelector === 'string') {
+                (assign = cellView.findBySelector(nodeSelector), el = assign[0]);
+            } else if (isPlainObject(nodeSelector)) {
+                var isLink = cellView.model.isLink();
+                var label = nodeSelector.label; if ( label === void 0 ) label = null;
+                var port = nodeSelector.port;
+                var selector = nodeSelector.selector;
+                if (isLink && label !== null) {
+                    // Link Label Selector
+                    el = cellView.findLabelNode(label, selector);
+                } else if (!isLink && port) {
+                    // Element Port Selector
+                    el = cellView.findPortNode(port, selector);
+                } else {
+                    // Cell Selector
+                    (assign$1 = cellView.findBySelector(selector), el = assign$1[0]);
+                }
+            } else if (nodeSelector) {
+                el = V.toNode(nodeSelector);
+                if (!(el instanceof SVGElement)) { el = null; }
+            }
+            return el ? el : null;
+        },
+
+        mount: function mount() {
+            var ref = this;
+            var MOUNTABLE = ref.MOUNTABLE;
+            var cellView = ref.cellView;
+            var el = ref.el;
+            var options = ref.options;
+            var transformGroup = ref.transformGroup;
+            if (!MOUNTABLE || transformGroup) { return; }
+            var cellViewRoot = cellView.vel;
+            var paper = cellView.paper;
+            var layerName = options.layer;
+            if (layerName) {
+                this.transformGroup = V('g')
+                    .addClass('highlight-transform')
+                    .append(el)
+                    .appendTo(paper.getLayerNode(layerName));
+            } else {
+                // TODO: prepend vs append
+                if (!el.parentNode || el.nextSibling) {
+                    // Not appended yet or not the last child
+                    cellViewRoot.append(el);
+                }
+            }
+        },
+
+        unmount: function unmount() {
+            var ref = this;
+            var MOUNTABLE = ref.MOUNTABLE;
+            var transformGroup = ref.transformGroup;
+            var vel = ref.vel;
+            if (!MOUNTABLE) { return; }
+            if (transformGroup) {
+                this.transformGroup = null;
+                transformGroup.remove();
+            } else {
+                vel.remove();
+            }
+        },
+
+        transform: function transform() {
+            var ref = this;
+            var transformGroup = ref.transformGroup;
+            var cellView = ref.cellView;
+            var updateRequested = ref.updateRequested;
+            if (!transformGroup || cellView.model.isLink() || updateRequested) { return; }
+            var translateMatrix = cellView.getRootTranslateMatrix();
+            var rotateMatrix = cellView.getRootRotateMatrix();
+            var transformMatrix = translateMatrix.multiply(rotateMatrix);
+            transformGroup.attr('transform', V.matrixToTransformString(transformMatrix));
+        },
+
+        update: function update() {
+            var ref = this;
+            var prevNode = ref.node;
+            var cellView = ref.cellView;
+            var nodeSelector = ref.nodeSelector;
+            var updateRequested = ref.updateRequested;
+            var id = ref.id;
+            if (updateRequested) { return; }
+            var node = this.node = this.findNode(cellView, nodeSelector);
+            if (prevNode) {
+                this.unhighlight(cellView, prevNode);
+            }
+            if (node) {
+                this.highlight(cellView, node);
+                this.mount();
+            } else {
+                this.unmount();
+                cellView.notify('cell:highlight:invalid', id, this);
+            }
+        },
+
+        onRemove: function onRemove() {
+            var ref = this;
+            var node = ref.node;
+            var cellView = ref.cellView;
+            var id = ref.id;
+            var constructor = ref.constructor;
+            if (node) {
+                this.unhighlight(cellView, node);
+            }
+            this.unmount();
+            constructor._removeRef(cellView, id);
+        },
+
+        highlight: function highlight(_cellView, _node) {
+            // to be overridden
+        },
+
+        unhighlight: function unhighlight(_cellView, _node) {
+            // to be overridden
+        }
+
+    }, {
+
+        _views: {},
+
+        // Used internally by CellView highlight()
+        highlight: function(cellView, node, opt) {
+            var id = this.uniqueId(node, opt);
+            this.add(cellView, node, id, opt);
+        },
+
+        // Used internally by CellView unhighlight()
+        unhighlight: function(cellView, node, opt) {
+            var id = this.uniqueId(node, opt);
+            this.remove(cellView, id);
+        },
+
+        get: function get(cellView, id) {
+            if ( id === void 0 ) id = null;
+
+            var cid = cellView.cid;
+            var ref$2 = this;
+            var _views = ref$2._views;
+            var refs = _views[cid];
+            if (id === null) {
+                // all highlighters
+                var views = [];
+                if (!refs) { return views; }
+                for (var hid in refs) {
+                    var ref = refs[hid];
+                    if (ref instanceof this) {
+                        views.push(ref);
+                    }
+                }
+                return views;
+            } else {
+                // single highlighter
+                if (!refs) { return null; }
+                if (id in refs) {
+                    var ref$1 = refs[id];
+                    if (ref$1 instanceof this) { return ref$1; }
+                }
+                return null;
+            }
+        },
+
+        add: function add(cellView, nodeSelector, id, opt) {
+            if ( opt === void 0 ) opt = {};
+
+            if (!id) { throw new Error('dia.HighlighterView: An ID required.'); }
+            // Search the existing view amongst all the highlighters
+            var previousView = HighlighterView.get(cellView, id);
+            if (previousView) { previousView.remove(); }
+            var view = new this(opt);
+            view.id = id;
+            this._addRef(cellView, id, view);
+            view.requestUpdate(cellView, nodeSelector);
+            return view;
+        },
+
+        _addRef: function _addRef(cellView, id, view) {
+            var cid = cellView.cid;
+            var ref = this;
+            var _views = ref._views;
+            var refs = _views[cid];
+            if (!refs) { refs = _views[cid] = {}; }
+            refs[id] = view;
+        },
+
+        _removeRef: function _removeRef(cellView, id) {
+            var cid = cellView.cid;
+            var ref = this;
+            var _views = ref._views;
+            var refs = _views[cid];
+            if (!refs) { return; }
+            if (id) { delete refs[id]; }
+            for (var _ in refs) { return; }
+            delete _views[cid];
+        },
+
+        remove: function remove(cellView, id) {
+            if ( id === void 0 ) id = null;
+
+            toArray$1(this.get(cellView, id)).forEach(function (view) {
+                view.remove();
+            });
+        },
+
+        update: function update(cellView, id, dirty) {
+            if ( id === void 0 ) id = null;
+            if ( dirty === void 0 ) dirty = false;
+
+            toArray$1(this.get(cellView, id)).forEach(function (view) {
+                if (dirty || view.UPDATABLE) { view.update(); }
+            });
+        },
+
+        transform: function transform(cellView, id) {
+            if ( id === void 0 ) id = null;
+
+            toArray$1(this.get(cellView, id)).forEach(function (view) {
+                if (view.UPDATABLE) { view.transform(); }
+            });
+        },
+
+        uniqueId: function uniqueId(node, opt) {
+            if ( opt === void 0 ) opt = '';
+
+            return V.ensureId(node) + JSON.stringify(opt);
+        }
+
+    });
+
+    var HighlightingTypes = {
+        DEFAULT: 'default',
+        EMBEDDING: 'embedding',
+        CONNECTING: 'connecting',
+        MAGNET_AVAILABILITY: 'magnetAvailability',
+        ELEMENT_AVAILABILITY: 'elementAvailability'
+    };
+
     // CellView base view and controller.
     // --------------------------------------------
 
@@ -15561,8 +16072,15 @@ var joint = (function (exports, Backbone, _, $) {
             // TODO: tool changes does not need to be sync
             // Fix Segments tools
             if (opt.tool) { opt.async = false; }
-            var paper = this.paper;
-            if (paper) { paper.requestViewUpdate(this, flag, this.UPDATE_PRIORITY, opt); }
+            this.requestUpdate(flag, opt);
+        },
+
+        requestUpdate: function(flags, opt) {
+            var ref = this;
+            var paper = ref.paper;
+            if (paper && flags > 0) {
+                paper.requestViewUpdate(this, flags, this.UPDATE_PRIORITY, opt);
+            }
         },
 
         parseDOMJSON: function(markup, root) {
@@ -15683,56 +16201,94 @@ var joint = (function (exports, Backbone, _, $) {
             return mr;
         },
 
-        highlight: function(el, opt) {
+        _notifyHighlight: function(eventName, el, opt) {
+            var assign, assign$1;
 
-            el = !el ? this.el : this.$(el)[0] || this.el;
-
+            if ( opt === void 0 ) opt = {};
+            var ref = this;
+            var rootNode = ref.el;
+            var node;
+            if (typeof el === 'string') {
+                (assign = this.findBySelector(el), node = assign[0], node = node === void 0 ? rootNode : node);
+            } else {
+                (assign$1 = this.$(el), node = assign$1[0], node = node === void 0 ? rootNode : node);
+            }
             // set partial flag if the highlighted element is not the entire view.
-            opt = opt || {};
-            opt.partial = (el !== this.el);
-
-            this.notify('cell:highlight', el, opt);
+            opt.partial = (node !== rootNode);
+            // translate type flag into a type string
+            if (opt.type === undefined) {
+                var type;
+                switch (true) {
+                    case opt.embedding:
+                        type = HighlightingTypes.EMBEDDING;
+                        break;
+                    case opt.connecting:
+                        type = HighlightingTypes.CONNECTING;
+                        break;
+                    case opt.magnetAvailability:
+                        type = HighlightingTypes.MAGNET_AVAILABILITY;
+                        break;
+                    case opt.elementAvailability:
+                        type = HighlightingTypes.ELEMENT_AVAILABILITY;
+                        break;
+                    default:
+                        type = HighlightingTypes.DEFAULT;
+                        break;
+                }
+                opt.type = type;
+            }
+            this.notify(eventName, node, opt);
             return this;
         },
 
+        highlight: function(el, opt) {
+            return this._notifyHighlight('cell:highlight', el, opt);
+        },
+
         unhighlight: function(el, opt) {
+            if ( opt === void 0 ) opt = {};
 
-            el = !el ? this.el : this.$(el)[0] || this.el;
-
-            opt = opt || {};
-            opt.partial = el != this.el;
-
-            this.notify('cell:unhighlight', el, opt);
-            return this;
+            return this._notifyHighlight('cell:unhighlight', el, opt);
         },
 
         // Find the closest element that has the `magnet` attribute set to `true`. If there was not such
         // an element found, return the root element of the cell view.
         findMagnet: function(el) {
 
-            var $el = this.$(el);
-            var $rootEl = this.$el;
-
-            if ($el.length === 0) {
-                $el = $rootEl;
+            var root = this.el;
+            var magnet = this.$(el)[0];
+            if (!magnet) {
+                magnet = root;
             }
 
             do {
-
-                var magnet = $el.attr('magnet');
-                if ((magnet || $el.is($rootEl)) && magnet !== 'false') {
-                    return $el[0];
+                var magnetAttribute = magnet.getAttribute('magnet');
+                var isMagnetRoot = (magnet === root);
+                if ((magnetAttribute || isMagnetRoot) && magnetAttribute !== 'false') {
+                    return magnet;
                 }
+                if (isMagnetRoot) {
+                    // If the overall cell has set `magnet === false`, then return `undefined` to
+                    // announce there is no magnet found for this cell.
+                    // This is especially useful to set on cells that have 'ports'. In this case,
+                    // only the ports have set `magnet === true` and the overall element has `magnet === false`.
+                    return undefined;
+                }
+                magnet = magnet.parentNode;
+            } while (magnet);
 
-                $el = $el.parent();
-
-            } while ($el.length > 0);
-
-            // If the overall cell has set `magnet === false`, then return `undefined` to
-            // announce there is no magnet found for this cell.
-            // This is especially useful to set on cells that have 'ports'. In this case,
-            // only the ports have set `magnet === true` and the overall element has `magnet === false`.
             return undefined;
+        },
+
+        findProxyNode: function(el, type) {
+            el || (el = this.el);
+            var nodeSelector = el.getAttribute((type + "-selector"));
+            if (nodeSelector) {
+                var ref = this.findBySelector(nodeSelector);
+                var proxyNode = ref[0];
+                if (proxyNode) { return proxyNode; }
+            }
+            return el;
         },
 
         // Construct a unique selector for the `el` element within this view.
@@ -15820,7 +16376,7 @@ var joint = (function (exports, Backbone, _, $) {
                 magnet = this.findBySelector(selector, root, this.selectors)[0];
             }
 
-            return magnet;
+            return this.findProxyNode(magnet, 'magnet');
         },
 
         getAttributeDefinition: function(attrName) {
@@ -16150,6 +16706,7 @@ var joint = (function (exports, Backbone, _, $) {
             var selectorCache = {};
             var bboxCache = {};
             var relativeItems = [];
+            var relativeRefItems = [];
             var item, node, nodeAttrs, nodeData, processedAttrs;
 
             var roAttrs = opt.roAttributes;
@@ -16181,7 +16738,7 @@ var joint = (function (exports, Backbone, _, $) {
                     if (refSelector) {
                         refNode = (selectorCache[refSelector] || this.findBySelector(refSelector, rootNode, opt.selectors))[0];
                         if (!refNode) {
-                            throw new Error('dia.ElementView: "' + refSelector + '" reference does not exist.');
+                            throw new Error('dia.CellView: "' + refSelector + '" reference does not exist.');
                         }
                     } else {
                         refNode = null;
@@ -16194,19 +16751,27 @@ var joint = (function (exports, Backbone, _, $) {
                         allAttributes: nodeAllAttrs
                     };
 
-                    // If an element in the list is positioned relative to this one, then
-                    // we want to insert this one before it in the list.
-                    var itemIndex = relativeItems.findIndex(function(item) {
-                        return item.refNode === node;
-                    });
+                    if (refNode) {
+                        // If an element in the list is positioned relative to this one, then
+                        // we want to insert this one before it in the list.
+                        var itemIndex = relativeRefItems.findIndex(function(item) {
+                            return item.refNode === node;
+                        });
 
-                    if (itemIndex > -1) {
-                        relativeItems.splice(itemIndex, 0, item);
+                        if (itemIndex > -1) {
+                            relativeRefItems.splice(itemIndex, 0, item);
+                        } else {
+                            relativeRefItems.push(item);
+                        }
                     } else {
+                        // A node with no ref attribute. To be updated before the nodes referencing other nodes.
+                        // The order of no-ref-items is not specified/important.
                         relativeItems.push(item);
                     }
                 }
             }
+
+            relativeItems.push.apply(relativeItems, relativeRefItems);
 
             var rotatableMatrix;
             for (var i = 0, n = relativeItems.length; i < n; i++) {
@@ -16273,6 +16838,7 @@ var joint = (function (exports, Backbone, _, $) {
 
         onRemove: function() {
             this.removeTools();
+            this.removeHighlighters();
         },
 
         _toolsView: null,
@@ -16292,7 +16858,6 @@ var joint = (function (exports, Backbone, _, $) {
                 this._toolsView = toolsView;
                 toolsView.configure({ relatedView: this });
                 toolsView.listenTo(this.paper, 'tools:event', this.onToolEvent.bind(this));
-                toolsView.mount();
             }
             return this;
         },
@@ -16340,6 +16905,20 @@ var joint = (function (exports, Backbone, _, $) {
                     this.showTools();
                     break;
             }
+        },
+
+        removeHighlighters: function() {
+            HighlighterView.remove(this);
+        },
+
+        updateHighlighters: function(dirty) {
+            if ( dirty === void 0 ) dirty = false;
+
+            HighlighterView.update(this, null, dirty);
+        },
+
+        transformHighlighters: function() {
+            HighlighterView.transform(this);
         },
 
         // Interaction. The controller part.
@@ -16467,6 +17046,8 @@ var joint = (function (exports, Backbone, _, $) {
         }
     }, {
 
+        Highlighting: HighlightingTypes,
+
         addPresentationAttributes: function(presentationAttributes) {
             return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {
                 if (!a || !b) { return; }
@@ -16527,25 +17108,33 @@ var joint = (function (exports, Backbone, _, $) {
         UPDATE_PRIORITY: 0,
 
         confirmUpdate: function(flag, opt) {
+
             var useCSSSelectors = config.useCSSSelectors;
             if (this.hasFlag(flag, 'PORTS')) {
                 this._removePorts();
                 this._cleanPortsCache();
             }
+            var transformHighlighters = false;
             if (this.hasFlag(flag, 'RENDER')) {
                 this.render();
                 this.updateTools(opt);
-                flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS']);
+                this.updateHighlighters(true);
+                transformHighlighters = true;
+                flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS', 'TOOLS']);
             } else {
+                var updateHighlighters = false;
+
                 // Skip this branch if render is required
                 if (this.hasFlag(flag, 'RESIZE')) {
                     this.resize(opt);
+                    updateHighlighters = true;
                     // Resize method is calling `update()` internally
                     flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
                 }
                 if (this.hasFlag(flag, 'UPDATE')) {
                     this.update(this.model, null, opt);
                     flag = this.removeFlag(flag, 'UPDATE');
+                    updateHighlighters = true;
                     if (useCSSSelectors) {
                         // `update()` will render ports when useCSSSelectors are enabled
                         flag = this.removeFlag(flag, 'PORTS');
@@ -16554,15 +17143,26 @@ var joint = (function (exports, Backbone, _, $) {
                 if (this.hasFlag(flag, 'TRANSLATE')) {
                     this.translate();
                     flag = this.removeFlag(flag, 'TRANSLATE');
+                    transformHighlighters = true;
                 }
                 if (this.hasFlag(flag, 'ROTATE')) {
                     this.rotate();
                     flag = this.removeFlag(flag, 'ROTATE');
+                    transformHighlighters = true;
                 }
                 if (this.hasFlag(flag, 'PORTS')) {
                     this._renderPorts();
+                    updateHighlighters = true;
                     flag = this.removeFlag(flag, 'PORTS');
                 }
+
+                if (updateHighlighters) {
+                    this.updateHighlighters(false);
+                }
+            }
+
+            if (transformHighlighters) {
+                this.transformHighlighters();
             }
 
             if (this.hasFlag(flag, 'TOOLS')) {
@@ -16599,7 +17199,9 @@ var joint = (function (exports, Backbone, _, $) {
                 roAttributes: (renderingOnlyAttrs === modelAttrs) ? null : renderingOnlyAttrs
             });
 
-            if (useCSSSelectors) { this._renderPorts(); }
+            if (useCSSSelectors) {
+                this._renderPorts();
+            }
         },
 
         rotatableSelector: 'rotatable',
@@ -16865,7 +17467,10 @@ var joint = (function (exports, Backbone, _, $) {
             if (newCandidateView && newCandidateView != prevCandidateView) {
                 // A new candidate view found. Highlight the new one.
                 this.clearEmbedding(data);
-                data.candidateEmbedView = newCandidateView.highlight(null, { embedding: true });
+                data.candidateEmbedView = newCandidateView.highlight(
+                    newCandidateView.findProxyNode(null, 'container'),
+                    { embedding: true }
+                );
             }
 
             if (!newCandidateView && prevCandidateView) {
@@ -16881,7 +17486,10 @@ var joint = (function (exports, Backbone, _, $) {
             var candidateView = data.candidateEmbedView;
             if (candidateView) {
                 // No candidate view found. Unhighlight the previous candidate.
-                candidateView.unhighlight(null, { embedding: true });
+                candidateView.unhighlight(
+                    candidateView.findProxyNode(null, 'container'),
+                    { embedding: true }
+                );
                 data.candidateEmbedView = null;
             }
         },
@@ -16898,7 +17506,10 @@ var joint = (function (exports, Backbone, _, $) {
 
                 // We finished embedding. Candidate view is chosen to become the parent of the model.
                 candidateView.model.embed(model, { ui: true });
-                candidateView.unhighlight(null, { embedding: true });
+                candidateView.unhighlight(
+                    candidateView.findProxyNode(null, 'container'),
+                    { embedding: true }
+                );
 
                 data.candidateEmbedView = null;
             }
@@ -16920,6 +17531,23 @@ var joint = (function (exports, Backbone, _, $) {
             }
 
             return null;
+        },
+
+        findProxyNode: function(el, type) {
+            el || (el = this.el);
+            var nodeSelector = el.getAttribute((type + "-selector"));
+            if (nodeSelector) {
+                var port = this.findAttribute('port', el);
+                if (port) {
+                    var proxyPortNode = this.findPortNode(port, nodeSelector);
+                    if (proxyPortNode) { return proxyPortNode; }
+                } else {
+                    var ref = this.findBySelector(nodeSelector);
+                    var proxyNode = ref[0];
+                    if (proxyNode) { return proxyNode; }
+                }
+            }
+            return el;
         },
 
         // Interaction. The controller part.
@@ -17066,7 +17694,7 @@ var joint = (function (exports, Backbone, _, $) {
 
             view.eventData(evt, {
                 pointerOffset: view.model.position().difference(x, y),
-                restrictedArea: this.paper.getRestrictedArea(view)
+                restrictedArea: this.paper.getRestrictedArea(view, x, y)
             });
         },
 
@@ -17651,8 +18279,8 @@ var joint = (function (exports, Backbone, _, $) {
 
             return [
                 { offsetX: step, offsetY: 0, cost: cost },
-                { offsetX: 0, offsetY: step, cost: cost },
                 { offsetX: -step, offsetY: 0, cost: cost },
+                { offsetX: 0, offsetY: step, cost: cost },
                 { offsetX: 0, offsetY: -step, cost: cost }
             ];
         },
@@ -18566,14 +19194,19 @@ var joint = (function (exports, Backbone, _, $) {
     }
 
     function setupUpdating(jumpOverLinkView) {
-        var updateList = jumpOverLinkView.paper._jumpOverUpdateList;
+        var paper = jumpOverLinkView.paper;
+        var updateList = paper._jumpOverUpdateList;
 
         // first time setup for this paper
         if (updateList == null) {
-            updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
-            jumpOverLinkView.paper.on('cell:pointerup', updateJumpOver);
-            jumpOverLinkView.paper.model.on('reset', function() {
-                updateList = jumpOverLinkView.paper._jumpOverUpdateList = [];
+            updateList = paper._jumpOverUpdateList = [];
+            var graph = paper.model;
+            graph.on('batch:stop', function() {
+                if (this.hasActiveBatch()) { return; }
+                updateJumpOver(paper);
+            });
+            graph.on('reset', function() {
+                updateList = paper._jumpOverUpdateList = [];
             });
         }
 
@@ -18594,15 +19227,15 @@ var joint = (function (exports, Backbone, _, $) {
      * update of all registered links with jump over connector
      * @param {object} batchEvent optional object with info about batch
      */
-    function updateJumpOver() {
-        var updateList = this._jumpOverUpdateList;
+    function updateJumpOver(paper) {
+        var updateList = paper._jumpOverUpdateList;
         for (var i = 0; i < updateList.length; i++) {
-            updateList[i].update();
+            updateList[i].requestConnectionUpdate();
         }
     }
 
     /**
-     * Utility function to collect all intersection poinst of a single
+     * Utility function to collect all intersection points of a single
      * line against group of other lines.
      * @param {g.line} line where to find points
      * @param {g.line[]} crossCheckLines lines to cross
@@ -18631,7 +19264,7 @@ var joint = (function (exports, Backbone, _, $) {
     /**
      * Split input line into multiple based on intersection points.
      * @param {g.line} line input line to split
-     * @param {g.point[]} intersections poinst where to split the line
+     * @param {g.point[]} intersections points where to split the line
      * @param {number} jumpSize the size of jump arc (length empty spot on a line)
      * @return {g.line[]} list of lines being split
      */
@@ -19100,7 +19733,7 @@ var joint = (function (exports, Backbone, _, $) {
             connector: ['UPDATE'],
             smooth: ['UPDATE'],
             manhattan: ['UPDATE'],
-            toolMarkup: ['TOOLS'],
+            toolMarkup: ['LEGACY_TOOLS'],
             labels: ['LABELS'],
             labelMarkup: ['LABELS'],
             vertices: ['VERTICES', 'UPDATE'],
@@ -19109,7 +19742,7 @@ var joint = (function (exports, Backbone, _, $) {
             target: ['TARGET', 'UPDATE']
         },
 
-        initFlag: ['RENDER', 'SOURCE', 'TARGET'],
+        initFlag: ['RENDER', 'SOURCE', 'TARGET', 'TOOLS'],
 
         UPDATE_PRIORITY: 1,
 
@@ -19138,9 +19771,13 @@ var joint = (function (exports, Backbone, _, $) {
 
             if (this.hasFlag(flags, 'RENDER')) {
                 this.render();
-                flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'TOOLS', 'LABELS']);
+                this.updateHighlighters(true);
+                this.updateTools(opt);
+                flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'LABELS', 'TOOLS', 'LEGACY_TOOLS']);
                 return flags;
             }
+
+            var updateHighlighters = false;
 
             if (this.hasFlag(flags, 'VERTICES')) {
                 this.renderVertexMarkers();
@@ -19151,41 +19788,50 @@ var joint = (function (exports, Backbone, _, $) {
             var model = ref$1.model;
             var attributes = model.attributes;
             var updateLabels = this.hasFlag(flags, 'LABELS');
-            var updateTools = this.hasFlag(flags, 'TOOLS');
+            var updateLegacyTools = this.hasFlag(flags, 'LEGACY_TOOLS');
 
             if (updateLabels) {
                 this.onLabelsChange(model, attributes.labels, opt);
                 flags = this.removeFlag(flags, 'LABELS');
+                updateHighlighters = true;
             }
 
-            if (updateTools) {
+            if (updateLegacyTools) {
                 this.renderTools();
-                flags = this.removeFlag(flags, 'TOOLS');
+                flags = this.removeFlag(flags, 'LEGACY_TOOLS');
             }
 
             if (this.hasFlag(flags, 'UPDATE')) {
                 this.update(model, null, opt);
-                flags = this.removeFlag(flags, 'UPDATE');
+                this.updateTools(opt);
+                flags = this.removeFlag(flags, ['UPDATE', 'TOOLS']);
                 updateLabels = false;
-                updateTools = false;
+                updateLegacyTools = false;
+                updateHighlighters = true;
             }
 
             if (updateLabels) {
                 this.updateLabelPositions();
             }
 
-            if (updateTools) {
+            if (updateLegacyTools) {
                 this.updateToolsPosition();
+            }
+
+            if (updateHighlighters) {
+                this.updateHighlighters();
+            }
+
+            if (this.hasFlag(flags, 'TOOLS')) {
+                this.updateTools(opt);
+                flags = this.removeFlag(flags, 'TOOLS');
             }
 
             return flags;
         },
 
         requestConnectionUpdate: function(opt) {
-            var ref = this;
-            var paper = ref.paper;
-            var UPDATE_PRIORITY = ref.UPDATE_PRIORITY;
-            if (paper) { paper.requestViewUpdate(this, this.getFlag('UPDATE'), UPDATE_PRIORITY, opt); }
+            this.requestUpdate(this.getFlag('UPDATE', opt));
         },
 
         isLabelsRenderRequired: function(opt) {
@@ -19413,6 +20059,16 @@ var joint = (function (exports, Backbone, _, $) {
             return this;
         },
 
+        findLabelNode: function(labelIndex, selector) {
+            var labelRoot = this._labelCache[labelIndex];
+            if (!labelRoot) { return null; }
+            var labelSelectors = this._labelSelectors[labelIndex];
+            var ref = this.findBySelector(selector, labelRoot, labelSelectors);
+            var node = ref[0]; if ( node === void 0 ) node = null;
+            return node;
+        },
+
+
         // merge default label attrs into label attrs
         // keep `undefined` or `null` because `{}` means something else
         _mergeLabelAttrs: function(hasCustomMarkup, labelAttrs, defaultLabelAttrs, builtinDefaultLabelAttrs) {
@@ -19576,8 +20232,6 @@ var joint = (function (exports, Backbone, _, $) {
             this.updateLabelPositions();
             this.updateToolsPosition();
             this.updateArrowheadMarkers();
-
-            this.updateTools(opt);
 
             // *Deprecated*
             // Local perpendicular flag (as opposed to one defined on paper).
@@ -19848,7 +20502,13 @@ var joint = (function (exports, Backbone, _, $) {
                 var sourceConnectionPointDef = sourceDef.connectionPoint || paperOptions.defaultConnectionPoint;
                 var sourcePointRef = firstWaypoint || targetAnchor;
                 var sourceLine = new Line(sourcePointRef, sourceAnchor);
-                sourcePoint = this.getConnectionPoint(sourceConnectionPointDef, sourceView, sourceMagnet, sourceLine, 'source');
+                sourcePoint = this.getConnectionPoint(
+                    sourceConnectionPointDef,
+                    sourceView,
+                    sourceMagnet,
+                    sourceLine,
+                    'source'
+                );
             } else {
                 sourcePoint = sourceAnchor;
             }
@@ -19859,7 +20519,13 @@ var joint = (function (exports, Backbone, _, $) {
                 var targetConnectionPointDef = targetDef.connectionPoint || paperOptions.defaultConnectionPoint;
                 var targetPointRef = lastWaypoint || sourceAnchor;
                 var targetLine = new Line(targetPointRef, targetAnchor);
-                targetPoint = this.getConnectionPoint(targetConnectionPointDef, targetView, targetMagnet, targetLine, 'target');
+                targetPoint = this.getConnectionPoint(
+                    targetConnectionPointDef,
+                    targetView,
+                    targetMagnet,
+                    targetLine,
+                    'target'
+                );
             } else {
                 targetPoint = targetAnchor;
             }
@@ -19900,7 +20566,15 @@ var joint = (function (exports, Backbone, _, $) {
                 anchorFn = paperOptions[anchorNamespace][anchorName];
                 if (typeof anchorFn !== 'function') { throw new Error('Unknown anchor: ' + anchorName); }
             }
-            var anchor = anchorFn.call(this, cellView, magnet, ref, anchorDef.args || {}, endType, this);
+            var anchor = anchorFn.call(
+                this,
+                cellView,
+                magnet,
+                ref,
+                anchorDef.args || {},
+                endType,
+                this
+            );
             if (!anchor) { return new Point(); }
             return anchor.round(this.decimalsRounding);
         },
@@ -19983,9 +20657,26 @@ var joint = (function (exports, Backbone, _, $) {
                 var position = merge({}, defaultPosition, labelPosition);
                 var transformationMatrix = this._getLabelTransformationMatrix(position);
                 labelNode.setAttribute('transform', V.matrixToTransformString(transformationMatrix));
+                this._cleanLabelMatrices(idx);
             }
 
             return this;
+        },
+
+        _cleanLabelMatrices: function(index) {
+            // Clean magnetMatrix for all nodes of the label.
+            // Cached BoundingRect does not need to updated when the position changes
+            // TODO: this doesn't work for labels with XML String markups.
+            var ref = this;
+            var metrics = ref.metrics;
+            var _labelSelectors = ref._labelSelectors;
+            var selectors = _labelSelectors[index];
+            if (!selectors) { return; }
+            for (var selector in selectors) {
+                var ref$1 = selectors[selector];
+                var id = ref$1.id;
+                if (id && (id in metrics)) { delete metrics[id].magnetMatrix; }
+            }
         },
 
         updateToolsPosition: function() {
@@ -20907,6 +21598,7 @@ var joint = (function (exports, Backbone, _, $) {
 
             var data = this.eventData(evt);
             var label = { position: this.getLabelPosition(x, y, data.positionAngle, data.positionArgs) };
+            if (this.paper.options.snapLabels) { delete label.position.offset; }
             this.model.label(data.labelIdx, label);
         },
 
@@ -21025,8 +21717,9 @@ var joint = (function (exports, Backbone, _, $) {
 
             var prevClosestView = data.closestView || null;
             var prevClosestMagnet = data.closestMagnet || null;
+            var prevMagnetProxy = data.magnetProxy || null;
 
-            data.closestView = data.closestMagnet = null;
+            data.closestView = data.closestMagnet = data.magnetProxy = null;
 
             var minDistance = Number.MAX_VALUE;
             var pointer = new Point(x, y);
@@ -21056,7 +21749,8 @@ var joint = (function (exports, Backbone, _, $) {
                     var distance = bbox.center().squaredDistance(pointer);
                     // the connection is looked up in a circle area by `distance < r`
                     if (distance < minDistance) {
-                        if (prevClosestMagnet === view.el || paper.options.validateConnection.apply(
+                        var isAlreadyValidated = prevClosestMagnet === magnet;
+                        if (isAlreadyValidated || paper.options.validateConnection.apply(
                             paper, data.validateConnectionArgs(view, (view.el === magnet) ? null : magnet)
                         )) {
                             minDistance = distance;
@@ -21069,12 +21763,16 @@ var joint = (function (exports, Backbone, _, $) {
             }, this);
 
             var end;
+            var magnetProxy = null;
             var closestView = data.closestView;
             var closestMagnet = data.closestMagnet;
+            if (closestMagnet) {
+                magnetProxy = data.magnetProxy = closestView.findProxyNode(closestMagnet, 'highlighter');
+            }
             var endType = data.arrowhead;
             var newClosestMagnet = (prevClosestMagnet !== closestMagnet);
             if (prevClosestView && newClosestMagnet) {
-                prevClosestView.unhighlight(prevClosestMagnet, {
+                prevClosestView.unhighlight(prevMagnetProxy, {
                     connecting: true,
                     snapping: true
                 });
@@ -21084,14 +21782,13 @@ var joint = (function (exports, Backbone, _, $) {
 
                 if (!newClosestMagnet) { return; }
 
-                closestView.highlight(closestMagnet, {
+                closestView.highlight(magnetProxy, {
                     connecting: true,
                     snapping: true
                 });
                 end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
 
             } else {
-
 
                 end = { x: x, y: y };
             }
@@ -21114,7 +21811,7 @@ var joint = (function (exports, Backbone, _, $) {
             var closestMagnet = data.closestMagnet;
             if (closestView && closestMagnet) {
 
-                closestView.unhighlight(closestMagnet, { connecting: true, snapping: true });
+                closestView.unhighlight(data.magnetProxy, { connecting: true, snapping: true });
                 data.magnetUnderPointer = closestView.findMagnet(closestMagnet);
             }
 
@@ -21124,59 +21821,72 @@ var joint = (function (exports, Backbone, _, $) {
         _connectArrowhead: function(target, x, y, data) {
 
             // checking views right under the pointer
+            var ref = this;
+            var paper = ref.paper;
+            var model = ref.model;
 
             if (data.eventTarget !== target) {
                 // Unhighlight the previous view under pointer if there was one.
-                if (data.magnetUnderPointer) {
-                    data.viewUnderPointer.unhighlight(data.magnetUnderPointer, {
+                if (data.magnetProxy) {
+                    data.viewUnderPointer.unhighlight(data.magnetProxy, {
                         connecting: true
                     });
                 }
 
-                data.viewUnderPointer = this.paper.findView(target);
-                if (data.viewUnderPointer) {
+                var viewUnderPointer = data.viewUnderPointer = paper.findView(target);
+                if (viewUnderPointer) {
                     // If we found a view that is under the pointer, we need to find the closest
                     // magnet based on the real target element of the event.
-                    data.magnetUnderPointer = data.viewUnderPointer.findMagnet(target);
+                    var magnetUnderPointer = data.magnetUnderPointer = viewUnderPointer.findMagnet(target);
+                    var magnetProxy = data.magnetProxy = viewUnderPointer.findProxyNode(magnetUnderPointer, 'highlighter');
 
-                    if (data.magnetUnderPointer && this.paper.options.validateConnection.apply(
-                        this.paper,
-                        data.validateConnectionArgs(data.viewUnderPointer, data.magnetUnderPointer)
+                    if (magnetUnderPointer && this.paper.options.validateConnection.apply(
+                        paper,
+                        data.validateConnectionArgs(viewUnderPointer, magnetUnderPointer)
                     )) {
                         // If there was no magnet found, do not highlight anything and assume there
                         // is no view under pointer we're interested in reconnecting to.
                         // This can only happen if the overall element has the attribute `'.': { magnet: false }`.
-                        if (data.magnetUnderPointer) {
-                            data.viewUnderPointer.highlight(data.magnetUnderPointer, {
+                        if (magnetProxy) {
+                            viewUnderPointer.highlight(magnetProxy, {
                                 connecting: true
                             });
                         }
                     } else {
                         // This type of connection is not valid. Disregard this magnet.
                         data.magnetUnderPointer = null;
+                        data.magnetProxy = null;
                     }
                 } else {
                     // Make sure we'll unset previous magnet.
                     data.magnetUnderPointer = null;
+                    data.magnetProxy = null;
                 }
             }
 
             data.eventTarget = target;
 
-            this.model.set(data.arrowhead, { x: x, y: y }, { ui: true });
+            model.set(data.arrowhead, { x: x, y: y }, { ui: true });
         },
 
         _connectArrowheadEnd: function(data, x, y) {
+            if ( data === void 0 ) data = {};
 
-            var view = data.viewUnderPointer;
-            var magnet = data.magnetUnderPointer;
-            if (!magnet || !view) { return; }
 
-            view.unhighlight(magnet, { connecting: true });
+            var ref = this;
+            var model = ref.model;
+            var viewUnderPointer = data.viewUnderPointer;
+            var magnetUnderPointer = data.magnetUnderPointer;
+            var magnetProxy = data.magnetProxy;
+            var arrowhead = data.arrowhead;
 
-            var endType = data.arrowhead;
-            var end = view.getLinkEnd(magnet, x, y, this.model, endType);
-            this.model.set(endType, end, { ui: true });
+            if (!magnetUnderPointer || !magnetProxy || !viewUnderPointer) { return; }
+
+            viewUnderPointer.unhighlight(magnetProxy, { connecting: true });
+
+            // The link end is taken from the magnet under the pointer, not the proxy.
+            var end = viewUnderPointer.getLinkEnd(magnetUnderPointer, x, y, model, arrowhead);
+            model.set(arrowhead, end, { ui: true });
         },
 
         _beforeArrowheadMove: function(data) {
@@ -21372,189 +22082,386 @@ var joint = (function (exports, Backbone, _, $) {
         }
     });
 
-    var stroke = {
+    var stroke = HighlighterView.extend({
 
-        defaultOptions: {
+        tagName: 'path',
+        className: 'highlight-stroke',
+        attributes: {
+            'pointer-events': 'none',
+            'vector-effect': 'non-scaling-stroke',
+            'fill': 'none'
+        },
 
+        options: {
             padding: 3,
             rx: 0,
             ry: 0,
+            useFirstSubpath: false,
             attrs: {
                 'stroke-width': 3,
                 'stroke': '#FEB663'
             }
         },
 
-        _views: {},
-
-        getHighlighterId: function(magnetEl, opt) {
-
-            return magnetEl.id + JSON.stringify(opt);
-        },
-
-        removeHighlighter: function(id) {
-            if (this._views[id]) {
-                this._views[id].remove();
-                this._views[id] = null;
-            }
-        },
-
-        /**
-         * @param {joint.dia.CellView} cellView
-         * @param {Element} magnetEl
-         * @param {object=} opt
-         */
-        highlight: function(cellView, magnetEl, opt) {
-
-            var id = this.getHighlighterId(magnetEl, opt);
-
-            // Only highlight once.
-            if (this._views[id]) { return; }
-
-            var options = defaults(opt || {}, this.defaultOptions);
-
-            var magnetVel = V(magnetEl);
-            var magnetBBox;
-
+        getPathData: function getPathData(cellView, node) {
+            var ref = this;
+            var options = ref.options;
+            var useFirstSubpath = options.useFirstSubpath;
+            var d;
             try {
-
-                var pathData = magnetVel.convertToPathData();
-
-            } catch (error) {
-
-                // Failed to get path data from magnet element.
-                // Draw a rectangle around the entire cell view instead.
-                magnetBBox = magnetVel.bbox(true/* without transforms */);
-                pathData = V.rectToPath(assign({}, options, magnetBBox));
-            }
-
-            var highlightVel = V('path').attr({
-                'd': pathData,
-                'pointer-events': 'none',
-                'vector-effect': 'non-scaling-stroke',
-                'fill': 'none'
-            }).attr(options.attrs);
-
-            if (cellView.isNodeConnection(magnetEl)) {
-
-                highlightVel.attr('d', cellView.getSerializedConnection());
-
-            } else {
-
-                var highlightMatrix = magnetVel.getTransformToElement(cellView.el);
-
-                // Add padding to the highlight element.
-                var padding = options.padding;
-                if (padding) {
-
-                    magnetBBox || (magnetBBox = magnetVel.bbox(true));
-
-                    var cx = magnetBBox.x + (magnetBBox.width / 2);
-                    var cy = magnetBBox.y + (magnetBBox.height / 2);
-
-                    magnetBBox = V.transformRect(magnetBBox, highlightMatrix);
-
-                    var width = Math.max(magnetBBox.width, 1);
-                    var height = Math.max(magnetBBox.height, 1);
-                    var sx = (width + padding) / width;
-                    var sy = (height + padding) / height;
-
-                    var paddingMatrix = V.createSVGMatrix({
-                        a: sx,
-                        b: 0,
-                        c: 0,
-                        d: sy,
-                        e: cx - sx * cx,
-                        f: cy - sy * cy
-                    });
-
-                    highlightMatrix = highlightMatrix.multiply(paddingMatrix);
+                var vNode = V(node);
+                d = vNode.convertToPathData().trim();
+                if (vNode.tagName() === 'PATH' && useFirstSubpath) {
+                    var secondSubpathIndex = d.search(/.M/i) + 1;
+                    if (secondSubpathIndex > 0) {
+                        d = d.substr(0, secondSubpathIndex);
+                    }
                 }
-
-                highlightVel.transform(highlightMatrix);
+            } catch (error) {
+                // Failed to get path data from magnet element.
+                // Draw a rectangle around the node instead.
+                var nodeBBox = cellView.getNodeBoundingRect(node);
+                d = V.rectToPath(assign({}, options, nodeBBox.toJSON()));
             }
+            return d;
+        },
 
-            // joint.mvc.View will handle the theme class name and joint class name prefix.
-            var highlightView = this._views[id] = new View({
-                svgElement: true,
-                className: 'highlight-stroke',
-                el: highlightVel.node
+        highlightConnection: function highlightConnection(cellView) {
+            this.vel.attr('d', cellView.getSerializedConnection());
+        },
+
+        highlightNode: function highlightNode(cellView, node) {
+            var ref = this;
+            var vel = ref.vel;
+            var options = ref.options;
+            var padding = options.padding;
+            var layer = options.layer;
+            var highlightMatrix = cellView.getNodeMatrix(node);
+            // Add padding to the highlight element.
+            if (padding) {
+                if (!layer && node === cellView.el) {
+                    // If the highlighter is appended to the cellView
+                    // and we measure the size of the cellView wrapping group
+                    // it's necessary to remove the highlighter first
+                    vel.remove();
+                }
+                var nodeBBox = cellView.getNodeBoundingRect(node);
+                var cx = nodeBBox.x + (nodeBBox.width / 2);
+                var cy = nodeBBox.y + (nodeBBox.height / 2);
+                nodeBBox = V.transformRect(nodeBBox, highlightMatrix);
+                var width = Math.max(nodeBBox.width, 1);
+                var height = Math.max(nodeBBox.height, 1);
+                var sx = (width + padding) / width;
+                var sy = (height + padding) / height;
+                var paddingMatrix = V.createSVGMatrix({
+                    a: sx,
+                    b: 0,
+                    c: 0,
+                    d: sy,
+                    e: cx - sx * cx,
+                    f: cy - sy * cy
+                });
+                highlightMatrix = highlightMatrix.multiply(paddingMatrix);
+            }
+            vel.attr({
+                'd': this.getPathData(cellView, node),
+                'transform': V.matrixToTransformString(highlightMatrix)
             });
-
-            // Remove the highlight view when the cell is removed from the graph.
-            var removeHandler = this.removeHighlighter.bind(this, id);
-            var cell = cellView.model;
-            highlightView.listenTo(cell, 'remove', removeHandler);
-            highlightView.listenTo(cell.graph, 'reset', removeHandler);
-
-            cellView.vel.append(highlightVel);
         },
 
-        /**
-         * @param {joint.dia.CellView} cellView
-         * @param {Element} magnetEl
-         * @param {object=} opt
-         */
-        unhighlight: function(cellView, magnetEl, opt) {
-
-            this.removeHighlighter(this.getHighlighterId(magnetEl, opt));
+        highlight: function highlight(cellView, node) {
+            var ref = this;
+            var vel = ref.vel;
+            var options = ref.options;
+            vel.attr(options.attrs);
+            if (cellView.isNodeConnection(node)) {
+                this.highlightConnection(cellView);
+            } else {
+                this.highlightNode(cellView, node);
+            }
         }
-    };
 
-    var opacity = {
+    });
 
-        /**
-         * @param {joint.dia.CellView} cellView
-         * @param {Element} magnetEl
-         */
-        highlight: function(cellView, magnetEl) {
+    var MASK_CLIP = 20;
 
-            V(magnetEl).addClass(addClassNamePrefix('highlight-opacity'));
+    function forEachDescendant(vel, fn) {
+        var descendants = vel.children();
+        while (descendants.length > 0) {
+            var descendant = descendants.shift();
+            if (fn(descendant)) {
+                descendants.push.apply(descendants, descendant.children());
+            }
+        }
+    }
+
+    var mask = HighlighterView.extend({
+
+        tagName: 'rect',
+        className: 'highlight-mask',
+        attributes: {
+            'pointer-events': 'none'
         },
 
-        /**
-         * @param {joint.dia.CellView} cellView
-         * @param {Element} magnetEl
-         */
-        unhighlight: function(cellView, magnetEl) {
-
-            V(magnetEl).removeClass(addClassNamePrefix('highlight-opacity'));
-        }
-    };
-
-    var addClass = {
-
-        className: addClassNamePrefix('highlighted'),
-
-        /**
-         * @param {joint.dia.CellView} cellView
-         * @param {Element} magnetEl
-         * @param {object=} opt
-         */
-        highlight: function(cellView, magnetEl, opt) {
-
-            var options = opt || {};
-            var className = options.className || this.className;
-            V(magnetEl).addClass(className);
+        options: {
+            padding: 3,
+            maskClip: MASK_CLIP,
+            deep: false,
+            attrs: {
+                'stroke': '#FEB663',
+                'stroke-width': 3,
+                'stroke-linecap': 'butt',
+                'stroke-linejoin': 'miter',
+            }
         },
 
-        /**
-         * @param {joint.dia.CellView} cellView
-         * @param {Element} magnetEl
-         * @param {object=} opt
-         */
-        unhighlight: function(cellView, magnetEl, opt) {
+        VISIBLE: 'white',
+        INVISIBLE: 'black',
 
-            var options = opt || {};
-            var className = options.className || this.className;
-            V(magnetEl).removeClass(className);
+        MASK_ROOT_ATTRIBUTE_BLACKLIST: [
+            'marker-start',
+            'marker-end',
+            'marker-mid',
+            'transform',
+            'stroke-dasharray'
+        ],
+
+        MASK_CHILD_ATTRIBUTE_BLACKLIST: [
+            'stroke',
+            'fill',
+            'stroke-width',
+            'stroke-opacity',
+            'stroke-dasharray',
+            'fill-opacity',
+            'marker-start',
+            'marker-end',
+            'marker-mid'
+        ],
+
+        // TODO: change the list to a function callback
+        MASK_REPLACE_TAGS: [
+            'FOREIGNOBJECT',
+            'IMAGE',
+            'USE',
+            'TEXT',
+            'TSPAN',
+            'TEXTPATH'
+        ],
+
+        // TODO: change the list to a function callback
+        MASK_REMOVE_TAGS: [
+            'TEXT',
+            'TSPAN',
+            'TEXTPATH'
+        ],
+
+        transformMaskChild: function transformMaskChild(cellView, childEl) {
+            var ref = this;
+            var MASK_CHILD_ATTRIBUTE_BLACKLIST = ref.MASK_CHILD_ATTRIBUTE_BLACKLIST;
+            var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
+            var MASK_REMOVE_TAGS = ref.MASK_REMOVE_TAGS;
+            var childTagName = childEl.tagName();
+            // Do not include the element in the mask's image
+            if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
+                childEl.remove();
+                return false;
+            }
+            // Replace the element with a rectangle
+            if (MASK_REPLACE_TAGS.includes(childTagName)) {
+                // Note: clone() method does not change the children ids
+                var originalChild = cellView.vel.findOne(("#" + (childEl.id)));
+                if (originalChild) {
+                    var originalNode = originalChild.node;
+                    var childBBox = cellView.getNodeBoundingRect(originalNode);
+                    if (cellView.model.isElement()) {
+                        childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
+                    }
+                    var replacement = V('rect', childBBox.toJSON());
+                    var ref$1 = childBBox.center();
+                    var ox = ref$1.x;
+                    var oy = ref$1.y;
+                    var ref$2 = originalChild.rotate();
+                    var angle = ref$2.angle;
+                    var cx = ref$2.cx; if ( cx === void 0 ) cx = ox;
+                    var cy = ref$2.cy; if ( cy === void 0 ) cy = oy;
+                    if (angle) { replacement.rotate(angle, cx, cy); }
+                    // Note: it's not important to keep the same sibling index since all subnodes are filled
+                    childEl.parent().append(replacement);
+                }
+                childEl.remove();
+                return false;
+            }
+            // Keep the element, but clean it from certain attributes
+            MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
+                if (attrName === 'fill' && childEl.attr('fill') === 'none') { return; }
+                childEl.removeAttr(attrName);
+            });
+            return true;
+        },
+
+        transformMaskRoot: function transformMaskRoot(_cellView, rootEl) {
+            var ref = this;
+            var MASK_ROOT_ATTRIBUTE_BLACKLIST = ref.MASK_ROOT_ATTRIBUTE_BLACKLIST;
+            MASK_ROOT_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
+                rootEl.removeAttr(attrName);
+            });
+        },
+
+        getMaskShape: function getMaskShape(cellView, vel) {
+            var this$1 = this;
+
+            var ref = this;
+            var options = ref.options;
+            var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
+            var deep = options.deep;
+            var tagName = vel.tagName();
+            var maskRoot;
+            if (tagName === 'G') {
+                if (!deep) { return null; }
+                maskRoot = vel.clone();
+                forEachDescendant(maskRoot, function (maskChild) { return this$1.transformMaskChild(cellView, maskChild); });
+            } else {
+                if (MASK_REPLACE_TAGS.includes(tagName)) { return null; }
+                maskRoot = vel.clone();
+            }
+            this.transformMaskRoot(cellView, maskRoot);
+            return maskRoot;
+        },
+
+        getMaskId: function getMaskId() {
+            return ("highlight-mask-" + (this.cid));
+        },
+
+        getMask: function getMask(cellView, vNode) {
+
+            var ref = this;
+            var VISIBLE = ref.VISIBLE;
+            var INVISIBLE = ref.INVISIBLE;
+            var options = ref.options;
+            var padding = options.padding;
+            var attrs = options.attrs;
+
+            var strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
+            var hasNodeFill = vNode.attr('fill') !== 'none';
+            var magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
+            if (isNaN(magnetStrokeWidth)) { magnetStrokeWidth = 1; }
+            // stroke of the invisible shape
+            var minStrokeWidth = magnetStrokeWidth + padding * 2;
+            // stroke of the visible shape
+            var maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
+            var maskEl = this.getMaskShape(cellView, vNode);
+            if (!maskEl) {
+                var nodeBBox = cellView.getNodeBoundingRect(vNode.node);
+                // Make sure the rect is visible
+                nodeBBox.inflate(nodeBBox.width ? 0 : 0.5, nodeBBox.height ? 0 : 0.5);
+                maskEl =  V('rect', nodeBBox.toJSON());
+            }
+            maskEl.attr(attrs);
+            return V('mask', {
+                'id': this.getMaskId()
+            }).append([
+                maskEl.clone().attr({
+                    'fill': hasNodeFill ? VISIBLE : 'none',
+                    'stroke': VISIBLE,
+                    'stroke-width': maxStrokeWidth
+                }),
+                maskEl.clone().attr({
+                    'fill': hasNodeFill ? INVISIBLE : 'none',
+                    'stroke': INVISIBLE,
+                    'stroke-width': minStrokeWidth
+                })
+            ]);
+        },
+
+        removeMask: function removeMask(paper) {
+            var maskNode = paper.svg.getElementById(this.getMaskId());
+            if (maskNode) {
+                paper.defs.removeChild(maskNode);
+            }
+        },
+
+        addMask: function addMask(paper, maskEl) {
+            paper.defs.appendChild(maskEl.node);
+        },
+
+        highlight: function highlight(cellView, node) {
+            var ref = this;
+            var options = ref.options;
+            var vel = ref.vel;
+            var padding = options.padding;
+            var attrs = options.attrs;
+            var maskClip = options.maskClip; if ( maskClip === void 0 ) maskClip = MASK_CLIP;
+            var layer = options.layer;
+            var color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
+            if (!layer && node === cellView.el) {
+                // If the highlighter is appended to the cellView
+                // and we measure the size of the cellView wrapping group
+                // it's necessary to remove the highlighter first
+                vel.remove();
+            }
+            var highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
+            var maskEl = this.getMask(cellView, V(node));
+            this.addMask(cellView.paper, maskEl);
+            vel.attr(highlighterBBox.toJSON());
+            vel.attr({
+                'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
+                'mask': ("url(#" + (maskEl.id) + ")"),
+                'fill': color
+            });
+        },
+
+        unhighlight: function unhighlight(cellView) {
+            this.removeMask(cellView.paper);
         }
-    };
+
+    });
+
+    var opacity = HighlighterView.extend({
+
+        UPDATABLE: false,
+        MOUNTABLE: false,
+
+        opacityClassName: addClassNamePrefix('highlight-opacity'),
+
+        highlight: function(_cellView, node) {
+            V(node).addClass(this.opacityClassName);
+        },
+
+        unhighlight: function(_cellView, node) {
+            V(node).removeClass(this.opacityClassName);
+        }
+
+    });
+
+    var className = addClassNamePrefix('highlighted');
+
+    var addClass = HighlighterView.extend({
+
+        UPDATABLE: false,
+        MOUNTABLE: false,
+
+        options: {
+            className: className
+        },
+
+        highlight: function(_cellView, node) {
+            V(node).addClass(this.options.className);
+        },
+
+        unhighlight: function(_cellView, node) {
+            V(node).removeClass(this.options.className);
+        }
+
+    }, {
+        // Backwards Compatibility
+        className: className
+    });
 
 
 
     var highlighters = ({
         stroke: stroke,
+        mask: mask,
         opacity: opacity,
         addClass: addClass
     });
@@ -21990,30 +22897,38 @@ var joint = (function (exports, Backbone, _, $) {
         EXACT: 'sorting-exact'
     };
 
+    var LayersNames = {
+        CELLS: 'cells',
+        BACK: 'back',
+        FRONT: 'front',
+        TOOLS: 'tools'
+    };
+
     var MOUNT_BATCH_SIZE = 1000;
     var UPDATE_BATCH_SIZE = Infinity;
     var MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
 
-    var defaultHighlighting = {
-        'default': {
+    var HighlightingTypes$1 = CellView.Highlighting;
+
+    var defaultHighlighting = {};
+    defaultHighlighting[HighlightingTypes$1.DEFAULT] = {
             name: 'stroke',
             options: {
                 padding: 3
             }
-        },
-        magnetAvailability: {
+        };
+    defaultHighlighting[HighlightingTypes$1.MAGNET_AVAILABILITY] = {
             name: 'addClass',
             options: {
                 className: 'available-magnet'
             }
-        },
-        elementAvailability: {
+        };
+    defaultHighlighting[HighlightingTypes$1.ELEMENT_AVAILABILITY] = {
             name: 'addClass',
             options: {
                 className: 'available-cell'
             }
-        }
-    };
+        };
 
     var Paper = View.extend({
 
@@ -22037,6 +22952,7 @@ var joint = (function (exports, Backbone, _, $) {
             perpendicularLinks: false,
             elementView: ElementView,
             linkView: LinkView,
+            snapLabels: false, // false, true
             snapLinks: false, // false, true, { radius: value }
 
             // When set to FALSE, an element may not have more than 1 link with the same source and target element.
@@ -22233,7 +23149,6 @@ var joint = (function (exports, Backbone, _, $) {
         $grid: null,
         $document: null,
 
-        _highlights: null,
         _zPivots: null,
         // For storing the current transformation matrix (CTM) of the paper's viewport.
         _viewportMatrix: null,
@@ -22242,6 +23157,8 @@ var joint = (function (exports, Backbone, _, $) {
         _viewportTransformString: null,
         // Updates data (priorities, unmounted views etc.)
         _updates: null,
+        // Paper Layers
+        _layers: null,
 
         SORT_DELAYING_BATCHES: ['add', 'to-front', 'to-back'],
         UPDATE_DELAYING_BATCHES: ['translate'],
@@ -22260,6 +23177,10 @@ var joint = (function (exports, Backbone, _, $) {
 
             var model = this.model = options.model || new Graph;
 
+            // Layers (SVGGroups)
+            // TODO: layer classes
+            this._layers = {};
+
             this.setGrid(options.drawGrid);
             this.cloneOptions();
             this.render();
@@ -22272,8 +23193,6 @@ var joint = (function (exports, Backbone, _, $) {
             this._zPivots = {};
             // Reference to the paper owner document
             this.$document = $(el.ownerDocument);
-            // Highlighters references
-            this._highlights = {};
             // Render existing cells in the graph
             this.resetViews(model.attributes.cells.models);
             // Start the Rendering Loop
@@ -22399,9 +23318,11 @@ var joint = (function (exports, Backbone, _, $) {
             if (isPlainObject(interactive)) {
                 options.interactive = assign({}, interactive);
             }
+            if (isPlainObject(highlighting)) {
+                // Return the default highlighting options into the user specified options.
+                options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
+            }
             options.origin = assign({}, origin);
-            // Return the default highlighting options into the user specified options.
-            options.highlighting = defaultsDeep({}, highlighting, defaultHighlighting);
         },
 
         children: function() {
@@ -22436,8 +23357,16 @@ var joint = (function (exports, Backbone, _, $) {
                     selector: 'layers',
                     children: [{
                         tagName: 'g',
+                        className: addClassNamePrefix('back-layer'),
+                        selector: 'back',
+                    }, {
+                        tagName: 'g',
                         className: addClassNamePrefix('cells-layer viewport'),
                         selector: 'cells',
+                    }, {
+                        tagName: 'g',
+                        className: addClassNamePrefix('front-layer'),
+                        selector: 'front',
                     }, {
                         tagName: 'g',
                         className: addClassNamePrefix('tools-layer'),
@@ -22447,7 +23376,16 @@ var joint = (function (exports, Backbone, _, $) {
             }];
         },
 
+        getLayerNode: function getLayerNode(layerName) {
+            var ref = this;
+            var _layers = ref._layers;
+            if (layerName in _layers) { return _layers[layerName]; }
+            throw new Error(("dia.Paper: Unknown layer \"" + layerName + "\""));
+        },
+
         render: function() {
+            var obj;
+
 
             this.renderChildren();
             var ref = this;
@@ -22458,6 +23396,8 @@ var joint = (function (exports, Backbone, _, $) {
             var defs = childNodes.defs;
             var tools = childNodes.tools;
             var layers = childNodes.layers;
+            var back = childNodes.back;
+            var front = childNodes.front;
             var background = childNodes.background;
             var grid = childNodes.grid;
 
@@ -22468,6 +23408,8 @@ var joint = (function (exports, Backbone, _, $) {
             this.layers = layers;
             this.$background = $(background);
             this.$grid = $(grid);
+
+            assign(this._layers, ( obj = {}, obj[LayersNames.BACK] = back, obj[LayersNames.CELLS] = cells, obj[LayersNames.FRONT] = front, obj[LayersNames.TOOLS] = tools, obj ));
 
             V.ensureId(svg);
 
@@ -23267,18 +24209,26 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         getRestrictedArea: function() {
+            var args = [], len = arguments.length;
+            while ( len-- ) args[ len ] = arguments[ len ];
+
+
+            var ref = this.options;
+            var restrictTranslate = ref.restrictTranslate;
 
             var restrictedArea;
-
-            if (isFunction(this.options.restrictTranslate)) {
+            if (isFunction(restrictTranslate)) {
                 // A method returning a bounding box
-                restrictedArea = this.options.restrictTranslate.apply(this, arguments);
-            } else if (this.options.restrictTranslate === true) {
+                restrictedArea = restrictTranslate.apply(this, args);
+            } else if (restrictTranslate === true) {
                 // The paper area
                 restrictedArea = this.getArea();
+            } else if (!restrictTranslate) {
+                // falsy value
+                restrictedArea = null;
             } else {
-                // Either false or a bounding box
-                restrictedArea = this.options.restrictTranslate || null;
+                // any other value
+                restrictedArea = new Rect(restrictTranslate);
             }
 
             return restrictedArea;
@@ -23783,33 +24733,44 @@ var joint = (function (exports, Backbone, _, $) {
         // ------------------
 
         resolveHighlighter: function(opt) {
+            if ( opt === void 0 ) opt = {};
 
-            opt = opt || {};
+
             var highlighterDef = opt.highlighter;
-            var paperOpt = this.options;
+            var type = opt.type;
+            var ref = this.options;
+            var highlighting = ref.highlighting;
+            var highlighterNamespace = ref.highlighterNamespace;
 
             /*
-                    Expecting opt.highlighter to have the following structure:
-                    {
-                        name: 'highlighter-name',
-                        options: {
-                            some: 'value'
-                        }
+                Expecting opt.highlighter to have the following structure:
+                {
+                    name: 'highlighter-name',
+                    options: {
+                        some: 'value'
                     }
-                */
+                }
+            */
             if (highlighterDef === undefined) {
 
+                // Is highlighting disabled?
+                if (!highlighting) { return false; }
                 // check for built-in types
-                var type = ['embedding', 'connecting', 'magnetAvailability', 'elementAvailability'].find(function(type) {
-                    return !!opt[type];
-                });
-
-                highlighterDef = (type && paperOpt.highlighting[type]) || paperOpt.highlighting['default'];
+                if (type) {
+                    highlighterDef = highlighting[type];
+                    // Is a specific type highlight disabled?
+                    if (highlighterDef === false) { return false; }
+                }
+                if (!highlighterDef) {
+                    // Type not defined use default highlight
+                    highlighterDef = highlighting['default'];
+                }
             }
 
-            // Do nothing if opt.highlighter is falsey.
+            // Do nothing if opt.highlighter is falsy.
             // This allows the case to not highlight cell(s) in certain cases.
-            // For example, if you want to NOT highlight when embedding elements.
+            // For example, if you want to NOT highlight when embedding elements
+            // or use a custom highlighter.
             if (!highlighterDef) { return false; }
 
             // Allow specifying a highlighter by name.
@@ -23820,7 +24781,7 @@ var joint = (function (exports, Backbone, _, $) {
             }
 
             var name = highlighterDef.name;
-            var highlighter = paperOpt.highlighterNamespace[name];
+            var highlighter = highlighterNamespace[name];
 
             // Highlighter validation
             if (!highlighter) {
@@ -23841,42 +24802,19 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         onCellHighlight: function(cellView, magnetEl, opt) {
-
-            opt = this.resolveHighlighter(opt);
-            if (!opt) { return; }
-            if (!magnetEl.id) {
-                magnetEl.id = V.uniqueId();
-            }
-
-            var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
-            if (!this._highlights[key]) {
-
-                var highlighter = opt.highlighter;
-                highlighter.highlight(cellView, magnetEl, assign({}, opt.options));
-
-                this._highlights[key] = {
-                    cellView: cellView,
-                    magnetEl: magnetEl,
-                    opt: opt.options,
-                    highlighter: highlighter
-                };
-            }
+            var highlighterDescriptor = this.resolveHighlighter(opt);
+            if (!highlighterDescriptor) { return; }
+            var highlighter = highlighterDescriptor.highlighter;
+            var options = highlighterDescriptor.options;
+            highlighter.highlight(cellView, magnetEl, options);
         },
 
         onCellUnhighlight: function(cellView, magnetEl, opt) {
-
-            opt = this.resolveHighlighter(opt);
-            if (!opt) { return; }
-
-            var key = opt.name + magnetEl.id + JSON.stringify(opt.options);
-            var highlight = this._highlights[key];
-            if (highlight) {
-
-                // Use the cellView and magnetEl that were used by the highlighter.highlight() method.
-                highlight.highlighter.unhighlight(highlight.cellView, highlight.magnetEl, highlight.opt);
-
-                this._highlights[key] = null;
-            }
+            var highlighterDescriptor = this.resolveHighlighter(opt);
+            if (!highlighterDescriptor) { return; }
+            var highlighter = highlighterDescriptor.highlighter;
+            var options = highlighterDescriptor.options;
+            highlighter.unhighlight(cellView, magnetEl, options);
         },
 
         // Interaction.
@@ -24618,6 +25556,8 @@ var joint = (function (exports, Backbone, _, $) {
 
         sorting: sortingTypes,
 
+        Layers: LayersNames,
+
         backgroundPatterns: {
 
             flipXy: function(img) {
@@ -24884,6 +25824,7 @@ var joint = (function (exports, Backbone, _, $) {
         className: 'tools',
         svgElement: true,
         tools: null,
+        isRendered: false,
         options: {
             tools: null,
             relatedView: null,
@@ -24902,10 +25843,11 @@ var joint = (function (exports, Backbone, _, $) {
                 var tool = tools[i];
                 if (!(tool instanceof ToolView)) { continue; }
                 tool.configure(relatedView, this);
-                tool.render();
                 this.vel.append(tool.el);
                 views.push(tool);
             }
+            this.isRendered = false;
+            relatedView.requestUpdate(relatedView.getFlag('TOOLS'));
             return this;
         },
 
@@ -24917,12 +25859,22 @@ var joint = (function (exports, Backbone, _, $) {
 
             opt || (opt = {});
             var tools = this.tools;
-            if (!tools) { return; }
+            if (!tools) { return this; }
+            var isRendered = this.isRendered;
             for (var i = 0, n = tools.length; i < n; i++) {
                 var tool = tools[i];
-                if (opt.tool !== tool.cid && tool.isVisible()) {
+                if (!isRendered) {
+                    // First update executes render()
+                    tool.render();
+                } else if (opt.tool !== tool.cid && tool.isVisible()) {
                     tool.update();
                 }
+            }
+            if (!isRendered) {
+                this.mount();
+                // Make sure tools are visible (if they were hidden and the tool removed)
+                this.blurTool();
+                this.isRendered = true;
             }
             return this;
         },
@@ -24964,7 +25916,6 @@ var joint = (function (exports, Backbone, _, $) {
         },
 
         onRemove: function() {
-
             var tools = this.tools;
             if (!tools) { return this; }
             for (var i = 0, n = tools.length; i < n; i++) {
@@ -24998,7 +25949,8 @@ var joint = (function (exports, Backbone, _, $) {
         LinkView: LinkView,
         Paper: Paper,
         ToolView: ToolView,
-        ToolsView: ToolsView
+        ToolsView: ToolsView,
+        HighlighterView: HighlighterView
     });
 
     var DirectedGraph = {
@@ -28796,7 +29748,7 @@ var joint = (function (exports, Backbone, _, $) {
         Boundary: Boundary
     });
 
-    var version = "3.2.0";
+    var version = "3.3.0";
 
     var Vectorizer = V;
     var layout = { PortLabel: PortLabel, Port: Port };

@@ -1,4 +1,4 @@
-/*! JointJS v3.2.0 (2020-06-04) - JavaScript diagramming library
+/*! JointJS v3.3.0 (2021-01-15) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -885,6 +885,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // Default precision
         PRECISION: 3,
 
+        round: function(precision) {
+
+            this.start.round(precision);
+            this.controlPoint1.round(precision);
+            this.controlPoint2.round(precision);
+            this.end.round(precision);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.start.scale(sx, sy, origin);
@@ -1281,6 +1290,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return ((x0 - x) * (x0 - x)) / (a * a) + ((y0 - y) * (y0 - y)) / (b * b);
         },
 
+        round: function(precision) {
+
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
+                }
+            }
+
+            this.x = round(this.x * f) / f;
+            this.y = round(this.y * f) / f;
+            this.a = round(this.a * f) / f;
+            this.b = round(this.b * f) / f;
+            return this;
+        },
+
         /** Compute angle between tangent and x axis
          * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
          * @returns {number} angle between tangent and x axis
@@ -1597,11 +1625,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         round: function(precision) {
 
-            var f = pow(10, precision || 0);
-            this.start.x = round(this.start.x * f) / f;
-            this.start.y = round(this.start.y * f) / f;
-            this.end.x = round(this.end.x * f) / f;
-            this.end.y = round(this.end.y * f) / f;
+            this.start.round(precision);
+            this.end.round(precision);
             return this;
         },
 
@@ -2250,6 +2275,34 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return segmentSubdivisions;
         },
 
+        // Returns an array of subpaths of this path.
+        // Invalid paths are validated first.
+        // Returns `[]` if path has no segments.
+        getSubpaths: function() {
+
+            var validatedPath = this.clone().validate();
+
+            var segments = validatedPath.segments;
+            var numSegments = segments.length;
+
+            var subpaths = [];
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                if (segment.isSubpathStart) {
+                    // we encountered a subpath start segment
+                    // create a new path for segment, and push it to list of subpaths
+                    subpaths.push(new Path(segment));
+
+                } else {
+                    // append current segment to the last subpath
+                    subpaths[subpaths.length - 1].appendSegment(segment);
+                }
+            }
+
+            return subpaths;
+        },
+
         // Insert `arg` at given `index`.
         // `index = 0` means insert at the beginning.
         // `index = segments.length` means insert at the end.
@@ -2616,6 +2669,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (updateSubpathStart && nextSegment) { this.updateSubpathStartSegment(nextSegment); }
         },
 
+        round: function(precision) {
+
+            var segments = this.segments;
+            var numSegments = segments.length;
+
+            for (var i = 0; i < numSegments; i++) {
+
+                var segment = segments[i];
+                segment.round(precision);
+            }
+
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             var segments = this.segments;
@@ -2899,6 +2966,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 previousSegment = segment;
                 segment = segment.nextSegment; // move on to the segment after etc.
             }
+        },
+
+        // If the path is not valid, insert M 0 0 at the beginning.
+        // Path with no segments is considered valid, so nothing is inserted.
+        validate: function() {
+
+            if (!this.isValid()) { this.insertSegment(0, Path.createSegment('M', 0, 0)); }
+            return this;
         }
     };
 
@@ -2985,7 +3060,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     // @param {point} [optional] Origin.
     Point.fromPolar = function(distance, angle, origin) {
 
-        origin = (origin && new Point(origin)) || new Point(0, 0);
+        origin = new Point(origin);
         var x = abs(distance * cos(angle));
         var y = abs(distance * sin(angle));
         var deg = normalizeAngle(toDeg(angle));
@@ -3181,6 +3256,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         // Angle is flipped because this is a left-handed coord system (y-axis points downward).
         rotate: function(origin, angle) {
 
+            if (angle === 0) { return this; }
+
             origin = origin || new Point(0, 0);
 
             angle = toRad(normalizeAngle(-angle));
@@ -3197,7 +3274,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         round: function(precision) {
 
-            var f = pow(10, precision || 0);
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
+                }
+            }
+
             this.x = round(this.x * f) / f;
             this.y = round(this.y * f) / f;
             return this;
@@ -3808,11 +3894,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return lastPoint.clone();
         },
 
+        round: function(precision) {
+
+            var points = this.points;
+            var numPoints = points.length;
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].round(precision);
+            }
+
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             var points = this.points;
             var numPoints = points.length;
-            if (numPoints === 0) { return this; } // if points array is empty
 
             for (var i = 0; i < numPoints; i++) {
                 points[i].scale(sx, sy, origin);
@@ -3937,7 +4034,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var points = this.points;
             var numPoints = points.length;
-            if (numPoints === 0) { return this; } // if points array is empty
 
             for (var i = 0; i < numPoints; i++) {
                 points[i].translate(tx, ty);
@@ -4357,7 +4453,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         round: function(precision) {
 
-            var f = pow(10, precision || 0);
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
+                }
+            }
+
             this.x = round(this.x * f) / f;
             this.y = round(this.y * f) / f;
             this.width = round(this.width * f) / f;
@@ -4752,6 +4857,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         previousSegment: null, // needed to get segment start property
 
+        // virtual
+        round: function() {
+
+            throw new Error('Declaration missing for virtual function.');
+        },
+
         subpathStartSegment: null, // needed to get Closepath segment end property
 
         // virtual
@@ -4946,6 +5057,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return !this.start.equals(this.end);
         },
 
+        round: function(precision) {
+
+            this.end.round(precision);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.end.scale(sx, sy, origin);
@@ -5103,6 +5220,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var end = this.end;
 
             return !(start.equals(control1) && control1.equals(control2) && control2.equals(end));
+        },
+
+        round: function(precision) {
+
+            this.controlPoint1.round(precision);
+            this.controlPoint2.round(precision);
+            this.end.round(precision);
+            return this;
         },
 
         scale: function(sx, sy, origin) {
@@ -5320,6 +5445,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return this.end.clone();
         },
 
+        round: function(precision) {
+
+            this.end.round(precision);
+            return this;
+        },
+
         scale: function(sx, sy, origin) {
 
             this.end.scale(sx, sy, origin);
@@ -5442,6 +5573,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             if (!this.previousSegment || !this.subpathStartSegment) { return false; }
 
             return !this.start.equals(this.end);
+        },
+
+        round: function() {
+
+            return this;
         },
 
         scale: function() {
@@ -6263,7 +6399,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
 
             for (var i = 0, len = els.length; i < len; i++) {
-                this.node.appendChild(V.toNode(els[i]));
+                this.node.appendChild(V.toNode(els[i])); // lgtm [js/xss-through-dom]
             }
 
             return this;
@@ -6360,6 +6496,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             }
             return outputArray;
         };
+
+        // Returns the V element from parentNode of this.node.
+        VPrototype.parent = function() {
+            return V(this.node.parentNode) || null;
+        },
 
         // Find an index of an element inside its container.
         VPrototype.index = function() {
@@ -6796,6 +6937,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             svg.setAttributeNS(ns.xmlns, 'xmlns:xlink', ns.xlink);
             svg.setAttribute('version', SVGVersion);
             return svg;
+        };
+
+        V.createSVGStyle = function(stylesheet) {
+            var ref = V('style', { type: 'text/css' }, [
+                V.createCDATASection(stylesheet)
+            ]);
+            var node = ref.node;
+            return node;
+        },
+
+        V.createCDATASection = function(data) {
+            if ( data === void 0 ) data = '';
+
+            var xml = document.implementation.createDocument(null, 'xml', null);
+            return xml.createCDATASection(data);
         };
 
         V.idCounter = 0;
