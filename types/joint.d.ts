@@ -1403,7 +1403,7 @@ export namespace dia {
 
         focusTool(tool: ToolView): this;
 
-        blurTool(tool: ToolView): this;
+        blurTool(tool?: ToolView): this;
 
         show(): this;
 

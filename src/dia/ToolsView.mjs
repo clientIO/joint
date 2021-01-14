@@ -56,6 +56,8 @@ export const ToolsView = mvc.View.extend({
         }
         if (!isRendered) {
             this.mount();
+            // Make sure tools are visible (if they were hidden and the tool removed)
+            this.blurTool();
             this.isRendered = true;
         }
         return this;
@@ -98,7 +100,6 @@ export const ToolsView = mvc.View.extend({
     },
 
     onRemove: function() {
-
         var tools = this.tools;
         if (!tools) return this;
         for (var i = 0, n = tools.length; i < n; i++) {

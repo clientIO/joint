@@ -94,15 +94,11 @@
         ]
     });
 
-    var linkView = link.findView(paper);
-    linkView.addTools(toolsView);
-    linkView.hideTools();
-
     paper.on('link:mouseenter', function(linkView) {
-        linkView.showTools();
+        linkView.addTools(toolsView);
     });
 
     paper.on('link:mouseleave', function(linkView) {
-        linkView.hideTools();
+        linkView.removeTools();
     });
 }());

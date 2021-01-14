@@ -173,17 +173,17 @@ linkView.addTools(toolsView);</code></pre>
 
             <h3 id="interaction">Interaction</h3>
 
-            <p>You can easily toggle visibility of link tools using the
+            <p>You can easily toggle link tools using the
                 <code>'link:mouseenter'</code>/<code>'link:mouseleave'</code> Paper events:</p>
 
             <div class="paper" id="paper-link-tools-interaction"></div>
 
             <pre><code>paper.on('link:mouseenter', function(linkView) {
-    linkView.showTools();
+    linkView.addTools(toolsView);
 });
 
 paper.on('link:mouseleave', function(linkView) {
-    linkView.hideTools();
+    linkView.removeTools();
 });</code></pre>
 
             <p>JointJS source code: <a href="js/link-tools-interaction.js" target="_blank">link-tools-interaction.js</a></p>
@@ -201,16 +201,27 @@ paper.on('link:mouseleave', function(linkView) {
             </ul>
 
             <p>These functions can also help to make anchor handles (which usually lie outside the path but inside an
-                element) more accessible to users - by hiding link tools only if the mouse pointer enters a blank area
+                element) more accessible to users - by removing link tools only if the mouse pointer enters a blank area
                 of the paper:</p>
 
             <pre><code>paper.on('link:mouseenter', function(linkView) {
-    linkView.showTools();
+    linkView.addTools(toolsView);
 });
 
 paper.on('blank:mouseover', function() {
-    paper.hideTools();
+    paper.removeTools();
 });</code></pre>
+
+            <p>Note that our example toggles visibility of link tools by using the
+                <code>addTools()</code>/<code>removeTools()</code> functions, and not
+                <code>showTools()</code>/<code>hideTools()</code> which we have seen in the
+                <a href="element-tools.html#interaction">element tools tutorial</a>.
+                This is necessary because the tools view in our tutorial includes the <code>SourceArrowhead</code> and
+                <code>TargetArrowhead</code> tools, which may cause the link tools view to not be hidden as expected
+                when the link is reconnected to a topic.
+                Tools views without those two tools may use the <code>showTools()</code>/<code>hideTools()</code>
+                approach illustrated in the <a href="element-tools.html#interaction">element tools tutorial</a> without
+                issue.</p>
 
             <h3 id="custom-button">Custom Buttons</h3>
 

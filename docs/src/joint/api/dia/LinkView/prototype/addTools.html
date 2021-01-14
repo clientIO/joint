@@ -32,3 +32,5 @@ paper.on('link:mouseenter', function(linkView) {
 paper.on('link:mouseleave', function(linkView) {
     linkView.hideTools();
 });</code></pre>
+
+<p>Note that the above example may not work as expected if <code>toolsView</code> includes the <code>SourceArrowhead</code> <a href="#linkTools.SourceArrowhead">tool</a> and/or the <code>TargetArrowhead</code> <a href="#linkTools.TargetArrowhead">tool</a> - the link tools view might not be hidden when the link is reconnected to a topic. See our <a href="http://resources.jointjs.com/tutorial/link-tools.html">link tools tutorial</a> for more information.</p>
