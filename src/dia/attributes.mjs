@@ -353,7 +353,8 @@ const attributesNS = {
                     'font-weight': attrs['font-weight'] || attrs.fontWeight,
                     'font-size': attrs['font-size'] || attrs.fontSize,
                     'font-family': attrs['font-family'] || attrs.fontFamily,
-                    'lineHeight': attrs.lineHeight
+                    'lineHeight': attrs.lineHeight,
+                    'letter-spacing': 'letter-spacing' in attrs ? attrs['letter-spacing'] : attrs.letterSpacing
                 }, {
                     // Provide an existing SVG Document here
                     // instead of creating a temporary one over again.
