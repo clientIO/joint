@@ -1,3 +1,28 @@
+15-01-2021 (v3.3.0)
+ * Prevent prototype pollution - lodash v4.17.20, fix util.setByPath()
+ * Prevent DoS - fix util.unsetByPath()
+ * demo.ELK - add Eclipse Layout Kernel demo
+ * demo.Container - add collapse/expand container demo
+ * demo.Typescript - show class style shape definition
+ * demo.HTML - implement z-index sorting
+ * add Element Tools tutorial
+ * dia.Paper - add snapLabels option
+ * dia.Paper - restrictTranslate option defined as function returning a function
+ * dia.Element - prevent unnecessary rounding errors in resize()
+ * dia.Link - fix order of points in getPolyline()
+ * dia.LinkView - prevent connection validation on magnets previously validated
+ * dia.CellView - fix update order of nodes when 'ref' in use
+ * dia.ToolsView - enable adding tool to a view, which has not been rendered
+ * util.breakText - fix height for a text with empty lines
+ * highlighters - new API, add mask highlighter
+ * highlighters.stroke - add useFirstSubpath option
+ * routers.manhattan - fix scan directions order
+ * dia.attributes - add magnetSelector & containerSelector
+ * dia.attributes - textWrap takes letter-spacing into account
+ * Vectorizer - add createSVGStyle() and createCDATASection() static methods
+ * Geometry - add getSubpaths() to Path
+ * Geometry - add round() methods
+
 04-6-2020 (v3.2.0)
  * add Sequence Diagram demo
  * add HTML Elements demo
