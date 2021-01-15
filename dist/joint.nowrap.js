@@ -6827,7 +6827,7 @@ var joint = (function (exports, Backbone, _, $) {
         };
 
         VPrototype.appendTo = function(node) {
-            V.toNode(node).appendChild(this.node);
+            V.toNode(node).appendChild(this.node); // lgtm [js/xss-through-dom]
             return this;
         };
 
@@ -9021,7 +9021,7 @@ var joint = (function (exports, Backbone, _, $) {
         textSpan.style.display = 'block';
 
         textSpan.appendChild(textNode);
-        svgDocument.appendChild(textElement);
+        svgDocument.appendChild(textElement); // lgtm [js/xss-through-dom]
 
         if (!opt.svgDocument) {
 

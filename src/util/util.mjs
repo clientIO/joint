@@ -465,7 +465,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
     textSpan.style.display = 'block';
 
     textSpan.appendChild(textNode);
-    svgDocument.appendChild(textElement);
+    svgDocument.appendChild(textElement); // lgtm [js/xss-through-dom]
 
     if (!opt.svgDocument) {
 

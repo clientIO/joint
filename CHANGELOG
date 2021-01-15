@@ -2,6 +2,8 @@
  * Prevent prototype pollution - lodash v4.17.20, fix util.setByPath()
  * Prevent DoS - fix util.unsetByPath()
  * demo.ELK - add Eclipse Layout Kernel demo
+ * demo.Container - add collapse/expand container demo
+ * demo.Typescript - show class style shape definition
  * demo.HTML - implement z-index sorting
  * add Element Tools tutorial
  * dia.Paper - add snapLabels option

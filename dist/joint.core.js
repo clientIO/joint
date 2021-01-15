@@ -6826,7 +6826,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         };
 
         VPrototype.appendTo = function(node) {
-            V.toNode(node).appendChild(this.node);
+            V.toNode(node).appendChild(this.node); // lgtm [js/xss-through-dom]
             return this;
         };
 
@@ -9020,7 +9020,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         textSpan.style.display = 'block';
 
         textSpan.appendChild(textNode);
-        svgDocument.appendChild(textElement);
+        svgDocument.appendChild(textElement); // lgtm [js/xss-through-dom]
 
         if (!opt.svgDocument) {
 

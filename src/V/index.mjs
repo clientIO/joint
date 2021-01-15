@@ -771,7 +771,7 @@ const V = (function() {
     };
 
     VPrototype.appendTo = function(node) {
-        V.toNode(node).appendChild(this.node);
+        V.toNode(node).appendChild(this.node); // lgtm [js/xss-through-dom]
         return this;
     };
 
