@@ -178,29 +178,32 @@ export const Cell = Backbone.Model.extend({
         this.ports = ports;
     },
 
-    remove: function(opt) {
+    remove: function(opt = {}) {
 
-        opt = opt || {};
-
-        // Store the graph in a variable because `this.graph` won't' be accessbile after `this.trigger('remove', ...)` down below.
-        var graph = this.graph;
+        // Store the graph in a variable because `this.graph` won't be accessible
+        // after `this.trigger('remove', ...)` down below.
+        const { graph, collection } = this;
         if (!graph) {
-            // The collection is a common backbone collection (not the graph collection).
-            if (this.collection) this.collection.remove(this, opt);
+            // The collection is a common Backbone collection (not the graph collection).
+            if (collection) collection.remove(this, opt);
             return this;
         }
 
         graph.startBatch('remove');
 
         // First, unembed this cell from its parent cell if there is one.
-        var parentCell = this.getParentCell();
-        if (parentCell) parentCell.unembed(this);
+        const parentCell = this.getParentCell();
+        if (parentCell) {
+            parentCell.unembed(this, opt);
+        }
 
         // Remove also all the cells, which were embedded into this cell
-        var embeddedCells = this.getEmbeddedCells();
-        for (var i = 0, n = embeddedCells.length; i < n; i++) {
-            var embed = embeddedCells[i];
-            if (embed) embed.remove(opt);
+        const embeddedCells = this.getEmbeddedCells();
+        for (let i = 0, n = embeddedCells.length; i < n; i++) {
+            const embed = embeddedCells[i];
+            if (embed) {
+                embed.remove(opt);
+            }
         }
 
         this.trigger('remove', this, graph.attributes.cells, opt);
