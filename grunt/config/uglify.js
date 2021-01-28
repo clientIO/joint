@@ -5,7 +5,9 @@ module.exports = function() {
 
     return {
         options: {
-            ASCIIOnly: true
+            output: {
+                ascii_only: true
+            }
         },
         deps: {
             files: {
