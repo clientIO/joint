@@ -35,6 +35,7 @@
   "bugs": {
     "url": "https://github.com/clientIO/joint/issues"
   },
+  "type": "module",
   "license": "MPL-2.0",
   "dependencies": {
     "backbone": "~1.4.0",
