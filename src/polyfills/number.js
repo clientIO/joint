@@ -1,3 +1,7 @@
+import 'core-js/stable/number/is-nan';
+import 'core-js/stable/number/is-finite';
+
+/*
 Number.isFinite = Number.isFinite || function(value) {
     return typeof value === 'number' && isFinite(value);
 };
@@ -7,3 +11,4 @@ Number.isNaN = Number.isNaN || function(value) {
     return value !== value;
 };
 
+*/
