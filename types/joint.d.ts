@@ -2720,7 +2720,7 @@ export namespace util {
 
     export function groupBy(collection: Collection, iteratee?: Iteratee): object;
 
-    export function sortBy(collection: Collection, iterateesArray: Iteratee[]): any[];
+    export function sortBy(collection: Collection, iteratee?: Iteratee[] | Iteratee): any[];
 
     export function flattenDeep(array: any[]): any[];
 
