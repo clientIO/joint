@@ -36,11 +36,11 @@
   },
   "license": "MPL-2.0",
   "dependencies": {
-    "backbone": "1.x",
+    "backbone": "~1.4.0",
     "dagre": "~0.8.5",
     "graphlib": "^2.1.8",
-    "jquery": "3.x",
-    "lodash": "3.x - 4.x"
+    "jquery": "~3.5.1",
+    "lodash": "~4.17.20"
   },
   "devDependencies": {
     "@types/backbone": "1.4.5",
