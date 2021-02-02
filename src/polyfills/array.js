@@ -1,7 +1,7 @@
 import 'core-js/stable/array/includes';
 import 'core-js/stable/array/find';
 import 'core-js/stable/array/from';
-import 'core-js/stable/array/findIndex';
+import 'core-js/stable/array/find-index';
 
 // // https://tc39.github.io/ecma262/#sec-array.prototype.includes
 // if (!Array.prototype.includes) {
