@@ -13,9 +13,13 @@
   },
   "version": "3.3.0",
   "main": "./dist/joint.min.js",
+  "module": "./joint.mjs",
+  "browser": {
+    "./joint.mjs": "./dist/joint.min.js",
+    "./dist/joint.min.js": "./dist/joint.min.js"
+  },
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
-  "module": "./joint.mjs",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
