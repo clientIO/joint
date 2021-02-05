@@ -8,6 +8,8 @@ import externalGlobals from 'rollup-plugin-external-globals';
 const modules = require('./grunt/resources/esm');
 
 let plugins = [
+    resolve(),
+    commonjs(),
     // prevent injecting 'dagre' into ES5 bundle
     externalGlobals({
         'dagre': 'dagre'

@@ -12,11 +12,13 @@
     "test": "grunt test"
   },
   "version": "3.3.0",
-  "main": "./dist/joint.min.js",
-  "browser": "./dist/joint.min.js",
+  "main": "dist/joint.min.js",
+  "module": "joint.mjs",
+  "browser": {
+    "joint.mjs": "dist/joint.min.js"
+  },
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
-  "module": "./joint.mjs",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
@@ -49,6 +51,7 @@
     "async": "2.6.1",
     "chai": "4.2.0",
     "cheerio": "0.22.0",
+    "core-js": "^3.8.3",
     "es-module-shims": "0.2.4",
     "express": "4.16.3",
     "grunt": "1.0.3",
