@@ -15,7 +15,6 @@
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "browser": {
-    "dist/joint.min.js": "dist/joint.min.js",
     "joint.mjs": "dist/joint.min.js"
   },
   "style": "./dist/joint.min.css",
@@ -101,8 +100,7 @@
     "time-grunt": "2.0.0",
     "typescript": "3.8.3",
     "webdriverio": "4.13.2",
-    "webpack": "5.20.0",
-    "webpack-cli": "4.4.0",
+    "webpack": "4.28.3",
     "webpack-dev-server": "3.1.14"
   }
 }
