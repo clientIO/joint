@@ -15,7 +15,8 @@
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "browser": {
-    "dist/joint.min.js": "dist/joint.min.js"
+    "dist/joint.min.js": "dist/joint.min.js",
+    "joint.mjs": "dist/joint.min.js"
   },
   "style": "./dist/joint.min.css",
   "types": "./dist/joint.d.ts",
