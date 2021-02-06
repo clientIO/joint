@@ -1,4 +1,4 @@
-/*! JointJS v3.3.0 (2021-01-15) - JavaScript diagramming library
+/*! JointJS v3.3.1 (2021-02-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -3762,7 +3762,7 @@ export namespace util {
 
     export function groupBy(collection: Collection, iteratee?: Iteratee): object;
 
-    export function sortBy(collection: Collection, iterateesArray: Iteratee[]): any[];
+    export function sortBy(collection: Collection, iteratee?: Iteratee[] | Iteratee): any[];
 
     export function flattenDeep(array: any[]): any[];
 
