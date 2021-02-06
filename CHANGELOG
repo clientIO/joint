@@ -1,3 +1,9 @@
+06-02-2021 (v3.3.1)
+
+ * uglified files encode Unicode characters as ASCII
+ * use polyfills from core-js
+ * dia.Cell - remove() passes options to unembed() internally to maintain consistency
+
 15-01-2021 (v3.3.0)
  * Prevent prototype pollution - lodash v4.17.20, fix util.setByPath()
  * Prevent DoS - fix util.unsetByPath()
