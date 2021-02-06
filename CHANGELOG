@@ -15,6 +15,7 @@
  * dia.Paper - add snapLabels option
  * dia.Paper - restrictTranslate option defined as function returning a function
  * dia.Element - prevent unnecessary rounding errors in resize()
+ * dia.Element - add insertPort() to support inserting port at a given position
  * dia.Link - fix order of points in getPolyline()
  * dia.LinkView - prevent connection validation on magnets previously validated
  * dia.CellView - fix update order of nodes when 'ref' in use
