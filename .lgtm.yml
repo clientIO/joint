@@ -1,3 +1,5 @@
 path_classifiers:
   test:
-    - exclude: dist
+    - test
+  generated:
+    - dist
