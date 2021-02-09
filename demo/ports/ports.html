@@ -40,7 +40,7 @@
             perpendicularLinks: false,
             model: graph,
             linkView: joint.dia.LinkView.extend({
-                options: Object.assign({}, joint.dia.LinkView.prototype.options, {
+                options: joint.util.assign({}, joint.dia.LinkView.prototype.options, {
                     doubleLinkTools: true,
                     linkToolsOffset: 40,
                     doubleLinkToolsOffset: 60
