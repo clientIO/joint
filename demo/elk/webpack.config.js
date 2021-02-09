@@ -9,10 +9,12 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.js']
+        extensions: ['.js'],
+        alias: {
+            'underscore': 'lodash'
+        }
     },
     devtool: 'source-map',
-    watch: true,
     devServer: {
         disableHostCheck: true,
         contentBase: path,
@@ -41,9 +43,9 @@ module.exports = {
                 test: /\.js$/,
                 exclude: /node_modules/,
                 use: {
-                    loader: "babel-loader",
+                    loader: 'babel-loader',
                     options: {
-                        presets: ["@babel/preset-env"]
+                        presets: ['@babel/preset-env']
                     }
                 }
             }
