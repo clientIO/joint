@@ -1,4 +1,4 @@
-import { shapes, dia } from './vendor/joint';
+import { shapes, dia, util } from './vendor/joint';
 
 export class MyShape extends dia.Element {
 
@@ -46,7 +46,7 @@ export class MyShape extends dia.Element {
     }
 }
 
-Object.assign(shapes, {
+util.assign(shapes, {
     myNamespace: {
         MyShape
     }

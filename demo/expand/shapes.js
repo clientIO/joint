@@ -93,7 +93,7 @@ joint.shapes.standard.Rectangle.define('toggable.Element', {
     neighborHiddenChangedByPort: function(portId, hidden) {
 
         var expand = !hidden;
-        var collapsedList = Object.assign({}, this.get('collapsed'));
+        var collapsedList = joint.util.assign({}, this.get('collapsed'));
 
         if (expand) {
             // expand
