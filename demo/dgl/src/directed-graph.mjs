@@ -218,6 +218,12 @@ var LayoutControls = joint.mvc.View.extend({
 
 });
 
+
+var template = document.getElementById('link-controls-template');
+if (template.content) {
+    template = template.content;
+}
+
 var LinkControls = joint.mvc.View.extend({
 
     highlighter: {
@@ -303,7 +309,7 @@ var LinkControls = joint.mvc.View.extend({
 
     instance: null,
 
-    template: document.getElementById('link-controls-template').content.querySelector('.controls')
+    template: template.querySelector('.controls')
 
 });
 

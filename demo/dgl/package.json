@@ -1,0 +1,37 @@
+{
+  "name": "directed-graph-layout",
+  "version": "1.0.0",
+  "description": "Directed Graph Graph Demo",
+  "main": "index.html",
+  "author": "client IO",
+  "private": true,
+  "scripts": {
+    "analyze": "webpack --profile --json > stats.json && webpack-bundle-analyzer stats.json",
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack serve --config webpack.config.js"
+  },
+  "dependencies": {
+    "backbone": "~1.4.0",
+    "jquery": "~3.5.1",
+    "lodash": "~4.17.20"
+  },
+  "devDependencies": {
+    "@babel/core": "7.10.4",
+    "@babel/preset-env": "7.10.4",
+    "babel-loader": "8.1.0",
+    "copy-webpack-plugin": "5.0.4",
+    "core-js": "3.6.1",
+    "css-loader": "3.5.3",
+    "elkjs": "0.6.2",
+    "file-loader": "6.0.0",
+    "regenerator-runtime": "0.13.5",
+    "sass": "1.26.8",
+    "sass-loader": "8.0.2",
+    "shelljs": "0.8.4",
+    "style-loader": "1.2.1",
+    "webpack": "5.20.2",
+    "webpack-cli": "4.5.0",
+    "webpack-dev-server": "3.11.2",
+    "webpack-bundle-analyzer": "4.4.0"
+  }
+}
