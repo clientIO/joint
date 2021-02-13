@@ -220,6 +220,10 @@ var app = Vue.createApp({
         function reset() {
             scale.value = DATA.scale;
 
+            graph.getCell('taskA').position(17, 100);
+            graph.getCell('taskB').position(297, 100);
+            graph.getCell('taskC').position(576, 100);
+
             Object.entries(DATA.tasks).forEach(function ([taskId, task]) {
                 Object.entries(task).forEach(function ([key, value]) {
                     handleTaskChange(taskId, key, value);
@@ -228,11 +232,11 @@ var app = Vue.createApp({
         }
 
         // Create JointJS elements and links for the tasks
-        var rect1 = (new joint.shapes.standard.Rectangle()).position(20, 100).attr({
+        var rect1 = (new joint.shapes.standard.Rectangle()).position(17, 100).attr({
             body: { fill: 'transparent', strokeWidth: 0 }
         }).prop('id', 'taskA');
-        var rect2 = rect1.clone().position(300, 100).prop('id', 'taskB');
-        var rect3 = rect1.clone().position(580, 100).prop('id', 'taskC');
+        var rect2 = rect1.clone().position(297, 100).prop('id', 'taskB');
+        var rect3 = rect1.clone().position(576, 100).prop('id', 'taskC');
         var link1 = (new joint.shapes.standard.Link()).source(rect1).target(rect2);
         var link2 = (new joint.shapes.standard.Link()).source(rect2).target(rect3);
         graph.resetCells([rect1, rect2, rect3, link1, link2]);
