@@ -38,8 +38,13 @@
           }
         }
         </script>
+        <script>
+            var fs = (document.location.protocol === 'file:');
+            if (fs) {
+                document.body.innerHTML = 'This is ES6 demo. It requires ES6 complaint browser and access through the Web Server';
+            }
+        </script>
 
-        <script src="../../scripts/checkCompatibility.js"></script>
         <script type="module-shim" src="src/custom-shapes.mjs"></script>
 
         <!---------------------------------------------------------------------------------------------------------------
