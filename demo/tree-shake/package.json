@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "start": "npm run analyze-S && npm run analyze-M && npm run analyze-L",
+    "analyze-S": "webpack --entry=./index.S.ts -o ./dist/S --profile --json > stats.S.json && webpack-bundle-analyzer ./stats.S.json ./dist/S --mode static --report stats.S.html --no-open --title=Small Bundle",
+    "analyze-M": "webpack --entry=./index.M.ts -o ./dist/M --profile --json > stats.M.json && webpack-bundle-analyzer ./stats.M.json ./dist/M --mode static --report stats.M.html --no-open --title=Medium Bundle",
+    "analyze-L": "webpack --entry=./index.L.ts -o ./dist/L --profile --json > stats.L.json && webpack-bundle-analyzer ./stats.L.json ./dist/L --mode static --report stats.L.html --no-open --title=Large Bundle"
+  },
+  "devDependencies": {
+    "ts-loader": "^8.0.17",
+    "webpack": "^5.32.0",
+    "webpack-bundle-analyzer": "^4.4.1",
+    "webpack-cli": "^4.6.0"
+  }
+}
