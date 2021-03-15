@@ -117,6 +117,309 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
+        QUnit.module('fitToContent() > options', function() {
+
+            [{
+                name: '0@0 200x200',
+                grid: 1,
+                contentArea: {
+                    x: 0,
+                    y: 0,
+                    width: 200,
+                    height: 200
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 200
+                    },
+                    'any': {
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 200
+                    },
+                    'negative': {
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 200
+                    },
+                    'positive': {
+                        x: 0,
+                        y: 0,
+                        width: 200,
+                        height: 200,
+                    }
+                }
+            }, {
+                name: '-200@-200 200x200',
+                grid: 1,
+                contentArea: {
+                    x: -200,
+                    y: -200,
+                    width: 200,
+                    height: 200
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 1,
+                        height: 1
+                    },
+                    'any': {
+                        x: -200,
+                        y: -200,
+                        width: 200,
+                        height: 200
+                    },
+                    'negative': {
+                        x: -200,
+                        y: -200,
+                        width: 200,
+                        height: 200
+                    },
+                    'positive': {
+                        x: 0,
+                        y: 0,
+                        width: 1,
+                        height: 1,
+                    }
+                }
+            }, {
+                name: '-200@-200 100x100',
+                grid: 1,
+                contentArea: {
+                    x: -200,
+                    y: -200,
+                    width: 100,
+                    height: 100
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 1,
+                        height: 1
+                    },
+                    'any': {
+                        x: -200,
+                        y: -200,
+                        width: 100,
+                        height: 100
+                    },
+                    'negative': {
+                        x: -200,
+                        y: -200,
+                        width: 100,
+                        height: 100
+                    },
+                    'positive': {
+                        x: 0,
+                        y: 0,
+                        width: 1,
+                        height: 1,
+                    }
+                }
+            }, {
+                name: '-200@-200 100x100, grid: 300',
+                grid: 300,
+                contentArea: {
+                    x: -200,
+                    y: -200,
+                    width: 100,
+                    height: 100
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 300,
+                        height: 300
+                    },
+                    'any': {
+                        x: -300,
+                        y: -300,
+                        width: 300,
+                        height: 300
+                    },
+                    'negative': {
+                        x: -300,
+                        y: -300,
+                        width: 300,
+                        height: 300
+                    },
+                    'positive': {
+                        x: 0,
+                        y: 0,
+                        width: 300,
+                        height: 300
+                    }
+                }
+            }, {
+                name: '-100@-100 200x200',
+                grid: 1,
+                contentArea: {
+                    x: -100,
+                    y: -100,
+                    width: 200,
+                    height: 200
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 100,
+                        height: 100
+                    },
+                    'any': {
+                        x: -100,
+                        y: -100,
+                        width: 200,
+                        height: 200
+                    },
+                    'negative': {
+                        x: -100,
+                        y: -100,
+                        width: 200,
+                        height: 200
+                    },
+                    'positive': {
+                        x: 0,
+                        y: 0,
+                        width: 100,
+                        height: 100
+                    }
+                }
+            }, {
+                name: '-100@-100 200x200, grid: 300',
+                grid: 300,
+                contentArea: {
+                    x: -100,
+                    y: -100,
+                    width: 200,
+                    height: 200
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 300,
+                        height: 300
+                    },
+                    'any': {
+                        x: -300,
+                        y: -300,
+                        width: 600,
+                        height: 600
+                    },
+                    'negative': {
+                        x: -300,
+                        y: -300,
+                        width: 600,
+                        height: 600
+                    },
+                    'positive': {
+                        x: 0,
+                        y: 0,
+                        width: 300,
+                        height: 300
+                    }
+                }
+            }, {
+                name: '200@200 100x100',
+                grid: 1,
+                contentArea: {
+                    x: 200,
+                    y: 200,
+                    width: 100,
+                    height: 100
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 300,
+                        height: 300
+                    },
+                    'any': {
+                        x: 200,
+                        y: 200,
+                        width: 100,
+                        height: 100
+                    },
+                    'negative': {
+                        x: 0,
+                        y: 0,
+                        width: 300,
+                        height: 300
+                    },
+                    'positive': {
+                        x: 200,
+                        y: 200,
+                        width: 100,
+                        height: 100
+                    }
+                }
+            }, {
+                name: '200@200 100x100',
+                grid: 150,
+                contentArea: {
+                    x: 200,
+                    y: 200,
+                    width: 120,
+                    height: 120
+                },
+                expectedAreas: {
+                    'default': {
+                        x: 0,
+                        y: 0,
+                        width: 450,
+                        height: 450
+                    },
+                    'any': {
+                        x: 150,
+                        y: 150,
+                        width: 300,
+                        height: 300
+                    },
+                    'negative': {
+                        x: 0,
+                        y: 0,
+                        width: 450,
+                        height: 450
+                    },
+                    'positive': {
+                        x: 150,
+                        y: 150,
+                        width: 300,
+                        height: 300
+                    }
+                }
+            }].forEach(function(testCase) {
+                var expectedAreas = testCase.expectedAreas;
+                Object.keys(expectedAreas).forEach(function(origin) {
+                    QUnit.test(testCase.name + ', origin: ' + origin, function(assert) {
+                        var grid = testCase.grid;
+                        var area = paper.fitToContent({
+                            contentArea: testCase.contentArea,
+                            allowNewOrigin: origin,
+                            gridWidth: grid,
+                            gridHeight: grid
+                        });
+                        var expectedArea = expectedAreas[origin];
+                        assert.deepEqual(area.toJSON(), expectedArea, 'Result of paper.fitToContent()');
+                        assert.deepEqual(paper.getArea().toJSON(), expectedArea, 'Result of paper.getArea()');
+                        assert.equal(area.width % grid, 0, 'Width is multiple of grid');
+                        assert.equal(area.height % grid, 0, 'Height is multiple of grid');
+                    });
+                });
+            });
+        });
+
         QUnit.module('fitToContent() > options > useModelGeometry', function() {
 
             [0.5, 1, 2].forEach(function(scale) {

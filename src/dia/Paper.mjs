@@ -1169,7 +1169,12 @@ export const Paper = View.extend({
             padding = padding || 0;
         }
 
-        // Calculate the paper size to accomodate all the graph's elements.
+        // Calculate the paper size to accommodate all the graph's elements.
+
+        var minWidth = Math.max(opt.minWidth || 0, gridWidth);
+        var minHeight = Math.max(opt.minHeight || 0, gridHeight);
+        var maxWidth = opt.maxWidth || Number.MAX_VALUE;
+        var maxHeight = opt.maxHeight || Number.MAX_VALUE;
 
         padding = normalizeSides(padding);
 
@@ -1185,8 +1190,8 @@ export const Paper = View.extend({
         area.width *= sx;
         area.height *= sy;
 
-        var calcWidth = Math.max(Math.ceil((area.width + area.x) / gridWidth), 1) * gridWidth;
-        var calcHeight = Math.max(Math.ceil((area.height + area.y) / gridHeight), 1) * gridHeight;
+        var calcWidth = Math.ceil((area.width + area.x) / gridWidth) * gridWidth;
+        var calcHeight = Math.ceil((area.height + area.y) / gridHeight) * gridHeight;
 
         var tx = 0;
         var ty = 0;
@@ -1207,18 +1212,18 @@ export const Paper = View.extend({
         calcHeight += padding.bottom;
 
         // Make sure the resulting width and height are greater than minimum.
-        calcWidth = Math.max(calcWidth, opt.minWidth || 0);
-        calcHeight = Math.max(calcHeight, opt.minHeight || 0);
+        calcWidth = Math.max(calcWidth, minWidth);
+        calcHeight = Math.max(calcHeight, minHeight);
 
         // Make sure the resulting width and height are lesser than maximum.
-        calcWidth = Math.min(calcWidth, opt.maxWidth || Number.MAX_VALUE);
-        calcHeight = Math.min(calcHeight, opt.maxHeight || Number.MAX_VALUE);
+        calcWidth = Math.min(calcWidth, maxWidth);
+        calcHeight = Math.min(calcHeight, maxHeight);
 
         var computedSize = this.getComputedSize();
         var dimensionChange = calcWidth != computedSize.width || calcHeight != computedSize.height;
         var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
 
-        // Change the dimensions only if there is a size discrepency or an origin change
+        // Change the dimensions only if there is a size discrepancy or an origin change
         if (originChange) {
             this.translate(tx, ty);
         }
