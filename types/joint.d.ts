@@ -1,3 +1,5 @@
+export const version: string;
+
 export namespace config {
     var useCSSSelectors: boolean;
     var classNamePrefix: string;
