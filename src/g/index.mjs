@@ -4104,6 +4104,35 @@ Rect.fromEllipse = function(e) {
     return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
 };
 
+Rect.fromPoints = function(points) {
+
+    if (!Array.isArray(points) || points.length === 0) return new Rect();
+
+    const initPoint = new Point(points[0]);
+    let minX, minY, maxX, maxY;
+    minX = maxX = initPoint.x;
+    minY = maxY = initPoint.y;
+
+    for (let i = 1; i < points.length; i++) {
+        const { x, y } = new Point(points[i]);
+
+        if (x < minX) minX = x;
+        else if (x > minX) maxX = x;
+
+        if (y < minY) minY = y;
+        else if (y > minY) maxY = y;
+    }
+
+    return new Rect(minX, minY, maxX - minX, maxY - minY);
+};
+
+Rect.unionFromRects = function(rects) {
+
+    if (!Array.isArray(rects) || rects.length === 0) return new Rect();
+
+    return rects.reduce((prev, curr) => prev.union(curr), rects[0]);
+};
+
 Rect.prototype = {
 
     // Find my bounding box when I'm rotated with the center of rotation in the center of me.

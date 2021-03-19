@@ -29,6 +29,28 @@ QUnit.module('rect', function() {
         });
     });
 
+    QUnit.module('fromPoints(points)', function() {
+
+        QUnit.test('creates a new Rect object', function(assert) {
+
+            assert.ok(g.Rect.fromPoints([new g.Point()]) instanceof g.Rect);
+            var r = new g.Rect(-10, -20, 40, 60);
+            assert.ok(g.Rect.fromPoints([r.origin(), r.corner()]).equals(r));
+        });
+    });
+
+    QUnit.module('unionFromRects(rects)', function() {
+
+        QUnit.test('creates a new Rect object', function(assert) {
+
+            assert.ok(g.Rect.unionFromRects([new g.Rect()]) instanceof g.Rect);
+            var r1 = new g.Rect(-10, -20, 40, 60);
+            var r2 = new g.Rect(10, 20, 70, 90);
+            var r3 = new g.Rect(80, 90, 110, 130);
+            assert.ok(g.Rect.unionFromRects([r1, r2, r3]).equals(r1.union(r2).union(r3)));
+        });
+    });
+
     QUnit.module('prototype', function() {
 
         QUnit.module('bbox()', function() {

@@ -665,6 +665,10 @@ export namespace g {
         union(rect: PlainRect): Rect;
 
         static fromEllipse(e: Ellipse): Rect;
+
+        static fromPoints(points: g.Point[]): Rect;
+
+        static unionFromRects(rects: g.Rect[]): Rect;
     }
 
     namespace bezier {
