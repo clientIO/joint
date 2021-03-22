@@ -666,7 +666,7 @@ function findRoute(from, to, map, opt) {
             else previousDirectionAngle = null; // beginning of path, source anchor or `from` point
 
             // check if we reached any endpoint
-            var samePoints = startPoints.length == endPoints.length;
+            var samePoints = startPoints.length === endPoints.length;
             if (samePoints) {
                 for (var i = 0; i < startPoints.length; i++) {
                     if (!startPoints[i].equals(endPoints[i])) {
