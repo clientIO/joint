@@ -29,25 +29,40 @@ QUnit.module('rect', function() {
         });
     });
 
-    QUnit.module('fromPoints(points)', function() {
+    QUnit.module('pointsUnion(points)', function() {
 
-        QUnit.test('creates a new Rect object', function(assert) {
+        QUnit.test('returns null if no arguments are passed', function(assert) {
+            assert.ok(g.Rect.pointsUnion() === null);
+            assert.ok(g.Rect.pointsUnion([]) === null);
+        });
 
-            assert.ok(g.Rect.fromPoints([new g.Point()]) instanceof g.Rect);
-            var r = new g.Rect(-10, -20, 40, 60);
-            assert.ok(g.Rect.fromPoints([r.origin(), r.corner()]).equals(r));
+        QUnit.test('creates new Rect object from points', function(assert) {
+            var r0 = new g.Rect(10, 20, 5, 5);
+            assert.ok(g.Rect.pointsUnion([r0.origin(), r0.corner()]).equals(r0), 'rect from g.Points');
+            assert.ok(g.Rect.pointsUnion([{x: r0.x, y: r0.y}, {x: r0.x + r0.width, y: r0.y + r0.height}]).equals(r0), 'rect from PlainPoints');
+            assert.ok(g.Rect.pointsUnion([r0.origin()]).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single point has width and height equal to 0');
+            var r1 = new g.Rect(-10, -20, 40, 60);
+            assert.ok(g.Rect.pointsUnion([r0.origin(), r0.corner(), r1.origin(), r1.corner()]).equals(r0.union(r1)), 'rect from multiple points');
+            assert.ok(g.Rect.pointsUnion([{}, {}]).equals(new g.Rect()), 'creates default rect if cannot read x and y from arguments');
         });
     });
 
-    QUnit.module('unionFromRects(rects)', function() {
+    QUnit.module('rectsUnion(rects)', function() {
 
-        QUnit.test('creates a new Rect object', function(assert) {
+        QUnit.test('returns null if no arguments are passed', function(assert) {
+            assert.ok(g.Rect.rectsUnion() === null);
+            assert.ok(g.Rect.rectsUnion([]) === null);
+        });
 
-            assert.ok(g.Rect.unionFromRects([new g.Rect()]) instanceof g.Rect);
+        QUnit.test('creates a new Rect object from rects', function(assert) {
+            var r0 = new g.Rect();
+            assert.ok(g.Rect.rectsUnion([r0]).equals(r0), 'rect from g.Rects');
+            assert.ok(g.Rect.rectsUnion([{x: r0.x, y: r0.y, width: r0.width, height: r0.height}]).equals(r0), 'rect from PlainRects');
             var r1 = new g.Rect(-10, -20, 40, 60);
             var r2 = new g.Rect(10, 20, 70, 90);
             var r3 = new g.Rect(80, 90, 110, 130);
-            assert.ok(g.Rect.unionFromRects([r1, r2, r3]).equals(r1.union(r2).union(r3)));
+            assert.ok(g.Rect.rectsUnion([r1, r2, r3]).equals(r1.union(r2).union(r3)), 'rect from multiple rects');
+            assert.ok(g.Rect.pointsUnion([{}, {}]).equals(new g.Rect()), 'creates default Rect if cannot read x, y, width and height from arguments');
         });
     });
 

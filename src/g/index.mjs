@@ -4104,33 +4104,40 @@ Rect.fromEllipse = function(e) {
     return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
 };
 
-Rect.fromPoints = function(points) {
+Rect.pointsUnion = function(points) {
 
-    if (!Array.isArray(points) || points.length === 0) return new Rect();
+    if (!Array.isArray(points) || points.length === 0) return null;
 
-    const initPoint = new Point(points[0]);
+    const p = new Point(points[0]);
     let minX, minY, maxX, maxY;
-    minX = maxX = initPoint.x;
-    minY = maxY = initPoint.y;
+    minX = maxX = p.x;
+    minY = maxY = p.y;
 
     for (let i = 1; i < points.length; i++) {
-        const { x, y } = new Point(points[i]);
+        p.update(points[i].x, points[i].y);
 
-        if (x < minX) minX = x;
-        else if (x > minX) maxX = x;
+        if (p.x < minX) minX = p.x;
+        else if (p.x > minX) maxX = p.x;
 
-        if (y < minY) minY = y;
-        else if (y > minY) maxY = y;
+        if (p.y < minY) minY = p.y;
+        else if (p.y > minY) maxY = p.y;
     }
 
     return new Rect(minX, minY, maxX - minX, maxY - minY);
 };
 
-Rect.unionFromRects = function(rects) {
+Rect.rectsUnion = function(rects) {
+    if (!Array.isArray(rects) || rects.length === 0) return null;
 
-    if (!Array.isArray(rects) || rects.length === 0) return new Rect();
+    const points = [];
 
-    return rects.reduce((prev, curr) => prev.union(curr), rects[0]);
+    rects.forEach(rect => {
+        const r = new Rect(rect);
+        points.push(r.origin());
+        points.push(r.corner());
+    });
+
+    return Rect.pointsUnion(points);
 };
 
 Rect.prototype = {

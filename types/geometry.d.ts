@@ -666,9 +666,9 @@ export namespace g {
 
         static fromEllipse(e: Ellipse): Rect;
 
-        static fromPoints(points: g.Point[]): Rect;
+        static pointsUnion(points: PlainPoint[]): Rect;
 
-        static unionFromRects(rects: g.Rect[]): Rect;
+        static rectsUnion(rects: PlainRect[]): Rect;
     }
 
     namespace bezier {
