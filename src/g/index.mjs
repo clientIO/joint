@@ -4116,11 +4116,13 @@ Rect.pointsUnion = function(...points) {
     for (let i = 0; i < points.length; i++) {
         const pI = points[i];
         p.update(pI.x, pI.y);
+        const x = p.x;
+        const y = p.y;
 
-        if (p.x < minX) minX = p.x;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.y > maxY) maxY = p.y;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
     }
 
     return new Rect(minX, minY, maxX - minX, maxY - minY);
