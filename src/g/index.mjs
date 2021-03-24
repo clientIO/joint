@@ -4104,30 +4104,30 @@ Rect.fromEllipse = function(e) {
     return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
 };
 
-Rect.pointsUnion = function(points) {
+Rect.pointsUnion = function(...points) {
 
-    if (!Array.isArray(points) || points.length === 0) return null;
+    if (points.length === 0) return null;
 
-    const p = new Point(points[0]);
+    const p = new Point();
     let minX, minY, maxX, maxY;
-    minX = maxX = p.x;
-    minY = maxY = p.y;
+    minX = minY = Infinity;
+    maxX = maxY = -Infinity;
 
-    for (let i = 1; i < points.length; i++) {
-        p.update(points[i].x, points[i].y);
+    for (let i = 0; i < points.length; i++) {
+        const pI = points[i];
+        p.update(pI.x, pI.y);
 
         if (p.x < minX) minX = p.x;
-        else if (p.x > minX) maxX = p.x;
-
+        if (p.x > maxX) maxX = p.x;
         if (p.y < minY) minY = p.y;
-        else if (p.y > minY) maxY = p.y;
+        if (p.y > maxY) maxY = p.y;
     }
 
     return new Rect(minX, minY, maxX - minX, maxY - minY);
 };
 
-Rect.rectsUnion = function(rects) {
-    if (!Array.isArray(rects) || rects.length === 0) return null;
+Rect.rectsUnion = function(...rects) {
+    if (rects.length === 0) return null;
 
     const points = [];
 
@@ -4137,7 +4137,7 @@ Rect.rectsUnion = function(rects) {
         points.push(r.corner());
     });
 
-    return Rect.pointsUnion(points);
+    return Rect.pointsUnion(...points);
 };
 
 Rect.prototype = {
