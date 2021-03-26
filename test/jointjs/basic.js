@@ -862,6 +862,69 @@ QUnit.module('basic', function(hooks) {
 
     });
 
+    QUnit.module('toBack(), toFront()', function(hooks) {
+
+        var cells, el;
+        var Rect = joint.shapes.standard.Rectangle;
+
+        hooks.beforeEach(function() {
+
+            var a1 = new Rect({ id: 'a1' });
+            var a11 = new Rect({ id: 'a11' });
+            var a111 = new Rect({ id: 'a111' });
+            var a112 = new Rect({ id: 'a112' });
+            var a12 = new Rect({ id: 'a12' });
+            var a121 = new Rect({ id: 'a121' });
+            var a122 = new Rect({ id: 'a122' });
+            var b1 = new Rect({ id: 'b1' });
+            var c1 = new Rect({ id: 'c1' });
+
+            cells = [b1, c1, a1, a11, a111, a112, a12, a121, a122];
+            cells.forEach(function(cell) { return cell.set('z', 0); });
+
+            a1.embed(a11.embed(a111.embed(a112)));
+            a1.embed(a12.embed(a121.embed(a122)));
+            this.graph.addCells(cells);
+            el = a1;
+        });
+
+        [{
+            // Test Case { deep: true, breadthFirst: false }
+            breadthFirst: false,
+            toFront: [0,0,1,2,4,5,3,6,7],
+            toBack: [0,0,-7,-6,-4,-3,-5,-2,-1]
+
+        }, {
+            // Test Case { deep: true, breadthFirst: true }
+            breadthFirst: true,
+            toFront: [0,0,1,2,4,6,3,5,7],
+            toBack: [0,0,-7,-6,-4,-2,-5,-3,-1]
+
+        }].forEach(function(testCase) {
+
+            QUnit.test('toBack(), toFront() > breadthFirst = ' + testCase.breadthFirst, function(assert) {
+
+                Array.from({ length: 2 }).forEach(function() {
+                    el.toFront({ deep: true, breadthFirst: testCase.breadthFirst });
+                    assert.deepEqual(
+                        cells.map(function(cell) { return cell.get('z'); }),
+                        testCase.toFront,
+                        'toFront order'
+                    );
+                });
+
+                Array.from({ length: 2 }).forEach(function() {
+                    el.toBack({ deep: true, breadthFirst: testCase.breadthFirst });
+                    assert.deepEqual(
+                        cells.map(function(cell) { return cell.get('z'); }),
+                        testCase.toBack,
+                        'toBack order'
+                    );
+                });
+            });
+        });
+    });
+
     QUnit.test('fitEmbeds()', function(assert) {
 
         var mainGroup = new joint.shapes.basic.Rect;

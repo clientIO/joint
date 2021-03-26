@@ -216,6 +216,10 @@ export namespace dia {
             disconnectLinks?: boolean;
         }
 
+        interface GetEmbeddedCellsOptions extends EmbeddableOptions {
+            breadthFirst?: boolean;
+        }
+
         interface TransitionOptions extends Options {
             delay?: number;
             duration?: number;
@@ -238,9 +242,9 @@ export namespace dia {
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
-        toFront(opt?: Cell.EmbeddableOptions): this;
+        toFront(opt?: Cell.GetEmbeddedCellsOptions): this;
 
-        toBack(opt?: Cell.EmbeddableOptions): this;
+        toBack(opt?: Cell.GetEmbeddedCellsOptions): this;
 
         parent(): string;
         parent(parentId: string): this;
@@ -249,7 +253,7 @@ export namespace dia {
 
         getAncestors(): Cell[];
 
-        getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
+        getEmbeddedCells(opt?: Cell.GetEmbeddedCellsOptions): Cell[];
 
         isEmbeddedIn(cell: Cell, opt?: Cell.EmbeddableOptions): boolean;
 
