@@ -1175,6 +1175,7 @@ export const Paper = View.extend({
         var minHeight = Math.max(opt.minHeight || 0, gridHeight);
         var maxWidth = opt.maxWidth || Number.MAX_VALUE;
         var maxHeight = opt.maxHeight || Number.MAX_VALUE;
+        var newOrigin = opt.allowNewOrigin;
 
         padding = normalizeSides(padding);
 
@@ -1190,19 +1191,25 @@ export const Paper = View.extend({
         area.width *= sx;
         area.height *= sy;
 
-        var calcWidth = Math.ceil((area.width + area.x) / gridWidth) * gridWidth;
-        var calcHeight = Math.ceil((area.height + area.y) / gridHeight) * gridHeight;
+        var calcWidth = Math.ceil((area.width + area.x) / gridWidth);
+        var calcHeight = Math.ceil((area.height + area.y) / gridHeight);
+        if (!opt.allowNegativeBottomRight) {
+            calcWidth = Math.max(calcWidth, 1);
+            calcHeight = Math.max(calcHeight, 1);
+        }
+        calcWidth *= gridWidth;
+        calcHeight *= gridHeight;
 
         var tx = 0;
         var ty = 0;
 
-        if ((opt.allowNewOrigin == 'negative' && area.x < 0) || (opt.allowNewOrigin == 'positive' && area.x >= 0) || opt.allowNewOrigin == 'any') {
+        if ((newOrigin === 'negative' && area.x < 0) || (newOrigin === 'positive' && area.x >= 0) || newOrigin === 'any') {
             tx = Math.ceil(-area.x / gridWidth) * gridWidth;
             tx += padding.left;
             calcWidth += tx;
         }
 
-        if ((opt.allowNewOrigin == 'negative' && area.y < 0) || (opt.allowNewOrigin == 'positive' && area.y >= 0) || opt.allowNewOrigin == 'any') {
+        if ((newOrigin === 'negative' && area.y < 0) || (newOrigin === 'positive' && area.y >= 0) || newOrigin === 'any') {
             ty = Math.ceil(-area.y / gridHeight) * gridHeight;
             ty += padding.top;
             calcHeight += ty;
