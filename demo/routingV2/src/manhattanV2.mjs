@@ -1,24 +1,32 @@
 import * as joint from '../../../joint.mjs';
 import ndarray from 'ndarray';
+import ops from 'ndarray-ops';
+import prefixSum from 'ndarray-prefix-sum';
 import createPlanner from 'l1-path-finder';
 
+// From talks with Roman
+// [ ] - no grid, no negative coords, just +/- 100000 OR
+// [ ] - no grid, no negative coords, just 0,0 and higher
+// [ ] - remove the additional bends
+
 // ======= Debugging
+
 const debugConf = {
-    showGraph: true,
+    // showGraph: false, // todo: broke debugging for now, don't use
     plannerBenchmark: true,
     routerBenchmark: true,
 }
 const debugLog = function () {};
 
 // ======= Testing config
-const paperWidth = 1000;
-const paperHeight = 800;
-const obstacleCount = 50;
+const paperWidth = 7000;
+const paperHeight = 3500;
+const obstacleCount = 250;
 
 // ======= Router config
 const config = {
-    step: 10,
-    padding: 10,
+    step: 50,
+    padding: 25,
     algorithm: 'l1',                    // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
     startDirections: ['bottom'],        // todo
     endDirections: ['top'],             // todo
@@ -38,9 +46,9 @@ const paper = new joint.dia.Paper({
     width: paperWidth,
     height: paperHeight,
     defaultRouter: function(vertices, args, linkView) {
+        // this is all POC code to find the visual results we're happy with
         const routerStartTime = window.performance.now();
-        // POC code
-        if (!config.planner) return vertices;
+        const pathfinder = new Pathfinder(graph).bake();
 
         const sourceBBox = linkView.sourceBBox.moveAndExpand({
             x: -config.padding,
@@ -55,10 +63,8 @@ const paper = new joint.dia.Paper({
             height: 2 * config.padding
         });
 
-        // TODO: PRESERVE PREVIOUS POINTS
         const path = [];
-
-        config.planner.search(
+        pathfinder.planner.search(
             sourceBBox.center().x / config.step,
             sourceBBox.center().y / config.step,
             targetBBox.center().x / config.step,
@@ -66,16 +72,102 @@ const paper = new joint.dia.Paper({
             path
         );
 
+        const normalizedPath = [];
         while (path.length > 1) {
-            const coords = path.splice(0, 2);
+            if (path.length <= 4) {
+                normalizedPath.push(...path);
+                path.length = 0;
+            } else if (isStacked(path)) {
+                path.splice(0, 2);
+            } else if (isVertical(path) || isHorizontal(path)) {
+                path.splice(0, 4, path[0], path[1]);
+            } else if (isDownStep(path)) {
+                const head = path.splice(0, 2);
+                const tail = path.slice(0, 8);
+                const simplified = [head[0], head[1], head[0], tail[7], tail[6], tail[7]];
+
+                if (isPathClear(simplified)) {
+                    path.splice(0, 8);
+                    path.unshift(...simplified);
+                } else {
+                    normalizedPath.push(...head);
+                }
+            } else if (isUpStep(path)) {
+                const head = path.splice(0, 2);
+                const tail = path.slice(0, 8);
+                const simplified = [head[0], head[1], tail[6], head[1], tail[6], tail[7]];
+
+                if (isPathClear(simplified)) {
+                    path.splice(0, 8);
+                    path.unshift(...simplified);
+                } else {
+                    normalizedPath.push(...head);
+                }
+            } else {
+                normalizedPath.push(...path.splice(0, 2));
+            }
+        }
+
+        function isStacked(s) {
+            return s[0] === s[2] && s[1] === s[3];
+        }
+
+        function isVertical(s) {
+            return s[0] === s[2] && s[2] === s[4];
+        }
+
+        function isHorizontal(s) {
+            return s[1] === s[3] && s[3] === s[5];
+        }
+
+        function isDownStep(s) {
+            return (s.length >= 10) *
+                (s[0] === s[2] && s[2] !== s[4]) *
+                (s[1] !== s[3] && s[3] === s[5]) *
+                (s[4] === s[6] && s[6] !== s[8]) *
+                (s[5] !== s[7] && s[7] === s[9]);
+        }
+
+        function isUpStep(s) {
+            return (s.length >= 10) *
+                (s[1] === s[3] && s[3] !== s[5]) *
+                (s[0] !== s[2] && s[2] === s[4]) *
+                (s[5] === s[7] && s[7] !== s[9]) *
+                (s[4] !== s[6] && s[6] === s[8]);
+        }
+
+        function isPathClear(s) {
+            let obstructed;
+            for (let i = 0; i < s.length; i += 2) {
+                const vertical = s[i] === s[i + 2];
+                const bounds = vertical ? [s[i + 1], s[i + 3]] : [s[i], s[i + 2]];
+                bounds.sort((a, b) => { return a - b });
+
+                for (let j = bounds[0]; j <= bounds[1]; j++) {
+                    if (grid.get(
+                        vertical ? s[i] : j ,
+                        vertical ? j : s[i + 1]
+                    ) === 1) {
+                        obstructed = true;
+                        break;
+                    }
+                }
+
+                if (obstructed) {
+                    break;
+                }
+            }
+
+            return !obstructed;
+        }
+
+        while (normalizedPath.length > 1) {
+            const coords = normalizedPath.splice(0, 2);
             vertices.push({
                 x: coords[0] * config.step,
                 y: coords[1] * config.step
             });
-
-            // todo: config.preferRoute
         }
-
         const routerEndTime = window.performance.now();
         if (debugConf.routerBenchmark) {
             console.warn('Router time: ' + (routerEndTime-routerStartTime).toFixed(2) + 'ms');
@@ -148,7 +240,7 @@ function getRandomInt(min, max) {
 function snapToGrid(num) {
     return Math.floor( num / config.step) * config.step;
 }
-const calculateObstacles = function() {
+const addObstacles = function() {
     obstacles.length = 0;
 
     for (let f = 0; f < obstacleCount; f++) {
@@ -158,7 +250,7 @@ const calculateObstacles = function() {
         obstacles.push(obs);
     }
 };
-calculateObstacles();
+addObstacles();
 
 // ======= Init
 graph.addCells(obstacles).addCells([source, target, link]);
@@ -202,28 +294,95 @@ if (debugConf.plannerBenchmark) {
 // ============================================================================
 // Router V2
 // ============================================================================
-function Pathfinder(graph, {} = {}) {
+function Pathfinder(graph, {
+    step = 10,
+    padding = 0,
+    chunkSize = 100,
+    algorithm = 'l1'
+} = {}) {
     if (!graph) {
-        return debugLog('World requires an instance of dia.Graph.');
+        return debugLog('Pathfinder requires an instance of dia.Graph.');
     }
 
     this._graph = graph;
+
+    this.grid = ndarray(new Int8Array((paperWidth / config.step) * (paperHeight / config.step)).fill(0), [paperWidth / config.step, paperHeight / config.step]);
+    this.planner = null;
+
+    // todo:
+    // this.chunks = new Chunks({ step, chunkSize });
 }
-Pathfinder.prototype.bake = () => {}
-Pathfinder.prototype.clear = () => {}
+Pathfinder.prototype.bake = function() {
+    this._graph.getElements().forEach(element => {
+        if (element.id === source.id || element.id === target.id || element.type === 'dc') {
+            return;
+        }
+
+        const bb = element.getBBox().moveAndExpand({
+            x: -config.padding,
+            y: -config.padding,
+            width: 2 * config.padding,
+            height: 2 * config.padding
+        });
+
+        const gridX = Math.round(bb.x / config.step);
+        const gridY = Math.round(bb.y / config.step);
+        const boundX = Math.round((bb.x + bb.width + config.padding) / config.step);
+        const boundY = Math.round((bb.y + bb.height + config.padding) / config.step);
+
+        for(let i = gridX; i < boundX; ++i) {
+            for(let j = gridY; j < boundY; ++j) {
+                this.grid.set(i, j, 1);
+            }
+        }
+    });
+
+    this.planner = createPlanner(this.grid);
+
+    return this;
+}
 
 function Planner() {}
 Planner.prototype.getPath = () => {}
 Planner.prototype.connectChunks = () => {}
 Planner.prototype.separateChunks = () => {}
 
-function Chunks() {}
-Chunks.prototype.add = () => {}
-Chunks.prototype.get = () => {}
+function Chunks({ step, chunkSize } = {}) {
+    this._chunkSize = step * chunkSize;
+
+    // quadrants allows for negative coordinate chunk storage
+    // each quadrant consists of a flat array interpreted as 2d array
+    // i.e. [0,0] is index 0; [1,0] is index 1, [0,1] is index 2 and so on...
+    //  3 | 1
+    // ---|---
+    //  2 | 0
+    this.quadrants = new Array(4).fill([]);
+}
+Chunks.prototype.get = (quadrant, x, y) => {
+    return this.quadrants[quadrant][x + y * 2];
+}
+Chunks.prototype.set = (quadrant, x, y, chunk) => {
+    return this.quadrants[quadrant][x + y * 2] = chunk;
+}
+Chunks.prototype.fromPoint = (point) => {
+    if (Number.isNaN(point.x) || Number.isNaN(point.y)) {
+        return debugLog('Invalid point provided.');
+    }
+
+    const q = (1 * (point.y < 0)) + (2 * (point.x < 0));
+    const qx = Math.floor(Math.abs(position.x) / this._chunkSize);
+    const qy = Math.floor(Math.abs(position.y) / this._chunkSize);
+
+    return this.quadrants[q][qx + qy * 2];
+}
 Chunks.prototype.remove = () => {}
 
-function Chunk() {}
+function Chunk() {
+    this.id = 0; // int id
+    this.obstacles = new Obstacles();
+}
 Chunk.prototype.bake = () => {}
+Chunk.prototype.update = () => {}
 Chunk.prototype.registerObstacle = () => {}
 Chunk.prototype.registerCell = () => {}
 Chunk.prototype.getObstacles = () => {}
@@ -234,18 +393,88 @@ Chunk.prototype.unregisterCell = () => {}
 function Grid() {}
 Grid.prototype.isCoordinateFree = () => {}
 
-function Obstacles() {}
-Obstacles.prototype.add = () => {}
-Obstacles.prototype.get = () => {}
-Obstacles.prototype.remove = () => {}
+function Obstacles() {
+    this.store = {};
+    // this.length = Infinity;
+}
+Obstacles.prototype.get = () => {
+    return this.store;
+}
+Obstacles.prototype.get = (cellId) => {
+    return this.store[cellId]?.index;
+}
+Obstacles.prototype.set = (cellId, obstacle) => {
+    return this.store[cellId] = obstacle;
+}
+Obstacles.prototype.remove = (cellId) => {
+    delete this.store[cellId];
+}
 
-function Obstacle() {}
-Obstacle.prototype.update = () => {}
-Obstacle.prototype.subGrid = () => {}
+function Obstacle() {
+    this.index = 0;     // index used by ndarray
+    this.cellId = null; // can't be null
+    this.bounds = new ArrayBuffer(4);   // 4 byte array buffer to ease ndarray operations
+}
+Obstacle.prototype.size = () => {
+    return {
+        width: this.bounds[2],
+        height: this.bounds[3]
+    }
+}
+Obstacle.prototype.size = ({ width = 0, height = 0 } = {}) => {
+    this.bounds[2] = this.bounds[0] + width;
+    this.bounds[3] = this.bounds[1] + height;
+}
+Obstacle.prototype.position = () => {
+    return {
+        x: this.bounds[0],
+        y: this.bounds[1]
+    }
+}
+Obstacle.prototype.position = (x, y) => {
+    this.bounds[0] = x;
+    this.bounds[1] = y;
+}
 
-// support structures
+// ======= Support data structures
 function ObjectPool() {}
 function BinaryHeap() {}
+
+// ======= Pathfinder Core
+function PathfinderGeometry(graph) {
+    this._graph = graph;
+    this.corners = [];
+    this.entities = [];
+}
+
+PathfinderGeometry.prototype.build = function(config) {
+    const grid = ndarray(new Int8Array((paperWidth / config.step) * (paperHeight / config.step)).fill(0), [paperWidth / config.step, paperHeight / config.step]);
+
+    this.obstacles = [];
+    this.corners = [];
+    graph.getElements().forEach(element => {
+        const bb = element.getBBox().moveAndExpand({
+            x: -config.padding,
+            y: -config.padding,
+            width: 2 * config.padding,
+            height: 2 * config.padding
+        });
+
+        const gridX = Math.round(bb.x / config.step);
+        const gridY = Math.round(bb.y / config.step);
+        const boundX = Math.round((bb.x + bb.width + config.padding) / config.step);
+        const boundY = Math.round((bb.y + bb.height + config.padding) / config.step);
+
+        this.obstacles.push(element.id);
+        this.corners.push(gridX, gridY, boundX, boundY);
+    });
+
+    const img = ndarray(new Int32Array(grid.shape[0]*grid.shape[1]), grid.shape);
+    ops.gts(img, grid, 0);
+    prefixSum(img);
+
+    this.img = img;
+}
 
 // graph.on('change:position', function(cell) {
 //     if (obstacles.indexOf(cell) > -1) {
@@ -332,6 +561,7 @@ function BinaryHeap() {}
 // ======= Visual debugging
 if (debugConf.showGraph) {
     const c = new joint.shapes.standard.Circle({
+        type: 'dc',
         position: { x: 0, y: 0 },
         size: { width: 10, height: 10 },
         attrs: {
@@ -347,6 +577,7 @@ if (debugConf.showGraph) {
     });
 
     const l = new joint.shapes.standard.Link({
+        type: 'dl',
         router: {
             name: 'normal'
         },
