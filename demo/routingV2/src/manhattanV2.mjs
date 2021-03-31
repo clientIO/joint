@@ -63,121 +63,149 @@ const paper = new joint.dia.Paper({
             height: 2 * config.padding
         });
 
-        const path = [];
-        pathfinder.planner.search(
-            sourceBBox.center().x / config.step,
-            sourceBBox.center().y / config.step,
-            targetBBox.center().x / config.step,
-            targetBBox.center().y / config.step,
-            path
-        );
+        const oldVertices = [...vertices], newVertices = [];
 
-        const normalizedPath = [];
-        while (path.length > 1) {
-            if (path.length <= 4) {
-                normalizedPath.push(...path);
-                path.length = 0;
-            } else if (isStacked(path)) {
-                path.splice(0, 2);
-            } else if (isVertical(path) || isHorizontal(path)) {
-                path.splice(0, 4, path[0], path[1]);
-            } else if (isDownStep(path)) {
-                const head = path.splice(0, 2);
-                const tail = path.slice(0, 8);
-                const simplified = [head[0], head[1], head[0], tail[7], tail[6], tail[7]];
+        let from, to;
+        for (let i = 0; i <= oldVertices.length; i++) {
+            from = to || sourceBBox.center();
+            to = oldVertices[i];
 
-                if (isPathClear(simplified)) {
-                    path.splice(0, 8);
-                    path.unshift(...simplified);
-                } else {
-                    normalizedPath.push(...head);
-                }
-            } else if (isUpStep(path)) {
-                const head = path.splice(0, 2);
-                const tail = path.slice(0, 8);
-                const simplified = [head[0], head[1], tail[6], head[1], tail[6], tail[7]];
+            if (!to) {
+                to = targetBBox.center();
+            }
 
-                if (isPathClear(simplified)) {
-                    path.splice(0, 8);
-                    path.unshift(...simplified);
-                } else {
-                    normalizedPath.push(...head);
-                }
-            } else {
-                normalizedPath.push(...path.splice(0, 2));
+            const path = [];
+            pathfinder.planner.search(
+                from.x / config.step,
+                from.y / config.step,
+                to.x / config.step,
+                to.y / config.step,
+                path
+            );
+
+            const simplePath = simplifyPath(path);
+
+            while (simplePath.length > 1) {
+                const coords = simplePath.splice(0, 2);
+                newVertices.push({
+                    x: coords[0] * config.step,
+                    y: coords[1] * config.step
+                });
+            }
+
+            // duplicate?
+            // if (oldVertices[i]) {
+            //     newVertices.push(oldVertices[i]);
+            // }
+
+            if (i === oldVertices.length) {
+                break;
             }
         }
 
-        function isStacked(s) {
-            return s[0] === s[2] && s[1] === s[3];
-        }
 
-        function isVertical(s) {
-            return s[0] === s[2] && s[2] === s[4];
-        }
 
-        function isHorizontal(s) {
-            return s[1] === s[3] && s[3] === s[5];
-        }
 
-        function isDownStep(s) {
-            return (s.length >= 10) *
-                (s[0] === s[2] && s[2] !== s[4]) *
-                (s[1] !== s[3] && s[3] === s[5]) *
-                (s[4] === s[6] && s[6] !== s[8]) *
-                (s[5] !== s[7] && s[7] === s[9]);
-        }
 
-        function isUpStep(s) {
-            return (s.length >= 10) *
-                (s[1] === s[3] && s[3] !== s[5]) *
-                (s[0] !== s[2] && s[2] === s[4]) *
-                (s[5] === s[7] && s[7] !== s[9]) *
-                (s[4] !== s[6] && s[6] === s[8]);
-        }
 
-        function isPathClear(s) {
-            let obstructed;
-            for (let i = 0; i < s.length; i += 2) {
-                const vertical = s[i] === s[i + 2];
-                const bounds = vertical ? [s[i + 1], s[i + 3]] : [s[i], s[i + 2]];
-                bounds.sort((a, b) => { return a - b });
-
-                for (let j = bounds[0]; j <= bounds[1]; j++) {
-                    if (grid.get(
-                        vertical ? s[i] : j ,
-                        vertical ? j : s[i + 1]
-                    ) === 1) {
-                        obstructed = true;
-                        break;
-                    }
-                }
-
-                if (obstructed) {
-                    break;
-                }
-            }
-
-            return !obstructed;
-        }
-
-        while (normalizedPath.length > 1) {
-            const coords = normalizedPath.splice(0, 2);
-            vertices.push({
-                x: coords[0] * config.step,
-                y: coords[1] * config.step
-            });
-        }
         const routerEndTime = window.performance.now();
         if (debugConf.routerBenchmark) {
             console.warn('Router time: ' + (routerEndTime-routerStartTime).toFixed(2) + 'ms');
         }
-        return vertices;
+        return newVertices;
     },
     gridSize: config.step,
     async: true,
     model: graph
 });
+
+const simplifyPath = function(path) {
+    const simplePath = [];
+    while (path.length > 1) {
+        if (path.length <= 4) {
+            simplePath.push(...path);
+            path.length = 0;
+        } else if (isStacked(path)) {
+            path.splice(0, 2);
+        } else if (isVertical(path) || isHorizontal(path)) {
+            path.splice(0, 4, path[0], path[1]);
+        } else if (isDownStep(path)) {
+            const head = path.splice(0, 2);
+            const tail = path.slice(0, 8);
+            const simplified = [head[0], head[1], head[0], tail[7], tail[6], tail[7]];
+
+            if (isPathClear(simplified)) {
+                path.splice(0, 8);
+                path.unshift(...simplified);
+            } else {
+                simplePath.push(...head);
+            }
+        } else if (isUpStep(path)) {
+            const head = path.splice(0, 2);
+            const tail = path.slice(0, 8);
+            const simplified = [head[0], head[1], tail[6], head[1], tail[6], tail[7]];
+
+            if (isPathClear(simplified)) {
+                path.splice(0, 8);
+                path.unshift(...simplified);
+            } else {
+                simplePath.push(...head);
+            }
+        } else {
+            simplePath.push(...path.splice(0, 2));
+        }
+    }
+    return simplePath;
+
+    function isStacked(s) {
+        return s[0] === s[2] && s[1] === s[3];
+    }
+
+    function isVertical(s) {
+        return s[0] === s[2] && s[2] === s[4];
+    }
+
+    function isHorizontal(s) {
+        return s[1] === s[3] && s[3] === s[5];
+    }
+
+    function isDownStep(s) {
+        return (s.length >= 10) *
+            (s[0] === s[2] && s[2] !== s[4]) *
+            (s[1] !== s[3] && s[3] === s[5]) *
+            (s[4] === s[6] && s[6] !== s[8]) *
+            (s[5] !== s[7] && s[7] === s[9]);
+    }
+
+    function isUpStep(s) {
+        return (s.length >= 10) *
+            (s[1] === s[3] && s[3] !== s[5]) *
+            (s[0] !== s[2] && s[2] === s[4]) *
+            (s[5] === s[7] && s[7] !== s[9]) *
+            (s[4] !== s[6] && s[6] === s[8]);
+    }
+
+    function isPathClear(s) {
+        let obstructed;
+        for (let i = 0; i < s.length; i += 2) {
+            const vertical = s[i] === s[i + 2];
+            const bounds = vertical ? [s[i + 1], s[i + 3]] : [s[i], s[i + 2]];
+            bounds.sort((a, b) => { return a - b });
+
+            for (let j = bounds[0]; j <= bounds[1]; j++) {
+                if (grid.get(
+                    vertical ? s[i] : j ,
+                    vertical ? j : s[i + 1]
+                ) === 1) {
+                    obstructed = true;
+                    break;
+                }
+            }
+        }
+
+        return !obstructed;
+    }
+}
 
 // ======= Shapes
 const source = new joint.shapes.standard.Rectangle({
@@ -510,16 +538,16 @@ PathfinderGeometry.prototype.build = function(config) {
 //         link.findView(paper).requestConnectionUpdate();
 //     }
 // });
-// paper.on('link:mouseenter', function(linkView) {
-//     var tools = new joint.dia.ToolsView({
-//         tools: [new joint.linkTools.Vertices()]
-//     });
-//     linkView.addTools(tools);
-// });
-//
-// paper.on('link:mouseleave', function(linkView) {
-//     linkView.removeTools();
-// });
+paper.on('link:mouseenter', function(linkView) {
+    var tools = new joint.dia.ToolsView({
+        tools: [new joint.linkTools.Vertices()]
+    });
+    linkView.addTools(tools);
+});
+
+paper.on('link:mouseleave', function(linkView) {
+    linkView.removeTools();
+});
 
 // mental notes
 // const SubGrid = function({
