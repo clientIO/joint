@@ -5,9 +5,14 @@ import prefixSum from 'ndarray-prefix-sum';
 import createPlanner from 'l1-path-finder';
 
 // From talks with Roman
-// [ ] - no grid, no negative coords, just +/- 100000 OR
-// [ ] - no grid, no negative coords, just 0,0 and higher
-// [ ] - remove the additional bends
+// [ ][benched] - no grid, no negative coords, just +/- 100000 OR
+// [ ][benched] - no grid, no negative coords, just 0,0 and higher
+// [x] - remove the additional bends
+// [x] - preserve old vertices
+// [x] - start/end directions
+// [ ] - improved start/end directions - better first verts
+// [ ] - to/from a port connection
+// [ ][benched] - limit grid updates to speed up path-finding
 
 // ======= Debugging
 
@@ -19,7 +24,7 @@ const debugConf = {
 const debugLog = function () {};
 
 // ======= Testing config
-const paperWidth = 7000;
+const paperWidth = 5000;
 const paperHeight = 3500;
 const obstacleCount = 250;
 
@@ -27,14 +32,14 @@ const obstacleCount = 250;
 const config = {
     step: 50,
     padding: 25,
-    algorithm: 'l1',                    // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
-    startDirections: ['bottom'],        // todo
-    endDirections: ['top'],             // todo
-    preferRoute: 'tight',               // todo: new feature; by default sticks links to obstacles: 'tight', 'lessCorners'
-    perpendicular: true,                // todo
-    minFirstSegmentLength: 0,           // todo: new feature
-    excludeEnds: [],                    // todo
-    excludeTypes: [],                   // todo: should we even have it in this form, or should it be done via obstacles API
+    algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
+    startDirections: ['top', 'right', 'bottom', 'left'],
+    endDirections: ['top', 'right', 'bottom', 'left'],
+    preferRoute: 'simple',                                  // todo: new feature; by default sticks links to obstacles: 'tight', 'lessCorners'
+    perpendicular: true,                                    // todo
+    minFirstSegmentLength: 0,                               // todo: new feature
+    excludeEnds: [],                                        // todo
+    excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
 };
 
 // ===============================================================================
@@ -63,56 +68,69 @@ const paper = new joint.dia.Paper({
             height: 2 * config.padding
         });
 
+        // silly implementation, requires fool-proofing
         const oldVertices = [...vertices], newVertices = [];
+        let shortestPath = [], shortestDistance = Infinity;
+        for (let sd = 0; sd < config.startDirections.length; sd++) {
+            const sourcePoint = bboxToPoint(sourceBBox, config.startDirections[sd]);
 
-        let from, to;
-        for (let i = 0; i <= oldVertices.length; i++) {
-            from = to || sourceBBox.center();
-            to = oldVertices[i];
+            for (let td = 0; td < config.endDirections.length; td++) {
+                const targetPoint = bboxToPoint(targetBBox, config.endDirections[td]);
 
-            if (!to) {
-                to = targetBBox.center();
-            }
+                let from, to;
+                for (let i = 0; i <= oldVertices.length; i++) {
+                    from = sourcePoint;
+                    to = oldVertices[i];
 
-            const path = [];
-            pathfinder.planner.search(
-                from.x / config.step,
-                from.y / config.step,
-                to.x / config.step,
-                to.y / config.step,
-                path
-            );
+                    if (!to) {
+                        to = targetPoint;
+                    }
 
-            const simplePath = simplifyPath(path);
+                    const path = [];
+                    const distance = pathfinder.planner.search(
+                        from.x / config.step,
+                        from.y / config.step,
+                        to.x / config.step,
+                        to.y / config.step,
+                        path
+                    );
 
-            while (simplePath.length > 1) {
-                const coords = simplePath.splice(0, 2);
-                newVertices.push({
-                    x: coords[0] * config.step,
-                    y: coords[1] * config.step
-                });
-            }
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        shortestPath = path;
+                    }
 
-            // duplicate?
-            // if (oldVertices[i]) {
-            //     newVertices.push(oldVertices[i]);
-            // }
-
-            if (i === oldVertices.length) {
-                break;
+                    if (i === oldVertices.length) {
+                        break;
+                    }
+                }
             }
         }
 
-
-
-
-
+        const simplePath = config.preferRoute === 'simple' ? simplifyPath(shortestPath) : shortestPath;
+        while (simplePath.length > 1) {
+            const coords = simplePath.splice(0, 2);
+            newVertices.push({
+                x: coords[0] * config.step,
+                y: coords[1] * config.step
+            });
+        }
 
         const routerEndTime = window.performance.now();
         if (debugConf.routerBenchmark) {
             console.warn('Router time: ' + (routerEndTime-routerStartTime).toFixed(2) + 'ms');
         }
         return newVertices;
+
+        function bboxToPoint (bbox, dir) {
+            const pts = {
+                top: bbox.topMiddle().translate(0, -config.step),
+                right: bbox.rightMiddle().translate(config.step, 0),
+                bottom: bbox.bottomMiddle().translate(0, config.step),
+                left: bbox.leftMiddle().translate(-config.step, 0)
+            }
+            return pts[dir];
+        }
     },
     gridSize: config.step,
     async: true,
