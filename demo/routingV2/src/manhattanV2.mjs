@@ -40,11 +40,45 @@ const config = {
     algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
-    preferRoute: 'simple',                                  // todo: new feature; by default sticks links to obstacles: 'tight', 'lessCorners'
+    preferRoute: 'simple',                                  // simple or tight
     perpendicular: true,                                    // todo
     excludeEnds: [],                                        // todo
     excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
 };
+
+// ======= Constants
+const RECT_SIDES = {
+    'top': 0,
+    'right': 1,
+    'bottom': 2,
+    'left': 3
+}
+
+// ======= Helpers
+function getSortedDirections(from, to, directions) {
+    const priorityDirections = [
+        from.y - to.y <= 0 ? 'bottom' : 'top',
+        from.x - to.x <= 0 ? 'right' : 'left'
+    ];
+
+    if ((Math.abs(from.x - to.x) > Math.abs(from.y - to.y))) {
+        priorityDirections.reverse();
+    }
+
+    return [...directions].sort((a, b) => baseSort(a, b, priorityDirections));
+
+    function baseSort (a, b, array) {
+        if (array.includes(a)) {
+            return -1;
+        }
+
+        if (array.includes(b)) {
+            return 1;
+        }
+
+        return directions.indexOf(a) - directions.indexOf(b);
+    }
+}
 
 // ===============================================================================
 // JointJS
@@ -60,12 +94,15 @@ const paper = new joint.dia.Paper({
         const pathfinder = new Pathfinder(graph, config).bake();
 
         // silly implementation, requires fool-proofing
+        const startDirections = getSortedDirections(linkView.sourceBBox.center(), linkView.targetBBox.center(), config.startDirections);
+        const endDirections = getSortedDirections(linkView.targetBBox.center(), linkView.sourceBBox.center(), config.endDirections);
+
         const oldVertices = [...vertices], newVertices = [];
-        let shortestPath = [], shortestDistance = Infinity, startNudge, endNudge, startAxis, endAxis;
-        for (let sd = 0; sd < config.startDirections.length; sd++) {
+        let shortestPath = [], shortestDistance = Infinity, startNudge, endNudge;
+        for (let sd = 0; sd < startDirections.length; sd++) {
             const sourcePoint = bboxToPoint(linkView.sourceBBox, config.startDirections[sd]);
 
-            for (let td = 0; td < config.endDirections.length; td++) {
+            for (let td = 0; td < endDirections.length; td++) {
                 const targetPoint = bboxToPoint(linkView.targetBBox, config.endDirections[td]);
 
                 let from, to;
@@ -91,8 +128,6 @@ const paper = new joint.dia.Paper({
                         shortestPath = path;
                         startNudge = from;
                         endNudge = to;
-                        startAxis = config.startDirections[sd];
-                        endAxis = config.startDirections[td];
                     }
 
                     if (i === oldVertices.length) {
