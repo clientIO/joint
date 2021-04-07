@@ -19,7 +19,6 @@ import createPlanner from 'l1-path-finder';
 const debugConf = {
     showGraph: true,
     showGrid: true,
-    plannerBenchmark: true,
     routerBenchmark: true,
 }
 const debugStore = {
@@ -29,9 +28,9 @@ const debugStore = {
 const debugLog = function () {};
 
 // ======= Testing config
-const paperWidth = 1000;
+const paperWidth = 1200;
 const paperHeight = 800;
-const obstacleCount = 10;
+const obstacleCount = 15;
 
 // ======= Router config
 const config = {
@@ -44,15 +43,8 @@ const config = {
     perpendicular: true,                                    // todo
     excludeEnds: [],                                        // todo
     excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
+    distancePrecision: 0
 };
-
-// ======= Constants
-const RECT_SIDES = {
-    'top': 0,
-    'right': 1,
-    'bottom': 2,
-    'left': 3
-}
 
 // ======= Helpers
 function getSortedDirections(from, to, directions) {
@@ -97,22 +89,46 @@ const paper = new joint.dia.Paper({
         const startDirections = getSortedDirections(linkView.sourceBBox.center(), linkView.targetBBox.center(), config.startDirections);
         const endDirections = getSortedDirections(linkView.targetBBox.center(), linkView.sourceBBox.center(), config.endDirections);
 
-        const oldVertices = [...vertices], newVertices = [];
-        let shortestPath = [], shortestDistance = Infinity, startNudge, endNudge;
-        for (let sd = 0; sd < startDirections.length; sd++) {
-            const sourcePoint = bboxToPoint(linkView.sourceBBox, config.startDirections[sd]);
+        const startPoints = startDirections.reduce((arr = [], direction) => {
+            const point = bboxToPoint(linkView.sourceBBox, direction);
+            arr.push(point);
+            return arr;
+        }, []);
 
-            for (let td = 0; td < endDirections.length; td++) {
-                const targetPoint = bboxToPoint(linkView.targetBBox, config.endDirections[td]);
+        const endPoints = endDirections.reduce((arr = [], direction) => {
+            const point = bboxToPoint(linkView.targetBBox, direction);
+            arr.push(point);
+            return arr;
+        }, []);
 
-                let from, to;
-                for (let i = 0; i <= oldVertices.length; i++) {
-                    from = sourcePoint.clone();
-                    to = oldVertices[i];
+        const inputVertices = [startPoints, ...vertices, endPoints], segments = [];
+        while (inputVertices.length > 0) {
+            if (inputVertices[1] === undefined) {
+                break;
+            }
 
-                    if (!to) {
-                        to = targetPoint.clone();
-                    }
+            segments.push({
+                start: inputVertices.splice(0, 1)[0],
+                end: inputVertices[0]
+            });
+        }
+
+        const pathSegments = [];
+        let startPosition, endPosition;
+        segments.forEach((segment, index) => {
+            let fromPoints = segment.start, toPoints = segment.end;
+            if (!Array.isArray(fromPoints)) {
+                fromPoints = [segment.start];
+            }
+            if (!Array.isArray(toPoints)) {
+                toPoints = [segment.end];
+            }
+
+            let shortestDistance = Infinity;
+            fromPoints.forEach(from => {
+                toPoints.forEach(to => {
+                    // todo: early exit when perfect path found
+                    // todo: update only the changed segments (adjacent to dragged part)
 
                     const path = [];
                     const distance = pathfinder.planner.search(
@@ -125,26 +141,41 @@ const paper = new joint.dia.Paper({
 
                     if (distance < shortestDistance) {
                         shortestDistance = distance;
-                        shortestPath = path;
-                        startNudge = from;
-                        endNudge = to;
-                    }
 
-                    if (i === oldVertices.length) {
-                        break;
-                    }
-                }
-            }
-        }
+                        if (index === 0) {
+                            startPosition = from;
+                        }
 
-        const simplePath = config.preferRoute === 'simple' ? simplifyPath(shortestPath, pathfinder.grid) : shortestPath;
-        while (simplePath.length > 1) {
-            const coords = simplePath.splice(0, 2);
-            newVertices.push({
-                x: coords[0] * config.step,
-                y: coords[1] * config.step
+                        if (index === segments.length - 1) {
+                            endPosition = to;
+                        }
+
+                        pathSegments[index] = simplifyPath(path, pathfinder.grid);
+                    }
+                });
             });
-        }
+
+            // todo: close previous segment path and prevent retracing
+            if (shortestDistance !== Infinity) {
+                const path = pathSegments[index]
+                const [x, y] = path.slice(path.length - 2, path.length);
+                pathfinder.grid.set(x, y, 1);
+            }
+
+            if (shortestDistance === Infinity) {
+                // todo: path not found, fall back to orthogonal
+                const from = fromPoints[0];
+                const to = toPoints[0];
+            }
+        });
+
+        const newVertices = [];
+        pathSegments.forEach(segment => {
+            while (segment.length > 1) {
+                const coords = segment.splice(0, 2);
+                newVertices.push(new joint.g.Point(coords[0] * config.step, coords[1] * config.step));
+            }
+        });
 
         if (newVertices.length >= 2) {
             const count = newVertices.length;
@@ -153,11 +184,11 @@ const paper = new joint.dia.Paper({
 
             let si = 0;
             const adjustedStart = newVertices[si][sAxis];
-            while (true) {
+            while (startPosition) {
                 if (newVertices[si] === undefined) break;
 
                 if (newVertices[si][sAxis] === adjustedStart) {
-                    newVertices[si][sAxis] = startNudge[sAxis];
+                    newVertices[si][sAxis] = startPosition[sAxis];
                     si++;
                 } else {
                     break;
@@ -166,19 +197,24 @@ const paper = new joint.dia.Paper({
 
             let ti = count - 1;
             const adjustedEnd = newVertices[ti][tAxis];
-            while (true) {
+            while (endPosition) {
                 if (newVertices[ti] === undefined) break;
 
                 if (newVertices[ti][tAxis] === adjustedEnd) {
-                    newVertices[ti][tAxis] = endNudge[tAxis];
+                    newVertices[ti][tAxis] = endPosition[tAxis];
                     ti--;
                 } else {
                     break;
                 }
             }
 
-            newVertices.splice(0, 1, startNudge);
-            newVertices.splice(newVertices.length - 1, 1, endNudge);
+            if (startPosition) {
+                newVertices.splice(0, 1, startPosition);
+            }
+
+            if (endPosition) {
+                newVertices.splice(newVertices.length - 1, 1, endPosition);
+            }
         }
 
         const routerEndTime = window.performance.now();
