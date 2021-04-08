@@ -509,6 +509,7 @@ export namespace g {
         translate(tx: PlainPoint): this;
 
         update(x?: number, y?: number): this;
+        update(x: PlainPoint): this;
 
         vectorAngle(p: PlainPoint) : number;
 
@@ -664,11 +665,14 @@ export namespace g {
 
         union(rect: PlainRect): Rect;
 
+        update(x?: number, y?: number, width?: number, height?: number): this;
+        update(r: PlainRect): this;
+
         static fromEllipse(e: Ellipse): Rect;
 
-        static pointsUnion(...points: PlainPoint[]): Rect;
+        static pointsUnion(...points: PlainPoint[]): Rect | null;
 
-        static rectsUnion(...rects: PlainRect[]): Rect;
+        static rectsUnion(...rects: PlainRect[]): Rect | null;
     }
 
     namespace bezier {

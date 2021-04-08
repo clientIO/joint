@@ -3346,6 +3346,11 @@ Point.prototype = {
 
     update: function(x, y) {
 
+        if ((Object(x) === x)) {
+            y = x.y;
+            x = x.x;
+        }
+
         this.x = x || 0;
         this.y = y || 0;
         return this;
@@ -4114,8 +4119,7 @@ Rect.pointsUnion = function(...points) {
     maxX = maxY = -Infinity;
 
     for (let i = 0; i < points.length; i++) {
-        const pI = points[i];
-        p.update(pI.x, pI.y);
+        p.update(points[i]);
         const x = p.x;
         const y = p.y;
 
@@ -4129,17 +4133,28 @@ Rect.pointsUnion = function(...points) {
 };
 
 Rect.rectsUnion = function(...rects) {
+
     if (rects.length === 0) return null;
 
-    const points = [];
+    const r = new Rect();
+    let minX, minY, maxX, maxY;
+    minX = minY = Infinity;
+    maxX = maxY = -Infinity;
 
-    rects.forEach(rect => {
-        const r = new Rect(rect);
-        points.push(r.origin());
-        points.push(r.corner());
-    });
+    for (let i = 0; i < rects.length; i++) {
+        r.update(rects[i]);
+        const x = r.x;
+        const y = r.y;
+        const mX = x + r.width;
+        const mY = y + r.height;
 
-    return Rect.pointsUnion(...points);
+        if (x < minX) minX = x;
+        if (mX > maxX) maxX = mX;
+        if (y < minY) minY = y;
+        if (mY > maxY) maxY = mY;
+    }
+
+    return new Rect(minX, minY, maxX - minX, maxY - minY);
 };
 
 Rect.prototype = {
@@ -4578,7 +4593,23 @@ Rect.prototype = {
         u.width = max(x + width, rx + rw) - ux;
         u.height = max(y + height, ry + rh) - uy;
         return u;
-    }
+    },
+
+    update: function(x, y, w, h) {
+
+        if ((Object(x) === x)) {
+            y = x.y;
+            w = x.width;
+            h = x.height;
+            x = x.x;
+        }
+
+        this.x = x || 0;
+        this.y = y || 0;
+        this.width = w || 0;
+        this.height = h || 0;
+        return this;
+    },
 };
 
 Rect.prototype.bottomRight = Rect.prototype.corner;

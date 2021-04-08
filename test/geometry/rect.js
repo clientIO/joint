@@ -365,5 +365,34 @@ QUnit.module('rect', function() {
                 assert.equal((new g.Rect(20, 20, 150, 150)).union(new g.Rect(50, 50, 200, 200)).toString(), (new g.Rect(20, 20, 230, 230)).toString(), 'union of intersecting rectangles');
             });
         });
+
+        QUnit.module('update(x, y, width, height)', function() {
+
+            QUnit.test('changes the values of x, y, width and height', function(assert) {
+
+                var rect = new g.Rect(12, 25);
+                rect.update(1, 2, 3, 4);
+                assert.equal(rect.toString(), '1@2 4@6');
+
+                rect.update(5, 6);
+                assert.equal(rect.toString(), '5@6 5@6');
+
+                rect.update();
+                assert.equal(rect.toString(), '0@0 0@0');
+            });
+
+            QUnit.test('changes the values of x, y, width and height with object arg', function(assert) {
+
+                var rect = new g.Rect(12, 25);
+                rect.update({ x: 1, y: 2, width: 3, height: 4 });
+                assert.equal(rect.toString(), '1@2 4@6');
+
+                rect.update({ x: 5, y: 6 });
+                assert.equal(rect.toString(), '5@6 5@6');
+
+                rect.update({});
+                assert.equal(rect.toString(), '0@0 0@0');
+            });
+        });
     });
 });
