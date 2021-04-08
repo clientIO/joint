@@ -7,10 +7,6 @@ import createPlanner from 'l1-path-finder';
 // From talks with Roman
 // [ ][benched] - no grid, no negative coords, just +/- 100000 OR
 // [ ][benched] - no grid, no negative coords, just 0,0 and higher
-// [x] - remove the additional bends
-// [x] - preserve old vertices
-// [x] - start/end directions
-// [x] - improved start/end directions - better first verts
 // [ ] - to/from a port connection
 // [ ] - simplify when only 4 points
 // [ ][benched] - limit grid updates to speed up path-finding
@@ -28,14 +24,14 @@ const debugStore = {
 const debugLog = function () {};
 
 // ======= Testing config
-const paperWidth = 7000;
-const paperHeight = 3500;
-const obstacleCount = 200;
+const paperWidth = 3000;
+const paperHeight = 2600;
+const obstacleCount = 50;
 
 // ======= Router config
 const config = {
-    step: 53,
-    padding: 16,
+    step: 20,
+    padding: 20,
     algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
@@ -46,28 +42,27 @@ const config = {
 
 // ======= Helpers
 function getSortedDirections(from, to, directions) {
+    let dirs = [...directions];
+
+    if (directions.indexOf('horizontal') > -1) {
+        dirs.concat(['left', 'right']);
+    }
+
+    if (directions.indexOf('vertical') > -1) {
+        dirs.concat(['top', 'bottom']);
+    }
+
     const priorityDirections = [
         from.y - to.y <= 0 ? 'bottom' : 'top',
         from.x - to.x <= 0 ? 'right' : 'left'
     ];
 
-    if ((Math.abs(from.x - to.x) > Math.abs(from.y - to.y))) {
+    if (Math.abs(from.x - to.x) > Math.abs(from.y - to.y)) {
         priorityDirections.reverse();
     }
+    dirs.unshift(...priorityDirections);
 
-    return [...directions].sort((a, b) => baseSort(a, b, priorityDirections));
-
-    function baseSort (a, b, array) {
-        if (array.includes(a)) {
-            return -1;
-        }
-
-        if (array.includes(b)) {
-            return 1;
-        }
-
-        return directions.indexOf(a) - directions.indexOf(b);
-    }
+    return joint.util.uniq(dirs);
 }
 
 // ===============================================================================
@@ -78,6 +73,9 @@ const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: paperWidth,
     height: paperHeight,
+    gridSize: 20,
+    async: true,
+    model: graph,
     defaultRouter: function(vertices, args, linkView) {
         // this is all POC code to find the visual results we're happy with
         const routerStartTime = window.performance.now();
@@ -121,11 +119,12 @@ const paper = new joint.dia.Paper({
                 toPoints = [segment.end];
             }
 
-            let shortestDistance = Infinity;
-            fromPoints.forEach(from => {
-                toPoints.forEach(to => {
-                    // todo: early exit when perfect path found
-                    // todo: update only the changed segments (adjacent to dragged part)
+            let shortestDistance = Infinity, from, to;
+            for (let f = 0; f < fromPoints.length; f++) {
+                from = fromPoints[f];
+
+                for (let t = 0; t < toPoints.length; t++) {
+                    to = toPoints[t];
 
                     const path = [];
                     const distance = pathfinder.planner.search(
@@ -149,8 +148,8 @@ const paper = new joint.dia.Paper({
 
                         pathSegments[index] = simplifyPath(path, pathfinder.grid);
                     }
-                });
-            });
+                }
+            }
 
             // todo: path not found - inefficient, but works
             if (shortestDistance === Infinity) {
@@ -185,8 +184,6 @@ const paper = new joint.dia.Paper({
                 );
 
                 if (dist < shortestDistance) {
-                    shortestDistance = dist;
-
                     if (index === 0) {
                         startPosition = from;
                     }
@@ -275,10 +272,7 @@ const paper = new joint.dia.Paper({
             }
             return pts[dir];
         }
-    },
-    gridSize: config.step,
-    async: true,
-    model: graph
+    }
 });
 
 const snapPointToGrid = function() {}
@@ -493,7 +487,6 @@ graph.addCells(obstacles).addCells([source, target, link]);
 function Pathfinder(graph, {
     step = 10,
     padding = 0,
-    chunkSize = 100,
 } = {}) {
     if (!graph) {
         return debugLog('Pathfinder requires an instance of dia.Graph.');
@@ -506,20 +499,19 @@ function Pathfinder(graph, {
     this._step = step;
     this._padding = padding;
 
-    // var hash = {}
-    // var hashStore = {
-    //     get: function(i) {
-    //         return hash[i];
-    //     },
-    //     set: function(i, v) {
-    //         return hash[i] = v;
-    //     },
-    //     length: Infinity
-    // }
-
     const { cols, rows } = getGridSize(paperWidth, paperHeight, step), size = cols * rows;
     if (!Number.isNaN(size) && size <= Number.MAX_SAFE_INTEGER) {
         this.grid = ndarray( new Int8Array(size).fill(0), [cols, rows]);
+        // var hash = {}
+        // var hashStore = {
+        //     get: function(i) {
+        //         return hash[i];
+        //     },
+        //     set: function(i, v) {
+        //         return hash[i] = v;
+        //     },
+        //     length: Infinity
+        // }
         // this.grid.set(0, 0, 10)
     } else {
         debugLog('Invalid grid size.');
@@ -531,22 +523,23 @@ function Pathfinder(graph, {
             rows: Math.ceil(paperHeight / step)
         }
     }
-
-    // todo:
-    // this.chunks = new Chunks({ step, chunkSize });
 }
 Pathfinder.prototype.bake = function() {
     this._graph.getElements().forEach(element => {
-        if (element.id === source.id || element.id === target.id || element.get('type') === 'dc') {
+        if (element.get('type') === 'dc') {
             return;
         }
 
-        const bb = element.getBBox().moveAndExpand({
-            x: -this._padding,
-            y: -this._padding,
-            width: 2 * this._padding,
-            height: 2 * this._padding
-        });
+        let bb = element.getBBox();
+
+        if (element.id !== source.id && element.id !== target.id) {
+            bb = bb.moveAndExpand({
+                x: -this._padding,
+                y: -this._padding,
+                width: 2 * this._padding,
+                height: 2 * this._padding
+            });
+        }
 
         const gridX = Math.floor(bb.x / this._step);
         const gridY = Math.floor(bb.y / this._step);
