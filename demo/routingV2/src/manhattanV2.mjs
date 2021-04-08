@@ -10,14 +10,14 @@ import createPlanner from 'l1-path-finder';
 // [x] - remove the additional bends
 // [x] - preserve old vertices
 // [x] - start/end directions
-// [ ] - improved start/end directions - better first verts
+// [x] - improved start/end directions - better first verts
 // [ ] - to/from a port connection
 // [ ] - simplify when only 4 points
 // [ ][benched] - limit grid updates to speed up path-finding
 
 // ======= Debugging
 const debugConf = {
-    showGraph: true,
+    showGraph: false,
     showGrid: true,
     routerBenchmark: true,
 }
@@ -28,9 +28,9 @@ const debugStore = {
 const debugLog = function () {};
 
 // ======= Testing config
-const paperWidth = 1200;
-const paperHeight = 800;
-const obstacleCount = 15;
+const paperWidth = 7000;
+const paperHeight = 3500;
+const obstacleCount = 200;
 
 // ======= Router config
 const config = {
@@ -39,11 +39,9 @@ const config = {
     algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
-    preferRoute: 'simple',                                  // simple or tight
     perpendicular: true,                                    // todo
-    excludeEnds: [],                                        // todo
+    excludeEnds: [],                                        // todo: 'source', 'target'
     excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
-    distancePrecision: 0
 };
 
 // ======= Helpers
@@ -85,7 +83,6 @@ const paper = new joint.dia.Paper({
         const routerStartTime = window.performance.now();
         const pathfinder = new Pathfinder(graph, config).bake();
 
-        // silly implementation, requires fool-proofing
         const startDirections = getSortedDirections(linkView.sourceBBox.center(), linkView.targetBBox.center(), config.startDirections);
         const endDirections = getSortedDirections(linkView.targetBBox.center(), linkView.sourceBBox.center(), config.endDirections);
 
@@ -155,18 +152,64 @@ const paper = new joint.dia.Paper({
                 });
             });
 
-            // todo: close previous segment path and prevent retracing
-            if (shortestDistance !== Infinity) {
-                const path = pathSegments[index]
-                const [x, y] = path.slice(path.length - 2, path.length);
-                pathfinder.grid.set(x, y, 1);
-            }
-
+            // todo: path not found - inefficient, but works
             if (shortestDistance === Infinity) {
-                // todo: path not found, fall back to orthogonal
+                // as an artificial path will be created, take first points from sorted set
                 const from = fromPoints[0];
                 const to = toPoints[0];
+
+                let fromObstacleNodes = [], toObstacleNodes = [];
+
+                const fromX = Math.floor(from.x / config.step), fromY = Math.floor(from.y / config.step);
+                if (pathfinder.grid.get(fromX, fromY) === 1) {
+                    fromObstacleNodes = getObstaclesNodes(fromX, fromY, pathfinder.grid);
+                }
+
+                const toX = Math.floor(to.x / config.step), toY = Math.floor(to.y / config.step);
+                if (pathfinder.grid.get(toX, toY) === 1) {
+                    toObstacleNodes = getObstaclesNodes(toX, toY, pathfinder.grid);
+                }
+
+
+                fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 0));
+                toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 0));
+                pathfinder.update();
+
+                let path = [];
+                const dist = pathfinder.planner.search(
+                    from.x / config.step,
+                    from.y / config.step,
+                    to.x / config.step,
+                    to.y / config.step,
+                    path
+                );
+
+                if (dist < shortestDistance) {
+                    shortestDistance = dist;
+
+                    if (index === 0) {
+                        startPosition = from;
+                    }
+
+                    if (index === segments.length - 1) {
+                        endPosition = to;
+                    }
+
+                    pathSegments[index] = simplifyPath(path, pathfinder.grid);
+                }
+
+                fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
+                toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
+                pathfinder.update();
             }
+
+            // todo: close previous segment path and prevent retracing
+            // wrong approach
+            // if (shortestDistance !== Infinity) {
+            //     const path = pathSegments[index]
+            //     const [x, y] = path.slice(path.length - 2, path.length);
+            //     pathfinder.grid.set(x, y, 1);
+            // }
         });
 
         const newVertices = [];
@@ -237,6 +280,51 @@ const paper = new joint.dia.Paper({
     async: true,
     model: graph
 });
+
+const snapPointToGrid = function() {}
+const snapValueToGrid = function() {}
+
+const dirs = [
+    { x: 1, y: 0 },
+    { x: -1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: -1 },
+];
+const getObstaclesNodes = function(x, y, grid) {
+    if (grid.get(x, y) !== 1) return null;
+
+    const startKey = `${x};${y}`
+    const frontier = { [startKey]: { x, y }}, visited = {}, nodes = [];
+
+    while (Object.keys(frontier).length > 0) {
+        const key = Object.keys(frontier)[0];
+        const { x, y } = frontier[key];
+        nodes.push(frontier[key]);
+
+        dirs.forEach(dir => {
+            const neighbour = { x: x + dir.x, y: y + dir.y };
+            const neighbourKey = `${neighbour.x};${neighbour.y}`;
+
+            if (visited[neighbourKey] === true) {
+                return;
+            }
+
+            const status = grid.get(neighbour.x, neighbour.y);
+
+            if (status === 1) {
+                frontier[neighbourKey] = neighbour;
+            } else {
+                visited[neighbourKey] = true;
+            }
+        });
+
+        delete frontier[key];
+        visited[key] = true;
+    }
+
+    return nodes;
+}
+
 
 const simplifyPath = function(path, grid) {
     const simplePath = [];
@@ -406,7 +494,6 @@ function Pathfinder(graph, {
     step = 10,
     padding = 0,
     chunkSize = 100,
-    algorithm = 'l1'
 } = {}) {
     if (!graph) {
         return debugLog('Pathfinder requires an instance of dia.Graph.');
@@ -419,9 +506,21 @@ function Pathfinder(graph, {
     this._step = step;
     this._padding = padding;
 
+    // var hash = {}
+    // var hashStore = {
+    //     get: function(i) {
+    //         return hash[i];
+    //     },
+    //     set: function(i, v) {
+    //         return hash[i] = v;
+    //     },
+    //     length: Infinity
+    // }
+
     const { cols, rows } = getGridSize(paperWidth, paperHeight, step), size = cols * rows;
     if (!Number.isNaN(size) && size <= Number.MAX_SAFE_INTEGER) {
         this.grid = ndarray( new Int8Array(size).fill(0), [cols, rows]);
+        // this.grid.set(0, 0, 10)
     } else {
         debugLog('Invalid grid size.');
     }
@@ -473,6 +572,10 @@ Pathfinder.prototype.bake = function() {
     }
 
     return this;
+}
+
+Pathfinder.prototype.update = function() {
+    this.planner = createPlanner(this.grid);
 }
 
 function Planner() {}
@@ -609,40 +712,10 @@ PathfinderGeometry.prototype.build = function(config) {
     this.img = img;
 }
 
-// graph.on('change:position', function(cell) {
-//     if (obstacles.indexOf(cell) > -1) {
-//         calculateObstacles();
-//         obstacles.forEach(go => {
-//             const bb = go.getBBox().moveAndExpand({
-//                 x: -config.padding,
-//                 y: -config.padding,
-//                 width: 2 * config.padding,
-//                 height: 2 * config.padding
-//             });
-//
-//             const gridX = Math.round(bb.x / config.step);
-//             const gridY = Math.round(bb.y / config.step);
-//             const boundX = Math.round((bb.x + bb.width + config.padding) / config.step);
-//             const boundY = Math.round((bb.y + bb.height + config.padding) / config.step);
-//
-//             for(var i = gridX; i < boundX; ++i) {
-//                 for(var j = gridY; j < boundY; ++j) {
-//                     grid.set(i, j, 1);
-//                 }
-//             }
-//         });
-//         config.planner = createPlanner(grid);
-//
-//         link.findView(paper).requestConnectionUpdate();
-//     }
-//
-//     if (obstacles.indexOf(cell) > -1) {
-//         const bb = cell.getBBox();
-//         const { x, y } = cell.previous('position');
-//         const oldBB = bb.clone().translate(x - bb.x, y - bb.y);
-//         link.findView(paper).requestConnectionUpdate();
-//     }
-// });
+// ======= Events
+// graph.on('change:position', function(cell) {});
+
+// ======= Demo events - TO BE REMOVED
 paper.on('link:mouseenter', function(linkView) {
     var tools = new joint.dia.ToolsView({
         tools: [new joint.linkTools.Vertices()]
