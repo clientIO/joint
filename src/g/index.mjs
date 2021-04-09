@@ -4609,7 +4609,7 @@ Rect.prototype = {
         this.width = w || 0;
         this.height = h || 0;
         return this;
-    },
+    }
 };
 
 Rect.prototype.bottomRight = Rect.prototype.corner;
