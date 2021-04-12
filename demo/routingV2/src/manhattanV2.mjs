@@ -143,7 +143,18 @@ const paper = new joint.dia.Paper({
                         path
                     );
 
-                    if (distance < shortestDistance) {
+                    let endpointDistance = 0;
+                    if (index === 0) {
+                        // start-point segment
+                        endpointDistance += from.distance(linkView.sourceBBox.center());
+                    }
+
+                    if (index === segments.length - 1) {
+                        // end-point segment
+                        endpointDistance += to.distance(linkView.targetBBox.center());
+                    }
+
+                    if (distance + endpointDistance < shortestDistance) {
                         shortestDistance = distance;
 
                         if (index === 0) {
