@@ -14,7 +14,7 @@ import createPlanner from 'l1-path-finder';
 // ======= Debugging
 const debugConf = {
     showGraph: false,
-    showGrid: true,
+    showGrid: false,
     routerBenchmark: true,
 }
 const debugStore = {
@@ -30,12 +30,11 @@ const obstacleCount = 50;
 
 // ======= Router config
 const config = {
-    step: 20,
-    padding: 20,
+    step: 37,
+    padding: 13, // joint.util.normalizeSides
     algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
-    perpendicular: true,                                    // todo
     excludeEnds: [],                                        // todo: 'source', 'target'
     excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
 };
@@ -73,11 +72,20 @@ const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: paperWidth,
     height: paperHeight,
-    gridSize: 20,
+    gridSize: 22,
     async: true,
     model: graph,
     defaultRouter: function(vertices, args, linkView) {
         // this is all POC code to find the visual results we're happy with
+        if (vertices.length > 0) {
+            // snap existing vertices
+            vertices.forEach((vertex, index) => {
+                vertices[index] = new joint.g.Point(vertex).snapToGrid(config.step);
+            });
+
+            linkView.model.vertices(vertices);
+        }
+
         const routerStartTime = window.performance.now();
         const pathfinder = new Pathfinder(graph, config).bake();
 
