@@ -410,6 +410,10 @@ const simplifyPath = function(path, grid) {
                     break;
                 }
             }
+
+            if (obstructed) {
+                break;
+            }
         }
 
         return !obstructed;
