@@ -4585,14 +4585,7 @@ Rect.prototype = {
     // @return {rect} representing the union of both rectangles.
     union: function(rect) {
 
-        const u = new Rect(rect);
-        const { x, y, width, height } = this;
-        const { x: rx, y: ry, width: rw, height: rh } = u;
-        const ux = u.x = min(x, rx);
-        const uy = u.y = min(y, ry);
-        u.width = max(x + width, rx + rw) - ux;
-        u.height = max(y + height, ry + rh) - uy;
-        return u;
+        return Rect.rectsUnion(this, rect);
     },
 
     update: function(x, y, w, h) {

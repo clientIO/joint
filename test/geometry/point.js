@@ -346,7 +346,7 @@ QUnit.module('point', function() {
                 assert.equal(point.toString(), '16@24');
             });
 
-            QUnit.test('changes the valuse of x and y with object arg', function(assert) {
+            QUnit.test('changes the values of x and y with object arg', function(assert) {
 
                 var point = new g.Point(2, 15);
                 point.update({x: 10, y: 20});
