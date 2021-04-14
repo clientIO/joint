@@ -4109,7 +4109,7 @@ Rect.fromEllipse = function(e) {
     return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
 };
 
-Rect.pointsUnion = function(...points) {
+Rect.fromPointUnion = function(...points) {
 
     if (points.length === 0) return null;
 
@@ -4132,7 +4132,7 @@ Rect.pointsUnion = function(...points) {
     return new Rect(minX, minY, maxX - minX, maxY - minY);
 };
 
-Rect.rectsUnion = function(...rects) {
+Rect.fromRectUnion = function(...rects) {
 
     if (rects.length === 0) return null;
 
@@ -4585,7 +4585,7 @@ Rect.prototype = {
     // @return {rect} representing the union of both rectangles.
     union: function(rect) {
 
-        return Rect.rectsUnion(this, rect);
+        return Rect.fromRectUnion(this, rect);
     },
 
     update: function(x, y, w, h) {

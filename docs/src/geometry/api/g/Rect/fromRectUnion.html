@@ -1,0 +1,5 @@
+<pre class="docs-method-signature"><code>g.Rect.fromRectUnion(...rects)</code></pre>
+<p>Returns a new rectangle object that is large enough to contain given <code>rects</code>, where each rect is an object with <code>x</code>, <code>y</code>, <code>width</code> and <code>height</code> properties. Examples:</p>
+<pre><code>const rect = g.Rect.fromRectUnion(new g.Rect(0, 0, 10, 10), new g.Rect(10, 10, 10, 10));
+const rect2 = g.Rect.fromRectUnion({ x: 0, y: 0, height: 10, width: 10 }, { x: 10, y: 10, height: 10, width: 10 });
+// { x: 0, y: 0, width: 20, height: 20 }</code></pre>

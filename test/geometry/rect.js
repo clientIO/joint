@@ -29,10 +29,10 @@ QUnit.module('rect', function() {
         });
     });
 
-    QUnit.module('pointsUnion(points)', function() {
+    QUnit.module('fromPointUnion(points)', function() {
 
         QUnit.test('returns null if no arguments are passed', function(assert) {
-            assert.ok(g.Rect.pointsUnion() === null);
+            assert.ok(g.Rect.fromPointUnion() === null);
         });
 
         QUnit.test('creates a new Rect object from points', function(assert) {
@@ -51,29 +51,29 @@ QUnit.module('rect', function() {
             var unionR0R1 = new g.Rect(-10, -20, 40, 60);
             var unionR0R2 = new g.Rect(0, 0, 15, 25);
 
-            assert.ok(g.Rect.pointsUnion(originR0, cornerR0).equals(r0), 'rect from g.Points');
-            assert.ok(g.Rect.pointsUnion(topRightR0, bottomLeftR0).equals(r0), 'rect from g.Points 2');
-            assert.ok(g.Rect.pointsUnion({ x: r0.x, y: r0.y }, { x: r0.x + r0.width, y: r0.y + r0.height }).equals(r0), 'rect from PlainPoints');
-            assert.ok(g.Rect.pointsUnion(cornerR1, { x: r0.x, y: r0.y}, {x: r0.x + r0.width, y: r0.y + r0.height }, originR1).equals(unionR0R1), 'rect from g.Points and PlainPoints');
-            assert.ok(g.Rect.pointsUnion(originR0).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single g.Point has width and height equal to 0');
-            assert.ok(g.Rect.pointsUnion({ x: r0.x, y: r0.y }).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single PlainPoint has width and height equal to 0');
-            assert.ok(g.Rect.pointsUnion(originR0, cornerR1, cornerR0, originR1).equals(unionR0R1), 'rect from multiple g.Points');
-            assert.ok(g.Rect.pointsUnion({ x: r1.x + r1.width, y: r1.y + r1.height }, originR0, { x: r0.x, y: r0.y }, originR1).equals(unionR0R1), 'rect from multiple g.Points and PlainPoints');
-            assert.ok(g.Rect.pointsUnion({}, {}).equals(r2), 'creates default rect if cannot read x and y from arguments');
-            assert.ok(g.Rect.pointsUnion({}, topRightR0, bottomLeftR0).equals(unionR0R2), 'creates default rect if cannot read x and y from argument');
+            assert.ok(g.Rect.fromPointUnion(originR0, cornerR0).equals(r0), 'rect from g.Points');
+            assert.ok(g.Rect.fromPointUnion(topRightR0, bottomLeftR0).equals(r0), 'rect from g.Points 2');
+            assert.ok(g.Rect.fromPointUnion({ x: r0.x, y: r0.y }, { x: r0.x + r0.width, y: r0.y + r0.height }).equals(r0), 'rect from PlainPoints');
+            assert.ok(g.Rect.fromPointUnion(cornerR1, { x: r0.x, y: r0.y}, {x: r0.x + r0.width, y: r0.y + r0.height }, originR1).equals(unionR0R1), 'rect from g.Points and PlainPoints');
+            assert.ok(g.Rect.fromPointUnion(originR0).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single g.Point has width and height equal to 0');
+            assert.ok(g.Rect.fromPointUnion({ x: r0.x, y: r0.y }).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single PlainPoint has width and height equal to 0');
+            assert.ok(g.Rect.fromPointUnion(originR0, cornerR1, cornerR0, originR1).equals(unionR0R1), 'rect from multiple g.Points');
+            assert.ok(g.Rect.fromPointUnion({ x: r1.x + r1.width, y: r1.y + r1.height }, originR0, { x: r0.x, y: r0.y }, originR1).equals(unionR0R1), 'rect from multiple g.Points and PlainPoints');
+            assert.ok(g.Rect.fromPointUnion({}, {}).equals(r2), 'creates default rect if cannot read x and y from arguments');
+            assert.ok(g.Rect.fromPointUnion({}, topRightR0, bottomLeftR0).equals(unionR0R2), 'creates default rect if cannot read x and y from argument');
         });
     });
 
-    QUnit.module('rectsUnion(rects)', function() {
+    QUnit.module('fromRectUnion(rects)', function() {
 
         QUnit.test('returns null if no arguments are passed', function(assert) {
-            assert.ok(g.Rect.rectsUnion() === null);
+            assert.ok(g.Rect.fromRectUnion() === null);
         });
 
         QUnit.test('creates a new Rect object from rects', function(assert) {
             var r0 = new g.Rect();
-            assert.ok(g.Rect.rectsUnion(r0).equals(r0), 'rect from g.Rect');
-            assert.ok(g.Rect.rectsUnion({ x: r0.x, y: r0.y, width: r0.width, height: r0.height }).equals(r0), 'rect from PlainRect');
+            assert.ok(g.Rect.fromRectUnion(r0).equals(r0), 'rect from g.Rect');
+            assert.ok(g.Rect.fromRectUnion({ x: r0.x, y: r0.y, width: r0.width, height: r0.height }).equals(r0), 'rect from PlainRect');
 
             var r1 = new g.Rect(-10, -20, 40, 60);
             var r2 = new g.Rect(10, 20, 70, 90);
@@ -84,12 +84,12 @@ QUnit.module('rect', function() {
             var unionR1R2R3 = new g.Rect(-10, -20, 200, 240);
             var unionR0R3 = new g.Rect(0, 0, 190, 220);
 
-            assert.ok(g.Rect.rectsUnion(r1, r2, r3).equals(unionR1R2R3), 'rect from multiple g.Rects');
-            assert.ok(g.Rect.rectsUnion(r3, r2, r1).equals(unionR1R2R3), 'rect from multiple g.Rects 2');
-            assert.ok(g.Rect.rectsUnion(r3, r1, r2).equals(unionR1R2R3), 'rect from multiple g.Rects 3');
-            assert.ok(g.Rect.rectsUnion(r3Plain, r1, r2Plain).equals(unionR1R2R3), 'rect from multiple g.Rects and PlainRects');
-            assert.ok(g.Rect.rectsUnion({}, {}).equals(r0), 'creates default Rect if cannot read x, y, width and height from arguments');
-            assert.ok(g.Rect.rectsUnion(r3, {}).equals(unionR0R3), 'creates default Rect if cannot read x, y, width and height from argument');
+            assert.ok(g.Rect.fromRectUnion(r1, r2, r3).equals(unionR1R2R3), 'rect from multiple g.Rects');
+            assert.ok(g.Rect.fromRectUnion(r3, r2, r1).equals(unionR1R2R3), 'rect from multiple g.Rects 2');
+            assert.ok(g.Rect.fromRectUnion(r3, r1, r2).equals(unionR1R2R3), 'rect from multiple g.Rects 3');
+            assert.ok(g.Rect.fromRectUnion(r3Plain, r1, r2Plain).equals(unionR1R2R3), 'rect from multiple g.Rects and PlainRects');
+            assert.ok(g.Rect.fromRectUnion({}, {}).equals(r0), 'creates default Rect if cannot read x, y, width and height from arguments');
+            assert.ok(g.Rect.fromRectUnion(r3, {}).equals(unionR0R3), 'creates default Rect if cannot read x, y, width and height from argument');
 
             var r4 = new g.Rect(10, 10, 50, 50);
             var r5 = new g.Rect(100, 100, 50, 50);
@@ -99,10 +99,10 @@ QUnit.module('rect', function() {
             var unionR4R5 = new g.Rect(10, 10, 140, 140);
             var unionR4R7 = new g.Rect(10, 10, 60, 60);
 
-            assert.ok(g.Rect.rectsUnion(r4, r5).equals(unionR4R5), 'rect of distant rectangles');
-            assert.ok(g.Rect.rectsUnion(r4, r6).equals(r4), 'rect of embedded rectangles');
-            assert.ok(g.Rect.rectsUnion(r4, r4).equals(r4), 'rect of embedded rectangles 2');
-            assert.ok(g.Rect.rectsUnion(r4, r7).equals(unionR4R7), 'rect of intersecting rectangles');
+            assert.ok(g.Rect.fromRectUnion(r4, r5).equals(unionR4R5), 'rect of distant rectangles');
+            assert.ok(g.Rect.fromRectUnion(r4, r6).equals(r4), 'rect of embedded rectangles');
+            assert.ok(g.Rect.fromRectUnion(r4, r4).equals(r4), 'rect of embedded rectangles 2');
+            assert.ok(g.Rect.fromRectUnion(r4, r7).equals(unionR4R7), 'rect of intersecting rectangles');
         });
     });
 
