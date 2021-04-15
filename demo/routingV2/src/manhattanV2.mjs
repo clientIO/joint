@@ -1,7 +1,5 @@
 import * as joint from '../../../joint.mjs';
 import ndarray from 'ndarray';
-import ops from 'ndarray-ops';
-import prefixSum from 'ndarray-prefix-sum';
 import createPlanner from 'l1-path-finder';
 
 // From talks with Roman
@@ -13,9 +11,11 @@ import createPlanner from 'l1-path-finder';
 
 // ======= Debugging
 const debugConf = {
-    showGraph: false,
-    showGrid: false,
-    routerBenchmark: true,
+    showGraph: true,
+    showGrid: true,
+    showGetInBox: false,
+    gridBenchmark: false,
+    routerBenchmark: false,
 }
 const debugStore = {
     gridPrinted: false,
@@ -24,14 +24,14 @@ const debugStore = {
 const debugLog = function () {};
 
 // ======= Testing config
-const paperWidth = 3000;
-const paperHeight = 2600;
-const obstacleCount = 50;
+const paperWidth = 1800;
+const paperHeight = 1200;
+const obstacleCount = 10;
 
 // ======= Router config
 const config = {
-    step: 37,
-    padding: 13, // joint.util.normalizeSides
+    step: 20,
+    padding: 10, // joint.util.normalizeSides
     algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
@@ -41,14 +41,14 @@ const config = {
 
 // ======= Helpers
 function getSortedDirections(from, to, directions) {
-    let dirs = [...directions];
+    let dirs = [...directions], additional = [];
 
     if (directions.indexOf('horizontal') > -1) {
-        dirs.concat(['left', 'right']);
+        additional.concat(['left', 'right']);
     }
 
     if (directions.indexOf('vertical') > -1) {
-        dirs.concat(['top', 'bottom']);
+        additional.concat(['top', 'bottom']);
     }
 
     const priorityDirections = [
@@ -56,10 +56,15 @@ function getSortedDirections(from, to, directions) {
         from.x - to.x <= 0 ? 'right' : 'left'
     ];
 
-    if (Math.abs(from.x - to.x) > Math.abs(from.y - to.y)) {
+    if (Math.abs(from.x - to.x) >= Math.abs(from.y - to.y)) {
         priorityDirections.reverse();
     }
-    dirs.unshift(...priorityDirections);
+
+    priorityDirections.forEach(dir => {
+        if (dirs.indexOf(dir) > -1) {
+            dirs.unshift(dir);
+        }
+    });
 
     return joint.util.uniq(dirs);
 }
@@ -72,7 +77,7 @@ const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: paperWidth,
     height: paperHeight,
-    gridSize: 22,
+    gridSize: config.step,
     async: true,
     model: graph,
     defaultRouter: function(vertices, args, linkView) {
@@ -135,13 +140,11 @@ const paper = new joint.dia.Paper({
                     to = toPoints[t];
 
                     const path = [];
-                    const distance = pathfinder.planner.search(
-                        from.x / config.step,
-                        from.y / config.step,
-                        to.x / config.step,
-                        to.y / config.step,
-                        path
-                    );
+                    const sx = from.x / config.step;
+                    const sy = from.y / config.step;
+                    const tx = to.x / config.step;
+                    const ty = to.y / config.step;
+                    const distance = pathfinder.planner.search(sx, sy, tx, ty, path);
 
                     let endpointDistance = 0;
                     if (index === 0) {
@@ -165,7 +168,7 @@ const paper = new joint.dia.Paper({
                             endPosition = to;
                         }
 
-                        pathSegments[index] = simplifyPath(path, pathfinder.grid);
+                        pathSegments[index] = path;
                     }
                 }
             }
@@ -202,7 +205,7 @@ const paper = new joint.dia.Paper({
                     path
                 );
 
-                if (dist < shortestDistance) {
+                if (path.length < shortestDistance && dist !== Infinity) {
                     if (index === 0) {
                         startPosition = from;
                     }
@@ -211,7 +214,8 @@ const paper = new joint.dia.Paper({
                         endPosition = to;
                     }
 
-                    pathSegments[index] = simplifyPath(path, pathfinder.grid);
+                    // pathSegments[index] = straightenPath(path, pathfinder.grid);
+                    pathSegments[index] = path;
                 }
 
                 fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
@@ -309,7 +313,8 @@ const getObstaclesNodes = function(x, y, grid) {
     const startKey = `${x};${y}`
     const frontier = { [startKey]: { x, y }}, visited = {}, nodes = [];
 
-    while (Object.keys(frontier).length > 0) {
+    let loops = 1000;
+    while (Object.keys(frontier).length > 0 && loops > 0) {
         const key = Object.keys(frontier)[0];
         const { x, y } = frontier[key];
         nodes.push(frontier[key]);
@@ -333,13 +338,13 @@ const getObstaclesNodes = function(x, y, grid) {
 
         delete frontier[key];
         visited[key] = true;
+        loops--;
     }
 
     return nodes;
 }
 
-
-const simplifyPath = function(path, grid) {
+const straightenPath = function(path, grid) {
     const simplePath = [];
     while (path.length > 1) {
         if (path.length <= 4) {
@@ -434,7 +439,7 @@ const simplifyPath = function(path, grid) {
 // ======= Shapes
 const source = new joint.shapes.standard.Rectangle({
     position: { x: 50, y: 50 },
-    size: { width: 100, height: 50 },
+    size: { width: 50, height: 50 },
     attrs: {
         body: {
             fill: {
@@ -457,7 +462,7 @@ const source = new joint.shapes.standard.Rectangle({
         }
     }
 });
-const target = source.clone().translate(750, 400).attr('label/text', 'Target');
+const target = source.clone().translate(150, 150).attr('label/text', 'Target');
 const link = new joint.shapes.standard.Link({
     source: { id: source.id },
     target: { id: target.id },
@@ -475,11 +480,10 @@ const obstacle = source.clone().position(0,0).attr({
         text: 'Obstacle',
         fill: '#eee'
     },
+    size: { width: 100, height: 50 },
     body: {
-        fill: {
-            stops: [{ color: '#b5acf9' }, { color: '#9687fe' }]
-        },
-        stroke: '#8e89e5',
+        fill: '#f00',
+        stroke: '#000',
         strokeWidth: 2
     }
 });
@@ -522,20 +526,11 @@ function Pathfinder(graph, {
     this._step = step;
     this._padding = padding;
 
+    this._cells = {};
+
     const { cols, rows } = getGridSize(paperWidth, paperHeight, step), size = cols * rows;
     if (!Number.isNaN(size) && size <= Number.MAX_SAFE_INTEGER) {
-        this.grid = ndarray( new Int8Array(size).fill(0), [cols, rows]);
-        // var hash = {}
-        // var hashStore = {
-        //     get: function(i) {
-        //         return hash[i];
-        //     },
-        //     set: function(i, v) {
-        //         return hash[i] = v;
-        //     },
-        //     length: Infinity
-        // }
-        // this.grid.set(0, 0, 10)
+        this.grid = ndarray(new HashStore(), [cols, rows]);
     } else {
         debugLog('Invalid grid size.');
     }
@@ -547,34 +542,53 @@ function Pathfinder(graph, {
         }
     }
 }
+
 Pathfinder.prototype.bake = function() {
+    const start = window.performance.now();
+    let count = 0;
     this._graph.getElements().forEach(element => {
-        if (element.get('type') === 'dc') {
+        if (element.id === source.id || element.id === target.id || element.get('type') === 'dc') {
             return;
         }
+        count++;
 
-        let bb = element.getBBox();
+        // store element under simple int id
+        const id = joint.util.uniqueId();
+        this._cells[id] = element;
 
-        if (element.id !== source.id && element.id !== target.id) {
-            bb = bb.moveAndExpand({
-                x: -this._padding,
-                y: -this._padding,
-                width: 2 * this._padding,
-                height: 2 * this._padding
-            });
-        }
+        // todo: function GridViewFromBBox
+        const bb = element.getBBox().moveAndExpand({
+            x: -this._padding,
+            y: -this._padding,
+            width: 2 * this._padding,
+            height: 2 * this._padding
+        });
 
         const gridX = Math.floor(bb.x / this._step);
         const gridY = Math.floor(bb.y / this._step);
         const boundX = Math.ceil((bb.x + bb.width) / this._step);
         const boundY = Math.ceil((bb.y + bb.height) / this._step);
 
-        for(let i = gridX; i < boundX; ++i) {
-            for(let j = gridY; j < boundY; ++j) {
-                this.grid.set(i, j, 1);
+        const sub = this.grid.hi(boundX, boundY).lo(gridX, gridY);
+
+        for(let i = 0; i < sub.shape[0]; ++i) {
+            for(let j = 0; j < sub.shape[1]; ++j) {
+                let prev = {};
+                if (sub.get(i, j) === 1) {
+                    prev = sub.data.getItem(sub.offset + sub.stride[0] * i + sub.stride[1] * j);
+                }
+
+                prev[id] = true;
+                sub.set(i, j, prev);
             }
         }
     });
+
+    const end = window.performance.now();
+    if (debugConf.gridBenchmark) {
+        console.warn('Took ' + (end-start).toFixed(2) + 'ms to update ' + count + ' elements on Grid.');
+    }
+
     this.planner = createPlanner(this.grid);
 
     if (debugConf.showGrid && !debugStore.gridPrinted) {
@@ -594,10 +608,55 @@ Pathfinder.prototype.update = function() {
     this.planner = createPlanner(this.grid);
 }
 
-function Planner() {}
-Planner.prototype.getPath = () => {}
-Planner.prototype.connectChunks = () => {}
-Planner.prototype.separateChunks = () => {}
+Pathfinder.prototype.getBetweenPoints = function(from, to) {
+    const hiX = Math.max(from.x, to.x);
+    const hiY = Math.max(from.y, to.y);
+    const loX = Math.min(from.x, to.x);
+    const loY = Math.min(from.y, to.y);
+    const sub = this.grid.hi(hiX, hiY).lo(loX, loY);
+
+    const cells = {};
+    for(let i = 0; i < sub.shape[0]; ++i) {
+        for(let j = 0; j < sub.shape[1]; ++j) {
+            const ids = sub.data.getItem(sub.offset + sub.stride[0] * i + sub.stride[1] * j);
+            if (ids) {
+                Object.keys(ids).forEach(id => {
+                    if (this._cells[id]) {
+                        cells[id] = this._cells[id];
+                    }
+                });
+            }
+        }
+    }
+
+    return cells;
+}
+
+/**
+ * HashStore is used as an underlying structure for ndarray.
+ * Allows to store custom data for each grid node.
+ */
+function HashStore() {
+    this._hash = {};
+}
+
+HashStore.prototype.get = function(i) {
+    return this._hash[i] === undefined || Object.keys(this._hash[i]).length === 0 ? 0 : 1;
+}
+
+HashStore.prototype.getItem = function(i) {
+    return this._hash[i];
+}
+
+HashStore.prototype.set = function(i, v) {
+    return this._hash[i] = v;
+}
+
+HashStore.prototype.remove = function(i) {
+    delete this._hash[i];
+}
+
+HashStore.prototype.length = Infinity;
 
 function Chunks({ step, chunkSize } = {}) {
     this._chunkSize = step * chunkSize;
@@ -691,42 +750,6 @@ Obstacle.prototype.position = (x, y) => {
 // ======= Support data structures
 function ObjectPool() {}
 function BinaryHeap() {}
-
-// ======= Pathfinder Core
-function PathfinderGeometry(graph) {
-    this._graph = graph;
-    this.corners = [];
-    this.entities = [];
-}
-
-PathfinderGeometry.prototype.build = function(config) {
-    const grid = ndarray(new Int8Array((paperWidth / config.step) * (paperHeight / config.step)).fill(0), [paperWidth / config.step, paperHeight / config.step]);
-
-    this.obstacles = [];
-    this.corners = [];
-    graph.getElements().forEach(element => {
-        const bb = element.getBBox().moveAndExpand({
-            x: -config.padding,
-            y: -config.padding,
-            width: 2 * config.padding,
-            height: 2 * config.padding
-        });
-
-        const gridX = Math.round(bb.x / config.step);
-        const gridY = Math.round(bb.y / config.step);
-        const boundX = Math.round((bb.x + bb.width + config.padding) / config.step);
-        const boundY = Math.round((bb.y + bb.height + config.padding) / config.step);
-
-        this.obstacles.push(element.id);
-        this.corners.push(gridX, gridY, boundX, boundY);
-    });
-
-    const img = ndarray(new Int32Array(grid.shape[0]*grid.shape[1]), grid.shape);
-    ops.gts(img, grid, 0);
-    prefixSum(img);
-
-    this.img = img;
-}
 
 // ======= Events
 // graph.on('change:position', function(cell) {});
@@ -826,7 +849,7 @@ function showDebugGrid(grid) {
     const gridCells = [];
     for (let i = 0; i < grid.shape[0]; i++) {
         for (let j = 0; j < grid.shape[1]; j++) {
-            if (grid.get(i, j) === 1) {
+            if (grid.get(i, j) !== 0) {
                 const dc = ro.clone();
                 dc.position(i * config.step, j * config.step);
                 gridCells.push(dc);
