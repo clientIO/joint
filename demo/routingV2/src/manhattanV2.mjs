@@ -575,7 +575,7 @@ Pathfinder.prototype.bake = function() {
             for(let j = 0; j < sub.shape[1]; ++j) {
                 let prev = {};
                 if (sub.get(i, j) === 1) {
-                    prev = sub.data.getItem(sub.offset + sub.stride[0] * i + sub.stride[1] * j);
+                    prev = sub.data.getItem(sub.index(i, j));
                 }
 
                 prev[id] = true;
@@ -618,7 +618,7 @@ Pathfinder.prototype.getBetweenPoints = function(from, to) {
     const cells = {};
     for(let i = 0; i < sub.shape[0]; ++i) {
         for(let j = 0; j < sub.shape[1]; ++j) {
-            const ids = sub.data.getItem(sub.offset + sub.stride[0] * i + sub.stride[1] * j);
+            const ids = sub.data.getItem(sub.index(i, j));
             if (ids) {
                 Object.keys(ids).forEach(id => {
                     if (this._cells[id]) {
