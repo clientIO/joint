@@ -345,6 +345,19 @@ QUnit.module('point', function() {
                 point.update(16, 24);
                 assert.equal(point.toString(), '16@24');
             });
+
+            QUnit.test('changes the values of x and y with object arg', function(assert) {
+
+                var point = new g.Point(2, 15);
+                point.update({x: 10, y: 20});
+                assert.equal(point.toString(), '10@20');
+
+                point.update({x: 5});
+                assert.equal(point.toString(), '5@0');
+
+                point.update({});
+                assert.equal(point.toString(), '0@0');
+            });
         });
 
         QUnit.module('dot(p)', function() {

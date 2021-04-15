@@ -1,0 +1,5 @@
+<pre class="docs-method-signature"><code>g.Rect.fromPointUnion(...points)</code></pre>
+<p>Returns a new rectangle object that is large enough to contain given <code>points</code>, where each point is an object with <code>x</code> and <code>y</code> properties. Examples:</p>
+<pre><code>const rect = g.Rect.fromPointUnion(new g.Point(0, 0), new g.Point(20, 20));
+const rect2 = g.Rect.fromPointUnion({ x: 0, y: 0 }, { x: 20, y: 20 });
+// { x: 0, y: 0, width: 20, height: 20 }</code></pre>
