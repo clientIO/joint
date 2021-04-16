@@ -19,8 +19,8 @@ const config = {
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 1800,
-    height: 1200,
+    width: 5000,
+    height: 5000,
     gridSize: config.step,
     async: true,
     model: graph,
@@ -78,7 +78,7 @@ const obstacle = source.clone().position(0,0).attr({
         strokeWidth: 2
     }
 });
-const obstacles = [], obstacleCount = 10;
+const obstacles = [], obstacleCount = 500;
 function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -363,6 +363,13 @@ graph.on('change:position', function(cell) {
 
 graph.on('change:size', function(cell) {
     console.log('size');
+});
+
+paper.on('cell:pointerup', function() {
+    if (pathfinder._pendingUpdate) {
+        pathfinder.recreate();
+        pathfinder._pendingUpdate = false;
+    }
 });
 
 const getObstaclesNodes = function(x, y, grid) {

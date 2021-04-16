@@ -21,7 +21,7 @@ export default function Pathfinder(graph, paper, {
     this.padding = padding;
 
     this._graph = graph;
-
+    this._pendingUpdate = false;
     this._obstacles = {};
     this._cells = {};
 

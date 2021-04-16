@@ -41,7 +41,7 @@ Obstacle.prototype.update = function() {
         }
     }
 
-    this._pathfinder.recreate();
+    this._pathfinder._pendingUpdate = true;
 }
 
 const elementToBounds = function(element, padding, step) {
