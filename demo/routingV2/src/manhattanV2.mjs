@@ -274,15 +274,9 @@ const paper = new joint.dia.Paper({
             const width = linkView.targetBBox.corner().x - origin.x;
             const height = linkView.targetBBox.corner().y - origin.y;
             const area = new joint.g.Rect(origin.x, origin.y, width, height);
-            const p1 = area.origin().snapToGrid(config.step);
-            p1.x /= config.step;
-            p1.y /= config.step;
-            const p2 = area.corner().snapToGrid(config.step);
-            p2.x /= config.step;
-            p2.y /= config.step;
 
             const startbb = window.performance.now();
-            const cells = pathfinder.getBetweenPoints(p1, p2);
+            const cells = pathfinder.getObstaclesInArea(area);
             const endbb = window.performance.now();
 
             const startbbg = window.performance.now();
@@ -574,12 +568,10 @@ Pathfinder.prototype.update = function() {
     this.planner = createPlanner(this.grid);
 }
 
-Pathfinder.prototype.getBetweenPoints = function(from, to) {
-    const hiX = Math.max(from.x, to.x);
-    const hiY = Math.max(from.y, to.y);
-    const loX = Math.min(from.x, to.x);
-    const loY = Math.min(from.y, to.y);
-    const sub = this.grid.hi(hiX, hiY).lo(loX, loY);
+Pathfinder.prototype.getObstaclesInArea = function(rect) {
+    const sub = this.grid
+        .hi((rect.x + rect.width) / this._step, (rect.y + rect.height) / this._step)
+        .lo(rect.x / this._step, rect.y / this._step);
 
     const cells = {};
     for(let i = 0; i < sub.shape[0]; ++i) {
