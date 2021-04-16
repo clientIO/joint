@@ -2,20 +2,13 @@ import * as joint from '../../../joint.mjs';
 import ndarray from 'ndarray';
 import createPlanner from 'l1-path-finder';
 
-// From talks with Roman
-// [ ][benched] - no grid, no negative coords, just +/- 100000 OR
-// [ ][benched] - no grid, no negative coords, just 0,0 and higher
-// [ ] - to/from a port connection
-// [ ] - simplify when only 4 points
-// [ ][benched] - limit grid updates to speed up path-finding
-
 // ======= Debugging
 const debugConf = {
-    showGraph: true,
-    showGrid: true,
+    showGraph: false,
+    showGrid: false,
     showGetInBox: false,
     gridBenchmark: false,
-    routerBenchmark: false,
+    routerBenchmark: true,
 }
 const debugStore = {
     gridPrinted: false,
@@ -94,50 +87,41 @@ const paper = new joint.dia.Paper({
         const routerStartTime = window.performance.now();
         const pathfinder = new Pathfinder(graph, config).bake();
 
-        const startDirections = getSortedDirections(linkView.sourceBBox.center(), linkView.targetBBox.center(), config.startDirections);
-        const endDirections = getSortedDirections(linkView.targetBBox.center(), linkView.sourceBBox.center(), config.endDirections);
+        // const startTarget = vertices.length > 0 ? vertices[0] : linkView.targetBBox.center();
+        // const startDirections = getSortedDirections(linkView.sourceBBox.center(), startTarget, config.startDirections);
+        // const endSource = vertices.length > 0 ? vertices[vertices.length - 1] : linkView.sourceBBox.center();
+        // const endDirections = getSortedDirections(linkView.targetBBox.center(), endSource, config.endDirections);
 
-        const startPoints = startDirections.reduce((arr = [], direction) => {
-            const point = bboxToPoint(linkView.sourceBBox, direction);
-            arr.push(point);
-            return arr;
-        }, []);
-
-        const endPoints = endDirections.reduce((arr = [], direction) => {
-            const point = bboxToPoint(linkView.targetBBox, direction);
-            arr.push(point);
-            return arr;
-        }, []);
-
-        const inputVertices = [startPoints, ...vertices, endPoints], segments = [];
-        while (inputVertices.length > 0) {
-            if (inputVertices[1] === undefined) {
-                break;
-            }
-
-            segments.push({
-                start: inputVertices.splice(0, 1)[0],
-                end: inputVertices[0]
-            });
-        }
+        const startDirections = config.startDirections;
+        const endDirections = config.endDirections;
 
         const pathSegments = [];
         let startPosition, endPosition;
-        segments.forEach((segment, index) => {
-            let fromPoints = segment.start, toPoints = segment.end;
-            if (!Array.isArray(fromPoints)) {
-                fromPoints = [segment.start];
+        for (let s = 0; s <= vertices.length; s++) {
+            const segmentStart = vertices[s - 1];
+            const segmentEnd = vertices[s];
+
+            let fromPoints = [segmentStart], toPoints = [segmentEnd];
+            if (segmentStart === undefined) {
+                fromPoints = startDirections;
             }
-            if (!Array.isArray(toPoints)) {
-                toPoints = [segment.end];
+
+            if (segmentEnd === undefined) {
+                toPoints = endDirections;
             }
 
             let shortestDistance = Infinity, from, to;
             for (let f = 0; f < fromPoints.length; f++) {
                 from = fromPoints[f];
+                if (!(from instanceof joint.g.Point)) {
+                    from = bboxToPoint(linkView.sourceBBox, from);
+                }
 
                 for (let t = 0; t < toPoints.length; t++) {
                     to = toPoints[t];
+                    if (!(to instanceof joint.g.Point)) {
+                        to = bboxToPoint(linkView.targetBBox, to);
+                    }
 
                     const path = [];
                     const sx = from.x / config.step;
@@ -146,38 +130,49 @@ const paper = new joint.dia.Paper({
                     const ty = to.y / config.step;
                     const distance = pathfinder.planner.search(sx, sy, tx, ty, path);
 
-                    let endpointDistance = 0;
-                    if (index === 0) {
+                    let endpointDistance = 0, dirs = {};
+                    if (s === 0) {
                         // start-point segment
-                        endpointDistance += from.distance(linkView.sourceBBox.center());
+                        endpointDistance += (from.distance(linkView.sourceBBox.center()) / config.step);
+                        dirs.start = fromPoints[f];
                     }
 
-                    if (index === segments.length - 1) {
+                    if (s === vertices.length) {
                         // end-point segment
-                        endpointDistance += to.distance(linkView.targetBBox.center());
+                        endpointDistance += (to.distance(linkView.targetBBox.center()) / config.step);
+                        dirs.end = toPoints[t];
                     }
 
                     if (distance + endpointDistance < shortestDistance) {
-                        shortestDistance = distance;
+                        shortestDistance = distance + endpointDistance;
 
-                        if (index === 0) {
+                        if (s === 0) {
                             startPosition = from;
                         }
 
-                        if (index === segments.length - 1) {
+                        if (s === vertices.length) {
                             endPosition = to;
                         }
 
-                        pathSegments[index] = path;
+                        pathSegments[s] = removeTurnsFromPath(path, pathfinder.grid, dirs);
+                        // pathSegments[s] = path;
                     }
                 }
             }
 
-            // todo: path not found - inefficient, but works
+            // path not found, source/target most probably within obstacle
             if (shortestDistance === Infinity) {
-                // as an artificial path will be created, take first points from sorted set
-                const from = fromPoints[0];
-                const to = toPoints[0];
+                let from = fromPoints[0];
+                let to = toPoints[0];
+
+                if (!(from instanceof joint.g.Point)) {
+                    from = bboxToPoint(linkView.sourceBBox, from);
+                }
+
+
+                if (!(to instanceof joint.g.Point)) {
+                    to = bboxToPoint(linkView.targetBBox, to);
+                }
 
                 let fromObstacleNodes = [], toObstacleNodes = [];
 
@@ -205,32 +200,26 @@ const paper = new joint.dia.Paper({
                     path
                 );
 
-                if (path.length < shortestDistance && dist !== Infinity) {
-                    if (index === 0) {
+                if (dist < shortestDistance && dist !== Infinity) {
+                    if (s === 0) {
                         startPosition = from;
                     }
 
-                    if (index === segments.length - 1) {
+                    if (s === vertices.length - 1) {
                         endPosition = to;
                     }
 
-                    // pathSegments[index] = straightenPath(path, pathfinder.grid);
-                    pathSegments[index] = path;
+                    pathSegments[s] = removeTurnsFromPath(path, pathfinder.grid, {
+                        start: startDirections[0],
+                        end: endDirections[0]
+                    });
                 }
 
                 fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
                 toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
                 pathfinder.update();
             }
-
-            // todo: close previous segment path and prevent retracing
-            // wrong approach
-            // if (shortestDistance !== Infinity) {
-            //     const path = pathSegments[index]
-            //     const [x, y] = path.slice(path.length - 2, path.length);
-            //     pathfinder.grid.set(x, y, 1);
-            // }
-        });
+        }
 
         const newVertices = [];
         pathSegments.forEach(segment => {
@@ -280,6 +269,29 @@ const paper = new joint.dia.Paper({
             }
         }
 
+        if (debugConf.showGetInBox) {
+            const origin = linkView.sourceBBox.origin();
+            const width = linkView.targetBBox.corner().x - origin.x;
+            const height = linkView.targetBBox.corner().y - origin.y;
+            const area = new joint.g.Rect(origin.x, origin.y, width, height);
+            const p1 = area.origin().snapToGrid(config.step);
+            p1.x /= config.step;
+            p1.y /= config.step;
+            const p2 = area.corner().snapToGrid(config.step);
+            p2.x /= config.step;
+            p2.y /= config.step;
+
+            const startbb = window.performance.now();
+            const cells = pathfinder.getBetweenPoints(p1, p2);
+            const endbb = window.performance.now();
+
+            const startbbg = window.performance.now();
+            const cells1 = graph.findModelsInArea(area);
+            const endbbg = window.performance.now();
+
+            console.warn('Found: ' + Object.keys(cells).length + ' cells in ' + (endbb-startbb).toFixed(2) + 'ms using Pathfinder, and ' + cells1.length + ' cells in ' + (endbbg-startbbg).toFixed(2) + ' ms using findModelsInArea');
+        }
+
         const routerEndTime = window.performance.now();
         if (debugConf.routerBenchmark) {
             console.warn('Router time: ' + (routerEndTime-routerStartTime).toFixed(2) + 'ms');
@@ -301,12 +313,6 @@ const paper = new joint.dia.Paper({
 const snapPointToGrid = function() {}
 const snapValueToGrid = function() {}
 
-const dirs = [
-    { x: 1, y: 0 },
-    { x: -1, y: 0 },
-    { x: 0, y: 1 },
-    { x: 0, y: -1 },
-];
 const getObstaclesNodes = function(x, y, grid) {
     if (grid.get(x, y) !== 1) return null;
 
@@ -319,7 +325,10 @@ const getObstaclesNodes = function(x, y, grid) {
         const { x, y } = frontier[key];
         nodes.push(frontier[key]);
 
-        dirs.forEach(dir => {
+        [{ x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: -1 }].forEach(dir => {
             const neighbour = { x: x + dir.x, y: y + dir.y };
             const neighbourKey = `${neighbour.x};${neighbour.y}`;
 
@@ -344,71 +353,29 @@ const getObstaclesNodes = function(x, y, grid) {
     return nodes;
 }
 
-const straightenPath = function(path, grid) {
-    const simplePath = [];
-    while (path.length > 1) {
-        if (path.length <= 4) {
-            simplePath.push(...path);
-            path.length = 0;
-        } else if (isStacked(path)) {
-            path.splice(0, 2);
-        } else if (isVertical(path) || isHorizontal(path)) {
-            path.splice(0, 4, path[0], path[1]);
-        } else if (isDownStep(path)) {
-            const head = path.splice(0, 2);
-            const tail = path.slice(0, 8);
-            const simplified = [head[0], head[1], head[0], tail[7], tail[6], tail[7]];
+const removeTurnsFromPath = function(path, grid, directions) {
+    const fixed = [], toFix = [...path];
 
-            if (isPathClear(simplified, grid)) {
-                path.splice(0, 8);
-                path.unshift(...simplified);
-            } else {
-                simplePath.push(...head);
-            }
-        } else if (isUpStep(path)) {
-            const head = path.splice(0, 2);
-            const tail = path.slice(0, 8);
-            const simplified = [head[0], head[1], tail[6], head[1], tail[6], tail[7]];
+    let horizontal = directions.start === 'left' || directions.start === 'right', tried = false;
+    while (toFix.length >= 6) {
+        const midX = horizontal ? toFix[4] : toFix[0];
+        const midY = horizontal ? toFix[1] : toFix[5];
+        const p = [toFix[0], toFix[1], midX, midY, toFix[4], toFix[5]];
 
-            if (isPathClear(simplified, grid)) {
-                path.splice(0, 8);
-                path.unshift(...simplified);
-            } else {
-                simplePath.push(...head);
-            }
+        if (isPathClear(p, grid)) {
+            toFix.splice(0, 6, ...p);
+            fixed.push(...toFix.splice(0, 2));
+        } else if (!tried) {
+            horizontal = !horizontal;
+            tried = true;
         } else {
-            simplePath.push(...path.splice(0, 2));
+            tried = false;
+            fixed.push(...toFix.splice(0, 2));
         }
     }
-    return simplePath;
 
-    function isStacked(s) {
-        return s[0] === s[2] && s[1] === s[3];
-    }
-
-    function isVertical(s) {
-        return s[0] === s[2] && s[2] === s[4];
-    }
-
-    function isHorizontal(s) {
-        return s[1] === s[3] && s[3] === s[5];
-    }
-
-    function isDownStep(s) {
-        return (s.length >= 10) *
-            (s[0] === s[2] && s[2] !== s[4]) *
-            (s[1] !== s[3] && s[3] === s[5]) *
-            (s[4] === s[6] && s[6] !== s[8]) *
-            (s[5] !== s[7] && s[7] === s[9]);
-    }
-
-    function isUpStep(s) {
-        return (s.length >= 10) *
-            (s[1] === s[3] && s[3] !== s[5]) *
-            (s[0] !== s[2] && s[2] === s[4]) *
-            (s[5] === s[7] && s[7] !== s[9]) *
-            (s[4] !== s[6] && s[6] === s[8]);
-    }
+    fixed.push(...toFix);
+    return fixed;
 
     function isPathClear(s, grid) {
         let obstructed;
@@ -439,7 +406,7 @@ const straightenPath = function(path, grid) {
 // ======= Shapes
 const source = new joint.shapes.standard.Rectangle({
     position: { x: 50, y: 50 },
-    size: { width: 50, height: 50 },
+    size: { width: 100, height: 50 },
     attrs: {
         body: {
             fill: {
@@ -477,10 +444,9 @@ const link = new joint.shapes.standard.Link({
 // ======= Obstacles
 const obstacle = source.clone().position(0,0).attr({
     label: {
-        text: 'Obstacle',
+        text: 'O',
         fill: '#eee'
     },
-    size: { width: 100, height: 50 },
     body: {
         fill: '#f00',
         stroke: '#000',
