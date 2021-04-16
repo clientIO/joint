@@ -27,6 +27,79 @@ const paper = new joint.dia.Paper({
     defaultRouter: routerV2
 });
 
+// ======= Shapes
+// todo: workaround export until pathfinder can tell source and target apart
+export const source = new joint.shapes.standard.Rectangle({
+    position: { x: 50, y: 50 },
+    size: { width: 100, height: 50 },
+    attrs: {
+        body: {
+            fill: {
+                type: 'linearGradient',
+                stops: [
+                    { offset: '0%', color: '#f7a07b' },
+                    { offset: '100%', color: '#fe8550' }
+                ],
+                attrs: { x1: '0%', y1: '0%', x2: '0%', y2: '100%' }
+            },
+            stroke: '#ed8661',
+            strokeWidth: 2
+        },
+        label: {
+            text: 'Source',
+            fill: '#f0f0f0',
+            fontSize: 18,
+            fontWeight: 'lighter',
+            fontVariant: 'small-caps'
+        }
+    }
+});
+export const target = source.clone().translate(150, 150).attr('label/text', 'Target');
+const link = new joint.shapes.standard.Link({
+    source: { id: source.id },
+    target: { id: target.id },
+    attrs: {
+        line: {
+            stroke: '#333333',
+            strokeWidth: 3
+        }
+    }
+});
+
+// ======= Obstacles
+const obstacle = source.clone().position(0,0).attr({
+    label: {
+        text: 'O',
+        fill: '#eee'
+    },
+    body: {
+        fill: '#f00',
+        stroke: '#000',
+        strokeWidth: 2
+    }
+});
+const obstacles = [], obstacleCount = 10;
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+}
+const addObstacles = function() {
+    obstacles.length = 0;
+    const { width, height } = paper.getComputedSize();
+
+    for (let f = 0; f < obstacleCount; f++) {
+        const obs = obstacle.clone();
+        const bbox = obs.getBBox();
+        obs.translate(getRandomInt(0, width - bbox.width), getRandomInt(0, height - bbox.height));
+        obstacles.push(obs);
+    }
+};
+addObstacles();
+
+// ======= Init
+graph.addCells(obstacles).addCells([source, target, link]);
+
 // ======= Demo events - TO BE REMOVED
 paper.on('link:mouseenter', function(linkView) {
     var tools = new joint.dia.ToolsView({
@@ -40,6 +113,7 @@ paper.on('link:mouseleave', function(linkView) {
 });
 
 // ======= V2 Router
+const pathfinder = new Pathfinder(graph, paper, config).bake();
 function routerV2(vertices, args, linkView) {
     // this is all POC code to find the visual results we're happy with
     if (vertices.length > 0) {
@@ -52,7 +126,6 @@ function routerV2(vertices, args, linkView) {
     }
 
     const routerStartTime = window.performance.now();
-    const pathfinder = new Pathfinder(graph, paper, config).bake();
 
     // const startTarget = vertices.length > 0 ? vertices[0] : linkView.targetBBox.center();
     // const startDirections = getSortedDirections(linkView.sourceBBox.center(), startTarget, config.startDirections);
@@ -156,7 +229,7 @@ function routerV2(vertices, args, linkView) {
 
             fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 0));
             toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 0));
-            pathfinder.recreatePlanner();
+            pathfinder.recreate();
 
             let path = [];
             const dist = pathfinder.planner.search(
@@ -184,7 +257,7 @@ function routerV2(vertices, args, linkView) {
 
             fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
             toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 1));
-            pathfinder.recreatePlanner();
+            pathfinder.recreate();
         }
     }
 
@@ -270,8 +343,27 @@ function routerV2(vertices, args, linkView) {
     }
 }
 
-// const snapPointToGrid = function() {}
-// const snapValueToGrid = function() {}
+graph.on('add', function(cell) {
+    console.log('add');
+});
+
+graph.on('remove', function(cell) {
+    console.log('remove');
+});
+
+graph.on('change:position', function(cell) {
+    if (cell.isElement()) {
+        const obstacle = pathfinder.getObstacleByCellId(cell.id);
+
+        if (!obstacle) return;
+
+        obstacle.update();
+    }
+});
+
+graph.on('change:size', function(cell) {
+    console.log('size');
+});
 
 const getObstaclesNodes = function(x, y, grid) {
     if (grid.get(x, y) !== 1) return null;
@@ -362,78 +454,6 @@ const removeTurnsFromPath = function(path, grid, directions) {
         return !obstructed;
     }
 }
-
-// ======= Shapes
-const source = new joint.shapes.standard.Rectangle({
-    position: { x: 50, y: 50 },
-    size: { width: 100, height: 50 },
-    attrs: {
-        body: {
-            fill: {
-                type: 'linearGradient',
-                stops: [
-                    { offset: '0%', color: '#f7a07b' },
-                    { offset: '100%', color: '#fe8550' }
-                ],
-                attrs: { x1: '0%', y1: '0%', x2: '0%', y2: '100%' }
-            },
-            stroke: '#ed8661',
-            strokeWidth: 2
-        },
-        label: {
-            text: 'Source',
-            fill: '#f0f0f0',
-            fontSize: 18,
-            fontWeight: 'lighter',
-            fontVariant: 'small-caps'
-        }
-    }
-});
-const target = source.clone().translate(150, 150).attr('label/text', 'Target');
-const link = new joint.shapes.standard.Link({
-    source: { id: source.id },
-    target: { id: target.id },
-    attrs: {
-        line: {
-            stroke: '#333333',
-            strokeWidth: 3
-        }
-    }
-});
-
-// ======= Obstacles
-const obstacle = source.clone().position(0,0).attr({
-    label: {
-        text: 'O',
-        fill: '#eee'
-    },
-    body: {
-        fill: '#f00',
-        stroke: '#000',
-        strokeWidth: 2
-    }
-});
-const obstacles = [], obstacleCount = 10;
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
-}
-const addObstacles = function() {
-    obstacles.length = 0;
-    const { width, height } = paper.getComputedSize();
-
-    for (let f = 0; f < obstacleCount; f++) {
-        const obs = obstacle.clone();
-        const bbox = obs.getBBox();
-        obs.translate(getRandomInt(0, width - bbox.width), getRandomInt(0, height - bbox.height));
-        obstacles.push(obs);
-    }
-};
-addObstacles();
-
-// ======= Init
-graph.addCells(obstacles).addCells([source, target, link]);
 
 // ======= Helpers
 function getSortedDirections(from, to, directions) {

@@ -1,7 +1,9 @@
-import * as joint from '../../../../joint.mjs';
 import ndarray from 'ndarray';
 import createPlanner from 'l1-path-finder';
 
+import { source, target } from '../manhattanV2.mjs';
+
+import Obstacle from './Obstacle.mjs';
 import HashStore from '../structures/HashStore.mjs';
 import { debugConf, debugStore, debugLog, showDebugGrid, showDebugGraph } from '../debug.mjs';
 
@@ -15,12 +17,13 @@ export default function Pathfinder(graph, paper, {
 
     this.planner = null;
     this.grid = null;
+    this.step = step;
+    this.padding = padding;
 
     this._graph = graph;
-    this._step = step;
-    this._padding = padding;
 
     this._obstacles = {};
+    this._cells = {};
 
     const { cols, rows } = getGridSize(paper, step), size = cols * rows;
     if (!Number.isNaN(size) && size <= Number.MAX_SAFE_INTEGER) {
@@ -41,40 +44,11 @@ export default function Pathfinder(graph, paper, {
 Pathfinder.prototype.bake = function() {
     const start = window.performance.now();
     this._graph.getElements().forEach(element => {
-        if (element.get('type') === 'dc') {
+        if (element.get('id') === source.id || element.get('id') === target.id || element.get('type') === 'dc') {
             return;
         }
 
-        // store element under simple int id
-        const id = joint.util.uniqueId();
-        this._obstacles[id] = element;
-
-        // todo: function GridViewFromBBox
-        const bb = element.getBBox().moveAndExpand({
-            x: -this._padding,
-            y: -this._padding,
-            width: 2 * this._padding,
-            height: 2 * this._padding
-        });
-
-        const gridX = Math.floor(bb.x / this._step);
-        const gridY = Math.floor(bb.y / this._step);
-        const boundX = Math.ceil((bb.x + bb.width) / this._step);
-        const boundY = Math.ceil((bb.y + bb.height) / this._step);
-
-        const sub = this.grid.hi(boundX, boundY).lo(gridX, gridY);
-
-        for(let i = 0; i < sub.shape[0]; ++i) {
-            for(let j = 0; j < sub.shape[1]; ++j) {
-                let prev = {};
-                if (sub.get(i, j) === 1) {
-                    prev = sub.data.getItem(sub.index(i, j));
-                }
-
-                prev[id] = true;
-                sub.set(i, j, prev);
-            }
-        }
+        this.addObstacle(element);
     });
 
     const end = window.performance.now();
@@ -97,7 +71,31 @@ Pathfinder.prototype.bake = function() {
     return this;
 }
 
-Pathfinder.prototype.recreatePlanner = function() {
+Pathfinder.prototype.addObstacle = function(element) {
+    const obstacle = new Obstacle(element, this);
+    const fragment = obstacle.getFragment();
+
+    for(let i = 0; i < fragment.shape[0]; ++i) {
+        for(let j = 0; j < fragment.shape[1]; ++j) {
+            let prev = {};
+            if (fragment.get(i, j) === 1) {
+                prev = fragment.data.getItem(fragment.index(i, j));
+            }
+
+            prev[obstacle.index] = true;
+            fragment.set(i, j, prev);
+        }
+    }
+
+    this._obstacles[obstacle.index] = obstacle;
+    this._cells[element.id] = obstacle.index;
+}
+
+Pathfinder.prototype.getObstacleByCellId = function(cellId) {
+    return this._obstacles[this._cells[cellId]] || null;
+}
+
+Pathfinder.prototype.recreate = function() {
     this.planner = createPlanner(this.grid);
 }
 
@@ -123,6 +121,6 @@ Pathfinder.prototype.getObstaclesInArea = function(rect) {
 
 Pathfinder.prototype.getGridFragment = function (rect) {
     return this.grid
-        .hi((rect.x + rect.width) / this._step, (rect.y + rect.height) / this._step)
-        .lo(rect.x / this._step, rect.y / this._step)
+        .hi((rect.x + rect.width) / this.step, (rect.y + rect.height) / this.step)
+        .lo(rect.x / this.step, rect.y / this.step)
 }

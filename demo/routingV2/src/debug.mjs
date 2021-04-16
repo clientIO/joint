@@ -15,7 +15,7 @@ export const debugLog = function () {};
 
 // ======= Visual debugging
 export function showDebugGraph(pathfinder) {
-    const { planner, _step: step, _graph: graph } = pathfinder;
+    const { planner, step, _graph: graph } = pathfinder;
     const c = new joint.shapes.standard.Circle({
         type: 'dc',
         position: { x: 0, y: 0 },
@@ -79,7 +79,7 @@ export function showDebugGraph(pathfinder) {
 }
 
 export function showDebugGrid(pathfinder) {
-    const { grid, _step: step, _graph: graph } = pathfinder;
+    const { grid, step, _graph: graph } = pathfinder;
     const ro = new joint.shapes.standard.Rectangle({
         type: 'dc',
         position: { x: 0, y: 0 },
