@@ -6,8 +6,8 @@ import getContour from 'contour-2d';
 import * as orientation from 'robust-orientation';
 
 function Geometry(corners, grid) {
-    this.corners = corners
-    this.grid = grid
+    this.corners = corners;
+    this.grid = grid;
 }
 
 const proto = Geometry.prototype;
