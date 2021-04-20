@@ -1,5 +1,5 @@
 import ndarray from 'ndarray';
-import createPlanner from 'l1-path-finder';
+import { createPlanner } from '../l1/L1Planner.mjs';
 
 import { source, target } from '../manhattanV2.mjs';
 
