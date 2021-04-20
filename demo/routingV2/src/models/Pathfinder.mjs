@@ -21,9 +21,10 @@ export default function Pathfinder(graph, paper, {
     this.padding = padding;
 
     this._graph = graph;
-    this._pendingUpdate = false;
     this._obstacles = {};
     this._cells = {};
+
+    this._dirty = false;
 
     const { cols, rows } = getGridSize(paper, step), size = cols * rows;
     if (!Number.isNaN(size) && size <= Number.MAX_SAFE_INTEGER) {
@@ -123,4 +124,13 @@ Pathfinder.prototype.getGridFragment = function (rect) {
     return this.grid
         .hi((rect.x + rect.width) / this.step, (rect.y + rect.height) / this.step)
         .lo(rect.x / this.step, rect.y / this.step)
+}
+
+Pathfinder.prototype.search = function (sx, sy, tx, ty, path) {
+    if (this._dirty) {
+        this.recreate();
+        this._dirty = false;
+    }
+
+    return this.planner.search(sx, sy, tx, ty, path);
 }
