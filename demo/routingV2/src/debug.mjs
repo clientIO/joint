@@ -4,12 +4,17 @@ export const debugConf = {
     showGraph: false,
     showGrid: false,
     showGetInBox: false,
-    gridBenchmark: false,
-    routerBenchmark: true,
+    gridBenchmark: true,
+    gridUpdateBenchmark: true,
+    plannerBenchmark: true,
+    routerBenchmark: false,
+    fullRouterBenchmark: true,
 }
 export const debugStore = {
     gridPrinted: false,
     graphPrinted: false,
+    fullRouterTimeDone: false,
+    fullRouterTime: 0
 }
 export const debugLog = function () {};
 

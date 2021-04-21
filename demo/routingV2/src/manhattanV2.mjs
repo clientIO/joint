@@ -1,6 +1,6 @@
 import * as joint from '../../../joint.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
-import { debugConf } from './debug.mjs';
+import { debugConf, debugStore } from './debug.mjs';
 
 // ======= Router config
 const config = {
@@ -19,42 +19,39 @@ const config = {
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 3000,
-    height: 2000,
+    width: 10000,
+    height: 10000,
     gridSize: config.step,
+    interactive: {
+        elementMove: false
+    },
     async: true,
     model: graph,
     defaultRouter: routerV2
 });
 
 // ======= Shapes
-// todo: workaround export until pathfinder can tell source and target apart
-export const source = new joint.shapes.standard.Rectangle({
-    position: { x: 50, y: 50 },
+const source = new joint.shapes.standard.Rectangle({
+    position: { x: 0, y: 0 },
     size: { width: 100, height: 50 },
     attrs: {
         body: {
-            fill: {
-                type: 'linearGradient',
-                stops: [
-                    { offset: '0%', color: '#f7a07b' },
-                    { offset: '100%', color: '#fe8550' }
-                ],
-                attrs: { x1: '0%', y1: '0%', x2: '0%', y2: '100%' }
-            },
-            stroke: '#ed8661',
+            fill: '#0e650e',
+            stroke: '#000',
             strokeWidth: 2
         },
         label: {
-            text: 'Source',
-            fill: '#f0f0f0',
+            text: 'SOURCE',
+            fill: '#FFF',
             fontSize: 18,
-            fontWeight: 'lighter',
-            fontVariant: 'small-caps'
         }
     }
 });
-export const target = source.clone().translate(150, 150).attr('label/text', 'Target');
+const target = source
+    .clone()
+    .attr('label/text', 'TARGET')
+    .attr('body/fill', '#0c1e6a');
+
 const link = new joint.shapes.standard.Link({
     source: { id: source.id },
     target: { id: target.id },
@@ -78,31 +75,41 @@ const obstacle = source.clone().position(0,0).attr({
         strokeWidth: 2
     }
 });
-const obstacles = [], obstacleCount = 200;
 function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
-const addObstacles = function() {
-    obstacles.length = 0;
-    const { width, height } = paper.getComputedSize();
 
-    for (let f = 0; f < obstacleCount; f++) {
-        const obs = obstacle.clone();
-        const bbox = obs.getBBox();
-        obs.translate(getRandomInt(0, width - bbox.width), getRandomInt(0, height - bbox.height));
-        obstacles.push(obs);
-    }
-};
-addObstacles();
+const { width, height } = paper.getComputedSize(), obstacles = [], obstacleCount = 5000;
+for (let i = 0; i < obstacleCount; i++) {
+    const obs = obstacle.clone();
+    obs.translate(getRandomInt(source.size().width * 2, width - target.size().width * 2 - obs.size().width), getRandomInt(50, height - obs.size().height));
+    obstacles.push(obs);
+}
+
+// ======= More source/target pairs
+const pairsCount = Math.floor(height / source.size().height / 2), stPairs = [];
+for (let i = 0; i < pairsCount; i++) {
+   const s = source.clone();
+   s.translate(50, i * (s.size().height * 2) + 50);
+
+   const t = target.clone();
+   t.translate(width - t.size().width - 50, i * (t.size().height * 2) + 50);
+   const l = link.clone();
+
+    l.set('source', { id: s.id });
+    l.set('target', { id: t.id });
+
+   stPairs.push(...[s, t, l]);
+}
 
 // ======= Init
-graph.addCells(obstacles).addCells([source, target, link]);
+graph.addCells([...stPairs, ...obstacles]);
 
 // ======= Demo events - TO BE REMOVED
 paper.on('link:mouseenter', function(linkView) {
-    var tools = new joint.dia.ToolsView({
+    const tools = new joint.dia.ToolsView({
         tools: [new joint.linkTools.Vertices()]
     });
     linkView.addTools(tools);
@@ -127,13 +134,10 @@ function routerV2(vertices, args, linkView) {
 
     const routerStartTime = window.performance.now();
 
-    // const startTarget = vertices.length > 0 ? vertices[0] : linkView.targetBBox.center();
-    // const startDirections = getSortedDirections(linkView.sourceBBox.center(), startTarget, config.startDirections);
-    // const endSource = vertices.length > 0 ? vertices[vertices.length - 1] : linkView.sourceBBox.center();
-    // const endDirections = getSortedDirections(linkView.targetBBox.center(), endSource, config.endDirections);
-
-    const startDirections = config.startDirections;
-    const endDirections = config.endDirections;
+    const startTarget = vertices.length > 0 ? vertices[0] : linkView.targetBBox.center();
+    const startDirections = getSortedDirections(linkView.sourceBBox.center(), startTarget, config.startDirections);
+    const endSource = vertices.length > 0 ? vertices[vertices.length - 1] : linkView.sourceBBox.center();
+    const endDirections = getSortedDirections(linkView.targetBBox.center(), endSource, config.endDirections);
 
     const pathSegments = [];
     let startPosition, endPosition;
@@ -229,10 +233,10 @@ function routerV2(vertices, args, linkView) {
 
             fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 0));
             toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, 0));
-            pathfinder.recreate();
+            pathfinder._dirty = true;
 
             let path = [];
-            const dist = pathfinder.planner.search(
+            const dist = pathfinder.search(
                 from.x / config.step,
                 from.y / config.step,
                 to.x / config.step,
@@ -257,7 +261,7 @@ function routerV2(vertices, args, linkView) {
 
             fromObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, node));
             toObstacleNodes.forEach(node => pathfinder.grid.set(node.x, node.y, node));
-            pathfinder.recreate();
+            pathfinder._dirty = true;
         }
     }
 
@@ -327,22 +331,25 @@ function routerV2(vertices, args, linkView) {
     }
 
     const routerEndTime = window.performance.now();
+    if (!debugStore.fullRouterTimeDone) {
+        debugStore.fullRouterTime += (routerEndTime - routerStartTime);
+    }
     if (debugConf.routerBenchmark) {
-        console.warn('Router time: ' + (routerEndTime-routerStartTime).toFixed(2) + 'ms');
+        console.warn('Took ' + (routerEndTime - routerStartTime).toFixed(2) + 'ms to calculate route.');
     }
     return newVertices;
 
     function bboxToPoint(bbox, dir) {
         const pts = {
-            top: bbox.topMiddle().translate(0, -config.padding),
-            right: bbox.rightMiddle().translate(config.padding, 0),
-            bottom: bbox.bottomMiddle().translate(0, config.padding),
-            left: bbox.leftMiddle().translate(-config.padding, 0)
+            top: bbox.topMiddle().translate(0, -(config.padding + config.step)),
+            right: bbox.rightMiddle().translate((config.padding + config.step), 0),
+            bottom: bbox.bottomMiddle().translate(0, (config.padding + config.step)),
+            left: bbox.leftMiddle().translate(-(config.padding + config.step), 0)
         }
         return pts[dir];
     }
 }
-
+// ======= Events
 graph.on('add', function(cell) {
     console.log('add');
 });
@@ -357,7 +364,12 @@ graph.on('change:position', function(cell) {
 
         if (!obstacle) return;
 
+        const start = window.performance.now();
         obstacle.update();
+        const end = window.performance.now();
+        if (debugConf.gridUpdateBenchmark) {
+            console.warn('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
+        }
     }
 });
 
@@ -365,6 +377,39 @@ graph.on('change:size', function(cell) {
     console.log('size');
 });
 
+paper.on('element:pointermove', function(view, evt, x, y) {
+    const data = evt.data;
+    let ghost = data.ghost;
+    if (!ghost) {
+        const position = view.model.position();
+        ghost = view.vel.clone();
+        ghost.attr('opacity', 0.3);
+        ghost.appendTo(this.viewport);
+        evt.data.ghost = ghost;
+        evt.data.dx = x - position.x;
+        evt.data.dy = y - position.y;
+    }
+    const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
+    ghost.attr('transform', 'translate(' + [pt.x, pt.y] + ')');
+});
+
+paper.on('element:pointerup', function(view, evt, x, y) {
+    let data = evt.data;
+    if (data.ghost) {
+        data.ghost.remove();
+        const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
+        view.model.position(pt.x, pt.y);
+    }
+});
+
+paper.on('render:done', function() {
+    if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
+        console.warn('Took ' + debugStore.fullRouterTime.toFixed(2) + 'ms to calculate all routes.');
+        debugStore.fullRouterTimeDone = true;
+    }
+});
+
+// ======= Helpers
 const getObstaclesNodes = function(x, y, grid) {
     if (grid.get(x, y) !== 1) return null;
 
@@ -455,7 +500,6 @@ const removeTurnsFromPath = function(path, grid, directions) {
     }
 }
 
-// ======= Helpers
 function getSortedDirections(from, to, directions) {
     let dirs = [...directions], additional = [];
 
@@ -485,52 +529,3 @@ function getSortedDirections(from, to, directions) {
     return joint.util.uniq(dirs);
 }
 
-// ======= Mental Notes
-// function Chunks({ step, chunkSize } = {}) {
-//     this._chunkSize = step * chunkSize;
-//
-//     // quadrants allows for negative coordinate chunk storage
-//     // each quadrant consists of a flat array interpreted as 2d array
-//     // i.e. [0,0] is index 0; [1,0] is index 1, [0,1] is index 2 and so on...
-//     //  3 | 1
-//     // ---|---
-//     //  2 | 0
-//     this.quadrants = new Array(4).fill([]);
-// }
-// Chunks.prototype.get = (quadrant, x, y) => {
-//     return this.quadrants[quadrant][x + y * 2];
-// }
-// Chunks.prototype.set = (quadrant, x, y, chunk) => {
-//     return this.quadrants[quadrant][x + y * 2] = chunk;
-// }
-// Chunks.prototype.fromPoint = (point) => {
-//     if (Number.isNaN(point.x) || Number.isNaN(point.y)) {
-//         return debugLog('Invalid point provided.');
-//     }
-//
-//     const q = (1 * (point.y < 0)) + (2 * (point.x < 0));
-//     const qx = Math.floor(Math.abs(position.x) / this._chunkSize);
-//     const qy = Math.floor(Math.abs(position.y) / this._chunkSize);
-//
-//     return this.quadrants[q][qx + qy * 2];
-// }
-// Chunks.prototype.remove = () => {}
-//
-// function Chunk() {
-//     this.id = 0;
-//     this.obstacles = null;
-// }
-// Chunk.prototype.bake = () => {}
-// Chunk.prototype.update = () => {}
-// Chunk.prototype.registerObstacle = () => {}
-// Chunk.prototype.registerCell = () => {}
-// Chunk.prototype.getObstacles = () => {}
-// Chunk.prototype.getCells = () => {}
-// Chunk.prototype.unregisterObstacle = () => {}
-// Chunk.prototype.unregisterCell = () => {}
-//
-// function Grid() {}
-// Grid.prototype.isCoordinateFree = () => {}
-
-// ======= Events
-// graph.on('change:position', function(cell) {});

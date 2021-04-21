@@ -1,8 +1,6 @@
 import ndarray from 'ndarray';
 import { createPlanner } from '../l1/L1Planner.mjs';
 
-import { source, target } from '../manhattanV2.mjs';
-
 import Obstacle from './Obstacle.mjs';
 import HashStore from '../structures/HashStore.mjs';
 import { debugConf, debugStore, debugLog, showDebugGrid, showDebugGraph } from '../debug.mjs';
@@ -45,7 +43,7 @@ export default function Pathfinder(graph, paper, {
 Pathfinder.prototype.bake = function() {
     const start = window.performance.now();
     this._graph.getElements().forEach(element => {
-        if (element.get('id') === source.id || element.get('id') === target.id || element.get('type') === 'dc') {
+        if (element.get('type') === 'dc') {
             return;
         }
 
@@ -54,10 +52,10 @@ Pathfinder.prototype.bake = function() {
 
     const end = window.performance.now();
     if (debugConf.gridBenchmark) {
-        console.warn('Took ' + (end-start).toFixed(2) + 'ms to update grid.');
+        console.warn('Took ' + (end-start).toFixed(2) + 'ms to create Grid.');
     }
 
-    this.planner = createPlanner(this.grid);
+    this.recreate();
 
     if (debugConf.showGrid && !debugStore.gridPrinted) {
         showDebugGrid(this);
@@ -97,7 +95,12 @@ Pathfinder.prototype.getObstacleByCellId = function(cellId) {
 }
 
 Pathfinder.prototype.recreate = function() {
+    const start = window.performance.now();
     this.planner = createPlanner(this.grid);
+    const end = window.performance.now();
+    if (debugConf.plannerBenchmark) {
+        console.warn('Took ' + (end - start).toFixed(2) + 'ms to preprocess L1 Planner.');
+    }
 }
 
 Pathfinder.prototype.getObstaclesInArea = function(rect) {
