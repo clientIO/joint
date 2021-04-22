@@ -1,4 +1,5 @@
 // import * as joint from '../../../joint.mjs';
+import * as PF from 'pathfinding';
 import * as joint from '../../../../rappid/rappid.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
 import { debugConf, debugStore, showDebugGraph, showDebugGrid } from './debug.mjs';
@@ -15,24 +16,26 @@ const config = {
 };
 
 // ===============================================================================
-// JointJS
+// JointJS - Core
 // ===============================================================================
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 3000,
-    height: 1800,
+    width: 10000,
+    height: 10000,
     gridSize: config.step,
     interactive: {
         elementMove: false
     },
     async: true,
     model: graph,
-    defaultRouter: routerV2
+    defaultRouter: routingStrategyAStar
     // defaultRouter: { name: 'manhattan', args: { padding: 10 }}
 });
 
-// ======= Pathfinder
+// ===============================================================================
+// JointJS - Pathfinder
+// ===============================================================================
 const pathfinder = new Pathfinder(graph, paper, config);
 
 // ======= Events
@@ -200,7 +203,7 @@ if (debugConf.graphType === 'grid-layout') {
         rowHeight: 150
     });
 } else {
-    const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 100;
+    const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 1000;
     for (let i = 0; i < obsCount; i++) {
         const obs = obstacle.clone();
         obs.translate(200 + Math.random() * (width - 500), 50 + Math.random() * (height - 100));
@@ -227,7 +230,7 @@ if (debugConf.graphType === 'grid-layout') {
 }
 
 // ======= V2 Router
-function routerV2(vertices, args, linkView) {
+function routingStrategyL1(vertices, args, linkView) {
     // todo: switch on strategy/algorithm
 
     // this is all POC code to find the visual results we're happy with
@@ -536,5 +539,54 @@ function getSortedDirections(from, to, directions) {
     });
 
     return joint.util.uniq(dirs);
+}
+
+function routingStrategyAStar(vertices, args, linkView) {
+    const s = window.performance.now();
+    const start = bboxToPoint(linkView.sourceBBox, 'right');
+    const startX = Math.floor(start.x / config.step);
+    const startY = Math.floor(start.y / config.step);
+
+    const end = bboxToPoint(linkView.targetBBox, 'left');
+    const endX = Math.floor(end.x / config.step);
+    const endY = Math.floor(end.y / config.step);
+
+    const pfGrid = new PF.Grid(pathfinder.grid.shape[0], pathfinder.grid.shape[1]);
+
+    for (let x = 0; x < pathfinder.grid.shape[0]; x++) {
+        for (let y = 0; y < pathfinder.grid.shape[1]; y++) {
+            if (pathfinder.grid.getBinary(x, y) === 1) {
+                pfGrid.setWalkableAt(x, y, false);
+            }
+        }
+    }
+
+    const pfFinder = new PF.JumpPointFinder({
+        heuristic: function(dx, dy) {
+            return dx + dy;
+        },
+        diagonalMovement: PF.DiagonalMovement.Never
+    });
+
+    const path = pfFinder.findPath(startX, startY, endX, endY, pfGrid);
+
+    const verts = path.map(item => {
+        return new joint.g.Point(item[0] * config.step, item[1] * config.step)
+    });
+
+    const e = window.performance.now();
+    console.warn('Took ' + (e - s).toFixed(2) + 'ms to calculate path.');
+
+    return verts;
+
+    function bboxToPoint(bbox, dir) {
+        const pts = {
+            top: bbox.topMiddle().translate(0, -(config.padding + config.step)),
+            right: bbox.rightMiddle().translate((config.padding + config.step), 0),
+            bottom: bbox.bottomMiddle().translate(0, (config.padding + config.step)),
+            left: bbox.leftMiddle().translate(-(config.padding + config.step), 0)
+        }
+        return pts[dir];
+    }
 }
 
