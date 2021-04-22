@@ -1,15 +1,15 @@
 // import * as joint from '../../../joint.mjs';
 import * as joint from '../../../../rappid/rappid.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
-import { debugConf, debugStore } from './debug.mjs';
+import { debugConf, debugStore, showDebugGraph, showDebugGrid } from './debug.mjs';
 
 // ======= Router config
 const config = {
     step: 20,
     padding: 10, // joint.util.normalizeSides
     algorithm: 'l1',                                        // todo: new feature; l1 be default, other `a-star`, `dijkstra` etc.
-    startDirections: ['top', 'right', 'bottom', 'left'],
-    endDirections: ['top', 'right', 'bottom', 'left'],
+    startDirections: ['right'],
+    endDirections: ['left'],
     excludeEnds: [],                                        // todo: 'source', 'target'
     excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
 };
@@ -20,8 +20,8 @@ const config = {
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 10000,
-    height: 10000,
+    width: 3000,
+    height: 1800,
     gridSize: config.step,
     interactive: {
         elementMove: false
@@ -29,6 +29,93 @@ const paper = new joint.dia.Paper({
     async: true,
     model: graph,
     defaultRouter: routerV2
+    // defaultRouter: { name: 'manhattan', args: { padding: 10 }}
+});
+
+// ======= Pathfinder
+const pathfinder = new Pathfinder(graph, paper, config);
+
+// ======= Events
+graph.on('add', function(cell) {
+    if (cell.isElement() && !cell.get('debugIgnore')) {
+        pathfinder.addObstacle(cell);
+    }
+});
+
+graph.on('remove', function(cell) {
+    console.log('remove');
+});
+
+graph.on('change:position', function(cell) {
+    if (cell.isElement() && !cell.get('debugIgnore')) {
+        const obstacle = pathfinder.getObstacleByCellId(cell.id);
+
+        if (!obstacle) return;
+
+        const start = window.performance.now();
+        obstacle.update();
+        const end = window.performance.now();
+        if (debugConf.gridUpdateBenchmark) {
+            console.warn('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
+        }
+    }
+});
+
+graph.on('change:size', function(cell) {
+    console.log('size');
+});
+
+paper.on('element:pointermove', function(view, evt, x, y) {
+    const data = evt.data;
+    let ghost = data.ghost;
+    if (!ghost) {
+        const position = view.model.position();
+        ghost = view.vel.clone();
+        ghost.attr('opacity', 0.3);
+        ghost.appendTo(this.viewport);
+        evt.data.ghost = ghost;
+        evt.data.dx = x - position.x;
+        evt.data.dy = y - position.y;
+    }
+    const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
+    ghost.attr('transform', 'translate(' + [pt.x, pt.y] + ')');
+});
+
+paper.on('element:pointerup', function(view, evt, x, y) {
+    let data = evt.data;
+    if (data.ghost) {
+        data.ghost.remove();
+        const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
+        view.model.position(pt.x, pt.y);
+    }
+});
+
+paper.on('render:done', function() {
+    if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
+        console.warn('Took ' + debugStore.fullRouterTime.toFixed(2) + 'ms to calculate all routes.');
+        debugStore.fullRouterTimeDone = true;
+    }
+
+    if (debugConf.showGrid && !debugStore.gridPrinted) {
+        showDebugGrid(pathfinder);
+        debugStore.gridPrinted = true;
+    }
+
+    if (debugConf.showGraph && !debugStore.graphPrinted) {
+        showDebugGraph(pathfinder);
+        debugStore.graphPrinted = true;
+    }
+});
+
+// ======= Demo events - TO BE REMOVED
+paper.on('link:mouseenter', function(linkView) {
+    const tools = new joint.dia.ToolsView({
+        tools: [new joint.linkTools.Vertices()]
+    });
+    linkView.addTools(tools);
+});
+paper.on('link:mouseleave', function(linkView) {
+    linkView.removeTools();
 });
 
 // ======= Shapes
@@ -48,11 +135,7 @@ const source = new joint.shapes.standard.Rectangle({
         }
     }
 });
-const target = source
-    .clone()
-    .attr('label/text', 'TARGET')
-    .attr('body/fill', '#0c1e6a');
-
+const target = source.clone().attr('label/text', 'TARGET').attr('body/fill', '#0c1e6a');
 const link = new joint.shapes.standard.Link({
     source: { id: source.id },
     target: { id: target.id },
@@ -63,8 +146,6 @@ const link = new joint.shapes.standard.Link({
         }
     }
 });
-
-// ======= Obstacles
 const obstacle = source.clone().position(0,0).attr({
     label: {
         text: 'O',
@@ -76,61 +157,79 @@ const obstacle = source.clone().position(0,0).attr({
         strokeWidth: 2
     }
 });
+
+// ======= Obstacles
 function getRandomInt(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
-const { width, height } = paper.getComputedSize(), sources = [], targets = [], pairsCount = 1000;
-for (let i = 0; i < pairsCount; i++) {
-    const s = source.clone();
-    s.translate(Math.random() * (width - s.size().width), Math.random() * (height - s.size().height));
+if (debugConf.graphType === 'grid-layout') {
+    const { width, height } = paper.getComputedSize(), pairsCount = 1000, sources = [], targets = [];
+    for (let i = 0; i < pairsCount; i++) {
+        const s = source.clone();
+        s.translate(Math.random() * (width - s.size().width), Math.random() * (height - s.size().height));
 
-    const t = target.clone();
-    t.translate(Math.random() * (width - t.size().width), Math.random() * (height - t.size().height));
+        const t = target.clone();
+        t.translate(Math.random() * (width - t.size().width), Math.random() * (height - t.size().height));
 
-    sources.push(s);
-    targets.push(t);
+        sources.push(s);
+        targets.push(t);
+    }
+
+    const st = [...sources, ...targets].sort(() => (Math.random() > .5 ? 1 : -1));
+    const toLink = [...targets], links = [];
+    sources.forEach(s => {
+        const i = getRandomInt(0, toLink.length);
+        const [t] = toLink.splice(i, 1);
+        const l = link.clone();
+        l.set('source', { id: s.id });
+        l.set('target', { id: t.id });
+
+        links.push(l);
+    });
+
+    // ======= Init
+    graph.addCells([...st, ...links]);
+
+    const layout = joint.layout;
+    layout.GridLayout.layout(graph, {
+        columns: 40,
+        columnWidth: 250,
+        rowHeight: 150
+    });
+} else {
+    const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 100;
+    for (let i = 0; i < obsCount; i++) {
+        const obs = obstacle.clone();
+        obs.translate(200 + Math.random() * (width - 500), 50 + Math.random() * (height - 100));
+        obstacles.push(obs);
+    }
+
+    // ======= More source/target pairs
+    const pairsCount = Math.floor(height / source.size().height / 2), stPairs = [];
+    for (let i = 0; i < pairsCount; i++) {
+        const s = source.clone();
+        s.translate(50, i * (s.size().height * 2) + 50);
+
+        const t = target.clone();
+        t.translate(width - t.size().width - 50, i * (t.size().height * 2) + 50);
+
+        const l = link.clone();
+        l.set('source', { id: s.id });
+        l.set('target', { id: t.id });
+
+        stPairs.push(...[s, t, l]);
+    }
+
+    graph.addCells([...stPairs, ...obstacles]);
 }
 
-const st = [...sources, ...targets].sort(() => (Math.random() > .5 ? 1 : -1));
-const toLink = [...targets], links = [];
-sources.forEach(s => {
-    const i = getRandomInt(0, toLink.length);
-    const [t] = toLink.splice(i, 1);
-    const l = link.clone();
-    l.set('source', { id: s.id });
-    l.set('target', { id: t.id });
-
-    links.push(l);
-});
-
-// ======= Init
-graph.addCells([...st, ...links]);
-
-const layout = joint.layout;
-layout.GridLayout.layout(graph, {
-    columns: 40,
-    columnWidth: 250,
-    rowHeight: 150
-});
-
-// ======= Demo events - TO BE REMOVED
-paper.on('link:mouseenter', function(linkView) {
-    const tools = new joint.dia.ToolsView({
-        tools: [new joint.linkTools.Vertices()]
-    });
-    linkView.addTools(tools);
-});
-
-paper.on('link:mouseleave', function(linkView) {
-    linkView.removeTools();
-});
-
 // ======= V2 Router
-const pathfinder = new Pathfinder(graph, paper, config).bake();
 function routerV2(vertices, args, linkView) {
+    // todo: switch on strategy/algorithm
+
     // this is all POC code to find the visual results we're happy with
     if (vertices.length > 0) {
         // snap existing vertices
@@ -230,13 +329,13 @@ function routerV2(vertices, args, linkView) {
             let fromObstacleNodes = [], toObstacleNodes = [];
 
             const fromX = Math.floor(from.x / config.step), fromY = Math.floor(from.y / config.step);
-            if (pathfinder.grid.get(fromX, fromY) === 1) {
-                fromObstacleNodes = getObstaclesNodes(fromX, fromY, pathfinder.grid);
+            if (pathfinder.grid.getBinary(fromX, fromY) === 1) {
+                fromObstacleNodes = pathfinder.grid.getObstacleBlob(fromX, fromY, pathfinder.grid);
             }
 
             const toX = Math.floor(to.x / config.step), toY = Math.floor(to.y / config.step);
-            if (pathfinder.grid.get(toX, toY) === 1) {
-                toObstacleNodes = getObstaclesNodes(toX, toY, pathfinder.grid);
+            if (pathfinder.grid.getBinary(toX, toY) === 1) {
+                toObstacleNodes = pathfinder.grid.getObstacleBlob(toX, toY, pathfinder.grid);
             }
 
 
@@ -358,107 +457,8 @@ function routerV2(vertices, args, linkView) {
         return pts[dir];
     }
 }
-// ======= Events
-graph.on('add', function(cell) {
-    console.log('add');
-});
-
-graph.on('remove', function(cell) {
-    console.log('remove');
-});
-
-graph.on('change:position', function(cell) {
-    if (cell.isElement()) {
-        const obstacle = pathfinder.getObstacleByCellId(cell.id);
-
-        if (!obstacle) return;
-
-        const start = window.performance.now();
-        obstacle.update();
-        const end = window.performance.now();
-        if (debugConf.gridUpdateBenchmark) {
-            console.warn('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
-        }
-    }
-});
-
-graph.on('change:size', function(cell) {
-    console.log('size');
-});
-
-paper.on('element:pointermove', function(view, evt, x, y) {
-    const data = evt.data;
-    let ghost = data.ghost;
-    if (!ghost) {
-        const position = view.model.position();
-        ghost = view.vel.clone();
-        ghost.attr('opacity', 0.3);
-        ghost.appendTo(this.viewport);
-        evt.data.ghost = ghost;
-        evt.data.dx = x - position.x;
-        evt.data.dy = y - position.y;
-    }
-    const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
-    ghost.attr('transform', 'translate(' + [pt.x, pt.y] + ')');
-});
-
-paper.on('element:pointerup', function(view, evt, x, y) {
-    let data = evt.data;
-    if (data.ghost) {
-        data.ghost.remove();
-        const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
-        view.model.position(pt.x, pt.y);
-    }
-});
-
-paper.on('render:done', function() {
-    if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
-        console.warn('Took ' + debugStore.fullRouterTime.toFixed(2) + 'ms to calculate all routes.');
-        debugStore.fullRouterTimeDone = true;
-    }
-});
 
 // ======= Helpers
-const getObstaclesNodes = function(x, y, grid) {
-    if (grid.get(x, y) !== 1) return null;
-
-    const startKey = `${x};${y}`
-    const frontier = { [startKey]: { x, y }}, visited = {}, nodes = [];
-
-    let loops = 1000;
-    while (Object.keys(frontier).length > 0 && loops > 0) {
-        const key = Object.keys(frontier)[0];
-        const { x, y } = frontier[key];
-        nodes.push(frontier[key]);
-
-        [{ x: 1, y: 0 },
-        { x: -1, y: 0 },
-        { x: 0, y: 1 },
-        { x: 0, y: -1 }].forEach(dir => {
-            const neighbour = { x: x + dir.x, y: y + dir.y };
-            const neighbourKey = `${neighbour.x};${neighbour.y}`;
-
-            if (visited[neighbourKey] === true) {
-                return;
-            }
-
-            const status = grid.get(neighbour.x, neighbour.y);
-
-            if (status === 1) {
-                frontier[neighbourKey] = neighbour;
-            } else {
-                visited[neighbourKey] = true;
-            }
-        });
-
-        delete frontier[key];
-        visited[key] = true;
-        loops--;
-    }
-
-    return nodes;
-}
-
 const removeTurnsFromPath = function(path, grid, directions) {
     const fixed = [], toFix = [...path];
 
@@ -491,7 +491,7 @@ const removeTurnsFromPath = function(path, grid, directions) {
             bounds.sort((a, b) => { return a - b });
 
             for (let j = bounds[0]; j <= bounds[1]; j++) {
-                if (grid.get(
+                if (grid.getBinary(
                     vertical ? s[i] : j ,
                     vertical ? j : s[i + 1]
                 ) === 1) {

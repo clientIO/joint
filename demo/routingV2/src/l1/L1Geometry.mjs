@@ -52,7 +52,7 @@ function comparePair(a, b) {
 }
 
 export function createGeometry(grid) {
-    const loops = getContour(grid.transpose(1, 0));
+    const loops = getContour(grid.data.transpose(1, 0));
 
     //Extract corners
     const corners = [];
@@ -72,9 +72,9 @@ export function createGeometry(grid) {
                     }
                     offset[j] = b[j] + Math.min(Math.round(offset[j] / Math.abs(offset[j])) | 0, 0);
                 }
-                if (offset[0] >= 0 && offset[0] < grid.shape[0] &&
-                    offset[1] >= 0 && offset[1] < grid.shape[1] &&
-                    grid.get(offset[0], offset[1]) === 0) {
+                if (offset[0] >= 0 && offset[0] < grid.data.shape[0] &&
+                    offset[1] >= 0 && offset[1] < grid.data.shape[1] &&
+                    grid.data.get(offset[0], offset[1]) === 0) {
                     corners.push(offset);
                 }
             }
@@ -85,8 +85,8 @@ export function createGeometry(grid) {
     uniq(corners, comparePair);
 
     //Create integral image
-    const img = ndarray(new Int32Array(grid.shape[0] * grid.shape[1]), grid.shape);
-    ops.gts(img, grid, 0);
+    const img = ndarray(new Int32Array(grid.data.shape[0] * grid.data.shape[1]), grid.data.shape);
+    ops.gts(img, grid.data, 0);
     prefixSum(img);
 
     //Return resulting geometry

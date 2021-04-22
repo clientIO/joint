@@ -1,21 +1,30 @@
-export default function HashStore() {
-    this._hash = {};
-}
+export default class HashStore {
+    constructor() {
+        this._hash = {};
+        this._length = Infinity;
+    }
 
-HashStore.prototype.get = function(i) {
-    return this._hash[i] === undefined || Object.keys(this._hash[i]).length === 0 ? 0 : 1;
-}
+    get(i) {
+        return +(this._hash[i] !== undefined);
+    }
 
-HashStore.prototype.getItem = function(i) {
-    return this._hash[i];
-}
+    set(i, v) {
+        return this._hash[i] = v;
+    }
 
-HashStore.prototype.set = function(i, v) {
-    return this._hash[i] = v;
-}
+    remove(i) {
+        delete this._hash[i];
+    }
 
-HashStore.prototype.remove = function(i) {
-    delete this._hash[i];
-}
+    item(i) {
+        return this._hash[i];
+    }
 
-HashStore.prototype.length = Infinity;
+    get length() {
+        return this._length;
+    }
+
+    set length(l) {
+        return this._length = l;
+    }
+}

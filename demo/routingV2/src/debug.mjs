@@ -1,4 +1,4 @@
-import * as joint from '../../../joint.mjs';
+import * as joint from '../../../../rappid/rappid.mjs';
 
 export const debugConf = {
     showGraph: false,
@@ -9,6 +9,9 @@ export const debugConf = {
     plannerBenchmark: true,
     routerBenchmark: false,
     fullRouterBenchmark: true,
+
+    // demo project setup
+    graphType: 'random' // grid-layout or random
 }
 export const debugStore = {
     gridPrinted: false,
@@ -22,7 +25,7 @@ export const debugLog = function () {};
 export function showDebugGraph(pathfinder) {
     const { planner, step, _graph: graph } = pathfinder;
     const c = new joint.shapes.standard.Circle({
-        type: 'dc',
+        debugIgnore: true,
         position: { x: 0, y: 0 },
         size: { width: 10, height: 10 },
         attrs: {
@@ -38,7 +41,7 @@ export function showDebugGraph(pathfinder) {
     });
 
     const l = new joint.shapes.standard.Link({
-        type: 'dl',
+        debugIgnore: true,
         router: {
             name: 'normal'
         },
@@ -86,7 +89,7 @@ export function showDebugGraph(pathfinder) {
 export function showDebugGrid(pathfinder) {
     const { grid, step, _graph: graph } = pathfinder;
     const ro = new joint.shapes.standard.Rectangle({
-        type: 'dc',
+        debugIgnore: true,
         position: { x: 0, y: 0 },
         size: { width: step, height: step },
         attrs: {
@@ -103,7 +106,7 @@ export function showDebugGrid(pathfinder) {
     const gridCells = [];
     for (let i = 0; i < grid.shape[0]; i++) {
         for (let j = 0; j < grid.shape[1]; j++) {
-            if (grid.get(i, j) !== 0) {
+            if (grid.getBinary(i, j) === 1) {
                 const dc = ro.clone();
                 dc.position(i * step, j * step);
                 gridCells.push(dc);
