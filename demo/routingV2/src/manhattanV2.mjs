@@ -1,4 +1,5 @@
-import * as joint from '../../../joint.mjs';
+// import * as joint from '../../../joint.mjs';
+import * as joint from '../../../../rappid/rappid.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
 import { debugConf, debugStore } from './debug.mjs';
 
@@ -81,31 +82,39 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 }
 
-const { width, height } = paper.getComputedSize(), obstacles = [], obstacleCount = 5000;
-for (let i = 0; i < obstacleCount; i++) {
-    const obs = obstacle.clone();
-    obs.translate(getRandomInt(source.size().width * 2, width - target.size().width * 2 - obs.size().width), getRandomInt(50, height - obs.size().height));
-    obstacles.push(obs);
+const { width, height } = paper.getComputedSize(), sources = [], targets = [], pairsCount = 1000;
+for (let i = 0; i < pairsCount; i++) {
+    const s = source.clone();
+    s.translate(Math.random() * (width - s.size().width), Math.random() * (height - s.size().height));
+
+    const t = target.clone();
+    t.translate(Math.random() * (width - t.size().width), Math.random() * (height - t.size().height));
+
+    sources.push(s);
+    targets.push(t);
 }
 
-// ======= More source/target pairs
-const pairsCount = Math.floor(height / source.size().height / 2), stPairs = [];
-for (let i = 0; i < pairsCount; i++) {
-   const s = source.clone();
-   s.translate(50, i * (s.size().height * 2) + 50);
-
-   const t = target.clone();
-   t.translate(width - t.size().width - 50, i * (t.size().height * 2) + 50);
-   const l = link.clone();
-
+const st = [...sources, ...targets].sort(() => (Math.random() > .5 ? 1 : -1));
+const toLink = [...targets], links = [];
+sources.forEach(s => {
+    const i = getRandomInt(0, toLink.length);
+    const [t] = toLink.splice(i, 1);
+    const l = link.clone();
     l.set('source', { id: s.id });
     l.set('target', { id: t.id });
 
-   stPairs.push(...[s, t, l]);
-}
+    links.push(l);
+});
 
 // ======= Init
-graph.addCells([...stPairs, ...obstacles]);
+graph.addCells([...st, ...links]);
+
+const layout = joint.layout;
+layout.GridLayout.layout(graph, {
+    columns: 40,
+    columnWidth: 250,
+    rowHeight: 150
+});
 
 // ======= Demo events - TO BE REMOVED
 paper.on('link:mouseenter', function(linkView) {
