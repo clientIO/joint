@@ -5,6 +5,7 @@ import Obstacle from './Obstacle.mjs';
 import { debugConf, debugLog } from '../debug.mjs';
 
 export default class Pathfinder {
+
     constructor(graph, paper, {
         step = 10,
         padding = 0,
@@ -13,17 +14,25 @@ export default class Pathfinder {
             return debugLog('Pathfinder requires an instance of dia.Graph.');
         }
 
-        this.grid = new Grid(step, paper.getComputedSize());
+        // temporary
         this.planner = null;
 
-        // todo: abstract config object
+        // Grid
+        const { width, height } = getGridSize(paper, step);
+        this.grid = new Grid(step, width, height);
         this.step = step;
         this.padding = padding;
-
         this._obstacles = {};
         this._cells = {};
+
+        // Pathfinding
+        // this.from = null;
+        // this.to = null;
+
+        // References
         this._graph = graph;
 
+        // Flags
         this._dirty = false;
     }
 
@@ -73,22 +82,29 @@ export default class Pathfinder {
     }
 
     getObstaclesInArea(rect) {
-        const fragment = this.grid.getFragment(Obstacle.rectToBounds(rect));
+        const fragment = this.grid.getFragment(Obstacle.rectToBounds(rect, this.step));
 
-        const cells = {};
+        const obstacles = {};
         for(let i = 0; i < fragment.shape[0]; ++i) {
             for(let j = 0; j < fragment.shape[1]; ++j) {
-                const ids = fragment.data.item(fragment.index(i, j));
-                if (ids) {
-                    Object.keys(ids).forEach(id => {
-                        if (this._obstacles[id]) {
-                            cells[id] = this._obstacles[id];
-                        }
-                    });
+                const node = fragment.data.item(fragment.index(i, j));
+                if (node === undefined) {
+                    continue;
                 }
+
+                Object.assign(obstacles, node.obstacles);
             }
         }
 
-        return cells;
+        return Object.keys(obstacles).map((id) => this._obstacles[id]._cell);
+    }
+}
+
+const getGridSize = (paper, step) => {
+    const { width, height } = paper.getComputedSize();
+
+    return {
+        width: Math.ceil(width / step),
+        height: Math.ceil(height / step)
     }
 }

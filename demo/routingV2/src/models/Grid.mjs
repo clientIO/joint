@@ -2,39 +2,51 @@ import ndarray from 'ndarray';
 import HashStore from '../structures/HashStore.mjs';
 
 export default class Grid {
-    constructor(step, dimensions) {
+    constructor(step, width, height) {
+        this._width = width;
+        this._height = height;
         this._step = step;
-        this._nd = ndarray(new HashStore(), [
-            Math.ceil(dimensions.width / step),
-            Math.ceil(dimensions.height / step)
-        ]);
+        this._array = ndarray(new HashStore(), [width, height]);
     }
 
     get(x, y) {
-        return this._nd.data.item(this._nd.index(x, y));
+        return this._array.data.item(this._array.index(x, y));
     }
 
     getBinary(x, y) {
-        return this._nd.get(x, y);
+        return this._array.get(x, y);
     }
 
     getFragment(bounds) {
         const { hi, lo } = bounds;
-        return this._nd.hi(hi.x, hi.y).lo(lo.x, lo.y);
+        return this._array.hi(hi.x, hi.y).lo(lo.x, lo.y);
     }
 
     set(x, y, v) {
-        this._nd.set(this._nd.index(x, y), v);
+        this._array.set(this._array.index(x, y), v);
     }
 
     remove(x, y) {
-        this._nd.remove(this._nd.index(x, y));
+        this._array.remove(this._array.index(x, y));
     }
 
-    getObstacleBlob(x, y, grid, {
+    get shape() {
+        return this._array.shape;
+    }
+
+    get step() {
+        return this._step;
+    }
+
+    get data() {
+        return this._array;
+    }
+
+    // helpers
+    getObstacleBlob(x, y, {
         maxLoops = 1000,
     } = {}) {
-        if (grid.getBinary(x, y) === 0) return null;
+        if (this.getBinary(x, y) === 0) return null;
 
         const startKey = `${x};${y}`
         const frontier = { [startKey]: { x, y }}, visited = {}, nodes = [];
@@ -56,7 +68,7 @@ export default class Grid {
                     return;
                 }
 
-                if (grid.getBinary(neighbour.x, neighbour.y) === 1) {
+                if (this.getBinary(neighbour.x, neighbour.y) === 1) {
                     frontier[neighbourKey] = neighbour;
                 } else {
                     visited[neighbourKey] = true;
@@ -69,17 +81,5 @@ export default class Grid {
         }
 
         return nodes;
-    }
-
-    get shape() {
-        return this._nd.shape;
-    }
-
-    get step() {
-        return this._step;
-    }
-
-    get data() {
-        return this._nd;
     }
 }

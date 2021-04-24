@@ -1,7 +1,7 @@
 // import * as joint from '../../../joint.mjs';
-import * as PF from 'pathfinding';
 import * as joint from '../../../../rappid/rappid.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
+import { JumpPointFinder } from './finders/index.mjs';
 import { debugConf, debugStore, showDebugGraph, showDebugGrid } from './debug.mjs';
 
 // ======= Router config
@@ -230,8 +230,8 @@ if (debugConf.graphType === 'grid-layout') {
 }
 
 // ======= V2 Router
+// todo: move to l1.mjs
 function routingStrategyL1(vertices, args, linkView) {
-    // todo: switch on strategy/algorithm
 
     // this is all POC code to find the visual results we're happy with
     if (vertices.length > 0) {
@@ -333,12 +333,12 @@ function routingStrategyL1(vertices, args, linkView) {
 
             const fromX = Math.floor(from.x / config.step), fromY = Math.floor(from.y / config.step);
             if (pathfinder.grid.getBinary(fromX, fromY) === 1) {
-                fromObstacleNodes = pathfinder.grid.getObstacleBlob(fromX, fromY, pathfinder.grid);
+                fromObstacleNodes = pathfinder.grid.getObstacleBlob(fromX, fromY);
             }
 
             const toX = Math.floor(to.x / config.step), toY = Math.floor(to.y / config.step);
             if (pathfinder.grid.getBinary(toX, toY) === 1) {
-                toObstacleNodes = pathfinder.grid.getObstacleBlob(toX, toY, pathfinder.grid);
+                toObstacleNodes = pathfinder.grid.getObstacleBlob(toX, toY);
             }
 
 
@@ -551,33 +551,13 @@ function routingStrategyAStar(vertices, args, linkView) {
     const endX = Math.floor(end.x / config.step);
     const endY = Math.floor(end.y / config.step);
 
-    const pfGrid = new PF.Grid(pathfinder.grid.shape[0], pathfinder.grid.shape[1]);
-
-    for (let x = 0; x < pathfinder.grid.shape[0]; x++) {
-        for (let y = 0; y < pathfinder.grid.shape[1]; y++) {
-            if (pathfinder.grid.getBinary(x, y) === 1) {
-                pfGrid.setWalkableAt(x, y, false);
-            }
-        }
-    }
-
-    const pfFinder = new PF.JumpPointFinder({
-        heuristic: function(dx, dy) {
-            return dx + dy;
-        },
-        diagonalMovement: PF.DiagonalMovement.Never
-    });
-
-    const path = pfFinder.findPath(startX, startY, endX, endY, pfGrid);
-
-    const verts = path.map(item => {
-        return new joint.g.Point(item[0] * config.step, item[1] * config.step)
-    });
+    const finder = new JumpPointFinder({ grid: pathfinder.grid });
+    const path = finder.findPath(startX, startY, endX, endY);
 
     const e = window.performance.now();
     console.warn('Took ' + (e - s).toFixed(2) + 'ms to calculate path.');
 
-    return verts;
+    return path;
 
     function bboxToPoint(bbox, dir) {
         const pts = {
