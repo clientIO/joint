@@ -15,39 +15,58 @@ export class JumpPointFinder {
         this.openList = null;
     }
 
-    findPath(start, end) {
-        this.nodes = [];
-
+    findPath(start, end, vertices = []) {
         const { step } = this.grid;
 
-        const sx = Math.floor(start.x / step),
-            sy = Math.floor(start.y / step),
-            ex = Math.floor(end.x / step),
-            ey = Math.floor(end.y / step)
-
+        this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
-        const startNode = this.startNode = this._getNodeAt(sx, sy);
-        const endNode = this.endNode = this._getNodeAt(ex, ey);
 
-        startNode.g = 0;
-        startNode.f = 0;
+        let from, to, path = [], partial = [], finalNode = null;
+        for (let i = 0; i <= vertices.length; i++) {
+            from = to || start;
+            to = vertices[i];
 
-        openList.push(startNode);
-        startNode.opened = true;
-
-        let node;
-        while (!openList.empty()) {
-            node = openList.pop();
-            node.closed = true;
-
-            if (node.isEqual(ex, ey)) {
-                return adjust(backtrace(endNode, step), start, end);
+            if (!to) {
+                to = end;
             }
 
-            this._identifySuccessors(node);
+            const sx = Math.floor(from.x / step),
+                sy = Math.floor(from.y / step),
+                ex = Math.floor(to.x / step),
+                ey = Math.floor(to.y / step);
+
+            const startNode = this.startNode = this._getNodeAt(sx, sy);
+            const endNode = this.endNode = this._getNodeAt(ex, ey);
+
+            startNode.g = 0;
+            startNode.f = 0;
+
+            openList.push(startNode);
+            startNode.opened = true;
+
+            let node;
+            while (!openList.empty()) {
+                node = openList.pop();
+                node.closed = true;
+
+                if (node.isEqual(ex, ey)) {
+                    finalNode = endNode;
+                    break;
+                }
+
+                this._identifySuccessors(node);
+            }
+
+            if (i === vertices.length) {
+                break;
+            }
         }
 
-        return [];
+        if (finalNode) {
+            path = adjust(backtrace(finalNode, step), start, end);
+        }
+
+        return path;
     }
 
     _identifySuccessors(node) {

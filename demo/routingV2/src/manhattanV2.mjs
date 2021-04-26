@@ -21,12 +21,9 @@ const config = {
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 20000,
-    height: 20000,
+    width: 1000,
+    height: 700,
     gridSize: config.step,
-    interactive: {
-        elementMove: false
-    },
     async: true,
     model: graph,
     defaultRouter: routingStrategyAStar
@@ -68,31 +65,30 @@ graph.on('change:size', function(cell) {
     console.log('size');
 });
 
-paper.on('element:pointermove', function(view, evt, x, y) {
-    const data = evt.data;
-    let ghost = data.ghost;
-    if (!ghost) {
-        const position = view.model.position();
-        ghost = view.vel.clone();
-        ghost.attr('opacity', 0.3);
-        ghost.appendTo(this.viewport);
-        evt.data.ghost = ghost;
-        evt.data.dx = x - position.x;
-        evt.data.dy = y - position.y;
-    }
-    const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
-    ghost.attr('transform', 'translate(' + [pt.x, pt.y] + ')');
-});
-
-paper.on('element:pointerup', function(view, evt, x, y) {
-    let data = evt.data;
-    if (data.ghost) {
-        data.ghost.remove();
-        const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
-        view.model.position(pt.x, pt.y);
-    }
-});
-
+// paper.on('element:pointermove', function(view, evt, x, y) {
+//     const data = evt.data;
+//     let ghost = data.ghost;
+//     if (!ghost) {
+//         const position = view.model.position();
+//         ghost = view.vel.clone();
+//         ghost.attr('opacity', 0.3);
+//         ghost.appendTo(this.viewport);
+//         evt.data.ghost = ghost;
+//         evt.data.dx = x - position.x;
+//         evt.data.dy = y - position.y;
+//     }
+//     const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
+//     ghost.attr('transform', 'translate(' + [pt.x, pt.y] + ')');
+// });
+//
+// paper.on('element:pointerup', function(view, evt, x, y) {
+//     let data = evt.data;
+//     if (data.ghost) {
+//         data.ghost.remove();
+//         const pt = new joint.g.Point(x - data.dx, y - data.dy).snapToGrid(config.step);
+//         view.model.position(pt.x, pt.y);
+//     }
+// });
 paper.on('render:done', function() {
     if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
         console.warn('Took ' + debugStore.fullRouterTime.toFixed(2) + 'ms to calculate all routes.');
@@ -111,15 +107,15 @@ paper.on('render:done', function() {
 });
 
 // ======= Demo events - TO BE REMOVED
-paper.on('link:mouseenter', function(linkView) {
-    const tools = new joint.dia.ToolsView({
-        tools: [new joint.linkTools.Vertices()]
-    });
-    linkView.addTools(tools);
-});
-paper.on('link:mouseleave', function(linkView) {
-    linkView.removeTools();
-});
+// paper.on('link:mouseenter', function(linkView) {
+//     const tools = new joint.dia.ToolsView({
+//         tools: [new joint.linkTools.Vertices()]
+//     });
+//     linkView.addTools(tools);
+// });
+// paper.on('link:mouseleave', function(linkView) {
+//     linkView.removeTools();
+// });
 
 // ======= Shapes
 const source = new joint.shapes.standard.Rectangle({
@@ -203,7 +199,7 @@ if (debugConf.graphType === 'grid-layout') {
         rowHeight: 150
     });
 } else {
-    const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 1000;
+    const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 8;
     for (let i = 0; i < obsCount; i++) {
         const obs = obstacle.clone();
         obs.translate(200 + Math.random() * (width - 500), 50 + Math.random() * (height - 100));
@@ -547,7 +543,7 @@ function routingStrategyAStar(vertices, args, linkView) {
 
     const finder = new JumpPointFinder({ grid: pathfinder.grid });
     console.time('Calculate path');
-    const path = finder.findPath(start, end);
+    const path = finder.findPath(start, end, vertices);
     console.timeEnd('Calculate path');
 
     return path;
