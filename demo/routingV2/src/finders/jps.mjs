@@ -1,6 +1,5 @@
 import BinaryHeap from '../structures/BinaryHeap.mjs';
 import GridNode from '../models/GridNode.mjs';
-import HashStore from '../structures/HashStore.mjs';
 
 export class JumpPointFinder {
 
@@ -16,14 +15,19 @@ export class JumpPointFinder {
         this.openList = null;
     }
 
-    findPath(startX, startY, endX, endY, {
-        returnLocalPath = false
-    } = {}) {
-        this.nodesHash = new HashStore();
+    findPath(start, end) {
+        this.nodes = [];
+
+        const { step } = this.grid;
+
+        const sx = Math.floor(start.x / step),
+            sy = Math.floor(start.y / step),
+            ex = Math.floor(end.x / step),
+            ey = Math.floor(end.y / step)
 
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
-        const startNode = this.startNode = this._getNodeAt(startX, startY);
-        const endNode = this.endNode = this._getNodeAt(endX, endY);
+        const startNode = this.startNode = this._getNodeAt(sx, sy);
+        const endNode = this.endNode = this._getNodeAt(ex, ey);
 
         startNode.g = 0;
         startNode.f = 0;
@@ -36,9 +40,8 @@ export class JumpPointFinder {
             node = openList.pop();
             node.closed = true;
 
-            if (node.isEqual(endNode)) {
-                const step = returnLocalPath ? 1 : this.grid.step;
-                return backtrace(endNode, step);
+            if (node.isEqual(ex, ey)) {
+                return adjust(backtrace(endNode, step), start, end);
             }
 
             this._identifySuccessors(node);
@@ -55,8 +58,8 @@ export class JumpPointFinder {
         let neighbors, neighbor,
             jumpPoint, i, l,
             x = node.x, y = node.y,
-            jx, jy, dx, dy, d, ng, jumpNode,
-            abs = Math.abs, max = Math.max;
+            jx, jy, d, ng, jumpNode,
+            abs = Math.abs;
 
         neighbors = this._findNeighbors(node);
         for(i = 0, l = neighbors.length; i < l; ++i) {
@@ -79,6 +82,9 @@ export class JumpPointFinder {
                 if (!jumpNode.opened || ng < jumpNode.g) {
                     jumpNode.g = ng;
                     jumpNode.h = jumpNode.h || heuristic(abs(jx - endX), abs(jy - endY));
+                    if (isBend(node, jumpNode)) {
+                        jumpNode.h += 1;
+                    }
                     jumpNode.f = jumpNode.g + jumpNode.h;
                     jumpNode.parent = node;
 
@@ -95,8 +101,9 @@ export class JumpPointFinder {
 
     _findNeighbors(node) {
         const parent = node.parent,
-            x = node.x, y = node.y;
-        let px, py, nx, ny, dx, dy,
+            x = node.x, y = node.y,
+            grid = this.grid;
+        let px, py, dx, dy,
             neighbors = [], neighborNodes, neighborNode, i, l;
 
         // directed pruning: can ignore most neighbors, unless forced.
@@ -108,24 +115,24 @@ export class JumpPointFinder {
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
             if (dx !== 0) {
-                if (this._isWalkableAt(x, y - 1)) {
+                if (grid.isFree(x, y - 1)) {
                     neighbors.push([x, y - 1]);
                 }
-                if (this._isWalkableAt(x, y + 1)) {
+                if (grid.isFree(x, y + 1)) {
                     neighbors.push([x, y + 1]);
                 }
-                if (this._isWalkableAt(x + dx, y)) {
+                if (grid.isFree(x + dx, y)) {
                     neighbors.push([x + dx, y]);
                 }
             }
             else if (dy !== 0) {
-                if (this._isWalkableAt(x - 1, y)) {
+                if (grid.isFree(x - 1, y)) {
                     neighbors.push([x - 1, y]);
                 }
-                if (this._isWalkableAt(x + 1, y)) {
+                if (grid.isFree(x + 1, y)) {
                     neighbors.push([x + 1, y]);
                 }
-                if (this._isWalkableAt(x, y + dy)) {
+                if (grid.isFree(x, y + dy)) {
                     neighbors.push([x, y + dy]);
                 }
             }
@@ -143,25 +150,25 @@ export class JumpPointFinder {
     };
 
     _jump(x, y, px, py) {
-        const dx = x - px, dy = y - py;
+        const dx = x - px, dy = y - py, grid = this.grid;
 
-        if (!this._isWalkableAt(x, y)) {
+        if (!grid.isFree(x, y)) {
             return null;
         }
 
-        if (this._getNodeAt(x, y).isEqual(this.endNode)) {
+        if (this._getNodeAt(x, y).isEqual(this.endNode.x, this.endNode.y)) {
             return [x, y];
         }
 
         if (dx !== 0) {
-            if ((this._isWalkableAt(x, y - 1) && !this._isWalkableAt(x - dx, y - 1)) ||
-                (this._isWalkableAt(x, y + 1) && !this._isWalkableAt(x - dx, y + 1))) {
+            if ((grid.isFree(x, y - 1) && !grid.isFree(x - dx, y - 1)) ||
+                (grid.isFree(x, y + 1) && !grid.isFree(x - dx, y + 1))) {
                 return [x, y];
             }
         }
         else if (dy !== 0) {
-            if ((this._isWalkableAt(x - 1, y) && !this._isWalkableAt(x - 1, y - dy)) ||
-                (this._isWalkableAt(x + 1, y) && !this._isWalkableAt(x + 1, y - dy))) {
+            if ((grid.isFree(x - 1, y) && !grid.isFree(x - 1, y - dy)) ||
+                (grid.isFree(x + 1, y) && !grid.isFree(x + 1, y - dy))) {
                 return [x, y];
             }
             //When moving vertically, must check for horizontal jump points
@@ -177,49 +184,43 @@ export class JumpPointFinder {
     }
 
     _getNodeAt(x, y) {
-        const hash = x + ';' + y;
-        let node = this.nodesHash.item(hash);
-        if (node === undefined) {
-            const walkable = this.grid.getBinary(x, y) === 0;
-            node = new GridNode(x, y, walkable);
-            this.nodesHash.set(hash, node);
+        let col = this.nodes[x];
+        if (!col) {
+            this.nodes[x] = col = [];
+        }
+
+        let node = col[y];
+        if (!node) {
+            this.nodes[x][y] = node = new GridNode(x, y, this.grid.isFree(x, y));
         }
         return node;
     }
 
     _getNeighbors(node) {
-        const x = node.x, y = node.y, neighbors = [];
+        const x = node.x, y = node.y, neighbors = [], grid = this.grid;
 
         // up
-        if (this._isWalkableAt(x, y - 1)) {
+        if (grid.isFree(x, y - 1)) {
             const n = this._getNodeAt(x, y - 1);
             neighbors.push(n);
         }
         // right
-        if (this._isWalkableAt(x + 1, y)) {
+        if (grid.isFree(x + 1, y)) {
             const n = this._getNodeAt(x + 1, y);
             neighbors.push(n);
         }
         // down
-        if (this._isWalkableAt(x, y + 1)) {
+        if (grid.isFree(x, y + 1)) {
             const n = this._getNodeAt(x, y + 1);
             neighbors.push(n);
         }
         // left
-        if (this._isWalkableAt(x - 1, y)) {
+        if (grid.isFree(x - 1, y)) {
             const n = this._getNodeAt(x - 1, y);
             neighbors.push(n);
         }
 
         return neighbors;
-    }
-
-    _isWalkableAt(x, y) {
-        return this._isCoordinateOnGrid(x, y) && this._getNodeAt(x, y).walkable;
-    }
-
-    _isCoordinateOnGrid(x, y) {
-        return (x >= 0 && x < this.grid._width) && (y >= 0 && y < this.grid._height);
     }
 }
 
@@ -232,7 +233,37 @@ const backtrace = function(node, step) {
     return path.reverse();
 }
 
+const adjust = function(path, start, end) {
+    // adjust start segment to original start point coordinates
+    const startAxis = path[0].x !== start.x ? 'x': 'y';
+    const startVal = path[0][startAxis];
+    let si = 0, sv = path[si];
+    while (sv && sv[startAxis] === startVal) {
+        path[si][startAxis] = start[startAxis];
+        si += 1;
+        sv = path[si];
+    }
+
+    // adjust end segment to original end point coordinates
+    const endAxis = path[path.length - 1].x !== end.x ? 'x' : 'y';
+    const endVal = path[path.length - 1][endAxis];
+    let ei = path.length - 1, ev = path[ei];
+    while (ev && ei >= si && ev[endAxis] === endVal) {
+        path[ei][endAxis] = end[endAxis];
+        ei -= 1;
+        ev = path[ei];
+    }
+
+    return path;
+}
+
 const octile = function(dx, dy) {
     const F = Math.SQRT2 - 1;
     return (dx < dy) ? F * dx + dy : F * dy + dx;
+}
+
+const isBend = function(node, jumpNode) {
+    return node.parent &&
+        ((node.parent.x === node.x && node.x !== jumpNode.x) ||
+        (node.parent.y === node.y && node.y !== jumpNode.y))
 }

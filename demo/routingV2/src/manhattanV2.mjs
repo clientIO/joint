@@ -21,8 +21,8 @@ const config = {
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 10000,
-    height: 10000,
+    width: 20000,
+    height: 20000,
     gridSize: config.step,
     interactive: {
         elementMove: false
@@ -542,20 +542,13 @@ function getSortedDirections(from, to, directions) {
 }
 
 function routingStrategyAStar(vertices, args, linkView) {
-    const s = window.performance.now();
     const start = bboxToPoint(linkView.sourceBBox, 'right');
-    const startX = Math.floor(start.x / config.step);
-    const startY = Math.floor(start.y / config.step);
-
     const end = bboxToPoint(linkView.targetBBox, 'left');
-    const endX = Math.floor(end.x / config.step);
-    const endY = Math.floor(end.y / config.step);
 
     const finder = new JumpPointFinder({ grid: pathfinder.grid });
-    const path = finder.findPath(startX, startY, endX, endY);
-
-    const e = window.performance.now();
-    console.warn('Took ' + (e - s).toFixed(2) + 'ms to calculate path.');
+    console.time('Calculate path');
+    const path = finder.findPath(start, end);
+    console.timeEnd('Calculate path');
 
     return path;
 

@@ -11,26 +11,7 @@ export default class GridNode {
         this.closed = false;
     }
 
-    linkObstacle(i) {
-        if (this.obstacles === null) {
-            this.obstacles = {};
-        }
-        this.obstacles[i] = true;
-        this.walkable = false;
-    }
-
-    unlinkObstacle(i) {
-        delete this.obstacles[i];
-        if (Object.keys(this.obstacles).length === 0) {
-            this.walkable = true;
-        }
-    }
-
-    isWalkable() {
-        return this.walkable;
-    }
-
-    isEqual(node) {
-        return node instanceof GridNode && this.x === node.x && this.y === node.y;
+    isEqual(x, y) {
+        return this.x === x && this.y === y;
     }
 }
