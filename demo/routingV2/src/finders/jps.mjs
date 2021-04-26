@@ -235,7 +235,7 @@ const backtrace = function(node, step) {
 
 const adjust = function(path, start, end) {
     // adjust start segment to original start point coordinates
-    const startAxis = path[0].x !== start.x ? 'x': 'y';
+    const startAxis = path[0].x === path[1].x ? 'x': 'y';
     const startVal = path[0][startAxis];
     let si = 0, sv = path[si];
     while (sv && sv[startAxis] === startVal) {
@@ -244,14 +244,26 @@ const adjust = function(path, start, end) {
         sv = path[si];
     }
 
+    if (startAxis === 'x') {
+        path[0].y = start.y;
+    } else {
+        path[0].x = start.x;
+    }
+
     // adjust end segment to original end point coordinates
-    const endAxis = path[path.length - 1].x !== end.x ? 'x' : 'y';
+    const endAxis = path[path.length - 1].x === path[path.length - 2].x ? 'x' : 'y';
     const endVal = path[path.length - 1][endAxis];
     let ei = path.length - 1, ev = path[ei];
     while (ev && ei >= si && ev[endAxis] === endVal) {
         path[ei][endAxis] = end[endAxis];
         ei -= 1;
         ev = path[ei];
+    }
+
+    if (endAxis === 'x') {
+        path[path.length - 1].y = end.y;
+    } else {
+        path[path.length - 1].x = end.x;
     }
 
     return path;
