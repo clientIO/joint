@@ -234,9 +234,19 @@ const backtrace = function(node, step) {
 }
 
 const adjust = function(path, start, end) {
+    if (path.length === 0) {
+        return path;
+    }
+
+    const p0 = path[0];
+    let p1 = path[1];
+    if (!p0) {
+        p1 = p0;
+    }
+
     // adjust start segment to original start point coordinates
-    const startAxis = path[0].x === path[1].x ? 'x': 'y';
-    const startVal = path[0][startAxis];
+    const startAxis = p0.x === p1.x ? 'x': 'y';
+    const startVal = p0[startAxis];
     let si = 0, sv = path[si];
     while (sv && sv[startAxis] === startVal) {
         path[si][startAxis] = start[startAxis];
