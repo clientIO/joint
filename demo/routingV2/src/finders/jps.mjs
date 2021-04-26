@@ -240,7 +240,7 @@ const adjust = function(path, start, end) {
 
     const p0 = path[0];
     let p1 = path[1];
-    if (!p0) {
+    if (!p1) {
         p1 = p0;
     }
 
@@ -261,10 +261,15 @@ const adjust = function(path, start, end) {
     }
 
     // adjust end segment to original end point coordinates
-    const endAxis = path[path.length - 1].x === path[path.length - 2].x ? 'x' : 'y';
-    const endVal = path[path.length - 1][endAxis];
+    const pLast = path[path.length - 1];
+    let pPrev = path[path.length - 2];
+    if (!pPrev) {
+        pPrev = pLast;
+    }
+    const endAxis = pLast.x === pPrev.x ? 'x' : 'y';
+    const endVal = pLast[endAxis];
     let ei = path.length - 1, ev = path[ei];
-    while (ev && ei >= si && ev[endAxis] === endVal) {
+    while (ev && ev[endAxis] === endVal) {
         path[ei][endAxis] = end[endAxis];
         ei -= 1;
         ev = path[ei];
@@ -274,6 +279,10 @@ const adjust = function(path, start, end) {
         path[path.length - 1].y = end.y;
     } else {
         path[path.length - 1].x = end.x;
+    }
+
+    if (path[0].x !== start.x || path[0].y !== start.y) {
+        path.unshift(start);
     }
 
     return path;
