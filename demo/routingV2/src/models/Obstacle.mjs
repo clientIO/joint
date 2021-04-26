@@ -20,7 +20,12 @@ export default class Obstacle {
             for(let j = 0; j < prevFragment.shape[1]; ++j) {
                 let prev = prevFragment.data.item(prevFragment.index(i, j)) || {};
                 delete prev[this.index];
-                prevFragment.set(i, j, prev);
+
+                if (Object.keys(prev).length === 0) {
+                    prevFragment.data.remove(prevFragment.index(i, j));
+                } else {
+                    prevFragment.set(i, j, prev);
+                }
             }
         }
 
