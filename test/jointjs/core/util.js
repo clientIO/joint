@@ -199,7 +199,6 @@ QUnit.module('util', function(hooks) {
             r = joint.util.breakText(t, { width: 2 * WIDTH }, styles);
             assert.equal(r, 'test-hyphen');
 
-            // by default characters that are not letters or number are treated as hyphens
             r = joint.util.breakText(t2, { width: 2 * WIDTH }, styles);
             assert.equal(r, 'asdfWETUIOPj[\nJF', 'Inserts new line character after "[" character.');
 
