@@ -474,7 +474,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
     var separator = opt.separator || ' ';
     var eol = opt.eol || '\n';
-    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[\-]/;
+    var hyphen = opt.hyphen ? new RegExp(opt.hyphen) : /[^\w\d]/;
     var maxLineCount = opt.maxLineCount;
     if (!isNumber(maxLineCount)) maxLineCount = Infinity;
 
@@ -565,7 +565,7 @@ export const breakText = function(text, size, styles = {}, opt = {}) {
 
                         // move last letter to the beginning of the next word
                         words[i] = word.substring(0, p);
-                        words[i + 1] = word.substring(p) + (words[i + 1] ? words[i + 1] : '');
+                        words[i + 1] = word.substring(p) + (words[i + 1] === undefined ? '' : words[i + 1]);
 
                     } else {
 
