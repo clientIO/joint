@@ -21,7 +21,7 @@ export class JumpPointFinder {
         this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
-        let from, to, found, path = [], partial = [], finalNode = null;
+        let from, to, path = [], found;
         for (let i = 0; i <= vertices.length; i++) {
             found = false;
             from = to || start;
@@ -47,7 +47,22 @@ export class JumpPointFinder {
                 node.closed = true;
 
                 if (node.isEqual(ex, ey)) {
-                    partial.push(...backtrace(node, step));
+                    let segment = backtrace(node, step);
+
+                    // adjust only first/last/only segment
+                    // else it's mid segment - no need to adjust anything
+                    if (i === 0 && i !== vertices.length) {
+                        // first of 2+ segments
+                        segment = adjust(segment, { start });
+                    } else if (i !== 0 && i === vertices.length) {
+                        // last of 2+ segments
+                        segment = adjust(segment, { end });
+                    } else if (i === 0 && i === vertices.length) {
+                        // only segment
+                        segment = adjust(segment, { start, end });
+                    }
+
+                    path.push(...segment);
                     found = true;
                     this.nodes = [];
                     this.openList.clear();
@@ -66,9 +81,7 @@ export class JumpPointFinder {
             }
         }
 
-        // todo: fix adjust to work with added vertices
-        // return adjust(partial, start, end);
-        return partial;
+        return path;
     }
 
     _identifySuccessors(node) {
@@ -254,55 +267,61 @@ const backtrace = function(node, step) {
     return path.reverse();
 }
 
-const adjust = function(path, start, end) {
-    if (path.length === 0) {
+const adjust = function(path, { start, end } = {}) {
+    if (path.length === 0 || (!start && !end)) {
         return path;
     }
 
-    const p0 = path[0];
-    let p1 = path[1];
-    if (!p1) {
-        p1 = p0;
+    if (start) {
+        // adjust start segment to original start point coordinates
+        const p0 = path[0];
+        let p1 = path[1];
+        if (!p1) {
+            p1 = p0;
+        }
+
+        const startAxis = p0.x === p1.x ? 'x': 'y';
+        const startVal = p0[startAxis];
+        let si = 0, sv = path[si];
+        while (sv && sv[startAxis] === startVal) {
+            path[si][startAxis] = start[startAxis];
+            si += 1;
+            sv = path[si];
+        }
+
+        if (startAxis === 'x') {
+            path[0].y = start.y;
+        } else {
+            path[0].x = start.x;
+        }
     }
 
-    // adjust start segment to original start point coordinates
-    const startAxis = p0.x === p1.x ? 'x': 'y';
-    const startVal = p0[startAxis];
-    let si = 0, sv = path[si];
-    while (sv && sv[startAxis] === startVal) {
-        path[si][startAxis] = start[startAxis];
-        si += 1;
-        sv = path[si];
+    if (end) {
+        // adjust end segment to original end point coordinates
+        const pLast = path[path.length - 1];
+        let pPrev = path[path.length - 2];
+        if (!pPrev) {
+            pPrev = pLast;
+        }
+        const endAxis = pLast.x === pPrev.x ? 'x' : 'y';
+        const endVal = pLast[endAxis];
+        let ei = path.length - 1, ev = path[ei];
+        while (ev && ev[endAxis] === endVal) {
+            path[ei][endAxis] = end[endAxis];
+            ei -= 1;
+            ev = path[ei];
+        }
+
+        if (endAxis === 'x') {
+            path[path.length - 1].y = end.y;
+        } else {
+            path[path.length - 1].x = end.x;
+        }
     }
 
-    if (startAxis === 'x') {
-        path[0].y = start.y;
-    } else {
-        path[0].x = start.x;
-    }
-
-    // adjust end segment to original end point coordinates
-    const pLast = path[path.length - 1];
-    let pPrev = path[path.length - 2];
-    if (!pPrev) {
-        pPrev = pLast;
-    }
-    const endAxis = pLast.x === pPrev.x ? 'x' : 'y';
-    const endVal = pLast[endAxis];
-    let ei = path.length - 1, ev = path[ei];
-    while (ev && ev[endAxis] === endVal) {
-        path[ei][endAxis] = end[endAxis];
-        ei -= 1;
-        ev = path[ei];
-    }
-
-    if (endAxis === 'x') {
-        path[path.length - 1].y = end.y;
-    } else {
-        path[path.length - 1].x = end.x;
-    }
-
-    if (path[0].x !== start.x || path[0].y !== start.y) {
+    // if there's only start and end, and they do not align at this point
+    // add additional vertex to make the path look properly
+    if (start && (path[0].x !== start.x || path[0].y !== start.y)) {
         path.unshift(start);
     }
 
