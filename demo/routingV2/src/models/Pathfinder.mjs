@@ -22,6 +22,8 @@ export default class Pathfinder {
         this.grid = new Grid(step, width, height);
         this.step = step;
         this.padding = padding;
+
+        // todo: decide, should be kept within Grid?
         this._obstacles = {};
         this._cells = {};
 
@@ -37,12 +39,7 @@ export default class Pathfinder {
     }
 
     create() {
-        const start = window.performance.now();
         this.planner = createPlanner(this.grid);
-        const end = window.performance.now();
-        if (debugConf.plannerBenchmark) {
-            console.warn('Took ' + (end - start).toFixed(2) + 'ms to preprocess L1 Planner.');
-        }
     }
 
     search(sx, sy, tx, ty, path) {
