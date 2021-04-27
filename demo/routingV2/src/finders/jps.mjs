@@ -74,6 +74,7 @@ export class JumpPointFinder {
 
             if (!found) {
                 // todo: build orthogonal path segment
+                // orthogonal.mjs/insideElement()
             }
 
             if (i === vertices.length) {

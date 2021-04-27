@@ -1,14 +1,17 @@
-import { createPlanner } from '../l1/L1Planner.mjs';
 import Grid from './Grid.mjs';
 import Obstacle from './Obstacle.mjs';
 
-import { debugConf, debugLog } from '../debug.mjs';
+import { debugLog } from '../debug.mjs';
 
 export default class Pathfinder {
 
-    constructor(graph, paper, {
+    constructor({
+        graph,
+        paper,
         step = 10,
         padding = 0,
+        startDirections = ['top', 'right', 'bottom', 'left'],
+        endDirections = ['top', 'right', 'bottom', 'left'],
     } = {}) {
         if (!graph) {
             return debugLog('Pathfinder requires an instance of dia.Graph.');
@@ -36,22 +39,6 @@ export default class Pathfinder {
 
         // Flags
         this._dirty = false;
-    }
-
-    create() {
-        this.planner = createPlanner(this.grid);
-    }
-
-    search(sx, sy, tx, ty, path) {
-        if (this._dirty || !this.planner) {
-            this.create();
-            this._dirty = false;
-        }
-
-        // todo: set start/end points
-        // todo: set stops
-
-        return this.planner.search(sx, sy, tx, ty, path);
     }
 
     addObstacle(element) {
@@ -94,6 +81,16 @@ export default class Pathfinder {
         }
 
         return Object.keys(obstacles).map((id) => this._obstacles[id]._cell);
+    }
+
+    bboxToPoint(bbox, dir) {
+        const pts = {
+            top: bbox.topMiddle().translate(0, -(this.padding + this.step)),
+            right: bbox.rightMiddle().translate((this.padding + this.step), 0),
+            bottom: bbox.bottomMiddle().translate(0, (this.padding + this.step)),
+            left: bbox.leftMiddle().translate(-(this.padding + this.step), 0)
+        }
+        return pts[dir];
     }
 }
 

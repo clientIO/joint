@@ -4,16 +4,6 @@ import Pathfinder from './models/Pathfinder.mjs';
 import { JumpPointFinder } from './finders/index.mjs';
 import { debugConf, debugStore, showDebugGrid } from './debug.mjs';
 
-// ======= Router config
-const config = {
-    step: 20,
-    padding: 10, // joint.util.normalizeSides
-    startDirections: ['right'],
-    endDirections: ['left'],
-    excludeEnds: [],                                        // todo: 'source', 'target'
-    excludeTypes: [],                                       // todo: should we even have it in this form, or should it be done via obstacles API
-};
-
 // ===============================================================================
 // JointJS - Core
 // ===============================================================================
@@ -22,16 +12,21 @@ const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 1000,
     height: 700,
-    gridSize: config.step,
+    gridSize: 20,
     async: true,
     model: graph,
-    defaultRouter: routingStrategyJPS
+    defaultRouter: jumpPointSearch
 });
-
-// ===============================================================================
-// JointJS - Pathfinder
-// ===============================================================================
-const pathfinder = new Pathfinder(graph, paper, config);
+const pathfinder = new Pathfinder({
+    graph,
+    paper,
+    step: 20,
+    padding: 10,
+    startDirections: ['right'],
+    endDirections: ['left'],
+    // excludeEnds: [],
+    // excludeTypes: [],
+});
 
 // ======= Events
 graph.on('add', function(cell) {
@@ -161,11 +156,11 @@ for (let i = 0; i < pairsCount; i++) {
 graph.addCells([...stPairs, ...obstacles]);
 
 let s, e;
-function routingStrategyJPS(vertices, args, linkView) {
+function jumpPointSearch(vertices, args, linkView) {
 
     // todo: multiple start/end points
-    const start = bboxToPoint(linkView.sourceBBox, 'right');
-    const end = bboxToPoint(linkView.targetBBox, 'left');
+    const start = pathfinder.bboxToPoint(linkView.sourceBBox, 'right');
+    const end = pathfinder.bboxToPoint(linkView.targetBBox, 'left');
 
     const finder = new JumpPointFinder({ grid: pathfinder.grid });
 
@@ -179,15 +174,5 @@ function routingStrategyJPS(vertices, args, linkView) {
     }
 
     return path;
-
-    function bboxToPoint(bbox, dir) {
-        const pts = {
-            top: bbox.topMiddle().translate(0, -(config.padding + config.step)),
-            right: bbox.rightMiddle().translate((config.padding + config.step), 0),
-            bottom: bbox.bottomMiddle().translate(0, (config.padding + config.step)),
-            left: bbox.leftMiddle().translate(-(config.padding + config.step), 0)
-        }
-        return pts[dir];
-    }
 }
 
