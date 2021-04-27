@@ -107,15 +107,15 @@ paper.on('render:done', function() {
 });
 
 // ======= Demo events - TO BE REMOVED
-// paper.on('link:mouseenter', function(linkView) {
-//     const tools = new joint.dia.ToolsView({
-//         tools: [new joint.linkTools.Vertices()]
-//     });
-//     linkView.addTools(tools);
-// });
-// paper.on('link:mouseleave', function(linkView) {
-//     linkView.removeTools();
-// });
+paper.on('link:mouseenter', function(linkView) {
+    const tools = new joint.dia.ToolsView({
+        tools: [new joint.linkTools.Vertices()]
+    });
+    linkView.addTools(tools);
+});
+paper.on('link:mouseleave', function(linkView) {
+    linkView.removeTools();
+});
 
 // ======= Shapes
 const source = new joint.shapes.standard.Rectangle({

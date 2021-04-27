@@ -21,14 +21,11 @@ export class JumpPointFinder {
         this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
-        let from, to, path = [], partial = [], finalNode = null;
+        let from, to, found, path = [], partial = [], finalNode = null;
         for (let i = 0; i <= vertices.length; i++) {
+            found = false;
             from = to || start;
-            to = vertices[i];
-
-            if (!to) {
-                to = end;
-            }
+            to = vertices[i] || end;
 
             const sx = Math.floor(from.x / step),
                 sy = Math.floor(from.y / step),
@@ -36,7 +33,7 @@ export class JumpPointFinder {
                 ey = Math.floor(to.y / step);
 
             const startNode = this.startNode = this._getNodeAt(sx, sy);
-            const endNode = this.endNode = this._getNodeAt(ex, ey);
+            this.endNode = this._getNodeAt(ex, ey);
 
             startNode.g = 0;
             startNode.f = 0;
@@ -50,11 +47,18 @@ export class JumpPointFinder {
                 node.closed = true;
 
                 if (node.isEqual(ex, ey)) {
-                    finalNode = endNode;
+                    partial.push(...backtrace(node, step));
+                    found = true;
+                    this.nodes = [];
+                    this.openList.clear();
                     break;
                 }
 
                 this._identifySuccessors(node);
+            }
+
+            if (!found) {
+                // todo: build orthogonal path segment
             }
 
             if (i === vertices.length) {
@@ -62,11 +66,9 @@ export class JumpPointFinder {
             }
         }
 
-        if (finalNode) {
-            path = adjust(backtrace(finalNode, step), start, end);
-        }
-
-        return path;
+        // todo: fix adjust to work with added vertices
+        // return adjust(partial, start, end);
+        return partial;
     }
 
     _identifySuccessors(node) {

@@ -5,6 +5,7 @@ export default class GridNode {
 
         this.g = null;
         this.f = null;
+        this.h = null;
 
         this.walkable = walkable === undefined ? true : walkable;
         this.opened = false;
