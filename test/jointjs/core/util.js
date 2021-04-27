@@ -189,12 +189,27 @@ QUnit.module('util', function(hooks) {
         QUnit.test('hyphen', function(assert) {
 
             var WIDTH = 50;
-            var t, r;
+            var t, t2, t3, t4, r;
 
             t = 'test-hyphen';
+            t2 = 'asdfWETUIOPj[JF';
+            t3 = 'as[dsdfgdfWETUfIOPj';
+            t4 = 'WETUIOP[JF';
 
             r = joint.util.breakText(t, { width: 2 * WIDTH }, styles);
             assert.equal(r, 'test-hyphen');
+
+            r = joint.util.breakText(t2, { width: 2 * WIDTH }, styles);
+            assert.equal(r, 'asdfWETUIOPj[\nJF', 'Inserts new line character after "[" character.');
+
+            r = joint.util.breakText(t3, { width: 2 * WIDTH + 20 }, styles);
+            assert.equal(r, 'as[\ndsdfgdfWETUfIOPj', 'Inserts new line character after "[" character.');
+
+            r = joint.util.breakText(t3, { width: 2 * WIDTH }, styles);
+            assert.equal(r, 'as[\ndsdfgdfWETUfI\nOPj', 'Inserts two new line characters, one after "[" and one in second line when text is too long.');
+
+            r = joint.util.breakText(t4, { width: 2 * WIDTH }, styles);
+            assert.equal(r, 'WETUIOP[JF', 'Does not insert new line character when text fits in a single line.');
 
             r = joint.util.breakText(t, { width: WIDTH }, styles);
             assert.equal(r, 'test-\nhyphen');
