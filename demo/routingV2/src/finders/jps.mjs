@@ -1,5 +1,6 @@
 import BinaryHeap from '../structures/BinaryHeap.mjs';
 import GridNode from '../models/GridNode.mjs';
+import PathPoint from '../models/PathPoint.mjs';
 
 export class JumpPointFinder {
 
@@ -47,7 +48,11 @@ export class JumpPointFinder {
                 node.closed = true;
 
                 if (node.isEqual(ex, ey)) {
+                    // TODO: operations POC
                     let segment = backtrace(node, step);
+                    segment = toVectors(segment);
+                    segment = removeElbows(segment, this.grid);
+                    segment = scale(segment, step);
 
                     // adjust only first/last/only segment
                     // else it's mid segment - no need to adjust anything
@@ -259,13 +264,136 @@ export class JumpPointFinder {
     }
 }
 
-const backtrace = function(node, step) {
-    let path = [{ x: node.x * step, y: node.y * step }];
+const backtrace = function(node) {
+    let path = [{ x: node.x, y: node.y }];
     while (node.parent) {
         node = node.parent;
-        path.push({ x: node.x * step, y: node.y * step });
+        path.push({ x: node.x, y: node.y });
     }
+
     return path.reverse();
+}
+
+const toVectors = function(path) {
+    if (!path || path.length === 0) {
+        return [];
+    }
+
+    const conv = [];
+    path.forEach((point, index) => {
+        const prev = path[index - 1], next = path[index + 1];
+
+        let bearing = null, length = 0;
+        if (next) {
+            // not last
+            bearing = getBearing(point, next);
+            length = Math.abs(next.x - point.x) + Math.abs(next.y - point.y);
+        } else if (prev) {
+            // last
+            bearing = getBearing(prev, point);
+        }
+
+        conv.push(new PathPoint(point.x, point.y, bearing, length));
+    });
+
+    return conv;
+}
+
+// const simplify = function(path) {
+//     let i = 0;
+//     // leave last point untouched // todo: double same dir at end?
+//     while (i < path.length - 2) {
+//         const point = path[i];
+//         if (path[i + 1] && path[i + 1].bearing === point.bearing) {
+//             path.splice(i, 2, point);
+//         } else {
+//             i++;
+//         }
+//     }
+//
+//     return removeElbows(path);
+// }
+
+const removeElbows = function(path, grid) {
+    let i = 0;
+    while (i < path.length - 1) {
+        const current = path[i];
+        const next = path[i + 1];
+        const tested = path[i + 2];
+
+        if (tested === undefined) {
+            break;
+        }
+
+        if (next.bearing === current.bearing) {
+            current.length += next.length;
+            path.splice(i + 1, 1);
+            i = 0;
+        } else if (tested.bearing === current.bearing) {
+            const v1 = current.clone();
+            const v2 = next.clone();
+            const v3 = tested.clone();
+
+            v1.length += tested.length;
+            switch (tested.bearing) {
+                case 'N':
+                    v2.y -= tested.length;
+                    v3.y -= tested.length;
+                    break
+                case 'E':
+                    v2.x += tested.length;
+                    v3.x += tested.length;
+                    break;
+                case 'S':
+                    v2.y += tested.length;
+                    v3.y += tested.length;
+                    break;
+                case 'W':
+                    v2.x -= tested.length;
+                    v3.x -= tested.length;
+                    break;
+            }
+
+            if (pathClear([v1.x, v1.y, v2.x, v2.y, v3.x, v3.y], grid)) {
+                path.splice(i, 3, v1, v2);
+            }
+
+            i++;
+        } else {
+            i++;
+        }
+    }
+
+    return path;
+
+    function pathClear(s, grid) {
+        let obstructed;
+        for (let i = 0; i < s.length; i += 2) {
+            const vertical = s[i] === s[i + 2];
+            const bounds = vertical ? [s[i + 1], s[i + 3]] : [s[i], s[i + 2]];
+            bounds.sort((a, b) => { return a - b });
+
+            for (let j = bounds[0]; j <= bounds[1]; j++) {
+                if (grid.getBinary(
+                    vertical ? s[i] : j ,
+                    vertical ? j : s[i + 1]
+                ) === 1) {
+                    obstructed = true;
+                    break;
+                }
+            }
+
+            if (obstructed) {
+                break;
+            }
+        }
+
+        return !obstructed;
+    }
+}
+
+const scale = function(path, step) {
+    return path.map(vector => vector.scale(step));
 }
 
 const adjust = function(path, { start, end } = {}) {
@@ -337,5 +465,12 @@ const octile = function(dx, dy) {
 const isBend = function(node, jumpNode) {
     return node.parent &&
         ((node.parent.x === node.x && node.x !== jumpNode.x) ||
-        (node.parent.y === node.y && node.y !== jumpNode.y))
+        (node.parent.y === node.y && node.y !== jumpNode.y));
+}
+
+const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' }
+const getBearing = (p1, p2) => {
+    if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
+    if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
+    return null;
 }
