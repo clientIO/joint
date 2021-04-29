@@ -1,5 +1,4 @@
-// import * as joint from '../../../joint.mjs';
-import * as joint from '../../../../rappid/rappid.mjs';
+import * as joint from '../../../joint.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
 import { JumpPointFinder } from './finders/index.mjs';
 import { debugConf, debugStore, showDebugGrid } from './debug.mjs';
@@ -11,7 +10,7 @@ const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
     width: 1000,
-    height: 700,
+    height: 900,
     gridSize: 20,
     async: true,
     model: graph,
@@ -20,8 +19,8 @@ const paper = new joint.dia.Paper({
 const pathfinder = new Pathfinder({
     graph,
     paper,
-    step: 20,
-    padding: 10,
+    step: 10,
+    padding: 5,
     startDirections: ['right'],
     endDirections: ['left'],
     // excludeEnds: [],

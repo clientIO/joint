@@ -1,4 +1,4 @@
-import * as joint from '../../../../rappid/rappid.mjs';
+import * as joint from '../../../joint.mjs';
 
 export const debugConf = {
     showGrid: false,

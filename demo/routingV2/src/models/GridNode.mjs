@@ -15,4 +15,10 @@ export default class GridNode {
     isEqual(x, y) {
         return this.x === x && this.y === y;
     }
+
+    close() {
+        this.walkable = false;
+        this.closed = true;
+        this.opened = true;
+    }
 }

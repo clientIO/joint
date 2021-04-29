@@ -19,7 +19,7 @@ export class JumpPointFinder {
     findPath(start, end, vertices = [], linkView) {
         const { step } = this.grid;
 
-        snapVertices(vertices, start, end, step, linkView);
+        // snapVertices(vertices, start, end, step, linkView);
 
         this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
@@ -36,6 +36,13 @@ export class JumpPointFinder {
                 ey = Math.floor(to.y / step);
 
             const startNode = this.startNode = this._getNodeAt(sx, sy);
+
+            // close previous direction to prevent retracing
+            if (this.endNode && path.length > 1) {
+                const direction = getDirection(path[path.length - 2], path[path.length - 1]);
+                this._getNodeAt(sx + direction.x, sy + direction.y).close();
+            }
+
             this.endNode = this._getNodeAt(ex, ey);
 
             startNode.g = 0;
@@ -53,7 +60,7 @@ export class JumpPointFinder {
                     // TODO: operations POC
                     let segment = backtrace(node);
                     segment = toVectors(segment);
-                    segment = removeElbows(segment, this.grid);
+                    segment = removeElbows.call(this, segment);
                     segment = scale(segment, step);
 
                     // adjust only first/last/only segment
@@ -92,7 +99,7 @@ export class JumpPointFinder {
         return path;
     }
 
-    _identifySuccessors(node) {
+    _identifySuccessors(node, ignoreNode) {
         const heuristic = this.heuristic,
             openList = this.openList,
             endX = this.endNode.x,
@@ -103,10 +110,10 @@ export class JumpPointFinder {
             jx, jy, d, ng, jumpNode,
             abs = Math.abs;
 
-        neighbors = this._findNeighbors(node);
+        neighbors = this._findNeighbors(node, ignoreNode);
         for(i = 0, l = neighbors.length; i < l; ++i) {
             neighbor = neighbors[i];
-            jumpPoint = this._jump(neighbor[0], neighbor[1], x, y);
+            jumpPoint = this._jump(neighbor.x, neighbor.y, x, y);
             if (jumpPoint) {
 
                 jx = jumpPoint[0];
@@ -143,8 +150,7 @@ export class JumpPointFinder {
 
     _findNeighbors(node) {
         const parent = node.parent,
-            x = node.x, y = node.y,
-            grid = this.grid;
+            x = node.x, y = node.y;
         let px, py, dx, dy,
             neighbors = [], neighborNodes, neighborNode, i, l;
 
@@ -157,35 +163,35 @@ export class JumpPointFinder {
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
             if (dx !== 0) {
-                if (grid.isFree(x, y - 1)) {
-                    neighbors.push([x, y - 1]);
+                if (this._isFree(x, y - 1)) {
+                    neighbors.push(this._getNodeAt(x, y - 1));
                 }
-                if (grid.isFree(x, y + 1)) {
-                    neighbors.push([x, y + 1]);
+                if (this._isFree(x, y + 1)) {
+                    neighbors.push(this._getNodeAt(x, y + 1));
                 }
-                if (grid.isFree(x + dx, y)) {
-                    neighbors.push([x + dx, y]);
+                if (this._isFree(x + dx, y)) {
+                    neighbors.push(this._getNodeAt(x + dx, y));
                 }
             }
             else if (dy !== 0) {
-                if (grid.isFree(x - 1, y)) {
-                    neighbors.push([x - 1, y]);
+                if (this._isFree(x - 1, y)) {
+                    neighbors.push(this._getNodeAt(x - 1, y));
                 }
-                if (grid.isFree(x + 1, y)) {
-                    neighbors.push([x + 1, y]);
+                if (this._isFree(x + 1, y)) {
+                    neighbors.push(this._getNodeAt(x + 1, y));
                 }
-                if (grid.isFree(x, y + dy)) {
-                    neighbors.push([x, y + dy]);
+                if (this._isFree(x, y + dy)) {
+                    neighbors.push(this._getNodeAt(x, y + dy));
                 }
             }
         }
         // return all neighbors
         else {
-            neighborNodes = this._getNeighbors(node);
-            for (i = 0, l = neighborNodes.length; i < l; ++i) {
-                neighborNode = neighborNodes[i];
-                neighbors.push([neighborNode.x, neighborNode.y]);
-            }
+            neighbors = this._getNeighbors(node);
+            // for (i = 0, l = neighborNodes.length; i < l; ++i) {
+            //     neighborNode = neighborNodes[i];
+            //     neighbors.push([neighborNode.x, neighborNode.y]);
+            // }
         }
 
         return neighbors;
@@ -194,7 +200,7 @@ export class JumpPointFinder {
     _jump(x, y, px, py) {
         const dx = x - px, dy = y - py, grid = this.grid;
 
-        if (!grid.isFree(x, y)) {
+        if (!this._isFree(x, y)) {
             return null;
         }
 
@@ -203,14 +209,14 @@ export class JumpPointFinder {
         }
 
         if (dx !== 0) {
-            if ((grid.isFree(x, y - 1) && !grid.isFree(x - dx, y - 1)) ||
-                (grid.isFree(x, y + 1) && !grid.isFree(x - dx, y + 1))) {
+            if ((this._isFree(x, y - 1) && !this._isFree(x - dx, y - 1)) ||
+                (this._isFree(x, y + 1) && !this._isFree(x - dx, y + 1))) {
                 return [x, y];
             }
         }
         else if (dy !== 0) {
-            if ((grid.isFree(x - 1, y) && !grid.isFree(x - 1, y - dy)) ||
-                (grid.isFree(x + 1, y) && !grid.isFree(x + 1, y - dy))) {
+            if ((this._isFree(x - 1, y) && !this._isFree(x - 1, y - dy)) ||
+                (this._isFree(x + 1, y) && !this._isFree(x + 1, y - dy))) {
                 return [x, y];
             }
             //When moving vertically, must check for horizontal jump points
@@ -226,38 +232,37 @@ export class JumpPointFinder {
     }
 
     _getNodeAt(x, y) {
-        let col = this.nodes[x];
-        if (!col) {
-            this.nodes[x] = col = [];
-        }
-
-        let node = col[y];
+        let node = this.nodes[y * this.grid._width + x];
         if (!node) {
-            this.nodes[x][y] = node = new GridNode(x, y, this.grid.isFree(x, y));
+            this.nodes[y * this.grid._width + x] = node = new GridNode(x, y, this.grid.isFree(x, y));
         }
         return node;
     }
 
+    _isFree(x, y) {
+        return this._getNodeAt(x, y).walkable;
+    }
+
     _getNeighbors(node) {
-        const x = node.x, y = node.y, neighbors = [], grid = this.grid;
+        const x = node.x, y = node.y, neighbors = [];
 
         // up
-        if (grid.isFree(x, y - 1)) {
+        if (this._isFree(x, y - 1)) {
             const n = this._getNodeAt(x, y - 1);
             neighbors.push(n);
         }
         // right
-        if (grid.isFree(x + 1, y)) {
+        if (this._isFree(x + 1, y)) {
             const n = this._getNodeAt(x + 1, y);
             neighbors.push(n);
         }
         // down
-        if (grid.isFree(x, y + 1)) {
+        if (this._isFree(x, y + 1)) {
             const n = this._getNodeAt(x, y + 1);
             neighbors.push(n);
         }
         // left
-        if (grid.isFree(x - 1, y)) {
+        if (this._isFree(x - 1, y)) {
             const n = this._getNodeAt(x - 1, y);
             neighbors.push(n);
         }
@@ -301,22 +306,7 @@ const toVectors = function(path) {
     return conv;
 }
 
-// const simplify = function(path) {
-//     let i = 0;
-//     // leave last point untouched // todo: double same dir at end?
-//     while (i < path.length - 2) {
-//         const point = path[i];
-//         if (path[i + 1] && path[i + 1].bearing === point.bearing) {
-//             path.splice(i, 2, point);
-//         } else {
-//             i++;
-//         }
-//     }
-//
-//     return removeElbows(path);
-// }
-
-const removeElbows = function(path, grid) {
+const removeElbows = function(path) {
     let i = 0;
     while (i < path.length - 1) {
         const current = path[i];
@@ -356,7 +346,7 @@ const removeElbows = function(path, grid) {
                     break;
             }
 
-            if (pathClear([v1.x, v1.y, v2.x, v2.y, v3.x, v3.y], grid)) {
+            if (pathClear([v1.x, v1.y, v2.x, v2.y, v3.x, v3.y], this)) {
                 path.splice(i, 3, v1, v2);
             }
 
@@ -368,7 +358,7 @@ const removeElbows = function(path, grid) {
 
     return path;
 
-    function pathClear(s, grid) {
+    function pathClear(s, pathfinder) {
         let obstructed;
         for (let i = 0; i < s.length; i += 2) {
             const vertical = s[i] === s[i + 2];
@@ -376,13 +366,12 @@ const removeElbows = function(path, grid) {
             bounds.sort((a, b) => { return a - b });
 
             for (let j = bounds[0]; j <= bounds[1]; j++) {
-                if (grid.getBinary(
-                    vertical ? s[i] : j ,
-                    vertical ? j : s[i + 1]
-                ) === 1) {
-                    obstructed = true;
-                    break;
+                if (pathfinder._isFree(vertical ? s[i] : j , vertical ? j : s[i + 1])) {
+                    continue;
                 }
+
+                obstructed = true;
+                break;
             }
 
             if (obstructed) {
@@ -470,11 +459,20 @@ const isBend = function(node, jumpNode) {
         (node.parent.y === node.y && node.y !== jumpNode.y));
 }
 
-const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' }
+const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };
 const getBearing = (p1, p2) => {
     if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
     if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
     return null;
+}
+const CardinalDirections = {
+    N: { x: 0, y: 1 },
+    E: { x: -1, y: 0 },
+    S: { x: 0, y: -1 },
+    W: { x: 1, y: 0 }
+};
+const getDirection = (p1, p2) => {
+    return CardinalDirections[getBearing(p1, p2)] || { x: 0, y: 0 };
 }
 
 const snapVertices = function(vertices = [], start, end, step, linkView) {
