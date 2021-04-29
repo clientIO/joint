@@ -165,7 +165,7 @@ function jumpPointSearch(vertices, args, linkView) {
     const finder = new JumpPointFinder({ grid: pathfinder.grid });
 
     s = window.performance.now();
-    const path = finder.findPath(start, end, vertices);
+    const path = finder.findPath(start, end, vertices, linkView);
     e = window.performance.now();
     debugStore.fullRouterTime += (e - s);
 

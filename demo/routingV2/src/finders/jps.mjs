@@ -16,8 +16,10 @@ export class JumpPointFinder {
         this.openList = null;
     }
 
-    findPath(start, end, vertices = []) {
+    findPath(start, end, vertices = [], linkView) {
         const { step } = this.grid;
+
+        snapVertices(vertices, start, end, step, linkView);
 
         this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
@@ -49,7 +51,7 @@ export class JumpPointFinder {
 
                 if (node.isEqual(ex, ey)) {
                     // TODO: operations POC
-                    let segment = backtrace(node, step);
+                    let segment = backtrace(node);
                     segment = toVectors(segment);
                     segment = removeElbows(segment, this.grid);
                     segment = scale(segment, step);
@@ -473,4 +475,23 @@ const getBearing = (p1, p2) => {
     if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
     if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
     return null;
+}
+
+const snapVertices = function(vertices = [], start, end, step, linkView) {
+    vertices.forEach((v, i) => {
+        if (i === 0) {
+            v.x = v.x === start.x ? v.x = start.x : v.x;
+            v.y = v.y === start.y ? v.y = start.y : v.y;
+        } else if (i === vertices.length) {
+            v.x = v.x === end.x ? v.x = end.x : v.x;
+            v.y = v.y === end.y ? v.y = end.y : v.y;
+        } else {
+            v.x = Math.floor(v.x / step) * step;
+            v.y = Math.floor(v.y / step) * step;
+        }
+
+        vertices[i] = v;
+    });
+
+    linkView.model.vertices(vertices);
 }
