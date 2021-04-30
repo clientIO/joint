@@ -527,7 +527,7 @@ export namespace g {
 
         constructor();
         constructor(svgString: string);
-        constructor(points: Point[]);
+        constructor(points: PlainPoint[]);
 
         bbox(): Rect | null;
 
