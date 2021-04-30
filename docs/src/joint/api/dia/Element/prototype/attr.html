@@ -1,6 +1,6 @@
 <pre class="docs-method-signature"><code>element.attr(attrs [, opt])</code></pre>
 
-<p>Set presentation attributes (<a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">SVG</a> and <a href="joint.html#dia.attributes">JointJS </a> attributes) on view subelements. <code>attr</code> can either be an object or string representing a path to a nested attribute. If it is an object, the keys of the <code>attrs</code> object are selectors (<a href="joint.html#dia.Cell.markup.json">JSON Markup Selector</a> or CSS Selector) matching the subelements. The values are objects containing SVG attributes and their values. <code>attrs</code> object will be mixed with <code>attrs</code> property of the <code>element</code> model. This is a convenient way of rewriting only some of the attributes of the subelements. For overwriting all attributes of all subelements, use <code>element.set('attrs', attrs)</code>.</p>
+<p>Set presentation attributes (<a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute">SVG</a> and <a href="joint.html#dia.attributes">JointJS </a> attributes) on view subelements. <code>attrs</code> can either be an object or string representing a path to a nested attribute. If it is an object, the keys of the <code>attrs</code> object are selectors (<a href="joint.html#dia.Cell.markup.json">JSON Markup Selector</a> or CSS Selector) matching the subelements. The values are objects containing SVG attributes and their values. <code>attrs</code> object will be mixed with <code>attrs</code> property of the <code>element</code> model. This is a convenient way of rewriting only some of the attributes of the subelements. For overwriting all attributes of all subelements, use <code>element.set('attrs', attrs)</code>.</p>
 
 <pre><code>element.attr({
     // selectors as defined in the JSON markup
@@ -13,7 +13,7 @@
 });</code></pre>
 
 <div class="docs-important-note">
-The method is not suitable for storing custom data on the model. For that, use <a href="joint.html#dia.Element.prototype.prop"><code>prop()</code></a> or <code>set()</code> methods.
+The method is not suitable for storing custom data on the model. For that, use <a href="joint.html#dia.Element.prototype.prop"><code>prop()</code></a> or <a target="_blank" href="https://backbonejs.org/#Model-set"><code>set()</code></a> methods.
 <pre><code>element.set('confirmed', true);
 element.prop('data/count', 10);
 </code></pre>
