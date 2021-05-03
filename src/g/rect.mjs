@@ -37,6 +37,54 @@ Rect.fromEllipse = function(e) {
     return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
 };
 
+Rect.fromPointUnion = function(...points) {
+
+    if (points.length === 0) return null;
+
+    const p = new Point();
+    let minX, minY, maxX, maxY;
+    minX = minY = Infinity;
+    maxX = maxY = -Infinity;
+
+    for (let i = 0; i < points.length; i++) {
+        p.update(points[i]);
+        const x = p.x;
+        const y = p.y;
+
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+    }
+
+    return new Rect(minX, minY, maxX - minX, maxY - minY);
+};
+
+Rect.fromRectUnion = function(...rects) {
+
+    if (rects.length === 0) return null;
+
+    const r = new Rect();
+    let minX, minY, maxX, maxY;
+    minX = minY = Infinity;
+    maxX = maxY = -Infinity;
+
+    for (let i = 0; i < rects.length; i++) {
+        r.update(rects[i]);
+        const x = r.x;
+        const y = r.y;
+        const mX = x + r.width;
+        const mY = y + r.height;
+
+        if (x < minX) minX = x;
+        if (mX > maxX) maxX = mX;
+        if (y < minY) minY = y;
+        if (mY > maxY) maxY = mY;
+    }
+
+    return new Rect(minX, minY, maxX - minX, maxY - minY);
+};
+
 Rect.prototype = {
 
     // Find my bounding box when I'm rotated with the center of rotation in the center of me.
@@ -465,14 +513,23 @@ Rect.prototype = {
     // @return {rect} representing the union of both rectangles.
     union: function(rect) {
 
-        const u = new Rect(rect);
-        const { x, y, width, height } = this;
-        const { x: rx, y: ry, width: rw, height: rh } = u;
-        const ux = u.x = min(x, rx);
-        const uy = u.y = min(y, ry);
-        u.width = max(x + width, rx + rw) - ux;
-        u.height = max(y + height, ry + rh) - uy;
-        return u;
+        return Rect.fromRectUnion(this, rect);
+    },
+
+    update: function(x, y, w, h) {
+
+        if ((Object(x) === x)) {
+            y = x.y;
+            w = x.width;
+            h = x.height;
+            x = x.x;
+        }
+
+        this.x = x || 0;
+        this.y = y || 0;
+        this.width = w || 0;
+        this.height = h || 0;
+        return this;
     }
 };
 

@@ -346,6 +346,11 @@ Point.prototype = {
 
     update: function(x, y) {
 
+        if ((Object(x) === x)) {
+            y = x.y;
+            x = x.x;
+        }
+
         this.x = x || 0;
         this.y = y || 0;
         return this;
