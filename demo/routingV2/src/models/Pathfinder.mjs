@@ -159,20 +159,20 @@ function getRectPoints(rect, directions, opt) {
     const bbox = rect.clone().moveAndExpand(opt.paddingBox), points = [];
 
     directions.forEach(dir => {
-       switch (dir) {
-           case 'top':
-               points.push(bbox.topMiddle().translate(0, -1));
+        switch (dir) {
+            case 'top':
+                points.push(bbox.topMiddle().translate(0, -opt.step));
                break;
-           case 'right':
-               points.push(bbox.rightMiddle().translate(1, 0));
+            case 'right':
+               points.push(bbox.rightMiddle().translate(opt.step, 0));
                break;
-           case 'bottom':
-               points.push(bbox.bottomMiddle().translate(0, 1));
+            case 'bottom':
+               points.push(bbox.bottomMiddle().translate(0, opt.step));
                break;
-           case 'left':
-               points.push(bbox.leftMiddle().translate(-1, 0));
+            case 'left':
+               points.push(bbox.leftMiddle().translate(-opt.step, 0));
                break;
-       }
+        }
     });
 
     return points;
