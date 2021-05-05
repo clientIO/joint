@@ -3,7 +3,7 @@ import { util } from '../../../../joint.mjs';
 export default class Obstacle {
     constructor(element, pathfinder) {
         this._index = Number.parseInt(util.uniqueId());
-        this._bounds = Obstacle.elementToBounds(element, pathfinder.padding, pathfinder.step);
+        this._bounds = Obstacle.elementToBounds(element, pathfinder.opt);
         this._pathfinder = pathfinder;
         this._cell = element;
     }
@@ -30,8 +30,8 @@ export default class Obstacle {
         }
 
         // add obstacle back to the grid, from scratch
-        const { padding, step } = this._pathfinder;
-        this._bounds = Obstacle.elementToBounds(this._cell, padding, step);
+        const { opt } = this._pathfinder;
+        this._bounds = Obstacle.elementToBounds(this._cell, opt);
         const updatedFragment = this.fragment();
         for(let i = 0; i < updatedFragment.shape[0]; ++i) {
             for(let j = 0; j < updatedFragment.shape[1]; ++j) {
@@ -64,15 +64,10 @@ export default class Obstacle {
         return this._cell;
     }
 
-    static elementToBounds(element, padding, step) {
-        const rect = element.getBBox().moveAndExpand({
-            x: -padding,
-            y: -padding,
-            width: 2 * padding,
-            height: 2 * padding
-        });
+    static elementToBounds(element, opt) {
+        const rect = element.getBBox().moveAndExpand(opt.paddingBox);
 
-        return Obstacle.rectToBounds(rect, step);
+        return Obstacle.rectToBounds(rect, opt.step);
     }
 
     static rectToBounds(rect, step) {

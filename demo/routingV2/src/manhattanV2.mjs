@@ -1,7 +1,5 @@
 import * as joint from '../../../joint.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
-import { JumpPointFinder } from './finders/index.mjs';
-import { debugConf, debugStore, showDebugGrid } from './debug.mjs';
 
 // ===============================================================================
 // JointJS - Core
@@ -13,69 +11,21 @@ const paper = new joint.dia.Paper({
     height: 900,
     gridSize: 20,
     async: true,
-    model: graph,
-    defaultRouter: jumpPointSearch
+    model: graph
 });
-const pathfinder = new Pathfinder({
-    graph,
-    paper,
+
+// Instantiating Pathfinder overrides the paper defaultRouter option
+const pathfinder = new Pathfinder(graph, paper, {
     step: 10,
-    padding: 5,
-    startDirections: ['right'],
-    endDirections: ['left'],
+    startDirections: ['top', 'right', 'bottom', 'left'],
+    endDirections: ['top', 'right', 'bottom', 'left'],
     // excludeEnds: [],
     // excludeTypes: [],
 });
 
-// ======= Events
-graph.on('add', function(cell) {
-    if (cell.isElement() && !cell.get('debugIgnore')) {
-        const s = window.performance.now();
-        pathfinder.addObstacle(cell);
-        const e = window.performance.now();
-        debugStore.fullGridTime += (e - s);
-    }
-});
-
-graph.on('change:position', function(cell) {
-    if (cell.isElement() && !cell.get('debugIgnore')) {
-        const obstacle = pathfinder.getObstacleByCellId(cell.id);
-
-        if (!obstacle) return;
-
-        const start = window.performance.now();
-        obstacle.update();
-        const end = window.performance.now();
-        if (debugConf.gridUpdateBenchmark) {
-            console.info('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
-        }
-    }
-});
-
-graph.on('change:size', function() {
-    console.log('size');
-});
-
-graph.on('remove', function() {
-    console.log('remove');
-});
-
-paper.on('render:done', function() {
-    if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
-        console.info('Took ' + debugStore.fullRouterTime.toFixed(2) + ' ms to calculate ' + graph.getLinks().length + ' routes.');
-        debugStore.fullRouterTimeDone = true;
-    }
-
-    if (debugConf.fullGridUpdateBenchmark && !debugStore.fullGridTimeDone) {
-        console.info('Took ' + debugStore.fullGridTime.toFixed(2) + ' ms to build initial grid.');
-        debugStore.fullGridTimeDone = true;
-    }
-
-    if (debugConf.showGrid && !debugStore.gridPrinted) {
-        showDebugGrid(pathfinder);
-        debugStore.gridPrinted = true;
-    }
-});
+// override Paper defaultRouter option
+// todo: can be done inside Pathfinder constructor?
+paper.options.defaultRouter = pathfinder.search.bind(pathfinder);
 
 // ======= Demo events - TO BE REMOVED
 paper.on('link:mouseenter', function(linkView) {
@@ -153,25 +103,4 @@ for (let i = 0; i < pairsCount; i++) {
 }
 
 graph.addCells([...stPairs, ...obstacles]);
-
-let s, e;
-function jumpPointSearch(vertices, args, linkView) {
-
-    // todo: multiple start/end points
-    const start = pathfinder.bboxToPoint(linkView.sourceBBox, 'right');
-    const end = pathfinder.bboxToPoint(linkView.targetBBox, 'left');
-
-    const finder = new JumpPointFinder({ grid: pathfinder.grid });
-
-    s = window.performance.now();
-    const path = finder.findPath(start, end, vertices, linkView);
-    e = window.performance.now();
-    debugStore.fullRouterTime += (e - s);
-
-    if (debugConf.routerBenchmark) {
-        console.info('Took ' + (e - s).toFixed(2) + ' ms to calculate route');
-    }
-
-    return path;
-}
 

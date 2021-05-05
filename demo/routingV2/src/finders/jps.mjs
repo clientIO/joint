@@ -11,12 +11,11 @@ export class JumpPointFinder {
         this.grid = grid;
 
         this.heuristic = heuristic;
-        this.startNode = null;
         this.endNode = null;
         this.openList = null;
     }
 
-    findPath(start, end, vertices = [], linkView) {
+    findPath(start, end, vertices = []) {
         const { step } = this.grid;
 
         // snapVertices(vertices, start, end, step, linkView);
@@ -24,40 +23,49 @@ export class JumpPointFinder {
         this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
-        let from, to, path = [], found;
+        let from, to, prevHead, path = [], found;
         for (let i = 0; i <= vertices.length; i++) {
             found = false;
-            from = to || start;
+
+            from = to ? [to] : start;
             to = vertices[i] || end;
 
-            const sx = Math.floor(from.x / step),
-                sy = Math.floor(from.y / step),
-                ex = Math.floor(to.x / step),
-                ey = Math.floor(to.y / step);
+            // add all possible starting points
+            from.forEach(point => {
+                const fromNode = this._getNodeAt(
+                    Math.floor(point.x / step),
+                    Math.floor(point.y / step)
+                );
 
-            const startNode = this.startNode = this._getNodeAt(sx, sy);
+                if (fromNode) {
+                    fromNode.g = 0;
+                    fromNode.f = 0;
+                    fromNode.opened = true;
+
+                    openList.push(fromNode);
+                }
+            });
 
             // close previous direction to prevent retracing
-            if (this.endNode && path.length > 1) {
+            if (prevHead) {
                 const direction = getDirection(path[path.length - 2], path[path.length - 1]);
-                this._getNodeAt(sx + direction.x, sy + direction.y).close();
+                this._getNodeAt(prevHead.x + direction.x, prevHead.y + direction.y).close();
             }
 
-            this.endNode = this._getNodeAt(ex, ey);
-
-            startNode.g = 0;
-            startNode.f = 0;
-
-            openList.push(startNode);
-            startNode.opened = true;
+            const endNode = this.endNode = this._getNodeAt(
+                Math.floor(to.x / step),
+                Math.floor(to.y / step)
+            );
 
             let node;
             while (!openList.empty()) {
                 node = openList.pop();
                 node.closed = true;
 
-                if (node.isEqual(ex, ey)) {
-                    // TODO: operations POC
+                if (node.isEqual(endNode.x, endNode.y)) {
+                    // store previous end node to prevent retracing
+                    prevHead = endNode;
+
                     let segment = backtrace(node);
                     segment = toVectors(segment);
                     segment = removeElbows.call(this, segment);
@@ -67,13 +75,13 @@ export class JumpPointFinder {
                     // else it's mid segment - no need to adjust anything
                     if (i === 0 && i !== vertices.length) {
                         // first of 2+ segments
-                        segment = adjust(segment, { start });
+                        // segment = adjust(segment, { start });
                     } else if (i !== 0 && i === vertices.length) {
                         // last of 2+ segments
-                        segment = adjust(segment, { end });
+                        // segment = adjust(segment, { end });
                     } else if (i === 0 && i === vertices.length) {
                         // only segment
-                        segment = adjust(segment, { start, end });
+                        // segment = adjust(segment, { start, end });
                     }
 
                     path.push(...segment);
@@ -152,7 +160,7 @@ export class JumpPointFinder {
         const parent = node.parent,
             x = node.x, y = node.y;
         let px, py, dx, dy,
-            neighbors = [], neighborNodes, neighborNode, i, l;
+            neighbors = [];
 
         // directed pruning: can ignore most neighbors, unless forced.
         if (parent) {
@@ -163,42 +171,25 @@ export class JumpPointFinder {
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
             if (dx !== 0) {
-                if (this._isFree(x, y - 1)) {
-                    neighbors.push(this._getNodeAt(x, y - 1));
-                }
-                if (this._isFree(x, y + 1)) {
-                    neighbors.push(this._getNodeAt(x, y + 1));
-                }
-                if (this._isFree(x + dx, y)) {
-                    neighbors.push(this._getNodeAt(x + dx, y));
-                }
-            }
-            else if (dy !== 0) {
-                if (this._isFree(x - 1, y)) {
-                    neighbors.push(this._getNodeAt(x - 1, y));
-                }
-                if (this._isFree(x + 1, y)) {
-                    neighbors.push(this._getNodeAt(x + 1, y));
-                }
-                if (this._isFree(x, y + dy)) {
-                    neighbors.push(this._getNodeAt(x, y + dy));
-                }
+                neighbors.push(this._getNodeAt(x, y - 1));
+                neighbors.push(this._getNodeAt(x, y + 1));
+                neighbors.push(this._getNodeAt(x + dx, y));
+            } else if (dy !== 0) {
+                neighbors.push(this._getNodeAt(x - 1, y));
+                neighbors.push(this._getNodeAt(x + 1, y));
+                neighbors.push(this._getNodeAt(x, y + dy));
             }
         }
         // return all neighbors
         else {
             neighbors = this._getNeighbors(node);
-            // for (i = 0, l = neighborNodes.length; i < l; ++i) {
-            //     neighborNode = neighborNodes[i];
-            //     neighbors.push([neighborNode.x, neighborNode.y]);
-            // }
         }
 
-        return neighbors;
+        return neighbors.filter(neighbor => neighbor && neighbor.walkable);
     };
 
     _jump(x, y, px, py) {
-        const dx = x - px, dy = y - py, grid = this.grid;
+        const dx = x - px, dy = y - py;
 
         if (!this._isFree(x, y)) {
             return null;
@@ -244,28 +235,12 @@ export class JumpPointFinder {
     }
 
     _getNeighbors(node) {
-        const x = node.x, y = node.y, neighbors = [];
-
-        // up
-        if (this._isFree(x, y - 1)) {
-            const n = this._getNodeAt(x, y - 1);
-            neighbors.push(n);
-        }
-        // right
-        if (this._isFree(x + 1, y)) {
-            const n = this._getNodeAt(x + 1, y);
-            neighbors.push(n);
-        }
-        // down
-        if (this._isFree(x, y + 1)) {
-            const n = this._getNodeAt(x, y + 1);
-            neighbors.push(n);
-        }
-        // left
-        if (this._isFree(x - 1, y)) {
-            const n = this._getNodeAt(x - 1, y);
-            neighbors.push(n);
-        }
+        const { x, y } = node, neighbors = [
+            this._getNodeAt(x, y - 1),  // up
+            this._getNodeAt(x + 1, y),  // right
+            this._getNodeAt(x, y + 1),  // bottom
+            this._getNodeAt(x - 1, y)   // left
+        ];
 
         return neighbors;
     }

@@ -1,44 +1,63 @@
+import { util } from '../../../../joint.mjs';
+
 import Grid from './Grid.mjs';
 import Obstacle from './Obstacle.mjs';
 
-import { debugLog } from '../debug.mjs';
+import { debugConf, debugLog, debugStore, showDebugGrid } from '../debug.mjs';
+import { JumpPointFinder } from '../finders/index.mjs';
 
+const config = {
+    step: 10,
+    padding: 10,
+    startDirections: ['top', 'right', 'bottom', 'left'],
+    endDirections: ['top', 'right', 'bottom', 'left'],
+}
+
+let s, e;
 export default class Pathfinder {
 
-    constructor({
-        graph,
-        paper,
-        step = 10,
-        padding = 0,
-        startDirections = ['top', 'right', 'bottom', 'left'],
-        endDirections = ['top', 'right', 'bottom', 'left'],
-    } = {}) {
+    constructor(graph, paper, opt = {}) {
         if (!graph) {
             return debugLog('Pathfinder requires an instance of dia.Graph.');
         }
 
-        // temporary
-        this.planner = null;
+        this.opt = resolveOptions(opt);
 
         // Grid
-        const { width, height } = getGridSize(paper, step);
-        this.grid = new Grid(step, width, height);
-        this.step = step;
-        this.padding = padding;
+        const { width, height } = getGridSize(paper, opt.step);
+        this.grid = new Grid(opt.step, width, height);
 
-        // todo: decide, should be kept within Grid?
+        // Obstacles and ref to Graph cells
         this._obstacles = {};
         this._cells = {};
-
-        // Pathfinding
-        // this.from = null;
-        // this.to = null;
 
         // References
         this._graph = graph;
 
         // Flags
         this._dirty = false;
+
+        // Initialize all events bridging Pathfinder with Paper and Graph
+        this._initEvents(graph, paper);
+    }
+
+    search(vertices, args, linkView) {
+        const { opt } = this;
+        const finder = new JumpPointFinder({ grid: this.grid });
+
+        const from = getRectPoints(linkView.sourceBBox, opt.startDirections, opt);
+        const to = getRectPoints(linkView.targetBBox, opt.endDirections, opt)[0];
+
+        s = window.performance.now();
+        const path = finder.findPath(from, to, vertices, linkView);
+        e = window.performance.now();
+
+        if (debugConf.routerBenchmark) {
+            console.info('Took ' + (e - s).toFixed(2) + ' ms to calculate route');
+        }
+        debugStore.fullRouterTime += (e - s);
+
+        return path;
     }
 
     addObstacle(element) {
@@ -83,15 +102,80 @@ export default class Pathfinder {
         return Object.keys(obstacles).map((id) => this._obstacles[id]._cell);
     }
 
-    bboxToPoint(bbox, dir) {
-        const pts = {
-            top: bbox.topMiddle().translate(0, -(this.padding + this.step)),
-            right: bbox.rightMiddle().translate((this.padding + this.step), 0),
-            bottom: bbox.bottomMiddle().translate(0, (this.padding + this.step)),
-            left: bbox.leftMiddle().translate(-(this.padding + this.step), 0)
-        }
-        return pts[dir];
+    _initEvents(graph, paper) {
+        // ======= Events
+        graph.on('add', (cell) => {
+            if (cell.isElement() && !cell.get('debugIgnore')) {
+                const s = window.performance.now();
+                this.addObstacle(cell);
+                const e = window.performance.now();
+                debugStore.fullGridTime += (e - s);
+            }
+        });
+
+        graph.on('change:position', (cell) => {
+            if (cell.isElement() && !cell.get('debugIgnore')) {
+                const obstacle = this.getObstacleByCellId(cell.id);
+
+                if (!obstacle) return;
+
+                const start = window.performance.now();
+                obstacle.update();
+                const end = window.performance.now();
+                if (debugConf.gridUpdateBenchmark) {
+                    console.info('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
+                }
+            }
+        });
+
+        graph.on('change:size', function() {
+            console.log('size');
+        });
+
+        graph.on('remove', function() {
+            console.log('remove');
+        });
+
+        paper.on('render:done', () => {
+            if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
+                console.info('Took ' + debugStore.fullRouterTime.toFixed(2) + ' ms to calculate ' + graph.getLinks().length + ' routes.');
+                debugStore.fullRouterTimeDone = true;
+            }
+
+            if (debugConf.fullGridUpdateBenchmark && !debugStore.fullGridTimeDone) {
+                console.info('Took ' + debugStore.fullGridTime.toFixed(2) + ' ms to build initial grid.');
+                debugStore.fullGridTimeDone = true;
+            }
+
+            if (debugConf.showGrid && !debugStore.gridPrinted) {
+                showDebugGrid(this);
+                debugStore.gridPrinted = true;
+            }
+        });
     }
+}
+
+function getRectPoints(rect, directions, opt) {
+    const bbox = rect.clone().moveAndExpand(opt.paddingBox), points = [];
+
+    directions.forEach(dir => {
+       switch (dir) {
+           case 'top':
+               points.push(bbox.topMiddle().translate(0, -1));
+               break;
+           case 'right':
+               points.push(bbox.rightMiddle().translate(1, 0));
+               break;
+           case 'bottom':
+               points.push(bbox.bottomMiddle().translate(0, 1));
+               break;
+           case 'left':
+               points.push(bbox.leftMiddle().translate(-1, 0));
+               break;
+       }
+    });
+
+    return points;
 }
 
 const getGridSize = (paper, step) => {
@@ -101,4 +185,24 @@ const getGridSize = (paper, step) => {
         width: Math.ceil(width / step),
         height: Math.ceil(height / step)
     }
+}
+
+function resolveOptions(opt) {
+    opt = util.assign({}, config, opt);
+
+    opt.paddingBox = util.result(opt, 'paddingBox');
+    opt.padding = util.result(opt, 'padding');
+
+    if (opt.padding) {
+        // if both provided, opt.padding wins over opt.paddingBox
+        const sides = util.normalizeSides(opt.padding);
+        opt.paddingBox = {
+            x: -sides.left,
+            y: -sides.top,
+            width: sides.left + sides.right,
+            height: sides.top + sides.bottom
+        };
+    }
+
+    return opt;
 }
