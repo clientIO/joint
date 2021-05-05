@@ -46,7 +46,7 @@ export default class Pathfinder {
         const finder = new JumpPointFinder({ grid: this.grid });
 
         const from = getRectPoints(linkView.sourceBBox, opt.startDirections, opt);
-        const to = getRectPoints(linkView.targetBBox, opt.endDirections, opt)[0];
+        const to = getRectPoints(linkView.targetBBox, opt.endDirections, opt);
 
         s = window.performance.now();
         const path = finder.findPath(from, to, vertices, linkView);

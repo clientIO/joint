@@ -28,23 +28,7 @@ export class JumpPointFinder {
             found = false;
 
             from = to ? [to] : start;
-            to = vertices[i] || end;
-
-            // add all possible starting points
-            from.forEach(point => {
-                const fromNode = this._getNodeAt(
-                    Math.floor(point.x / step),
-                    Math.floor(point.y / step)
-                );
-
-                if (fromNode) {
-                    fromNode.g = 0;
-                    fromNode.f = 0;
-                    fromNode.opened = true;
-
-                    openList.push(fromNode);
-                }
-            });
+            to = vertices[i] ? [vertices[i]] : end;
 
             // close previous direction to prevent retracing
             if (prevHead) {
@@ -52,46 +36,78 @@ export class JumpPointFinder {
                 this._getNodeAt(prevHead.x + direction.x, prevHead.y + direction.y).close();
             }
 
-            const endNode = this.endNode = this._getNodeAt(
-                Math.floor(to.x / step),
-                Math.floor(to.y / step)
-            );
+            let minCost = Infinity, bestSegment;
+            to.forEach(target => {
+                // add all possible starting points
+                from.forEach(point => {
+                    const fromNode = this._getNodeAt(
+                        Math.floor(point.x / step),
+                        Math.floor(point.y / step)
+                    );
 
-            let node;
-            while (!openList.empty()) {
-                node = openList.pop();
-                node.closed = true;
+                    if (fromNode) {
+                        fromNode.g = 0;
+                        fromNode.f = 0;
+                        fromNode.opened = true;
 
-                if (node.isEqual(endNode.x, endNode.y)) {
-                    // store previous end node to prevent retracing
-                    prevHead = endNode;
+                        openList.push(fromNode);
+                    }
+                });
 
-                    let segment = backtrace(node);
-                    segment = toVectors(segment);
-                    segment = removeElbows.call(this, segment);
-                    segment = scale(segment, step);
+                // get node of current target
+                const endNode = this.endNode = this._getNodeAt(
+                    Math.floor(target.x / step),
+                    Math.floor(target.y / step)
+                );
 
-                    // adjust only first/last/only segment
-                    // else it's mid segment - no need to adjust anything
-                    if (i === 0 && i !== vertices.length) {
-                        // first of 2+ segments
-                        // segment = adjust(segment, { start });
-                    } else if (i !== 0 && i === vertices.length) {
-                        // last of 2+ segments
-                        // segment = adjust(segment, { end });
-                    } else if (i === 0 && i === vertices.length) {
-                        // only segment
-                        // segment = adjust(segment, { start, end });
+                // main pathfinding loop
+                let node;
+                while (!openList.empty()) {
+                    node = openList.pop();
+                    node.closed = true;
+
+                    if (node.g >= minCost) {
+                        this.nodes = [];
+                        this.openList.clear();
+                        continue;
                     }
 
-                    path.push(...segment);
-                    found = true;
-                    this.nodes = [];
-                    this.openList.clear();
-                    break;
-                }
+                    if (node.isEqual(endNode.x, endNode.y)) {
+                        // store previous end node to prevent retracing
+                        prevHead = endNode;
+                        minCost = endNode.g;
 
-                this._identifySuccessors(node);
+                        let segment = backtrace(node);
+                        segment = toVectors(segment);
+                        segment = removeElbows.call(this, segment);
+                        segment = scale(segment, step);
+
+                        // adjust only first/last/only segment
+                        // else it's mid segment - no need to adjust anything
+                        if (i === 0 && i !== vertices.length) {
+                            // first of 2+ segments
+                            // segment = adjust(segment, { start });
+                        } else if (i !== 0 && i === vertices.length) {
+                            // last of 2+ segments
+                            // segment = adjust(segment, { end });
+                        } else if (i === 0 && i === vertices.length) {
+                            // only segment
+                            // segment = adjust(segment, { start, end });
+                        }
+
+                        bestSegment = segment;
+                        found = true;
+                        this.nodes = [];
+                        this.openList.clear();
+                        break;
+                    }
+
+                    this._identifySuccessors(node);
+                }
+            });
+
+            if (bestSegment) {
+                path.push(...bestSegment);
             }
 
             if (!found) {
@@ -235,14 +251,14 @@ export class JumpPointFinder {
     }
 
     _getNeighbors(node) {
-        const { x, y } = node, neighbors = [
+        const { x, y } = node;
+
+        return [
             this._getNodeAt(x, y - 1),  // up
             this._getNodeAt(x + 1, y),  // right
             this._getNodeAt(x, y + 1),  // bottom
             this._getNodeAt(x - 1, y)   // left
         ];
-
-        return neighbors;
     }
 }
 
