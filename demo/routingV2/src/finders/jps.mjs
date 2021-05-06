@@ -9,45 +9,40 @@ export class JumpPointFinder {
         heuristic = (dx, dy) => dx + dy,
     } = {}) {
         this.grid = grid;
-
         this.heuristic = heuristic;
+
         this.endNode = null;
-        this.openList = null;
+        this.nodes = [];
+        this.openList = new BinaryHeap((a, b) => a.f - b.f);
     }
 
-    findPath(start, end, vertices = []) {
+    findPath(startPoints, endPoints, vertices = []) {
+        const { openList, nodes } = this;
         const { step } = this.grid;
-        const { floor } = Math;
 
-        // snapVertices(vertices, start, end, step, linkView);
+        // store reachable start points
+        const startGridPoints = startPoints
+                .map(point => this._pointToLocalGrid(point))
+                .filter(point => this._isFree(point.x, point.y));
 
-        this.nodes = [];
-        const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
+        // store reachable end points
+        const endGridPoints = endPoints
+            .map(point => this._pointToLocalGrid(point))
+            .filter(point => this._isFree(point.x, point.y));
 
-        let from, to, prevHead, segments = [], found;
-        for (let i = 0; i <= vertices.length; i++) {
-            found = false;
+        // convert existing vertices to Pathfinder Grid coordinates
+        const gridVertices = vertices.map(vertex => this._pointToLocalGrid(vertex));
 
+        let from, to, segments = [], lastSegment = null;
+        for (let i = 0; i <= gridVertices.length; i++) {
             from = to || startGridPoints;
-            to = vertices[i] ? [vertices[i]] : end;
+            to = gridVertices[i] ? [gridVertices[i]] : endGridPoints;
 
-            // close previous direction to prevent retracing
-            if (prevHead) {
-                const previous = segments[segments.length - 1];
-                const direction = getDirection(previous[previous.length - 2], previous[previous.length - 1]);
-                this._getNodeAt(prevHead.x + direction.x, prevHead.y + direction.y).close();
-            }
-
-            to = to.filter(point => this._isFree(floor(point.x / step), floor(point.y / step)));
-
-            let minCost = Infinity, bestSegment;
+            let minCost = Infinity, segment, retracingBlocker;
             to.forEach(target => {
                 // add all possible starting points
                 from.forEach(point => {
-                    const fromNode = this._getNodeAt(
-                        floor(point.x / step),
-                        floor(point.y / step)
-                    );
+                    const fromNode = this._getNodeAt(point.x, point.y);
 
                     if (fromNode) {
                         fromNode.g = 0;
@@ -58,11 +53,20 @@ export class JumpPointFinder {
                     }
                 });
 
+                // retracingBlocker has to be updated only once for each target loop
+                if (!retracingBlocker && lastSegment && lastSegment.length > 1) {
+                    const [p1, p2] = lastSegment.slice(lastSegment.length - 2, lastSegment.length);
+                    const direction = getDirection(p1, p2);
+                    retracingBlocker = this._getNodeAt(p2.x + direction.x, p2.y + direction.y);
+                }
+
+                // close previous direction to prevent retracing
+                if (retracingBlocker) {
+                    retracingBlocker.close();
+                }
+
                 // get node of current target
-                const endNode = this.endNode = this._getNodeAt(
-                    floor(target.x / step),
-                    floor(target.y / step)
-                );
+                const endNode = this.endNode = this._getNodeAt(target.x, target.y);
 
                 // main pathfinding loop
                 let node;
@@ -70,62 +74,68 @@ export class JumpPointFinder {
                     node = openList.pop();
                     node.closed = true;
 
+                    // partial path already longer than previously found path, early exit
                     if (node.g >= minCost) {
-                        this.nodes = [];
-                        this.openList.clear();
-                        continue;
-                    }
-
-                    if (node.isEqual(endNode.x, endNode.y)) {
-                        // store previous end node to prevent retracing
-                        prevHead = endNode;
-                        minCost = endNode.g;
-
-                        let segment = backtrace(node);
-                        segment = toVectors(segment);
-                        segment = removeElbows.call(this, segment);
-                        segment = scale(segment, step);
-
-                        // adjust only first/last/only segment
-                        // else it's mid segment - no need to adjust anything
-                        if (i === 0 && i !== vertices.length) {
-                            // first of 2+ segments
-                            // segment = adjust(segment, { start });
-                        } else if (i !== 0 && i === vertices.length) {
-                            // last of 2+ segments
-                            // segment = adjust(segment, { end });
-                        } else if (i === 0 && i === vertices.length) {
-                            // only segment
-                            // segment = adjust(segment, { start, end });
-                        }
-
-                        bestSegment = segment;
-                        found = true;
-                        this.nodes = [];
-                        this.openList.clear();
+                        nodes.length = 0;
+                        openList.clear();
                         break;
                     }
 
+                    // reached target node
+                    if (node.isEqual(endNode.x, endNode.y)) {
+                        minCost = endNode.g;
+                        segment = toVectors(backtrace(node));
+
+                        // cleanup
+                        nodes.length = 0;
+                        openList.clear();
+                        break;
+                    }
+
+                    // add new jump point nodes to openList
                     this._identifySuccessors(node);
                 }
             });
 
-            if (bestSegment) {
-                segments.push(bestSegment);
-            }
+            if (segment) {
+                // store previous end node, used to prevent retracing
+                lastSegment = segment;
 
-            if (!found) {
+                // shortest segment found, store
+                segments.push(segment);
+            } else {
                 // todo: build orthogonal path segment
+                // currently it will just draw straight line
                 // orthogonal.mjs/insideElement()
             }
 
-            if (i === vertices.length) {
+            // last segment found
+            if (i === gridVertices.length) {
                 break;
             }
         }
 
-        return segments.reduce((acc, segment) => {
-            acc.push(...segment);
+        return segments.reduce((acc, segment, index) => {
+            // todo: fix elbow removal
+            // segment = removeElbows.call(this, segment);
+            // todo: reduce redundant jump points
+            let path = scale(segment, step);
+
+            // todo: fix start/end point adjustment
+            // adjust only first/last/only segment
+            // else it's mid segment - no need to adjust anything
+            if (index === 0 && index !== segments.length) {
+                // first of 2+ segments
+                // path = adjust(segment, { start });
+            } else if (index !== 0 && index === segments.length) {
+                // last of 2+ segments
+                // path = adjust(segment, { end });
+            } else if (index === 0 && index === segments.length) {
+                // only segment
+                // path = adjust(segment, { start, end });
+            }
+
+            acc = acc.concat(path);
             return acc;
         }, []);
     }
@@ -266,6 +276,13 @@ export class JumpPointFinder {
             this._getNodeAt(x, y + 1),  // bottom
             this._getNodeAt(x - 1, y)   // left
         ];
+    }
+
+    _pointToLocalGrid(point) {
+        return {
+            x: Math.floor(point.x / this.grid.step),
+            y: Math.floor(point.y / this.grid.step)
+        }
     }
 }
 
