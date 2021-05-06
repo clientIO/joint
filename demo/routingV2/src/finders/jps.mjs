@@ -17,13 +17,14 @@ export class JumpPointFinder {
 
     findPath(start, end, vertices = []) {
         const { step } = this.grid;
+        const { floor } = Math;
 
         // snapVertices(vertices, start, end, step, linkView);
 
         this.nodes = [];
         const openList = this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
-        let from, to, prevHead, path = [], found;
+        let from, to, prevHead, segments = [], found;
         for (let i = 0; i <= vertices.length; i++) {
             found = false;
 
@@ -32,17 +33,20 @@ export class JumpPointFinder {
 
             // close previous direction to prevent retracing
             if (prevHead) {
-                const direction = getDirection(path[path.length - 2], path[path.length - 1]);
+                const previous = segments[segments.length - 1];
+                const direction = getDirection(previous[previous.length - 2], previous[previous.length - 1]);
                 this._getNodeAt(prevHead.x + direction.x, prevHead.y + direction.y).close();
             }
+
+            to = to.filter(point => this._isFree(floor(point.x / step), floor(point.y / step)));
 
             let minCost = Infinity, bestSegment;
             to.forEach(target => {
                 // add all possible starting points
                 from.forEach(point => {
                     const fromNode = this._getNodeAt(
-                        Math.floor(point.x / step),
-                        Math.floor(point.y / step)
+                        floor(point.x / step),
+                        floor(point.y / step)
                     );
 
                     if (fromNode) {
@@ -56,8 +60,8 @@ export class JumpPointFinder {
 
                 // get node of current target
                 const endNode = this.endNode = this._getNodeAt(
-                    Math.floor(target.x / step),
-                    Math.floor(target.y / step)
+                    floor(target.x / step),
+                    floor(target.y / step)
                 );
 
                 // main pathfinding loop
@@ -107,7 +111,7 @@ export class JumpPointFinder {
             });
 
             if (bestSegment) {
-                path.push(...bestSegment);
+                segments.push(bestSegment);
             }
 
             if (!found) {
@@ -120,7 +124,10 @@ export class JumpPointFinder {
             }
         }
 
-        return path;
+        return segments.reduce((acc, segment) => {
+            acc.push(...segment);
+            return acc;
+        }, []);
     }
 
     _identifySuccessors(node, ignoreNode) {

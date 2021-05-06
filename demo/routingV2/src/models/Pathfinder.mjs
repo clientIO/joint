@@ -1,9 +1,8 @@
 import { util } from '../../../../joint.mjs';
+import { debugConf, debugLog, debugStore, showDebugGrid } from '../debug.mjs';
 
 import Grid from './Grid.mjs';
 import Obstacle from './Obstacle.mjs';
-
-import { debugConf, debugLog, debugStore, showDebugGrid } from '../debug.mjs';
 import { JumpPointFinder } from '../finders/index.mjs';
 
 const config = {
@@ -13,7 +12,6 @@ const config = {
     endDirections: ['top', 'right', 'bottom', 'left'],
 }
 
-let s, e;
 export default class Pathfinder {
 
     constructor(graph, paper, opt = {}) {
@@ -48,9 +46,9 @@ export default class Pathfinder {
         const from = getRectPoints(linkView.sourceBBox, opt.startDirections, opt);
         const to = getRectPoints(linkView.targetBBox, opt.endDirections, opt);
 
-        s = window.performance.now();
+        const s = window.performance.now();
         const path = finder.findPath(from, to, vertices, linkView);
-        e = window.performance.now();
+        const e = window.performance.now();
 
         if (debugConf.routerBenchmark) {
             console.info('Took ' + (e - s).toFixed(2) + ' ms to calculate route');
