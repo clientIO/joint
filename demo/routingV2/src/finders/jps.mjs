@@ -28,7 +28,7 @@ export class JumpPointFinder {
         for (let i = 0; i <= vertices.length; i++) {
             found = false;
 
-            from = to ? [to] : start;
+            from = to || startGridPoints;
             to = vertices[i] ? [vertices[i]] : end;
 
             // close previous direction to prevent retracing
