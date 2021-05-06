@@ -33,12 +33,14 @@ export class JumpPointFinder {
         // convert existing vertices to Pathfinder Grid coordinates
         const gridVertices = vertices.map(vertex => this._pointToLocalGrid(vertex));
 
-        let from, to, segments = [], lastSegment = null;
+        let from, to, segments = [], lastSegment = null, retracingBlocker;
         for (let i = 0; i <= gridVertices.length; i++) {
             from = to || startGridPoints;
             to = gridVertices[i] ? [gridVertices[i]] : endGridPoints;
 
-            let minCost = Infinity, segment, retracingBlocker;
+            retracingBlocker = null;
+
+            let minCost = Infinity, segment;
             to.forEach(target => {
                 // add all possible starting points
                 from.forEach(point => {
