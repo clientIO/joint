@@ -118,31 +118,37 @@ export class JumpPointFinder {
         }
 
         return segments.reduce((acc, segment, index) => {
-            // todo: fix elbow removal
-            // segment = removeElbows.call(this, segment);
-            // todo: reduce redundant jump points
-            let path = scale(segment, step);
-
+            // const paperStart = startPoints[startGridPoints.findIndex(point => {
+            //     const p = segments[0][0];
+            //     return p && point.x === p.x && p.y === point.y;
+            // })];
+            //
+            // const paperEnd = endPoints[endGridPoints.findIndex(point => {
+            //     const p = lastSegment[lastSegment.length - 1];
+            //     return p && point.x === p.x && p.y === point.y;
+            // })];
             // todo: fix start/end point adjustment
-            // adjust only first/last/only segment
-            // else it's mid segment - no need to adjust anything
-            if (index === 0 && index !== segments.length) {
-                // first of 2+ segments
-                // path = adjust(segment, { start });
-            } else if (index !== 0 && index === segments.length) {
-                // last of 2+ segments
-                // path = adjust(segment, { end });
-            } else if (index === 0 && index === segments.length) {
-                // only segment
-                // path = adjust(segment, { start, end });
-            }
+            // todo: reduce redundant jump points
+            // let path = scale(segment, step);
+            // // adjust only first/last/only segment
+            // // else it's mid segment - no need to adjust anything
+            // if (index === 0 && index !== segments.length) {
+            //     // first of 2+ segments
+            //     // adjust(path, { start: paperStart });
+            // } else if (index !== 0 && index === segments.length) {
+            //     // last of 2+ segments
+            //     // adjust(path, { end: paperEnd });
+            // } else if (index === 0 && index === segments.length) {
+            //     // only segment
+            //     // adjust(path, { start: paperStart, end: paperEnd });
+            // }
 
-            acc = acc.concat(path);
+            acc = acc.concat(scale(segment, step));
             return acc;
         }, []);
     }
 
-    _identifySuccessors(node, ignoreNode) {
+    _identifySuccessors(node) {
         const heuristic = this.heuristic,
             openList = this.openList,
             endX = this.endNode.x,
@@ -153,7 +159,7 @@ export class JumpPointFinder {
             jx, jy, d, ng, jumpNode,
             abs = Math.abs;
 
-        neighbors = this._findNeighbors(node, ignoreNode);
+        neighbors = this._findNeighbors(node);
         for(i = 0, l = neighbors.length; i < l; ++i) {
             neighbor = neighbors[i];
             jumpPoint = this._jump(neighbor.x, neighbor.y, x, y);
@@ -163,20 +169,19 @@ export class JumpPointFinder {
                 jy = jumpPoint[1];
                 jumpNode = this._getNodeAt(jx, jy);
 
+                let penalty = isBend(node.parent, node, jumpNode) * 1;
+
                 if (jumpNode.closed) {
                     continue;
                 }
 
                 // include distance, as parent may not be immediately adjacent:
                 d = octile(abs(jx - x), abs(jy - y));
-                ng = node.g + d; // next `g` value
+                ng = node.g + d + penalty; // next `g` value
 
                 if (!jumpNode.opened || ng < jumpNode.g) {
                     jumpNode.g = ng;
                     jumpNode.h = jumpNode.h || heuristic(abs(jx - endX), abs(jy - endY));
-                    if (isBend(node, jumpNode)) {
-                        jumpNode.h += 1;
-                    }
                     jumpNode.f = jumpNode.g + jumpNode.h;
                     jumpNode.parent = node;
 
@@ -226,31 +231,55 @@ export class JumpPointFinder {
     _jump(x, y, px, py) {
         const dx = x - px, dy = y - py;
 
+        // node is obstructed
         if (!this._isFree(x, y)) {
             return null;
         }
 
+        // node is the end node
         if (this._getNodeAt(x, y).isEqual(this.endNode.x, this.endNode.y)) {
             return [x, y];
         }
 
         if (dx !== 0) {
+            // HORIZONTAL MOVEMENT
+            // up free AND previous up not free
+            // OR down free and previous down not free
             if ((this._isFree(x, y - 1) && !this._isFree(x - dx, y - 1)) ||
                 (this._isFree(x, y + 1) && !this._isFree(x - dx, y + 1))) {
+                // exit if found a turn - horizontal to vertical
                 return [x, y];
             }
-        }
-        else if (dy !== 0) {
+
+            if ((x + dx - this.endNode.x) === 0) {
+                return [x, y];
+            }
+
+            if (!this._isFree(x + dx, y)) {
+                return [x, y];
+            }
+        } else if (dy !== 0) {
+            // VERTICAL MOVEMENT
+            // left free AND previous left not free
+            // OR right free and previous right not free
             if ((this._isFree(x - 1, y) && !this._isFree(x - 1, y - dy)) ||
                 (this._isFree(x + 1, y) && !this._isFree(x + 1, y - dy))) {
+                // exit if found a turn - vertical to horizontal
                 return [x, y];
             }
-            //When moving vertically, must check for horizontal jump points
+            // When moving vertically, must check for horizontal jump points
             if (this._jump(x + 1, y, x, y) || this._jump(x - 1, y, x, y)) {
                 return [x, y];
             }
-        }
-        else {
+
+            if ((y + dy - this.endNode.y) === 0) {
+                return [x, y];
+            }
+
+            if (!this._isFree(x, y + dy)) {
+                return [x, y];
+            }
+        } else {
             throw new Error("Only horizontal and vertical movements are allowed");
         }
 
@@ -258,6 +287,10 @@ export class JumpPointFinder {
     }
 
     _getNodeAt(x, y) {
+        if (!this.grid.inBounds(x, y)) {
+            return null;
+        }
+
         let node = this.nodes[y * this.grid._width + x];
         if (!node) {
             this.nodes[y * this.grid._width + x] = node = new GridNode(x, y, this.grid.isFree(x, y));
@@ -266,7 +299,8 @@ export class JumpPointFinder {
     }
 
     _isFree(x, y) {
-        return this._getNodeAt(x, y).walkable;
+        const node = this._getNodeAt(x, y);
+        return node && node.walkable;
     }
 
     _getNeighbors(node) {
@@ -277,7 +311,7 @@ export class JumpPointFinder {
             this._getNodeAt(x + 1, y),  // right
             this._getNodeAt(x, y + 1),  // bottom
             this._getNodeAt(x - 1, y)   // left
-        ];
+        ].filter(node => node);
     }
 
     _pointToLocalGrid(point) {
@@ -470,10 +504,8 @@ const octile = function(dx, dy) {
     return (dx < dy) ? F * dx + dy : F * dy + dx;
 }
 
-const isBend = function(node, jumpNode) {
-    return node.parent &&
-        ((node.parent.x === node.x && node.x !== jumpNode.x) ||
-        (node.parent.y === node.y && node.y !== jumpNode.y));
+const isBend = function(prev, node, next) {
+    return !!prev && ((prev.x === node.x && node.x !== next.x) || (prev.y === node.y && node.y !== next.y));
 }
 
 const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };

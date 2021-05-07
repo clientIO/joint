@@ -3,9 +3,9 @@ export default class GridNode {
         this.x = x;
         this.y = y;
 
-        this.g = null;
-        this.f = null;
-        this.h = null;
+        this.g = null;  // cost from start point to GridNode
+        this.h = null;  // heuristic cost from GridNode to end point
+        this.f = null;  // sum of cost from start to GridNode and heuristic cost
 
         this.walkable = walkable === undefined ? true : walkable;
         this.opened = false;

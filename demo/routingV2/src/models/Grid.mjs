@@ -17,8 +17,12 @@ export default class Grid {
         return this._array.get(x, y);
     }
 
+    inBounds(x, y) {
+        return (x >= 0 && x < this._width) && (y >= 0 && y < this._height);
+    }
+
     isFree(x, y) {
-        return this.getBinary(x, y) === 0 && (x >= 0 && x < this._width) && (y >= 0 && y < this._height);
+        return this.getBinary(x, y) === 0 && this.inBounds(x, y);
     }
 
     getFragment(bounds) {
