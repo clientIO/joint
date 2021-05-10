@@ -54,6 +54,10 @@ export class JumpPointFinder {
                             node.startDir = BearingDirection[lastSegment[lastSegment.length - 1].bearing];
                         }
 
+                        // close neighbor node in the source direction
+                        const { x: dx, y: dy } = CardinalDirections[DirectionBearing[node.startDir]];
+                        this._getNodeAt(node.x + dx, node.y + dy).close();
+
                         openList.push(node);
                     }
                 });
@@ -514,6 +518,7 @@ const isBend = function(prev, node, next) {
 
 const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };
 const BearingDirection = { N: 'top', E: 'right', S: 'bottom', W: 'left' };
+const DirectionBearing = { top: 'N', right: 'E', bottom: 'S', left: 'W' };
 const getBearing = (p1, p2) => {
     if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
     if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
