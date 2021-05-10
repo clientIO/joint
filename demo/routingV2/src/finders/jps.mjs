@@ -20,40 +20,48 @@ export class JumpPointFinder {
         const { openList, nodes } = this;
         const { step } = this.grid;
 
-        // store reachable start points
-        const startGridPoints = startPoints
-                .map(point => this._pointToLocalGrid(point))
-                .filter(point => this._isFree(point.x, point.y));
+        const startDirs = Object.keys(startPoints);
+        const endDirs = Object.keys(endPoints);
 
-        // store reachable end points
-        const endGridPoints = endPoints
-            .map(point => this._pointToLocalGrid(point))
-            .filter(point => this._isFree(point.x, point.y));
+        let fromPoints, toPoints, segments = [], lastSegment = null;
+        for (let i = 0; i <= vertices.length; i++) {
+            fromPoints = toPoints || Object.values(startPoints);
+            toPoints = vertices[i] ? [vertices[i]] : Object.values(endPoints);
 
-        // convert existing vertices to Pathfinder Grid coordinates
-        const gridVertices = vertices.map(vertex => this._pointToLocalGrid(vertex));
-
-        let from, to, segments = [], lastSegment = null, retracingBlocker;
-        for (let i = 0; i <= gridVertices.length; i++) {
-            from = to || startGridPoints;
-            to = gridVertices[i] ? [gridVertices[i]] : endGridPoints;
-
-            retracingBlocker = null;
+            const fromNodes = fromPoints.map(from => this._getNodeAt(from.x, from.y));
 
             let minCost = Infinity, segment;
-            to.forEach(target => {
-                // add all possible starting points
-                from.forEach(point => {
-                    const fromNode = this._getNodeAt(point.x, point.y);
+            toPoints.forEach((to, tIndex) => {
+                // get node of current target
+                const endNode = this.endNode = this._getNodeAt(to.x, to.y);
+                if (!endNode || !endNode.walkable) {
+                    // end point unreachable
+                    // todo: handle added vertex being out of grid bounds
+                    return;
+                }
 
-                    if (fromNode) {
-                        fromNode.g = 0;
-                        fromNode.f = 0;
-                        fromNode.opened = true;
+                // reset and open start nodes
+                fromNodes.forEach((node, sIndex) => {
+                    if (node && node.walkable) {
+                        node.g = 0;
+                        node.f = 0;
+                        node.opened = true;
+                        node.closed = false;
 
-                        openList.push(fromNode);
+                        if (i === 0) {
+                            node.startDir = startDirs[sIndex];
+                        } else if (lastSegment) {
+                            node.startDir = BearingDirection[lastSegment[lastSegment.length - 1].bearing];
+                        }
+
+                        openList.push(node);
                     }
                 });
+
+                // no source nodes available for pathfinding
+                if (openList.empty()) {
+                    return;
+                }
 
                 // close previous direction to prevent retracing
                 if (lastSegment && lastSegment.length > 1) {
@@ -62,8 +70,9 @@ export class JumpPointFinder {
                     this._getNodeAt(p2.x + direction.x, p2.y + direction.y).close();
                 }
 
-                // get node of current target
-                const endNode = this.endNode = this._getNodeAt(target.x, target.y);
+                if (i === vertices.length - 1) {
+                    endNode.endDir = endDirs[tIndex];
+                }
 
                 // main pathfinding loop
                 let node;
@@ -107,7 +116,7 @@ export class JumpPointFinder {
             }
 
             // last segment found
-            if (i === gridVertices.length) {
+            if (i === vertices.length) {
                 break;
             }
         }
@@ -123,7 +132,6 @@ export class JumpPointFinder {
             //     return p && point.x === p.x && p.y === point.y;
             // })];
             // todo: fix start/end point adjustment
-            // todo: reduce redundant jump points
             // let path = scale(segment, step);
             // // adjust only first/last/only segment
             // // else it's mid segment - no need to adjust anything
@@ -164,7 +172,14 @@ export class JumpPointFinder {
                 jy = jumpPoint[1];
                 jumpNode = this._getNodeAt(jx, jy);
 
-                let penalty = isBend(node.parent, node, jumpNode) * 1;
+                let prev = node.parent;
+                if (!prev) {
+                    const dx = node.startDir === 'left' ? -1 : node.startDir === 'right' ? 1 : 0;
+                    const dy = node.startDir === 'top' ? -1 : node.startDir === 'bottom' ? 1 : 0;
+
+                    prev = { x: node.x + dx, y: node.y + dy };
+                }
+                let penalty = isBend(prev, node, jumpNode) * 1;
 
                 if (jumpNode.closed) {
                     continue;
@@ -263,6 +278,7 @@ export class JumpPointFinder {
                 return [x, y];
             }
             // When moving vertically, must check for horizontal jump points
+            // todo: reduce redundant jump points
             if (this._jump(x + 1, y, x, y) || this._jump(x - 1, y, x, y)) {
                 return [x, y];
             }
@@ -307,13 +323,6 @@ export class JumpPointFinder {
             this._getNodeAt(x, y + 1),  // bottom
             this._getNodeAt(x - 1, y)   // left
         ].filter(node => node);
-    }
-
-    _pointToLocalGrid(point) {
-        return {
-            x: Math.floor(point.x / this.grid.step),
-            y: Math.floor(point.y / this.grid.step)
-        }
     }
 }
 
@@ -500,10 +509,11 @@ const octile = function(dx, dy) {
 }
 
 const isBend = function(prev, node, next) {
-    return !!prev && ((prev.x === node.x && node.x !== next.x) || (prev.y === node.y && node.y !== next.y));
+    return (prev.x === node.x && node.x !== next.x) || (prev.y === node.y && node.y !== next.y);
 }
 
 const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };
+const BearingDirection = { N: 'top', E: 'right', S: 'bottom', W: 'left' };
 const getBearing = (p1, p2) => {
     if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
     if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;

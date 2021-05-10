@@ -43,11 +43,12 @@ export default class Pathfinder {
         const { opt } = this;
         const finder = new JumpPointFinder({ grid: this.grid });
 
-        const from = getRectPoints(linkView.sourceBBox, opt.startDirections, opt);
-        const to = getRectPoints(linkView.targetBBox, opt.endDirections, opt);
+        const from = this._getRectPointsInGrid(linkView.sourceBBox, opt.startDirections, opt);
+        const to = this._getRectPointsInGrid(linkView.targetBBox, opt.endDirections, opt);
+        const gridVertices = vertices.map(vertex => this._pointToLocalGrid(vertex));
 
         const s = window.performance.now();
-        const path = finder.findPath(from, to, vertices, linkView);
+        const path = finder.findPath(from, to, gridVertices);
         const e = window.performance.now();
 
         if (debugConf.routerBenchmark) {
@@ -151,29 +152,36 @@ export default class Pathfinder {
             }
         });
     }
-}
 
-function getRectPoints(rect, directions, opt) {
-    const bbox = rect.clone().moveAndExpand(opt.paddingBox), points = [];
-
-    directions.forEach(dir => {
-        switch (dir) {
-            case 'top':
-                points.push(bbox.topMiddle().translate(0, -opt.step));
-               break;
-            case 'right':
-               points.push(bbox.rightMiddle().translate(opt.step, 0));
-               break;
-            case 'bottom':
-               points.push(bbox.bottomMiddle().translate(0, opt.step));
-               break;
-            case 'left':
-               points.push(bbox.leftMiddle().translate(-opt.step, 0));
-               break;
+    _pointToLocalGrid(point) {
+        return {
+            x: Math.floor(point.x / this.grid.step),
+            y: Math.floor(point.y / this.grid.step)
         }
-    });
+    }
 
-    return points;
+    _getRectPointsInGrid(rect, directions, opt) {
+        const bbox = rect.clone().moveAndExpand(opt.paddingBox), points = {};
+
+        directions.forEach(dir => {
+            switch (dir) {
+                case 'top':
+                    points.top = this._pointToLocalGrid(bbox.topMiddle().translate(0, -opt.step));
+                    break;
+                case 'right':
+                    points.right = this._pointToLocalGrid(bbox.rightMiddle().translate(opt.step, 0));
+                    break;
+                case 'bottom':
+                    points.bottom = this._pointToLocalGrid(bbox.bottomMiddle().translate(0, opt.step));
+                    break;
+                case 'left':
+                    points.left = this._pointToLocalGrid(bbox.leftMiddle().translate(-opt.step, 0));
+                    break;
+            }
+        });
+
+        return points;
+    }
 }
 
 const getGridSize = (paper, step) => {
