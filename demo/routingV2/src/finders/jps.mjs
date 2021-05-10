@@ -55,16 +55,11 @@ export class JumpPointFinder {
                     }
                 });
 
-                // retracingBlocker has to be updated only once for each target loop
-                if (!retracingBlocker && lastSegment && lastSegment.length > 1) {
+                // close previous direction to prevent retracing
+                if (lastSegment && lastSegment.length > 1) {
                     const [p1, p2] = lastSegment.slice(lastSegment.length - 2, lastSegment.length);
                     const direction = getDirection(p1, p2);
-                    retracingBlocker = this._getNodeAt(p2.x + direction.x, p2.y + direction.y);
-                }
-
-                // close previous direction to prevent retracing
-                if (retracingBlocker) {
-                    retracingBlocker.close();
+                    this._getNodeAt(p2.x + direction.x, p2.y + direction.y).close();
                 }
 
                 // get node of current target
