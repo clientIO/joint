@@ -178,8 +178,8 @@ export class JumpPointFinder {
 
                 let prev = node.parent;
                 if (!prev) {
-                    const dx = node.startDir === 'left' ? -1 : node.startDir === 'right' ? 1 : 0;
-                    const dy = node.startDir === 'top' ? -1 : node.startDir === 'bottom' ? 1 : 0;
+                    const dx = node.startDir === 'left' ? 1 : node.startDir === 'right' ? -1 : 0;
+                    const dy = node.startDir === 'top' ? 1 : node.startDir === 'bottom' ? -1 : 0;
 
                     prev = { x: node.x + dx, y: node.y + dy };
                 }
