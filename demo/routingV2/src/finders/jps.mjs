@@ -23,10 +23,17 @@ export class JumpPointFinder {
         const startDirs = Object.keys(startPoints);
         const endDirs = Object.keys(endPoints);
 
-        let fromPoints, toPoints, segments = [], lastSegment = null;
-        for (let i = 0; i <= vertices.length; i++) {
-            fromPoints = toPoints || Object.values(startPoints);
-            toPoints = vertices[i] ? [vertices[i]] : Object.values(endPoints);
+        const startGridPoints = Object.values(startPoints).map(point => pointToLocalGrid(point.coordinates, this.grid.step));
+        const endGridPoints = Object.values(endPoints).map(point => pointToLocalGrid(point.coordinates, this.grid.step));
+        const gridVertices = vertices.map(vertex => pointToLocalGrid(vertex, this.grid.step));
+
+        // used to adjust path as the last operation
+        let startPoint, endPoint;
+
+        let fromPoints, toPoints, segments = [], previousSegment = null;
+        for (let i = 0; i <= gridVertices.length; i++) {
+            fromPoints = toPoints || startGridPoints;
+            toPoints = gridVertices[i] ? [gridVertices[i]] : endGridPoints;
 
             const fromNodes = fromPoints.map(from => this._getNodeAt(from.x, from.y));
 
@@ -50,13 +57,19 @@ export class JumpPointFinder {
 
                         if (i === 0) {
                             node.startDir = startDirs[sIndex];
-                        } else if (lastSegment) {
-                            node.startDir = BearingDirection[lastSegment[lastSegment.length - 1].bearing];
+                            node.g = node.f = startPoints[node.startDir].offset;
+                        } else {
+                            node.startDir = BearingDirection[previousSegment[previousSegment.length - 1].bearing];
                         }
 
                         // close neighbor node in the source direction
                         const { x: dx, y: dy } = CardinalDirections[DirectionBearing[node.startDir]];
-                        this._getNodeAt(node.x + dx, node.y + dy).close();
+                        const tailNode = this._getNodeAt(node.x + dx, node.y + dy);
+
+                        if (tailNode) {
+                            node.parent = tailNode;
+                            tailNode.close();
+                        }
 
                         openList.push(node);
                     }
@@ -68,14 +81,15 @@ export class JumpPointFinder {
                 }
 
                 // close previous direction to prevent retracing
-                if (lastSegment && lastSegment.length > 1) {
-                    const [p1, p2] = lastSegment.slice(lastSegment.length - 2, lastSegment.length);
+                if (previousSegment && previousSegment.length > 1) {
+                    const [p1, p2] = previousSegment.slice(previousSegment.length - 2, previousSegment.length);
                     const direction = getDirection(p1, p2);
                     this._getNodeAt(p2.x + direction.x, p2.y + direction.y).close();
                 }
 
-                if (i === vertices.length - 1) {
+                if (i === gridVertices.length) {
                     endNode.endDir = endDirs[tIndex];
+                    endNode.endPoint = endPoints[endNode.endDir];
                 }
 
                 // main pathfinding loop
@@ -84,17 +98,31 @@ export class JumpPointFinder {
                     node = openList.pop();
                     node.closed = true;
 
+                    // todo: left to consider - slightly speeds up consecutive searches, but may not find a bit longer,
+                    // todo: but nicer visually path
                     // partial path already longer than previously found path, early exit
-                    if (node.g >= minCost) {
-                        nodes.length = 0;
-                        openList.clear();
-                        break;
-                    }
+                    // if (node.g >= minCost) {
+                    //     nodes.length = 0;
+                    //     openList.clear();
+                    //     break;
+                    // }
 
                     // reached target node
                     if (node.isEqual(endNode.x, endNode.y)) {
-                        minCost = endNode.g;
-                        segment = toVectors(backtrace(node));
+                        if (node.g < minCost) {
+                            minCost = endNode.g;
+                            segment = toVectors(backtrace(node));
+
+                            // store start point for later adjustments
+                            if (i === 0) {
+                                startPoint = startPoints[endNode.getRoot().startDir];
+                            }
+
+                            // store for later adjustments as nodes get cleared
+                            if (i === gridVertices.length) {
+                                endPoint = endPoints[endNode.endDir];
+                            }
+                        }
 
                         // cleanup
                         nodes.length = 0;
@@ -108,10 +136,8 @@ export class JumpPointFinder {
             });
 
             if (segment) {
-                // store previous end node, used to prevent retracing
-                lastSegment = segment;
-
                 // shortest segment found, store
+                previousSegment = segment;
                 segments.push(segment);
             } else {
                 // todo: build orthogonal path segment
@@ -120,37 +146,27 @@ export class JumpPointFinder {
             }
 
             // last segment found
-            if (i === vertices.length) {
+            if (i === gridVertices.length) {
                 break;
             }
         }
 
         return segments.reduce((acc, segment, index) => {
-            // const paperStart = startPoints[startGridPoints.findIndex(point => {
-            //     const p = segments[0][0];
-            //     return p && point.x === p.x && p.y === point.y;
-            // })];
-            //
-            // const paperEnd = endPoints[endGridPoints.findIndex(point => {
-            //     const p = lastSegment[lastSegment.length - 1];
-            //     return p && point.x === p.x && p.y === point.y;
-            // })];
-            // todo: fix start/end point adjustment
-            // let path = scale(segment, step);
+            const partial = scale(segment, step);
             // // adjust only first/last/only segment
             // // else it's mid segment - no need to adjust anything
-            // if (index === 0 && index !== segments.length) {
-            //     // first of 2+ segments
-            //     // adjust(path, { start: paperStart });
-            // } else if (index !== 0 && index === segments.length) {
-            //     // last of 2+ segments
-            //     // adjust(path, { end: paperEnd });
-            // } else if (index === 0 && index === segments.length) {
-            //     // only segment
-            //     // adjust(path, { start: paperStart, end: paperEnd });
-            // }
+            if (index === 0 && index !== segments.length) {
+                // first of 2+ segments
+                // adjust(partial, { start: startPoint });
+            } else if (index !== 0 && index === segments.length) {
+                // last of 2+ segments
+                // adjust(partial, { end: endPoint });
+            } else if (index === 0 && index === segments.length) {
+                // only segment
+                // adjust(partial, { start: startPoint, end: endPoint });
+            }
 
-            acc = acc.concat(scale(segment, step));
+            acc = acc.concat(partial);
             return acc;
         }, []);
     }
@@ -158,6 +174,7 @@ export class JumpPointFinder {
     _identifySuccessors(node) {
         const heuristic = this.heuristic,
             openList = this.openList,
+            endNode = this.endNode,
             endX = this.endNode.x,
             endY = this.endNode.y;
         let neighbors, neighbor,
@@ -176,22 +193,13 @@ export class JumpPointFinder {
                 jy = jumpPoint[1];
                 jumpNode = this._getNodeAt(jx, jy);
 
-                let prev = node.parent;
-                if (!prev) {
-                    const dx = node.startDir === 'left' ? 1 : node.startDir === 'right' ? -1 : 0;
-                    const dy = node.startDir === 'top' ? 1 : node.startDir === 'bottom' ? -1 : 0;
-
-                    prev = { x: node.x + dx, y: node.y + dy };
-                }
-                let penalty = isBend(prev, node, jumpNode) * 1;
-
                 if (jumpNode.closed) {
                     continue;
                 }
 
-                // include distance, as parent may not be immediately adjacent:
-                d = octile(abs(jx - x), abs(jy - y));
-                ng = node.g + d + penalty; // next `g` value
+                // include distance, penalties and target point offset
+                d = cost(jx, jy, x, y, node, jumpNode, endNode);
+                ng = node.g + d; // next `g` value
 
                 if (!jumpNode.opened || ng < jumpNode.g) {
                     jumpNode.g = ng;
@@ -266,7 +274,7 @@ export class JumpPointFinder {
             }
 
             if ((x + dx - this.endNode.x) === 0) {
-                return [x, y];
+                return [x + dx, y];
             }
 
             if (!this._isFree(x + dx, y)) {
@@ -288,7 +296,7 @@ export class JumpPointFinder {
             }
 
             if ((y + dy - this.endNode.y) === 0) {
-                return [x, y];
+                return [x, y + dy];
             }
 
             if (!this._isFree(x, y + dy)) {
@@ -507,9 +515,26 @@ const adjust = function(path, { start, end } = {}) {
     return path;
 }
 
-const octile = function(dx, dy) {
-    const F = Math.SQRT2 - 1;
-    return (dx < dy) ? F * dx + dy : F * dy + dx;
+const cost = function(jx, jy, x, y, node, jumpNode, endNode) {
+    let prev = node.parent;
+    if (!prev) {
+        const dx = node.startDir === 'left' ? -1 : node.startDir === 'right' ? 1 : 0;
+        const dy = node.startDir === 'top' ? 1 : node.startDir === 'bottom' ? -1 : 0;
+
+        prev = { x: node.x + dx, y: node.y + dy };
+    }
+    // bend penalty
+    let addedCost = isBend(prev, node, jumpNode) * 1;
+
+    // end point offset
+    if (jumpNode.isEqual(endNode.x, endNode.y) && endNode.endPoint) {
+        addedCost += endNode.endPoint.offset;
+
+        const { x: dx, y: dy } = CardinalDirections[DirectionBearing[endNode.endDir]];
+        addedCost += isBend(node, jumpNode, { x: jx + dx, y: jy + dy }) * 1;
+    }
+
+    return Math.abs(jx - x) + Math.abs(jy - y) + addedCost;
 }
 
 const isBend = function(prev, node, next) {
@@ -534,21 +559,9 @@ const getDirection = (p1, p2) => {
     return CardinalDirections[getBearing(p1, p2)] || { x: 0, y: 0 };
 }
 
-const snapVertices = function(vertices = [], start, end, step, linkView) {
-    vertices.forEach((v, i) => {
-        if (i === 0) {
-            v.x = v.x === start.x ? v.x = start.x : v.x;
-            v.y = v.y === start.y ? v.y = start.y : v.y;
-        } else if (i === vertices.length) {
-            v.x = v.x === end.x ? v.x = end.x : v.x;
-            v.y = v.y === end.y ? v.y = end.y : v.y;
-        } else {
-            v.x = Math.floor(v.x / step) * step;
-            v.y = Math.floor(v.y / step) * step;
-        }
-
-        vertices[i] = v;
-    });
-
-    linkView.model.vertices(vertices);
+const pointToLocalGrid = function (point, step) {
+    return {
+        x: Math.floor(point.x / step),
+        y: Math.floor(point.y / step)
+    }
 }

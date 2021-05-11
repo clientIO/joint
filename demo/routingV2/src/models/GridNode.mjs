@@ -10,6 +10,8 @@ export default class GridNode {
         this.walkable = walkable === undefined ? true : walkable;
         this.opened = false;
         this.closed = false;
+
+        this.parent = null;
     }
 
     isEqual(x, y) {
@@ -20,5 +22,13 @@ export default class GridNode {
         this.walkable = false;
         this.closed = true;
         this.opened = true;
+    }
+
+    getRoot() {
+        let node = this;
+        while (node.parent) {
+            node = node.parent;
+        }
+        return node;
     }
 }

@@ -1,4 +1,4 @@
-import { util } from '../../../../joint.mjs';
+import { util, g } from '../../../../joint.mjs';
 import { debugConf, debugLog, debugStore, showDebugGrid } from '../debug.mjs';
 
 import Grid from './Grid.mjs';
@@ -43,12 +43,11 @@ export default class Pathfinder {
         const { opt } = this;
         const finder = new JumpPointFinder({ grid: this.grid });
 
-        const from = this._getRectPointsInGrid(linkView.sourceBBox, opt.startDirections, opt);
-        const to = this._getRectPointsInGrid(linkView.targetBBox, opt.endDirections, opt);
-        const gridVertices = vertices.map(vertex => this._pointToLocalGrid(vertex));
+        const from = this._getRectPoints(linkView.sourceBBox, opt.startDirections, opt);
+        const to = this._getRectPoints(linkView.targetBBox, opt.endDirections, opt);
 
         const s = window.performance.now();
-        const path = finder.findPath(from, to, gridVertices);
+        const path = finder.findPath(from, to, vertices);
         const e = window.performance.now();
 
         if (debugConf.routerBenchmark) {
@@ -153,29 +152,42 @@ export default class Pathfinder {
         });
     }
 
-    _pointToLocalGrid(point) {
-        return {
-            x: Math.floor(point.x / this.grid.step),
-            y: Math.floor(point.y / this.grid.step)
-        }
-    }
+    _getRectPoints(rect, directions, opt) {
+        const transform = new g.Rect(opt.paddingBox)
+            .moveAndExpand({ x: -opt.step, y: -opt.step, width: 2 * opt.step, height: 2 * opt.step });
+        const bbox = rect.clone().moveAndExpand(transform);
+        const center = bbox.center();
 
-    _getRectPointsInGrid(rect, directions, opt) {
-        const bbox = rect.clone().moveAndExpand(opt.paddingBox), points = {};
-
+        const points = {};
         directions.forEach(dir => {
             switch (dir) {
                 case 'top':
-                    points.top = this._pointToLocalGrid(bbox.topMiddle().translate(0, -opt.step));
+                    const top = bbox.topMiddle();
+                    points.top = {
+                        coordinates: top,
+                        offset: top.distance(center) / opt.step
+                    };
                     break;
                 case 'right':
-                    points.right = this._pointToLocalGrid(bbox.rightMiddle().translate(opt.step, 0));
+                    const right = bbox.rightMiddle();
+                    points.right = {
+                        coordinates: right,
+                        offset: right.distance(center) / opt.step
+                    };
                     break;
                 case 'bottom':
-                    points.bottom = this._pointToLocalGrid(bbox.bottomMiddle().translate(0, opt.step));
+                    const bottom = bbox.bottomMiddle();
+                    points.bottom = {
+                        coordinates: bottom,
+                        offset: bottom.distance(center) / opt.step
+                    };
                     break;
                 case 'left':
-                    points.left = this._pointToLocalGrid(bbox.leftMiddle().translate(-opt.step, 0));
+                    const left = bbox.leftMiddle();
+                    points.left = {
+                        coordinates: left,
+                        offset: left.distance(center) / opt.step
+                    }
                     break;
             }
         });
