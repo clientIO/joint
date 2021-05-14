@@ -225,7 +225,7 @@ export const Cell = Backbone.Model.extend({
             var cells;
 
             if (opt.deep) {
-                cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
                 cells.unshift(this);
             } else {
                 cells = [this];
@@ -269,7 +269,7 @@ export const Cell = Backbone.Model.extend({
             var cells;
 
             if (opt.deep) {
-                cells = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+                cells = this.getEmbeddedCells({ deep: true, breadthFirst: opt.breadthFirst !== false });
                 cells.unshift(this);
             } else {
                 cells = [this];
