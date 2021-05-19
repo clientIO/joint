@@ -10,6 +10,7 @@ const config = {
     padding: 10,
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
+    quadrantSize: 94906265, // floor(sqrt(MAX_SAFE_INTEGER))
 }
 
 export default class Pathfinder {
@@ -20,10 +21,11 @@ export default class Pathfinder {
         }
 
         this.opt = resolveOptions(opt);
+        const { step, quadrantSize } = this.opt;
 
         // Grid
-        const { width, height } = getGridSize(paper, opt.step);
-        this.grid = new Grid(opt.step, width, height);
+        const { width, height } = getGridSize(paper, step);
+        this.grid = new Grid(step, width, height, quadrantSize);
 
         // Obstacles and ref to Graph cells
         this._obstacles = {};
@@ -60,35 +62,38 @@ export default class Pathfinder {
 
     addObstacle(element) {
         const obstacle = new Obstacle(element, this);
-        const fragment = obstacle.fragment();
+        const { hi, lo } = obstacle.bounds;
 
-        for(let i = 0; i < fragment.shape[0]; ++i) {
-            for(let j = 0; j < fragment.shape[1]; ++j) {
+        for (let x = lo.x; x < hi.x; ++x) {
+            for (let y = lo.y; y < hi.y; ++y) {
                 let prev = {};
-                if (fragment.get(i, j) === 1) {
-                    prev = fragment.data.item(fragment.index(i, j));
+                if (!this.grid.v2traversable(x, y)) {
+                    prev = this.grid.v2get(x, y);
                 }
 
-                prev[obstacle.index] = true;
-                fragment.set(i, j, prev);
+                if (prev) {
+                    prev[obstacle.id] = obstacle.cell;
+                    this.grid.v2set(x, y, prev);
+                }
             }
         }
 
-        this._obstacles[obstacle.index] = obstacle;
-        this._cells[element.id] = obstacle.index;
+        this._obstacles[obstacle.id] = obstacle;
+        this._cells[element.id] = obstacle.id;
     }
 
     getObstacleByCellId(cellId) {
         return this._obstacles[this._cells[cellId]] || null;
     }
 
+    // todo: update from L1
     getObstaclesInArea(rect) {
-        const fragment = this.grid.getFragment(Obstacle.rectToBounds(rect, this.step));
+        const { lo, hi } = Obstacle.rectToBounds(rect, this.opt.step);
 
         const obstacles = {};
-        for(let i = 0; i < fragment.shape[0]; ++i) {
-            for(let j = 0; j < fragment.shape[1]; ++j) {
-                const node = fragment.data.item(fragment.index(i, j));
+        for (let x = lo.x; x < hi.x; ++x) {
+            for (let y = lo.y; y < hi.y; ++y) {
+                const node = this.grid.v2get(x, y);
                 if (node === undefined) {
                     continue;
                 }
@@ -210,6 +215,7 @@ function resolveOptions(opt) {
 
     opt.paddingBox = util.result(opt, 'paddingBox');
     opt.padding = util.result(opt, 'padding');
+    opt.quadrantSize = util.result(opt, 'quadrantSize');
 
     if (opt.padding) {
         // if both provided, opt.padding wins over opt.paddingBox

@@ -310,13 +310,10 @@ export class JumpPointFinder {
     }
 
     _getNodeAt(x, y) {
-        if (!this.grid.inBounds(x, y)) {
-            return null;
-        }
-
+        // todo: quadrants OR merge data with Grid - cleanup!
         let node = this.nodes[y * this.grid._width + x];
         if (!node) {
-            this.nodes[y * this.grid._width + x] = node = new GridNode(x, y, this.grid.isFree(x, y));
+            this.nodes[y * this.grid._width + x] = node = new GridNode(x, y, this.grid.v2traversable(x, y));
         }
         return node;
     }

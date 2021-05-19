@@ -2,29 +2,25 @@ import { util } from '../../../../joint.mjs';
 
 export default class Obstacle {
     constructor(element, pathfinder) {
-        this._index = Number.parseInt(util.uniqueId());
+        this._id = Number.parseInt(util.uniqueId());
         this._bounds = Obstacle.elementToBounds(element, pathfinder.opt);
         this._pathfinder = pathfinder;
         this._cell = element;
     }
 
-    fragment() {
-        // todo: cache fragment
-        return this._pathfinder.grid.getFragment(this.bounds);
-    }
-
     update() {
+        // todo: highly unoptimized poc
         // remove obstacle from grid completely
-        const prevFragment = this.fragment();
-        for(let i = 0; i < prevFragment.shape[0]; ++i) {
-            for(let j = 0; j < prevFragment.shape[1]; ++j) {
-                let prev = prevFragment.data.item(prevFragment.index(i, j)) || {};
-                delete prev[this.index];
+        let { hi, lo } = this.bounds;
+        for (let x = lo.x; x < hi.x; ++x) {
+            for (let y = lo.y; y < hi.y; ++y) {
+                let prev = this.pathfinder.grid.v2get(x, y) || {};
+                delete prev[this.id];
 
                 if (Object.keys(prev).length === 0) {
-                    prevFragment.data.remove(prevFragment.index(i, j));
+                    this.pathfinder.grid.v2remove(x, y);
                 } else {
-                    prevFragment.set(i, j, prev);
+                    this.pathfinder.grid.v2set(x, y, prev);
                 }
             }
         }
@@ -32,16 +28,21 @@ export default class Obstacle {
         // add obstacle back to the grid, from scratch
         const { opt } = this._pathfinder;
         this._bounds = Obstacle.elementToBounds(this._cell, opt);
-        const updatedFragment = this.fragment();
-        for(let i = 0; i < updatedFragment.shape[0]; ++i) {
-            for(let j = 0; j < updatedFragment.shape[1]; ++j) {
+
+        lo = this._bounds.lo;
+        hi = this._bounds.hi;
+
+        for(let x = lo.x; x < hi.x; ++x) {
+            for(let y = lo.y; y < hi.y; ++y) {
                 let prev = {};
-                if (updatedFragment.get(i, j) === 1) {
-                    prev = updatedFragment.data.item(updatedFragment.index(i, j));
+                if (!this.pathfinder.grid.v2traversable(x, y)) {
+                    prev = this.pathfinder.grid.v2get(x, y);
                 }
 
-                prev[this.index] = true;
-                updatedFragment.set(i, j, prev);
+                if (prev) {
+                    prev[this.id] = this._cell;
+                    this.pathfinder.grid.v2set(x, y, prev);
+                }
             }
         }
 
@@ -52,8 +53,8 @@ export default class Obstacle {
         return this._bounds;
     }
 
-    get index() {
-        return this._index;
+    get id() {
+        return this._id;
     }
 
     get pathfinder() {

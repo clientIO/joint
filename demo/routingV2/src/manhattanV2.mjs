@@ -7,8 +7,8 @@ import Pathfinder from './models/Pathfinder.mjs';
 const graph = new joint.dia.Graph();
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 1000,
-    height: 900,
+    width: 2000,
+    height: 2000,
     gridSize: 20,
     async: true,
     model: graph
