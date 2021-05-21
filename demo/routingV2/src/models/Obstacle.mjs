@@ -14,13 +14,13 @@ export default class Obstacle {
         let { hi, lo } = this.bounds;
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
-                let prev = this.pathfinder.grid.v2get(x, y) || {};
-                delete prev[this.id];
+                const node = this.pathfinder.grid.v2get(x, y);
+                if (node) {
+                    node.delete(this.id);
 
-                if (Object.keys(prev).length === 0) {
-                    this.pathfinder.grid.v2remove(x, y);
-                } else {
-                    this.pathfinder.grid.v2set(x, y, prev);
+                    if (node.size === 0) {
+                        this.pathfinder.grid.v2remove(x, y);
+                    }
                 }
             }
         }
@@ -34,15 +34,9 @@ export default class Obstacle {
 
         for(let x = lo.x; x < hi.x; ++x) {
             for(let y = lo.y; y < hi.y; ++y) {
-                let prev = {};
-                if (!this.pathfinder.grid.v2traversable(x, y)) {
-                    prev = this.pathfinder.grid.v2get(x, y);
-                }
-
-                if (prev) {
-                    prev[this.id] = this._cell;
-                    this.pathfinder.grid.v2set(x, y, prev);
-                }
+                const node = this.pathfinder.grid.v2get(x, y) || new Map();
+                node.set(this.id, this._cell);
+                this.pathfinder.grid.v2set(x, y, node);
             }
         }
 

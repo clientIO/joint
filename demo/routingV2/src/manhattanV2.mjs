@@ -79,7 +79,7 @@ const obstacle = source.clone().position(0,0).attr({
 });
 
 // ======= Obstacles
-const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 5;
+const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 20;
 for (let i = 0; i < obsCount; i++) {
     const obs = obstacle.clone();
     obs.translate(200 + Math.random() * (width - 500), 50 + Math.random() * (height - 100));

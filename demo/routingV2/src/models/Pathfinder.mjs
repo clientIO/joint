@@ -52,6 +52,18 @@ export default class Pathfinder {
         const path = finder.findPath(from, to, vertices);
         const e = window.performance.now();
 
+        // const origin = linkView.sourceBBox.origin();
+        // const width = linkView.targetBBox.corner().x - origin.x;
+        // const height = linkView.targetBBox.corner().y - origin.y;
+        // const area = new g.Rect(origin.x, origin.y, width, height);
+        //
+        // const startbb = window.performance.now();
+        // const cells = this.getObstaclesInArea(area);
+        // console.log(cells);
+        // const endbb = window.performance.now();
+        // console.info('Took ' + (endbb - startbb).toFixed(2) + ' ms to calculate obstacles in area.');
+
+
         if (debugConf.routerBenchmark) {
             console.info('Took ' + (e - s).toFixed(2) + ' ms to calculate route');
         }
@@ -66,15 +78,9 @@ export default class Pathfinder {
 
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
-                let prev = {};
-                if (!this.grid.v2traversable(x, y)) {
-                    prev = this.grid.v2get(x, y);
-                }
-
-                if (prev) {
-                    prev[obstacle.id] = obstacle.cell;
-                    this.grid.v2set(x, y, prev);
-                }
+                const node = this.grid.v2get(x, y) || new Map();
+                node.set(obstacle.id, obstacle.cell);
+                this.grid.v2set(x, y, node);
             }
         }
 
@@ -86,23 +92,23 @@ export default class Pathfinder {
         return this._obstacles[this._cells[cellId]] || null;
     }
 
-    // todo: update from L1
     getObstaclesInArea(rect) {
         const { lo, hi } = Obstacle.rectToBounds(rect, this.opt.step);
 
-        const obstacles = {};
+        const obstacles = new Map();
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
                 const node = this.grid.v2get(x, y);
-                if (node === undefined) {
+                if (!node || node.count === 0) {
                     continue;
                 }
 
-                Object.assign(obstacles, node.obstacles);
+
+                node.forEach(cell => obstacles.set(cell.id, cell));
             }
         }
 
-        return Object.keys(obstacles).map((id) => this._obstacles[id]._cell);
+        return Array.from(obstacles.values());
     }
 
     _initEvents(graph, paper) {

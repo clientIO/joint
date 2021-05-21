@@ -12,8 +12,10 @@ export class JumpPointFinder {
         this.heuristic = heuristic;
 
         this.endNode = null;
-        this.nodes = [];
         this.openList = new BinaryHeap((a, b) => a.f - b.f);
+
+        // nodes are kept in quadrants, with absolute coordinates for each quadrant
+        this.nodes = [[],[],[],[]];
     }
 
     findPath(startPoints, endPoints, vertices = []) {
@@ -125,7 +127,10 @@ export class JumpPointFinder {
                         }
 
                         // cleanup
-                        nodes.length = 0;
+                        nodes[0].length = 0;
+                        nodes[1].length = 0;
+                        nodes[2].length = 0;
+                        nodes[3].length = 0;
                         openList.clear();
                         break;
                     }
@@ -233,23 +238,24 @@ export class JumpPointFinder {
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
             if (dx !== 0) {
-                neighbors.push(this._getNodeAt(x, y - 1));
-                neighbors.push(this._getNodeAt(x, y + 1));
-                neighbors.push(this._getNodeAt(x + dx, y));
+                this._addWhenFree(x, y - 1, neighbors);
+                this._addWhenFree(x, y + 1, neighbors);
+                this._addWhenFree(x + dx, y, neighbors);
             } else if (dy !== 0) {
-                neighbors.push(this._getNodeAt(x - 1, y));
-                neighbors.push(this._getNodeAt(x + 1, y));
-                neighbors.push(this._getNodeAt(x, y + dy));
+                this._addWhenFree(x - 1, y, neighbors);
+                this._addWhenFree(x + 1, y, neighbors);
+                this._addWhenFree(x, y + dy, neighbors);
             }
+        } else {
+            // add all free neighbors
+            this._addWhenFree(x, y - 1, neighbors);
+            this._addWhenFree(x, y + 1, neighbors);
+            this._addWhenFree(x - 1, y, neighbors);
+            this._addWhenFree(x + 1, y, neighbors);
         }
-        // return all neighbors
-        else {
-            neighbors = this._getNeighbors(node);
-        }
-
-        return neighbors.filter(neighbor => neighbor && neighbor.walkable);
+        return neighbors;
     };
-
+    // x,y - checked neighbour, px,py - current node
     _jump(x, y, px, py) {
         const dx = x - px, dy = y - py;
 
@@ -259,7 +265,7 @@ export class JumpPointFinder {
         }
 
         // node is the end node
-        if (this._getNodeAt(x, y).isEqual(this.endNode.x, this.endNode.y)) {
+        if (x === this.endNode.x && y === this.endNode.y) {
             return [x, y];
         }
 
@@ -267,13 +273,14 @@ export class JumpPointFinder {
             // HORIZONTAL MOVEMENT
             // up free AND previous up not free
             // OR down free and previous down not free
+
             if ((this._isFree(x, y - 1) && !this._isFree(x - dx, y - 1)) ||
                 (this._isFree(x, y + 1) && !this._isFree(x - dx, y + 1))) {
                 // exit if found a turn - horizontal to vertical
                 return [x, y];
             }
 
-            if ((x + dx - this.endNode.x) === 0) {
+            if (x === this.endNode.x - dx) {
                 return [x + dx, y];
             }
 
@@ -289,13 +296,8 @@ export class JumpPointFinder {
                 // exit if found a turn - vertical to horizontal
                 return [x, y];
             }
-            // When moving vertically, must check for horizontal jump points
-            // todo: reduce redundant jump points
-            if (this._jump(x + 1, y, x, y) || this._jump(x - 1, y, x, y)) {
-                return [x, y];
-            }
 
-            if ((y + dy - this.endNode.y) === 0) {
+            if (y === this.endNode.y - dy) {
                 return [x, y + dy];
             }
 
@@ -309,11 +311,20 @@ export class JumpPointFinder {
         return this._jump(x + dx, y + dy, x, y);
     }
 
+    _addWhenFree(x, y, collection) {
+        const node = this._getNodeAt(x, y);
+        if (node.walkable) {
+            collection.push(node);
+        }
+    }
+
     _getNodeAt(x, y) {
         // todo: quadrants OR merge data with Grid - cleanup!
-        let node = this.nodes[y * this.grid._width + x];
+        // negative coordinates may duplicate (i.e. 100,-1 is the same as -100,1 and same for 0,0 for width 100 etc.)
+        let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)][y * this.grid._width + x];
         if (!node) {
-            this.nodes[y * this.grid._width + x] = node = new GridNode(x, y, this.grid.v2traversable(x, y));
+            // cache node
+            this.nodes[((x < 0) << 0) + ((y < 0) << 1)][y * this.grid._width + x] = node = new GridNode(x, y, this.grid.v2traversable(x, y));
         }
         return node;
     }
@@ -324,14 +335,26 @@ export class JumpPointFinder {
     }
 
     _getNeighbors(node) {
-        const { x, y } = node;
+        const x = node.x, y = node.y, neighbors = [];
 
-        return [
-            this._getNodeAt(x, y - 1),  // up
-            this._getNodeAt(x + 1, y),  // right
-            this._getNodeAt(x, y + 1),  // bottom
-            this._getNodeAt(x - 1, y)   // left
-        ].filter(node => node);
+        // up
+        if (this._isFree(x, y - 1)) {
+            neighbors.push([x, y - 1]);
+        }
+        // right
+        if (this._isFree(x + 1, y)) {
+            neighbors.push([x + 1, y]);
+        }
+        // down
+        if (this._isFree(x, y + 1)) {
+            neighbors.push([x, y + 1]);
+        }
+        // left
+        if (this._isFree(x - 1, y)) {
+            neighbors.push([x - 1, y]);
+        }
+
+        return neighbors;
     }
 }
 
