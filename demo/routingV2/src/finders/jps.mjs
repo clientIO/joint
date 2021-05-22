@@ -15,7 +15,7 @@ export class JumpPointFinder {
         this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
         // nodes are kept in quadrants, with absolute coordinates for each quadrant
-        this.nodes = [[],[],[],[]];
+        this.nodes = [new Map(), new Map(), new Map(), new Map()];
     }
 
     findPath(startPoints, endPoints, vertices = []) {
@@ -127,10 +127,7 @@ export class JumpPointFinder {
                         }
 
                         // cleanup
-                        nodes[0].length = 0;
-                        nodes[1].length = 0;
-                        nodes[2].length = 0;
-                        nodes[3].length = 0;
+                        nodes.forEach(quadrant => quadrant.clear());
                         openList.clear();
                         break;
                     }
@@ -321,10 +318,11 @@ export class JumpPointFinder {
     _getNodeAt(x, y) {
         // todo: quadrants OR merge data with Grid - cleanup!
         // negative coordinates may duplicate (i.e. 100,-1 is the same as -100,1 and same for 0,0 for width 100 etc.)
-        let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)][y * this.grid._width + x];
+        let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(y * this.grid._width + x);
         if (!node) {
             // cache node
-            this.nodes[((x < 0) << 0) + ((y < 0) << 1)][y * this.grid._width + x] = node = new GridNode(x, y, this.grid.v2traversable(x, y));
+            node = new GridNode(x, y, this.grid.v2traversable(x, y));
+            this.nodes[((x < 0) << 0) + ((y < 0) << 1)].set(y * this.grid._width + x, node);
         }
         return node;
     }
