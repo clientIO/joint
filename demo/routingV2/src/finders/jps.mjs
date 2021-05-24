@@ -14,6 +14,7 @@ export class JumpPointFinder {
         this.endNode = null;
         this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
+        // todo: move to Grid?
         // nodes are kept in quadrants, with absolute coordinates for each quadrant
         this.nodes = [new Map(), new Map(), new Map(), new Map()];
     }

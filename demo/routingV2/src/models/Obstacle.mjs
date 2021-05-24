@@ -1,11 +1,11 @@
 import { util } from '../../../../joint.mjs';
 
 export default class Obstacle {
-    constructor(element, pathfinder) {
+    constructor(element, grid) {
         this._id = Number.parseInt(util.uniqueId());
-        this._bounds = Obstacle.elementToBounds(element, pathfinder.opt);
-        this._pathfinder = pathfinder;
+        this._bounds = Obstacle.elementToBounds(element, grid._opts);
         this._cell = element;
+        this._grid = grid;
     }
 
     update() {
@@ -14,33 +14,30 @@ export default class Obstacle {
         let { hi, lo } = this.bounds;
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
-                const node = this.pathfinder.grid.v2get(x, y);
+                const node = this._grid.v2get(x, y);
                 if (node) {
                     node.delete(this.id);
 
                     if (node.size === 0) {
-                        this.pathfinder.grid.v2remove(x, y);
+                        this._grid.v2remove(x, y);
                     }
                 }
             }
         }
 
         // add obstacle back to the grid, from scratch
-        const { opt } = this._pathfinder;
-        this._bounds = Obstacle.elementToBounds(this._cell, opt);
+        this._bounds = Obstacle.elementToBounds(this._cell, this._grid._opts);
 
         lo = this._bounds.lo;
         hi = this._bounds.hi;
 
         for(let x = lo.x; x < hi.x; ++x) {
             for(let y = lo.y; y < hi.y; ++y) {
-                const node = this.pathfinder.grid.v2get(x, y) || new Map();
+                const node = this._grid.v2get(x, y) || new Map();
                 node.set(this.id, this._cell);
-                this.pathfinder.grid.v2set(x, y, node);
+                this._grid.v2set(x, y, node);
             }
         }
-
-        this._pathfinder._dirty = true;
     }
 
     get bounds() {
@@ -49,10 +46,6 @@ export default class Obstacle {
 
     get id() {
         return this._id;
-    }
-
-    get pathfinder() {
-        return this._pathfinder;
     }
 
     get cell() {

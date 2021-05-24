@@ -2,7 +2,6 @@ import { util, g } from '../../../../joint.mjs';
 import { debugConf, debugLog, debugStore, showDebugGrid } from '../debug.mjs';
 
 import Grid from './Grid.mjs';
-import Obstacle from './Obstacle.mjs';
 import { JumpPointFinder } from '../finders/index.mjs';
 
 const config = {
@@ -21,21 +20,13 @@ export default class Pathfinder {
         }
 
         this.opt = resolveOptions(opt);
-        const { step, quadrantSize } = this.opt;
 
         // Grid
-        const { width, height } = getGridSize(paper, step);
-        this.grid = new Grid(step, width, height, quadrantSize);
-
-        // Obstacles and ref to Graph cells
-        this._obstacles = {};
-        this._cells = {};
+        const { width, height } = getGridSize(paper, this.opt.step);
+        this.grid = new Grid(width, height, this.opt);
 
         // References
         this._graph = graph;
-
-        // Flags
-        this._dirty = false;
 
         // Initialize all events bridging Pathfinder with Paper and Graph
         this._initEvents(graph, paper);
@@ -72,51 +63,12 @@ export default class Pathfinder {
         return path;
     }
 
-    addObstacle(element) {
-        const obstacle = new Obstacle(element, this);
-        const { hi, lo } = obstacle.bounds;
-
-        for (let x = lo.x; x < hi.x; ++x) {
-            for (let y = lo.y; y < hi.y; ++y) {
-                const node = this.grid.v2get(x, y) || new Map();
-                node.set(obstacle.id, obstacle.cell);
-                this.grid.v2set(x, y, node);
-            }
-        }
-
-        this._obstacles[obstacle.id] = obstacle;
-        this._cells[element.id] = obstacle.id;
-    }
-
-    getObstacleByCellId(cellId) {
-        return this._obstacles[this._cells[cellId]] || null;
-    }
-
-    getObstaclesInArea(rect) {
-        const { lo, hi } = Obstacle.rectToBounds(rect, this.opt.step);
-
-        const obstacles = new Map();
-        for (let x = lo.x; x < hi.x; ++x) {
-            for (let y = lo.y; y < hi.y; ++y) {
-                const node = this.grid.v2get(x, y);
-                if (!node || node.count === 0) {
-                    continue;
-                }
-
-
-                node.forEach(cell => obstacles.set(cell.id, cell));
-            }
-        }
-
-        return Array.from(obstacles.values());
-    }
-
     _initEvents(graph, paper) {
         // ======= Events
         graph.on('add', (cell) => {
             if (cell.isElement() && !cell.get('debugIgnore')) {
                 const s = window.performance.now();
-                this.addObstacle(cell);
+                this.grid.addObstacle(cell);
                 const e = window.performance.now();
                 debugStore.fullGridTime += (e - s);
             }
@@ -124,7 +76,7 @@ export default class Pathfinder {
 
         graph.on('change:position', (cell) => {
             if (cell.isElement() && !cell.get('debugIgnore')) {
-                const obstacle = this.getObstacleByCellId(cell.id);
+                const obstacle = this.grid.getObstacleByCellId(cell.id);
 
                 if (!obstacle) return;
 
@@ -139,6 +91,10 @@ export default class Pathfinder {
 
         graph.on('change:size', function() {
             console.log('size');
+        });
+
+        graph.on('change:angle', function() {
+            console.log('angle');
         });
 
         graph.on('remove', function() {

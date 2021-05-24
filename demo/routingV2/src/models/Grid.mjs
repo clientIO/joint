@@ -1,24 +1,31 @@
 import ndarray from 'ndarray';
 import HashStore from '../structures/HashStore.mjs';
+import Obstacle from './Obstacle.mjs';
 
 export default class Grid {
-    constructor(step, width, height, quadrantSize) {
+    constructor(width, height, opts) {
+        // todo: add grid bounds to opts
         this._ox = 0;
         this._oy = 0;
         this._width = width;
         this._height = height;
-        this._step = step;
+        this._opts = opts;
+
+        this._step = opts.step;
         this._array = ndarray(new HashStore(), [width, height]);
 
         //  3 | 2
         // ---|---
         //  1 | 0
         this._quadrants = [
-            ndarray(new HashStore(), [quadrantSize, quadrantSize]),
-            ndarray(new HashStore(), [quadrantSize, quadrantSize]),
-            ndarray(new HashStore(), [quadrantSize, quadrantSize]),
-            ndarray(new HashStore(), [quadrantSize, quadrantSize])
+            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize]),
+            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize]),
+            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize]),
+            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize])
         ];
+
+        this._obstacles = new Map();
+        this._cells = new Map();
     }
 
     v2get(x, y) {
@@ -64,6 +71,46 @@ export default class Grid {
 
     get step() {
         return this._step;
+    }
+
+    // Obstacles
+    addObstacle(element) {
+        const obstacle = new Obstacle(element, this);
+        const { hi, lo } = obstacle.bounds;
+
+        for (let x = lo.x; x < hi.x; ++x) {
+            for (let y = lo.y; y < hi.y; ++y) {
+                const node = this.v2get(x, y) || new Map();
+                node.set(obstacle.id, obstacle.cell);
+                this.v2set(x, y, node);
+            }
+        }
+
+        this._obstacles.set(obstacle.id, obstacle);
+        this._cells.set(element.id, obstacle.id);
+    }
+
+    getObstacleByCellId(cellId) {
+        return this._obstacles.get(this._cells.get(cellId)) || null;
+    }
+
+    getObstaclesInArea(rect) {
+        const { lo, hi } = Obstacle.rectToBounds(rect, this._step);
+
+        const obstacles = new Map();
+        for (let x = lo.x; x < hi.x; ++x) {
+            for (let y = lo.y; y < hi.y; ++y) {
+                const node = this.v2get(x, y);
+                if (!node || node.count === 0) {
+                    continue;
+                }
+
+
+                node.forEach(cell => obstacles.set(cell.id, cell));
+            }
+        }
+
+        return Array.from(obstacles.values());
     }
 
     // helpers
