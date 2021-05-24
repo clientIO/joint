@@ -14,12 +14,12 @@ export default class Obstacle {
         let { hi, lo } = this.bounds;
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
-                const node = this._grid.v2get(x, y);
+                const node = this._grid.get(x, y);
                 if (node) {
                     node.delete(this.id);
 
                     if (node.size === 0) {
-                        this._grid.v2remove(x, y);
+                        this._grid.remove(x, y);
                     }
                 }
             }
@@ -33,9 +33,9 @@ export default class Obstacle {
 
         for(let x = lo.x; x < hi.x; ++x) {
             for(let y = lo.y; y < hi.y; ++y) {
-                const node = this._grid.v2get(x, y) || new Map();
+                const node = this._grid.get(x, y) || new Map();
                 node.set(this.id, this._cell);
-                this._grid.v2set(x, y, node);
+                this._grid.set(x, y, node);
             }
         }
     }

@@ -28,7 +28,7 @@ export default class Grid {
         this._cells = new Map();
     }
 
-    v2get(x, y) {
+    get(x, y) {
         if (!this.in(x, y)) {
             return null;
         }
@@ -39,7 +39,7 @@ export default class Grid {
         return chunk.data.item(chunk.index(ax, ay));
     }
 
-    v2set(x, y, v) {
+    set(x, y, v) {
         if (!this.in(x, y)) {
             return null;
         }
@@ -49,13 +49,13 @@ export default class Grid {
         return chunk.data.set(chunk.index(ax, ay), v);
     }
 
-    v2remove(x, y) {
+    remove(x, y) {
         const chunk = this._quadrants[quadrant(x, y)];
         const ax = Math.abs(x), ay = Math.abs(y);
         return chunk.data.remove(chunk.index(ax, ay));
     }
 
-    v2traversable(x, y) {
+    traversable(x, y) {
         if (!this.in(x, y)) {
             return false;
         }
@@ -80,9 +80,9 @@ export default class Grid {
 
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
-                const node = this.v2get(x, y) || new Map();
+                const node = this.get(x, y) || new Map();
                 node.set(obstacle.id, obstacle.cell);
-                this.v2set(x, y, node);
+                this.set(x, y, node);
             }
         }
 
@@ -100,7 +100,7 @@ export default class Grid {
         const obstacles = new Map();
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
-                const node = this.v2get(x, y);
+                const node = this.get(x, y);
                 if (!node || node.count === 0) {
                     continue;
                 }

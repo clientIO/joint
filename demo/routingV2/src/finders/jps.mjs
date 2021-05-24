@@ -146,6 +146,8 @@ export class JumpPointFinder {
                 // todo: build orthogonal path segment
                 // currently it will just draw straight line
                 // orthogonal.mjs/insideElement()
+                // this.grid._ignoreObstacles = true;
+                // const test = this.findPath()
             }
 
             // last segment found
@@ -322,7 +324,7 @@ export class JumpPointFinder {
         let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(y * this.grid._width + x);
         if (!node) {
             // cache node
-            node = new GridNode(x, y, this.grid.v2traversable(x, y));
+            node = new GridNode(x, y, this.grid.traversable(x, y));
             this.nodes[((x < 0) << 0) + ((y < 0) << 1)].set(y * this.grid._width + x, node);
         }
         return node;
