@@ -55,14 +55,30 @@ export default class Grid {
         return chunk.data.remove(chunk.index(ax, ay));
     }
 
-    traversable(x, y) {
+    traversable(x, y, linkView) {
         if (!this.in(x, y)) {
             return false;
         }
 
         const chunk = this._quadrants[quadrant(x, y)];
         const ax = Math.abs(x), ay = Math.abs(y);
-        return chunk.get(ax, ay) === 0;
+
+        const gridCell = chunk.data.item(chunk.index(ax, ay));
+
+        // if Grid coordinate is empty, assume it's traversable
+        if (!gridCell || gridCell.size === 0) {
+            return true;
+        }
+
+        // run the custom canPass function only if there are any cells present
+        if (typeof this._opts.canPass === 'function' && gridCell.size > 0) {
+            const cells = Array.from(gridCell.values());
+            return this._opts.canPass.call(this, cells, linkView);
+        }
+
+        // otherwise there is something in the cell, and there is no custom function,
+        // so assume coordinate is not traversable
+        return false;
     }
 
     in(x, y) {

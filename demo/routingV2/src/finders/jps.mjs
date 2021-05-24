@@ -8,6 +8,8 @@ export class JumpPointFinder {
         grid,
         heuristic = (dx, dy) => dx + dy,
     } = {}) {
+        this.linkView = null;
+
         this.grid = grid;
         this.heuristic = heuristic;
 
@@ -19,7 +21,9 @@ export class JumpPointFinder {
         this.nodes = [new Map(), new Map(), new Map(), new Map()];
     }
 
-    findPath(startPoints, endPoints, vertices = []) {
+    findPath(startPoints, endPoints, vertices = [], linkView) {
+        this.linkView = linkView;
+
         const { openList, nodes } = this;
         const { step } = this.grid;
 
@@ -324,7 +328,7 @@ export class JumpPointFinder {
         let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(y * this.grid._width + x);
         if (!node) {
             // cache node
-            node = new GridNode(x, y, this.grid.traversable(x, y));
+            node = new GridNode(x, y, this.grid.traversable(x, y, this.linkView));
             this.nodes[((x < 0) << 0) + ((y < 0) << 1)].set(y * this.grid._width + x, node);
         }
         return node;

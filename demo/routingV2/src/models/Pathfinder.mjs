@@ -40,7 +40,7 @@ export default class Pathfinder {
         const to = this._getRectPoints(linkView.targetBBox, opt.endDirections, opt);
 
         const s = window.performance.now();
-        const path = finder.findPath(from, to, vertices);
+        const path = finder.findPath(from, to, vertices, linkView);
         const e = window.performance.now();
 
         // const origin = linkView.sourceBBox.origin();

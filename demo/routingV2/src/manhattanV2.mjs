@@ -19,6 +19,10 @@ const pathfinder = new Pathfinder(graph, paper, {
     step: 10,
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
+    canPass: (cells = [], linkView) => {
+        const filtered = cells.filter(cell => !cell.get('passable'));
+        return filtered.length === 0;
+    },
     // excludeEnds: [],
     // excludeTypes: [],
 });
@@ -41,7 +45,7 @@ paper.on('link:mouseleave', function(linkView) {
 // ======= Shapes
 const source = new joint.shapes.standard.Rectangle({
     position: { x: 0, y: 0 },
-    size: { width: 100, height: 50 },
+    size: { width: 110, height: 50 },
     attrs: {
         body: {
             fill: '#0e650e',
@@ -68,7 +72,7 @@ const link = new joint.shapes.standard.Link({
 });
 const obstacle = source.clone().position(0,0).attr({
     label: {
-        text: 'O',
+        text: 'obstacle',
         fill: '#eee'
     },
     body: {
@@ -82,6 +86,14 @@ const obstacle = source.clone().position(0,0).attr({
 const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 20;
 for (let i = 0; i < obsCount; i++) {
     const obs = obstacle.clone();
+
+    const passable = Math.round(Math.random());
+    if (passable) {
+        obs.set('passable', true);
+        obs.attr('label/text', 'passable');
+        obs.attr('body/fill', '#606060');
+    }
+
     obs.translate(200 + Math.random() * (width - 500), 50 + Math.random() * (height - 100));
     obstacles.push(obs);
 }
