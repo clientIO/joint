@@ -130,28 +130,28 @@ export default class Pathfinder {
             switch (dir) {
                 case 'top':
                     const top = bbox.topMiddle();
-                    points.top = {
+                    points['N'] = {
                         coordinates: top,
                         offset: top.distance(center) / opt.step
                     };
                     break;
                 case 'right':
                     const right = bbox.rightMiddle();
-                    points.right = {
+                    points['E'] = {
                         coordinates: right,
                         offset: right.distance(center) / opt.step
                     };
                     break;
                 case 'bottom':
                     const bottom = bbox.bottomMiddle();
-                    points.bottom = {
+                    points['S'] = {
                         coordinates: bottom,
                         offset: bottom.distance(center) / opt.step
                     };
                     break;
                 case 'left':
                     const left = bbox.leftMiddle();
-                    points.left = {
+                    points['W'] = {
                         coordinates: left,
                         offset: left.distance(center) / opt.step
                     }

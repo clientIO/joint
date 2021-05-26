@@ -66,14 +66,16 @@ export class JumpPointFinder {
                             node.startDir = startDirs[sIndex];
                             node.g = node.f = startPoints[node.startDir].offset;
                         } else {
-                            node.startDir = BearingDirection[previousSegment[previousSegment.length - 1].bearing];
+                            node.startDir = previousSegment[previousSegment.length - 1].bearing;
                         }
 
                         // close neighbor node in the source direction
-                        const { x: dx, y: dy } = CardinalDirections[DirectionBearing[node.startDir]];
+                        const { x: dx, y: dy } = CardinalDirections[node.startDir];
                         const tailNode = this._getNodeAt(node.x + dx, node.y + dy);
 
                         if (tailNode) {
+                            tailNode.startDir = node.startDir;
+                            delete node.startDir;
                             node.parent = tailNode;
                             tailNode.close();
                         }
@@ -104,15 +106,6 @@ export class JumpPointFinder {
                 while (!openList.empty()) {
                     node = openList.pop();
                     node.closed = true;
-
-                    // todo: left to consider - slightly speeds up consecutive searches, but may not find a bit longer,
-                    // todo: but nicer visually path
-                    // partial path already longer than previously found path, early exit
-                    // if (node.g >= minCost) {
-                    //     nodes.length = 0;
-                    //     openList.clear();
-                    //     break;
-                    // }
 
                     // reached target node
                     if (node.isEqual(endNode.x, endNode.y)) {
@@ -160,24 +153,8 @@ export class JumpPointFinder {
             }
         }
 
-        return segments.reduce((acc, segment, index) => {
-            const partial = scale(segment, step);
-            // // adjust only first/last/only segment
-            // // else it's mid segment - no need to adjust anything
-            if (index === 0 && index !== segments.length) {
-                // first of 2+ segments
-                // adjust(partial, { start: startPoint });
-            } else if (index !== 0 && index === segments.length) {
-                // last of 2+ segments
-                // adjust(partial, { end: endPoint });
-            } else if (index === 0 && index === segments.length) {
-                // only segment
-                // adjust(partial, { start: startPoint, end: endPoint });
-            }
-
-            acc = acc.concat(partial);
-            return acc;
-        }, []);
+        const scaled = segments.map(segment => scale(segment, step));
+        return adjust(scaled, startPoint, endPoint);
     }
 
     _identifySuccessors(node) {
@@ -323,13 +300,12 @@ export class JumpPointFinder {
     }
 
     _getNodeAt(x, y) {
-        // todo: quadrants OR merge data with Grid - cleanup!
-        // negative coordinates may duplicate (i.e. 100,-1 is the same as -100,1 and same for 0,0 for width 100 etc.)
-        let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(y * this.grid._width + x);
+        const index = Math.abs(y) * this.grid._width + Math.abs(x);
+        let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(index);
         if (!node) {
             // cache node
             node = new GridNode(x, y, this.grid.traversable(x, y, this.linkView));
-            this.nodes[((x < 0) << 0) + ((y < 0) << 1)].set(y * this.grid._width + x, node);
+            this.nodes[((x < 0) << 0) + ((y < 0) << 1)].set(index, node);
         }
         return node;
     }
@@ -479,72 +455,74 @@ const scale = function(path, step) {
     return path.map(vector => vector.scale(step));
 }
 
-const adjust = function(path, { start, end } = {}) {
-    if (path.length === 0 || (!start && !end)) {
-        return path;
-    }
+const adjust = function(segments, start, end) {
+    return segments.reduce((acc, segment, index) => {
+        const s = index === 0;
+        const e = index === segments.length - 1;
 
-    if (start) {
-        // adjust start segment to original start point coordinates
-        const p0 = path[0];
-        let p1 = path[1];
-        if (!p1) {
-            p1 = p0;
+        if (s) {
+            // adjust start segment to original start point coordinates
+            const p0 = segment[0];
+            let p1 = segment[1];
+            if (!p1) {
+                p1 = p0;
+            }
+
+            const startAxis = p0.x === p1.x ? 'x': 'y';
+            const startVal = p0[startAxis];
+            let si = 0, sv = segment[si];
+            while (sv && sv[startAxis] === startVal) {
+                segment[si][startAxis] = start.coordinates[startAxis];
+                si += 1;
+                sv = segment[si];
+            }
+
+            if (startAxis === 'x') {
+                segment[0].y = start.coordinates.y;
+            } else {
+                segment[0].x = start.coordinates.x;
+            }
         }
 
-        const startAxis = p0.x === p1.x ? 'x': 'y';
-        const startVal = p0[startAxis];
-        let si = 0, sv = path[si];
-        while (sv && sv[startAxis] === startVal) {
-            path[si][startAxis] = start[startAxis];
-            si += 1;
-            sv = path[si];
+        if (e) {
+            // adjust end segment to original end point coordinates
+            const pLast = segment[segment.length - 1];
+            let pPrev = segment[segment.length - 2];
+            if (!pPrev) {
+                pPrev = pLast;
+            }
+            const endAxis = pLast.x === pPrev.x ? 'x' : 'y';
+            const endVal = pLast[endAxis];
+            let ei = segment.length - 1, ev = segment[ei];
+            while (ev && ev[endAxis] === endVal) {
+                segment[ei][endAxis] = end.coordinates[endAxis];
+                ei -= 1;
+                ev = segment[ei];
+            }
+
+            if (endAxis === 'x') {
+                segment[segment.length - 1].y = end.coordinates.y;
+            } else {
+                segment[segment.length - 1].x = end.coordinates.x;
+            }
         }
 
-        if (startAxis === 'x') {
-            path[0].y = start.y;
-        } else {
-            path[0].x = start.x;
-        }
-    }
-
-    if (end) {
-        // adjust end segment to original end point coordinates
-        const pLast = path[path.length - 1];
-        let pPrev = path[path.length - 2];
-        if (!pPrev) {
-            pPrev = pLast;
-        }
-        const endAxis = pLast.x === pPrev.x ? 'x' : 'y';
-        const endVal = pLast[endAxis];
-        let ei = path.length - 1, ev = path[ei];
-        while (ev && ev[endAxis] === endVal) {
-            path[ei][endAxis] = end[endAxis];
-            ei -= 1;
-            ev = path[ei];
+        // if there's only start and end, and they do not align at this point
+        // add additional vertex to make the path look properly
+        if (index === 0 && (segment[0].x !== start.coordinates.x || segment[0].y !== start.coordinates.y)) {
+            segment.unshift(start.coordinates);
         }
 
-        if (endAxis === 'x') {
-            path[path.length - 1].y = end.y;
-        } else {
-            path[path.length - 1].x = end.x;
-        }
-    }
-
-    // if there's only start and end, and they do not align at this point
-    // add additional vertex to make the path look properly
-    if (start && (path[0].x !== start.x || path[0].y !== start.y)) {
-        path.unshift(start);
-    }
-
-    return path;
+        acc.push(...segment);
+        return acc;
+    }, []);
 }
 
 const cost = function(jx, jy, x, y, node, jumpNode, endNode) {
     let prev = node.parent;
     if (!prev) {
-        const dx = node.startDir === 'left' ? -1 : node.startDir === 'right' ? 1 : 0;
-        const dy = node.startDir === 'top' ? 1 : node.startDir === 'bottom' ? -1 : 0;
+        const dx = node.startDir === 'W' ? -1 : node.startDir === 'E' ? 1 : 0;
+        const dy = node.startDir === 'N' ? 1 : node.startDir === 'S' ? -1 : 0;
 
         prev = { x: node.x + dx, y: node.y + dy };
     }
@@ -555,7 +533,7 @@ const cost = function(jx, jy, x, y, node, jumpNode, endNode) {
     if (jumpNode.isEqual(endNode.x, endNode.y) && endNode.endPoint) {
         addedCost += endNode.endPoint.offset;
 
-        const { x: dx, y: dy } = CardinalDirections[DirectionBearing[endNode.endDir]];
+        const { x: dx, y: dy } = CardinalDirections[endNode.endDir];
         addedCost += isBend(node, jumpNode, { x: jx + dx, y: jy + dy }) * 1;
     }
 
@@ -567,12 +545,10 @@ const isBend = function(prev, node, next) {
 }
 
 const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };
-const BearingDirection = { N: 'top', E: 'right', S: 'bottom', W: 'left' };
-const DirectionBearing = { top: 'N', right: 'E', bottom: 'S', left: 'W' };
 const getBearing = (p1, p2) => {
     if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
     if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
-    return null;
+    // TODO: else throw?
 }
 const CardinalDirections = {
     N: { x: 0, y: 1 },
