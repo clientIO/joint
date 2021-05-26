@@ -1,5 +1,6 @@
 import * as joint from '../../../joint.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
+import { debugConf, debugStore } from './debug.mjs';
 
 // ===============================================================================
 // JointJS - Core + Pathfinder
@@ -39,6 +40,18 @@ paper.on('link:mouseenter', function(linkView) {
 });
 paper.on('link:mouseleave', function(linkView) {
     linkView.removeTools();
+});
+
+paper.on('render:done', () => {
+    if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
+        console.info('Took ' + debugStore.fullRouterTime.toFixed(2) + ' ms to calculate ' + graph.getLinks().length + ' routes.');
+        debugStore.fullRouterTimeDone = true;
+    }
+
+    if (debugConf.fullGridUpdateBenchmark && !debugStore.fullGridTimeDone) {
+        console.info('Took ' + debugStore.fullGridTime.toFixed(2) + ' ms to build initial grid.');
+        debugStore.fullGridTimeDone = true;
+    }
 });
 
 // ======= Demo shapes
