@@ -2,19 +2,9 @@ import * as joint from '../../../joint.mjs';
 import Pathfinder from './models/Pathfinder.mjs';
 
 // ===============================================================================
-// JointJS - Core
+// JointJS - Core + Pathfinder
 // ===============================================================================
 const graph = new joint.dia.Graph();
-const paper = new joint.dia.Paper({
-    el: document.getElementById('paper'),
-    width: 2000,
-    height: 2000,
-    gridSize: 20,
-    async: true,
-    model: graph
-});
-
-// Instantiating Pathfinder overrides the paper defaultRouter option
 const pathfinder = new Pathfinder(graph, {
     step: 10,
     startDirections: ['top', 'right', 'bottom', 'left'],
@@ -30,12 +20,17 @@ const pathfinder = new Pathfinder(graph, {
     // excludeEnds: [],
     // excludeTypes: [],
 });
+const paper = new joint.dia.Paper({
+    el: document.getElementById('paper'),
+    width: 2000,
+    height: 2000,
+    gridSize: 20,
+    async: true,
+    model: graph,
+    defaultRouter: pathfinder.search.bind(pathfinder)
+});
 
-// override Paper defaultRouter option
-// todo: can be done inside Pathfinder constructor?
-paper.options.defaultRouter = pathfinder.search.bind(pathfinder);
-
-// ======= Demo events - TO BE REMOVED
+// ======= Demo events
 paper.on('link:mouseenter', function(linkView) {
     const tools = new joint.dia.ToolsView({
         tools: [new joint.linkTools.Vertices()]
@@ -46,7 +41,7 @@ paper.on('link:mouseleave', function(linkView) {
     linkView.removeTools();
 });
 
-// ======= Shapes
+// ======= Demo shapes
 const source = new joint.shapes.standard.Rectangle({
     position: { x: 0, y: 0 },
     size: { width: 110, height: 50 },
