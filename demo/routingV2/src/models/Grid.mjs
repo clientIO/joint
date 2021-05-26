@@ -2,29 +2,31 @@ import ndarray from 'ndarray';
 import HashStore from '../structures/HashStore.mjs';
 import Obstacle from './Obstacle.mjs';
 
+// Grid approximates Paper coordinates using opt.step.
+// It is possible that multiple close coordinates can be registered in the same GridNode.
+// Note: It is NOT possible to reconstruct exact Paper coordinates from a GridNode.
 export default class Grid {
-    constructor(width, height, opts) {
-        // todo: add grid bounds to opts
-        this._ox = 0;
-        this._oy = 0;
-        this._width = width;
-        this._height = height;
-        this._opts = opts;
+    constructor(opt) {
+        this.opt = opt;
 
-        this._step = opts.step;
-        this._array = ndarray(new HashStore(), [width, height]);
-
+        // To quickly find Grid Node indices, the Grid is split into four quadrants around the 0,0 origin.
+        // Absolute values of coordinates are used to find coordinate within a quadrant.
+        // Quadrant 0 has both coordinates with positive sign, quadrant 1 handles
+        // negative x and positive y coordinates etc.
         //  3 | 2
-        // ---|---
+        // ---o---
         //  1 | 0
         this._quadrants = [
-            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize]),
-            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize]),
-            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize]),
-            ndarray(new HashStore(), [opts.quadrantSize, opts.quadrantSize])
+            ndarray(new HashStore(), [opt.quadrantSize, opt.quadrantSize]),
+            ndarray(new HashStore(), [opt.quadrantSize, opt.quadrantSize]),
+            ndarray(new HashStore(), [opt.quadrantSize, opt.quadrantSize]),
+            ndarray(new HashStore(), [opt.quadrantSize, opt.quadrantSize])
         ];
 
+        // Map of all Obstacles, <[key: id]: Obstacle>
         this._obstacles = new Map();
+
+        // Mapping from Joint.dia.Cell id to Obstacle id
         this._cells = new Map();
     }
 
@@ -71,22 +73,23 @@ export default class Grid {
         }
 
         // run the custom canPass function only if there are any cells present
-        if (typeof this._opts.canPass === 'function' && gridCell.size > 0) {
+        if (typeof this.opt.canPass === 'function' && gridCell.size > 0) {
             const cells = Array.from(gridCell.values());
-            return this._opts.canPass.call(this, cells, linkView);
+            return this.opt.canPass.call(this, cells, linkView);
         }
 
-        // otherwise there is something in the cell, and there is no custom function,
+        // otherwise there is something in the cell, and there is no custom function provided,
         // so assume coordinate is not traversable
         return false;
     }
 
     in(x, y) {
-        return x > this._ox && y > this._oy && x < this._width && y < this._height;
+        const { lo, hi } = this.opt.gridBounds;
+        return x > lo.x && y > lo.y && x < hi.x && y < hi.y;
     }
 
     get step() {
-        return this._step;
+        return this.opt.step;
     }
 
     // Obstacles
@@ -111,7 +114,7 @@ export default class Grid {
     }
 
     getObstaclesInArea(rect) {
-        const { lo, hi } = Obstacle.rectToBounds(rect, this._step);
+        const { lo, hi } = Obstacle.rectToBounds(rect, this.opt.step);
 
         const obstacles = new Map();
         for (let x = lo.x; x < hi.x; ++x) {
@@ -130,6 +133,7 @@ export default class Grid {
     }
 
     // helpers
+    // todo: probably not needed
     // getObstacleBlob(x, y, {
     //     maxLoops = 1000,
     // } = {}) {

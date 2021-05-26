@@ -15,10 +15,14 @@ const paper = new joint.dia.Paper({
 });
 
 // Instantiating Pathfinder overrides the paper defaultRouter option
-const pathfinder = new Pathfinder(graph, paper, {
+const pathfinder = new Pathfinder(graph, {
     step: 10,
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
+    gridBounds: {
+        lo: { x: 0, y: 0 },
+        hi: { x: 200, y: 200 }
+    },
     canPass: (cells = [], linkView) => {
         const filtered = cells.filter(cell => !cell.get('passable'));
         return filtered.length === 0;

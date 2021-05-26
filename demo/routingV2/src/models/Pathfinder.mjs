@@ -9,12 +9,18 @@ const config = {
     padding: 10,
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],
+    gridBounds: {
+        // todo: how to get initial gridBounds without paper
+        // todo: should it be in Paper or Grid coordinate space (Paper/step)?
+        lo: { x: 0, y: 0 },
+        hi: { x: 200, y: 200 }
+    },
     quadrantSize: 94906265, // floor(sqrt(MAX_SAFE_INTEGER))
 }
 
 export default class Pathfinder {
 
-    constructor(graph, paper, opt = {}) {
+    constructor(graph, opt = {}) {
         if (!graph) {
             return debugLog('Pathfinder requires an instance of dia.Graph.');
         }
@@ -22,14 +28,13 @@ export default class Pathfinder {
         this.opt = resolveOptions(opt);
 
         // Grid
-        const { width, height } = getGridSize(paper, this.opt.step);
-        this.grid = new Grid(width, height, this.opt);
+        this.grid = new Grid(this.opt);
 
         // References
         this._graph = graph;
 
         // Initialize all events bridging Pathfinder with Paper and Graph
-        this._initEvents(graph, paper);
+        this._initEvents(graph);
     }
 
     search(vertices, args, linkView) {
@@ -63,7 +68,7 @@ export default class Pathfinder {
         return path;
     }
 
-    _initEvents(graph, paper) {
+    _initEvents(graph) {
         // ======= Events
         graph.on('add', (cell) => {
             if (cell.isElement() && !cell.get('debugIgnore')) {
@@ -99,23 +104,6 @@ export default class Pathfinder {
 
         graph.on('remove', function() {
             console.log('remove');
-        });
-
-        paper.on('render:done', () => {
-            if (debugConf.fullRouterBenchmark && !debugStore.fullRouterTimeDone) {
-                console.info('Took ' + debugStore.fullRouterTime.toFixed(2) + ' ms to calculate ' + graph.getLinks().length + ' routes.');
-                debugStore.fullRouterTimeDone = true;
-            }
-
-            if (debugConf.fullGridUpdateBenchmark && !debugStore.fullGridTimeDone) {
-                console.info('Took ' + debugStore.fullGridTime.toFixed(2) + ' ms to build initial grid.');
-                debugStore.fullGridTimeDone = true;
-            }
-
-            if (debugConf.showGrid && !debugStore.gridPrinted) {
-                showDebugGrid(this);
-                debugStore.gridPrinted = true;
-            }
         });
     }
 
@@ -160,15 +148,6 @@ export default class Pathfinder {
         });
 
         return points;
-    }
-}
-
-const getGridSize = (paper, step) => {
-    const { width, height } = paper.getComputedSize();
-
-    return {
-        width: Math.ceil(width / step),
-        height: Math.ceil(height / step)
     }
 }
 

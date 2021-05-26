@@ -3,7 +3,7 @@ import { util } from '../../../../joint.mjs';
 export default class Obstacle {
     constructor(element, grid) {
         this._id = Number.parseInt(util.uniqueId());
-        this._bounds = Obstacle.elementToBounds(element, grid._opts);
+        this._bounds = Obstacle.elementToBounds(element, grid.opt);
         this._cell = element;
         this._grid = grid;
     }
@@ -26,7 +26,7 @@ export default class Obstacle {
         }
 
         // add obstacle back to the grid, from scratch
-        this._bounds = Obstacle.elementToBounds(this._cell, this._grid._opts);
+        this._bounds = Obstacle.elementToBounds(this._cell, this._grid.opt);
 
         lo = this._bounds.lo;
         hi = this._bounds.hi;

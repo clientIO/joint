@@ -300,7 +300,7 @@ export class JumpPointFinder {
     }
 
     _getNodeAt(x, y) {
-        const index = Math.abs(y) * this.grid._width + Math.abs(x);
+        const index = Math.abs(y) * this.grid.opt.quadrantSize + Math.abs(x);
         let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(index);
         if (!node) {
             // cache node
