@@ -1,8 +1,8 @@
 import { util, g } from '../../../../joint.mjs';
-import { debugConf, debugLog, debugStore, showDebugGrid } from '../debug.mjs';
+import { debugConf, debugLog, debugStore } from '../debug.mjs';
 
 import Grid from './Grid.mjs';
-import { JumpPointFinder } from '../finders/index.mjs';
+import { CardinalDirections, JumpPointFinder } from '../finders/index.mjs';
 
 const config = {
     step: 10,
@@ -41,8 +41,8 @@ export default class Pathfinder {
         const { opt } = this;
         const finder = new JumpPointFinder({ grid: this.grid });
 
-        const from = this._getRectPoints(linkView.sourceBBox, opt.startDirections, opt);
-        const to = this._getRectPoints(linkView.targetBBox, opt.endDirections, opt);
+        const from = this._getRectPoints(linkView.sourceBBox, opt.startDirections, 'source', opt);
+        const to = this._getRectPoints(linkView.targetBBox, opt.endDirections, 'target', opt);
 
         const s = window.performance.now();
         const path = finder.findPath(from, to, vertices, linkView);
@@ -107,43 +107,42 @@ export default class Pathfinder {
         });
     }
 
-    _getRectPoints(rect, directions, opt) {
+    _getRectPoints(rect, directions, endpoint, opt) {
         const transform = new g.Rect(opt.paddingBox)
             .moveAndExpand({ x: -opt.step, y: -opt.step, width: 2 * opt.step, height: 2 * opt.step });
         const bbox = rect.clone().moveAndExpand(transform);
         const center = bbox.center();
 
-        const points = {};
+        const points = [];
         directions.forEach(dir => {
             switch (dir) {
                 case 'top':
-                    const top = bbox.topMiddle();
-                    points['N'] = {
-                        coordinates: top,
-                        offset: top.distance(center) / opt.step
-                    };
+                    points.push({
+                        dir: endpoint === 'source' ? CardinalDirections['N'] : CardinalDirections['S'],
+                        paperPoint: bbox.topMiddle(),
+                        offset: bbox.topMiddle().distance(center) / opt.step
+                    });
                     break;
                 case 'right':
-                    const right = bbox.rightMiddle();
-                    points['E'] = {
-                        coordinates: right,
-                        offset: right.distance(center) / opt.step
-                    };
+                    points.push({
+                        dir: endpoint === 'source' ? CardinalDirections['E'] : CardinalDirections['W'],
+                        paperPoint: bbox.rightMiddle(),
+                        offset: bbox.rightMiddle().distance(center) / opt.step
+                    });
                     break;
                 case 'bottom':
-                    const bottom = bbox.bottomMiddle();
-                    points['S'] = {
-                        coordinates: bottom,
-                        offset: bottom.distance(center) / opt.step
-                    };
+                    points.push({
+                        dir: endpoint === 'source' ? CardinalDirections['S'] : CardinalDirections['N'],
+                        paperPoint: bbox.bottomMiddle(),
+                        offset: bbox.bottomMiddle().distance(center) / opt.step
+                    });
                     break;
                 case 'left':
-                    const left = bbox.leftMiddle();
-                    points['W'] = {
-                        coordinates: left,
-                        offset: left.distance(center) / opt.step
-                    }
-                    break;
+                    points.push({
+                        dir: endpoint === 'source' ? CardinalDirections['W'] : CardinalDirections['E'],
+                        paperPoint: bbox.leftMiddle(),
+                        offset: bbox.leftMiddle().distance(center) / opt.step
+                    });
             }
         });
 

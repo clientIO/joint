@@ -13,7 +13,9 @@ export class JumpPointFinder {
         this.grid = grid;
         this.heuristic = heuristic;
 
+        this.startNode = null;
         this.endNode = null;
+        this.minCost = Infinity;
         this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
         // todo: move to Grid?
@@ -21,63 +23,70 @@ export class JumpPointFinder {
         this.nodes = [new Map(), new Map(), new Map(), new Map()];
     }
 
-    findPath(startPoints, endPoints, vertices = [], linkView) {
+    findPath(sourcePoints, targetPoints, vertices = [], linkView) {
         this.linkView = linkView;
 
         const { openList, nodes } = this;
         const { step } = this.grid;
 
-        const startDirs = Object.keys(startPoints);
-        const endDirs = Object.keys(endPoints);
-
-        const startGridPoints = Object.values(startPoints).map(point => pointToLocalGrid(point.coordinates, this.grid.step));
-        const endGridPoints = Object.values(endPoints).map(point => pointToLocalGrid(point.coordinates, this.grid.step));
-        const gridVertices = vertices.map(vertex => pointToLocalGrid(vertex, this.grid.step));
+        const startPoints = sourcePoints.map(start => Object.assign(start, pointToLocalGrid(start.paperPoint, this.grid.step)));
+        const endPoints = targetPoints.map(end => Object.assign(end, pointToLocalGrid(end.paperPoint, this.grid.step)));
+        const waypoints = vertices.map(vertex => pointToLocalGrid(vertex, this.grid.step));
 
         // used to adjust path as the last operation
-        let startPoint, endPoint;
-
-        let fromPoints, toPoints, segments = [], previousSegment = null;
-        for (let i = 0; i <= gridVertices.length; i++) {
-            fromPoints = toPoints || startGridPoints;
-            toPoints = gridVertices[i] ? [gridVertices[i]] : endGridPoints;
-
-            const fromNodes = fromPoints.map(from => this._getNodeAt(from.x, from.y));
+        let from, to, segments = [], prevEndDir = null, startPaperPoint, endPaperPoint;
+        for (let i = 0; i <= waypoints.length; i++) {
+            from = to || startPoints;
+            to = waypoints[i] ? [waypoints[i]] : endPoints;
 
             let minCost = Infinity, segment;
-            toPoints.forEach((to, tIndex) => {
+            to.forEach(toPoint => {
                 // get node of current target
-                const endNode = this.endNode = this._getNodeAt(to.x, to.y);
+                const endNode = this.endNode = this._getNodeAt(toPoint.x, toPoint.y);
                 if (!endNode || !endNode.walkable) {
-                    // end point unreachable
-                    // todo: handle added vertex being out of grid bounds
+                    // todo: end point unreachable, handle added vertex being out of grid bounds
                     return;
                 }
 
-                // reset and open start nodes
-                fromNodes.forEach((node, sIndex) => {
+                // store paper coordinate space point for later adjustment
+                endNode.paperPoint = toPoint.paperPoint || waypoints[i - 1];
+                endNode.offset = toPoint.offset || 0;
+
+                // store outboundDir to support final bend penalty calculation
+                if (i === waypoints.length) {
+                    endNode.outboundDir = toPoint.dir;
+
+                    // if traversable, close neighbor node in the target direction
+                    const opposite = getOppositeCardinal(toPoint.dir);
+                    // const opposite = toPoint.dir;
+                    const targetRetraceNode = this._getNodeAt(endNode.x + opposite.x, endNode.y + opposite.y);
+
+                    if (targetRetraceNode) {
+                        targetRetraceNode.close();
+                    }
+                }
+
+                // add and open traversable start nodes
+                from.forEach(fromPoint => {
+                    const node = this._getNodeAt(fromPoint.x, fromPoint.y);
+
                     if (node && node.walkable) {
-                        node.g = 0;
-                        node.f = 0;
+                        node.g = node.f = i === 0 ? fromPoint.offset : 0;
                         node.opened = true;
                         node.closed = false;
 
-                        if (i === 0) {
-                            node.startDir = startDirs[sIndex];
-                            node.g = node.f = startPoints[node.startDir].offset;
-                        } else {
-                            node.startDir = previousSegment[previousSegment.length - 1].bearing;
-                        }
+                        // store paper coordinate space point for later adjustment
+                        node.paperPoint = fromPoint.paperPoint;
 
-                        // close neighbor node in the source direction
-                        const { x: dx, y: dy } = CardinalDirections[node.startDir];
-                        const tailNode = this._getNodeAt(node.x + dx, node.y + dy);
+                        // store the direction from which this node is visited
+                        const inboundDir = fromPoint.dir || prevEndDir;
+                        node.inboundDir = inboundDir;
 
-                        if (tailNode) {
-                            tailNode.startDir = node.startDir;
-                            delete node.startDir;
-                            node.parent = tailNode;
-                            tailNode.close();
+                        // if traversable, close neighbor node in the source direction
+                        const sourceRetraceNode = this._getNodeAt(node.x + inboundDir.x, node.y + inboundDir.y);
+
+                        if (sourceRetraceNode) {
+                            sourceRetraceNode.close();
                         }
 
                         openList.push(node);
@@ -89,18 +98,6 @@ export class JumpPointFinder {
                     return;
                 }
 
-                // close previous direction to prevent retracing
-                if (previousSegment && previousSegment.length > 1) {
-                    const [p1, p2] = previousSegment.slice(previousSegment.length - 2, previousSegment.length);
-                    const direction = getDirection(p1, p2);
-                    this._getNodeAt(p2.x + direction.x, p2.y + direction.y).close();
-                }
-
-                if (i === gridVertices.length) {
-                    endNode.endDir = endDirs[tIndex];
-                    endNode.endPoint = endPoints[endNode.endDir];
-                }
-
                 // main pathfinding loop
                 let node;
                 while (!openList.empty()) {
@@ -108,20 +105,16 @@ export class JumpPointFinder {
                     node.closed = true;
 
                     // reached target node
-                    if (node.isEqual(endNode.x, endNode.y)) {
+                    if (node.isEqual(endNode)) {
                         if (node.g < minCost) {
-                            minCost = endNode.g;
-                            segment = toVectors(backtrace(node));
-
-                            // store start point for later adjustments
                             if (i === 0) {
-                                startPoint = startPoints[endNode.getRoot().startDir];
+                                startPaperPoint = endNode.getRoot().paperPoint;
                             }
 
-                            // store for later adjustments as nodes get cleared
-                            if (i === gridVertices.length) {
-                                endPoint = endPoints[endNode.endDir];
-                            }
+                            endPaperPoint = endNode.paperPoint;
+
+                            minCost = endNode.g;
+                            segment = backtrace(endNode);
                         }
 
                         // cleanup
@@ -137,8 +130,23 @@ export class JumpPointFinder {
 
             if (segment) {
                 // shortest segment found, store
-                previousSegment = segment;
                 segments.push(segment);
+
+                // prevent retracing by closing immediate neighbour in the inbound direction of end node
+                const [p1, p2] = segment.slice(-2);
+                if (p1 && p2) {
+                    const bearing = getBearing(p1, p2);
+                    const dir = prevEndDir = CardinalDirections[bearing];
+
+                    // for middle segments, inboundDir at this stage will be null, so it has to be updated
+                    this.endNode.inboundDir = dir;
+
+                    // close previous direction to prevent retracing
+                    const waypointRetraceNode = this._getNodeAt(p2.x + dir.x, p2.y + dir.y);
+                    if (waypointRetraceNode) {
+                        waypointRetraceNode.close();
+                    }
+                }
             } else {
                 // todo: build orthogonal path segment
                 // currently it will just draw straight line
@@ -148,13 +156,13 @@ export class JumpPointFinder {
             }
 
             // last segment found
-            if (i === gridVertices.length) {
+            if (i === waypoints.length) {
                 break;
             }
         }
 
         const scaled = segments.map(segment => scale(segment, step));
-        return adjust(scaled, startPoint, endPoint);
+        return adjust(scaled, startPaperPoint, endPaperPoint);
     }
 
     _identifySuccessors(node) {
@@ -340,10 +348,10 @@ export class JumpPointFinder {
 }
 
 const backtrace = function(node) {
-    let path = [{ x: node.x, y: node.y }];
+    let path = [node];
     while (node.parent) {
         node = node.parent;
-        path.push({ x: node.x, y: node.y });
+        path.push(node);
     }
 
     return path.reverse();
@@ -374,85 +382,85 @@ const toVectors = function(path) {
     return conv;
 }
 
-const removeElbows = function(path) {
-    let i = 0;
-    while (i < path.length - 1) {
-        const current = path[i];
-        const next = path[i + 1];
-        const tested = path[i + 2];
-
-        if (tested === undefined) {
-            break;
-        }
-
-        if (next.bearing === current.bearing) {
-            current.length += next.length;
-            path.splice(i + 1, 1);
-            i = 0;
-        } else if (tested.bearing === current.bearing) {
-            const v1 = current.clone();
-            const v2 = next.clone();
-            const v3 = tested.clone();
-
-            v1.length += tested.length;
-            switch (tested.bearing) {
-                case 'N':
-                    v2.y -= tested.length;
-                    v3.y -= tested.length;
-                    break
-                case 'E':
-                    v2.x += tested.length;
-                    v3.x += tested.length;
-                    break;
-                case 'S':
-                    v2.y += tested.length;
-                    v3.y += tested.length;
-                    break;
-                case 'W':
-                    v2.x -= tested.length;
-                    v3.x -= tested.length;
-                    break;
-            }
-
-            if (pathClear([v1.x, v1.y, v2.x, v2.y, v3.x, v3.y], this)) {
-                path.splice(i, 3, v1, v2);
-            }
-
-            i++;
-        } else {
-            i++;
-        }
-    }
-
-    return path;
-
-    function pathClear(s, pathfinder) {
-        let obstructed;
-        for (let i = 0; i < s.length; i += 2) {
-            const vertical = s[i] === s[i + 2];
-            const bounds = vertical ? [s[i + 1], s[i + 3]] : [s[i], s[i + 2]];
-            bounds.sort((a, b) => { return a - b });
-
-            for (let j = bounds[0]; j <= bounds[1]; j++) {
-                if (pathfinder._isFree(vertical ? s[i] : j , vertical ? j : s[i + 1])) {
-                    continue;
-                }
-
-                obstructed = true;
-                break;
-            }
-
-            if (obstructed) {
-                break;
-            }
-        }
-
-        return !obstructed;
-    }
-}
+// const removeElbows = function(path) {
+//     let i = 0;
+//     while (i < path.length - 1) {
+//         const current = path[i];
+//         const next = path[i + 1];
+//         const tested = path[i + 2];
+//
+//         if (tested === undefined) {
+//             break;
+//         }
+//
+//         if (next.bearing === current.bearing) {
+//             current.length += next.length;
+//             path.splice(i + 1, 1);
+//             i = 0;
+//         } else if (tested.bearing === current.bearing) {
+//             const v1 = current.clone();
+//             const v2 = next.clone();
+//             const v3 = tested.clone();
+//
+//             v1.length += tested.length;
+//             switch (tested.bearing) {
+//                 case 'N':
+//                     v2.y -= tested.length;
+//                     v3.y -= tested.length;
+//                     break
+//                 case 'E':
+//                     v2.x += tested.length;
+//                     v3.x += tested.length;
+//                     break;
+//                 case 'S':
+//                     v2.y += tested.length;
+//                     v3.y += tested.length;
+//                     break;
+//                 case 'W':
+//                     v2.x -= tested.length;
+//                     v3.x -= tested.length;
+//                     break;
+//             }
+//
+//             if (pathClear([v1.x, v1.y, v2.x, v2.y, v3.x, v3.y], this)) {
+//                 path.splice(i, 3, v1, v2);
+//             }
+//
+//             i++;
+//         } else {
+//             i++;
+//         }
+//     }
+//
+//     return path;
+//
+//     function pathClear(s, pathfinder) {
+//         let obstructed;
+//         for (let i = 0; i < s.length; i += 2) {
+//             const vertical = s[i] === s[i + 2];
+//             const bounds = vertical ? [s[i + 1], s[i + 3]] : [s[i], s[i + 2]];
+//             bounds.sort((a, b) => { return a - b });
+//
+//             for (let j = bounds[0]; j <= bounds[1]; j++) {
+//                 if (pathfinder._isFree(vertical ? s[i] : j , vertical ? j : s[i + 1])) {
+//                     continue;
+//                 }
+//
+//                 obstructed = true;
+//                 break;
+//             }
+//
+//             if (obstructed) {
+//                 break;
+//             }
+//         }
+//
+//         return !obstructed;
+//     }
+// }
 
 const scale = function(path, step) {
-    return path.map(vector => vector.scale(step));
+    return path.map(point => point.getScaledCoordinates(step));
 }
 
 const adjust = function(segments, start, end) {
@@ -472,15 +480,15 @@ const adjust = function(segments, start, end) {
             const startVal = p0[startAxis];
             let si = 0, sv = segment[si];
             while (sv && sv[startAxis] === startVal) {
-                segment[si][startAxis] = start.coordinates[startAxis];
+                segment[si][startAxis] = start[startAxis];
                 si += 1;
                 sv = segment[si];
             }
 
             if (startAxis === 'x') {
-                segment[0].y = start.coordinates.y;
+                segment[0].y = start.y;
             } else {
-                segment[0].x = start.coordinates.x;
+                segment[0].x = start.x;
             }
         }
 
@@ -493,24 +501,24 @@ const adjust = function(segments, start, end) {
             }
             const endAxis = pLast.x === pPrev.x ? 'x' : 'y';
             const endVal = pLast[endAxis];
-            let ei = segment.length - 1, ev = segment[ei];
-            while (ev && ev[endAxis] === endVal) {
-                segment[ei][endAxis] = end.coordinates[endAxis];
-                ei -= 1;
-                ev = segment[ei];
-            }
 
-            if (endAxis === 'x') {
-                segment[segment.length - 1].y = end.coordinates.y;
+            const isLine = segment.filter(point => point[endAxis] === endVal).length === segment.length;
+            if (isLine && !s) {
+                segment.push(Object.assign({}, pLast, { [endAxis]: end[endAxis] }));
             } else {
-                segment[segment.length - 1].x = end.coordinates.x;
-            }
-        }
+                let ei = segment.length - 1, ev = segment[ei];
+                while (ev && ev[endAxis] === endVal) {
+                    segment[ei][endAxis] = end[endAxis];
+                    ei -= 1;
+                    ev = segment[ei];
+                }
 
-        // if there's only start and end, and they do not align at this point
-        // add additional vertex to make the path look properly
-        if (index === 0 && (segment[0].x !== start.coordinates.x || segment[0].y !== start.coordinates.y)) {
-            segment.unshift(start.coordinates);
+                if (endAxis === 'x') {
+                    segment[segment.length - 1].y = end.y;
+                } else {
+                    segment[segment.length - 1].x = end.x;
+                }
+            }
         }
 
         acc.push(...segment);
@@ -521,20 +529,20 @@ const adjust = function(segments, start, end) {
 const cost = function(jx, jy, x, y, node, jumpNode, endNode) {
     let prev = node.parent;
     if (!prev) {
-        const dx = node.startDir === 'W' ? -1 : node.startDir === 'E' ? 1 : 0;
-        const dy = node.startDir === 'N' ? 1 : node.startDir === 'S' ? -1 : 0;
-
+        const { x: dx, y: dy } = node.inboundDir;
         prev = { x: node.x + dx, y: node.y + dy };
     }
     // bend penalty
-    let addedCost = isBend(prev, node, jumpNode) * 1;
+    let addedCost = isBend(prev, node, jumpNode) * 5;
 
-    // end point offset
-    if (jumpNode.isEqual(endNode.x, endNode.y) && endNode.endPoint) {
-        addedCost += endNode.endPoint.offset;
+    if (jumpNode.isEqual(endNode)) {
+        // end point offset from center cost
+        addedCost += endNode.offset;
 
-        const { x: dx, y: dy } = CardinalDirections[endNode.endDir];
-        addedCost += isBend(node, jumpNode, { x: jx + dx, y: jy + dy }) * 1;
+        if (endNode.outboundDir) {
+            // end point final bend cost
+            addedCost += isBend(node, jumpNode, { x: jx + endNode.outboundDir.x, y: jy + endNode.outboundDir.y }) * endNode.offset;
+        }
     }
 
     return Math.abs(jx - x) + Math.abs(jy - y) + addedCost;
@@ -544,20 +552,26 @@ const isBend = function(prev, node, next) {
     return (prev.x === node.x && node.x !== next.x) || (prev.y === node.y && node.y !== next.y);
 }
 
-const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };
-const getBearing = (p1, p2) => {
-    if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
-    if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
-    // TODO: else throw?
-}
-const CardinalDirections = {
+export const CardinalDirections = {
     N: { x: 0, y: 1 },
     E: { x: -1, y: 0 },
     S: { x: 0, y: -1 },
     W: { x: 1, y: 0 }
 };
-const getDirection = (p1, p2) => {
-    return CardinalDirections[getBearing(p1, p2)] || { x: 0, y: 0 };
+
+const Bearings = { N: 'N', E: 'E', S: 'S', W: 'W' };
+
+const getOppositeCardinal = (dir) => {
+    return {
+        x: dir.x === -1 ? 1 : dir.x === 1 ? -1 : 0,
+        y: dir.y === -1 ? 1 : dir.y === 1 ? -1 : 0
+    }
+}
+
+const getBearing = (p1, p2) => {
+    if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
+    if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
+    // TODO: else throw?
 }
 
 const pointToLocalGrid = function (point, step) {
