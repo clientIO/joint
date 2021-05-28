@@ -14,6 +14,13 @@
       <li><code>'any'</code> – the method recognizes all of paper content. The origin of the resulting paper will be at the origin of the content.</li>
     </ul>
   </li>
+  <li><code>opt.allowNegativeBottomRight</code> - can the bottom-right corner of the resulting paper have negative coordinates? By default, the paper area always contains point (0,0). i.e. <code>false</code>.
+<pre><code>// Resize the paper to match the tight bounding box of the content regardless of its position.
+paper.fitToContent({
+  allowNewOrigin: 'any',
+  allowNegativeBottomRight: true
+});</code></pre>
+  </li>
   <li><code>opt.minWidth</code> and <code>opt.minHeight</code> – define the minimum width and height of the resulting paper after fitting it to content.</li>
   <li><code>opt.maxWidth</code> and <code>opt.maxHeight</code> – define the maximum width and height of the resulting paper.
   after fitting it to content.</li>

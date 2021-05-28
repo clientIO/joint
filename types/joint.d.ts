@@ -1083,6 +1083,7 @@ export namespace dia {
             gridHeight?: number;
             padding?: Padding;
             allowNewOrigin?: 'negative' | 'positive' | 'any';
+            allowNegativeBottomRight?: boolean;
             minWidth?: number;
             minHeight?: number;
             maxWidth?: number;
