@@ -16,7 +16,9 @@ const config = {
         hi: { x: 200, y: 200 }
     },
     quadrantSize: 94906265, // floor(sqrt(MAX_SAFE_INTEGER)),
+    isGridNodeObstacle: null,
     excludeTypes: ['basic.Text'],
+    excludeEnds: [],
 }
 
 export default class Pathfinder {

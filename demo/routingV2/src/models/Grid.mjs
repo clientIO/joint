@@ -1,6 +1,7 @@
 import ndarray from 'ndarray';
 import HashStore from '../structures/HashStore.mjs';
 import Obstacle from './Obstacle.mjs';
+import * as util from '../../../../src/util/index.mjs';
 import { debugConf, debugStore } from '../debug.mjs';
 
 // Grid approximates Paper coordinates using opt.step.
@@ -84,15 +85,31 @@ export default class Grid {
             return true;
         }
 
-        const cells = Array.from(gridCell.values());
-        // run the custom isGridNodeObstacle function only if there are any cells present
-        if (typeof this.opt.isGridNodeObstacle === 'function' && gridCell.size > 0) {
-            return this.opt.isGridNodeObstacle.call(linkView, cells, linkView);
+        const rest = [];
+        Array.from(gridCell.values()).forEach(cell => {
+            const { excludeEnds, excludeTypes } = this.opt;
+
+            const excludedEnds = util.toArray(excludeEnds).reduce(function(res, item) {
+                const end = linkView.model.get(item);
+                if (end && end.id === cell.id) {
+                    res.push(cell);
+                }
+                return res;
+            }, []);
+
+            if (util.toArray(excludeTypes).indexOf(cell.get('type')) === -1 && excludedEnds.length === 0) {
+                rest.push(cell);
+            }
+        });
+
+        // run the custom isGridNodeObstacle function only if there are non-excluded cells present
+        if (typeof this.opt.isGridNodeObstacle === 'function' && gridCell.size > 0 && rest.length > 0) {
+            return this.opt.isGridNodeObstacle.call(linkView, rest, linkView);
         }
 
         // otherwise there is something in the cell.
-        // filter for provided types to be excluded
-        return cells.filter(cell => this.opt.excludeTypes.indexOf(cell.get('type')) === -1).length === 0;
+        // filter for provided types or ends to be excluded
+        return rest.length === 0;
     }
 
     in(x, y) {

@@ -18,8 +18,6 @@ const pathfinder = new Pathfinder(graph, {
         const filtered = cells.filter(cell => !cell.get('passable'));
         return filtered.length === 0;
     },
-    // excludeEnds: [],
-    // excludeTypes: [],
 });
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
