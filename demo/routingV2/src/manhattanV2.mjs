@@ -14,7 +14,7 @@ const pathfinder = new Pathfinder(graph, {
         lo: { x: 0, y: 0 },
         hi: { x: 200, y: 200 }
     },
-    canPass: (cells = [], linkView) => {
+    isGridNodeObstacle: (cells = [], linkView) => {
         const filtered = cells.filter(cell => !cell.get('passable'));
         return filtered.length === 0;
     },

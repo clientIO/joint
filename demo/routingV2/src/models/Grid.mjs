@@ -1,13 +1,15 @@
 import ndarray from 'ndarray';
 import HashStore from '../structures/HashStore.mjs';
 import Obstacle from './Obstacle.mjs';
+import { debugConf, debugStore } from '../debug.mjs';
 
 // Grid approximates Paper coordinates using opt.step.
 // It is possible that multiple close coordinates can be registered in the same GridNode.
 // Note: It is NOT possible to reconstruct exact Paper coordinates from a GridNode.
 export default class Grid {
-    constructor(opt) {
+    constructor(graph, opt) {
         this.opt = opt;
+        this.ignoreObstacles = false;
 
         // To quickly find Grid Node indices, the Grid is split into four quadrants around the 0,0 origin.
         // Absolute values of coordinates are used to find coordinate within a quadrant.
@@ -28,6 +30,12 @@ export default class Grid {
 
         // Mapping from Joint.dia.Cell id to Obstacle id
         this._cells = new Map();
+
+        // References
+        this._graph = graph;
+
+        // Initialize all events bridging Grid with Graph
+        this._initEvents(graph);
     }
 
     get(x, y) {
@@ -62,6 +70,10 @@ export default class Grid {
             return false;
         }
 
+        if (this.ignoreObstacles) {
+            return true;
+        }
+
         const chunk = this._quadrants[quadrant(x, y)];
         const ax = Math.abs(x), ay = Math.abs(y);
 
@@ -72,10 +84,10 @@ export default class Grid {
             return true;
         }
 
-        // run the custom canPass function only if there are any cells present
-        if (typeof this.opt.canPass === 'function' && gridCell.size > 0) {
+        // run the custom isGridNodeObstacle function only if there are any cells present
+        if (typeof this.opt.isGridNodeObstacle === 'function' && gridCell.size > 0) {
             const cells = Array.from(gridCell.values());
-            return this.opt.canPass.call(this, cells, linkView);
+            return this.opt.isGridNodeObstacle.call(linkView, cells, linkView);
         }
 
         // otherwise there is something in the cell, and there is no custom function provided,
@@ -130,6 +142,45 @@ export default class Grid {
         }
 
         return Array.from(obstacles.values());
+    }
+
+    _initEvents(graph) {
+        // ======= Events
+        graph.on('add', (cell) => {
+            if (cell.isElement()) {
+                const s = window.performance.now();
+                this.addObstacle(cell);
+                const e = window.performance.now();
+                debugStore.fullGridTime += (e - s);
+            }
+        });
+
+        graph.on('change:position', (cell) => {
+            if (cell.isElement()) {
+                const obstacle = this.getObstacleByCellId(cell.id);
+
+                if (!obstacle) return;
+
+                const start = window.performance.now();
+                obstacle.update();
+                const end = window.performance.now();
+                if (debugConf.gridUpdateBenchmark) {
+                    console.info('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
+                }
+            }
+        });
+
+        graph.on('change:size', function() {
+            console.log('size');
+        });
+
+        graph.on('change:angle', function() {
+            console.log('angle');
+        });
+
+        graph.on('remove', function() {
+            console.log('remove');
+        });
     }
 
     // helpers

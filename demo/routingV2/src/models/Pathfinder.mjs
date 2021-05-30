@@ -28,13 +28,7 @@ export default class Pathfinder {
         this.opt = resolveOptions(opt);
 
         // Grid
-        this.grid = new Grid(this.opt);
-
-        // References
-        this._graph = graph;
-
-        // Initialize all events bridging Pathfinder with Paper and Graph
-        this._initEvents(graph);
+        this.grid = new Grid(graph, this.opt);
     }
 
     search(vertices, args, linkView) {
@@ -66,45 +60,6 @@ export default class Pathfinder {
         debugStore.fullRouterTime += (e - s);
 
         return path;
-    }
-
-    _initEvents(graph) {
-        // ======= Events
-        graph.on('add', (cell) => {
-            if (cell.isElement() && !cell.get('debugIgnore')) {
-                const s = window.performance.now();
-                this.grid.addObstacle(cell);
-                const e = window.performance.now();
-                debugStore.fullGridTime += (e - s);
-            }
-        });
-
-        graph.on('change:position', (cell) => {
-            if (cell.isElement() && !cell.get('debugIgnore')) {
-                const obstacle = this.grid.getObstacleByCellId(cell.id);
-
-                if (!obstacle) return;
-
-                const start = window.performance.now();
-                obstacle.update();
-                const end = window.performance.now();
-                if (debugConf.gridUpdateBenchmark) {
-                    console.info('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
-                }
-            }
-        });
-
-        graph.on('change:size', function() {
-            console.log('size');
-        });
-
-        graph.on('change:angle', function() {
-            console.log('angle');
-        });
-
-        graph.on('remove', function() {
-            console.log('remove');
-        });
     }
 
     _getRectPoints(rect, directions, endpoint, opt) {

@@ -34,10 +34,13 @@ export class JumpPointFinder {
         const waypoints = vertices.map(vertex => pointToLocalGrid(vertex, this.grid.step));
 
         // used to adjust path as the last operation
-        let from, to, segments = [], prevEndDir = null, startPaperPoint, endPaperPoint;
+        let from, to, segments = [], prevEndDir = null, startPaperPoint, endPaperPoint, retryLastSegment = false;
         for (let i = 0; i <= waypoints.length; i++) {
-            from = to || startPoints;
-            to = waypoints[i] ? [waypoints[i]] : endPoints;
+            // don't reassign tested points when retrying segment pathfinding
+            if (!retryLastSegment) {
+                from = to || startPoints;
+                to = waypoints[i] ? [waypoints[i]] : endPoints;
+            }
 
             let minCost = Infinity, segment;
             to.forEach(toPoint => {
@@ -147,13 +150,27 @@ export class JumpPointFinder {
                         waypointRetraceNode.close();
                     }
                 }
-            } else {
-                // todo: build orthogonal path segment
-                // currently it will just draw straight line
-                // orthogonal.mjs/insideElement()
-                // this.grid._ignoreObstacles = true;
-                // const test = this.findPath()
+            } else if (!retryLastSegment) {
+                // segment doesn't exist and it's not a retry loop
+                // use existing JPS logic but with virtually empty Grid
+
+                // allow for a single retry
+                retryLastSegment = true;
+                // ignore all obstacles on the Grid
+                this.grid.ignoreObstacles = true;
+
+                // cleanup
+                nodes.forEach(quadrant => quadrant.clear());
+                openList.clear();
+
+                // enter this loop again
+                i -= 1;
+                // skip any further loop logic
+                continue;
             }
+
+            retryLastSegment = false;
+            this.grid.ignoreObstacles = false;
 
             // last segment found
             if (i === waypoints.length) {
