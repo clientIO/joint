@@ -84,15 +84,15 @@ export default class Grid {
             return true;
         }
 
+        const cells = Array.from(gridCell.values());
         // run the custom isGridNodeObstacle function only if there are any cells present
         if (typeof this.opt.isGridNodeObstacle === 'function' && gridCell.size > 0) {
-            const cells = Array.from(gridCell.values());
             return this.opt.isGridNodeObstacle.call(linkView, cells, linkView);
         }
 
-        // otherwise there is something in the cell, and there is no custom function provided,
-        // so assume coordinate is not traversable
-        return false;
+        // otherwise there is something in the cell.
+        // filter for provided types to be excluded
+        return cells.filter(cell => this.opt.excludeTypes.indexOf(cell.get('type')) === -1).length === 0;
     }
 
     in(x, y) {

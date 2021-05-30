@@ -15,7 +15,8 @@ const config = {
         lo: { x: 0, y: 0 },
         hi: { x: 200, y: 200 }
     },
-    quadrantSize: 94906265, // floor(sqrt(MAX_SAFE_INTEGER))
+    quadrantSize: 94906265, // floor(sqrt(MAX_SAFE_INTEGER)),
+    excludeTypes: ['basic.Text'],
 }
 
 export default class Pathfinder {
