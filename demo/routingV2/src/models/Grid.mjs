@@ -195,8 +195,11 @@ export default class Grid {
             console.log('angle');
         });
 
-        graph.on('remove', function() {
-            console.log('remove');
+        graph.on('remove', (cell) => {
+            const obstacle = this.getObstacleByCellId(cell.id);
+            if (obstacle) {
+                obstacle.remove();
+            }
         });
     }
 

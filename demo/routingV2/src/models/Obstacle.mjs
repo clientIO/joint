@@ -9,8 +9,25 @@ export default class Obstacle {
     }
 
     update() {
-        // todo: highly unoptimized poc
         // remove obstacle from grid completely
+        this.remove();
+
+        // add obstacle back to the grid, from scratch
+        this._bounds = Obstacle.elementToBounds(this._cell, this._grid.opt);
+
+        const lo = this._bounds.lo;
+        const hi = this._bounds.hi;
+
+        for(let x = lo.x; x < hi.x; ++x) {
+            for(let y = lo.y; y < hi.y; ++y) {
+                const node = this._grid.get(x, y) || new Map();
+                node.set(this.id, this._cell);
+                this._grid.set(x, y, node);
+            }
+        }
+    }
+
+    remove() {
         let { hi, lo } = this.bounds;
         for (let x = lo.x; x < hi.x; ++x) {
             for (let y = lo.y; y < hi.y; ++y) {
@@ -22,20 +39,6 @@ export default class Obstacle {
                         this._grid.remove(x, y);
                     }
                 }
-            }
-        }
-
-        // add obstacle back to the grid, from scratch
-        this._bounds = Obstacle.elementToBounds(this._cell, this._grid.opt);
-
-        lo = this._bounds.lo;
-        hi = this._bounds.hi;
-
-        for(let x = lo.x; x < hi.x; ++x) {
-            for(let y = lo.y; y < hi.y; ++y) {
-                const node = this._grid.get(x, y) || new Map();
-                node.set(this.id, this._cell);
-                this._grid.set(x, y, node);
             }
         }
     }

@@ -36,8 +36,15 @@ paper.on('link:mouseenter', function(linkView) {
     });
     linkView.addTools(tools);
 });
+
 paper.on('link:mouseleave', function(linkView) {
     linkView.removeTools();
+});
+
+paper.on('cell:pointerdblclick', function(cellView) {
+    if (cellView.model.get('obstacle')) {
+        cellView.model.remove();
+    }
 });
 
 paper.on('render:done', () => {
@@ -96,6 +103,7 @@ const obstacle = source.clone().position(0,0).attr({
 const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 20;
 for (let i = 0; i < obsCount; i++) {
     const obs = obstacle.clone();
+    obs.set('obstacle', true);
 
     const passable = Math.round(Math.random());
     if (passable) {
