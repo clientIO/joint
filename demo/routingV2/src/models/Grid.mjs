@@ -195,48 +195,6 @@ export default class Grid {
             }
         });
     }
-
-    // helpers
-    // todo: probably not needed
-    // getObstacleBlob(x, y, {
-    //     maxLoops = 1000,
-    // } = {}) {
-    //     if (this.getBinary(x, y) === 0) return null;
-    //
-    //     const startKey = `${x};${y}`
-    //     const frontier = { [startKey]: { x, y }}, visited = {}, nodes = [];
-    //
-    //     let loops = maxLoops;
-    //     while (Object.keys(frontier).length > 0 && loops > 0) {
-    //         const key = Object.keys(frontier)[0];
-    //         const { x, y } = frontier[key];
-    //         nodes.push(frontier[key]);
-    //
-    //         [{ x: 1, y: 0 },
-    //             { x: -1, y: 0 },
-    //             { x: 0, y: 1 },
-    //             { x: 0, y: -1 }].forEach(dir => {
-    //             const neighbour = { x: x + dir.x, y: y + dir.y };
-    //             const neighbourKey = `${neighbour.x};${neighbour.y}`;
-    //
-    //             if (visited[neighbourKey] === true) {
-    //                 return;
-    //             }
-    //
-    //             if (this.getBinary(neighbour.x, neighbour.y) === 1) {
-    //                 frontier[neighbourKey] = neighbour;
-    //             } else {
-    //                 visited[neighbourKey] = true;
-    //             }
-    //         });
-    //
-    //         delete frontier[key];
-    //         visited[key] = true;
-    //         loops--;
-    //     }
-    //
-    //     return nodes;
-    // }
 }
 
 export function quadrant(x, y) {

@@ -1,6 +1,5 @@
 import BinaryHeap from '../structures/BinaryHeap.mjs';
 import GridNode from '../models/GridNode.mjs';
-import PathPoint from '../models/PathPoint.mjs';
 
 export class JumpPointFinder {
 
@@ -372,31 +371,6 @@ const backtrace = function(node) {
     }
 
     return path.reverse();
-}
-
-const toVectors = function(path) {
-    if (!path || path.length === 0) {
-        return [];
-    }
-
-    const conv = [];
-    path.forEach((point, index) => {
-        const prev = path[index - 1], next = path[index + 1];
-
-        let bearing = null, length = 0;
-        if (next) {
-            // not last
-            bearing = getBearing(point, next);
-            length = Math.abs(next.x - point.x) + Math.abs(next.y - point.y);
-        } else if (prev) {
-            // last
-            bearing = getBearing(prev, point);
-        }
-
-        conv.push(new PathPoint(point.x, point.y, bearing, length));
-    });
-
-    return conv;
 }
 
 // const removeElbows = function(path) {
