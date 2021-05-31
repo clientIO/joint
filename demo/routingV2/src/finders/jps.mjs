@@ -204,7 +204,7 @@ export class JumpPointFinder {
                 jy = jumpPoint[1];
                 jumpNode = this._getNodeAt(jx, jy);
 
-                if (jumpNode.closed) {
+                if (!jumpNode || jumpNode.closed) {
                     continue;
                 }
 
@@ -318,27 +318,21 @@ export class JumpPointFinder {
     }
 
     _addWhenWalkable(x, y, collection) {
-        const node = this._getNodeAt(x, y);
-        if (node.walkable) {
-            collection.push(node);
+        if (this.grid.traversable(x, y, this.linkView)) {
+            collection.push(this._getNodeAt(x, y));
         }
     }
 
     _getNodeAt(x, y) {
         const index = Math.abs(y) * this.grid.opt.quadrantSize + Math.abs(x);
-        let node = this.nodes[quadrant(x, y)].get(index);
-        if (!node) {
-            // create a node
-            node = new GridNode(x, y, this.grid.traversable(x, y, this.linkView));
-            // cache node in a proper quadrant
-            this.nodes[quadrant(x, y)].set(index, node);
-        }
-        return node;
+        return this.nodes[quadrant(x, y)].get(index) ||
+            this.nodes[quadrant(x, y)]
+                .set(index, new GridNode(x, y, this._isWalkable(x, y)))
+                .get(index);
     }
 
     _isWalkable(x, y) {
-        const node = this._getNodeAt(x, y);
-        return node && node.walkable;
+        return this.grid.traversable(x, y, this.linkView);
     }
 
     _getNeighbors(node) {
