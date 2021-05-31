@@ -458,10 +458,10 @@ const scale = function(path, step) {
 
 const adjust = function(segments, start, end) {
     return segments.reduce((acc, segment, index) => {
-        const s = index === 0;
-        const e = index === segments.length - 1;
+        const isFirstSegment = index === 0;
+        const isLastSegment = index === segments.length - 1;
 
-        if (s) {
+        if (isFirstSegment && start) {
             // adjust start segment to original start point coordinates
             const p0 = segment[0];
             let p1 = segment[1];
@@ -485,7 +485,7 @@ const adjust = function(segments, start, end) {
             }
         }
 
-        if (e) {
+        if (isLastSegment && end) {
             // adjust end segment to original end point coordinates
             const pLast = segment[segment.length - 1];
             let pPrev = segment[segment.length - 2];
@@ -496,7 +496,7 @@ const adjust = function(segments, start, end) {
             const endVal = pLast[endAxis];
 
             const isLine = segment.filter(point => point[endAxis] === endVal).length === segment.length;
-            if (isLine && !s) {
+            if (isLine && !isFirstSegment) {
                 segment.push(Object.assign({}, pLast, { [endAxis]: end[endAxis] }));
             } else {
                 let ei = segment.length - 1, ev = segment[ei];
