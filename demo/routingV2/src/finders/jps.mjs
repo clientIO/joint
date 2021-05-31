@@ -22,8 +22,9 @@ export class JumpPointFinder {
         this.nodes = [new Map(), new Map(), new Map(), new Map()];
     }
 
-    findPath(sourcePoints, targetPoints, vertices = [], linkView) {
+    findPath(sourcePoints, targetPoints, vertices = [], linkView, opt = {}) {
         this.linkView = linkView;
+        this.opt = opt;
 
         const { openList, nodes } = this;
         const { step } = this.grid;
@@ -208,7 +209,7 @@ export class JumpPointFinder {
                 }
 
                 // include distance, penalties and target point offset
-                d = cost(jx, jy, x, y, node, jumpNode, endNode);
+                d = cost(jx, jy, x, y, node, jumpNode, endNode, this.opt.bendCost);
                 ng = node.g + d; // next `g` value
 
                 if (!jumpNode.opened || ng < jumpNode.g) {
@@ -518,14 +519,14 @@ const adjust = function(segments, start, end) {
     }, []);
 }
 
-const cost = function(jx, jy, x, y, node, jumpNode, endNode) {
+const cost = function(jx, jy, x, y, node, jumpNode, endNode, bendCost) {
     let prev = node.parent;
     if (!prev) {
         const { x: dx, y: dy } = node.inboundDir;
         prev = { x: node.x + dx, y: node.y + dy };
     }
     // bend penalty
-    let addedCost = isBend(prev, node, jumpNode) * 5;
+    let addedCost = isBend(prev, node, jumpNode) * bendCost;
 
     if (jumpNode.isEqual(endNode)) {
         // end point offset from center cost

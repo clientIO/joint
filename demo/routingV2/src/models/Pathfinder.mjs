@@ -19,6 +19,7 @@ const config = {
     isGridNodeObstacle: null,
     excludeTypes: ['basic.Text'],
     excludeEnds: [],
+    directionChangePenalty: 1,
 }
 
 export default class Pathfinder {
@@ -42,7 +43,7 @@ export default class Pathfinder {
         const to = this._getRectPoints(linkView.targetBBox, opt.endDirections, 'target', opt);
 
         const s = window.performance.now();
-        const path = finder.findPath(from, to, vertices, linkView);
+        const path = finder.findPath(from, to, vertices, linkView, { bendCost: opt.directionChangePenalty });
         const e = window.performance.now();
 
         // const origin = linkView.sourceBBox.origin();
