@@ -1,5 +1,6 @@
 import BinaryHeap from '../structures/BinaryHeap.mjs';
 import GridNode from '../models/GridNode.mjs';
+import { quadrant } from '../models/Grid.mjs';
 
 export class JumpPointFinder {
 
@@ -17,7 +18,6 @@ export class JumpPointFinder {
         this.minCost = Infinity;
         this.openList = new BinaryHeap((a, b) => a.f - b.f);
 
-        // todo: move to Grid?
         // nodes are kept in quadrants, with absolute coordinates for each quadrant
         this.nodes = [new Map(), new Map(), new Map(), new Map()];
     }
@@ -243,20 +243,20 @@ export class JumpPointFinder {
             dy = (y - py) / Math.max(Math.abs(y - py), 1);
 
             if (dx !== 0) {
-                this._addWhenFree(x, y - 1, neighbors);
-                this._addWhenFree(x, y + 1, neighbors);
-                this._addWhenFree(x + dx, y, neighbors);
+                this._addWhenWalkable(x, y - 1, neighbors);
+                this._addWhenWalkable(x, y + 1, neighbors);
+                this._addWhenWalkable(x + dx, y, neighbors);
             } else if (dy !== 0) {
-                this._addWhenFree(x - 1, y, neighbors);
-                this._addWhenFree(x + 1, y, neighbors);
-                this._addWhenFree(x, y + dy, neighbors);
+                this._addWhenWalkable(x - 1, y, neighbors);
+                this._addWhenWalkable(x + 1, y, neighbors);
+                this._addWhenWalkable(x, y + dy, neighbors);
             }
         } else {
             // add all free neighbors
-            this._addWhenFree(x, y - 1, neighbors);
-            this._addWhenFree(x, y + 1, neighbors);
-            this._addWhenFree(x - 1, y, neighbors);
-            this._addWhenFree(x + 1, y, neighbors);
+            this._addWhenWalkable(x, y - 1, neighbors);
+            this._addWhenWalkable(x, y + 1, neighbors);
+            this._addWhenWalkable(x - 1, y, neighbors);
+            this._addWhenWalkable(x + 1, y, neighbors);
         }
         return neighbors;
     };
@@ -265,7 +265,7 @@ export class JumpPointFinder {
         const dx = x - px, dy = y - py;
 
         // node is obstructed
-        if (!this._isFree(x, y)) {
+        if (!this._isWalkable(x, y)) {
             return null;
         }
 
@@ -279,8 +279,8 @@ export class JumpPointFinder {
             // up free AND previous up not free
             // OR down free and previous down not free
 
-            if ((this._isFree(x, y - 1) && !this._isFree(x - dx, y - 1)) ||
-                (this._isFree(x, y + 1) && !this._isFree(x - dx, y + 1))) {
+            if ((this._isWalkable(x, y - 1) && !this._isWalkable(x - dx, y - 1)) ||
+                (this._isWalkable(x, y + 1) && !this._isWalkable(x - dx, y + 1))) {
                 // exit if found a turn - horizontal to vertical
                 return [x, y];
             }
@@ -289,15 +289,15 @@ export class JumpPointFinder {
                 return [x + dx, y];
             }
 
-            if (!this._isFree(x + dx, y)) {
+            if (!this._isWalkable(x + dx, y)) {
                 return [x, y];
             }
         } else if (dy !== 0) {
             // VERTICAL MOVEMENT
             // left free AND previous left not free
             // OR right free and previous right not free
-            if ((this._isFree(x - 1, y) && !this._isFree(x - 1, y - dy)) ||
-                (this._isFree(x + 1, y) && !this._isFree(x + 1, y - dy))) {
+            if ((this._isWalkable(x - 1, y) && !this._isWalkable(x - 1, y - dy)) ||
+                (this._isWalkable(x + 1, y) && !this._isWalkable(x + 1, y - dy))) {
                 // exit if found a turn - vertical to horizontal
                 return [x, y];
             }
@@ -306,7 +306,7 @@ export class JumpPointFinder {
                 return [x, y + dy];
             }
 
-            if (!this._isFree(x, y + dy)) {
+            if (!this._isWalkable(x, y + dy)) {
                 return [x, y];
             }
         } else {
@@ -316,7 +316,7 @@ export class JumpPointFinder {
         return this._jump(x + dx, y + dy, x, y);
     }
 
-    _addWhenFree(x, y, collection) {
+    _addWhenWalkable(x, y, collection) {
         const node = this._getNodeAt(x, y);
         if (node.walkable) {
             collection.push(node);
@@ -325,16 +325,17 @@ export class JumpPointFinder {
 
     _getNodeAt(x, y) {
         const index = Math.abs(y) * this.grid.opt.quadrantSize + Math.abs(x);
-        let node = this.nodes[((x < 0) << 0) + ((y < 0) << 1)].get(index);
+        let node = this.nodes[quadrant(x, y)].get(index);
         if (!node) {
-            // cache node
+            // create a node
             node = new GridNode(x, y, this.grid.traversable(x, y, this.linkView));
-            this.nodes[((x < 0) << 0) + ((y < 0) << 1)].set(index, node);
+            // cache node in a proper quadrant
+            this.nodes[quadrant(x, y)].set(index, node);
         }
         return node;
     }
 
-    _isFree(x, y) {
+    _isWalkable(x, y) {
         const node = this._getNodeAt(x, y);
         return node && node.walkable;
     }
@@ -343,19 +344,19 @@ export class JumpPointFinder {
         const x = node.x, y = node.y, neighbors = [];
 
         // up
-        if (this._isFree(x, y - 1)) {
+        if (this._isWalkable(x, y - 1)) {
             neighbors.push([x, y - 1]);
         }
         // right
-        if (this._isFree(x + 1, y)) {
+        if (this._isWalkable(x + 1, y)) {
             neighbors.push([x + 1, y]);
         }
         // down
-        if (this._isFree(x, y + 1)) {
+        if (this._isWalkable(x, y + 1)) {
             neighbors.push([x, y + 1]);
         }
         // left
-        if (this._isFree(x - 1, y)) {
+        if (this._isWalkable(x - 1, y)) {
             neighbors.push([x - 1, y]);
         }
 
@@ -433,7 +434,7 @@ const backtrace = function(node) {
 //             bounds.sort((a, b) => { return a - b });
 //
 //             for (let j = bounds[0]; j <= bounds[1]; j++) {
-//                 if (pathfinder._isFree(vertical ? s[i] : j , vertical ? j : s[i + 1])) {
+//                 if (pathfinder._isWalkable(vertical ? s[i] : j , vertical ? j : s[i + 1])) {
 //                     continue;
 //                 }
 //
