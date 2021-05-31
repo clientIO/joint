@@ -172,12 +172,13 @@ export default class Grid {
             }
         });
 
-        graph.on('change:position', (cell) => {
-            if (cell.isElement()) {
-                const obstacle = this.getObstacleByCellId(cell.id);
+        graph.on('change:position change:size change:angle', (cell) => {
+            if (cell.isLink()) {
+                return;
+            }
 
-                if (!obstacle) return;
-
+            const obstacle = this.getObstacleByCellId(cell.id);
+            if (obstacle) {
                 const start = window.performance.now();
                 obstacle.update();
                 const end = window.performance.now();
@@ -185,14 +186,6 @@ export default class Grid {
                     console.info('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
                 }
             }
-        });
-
-        graph.on('change:size', function() {
-            console.log('size');
-        });
-
-        graph.on('change:angle', function() {
-            console.log('angle');
         });
 
         graph.on('remove', (cell) => {

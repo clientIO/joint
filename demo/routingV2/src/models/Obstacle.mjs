@@ -56,7 +56,7 @@ export default class Obstacle {
     }
 
     static elementToBounds(element, opt) {
-        const rect = element.getBBox().moveAndExpand(opt.paddingBox);
+        const rect = element.getBBox().bbox(element.angle()).moveAndExpand(opt.paddingBox);
 
         return Obstacle.rectToBounds(rect, opt.step);
     }
