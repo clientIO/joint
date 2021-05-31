@@ -34,7 +34,7 @@ export class JumpPointFinder {
 
         // used to adjust path as the last operation
         let from, to, segments = [], prevEndDir = null, startPaperPoint, endPaperPoint, retryLastSegment = false;
-        for (let i = 0; i <= waypoints.length; i++) {
+        for (let i = 0; i < waypoints.length + 1; i++) {
             // don't reassign tested points when retrying segment pathfinding
             if (!retryLastSegment) {
                 from = to || startPoints;

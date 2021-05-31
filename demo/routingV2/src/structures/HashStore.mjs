@@ -14,7 +14,7 @@ export default class HashStore {
     }
 
     remove(i) {
-        delete this._hash.delete(i);
+        this._hash.delete(i);
     }
 
     // get actual item

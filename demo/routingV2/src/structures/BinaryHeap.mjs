@@ -50,7 +50,7 @@ export default class BinaryHeap {
     }
 
     clone() {
-        const heap = new Heap();
+        const heap = new BinaryHeap();
         heap.nodes = this.nodes.slice(0);
         return heap;
     }
@@ -72,7 +72,7 @@ const defaultCompare = function(x, y) {
     return 0;
 }
 
-const inSort = function(a, x, lo, hi, compare) {
+/*const inSort = function(a, x, lo, hi, compare) {
     let mid;
     if (lo === null) {
         lo = 0;
@@ -99,8 +99,8 @@ const inSort = function(a, x, lo, hi, compare) {
         }
     }
 
-    return ([].splice.apply(a, [lo, lo - lo].concat(x)), 0);
-}
+    return ([].splice.apply(a, [lo, 0].concat(x)), 0);
+}*/
 
 const _siftDown = function(array, startPos, pos, compare) {
     let newItem, parent, parentPos;
@@ -240,7 +240,7 @@ const updateItem = function(array, item, compare) {
     return _siftUp(array, pos, compare);
 }
 
-const nLargest = function(array, n, compare) {
+/*const nLargest = function(array, n, compare) {
     let el, result, _i, _len, _ref;
     if (compare === null) {
         compare = defaultCompare;
@@ -259,7 +259,7 @@ const nLargest = function(array, n, compare) {
     }
 
     return result.sort(compare).reverse();
-}
+}*//*
 
 const nSmallest = function(array, n, compare) {
     let elem, i, los, result, _i, _j, _len, _ref, _ref1, _results;
@@ -294,4 +294,4 @@ const nSmallest = function(array, n, compare) {
     }
 
     return _results;
-}
+}*/

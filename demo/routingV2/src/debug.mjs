@@ -1,5 +1,3 @@
-import * as joint from '../../../joint.mjs';
-
 export const debugConf = {
     showGrid: false,
     showGetInBox: false,
