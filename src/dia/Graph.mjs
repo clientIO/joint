@@ -410,12 +410,12 @@ export const Graph = Backbone.Model.extend({
 
     getElements: function() {
 
-        return Object.keys(this._nodes).map(this.getCell, this);
+        return this.get('cells').filter(cell => cell.isElement());
     },
 
     getLinks: function() {
 
-        return Object.keys(this._edges).map(this.getCell, this);
+        return this.get('cells').filter(cell => cell.isLink());
     },
 
     getFirstCell: function() {
