@@ -463,6 +463,33 @@ QUnit.module('graph', function(hooks) {
             'getElements() returns only the elements in the graph');
     });
 
+    QUnit.test('graph.getElements() cells order', function(assert) {
+
+        var graph = this.graph;
+        var r1 = new joint.shapes.standard.Rectangle({ id: 'r1', z: 3 });
+        var r2 = new joint.shapes.standard.Rectangle({ id: 'r2', z: 2 });
+        var r3 = new joint.shapes.standard.Rectangle({ id: 'r3', z: 1 });
+
+        graph.addCells([r1, r2, r3]);
+
+        assert.deepEqual(_.map(graph.getCells(), 'id'), ['r3', 'r2', 'r1']);
+        assert.deepEqual(_.map(graph.getElements(), 'id'), ['r3', 'r2', 'r1']);
+    });
+
+
+    QUnit.test('graph.getLinks() cells order', function(assert) {
+
+        var graph = this.graph;
+        var l1 = new joint.shapes.standard.Link({ id: 'l1', z: 3 });
+        var l2 = new joint.shapes.standard.Link({ id: 'l2', z: 2 });
+        var l3 = new joint.shapes.standard.Link({ id: 'l3', z: 1 });
+
+        graph.addCells([l1, l2, l3]);
+
+        assert.deepEqual(_.map(graph.getCells(), 'id'), ['l3', 'l2', 'l1']);
+        assert.deepEqual(_.map(graph.getLinks(), 'id'), ['l3', 'l2', 'l1']);
+    });
+
     QUnit.test('graph.getCommonAncestor()', function(assert) {
 
         var r1 = new joint.shapes.basic.Rect;
