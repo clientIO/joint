@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="canonical" href="http://www.jointjs.com/"/>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use."/>
+    <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts"/>
+
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/tutorial.css"/>
+    <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+    <!-- Dependencies: -->
+    <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+
+    <title>JointJS - Create a custom shape using TypeScript</title>
+
+</head>
+<body class="language-javascript tutorial-page">
+    <div class="tutorial">
+
+    <p>
+        At client IO, we often get asked how to incorporate TypeScript with JointJS. As JointJS is a standard JavaScript library, the
+        integration process is quite simple and straightforward. In the following tutorial, we are going to create our very own custom
+        shape using TypeScript, and also try to provide you with some useful information along the way.
+    </p>
+
+    <h3>A basic shape</h3>
+
+    <p>
+        To get started, we create a separate <code>shapes.ts</code> file. We will define our custom shape here, and later you can import it in 
+        your main file. To define our custom shape in TypeScript, we are going to extend the default <code>dia.Element</code> class. 
+        The syntax is quite simple, and will seem familiar to those of you who have used JavaScript classes before. In the following code, you
+        can see our custom element <code>MyShape</code>.
+    </p>
+    
+    <pre><code>
+        import { dia } from './vendor/joint';
+    
+        export class MyShape extends dia.Element {
+    
+            defaults() {
+                return {
+                    ...super.defaults,
+                }
+            }
+    
+        }
+    </code></pre>
+
+    <p>
+        The <code>defaults</code> function will return an object that contains the attributes for our model. It is possible to use an  
+        object for our <code>defaults</code>, but as objects are referenced, not copied in JavaScript, our function will return a different 
+        object each time.
+    </p>
+    
+    <p>
+        In JavaScript classes, you may be used to working with super. In our use case, we want our child subtype to take attributes from its 
+        parent type. Using <code>...super.defaults</code>, if an attribute is undefined in the child, the parent attribute will be assigned 
+        instead. Similarly, once a property is set in the child, additional values of the same property from the parent are replaced.
+    </p>
+
+    <p>This is the most basic boilerplate for a custom shape, but you have to agree it's not very exciting, so let's add some more attributes.</p>
+
+    <h3>Attributes, a closer look</h3>
+
+    <p>
+        The first attribute we will look at is <code>type</code>. We will speak about it in more detail later, but for now all we do is give 
+        type the name <code>myNamespace.MyShape</code>. The <code>type</code> is a unique path identifier to help us find our shape. The first 
+        part of the name <code>joint.shapes</code> is implied, therefore the final name of the type to be accessed will be 
+        <code>joint.shapes.myNamespace.MyShape</code>.
+    </p>
+
+    <pre><code>
+        defaults() {
+            return {
+                ...super.defaults,
+                type: 'myNamespace.MyShape',
+                size: { width: 100, height: 80 },
+                attrs: {
+                    body: {
+                        refCx: '50%',
+                        refCy: '50%',
+                        refRx: '50%',
+                        refRy: '50%',
+                        strokeWidth: 2,
+                        stroke: '#333333',
+                        fill: '#FFFFFF'
+                    },
+                    label: {
+                        textVerticalAnchor: 'middle',
+                        textAnchor: 'middle',
+                        refX: '50%',
+                        refY: '50%',
+                        fontSize: 14,
+                        fill: '#333333'
+                    }
+                }
+            }
+        }
+    </code></pre>
+
+    <p>
+        After <code>type</code>, the <code>size</code> of our model is provided. Remember that <code>...super.defaults</code> we talked 
+        about earlier? <code>size</code> is one of those attributes that a child can take from its parent. If we didn't provide it here, 
+        the default size would be <code>size: { width: 1, height: 1 }</code>. As we do provide the property, the default is replaced.
+    </p>
+
+    <p>
+        As we have already set up any parent attributes, we should now add some unique attributes for each instance of our custom 
+        shape. In order to do this, we create an <code>attrs</code> object with keys that correspond to our subelement selectors which are 
+        defined in <code>markup</code>. <code>body</code> and <code>label</code> are the respective keys in our example. The attributes 
+        can consist of standard <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute" target="_blank">SVG attributes</a>, 
+        but also special <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.attributes" target="_blank">JointJS 
+        attributes</a>.
+    </p>
+
+    <h3>Markup</h3>
+
+    <p>
+        We already mentioned the next building block of our custom shape, and that is the 
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.Cell.markup" target="_blank">Markup</a>.
+    </p>
+
+    <pre><code>
+            defaults() {
+                return {
+                    ...super.defaults,
+                    type: 'myNamespace.MyShape',
+                    size: { width: 100, height: 80 },
+                    attrs: {
+                        body: {
+                            // Attributes
+                        },
+                        label: {
+                            // Attributes
+                        }
+                    }
+                }
+            }
+        
+            markup = [{
+                tagName: 'ellipse',
+                selector: 'body'
+            }, {
+                tagName: 'text',
+                selector: 'label'
+            }]
+    </code></pre>
+
+    <p>
+        Each member of the markup array defines one subelement of our custom shape. Markup is a template that all instances of a shape
+        are expected to have in common. It is used to build elements on the fly while the cellView is rendered. <code>tagName</code> is 
+        the type of element, and <code>selector</code> is used to target the element within the <code>attrs</code> attribute.
+    </p>
+
+    <h3>Methods</h3>
+
+    <p>
+        The final part of our custom shape structure will be methods. We can create prototype methods to call on our constructor,
+        or we can create static methods to call on the class itself.
+    </p>
+
+    <pre><code>
+            defaults() {
+                return {
+                    ...super.defaults,
+                    type: 'myNamespace.MyShape',
+                    size: { width: 100, height: 80 },
+                    attrs: {
+                        body: {
+                            // Attributes
+                        },
+                        label: {
+                            // Attributes
+                        }
+                    }
+                }
+            }
+        
+            markup = [{
+                // Markup
+            }]
+        
+            test(): void {
+                console.log(`A prototype method test for ${this.get('type')}`);
+            }
+        
+            static staticTest(i: number): void {
+                console.log(`A static method test with an argument: ${i}`);
+            }
+    </code></pre>
+
+    <p>
+        Let's look at a prototype method in a little more detail. If we wanted to create a custom text label for each instance
+        of our shape, we could create a function called <code>setText</code>. This function will take a string as its only parameter,
+        and set the label text using this value. Then, when we create our instance, we can pass our custom text as an 
+        argument to the constructor. 
+    </p>
+
+    <pre><code>
+        // Custom shape prototype method
+
+        setText(text: string): dia.Element {
+            return this.attr('label/text', text || '');
+        }
+
+        // Create instance using the method
+
+        const myNewShape = new MyShape().setText(text);
+    </code></pre>
+
+    <p>
+        You may have noticed that our code so far didn't contain a lot of TypeScript. Luckily for us, that's because the JointJS 
+        <code>@types</code> do most of the heavy lifting. Parameter and return types in methods is one area where you will use the 
+        typical TypeScript features you are familiar with. Great, and that's basically it! You have now created a basic custom shape. 
+        As you can see, it wasn't so difficult to gain some nice features to work with.
+    </p> 
+
+    <h3>"type", a few more notes</h3>
+
+    <p>
+        Remember when I said we would talk about <code>type</code> in a little more detail? Our final piece of the puzzle is making 
+        sure our namespaces are set up correctly for our custom shape. Firstly, ensure that we are importing <code>shapes</code> to our 
+        project, because JointJS reads cell view definitions from the joint.shapes namespace by default. That now allows us to assign 
+        our namespace under the shape definition using <code>Object.assign()</code>.
+    </p>
+
+    <pre><code>
+        import { shapes, dia } from './vendor/joint';
+
+
+        export class MyShape extends dia.Element {
+
+            defaults() {
+                return {
+                    ...super.defaults,
+                    type: 'myNamespace.MyShape',
+                    size: { width: 100, height: 80 },
+                    attrs: {
+                        body: {
+                            refCx: '50%',
+                            refCy: '50%',
+                            refRx: '50%',
+                            refRy: '50%',
+                            strokeWidth: 2,
+                            stroke: '#333333',
+                            fill: '#FFFFFF'
+                        },
+                        label: {
+                            textVerticalAnchor: 'middle',
+                            textAnchor: 'middle',
+                            refX: '50%',
+                            refY: '50%',
+                            fontSize: 14,
+                            fill: '#333333'
+                        }
+                    }
+                }
+            }
+        
+            markup = [{
+                tagName: 'ellipse',
+                selector: 'body'
+            }, {
+                tagName: 'text',
+                selector: 'label'
+            }]
+        
+            test(): void {
+                console.log(`A prototype method test for ${this.get('type')}`);
+            }
+        
+            static staticTest(i: number): void {
+                console.log(`A static method test with an argument: ${i}`);
+            }
+        }
+
+
+
+        Object.assign(shapes, {
+            myNamespace: {
+                MyShape
+            }
+        });
+    </code></pre>
+
+
+    <p>
+        The <code>type</code> path is very important, especially if you want to import a graph from JSON. <code>graph</code> 
+        would look at <code>joint.shapes.myNamespace.MyShape</code> path to find the correct constructor. If for some reason, 
+        you don't want to use the <code>joint.shapes</code> default, it is possible to set up a custom namespace too. We can achieve
+        this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found on 
+        <code>graph</code> and <code>paper</code> respectively. Let's see how that might look.
+    </p>
+
+    <pre><code>
+    const canvas = document.getElementById('canvas') as HTMLElement;
+    
+    const myNamespace = {};
+
+    const graph = new dia.Graph({}, { cellNamespace: myNamespace });
+    const paper = new dia.Paper({
+        el: canvas,
+        model: graph,
+        width: 800,
+        height: 800,
+        gridSize: 1,
+        interactive: true,
+        async: true,
+        frozen: false,
+        sorting: dia.Paper.sorting.APPROX,
+        background: { color: '#F3F7F6' },
+        cellViewNamespace: myNamespace,
+    });
+
+
+    class MyShape extends dia.Element {
+        defaults() {
+            return {
+                ...super.defaults,
+                type: 'myShapeGroup.MyShape',
+                size: { width: 100, height: 30 }, 
+                position: {x: 10, y: 10 },
+                attrs: {
+                    body: {
+                        refWidth: '100%',
+                        refHeight: '100%',
+                    }
+                } 
+            }
+        }
+        markup = [{
+            tagName: 'rect',
+            selector: 'body',
+            attributes: {
+                'cursor': 'pointer',
+            }
+        }]
+    }
+    
+
+
+    Object.assign(myNamespace, {
+        myShapeGroup: {
+            MyShape
+        },
+        standard: {
+            Rectangle: shapes.standard.Rectangle
+        }
+    });
+
+
+    graph.fromJSON({ 
+        cells: [
+            { type: 'myShapeGroup.MyShape'}, 
+            { 
+                type: 'standard.Rectangle',
+                size: { width: 40, height: 40 },
+                position: {x: 40, y: 50 }
+            }
+        ]
+    });
+    </code></pre>
+
+    <p>
+        As you can see, in this example we are not adding shape instances to the graph, but we are creating a graph from JSON.
+        If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean <code>graph</code> is unable to find the
+        correct constructor, and we wouldn't see our custom shape.
+    </p>
+
+    <h3>Defaults alternative</h3>
+
+    <p>
+        There is one alternative way to return attributes in our custom shape, and you can see that in the following example.
+    </p>
+
+    <pre><code>
+        import { shapes, dia, util } from './vendor/joint';
+
+
+        defaults() {
+            return util.defaultsDeep({
+                size: {
+                    width: 80,
+                    // `height` will be taken from the parent class
+                },
+                type: 'myNamespace.MyShape',
+                size: { width: 100, height: 80 },
+                attrs: {
+                    body: {
+                        refCx: '50%',
+                        refCy: '50%',
+                        refRx: '50%',
+                        refRy: '50%',
+                        strokeWidth: 2,
+                        stroke: '#333333',
+                        fill: '#FFFFFF'
+                    },
+                    label: {
+                        textVerticalAnchor: 'middle',
+                        textAnchor: 'middle',
+                        refX: '50%',
+                        refY: '50%',
+                        fontSize: 14,
+                        fill: '#333333'
+                    }
+                }
+            }, super.defaults)
+        }
+    </code></pre>
+    
+    <p>
+        Earlier, we used the spread operator with <code>super.defaults</code>. That allowed us to replace any parent properties if we
+        defined those properties on the child. In our new example, we are using <code>util.defaultsDeep()</code>. This works a little
+        differently, and recursively assigns default properties. That means if a property already exists on the child, the child property 
+        won't be replaced even if the parent property of same name has a different value. 
+    </p>
+    
+    <p>
+        Congratulations! You now know how to set up custom shapes in JointJS with TypeScript, and unlock the powerful functionality it 
+        gives to the user. Of course, there are many other ways to define shapes in JointJS, and you can see some other methods of doing 
+        this in our <a href="https://resources.jointjs.com/tutorial/custom-elements" target="_blank">documentation</a>. We think this method 
+        is a nice way to work with TypeScript, and you can see that we use it throughout our Rappid demos.
+    </p>
+    
+    <h3>Custom Views</h3>
+    
+    <p>
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.CellView.custom" target="_blank">Custom views</a> provide
+        some extra flexibility when it comes to working with our models. If we want some additional behaviour, but don't believe that 
+        behaviour should live alongside the presentational attributes on our models, custom views can provide this for us. Maybe you want 
+        to capture user input, see a minimal version of the same graph, or apply some interesting effect to your elements, those are just 
+        a few of the reasons you may want to explore custom views. In the following example, we create a fade view effect to change the 
+        opacity of elements.
+    </p>
+    
+    <pre><code>
+        class MyShape extends dia.Element {
+            defaults() {
+                return {
+                    ...super.defaults,
+                    type: 'myShapeGroup.MyShape',
+                    size: { width: 100, height: 30 }, 
+                    position: {x: 10, y: 10 },
+                    attrs: {
+                        body: {
+                            refWidth: '100%',
+                            refHeight: '100%',
+                        }
+                    } 
+                }
+            }
+            markup = [{
+                tagName: 'rect',
+                selector: 'body',
+                attributes: {
+                    'cursor': 'pointer',
+                }
+            }]
+        }
+
+    
+        const MyShapeView: dia.ElementView = dia.ElementView.extend({
+        
+            // Make sure that all super class presentation attributes are preserved
+
+                presentationAttributes: dia.ElementView.addPresentationAttributes({
+                    // mapping the model attributes to flag labels
+                    faded: 'flag:opacity'
+                }),
+
+                confirmUpdate(flags, ...args) {
+                    dia.ElementView.prototype.confirmUpdate.call(this, flags, ...args);
+                    if (this.hasFlag(flags, 'flag:opacity')) this.toggleFade();
+                },
+
+                toggleFade() {
+                    this.el.style.opacity = this.model.get('faded') ? 0.5 : 1;
+                }
+        });
+
+    
+        const graph = new dia.Graph({}, { cellNamespace: shapes });
+        const paper = new dia.Paper({
+            model: graph,
+            width: 800,
+            height: 800,
+            gridSize: 1,
+            interactive: true,
+            async: true,
+            frozen: false,
+            sorting: dia.Paper.sorting.APPROX,
+            background: { color: '#F3F7F6' },
+            cellViewNamespace: shapes,
+        });
+        
+    
+    
+        document.getElementById('canvas').appendChild(paper.el);
+
+
+        Object.assign(shapes, {
+            myShapeGroup: {
+                MyShape,
+                MyShapeView
+            },
+            standard: {
+                Rectangle: shapes.standard.Rectangle
+            }
+        });
+    
+        
+        graph.fromJSON({ 
+            cells: [
+                { type: 'myShapeGroup.MyShape'}, 
+                { 
+                    type: 'standard.Rectangle',
+                    size: { width: 40, height: 40 },
+                    position: {x: 40, y: 50 }
+                }
+            ]
+        });  
+
+    
+        graph.getElements()[0].set('faded', true);
+    </code></pre>
+   
+    <p>
+        The custom view implementation looks quite similar to our custom namespace example from earlier, but with a few key differences. 
+        The first major difference is that we define our custom view using <code>dia.ElementView.extend({})</code>. When the custom view is 
+        defined, it will listen to the underlying model changes, and update itself. When we are satisfied with the functionality we have 
+        created in our view, we then need to set up the namespace correctly once more. In our example, we do this by extending our namespace 
+        with <code>MyShapeView</code>. The Paper will search for any model types with a suffix of 'View' in our namespace. 
+        As we have completed the set up, that means the behaviour defined in our custom view is now available for us to use how we want.
+    </p>
+
+    <p>
+        A more powerful alternative is to override the default view found in the namespace. Which approach you use will depend on your specific
+        needs. To override the default view, we use the <code>elementView</code> setting in our Paper options. You can see that in action below. 
+    </p>
+  
+    <pre><code>
+        const MyShapeView = dia.ElementView.extend({
+
+            // Custom view functionality
+
+        });
+    
+        
+        const graph = new dia.Graph({}, { cellNamespace: shapes });
+        const paper = new dia.Paper({
+
+            // Options
+
+            elementView: () => MyShapeView
+        });
+    </code></pre>
+
+    <p>
+        That's all we will cover in this tutorial. Thanks for staying with us if you got this far. If you would like 
+        to explore any of the features mentioned here in more detail, you can find extra information in our 
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html" target="_blank">JointJS documentation</a>.
+    </p>
+
+    </div><!--end tutorial-->
+    <script src="../node_modules/prismjs/prism.js"></script>
+</body>
+</html>
