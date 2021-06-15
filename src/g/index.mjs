@@ -8,5 +8,5 @@ export * from './ellipse.mjs';
 export * from './line.mjs';
 export * from './path.mjs';
 export * from './point.mjs';
-export * from './pollyline.mjs';
+export * from './polyline.mjs';
 export * from './rect.mjs';

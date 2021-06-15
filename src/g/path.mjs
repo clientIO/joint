@@ -1,6 +1,6 @@
 // Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
 // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
-import { Polyline } from './pollyline.mjs';
+import { Polyline } from './polyline.mjs';
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';

@@ -1,7 +1,7 @@
 import { Point } from './point.mjs';
 import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
-import { Polyline } from './pollyline.mjs';
+import { Polyline } from './polyline.mjs';
 
 const math = Math;
 const abs = math.abs;
