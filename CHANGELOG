@@ -1,3 +1,17 @@
+XX-06-2021 (v3.4.0)
+* Add VueJS 3.0 Demo
+* Add Tree-Shake Demo
+* Add TypeScript shape definition tutorial
+* Remove polyfill for XMLHttpRequest support of IE9
+* dia.Paper - add allowNegativeBottomRight option to fitToContent()
+* dia.Paper - add missing frontParentOnly option documentation
+* dia.Graph - fix order of cells in getElements() and getLinks()
+* dia.Cell - add option to use DFS to index embedded cells in toFront() and toBack()
+* util.breakText - fix wrapping when the last word contains a hyphen
+* routers.Manhattan - improve points comparison performance
+* Geometry - split to files
+* Geometry - add Rect methods to find a union of rectangles or points
+
 06-02-2021 (v3.3.1)
 
  * uglified files encode Unicode characters as ASCII

@@ -12,7 +12,7 @@
     "test": "grunt test"
   },
   "sideEffects": false,
-  "version": "3.3.1",
+  "version": "3.4.0",
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "style": "./dist/joint.min.css",
@@ -25,8 +25,7 @@
   "contributors": [
     "David Durman <david@client.io> (https://github.com/DavidDurman)",
     "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
-    "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
-    "Zbynek Stara <zbynek@client.io> (https://github.com/zbynekstara)"
+    "Vladimir Talas <lades@client.io> (https://github.com/vtalas)"
   ],
   "repository": {
     "type": "git",
@@ -40,12 +39,15 @@
     "backbone": "~1.4.0",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
-    "jquery": "~3.5.1",
-    "lodash": "~4.17.20"
+    "jquery": "~3.6.0",
+    "lodash": "~4.17.21"
   },
   "devDependencies": {
-    "@types/backbone": "1.4.5",
-    "@types/jquery": "3.5.5",
+    "@types/backbone": "~1.4.10",
+    "@types/jquery": "~3.5.5",
+    "@types/lodash": "~4.14.170",
+    "@types/dagre": "~0.7.44",
+    "@types/graphlib": "~2.1.7",
     "async": "2.6.1",
     "chai": "4.2.0",
     "cheerio": "0.22.0",
