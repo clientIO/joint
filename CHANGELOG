@@ -3,6 +3,7 @@ XX-06-2021 (v3.4.0)
 * Add Tree-Shake Demo
 * Add TypeScript shape definition tutorial
 * Remove polyfill for XMLHttpRequest support of IE9
+* Mark library as side-effect-free
 * dia.Paper - add allowNegativeBottomRight option to fitToContent()
 * dia.Paper - add missing frontParentOnly option documentation
 * dia.Graph - fix order of cells in getElements() and getLinks()
