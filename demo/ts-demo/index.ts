@@ -3,6 +3,8 @@ import './custom';
 import {V, g} from './vendor/joint';
 import * as $ from 'jquery';
 import { MyShape } from './shape';
+import * as dagre from 'dagre';
+import * as graphlib from 'graphlib';
 
 const $body = $('body');
 
@@ -11,7 +13,8 @@ $body.append($('<h3 />').text('Example Paper'));
 let $paper = $('<div id="paper" style="border: 1px dashed #ddd" />');
 $body.append($paper);
 
-const graph = new joint.dia.Graph;
+// Define cellNamespace so graph.fromJSON() can find the custom shape constructor
+const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
 const paper = new joint.dia.Paper({
     el: $paper,
@@ -240,3 +243,14 @@ console.log(m1 === m2);
 
 mask.add(circle.findView(paper), 'root', 'my-id3');
 joint.highlighters.mask.remove(circle.findView(paper), 'my-id3');
+
+const gl: graphlib.Graph = graph.toGraphLib({ graphlib });
+console.log('Is graph acyclic?', graphlib.alg.isAcyclic(gl));
+
+joint.layout.DirectedGraph.layout(graph.getSubgraph([rect, customRect]), {
+    dagre,
+    graphlib,
+    marginX: 20,
+    marginY: 20,
+    rankSep: 5
+});
