@@ -11,6 +11,7 @@
   "scripts": {
     "test": "grunt test"
   },
+  "sideEffects": false,
   "version": "3.3.1",
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
