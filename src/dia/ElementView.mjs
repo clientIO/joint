@@ -6,7 +6,7 @@ import V from '../V/index.mjs';
 import { elementViewPortPrototype } from './ports.mjs';
 import { Rect, snapToGrid } from '../g/index.mjs';
 
-const flags = {
+const Flags = {
     UPDATE: 'UPDATE',
     TRANSLATE: 'TRANSLATE',
     TOOLS: 'TOOLS',
@@ -52,68 +52,66 @@ export const ElementView = CellView.extend({
         this._initializePorts();
     },
 
-    flags: flags,
-
     presentationAttributes: {
-        'attrs': [flags.UPDATE],
-        'position': [flags.TRANSLATE, flags.TOOLS],
-        'size': [flags.RESIZE, flags.PORTS, flags.TOOLS],
-        'angle': [flags.ROTATE, flags.TOOLS],
-        'markup': [flags.RENDER],
-        'ports': [flags.PORTS],
+        'attrs': [Flags.UPDATE],
+        'position': [Flags.TRANSLATE, Flags.TOOLS],
+        'size': [Flags.RESIZE, Flags.PORTS, Flags.TOOLS],
+        'angle': [Flags.ROTATE, Flags.TOOLS],
+        'markup': [Flags.RENDER],
+        'ports': [Flags.PORTS],
     },
 
-    initFlag: ['RENDER'],
+    initFlag: [Flags.RENDER],
 
     UPDATE_PRIORITY: 0,
 
     confirmUpdate: function(flag, opt) {
 
         const { useCSSSelectors } = config;
-        if (this.hasFlag(flag, 'PORTS')) {
+        if (this.hasFlag(flag, Flags.PORTS)) {
             this._removePorts();
             this._cleanPortsCache();
         }
         let transformHighlighters = false;
-        if (this.hasFlag(flag, 'RENDER')) {
+        if (this.hasFlag(flag, Flags.RENDER)) {
             this.render();
             this.updateTools(opt);
             this.updateHighlighters(true);
             transformHighlighters = true;
-            flag = this.removeFlag(flag, ['RENDER', 'UPDATE', 'RESIZE', 'TRANSLATE', 'ROTATE', 'PORTS', 'TOOLS']);
+            flag = this.removeFlag(flag, [Flags.RENDER, Flags.UPDATE, Flags.RESIZE, Flags.TRANSLATE, Flags.ROTATE, Flags.PORTS, Flags.TOOLS]);
         } else {
             let updateHighlighters = false;
 
             // Skip this branch if render is required
-            if (this.hasFlag(flag, 'RESIZE')) {
+            if (this.hasFlag(flag, Flags.RESIZE)) {
                 this.resize(opt);
                 updateHighlighters = true;
                 // Resize method is calling `update()` internally
-                flag = this.removeFlag(flag, ['RESIZE', 'UPDATE']);
+                flag = this.removeFlag(flag, [Flags.RESIZE, Flags.UPDATE]);
             }
-            if (this.hasFlag(flag, 'UPDATE')) {
+            if (this.hasFlag(flag, Flags.UPDATE)) {
                 this.update(this.model, null, opt);
-                flag = this.removeFlag(flag, 'UPDATE');
+                flag = this.removeFlag(flag, Flags.UPDATE);
                 updateHighlighters = true;
                 if (useCSSSelectors) {
                     // `update()` will render ports when useCSSSelectors are enabled
-                    flag = this.removeFlag(flag, 'PORTS');
+                    flag = this.removeFlag(flag, Flags.PORTS);
                 }
             }
-            if (this.hasFlag(flag, 'TRANSLATE')) {
+            if (this.hasFlag(flag, Flags.TRANSLATE)) {
                 this.translate();
-                flag = this.removeFlag(flag, 'TRANSLATE');
+                flag = this.removeFlag(flag, Flags.TRANSLATE);
                 transformHighlighters = true;
             }
-            if (this.hasFlag(flag, 'ROTATE')) {
+            if (this.hasFlag(flag, Flags.ROTATE)) {
                 this.rotate();
-                flag = this.removeFlag(flag, 'ROTATE');
+                flag = this.removeFlag(flag, Flags.ROTATE);
                 transformHighlighters = true;
             }
-            if (this.hasFlag(flag, 'PORTS')) {
+            if (this.hasFlag(flag, Flags.PORTS)) {
                 this._renderPorts();
                 updateHighlighters = true;
-                flag = this.removeFlag(flag, 'PORTS');
+                flag = this.removeFlag(flag, Flags.PORTS);
             }
 
             if (updateHighlighters) {
@@ -125,9 +123,9 @@ export const ElementView = CellView.extend({
             this.transformHighlighters();
         }
 
-        if (this.hasFlag(flag, 'TOOLS')) {
+        if (this.hasFlag(flag, Flags.TOOLS)) {
             this.updateTools(opt);
-            flag = this.removeFlag(flag, 'TOOLS');
+            flag = this.removeFlag(flag, Flags.TOOLS);
         }
 
         return flag;
@@ -790,6 +788,9 @@ export const ElementView = CellView.extend({
         this.notify('element:magnet:pointerclick', evt, magnet, x, y);
     }
 
+}, {
+
+    Flags: Flags,
 });
 
 assign(ElementView.prototype, elementViewPortPrototype);

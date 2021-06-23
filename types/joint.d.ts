@@ -723,6 +723,16 @@ export namespace dia {
 
     export namespace ElementView {
 
+        enum Flags {
+            UPDATE = 'UPDATE',
+            TRANSLATE = 'TRANSLATE',
+            TOOLS = 'TOOLS',
+            RESIZE = 'RESIZE',
+            PORTS = 'PORTS',
+            ROTATE = 'ROTATE',
+            RENDER = 'RENDER'
+        }
+
         interface InteractivityOptions {
             elementMove?: boolean;
             addLinkFromMagnet?: boolean;
@@ -767,6 +777,17 @@ export namespace dia {
 
 
     export namespace LinkView {
+
+        enum Flags {
+            RENDER = 'RENDER',
+            UPDATE = 'UPDATE',
+            TOOLS = 'TOOLS',
+            LEGACY_TOOLS = 'LEGACY_TOOLS',
+            LABELS = 'LABELS',
+            VERTICES = 'VERTICES',
+            SOURCE = 'SOURCE',
+            TARGET = 'TARGET',
+        };
 
         interface InteractivityOptions {
             vertexAdd?: boolean,

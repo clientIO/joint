@@ -7,9 +7,10 @@ import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import $ from 'jquery';
 
-const flags = {
+const Flags = {
     RENDER: 'RENDER',
     UPDATE: 'UPDATE',
+    TOOLS: 'TOOLS',
     LEGACY_TOOLS: 'LEGACY_TOOLS',
     LABELS: 'LABELS',
     VERTICES: 'VERTICES',
@@ -72,25 +73,23 @@ export const LinkView = CellView.extend({
         this.metrics = {};
     },
 
-    flags: flags,
-
     presentationAttributes: {
-        markup: [flags.RENDER],
-        attrs: [flags.UPDATE],
-        router: [flags.UPDATE],
-        connector: [flags.UPDATE],
-        smooth: [flags.UPDATE],
-        manhattan: [flags.UPDATE],
-        toolMarkup: [flags.LEGACY_TOOLS],
-        labels: [flags.LABELS],
-        labelMarkup: [flags.LABELS],
-        vertices: [flags.VERTICES, flags.UPDATE],
-        vertexMarkup: [flags.VERTICES],
-        source: [flags.SOURCE, flags.UPDATE],
-        target: [flags.TARGET, flags.UPDATE]
+        markup: [Flags.RENDER],
+        attrs: [Flags.UPDATE],
+        router: [Flags.UPDATE],
+        connector: [Flags.UPDATE],
+        smooth: [Flags.UPDATE],
+        manhattan: [Flags.UPDATE],
+        toolMarkup: [Flags.LEGACY_TOOLS],
+        labels: [Flags.LABELS],
+        labelMarkup: [Flags.LABELS],
+        vertices: [Flags.VERTICES, Flags.UPDATE],
+        vertexMarkup: [Flags.VERTICES],
+        source: [Flags.SOURCE, Flags.UPDATE],
+        target: [Flags.TARGET, Flags.UPDATE]
     },
 
-    initFlag: ['RENDER', 'SOURCE', 'TARGET', 'TOOLS'],
+    initFlag: [Flags.RENDER, Flags.SOURCE, Flags.TARGET, Flags.TOOLS],
 
     UPDATE_PRIORITY: 1,
 
@@ -98,14 +97,14 @@ export const LinkView = CellView.extend({
 
         opt || (opt = {});
 
-        if (this.hasFlag(flags, 'SOURCE')) {
+        if (this.hasFlag(flags, Flags.SOURCE)) {
             if (!this.updateEndProperties('source')) return flags;
-            flags = this.removeFlag(flags, 'SOURCE');
+            flags = this.removeFlag(flags, Flags.SOURCE);
         }
 
-        if (this.hasFlag(flags, 'TARGET')) {
+        if (this.hasFlag(flags, Flags.TARGET)) {
             if (!this.updateEndProperties('target')) return flags;
-            flags = this.removeFlag(flags, 'TARGET');
+            flags = this.removeFlag(flags, Flags.TARGET);
         }
 
         const { paper, sourceView, targetView } = this;
@@ -114,41 +113,41 @@ export const LinkView = CellView.extend({
             return flags;
         }
 
-        if (this.hasFlag(flags, 'RENDER')) {
+        if (this.hasFlag(flags, Flags.RENDER)) {
             this.render();
             this.updateHighlighters(true);
             this.updateTools(opt);
-            flags = this.removeFlag(flags, ['RENDER', 'UPDATE', 'VERTICES', 'LABELS', 'TOOLS', 'LEGACY_TOOLS']);
+            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.VERTICES, Flags.LABELS, Flags.TOOLS, Flags.LEGACY_TOOLS]);
             return flags;
         }
 
         let updateHighlighters = false;
 
-        if (this.hasFlag(flags, 'VERTICES')) {
+        if (this.hasFlag(flags, Flags.VERTICES)) {
             this.renderVertexMarkers();
-            flags = this.removeFlag(flags, 'VERTICES');
+            flags = this.removeFlag(flags, Flags.VERTICES);
         }
 
         const { model } = this;
         const { attributes } = model;
-        let updateLabels = this.hasFlag(flags, 'LABELS');
-        let updateLegacyTools = this.hasFlag(flags, 'LEGACY_TOOLS');
+        let updateLabels = this.hasFlag(flags, Flags.LABELS);
+        let updateLegacyTools = this.hasFlag(flags, Flags.LEGACY_TOOLS);
 
         if (updateLabels) {
             this.onLabelsChange(model, attributes.labels, opt);
-            flags = this.removeFlag(flags, 'LABELS');
+            flags = this.removeFlag(flags, Flags.LABELS);
             updateHighlighters = true;
         }
 
         if (updateLegacyTools) {
             this.renderTools();
-            flags = this.removeFlag(flags, 'LEGACY_TOOLS');
+            flags = this.removeFlag(flags, Flags.LEGACY_TOOLS);
         }
 
-        if (this.hasFlag(flags, 'UPDATE')) {
+        if (this.hasFlag(flags, Flags.UPDATE)) {
             this.update(model, null, opt);
             this.updateTools(opt);
-            flags = this.removeFlag(flags, ['UPDATE', 'TOOLS']);
+            flags = this.removeFlag(flags, [Flags.UPDATE, Flags.TOOLS]);
             updateLabels = false;
             updateLegacyTools = false;
             updateHighlighters = true;
@@ -166,16 +165,16 @@ export const LinkView = CellView.extend({
             this.updateHighlighters();
         }
 
-        if (this.hasFlag(flags, 'TOOLS')) {
+        if (this.hasFlag(flags, Flags.TOOLS)) {
             this.updateTools(opt);
-            flags = this.removeFlag(flags, 'TOOLS');
+            flags = this.removeFlag(flags, Flags.TOOLS);
         }
 
         return flags;
     },
 
     requestConnectionUpdate: function(opt) {
-        this.requestUpdate(this.getFlag('UPDATE', opt));
+        this.requestUpdate(this.getFlag(Flags.UPDATE, opt));
     },
 
     isLabelsRenderRequired: function(opt = {}) {
@@ -2370,6 +2369,9 @@ export const LinkView = CellView.extend({
 
         return data;
     }
+}, {
+
+    Flags: Flags,
 });
 
 Object.defineProperty(LinkView.prototype, 'sourceBBox', {
