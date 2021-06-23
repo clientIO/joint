@@ -787,7 +787,7 @@ export namespace dia {
             VERTICES = 'VERTICES',
             SOURCE = 'SOURCE',
             TARGET = 'TARGET',
-        };
+        }
 
         interface InteractivityOptions {
             vertexAdd?: boolean,
