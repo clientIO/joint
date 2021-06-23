@@ -7,6 +7,16 @@ import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import $ from 'jquery';
 
+const flags = {
+    RENDER: 'RENDER',
+    UPDATE: 'UPDATE',
+    LEGACY_TOOLS: 'LEGACY_TOOLS',
+    LABELS: 'LABELS',
+    VERTICES: 'VERTICES',
+    SOURCE: 'SOURCE',
+    TARGET: 'TARGET',
+};
+
 // Link base view and controller.
 // ----------------------------------------
 
@@ -62,20 +72,22 @@ export const LinkView = CellView.extend({
         this.metrics = {};
     },
 
+    flags: flags,
+
     presentationAttributes: {
-        markup: ['RENDER'],
-        attrs: ['UPDATE'],
-        router: ['UPDATE'],
-        connector: ['UPDATE'],
-        smooth: ['UPDATE'],
-        manhattan: ['UPDATE'],
-        toolMarkup: ['LEGACY_TOOLS'],
-        labels: ['LABELS'],
-        labelMarkup: ['LABELS'],
-        vertices: ['VERTICES', 'UPDATE'],
-        vertexMarkup: ['VERTICES'],
-        source: ['SOURCE', 'UPDATE'],
-        target: ['TARGET', 'UPDATE']
+        markup: [flags.RENDER],
+        attrs: [flags.UPDATE],
+        router: [flags.UPDATE],
+        connector: [flags.UPDATE],
+        smooth: [flags.UPDATE],
+        manhattan: [flags.UPDATE],
+        toolMarkup: [flags.LEGACY_TOOLS],
+        labels: [flags.LABELS],
+        labelMarkup: [flags.LABELS],
+        vertices: [flags.VERTICES, flags.UPDATE],
+        vertexMarkup: [flags.VERTICES],
+        source: [flags.SOURCE, flags.UPDATE],
+        target: [flags.TARGET, flags.UPDATE]
     },
 
     initFlag: ['RENDER', 'SOURCE', 'TARGET', 'TOOLS'],

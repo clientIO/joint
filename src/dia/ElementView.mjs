@@ -6,6 +6,16 @@ import V from '../V/index.mjs';
 import { elementViewPortPrototype } from './ports.mjs';
 import { Rect, snapToGrid } from '../g/index.mjs';
 
+const flags = {
+    UPDATE: 'UPDATE',
+    TRANSLATE: 'TRANSLATE',
+    TOOLS: 'TOOLS',
+    RESIZE: 'RESIZE',
+    PORTS: 'PORTS',
+    ROTATE: 'ROTATE',
+    RENDER: 'RENDER'
+};
+
 // Element base view and controller.
 // -------------------------------------------
 
@@ -42,13 +52,15 @@ export const ElementView = CellView.extend({
         this._initializePorts();
     },
 
+    flags: flags,
+
     presentationAttributes: {
-        'attrs': ['UPDATE'],
-        'position': ['TRANSLATE', 'TOOLS'],
-        'size': ['RESIZE', 'PORTS', 'TOOLS'],
-        'angle': ['ROTATE', 'TOOLS'],
-        'markup': ['RENDER'],
-        'ports': ['PORTS']
+        'attrs': [flags.UPDATE],
+        'position': [flags.TRANSLATE, flags.TOOLS],
+        'size': [flags.RESIZE, flags.PORTS, flags.TOOLS],
+        'angle': [flags.ROTATE, flags.TOOLS],
+        'markup': [flags.RENDER],
+        'ports': [flags.PORTS],
     },
 
     initFlag: ['RENDER'],
