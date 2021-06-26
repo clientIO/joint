@@ -1,10 +1,11 @@
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 
-const math = Math;
-const sqrt = math.sqrt;
-const round = math.round;
-const pow = math.pow;
+const {
+    sqrt,
+    round,
+    pow
+} = Math;
 
 export const Ellipse = function(c, a, b) {
 

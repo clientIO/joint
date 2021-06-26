@@ -2,7 +2,7 @@ import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
 
-const abs = Math.abs;
+const { abs } = Math;
 
 export const Polyline = function(points) {
 

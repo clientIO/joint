@@ -2,10 +2,11 @@
 // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
 import { toDeg, toRad } from './geometry.helpers.mjs';
 
-const math = Math;
-const cos = math.cos;
-const sin = math.sin;
-const atan2 = math.atan2;
+const {
+    cos,
+    sin,
+    atan2
+} = Math;
 
 export const bearing = function(p, q) {
 

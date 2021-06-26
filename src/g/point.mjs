@@ -12,17 +12,18 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 
-const math = Math;
-const abs = math.abs;
-const cos = math.cos;
-const sin = math.sin;
-const sqrt = math.sqrt;
-const min = math.min;
-const max = math.max;
-const atan2 = math.atan2;
-const round = math.round;
-const PI = math.PI;
-const pow = math.pow;
+const {
+    abs,
+    cos,
+    sin,
+    sqrt,
+    min,
+    max,
+    atan2,
+    round,
+    pow,
+    PI
+} = Math;
 
 export const Point = function(x, y) {
 

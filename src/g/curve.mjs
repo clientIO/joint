@@ -3,12 +3,13 @@ import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
 
-const math = Math;
-const abs = math.abs;
-const sqrt = math.sqrt;
-const min = math.min;
-const max = math.max;
-const pow = math.pow;
+const {
+    abs,
+    sqrt,
+    min,
+    max,
+    pow
+} = Math;
 
 export const Curve = function(p1, p2, p3, p4) {
 
