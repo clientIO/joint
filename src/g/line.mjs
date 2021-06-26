@@ -4,9 +4,10 @@ import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
 
-const math = Math;
-const min = math.min;
-const max = math.max;
+const {
+    max,
+    min
+} = Math;
 
 export const Line = function(p1, p2) {
 

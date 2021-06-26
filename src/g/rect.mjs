@@ -3,14 +3,15 @@ import { Line } from './line.mjs';
 import { Point } from './point.mjs';
 import { Ellipse } from './ellipse.mjs';
 
-const math = Math;
-const abs = math.abs;
-const cos = math.cos;
-const sin = math.sin;
-const min = math.min;
-const max = math.max;
-const round = math.round;
-const pow = math.pow;
+const {
+    abs,
+    cos,
+    sin,
+    min,
+    max,
+    round,
+    pow
+} = Math;
 
 export const Rect = function(x, y, w, h) {
 

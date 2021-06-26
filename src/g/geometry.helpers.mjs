@@ -1,8 +1,9 @@
 // Declare shorthands to the most used math functions.
-const math = Math;
-const round = math.round;
-const floor = math.floor;
-const PI = math.PI;
+const {
+    round,
+    floor,
+    PI
+} = Math;
 
 export const scale = {
 
@@ -52,6 +53,6 @@ export const random = function(min, max) {
         max = temp;
     }
 
-    return floor((math.random() * (max - min + 1)) + min);
+    return floor((Math.random() * (max - min + 1)) + min);
 };
 
