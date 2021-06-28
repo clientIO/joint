@@ -1,5 +1,5 @@
 import { config } from '../config/index.mjs';
-import { assign, invoke, isFunction, toArray } from '../util/index.mjs';
+import { assign, isFunction, toArray } from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
 import { Cell } from './Cell.mjs';
 import V from '../V/index.mjs';
