@@ -367,9 +367,13 @@ export const ElementView = CellView.extend({
         model.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
-        var parentId = model.parent();
+        const parentId = model.parent();
         if (parentId) {
-            graph.getCell(parentId).unembed(model, { ui: true });
+            const parent = graph.getCell(parentId);
+            parent.unembed(model, { ui: true });
+            data.initialParentId = parentId;
+        } else {
+            data.initialParentId = null;
         }
     },
 
@@ -452,27 +456,63 @@ export const ElementView = CellView.extend({
         }
     },
 
-    finalizeEmbedding: function(data) {
+    finalizeEmbedding: function(data = {}) {
 
-        data || (data = {});
-
-        var candidateView = data.candidateEmbedView;
-        var model = data.model || this.model;
-        var paper = data.paper || this.paper;
+        const candidateView = data.candidateEmbedView;
+        const element = data.model || this.model;
+        const paper = data.paper || this.paper;
 
         if (candidateView) {
 
             // We finished embedding. Candidate view is chosen to become the parent of the model.
-            candidateView.model.embed(model, { ui: true });
-            candidateView.unhighlight(
-                candidateView.findProxyNode(null, 'container'),
-                { embedding: true }
-            );
+            candidateView.model.embed(element, { ui: true });
+            candidateView.unhighlight(candidateView.findProxyNode(null, 'container'), { embedding: true });
 
             data.candidateEmbedView = null;
+
+        } else {
+
+            const { validateUnembedding } = paper.options;
+            const { initialParentId } = data;
+            // The element was originally embedded into another element.
+            // The interaction would unembed the element. Let's validate
+            // if the element can be unembedded.
+            if (
+                initialParentId &&
+                typeof validateUnembedding === 'function' &&
+                !validateUnembedding.call(paper, this)
+            ) {
+                this._disallowUnembed(data);
+            }
         }
 
-        invoke(paper.model.getConnectedLinks(model, { deep: true }), 'reparent', { ui: true });
+        paper.model.getConnectedLinks(element, { deep: true }).forEach(link => {
+            link.reparent({ ui: true });
+        });
+    },
+
+    _disallowUnembed: function(data) {
+        const { model, whenNotAllowed = 'revert' } = data;
+        const element = model || this.model;
+        const paper = data.paper || this.paper;
+        switch (whenNotAllowed) {
+            case 'remove': {
+                element.remove({ ui: true });
+                break;
+            }
+            case 'revert': {
+                const { initialParentId, initialPosition } = data;
+                if (initialPosition) {
+                    const { x, y } = initialPosition;
+                    element.position(x, y, { ui: true });
+                }
+                const parent = paper.model.getCell(initialParentId);
+                if (parent) {
+                    parent.embed(element, { ui: true });
+                }
+                break;
+            }
+        }
     },
 
     getDelegatedView: function() {
@@ -649,8 +689,10 @@ export const ElementView = CellView.extend({
             delegatedView: view
         });
 
+        const position = view.model.position();
         view.eventData(evt, {
-            pointerOffset: view.model.position().difference(x, y),
+            initialPosition: position,
+            pointerOffset: position.difference(x, y),
             restrictedArea: this.paper.getRestrictedArea(view, x, y)
         });
     },
