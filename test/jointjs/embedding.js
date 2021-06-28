@@ -135,6 +135,17 @@ QUnit.module('embedding', function(hooks) {
         assert.ok(r2.isEmbeddedIn(r1));
         assert.equal(r2.parent(), r1.id);
         assert.deepEqual(r2.position().toJSON(), newPosition1); // not newPosition2
+
+        // Try to Unembedded (And remove when invalid)
+        assert.ok(graph.getCell(r2.id));
+        evt = { target: paper.el };
+        v2.eventData(evt, { whenNotAllowed: 'remove' });
+        v2.pointerdown(evt, newPosition1.x, newPosition1.y);
+        v2.pointermove(evt, newPosition2.x, newPosition2.y);
+        v2.pointerup(evt, newPosition2.x, newPosition2.y);
+
+        assert.ok(validateUnembeddingSpy.calledThrice);
+        assert.notOk(graph.getCell(r2.id));
     });
 
     QUnit.test('passing UI flag', function(assert) {
