@@ -1,0 +1,10 @@
+<code>validateUnembedding</code> - a function that allows you to control which elements can be unembedded when the paper is put into the <code>embeddingMode</code> <i>(see above)</i>.
+<br>
+The function signature is <code>function(childView)</code> and should return
+<code>true</code> if the <code>childView</code> element can be unembedded from the parent and become a new root.
+<br>
+By default, all elements can become roots (the function returns <code>true</code> no matter what).
+<br>
+The callback is called at the end of drag & drop action and if <code>false</code> is returned, the position of the element, as well as the parent reference is reverted to the values before dragging.
+<br>
+The callback is called only on elements which were previously embedded in another element.

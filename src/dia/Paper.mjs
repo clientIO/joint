@@ -189,6 +189,12 @@ export const Paper = View.extend({
             return true;
         },
 
+        // Check whether to allow or disallow an embedded element to be unembedded / to become a root.
+        validateUnembedding: function(childView) {
+            // by default all elements can become roots
+            return true;
+        },
+
         // Determines the way how a cell finds a suitable parent when it's dragged over the paper.
         // The cell with the highest z-index (visually on the top) will be chosen.
         findParentBy: 'bbox', // 'bbox'|'center'|'origin'|'corner'|'topRight'|'bottomLeft'

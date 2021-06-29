@@ -8,7 +8,7 @@ QUnit.module('embedding', function(hooks) {
         this.graph = new joint.dia.Graph;
         this.paper = new joint.dia.Paper({
             el: $paper,
-            gridSize: 10,
+            gridSize: 1,
             model: this.graph,
             embeddingMode: true
         });
@@ -63,6 +63,89 @@ QUnit.module('embedding', function(hooks) {
         v2.pointerup(evt, 100, 100);
 
         assert.notEqual(r2.get('parent'), r1.id, 'validating function denying all element pairs provided: element not embedded.');
+    });
+
+    QUnit.test('validateUnembedding option', function(assert) {
+
+        var evt;
+        var paper = this.paper;
+        var graph = this.graph;
+        var unembeddingIsValid = true;
+        var validateUnembeddingSpy = sinon.spy(function() {
+            return unembeddingIsValid;
+        });
+
+        paper.options.validateUnembedding = validateUnembeddingSpy;
+
+        var r1 = new joint.shapes.standard.Rectangle({
+            position: { x: 100, y: 101 },
+            size: { width: 100, height: 100 }
+        });
+        var r2 = new joint.shapes.standard.Rectangle({
+            position: { x: 500, y: 501 },
+            size: { width: 100, height: 100 }
+        });
+
+        graph.addCells([r1, r2]);
+
+        var v1 = r1.findView(paper);
+        var v2 = r2.findView(paper);
+
+        // Make sure validateUnembedding() is not called when embedding
+        var newPosition0 = { x: 100, y: 101 };
+
+        evt = { target: v1.el };
+        v2.pointerdown(evt, r2.attributes.position.x, r2.attributes.position.y);
+        v2.pointermove(evt, newPosition0.x, newPosition0.y);
+        v2.pointerup(evt, newPosition0.x, newPosition0.y);
+
+        assert.equal(r2.parent(), r1.id);
+        assert.ok(validateUnembeddingSpy.notCalled);
+
+        // Try To Unembed (Valid)
+        unembeddingIsValid = true;
+        var newPosition1 = { x: 300, y: 301 };
+
+        evt = { target: paper.el };
+        v2.pointerdown(evt, newPosition0.x, newPosition0.y);
+        v2.pointermove(evt, newPosition1.x, newPosition1.y);
+        v2.pointerup(evt, newPosition1.x, newPosition1.y);
+
+        assert.ok(validateUnembeddingSpy.calledOnce);
+        assert.ok(validateUnembeddingSpy.calledOn(paper));
+        assert.ok(validateUnembeddingSpy.calledWithExactly(v2));
+        assert.notOk(r2.isEmbeddedIn(r1));
+        assert.notEqual(r2.parent(), r1.id);
+        assert.deepEqual(r2.position().toJSON(), newPosition1);
+
+        // Try To Unembed (Invalid)
+        unembeddingIsValid = false;
+        r1.embed(r2);
+        var newPosition2 = { x: 600, y: 601 };
+
+        evt = { target: paper.el };
+        v2.pointerdown(evt, newPosition1.x, newPosition1.y);
+        v2.pointermove(evt, newPosition2.x, newPosition2.y);
+        v2.pointerup(evt, newPosition2.x, newPosition2.y);
+
+        assert.ok(validateUnembeddingSpy.calledTwice);
+        assert.ok(validateUnembeddingSpy.calledOn(paper));
+        assert.ok(validateUnembeddingSpy.calledWithExactly(v2));
+        // make sure the position and the parent are reverted
+        assert.ok(r2.isEmbeddedIn(r1));
+        assert.equal(r2.parent(), r1.id);
+        assert.deepEqual(r2.position().toJSON(), newPosition1); // not newPosition2
+
+        // Try to Unembedded (And remove when invalid)
+        assert.ok(graph.getCell(r2.id));
+        evt = { target: paper.el };
+        v2.eventData(evt, { whenNotAllowed: 'remove' });
+        v2.pointerdown(evt, newPosition1.x, newPosition1.y);
+        v2.pointermove(evt, newPosition2.x, newPosition2.y);
+        v2.pointerup(evt, newPosition2.x, newPosition2.y);
+
+        assert.ok(validateUnembeddingSpy.calledThrice);
+        assert.notOk(graph.getCell(r2.id));
     });
 
     QUnit.test('passing UI flag', function(assert) {
