@@ -1062,6 +1062,7 @@ export namespace dia {
             validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
+            routerNamespace?: any;
             highlighterNamespace?: any;
             anchorNamespace?: any;
             linkAnchorNamespace?: any,
