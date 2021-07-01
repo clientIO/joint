@@ -1314,17 +1314,12 @@ export const LinkView = CellView.extend({
 
         vertices || (vertices = []);
 
-        var namespace;
+        var namespace = this.paper.options.routerNamespace || routers;
         var router = this.model.router();
         var defaultRouter = this.paper.options.defaultRouter;
-        var routerNamespace = this.paper.options.routerNamespace;
-
-        if (routerNamespace) namespace = routerNamespace;
-        else namespace = routers;
 
         if (!router) {
-            if (routerNamespace) router = routerNamespace;
-            else if (defaultRouter) router = defaultRouter;
+            if (defaultRouter) router = defaultRouter;
             else return vertices.map(Point); // no router specified
         }
 
