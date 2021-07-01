@@ -1345,7 +1345,7 @@ export const LinkView = CellView.extend({
     // between `source` and `target`.
     findPath: function(route, sourcePoint, targetPoint) {
 
-        var namespace = connectors;
+        var namespace = this.paper.options.connectorNamespace || connectors;
         var connector = this.model.connector();
         var defaultConnector = this.paper.options.defaultConnector;
 

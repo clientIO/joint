@@ -1056,13 +1056,14 @@ export namespace dia {
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
             embeddingMode?: boolean;
-            frontParentOnly?: boolean,
+            frontParentOnly?: boolean;
             findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | ((elementView: ElementView) => Element[]);
             validateEmbedding?: (this: Paper, childView: ElementView, parentView: ElementView) => boolean;
             validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
             routerNamespace?: any;
+            connectorNamespace?: any;
             highlighterNamespace?: any;
             anchorNamespace?: any;
             linkAnchorNamespace?: any,

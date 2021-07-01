@@ -1,0 +1,15 @@
+<code>connectorNamespace</code> - this option allows the user specify a custom link connector namespace right in the paper options.
+                                This works in tandem with the<a href="#dia.Paper.prototype.options.defaultConnector">defaultConnector</a> option.
+                                If a user provides an object <code>{ name: 'customConnector' }</code> as the defaultConnector, the paper will
+                                look for this connector in the provided <code>connectorNamespace</code>. The default connector used is <i>'normal'</i>.
+
+<pre><code>
+    const customNamespace = {};
+
+    new joint.dia.Paper({
+        defaultConnector: { name: 'customConnector' },
+        connectorNamespace: customNamespace,
+    });
+
+    // the paper looks for the connector under customNamespace['customConnector']
+}</code></pre>
