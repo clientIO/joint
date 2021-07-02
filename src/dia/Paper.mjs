@@ -255,6 +255,10 @@ export const Paper = View.extend({
 
         cellViewNamespace: null,
 
+        routerNamespace: null,
+
+        connectorNamespace: null,
+
         highlighterNamespace: highlighters,
 
         anchorNamespace: anchors,
