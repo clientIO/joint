@@ -1,16 +1,6 @@
-<code>routerNamespace</code> - this option allows the user specify a custom link router namespace right in the paper options.
-                                This works in tandem with the<a href="#dia.Paper.prototype.options.defaultRouter">defaultRouter</a> option.
-                                If a user provides an object <code>{ name: 'customRouter' }</code> as the defaultRouter, the paper will
-                                look for this router in the provided <code>routerNamespace</code>. The default router used is <i>'normal'</i>.
+<code>routerNamespace</code> - built-in <a href="#routers">routers</a> are defined by default on the <code>joint.routers</code> namespace. 
+                                It is also possible to define custom routers on this namespace. If you would like JointJS to look for router
+                                definitions under a different namespace, you can set the <code>routerNamespace</code> option to your desired 
+                                namespace.
 
-<pre><code>
-    const customNamespace = {};
-
-    new joint.dia.Paper({
-        defaultRouter: { name: 'customRouter' },
-        routerNamespace: customNamespace,
-    });
-
-    // the paper looks for the router under customNamespace['customRouter']
-}</code></pre>
                 
