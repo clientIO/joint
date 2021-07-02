@@ -46,6 +46,68 @@ QUnit.module('Attributes', function() {
             paper.remove();
         });
 
+        QUnit.module('calcD', function() {
+
+            QUnit.test('set', function(assert) {
+                var ns = joint.dia.attributes;
+                [
+                    // sanity
+                    ['', ''],
+                    ['M 0 0 10 10', 'M 0 0 10 10'],
+                    ['(w)', String(WIDTH)],
+                    ['(h)', String(HEIGHT)],
+                    // multiply
+                    ['(2*w)', String(WIDTH * 2)],
+                    ['(2*h)', String(HEIGHT * 2)],
+                    ['(0.5*w)', String(WIDTH / 2)],
+                    ['(0.5*h)', String(HEIGHT / 2)],
+                    ['(-.5*w)', String(WIDTH / -2)],
+                    ['(-.5*h)', String(HEIGHT / -2)],
+                    ['(1e-1*w)', String(WIDTH * 1e-1)],
+                    ['(1e-1*h)', String(HEIGHT * 1e-1)],
+                    // add
+                    ['(w+10)', String(WIDTH + 10)],
+                    ['(h+10)', String(HEIGHT + 10)],
+                    ['(w+10.5)', String(WIDTH + 10.5)],
+                    ['(h+10.5)', String(HEIGHT + 10.5)],
+                    ['(w-10)', String(WIDTH - 10)],
+                    ['(h-10)', String(HEIGHT - 10)],
+                    ['(2*w+10)', String(WIDTH * 2 + 10)],
+                    ['(2*h+10)', String(HEIGHT * 2 + 10)],
+                    // spaces
+                    ['( 2 * w + 10 )', String(WIDTH * 2 + 10)],
+                    ['( 2 * h + 10 )', String(HEIGHT * 2 + 10)],
+                    // multiple expressions
+                    ['M 0 0 (w) (h) 200 200', 'M 0 0 ' + WIDTH + ' ' + HEIGHT + ' 200 200'],
+                    ['M 0 0 (w+10) (h+10)', 'M 0 0 ' + (WIDTH + 10) + ' ' + (HEIGHT + 10)],
+                    ['M 0 0 (1*w-10) (1*h-10)', 'M 0 0 ' + (WIDTH - 10) + ' ' + (HEIGHT - 10)],
+                    // misc
+                    ['M 0 0 (10 0', 'M 0 0 (10 0']
+                ].forEach(function(testCase) {
+                    var attrs = ns.calcD.set.call(cellView, testCase[0], refBBox.clone(), node, {});
+                    assert.deepEqual(attrs, { d: testCase[1] });
+                });
+            });
+
+            QUnit.test('invalid', function(assert) {
+                var ns = joint.dia.attributes;
+                [
+                    '()',
+                    '(10)',
+                    '(w+(10))',
+                    '(2*i+10)',
+                    '(10+2*w)',
+                ].forEach(function(testCase) {
+                    assert.throws(
+                        function() {
+                            ns.calcD.set.call(cellView, testCase,  refBBox.clone(), node, {});
+                        },
+                        /Invalid path expression/,
+                        testCase
+                    );
+                });
+            });
+        });
 
         QUnit.module('textWrap', function() {
 
