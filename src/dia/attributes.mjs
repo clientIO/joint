@@ -1,5 +1,6 @@
 import { Point, Path, Polyline } from '../g/index.mjs';
 import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../util/util.mjs';
+import { isCalcExpression, calcSetWrapper } from './calc.mjs';
 import $ from 'jquery';
 import V from '../V/index.mjs';
 
@@ -107,39 +108,6 @@ function shapeWrapper(shapeConstructor, opt) {
         return shape;
     };
 }
-
-function calcDWrapper() {
-
-    const props = { w: 'w', W: 'W', h: 'h', H: 'H' };
-    const propsList = props.W + props.w + props.H + props.h;
-    const numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
-    const findSpacesRegex = /\s/g;
-    const findExpressionsRegExp = /\(([^)]*)\)/g;
-    const parseExpressionRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])([-+]${numberPattern})?$`, 'g');
-
-    function evalExpression(expression, bbox) {
-        const match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
-        if (!match) throw new Error(`Invalid path expression: ${expression}`);
-        parseExpressionRegExp.lastIndex = 0; // reset results for the next run
-        const [,multiply = 1, property, add = 0] = match;
-        const { x, y, width, height } = bbox;
-        const [offset, dimension] = {
-            [props.W]: [x, width],
-            [props.w]: [0, width],
-            [props.H]: [y, height],
-            [props.h]: [0, height]
-        }[property];
-        return offset + parseFloat(multiply) * dimension + parseFloat(add);
-    }
-
-    return function(d, refBBox) {
-        const evaluatedD = d.replace(findExpressionsRegExp, function(_, expression) {
-            return evalExpression(expression, refBBox);
-        });
-        return { 'd': evaluatedD };
-    };
-}
-
 
 // `d` attribute for SVGPaths
 function dWrapper(opt) {
@@ -601,10 +569,6 @@ const attributesNS = {
         set: pointsWrapper({ resetOffset: false })
     },
 
-    calcD: {
-        set: calcDWrapper()
-    },
-
     // LinkView Attributes
 
     connection: {
@@ -650,6 +614,21 @@ const attributesNS = {
         set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
     }
 };
+
+// Support `calc()` with the following SVG attributes
+[
+    'd', // path
+    'points', // polyline / polygon
+    'x', 'y', 'width', 'height', // rect
+    'cx', 'cy', 'r', 'rx', 'ry', // circle / ellipse
+    'x1', 'x2', 'y1', 'y2', // line
+    'dx', 'dy' // text
+].forEach(attribute => {
+    attributesNS[attribute] = {
+        qualify: isCalcExpression,
+        set: calcSetWrapper(attribute)
+    };
+});
 
 // Aliases
 attributesNS.refR = attributesNS.refRInscribed;
