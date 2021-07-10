@@ -624,9 +624,12 @@ const attributesNS = {
 [
     'd', // path
     'points', // polyline / polygon
-    'x', 'y', 'width', 'height', // rect
-    'cx', 'cy', 'r', 'rx', 'ry', // circle / ellipse
+    'width', 'height', // rect / image
+    'cx', 'cy', // circle / ellipse
+    'r', // circle
+    'rx', 'ry', // rect / ellipse
     'x1', 'x2', 'y1', 'y2', // line
+    'x', 'y', // rect / text / image
     'dx', 'dy' // text
 ].forEach(attribute => {
     attributesNS[attribute] = {
