@@ -1,6 +1,6 @@
 import { Point, Path, Polyline } from '../../g/index.mjs';
 import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../../util/util.mjs';
-import { isCalcExpression, calcSetWrapper } from './calc.mjs';
+import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
 import $ from 'jquery';
 import V from '../../V/index.mjs';
 
@@ -293,11 +293,16 @@ const attributesNS = {
         qualify: function(_text, _node, attrs) {
             return !attrs.textWrap || !isPlainObject(attrs.textWrap);
         },
-        set: function(text, _refBBox, node, attrs) {
+        set: function(text, refBBox, node, attrs) {
             var $node = $(node);
             var cacheName = 'joint-text';
             var cache = $node.data(cacheName);
             var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'displayEmpty');
+            // eval `x` if using calc()
+            const { x } = textAttrs;
+            if (isCalcAttribute(x)) {
+                textAttrs.x = evalCalcAttribute(x, refBBox);
+            }
             var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
             var textHash = JSON.stringify([text, textAttrs]);
             // Update the text only if there was a change in the string
@@ -625,8 +630,10 @@ const attributesNS = {
     'dx', 'dy' // text
 ].forEach(attribute => {
     attributesNS[attribute] = {
-        qualify: isCalcExpression,
-        set: calcSetWrapper(attribute)
+        qualify: isCalcAttribute,
+        set: function setCalcAttribute(value, refBBox) {
+            return { [attribute]: evalCalcAttribute(value, refBBox) };
+        }
     };
 });
 
