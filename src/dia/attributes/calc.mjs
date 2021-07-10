@@ -1,8 +1,8 @@
 const props = {
     width: 'w',
     height: 'h',
-    minimum: 'l',
-    maximum: 'g',
+    minimum: 's',
+    maximum: 'l',
     diagonal: 'd'
 };
 const propsList = Object.keys(props).map(key => props[key]).join('');

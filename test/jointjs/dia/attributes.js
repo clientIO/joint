@@ -332,8 +332,8 @@ QUnit.module('Attributes', function() {
                 ['M 0 0 10 10', 'M 0 0 10 10'],
                 ['calc(w)', String(WIDTH)],
                 ['calc(h)', String(HEIGHT)],
-                ['calc(l)', String(Math.min(WIDTH, HEIGHT))],
-                ['calc(g)', String(Math.max(WIDTH, HEIGHT))],
+                ['calc(s)', String(Math.min(WIDTH, HEIGHT))],
+                ['calc(l)', String(Math.max(WIDTH, HEIGHT))],
                 ['calc(d)', String(Math.sqrt(WIDTH * WIDTH + HEIGHT * HEIGHT))],
                 // multiply
                 ['calc(2*w)', String(WIDTH * 2)],
