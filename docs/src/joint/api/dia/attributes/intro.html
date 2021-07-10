@@ -1,3 +1,192 @@
 <p>The attributes in JointJS define how the graphics elements are to be rendered inside of the element and link views.
-All the standard SVG <a href="https://www.w3.org/TR/SVG/styling.html" target="_blank">styling properties</a> are available (both <code>kebab-case</code> and <code>camelCase</code> styles).
-In addition JointJS defines new so-called "special" attributes and allows programmers to define their own. Here is the list of all built-in attributes.</p>
+All the standard SVG <a href="https://www.w3.org/TR/SVG/styling.html" target="_blank">styling properties</a> are available (both <code>kebab-case</code> and <code>camelCase</code> styles).</p>
+
+<p>In addition JointJS modifies the behavior of existing attributes (the use of <code>calc()</code> for specifying attribute values) and defines new so-called "special" attributes and allows programmers to define their own.</p>
+
+<style>
+    .calc-part {
+        line-height: 50px;
+        padding: 5px;
+        border: 1px solid black;
+        background: white;
+        border-radius: 5px;
+    }
+    .calc-header {
+        color: #3c4260;
+    }
+</style>
+
+<h4 class="calc-header" id="dia.attributes.calc">calc()</h4>
+
+<p>The <code>calc()</code> function lets you perform calculations when specifying SVG attributes values.</p>
+
+<h5 class="calc-header">Syntax:</h5>
+
+<p>The <code>calc()</code> function takes a simple expression as its parameter, with the expression's result used as the value.  The expression can be any simple expression in one of the following form:</p>
+
+
+
+<ul>
+    <li>
+        <span class="calc-part">Variable</span>
+        <pre><code>'calc(w)'</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Variable</span>
+        <span class="calc-part">Addition or Subtraction</span>
+        <pre><code>'calc(w + 5)'
+'calc(h - 10)'</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Multiplication</span>
+        <span class="calc-part">Variable</span>
+        <pre><code>'calc(2 * w)'
+'calc(0.5 * h)'</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Multiplication</span>
+        <span class="calc-part">Variable</span>
+        <span class="calc-part">Addition or Subtraction</span>
+        <pre><code>'calc(2 * w + 5)'
+'calc(0.5 * h - 10)'</code></pre>
+    </li>
+</ul>
+
+<p>Where:</p>
+
+<ul>
+    <li>
+        <p>
+            <span class="calc-part">Variable</span> is a symbol representing a value that can change, when the model attributes change (size, attrs).
+            <table>
+                <tr>
+                    <th>variable</th>
+                    <th>name</th>
+                    <th>description</th>
+                </tr>
+                <tr>
+                    <td><code>w</code></td>
+                    <td>width</td>
+                    <td>The current width of the model (<code>model.prop('size/width')</code>). The value can be bound to an SVGElement's size instead by using <a href="#dia.attributes.ref">ref</a> attribute.</td>
+                </tr>
+                <tr>
+                    <td><code>h</code></td>
+                    <td>height</td>
+                    <td>The current height of the model (<code>model.prop('size/height')</code>). The value can be bound to an SVGElement's size instead by using <a href="#dia.attributes.ref">ref</a> attribute.</td>
+                </tr>
+                <tr>
+                    <td><code>l</code></td>
+                    <td>lesser</td>
+                    <td>The minimum of width and height.</td>
+                </tr>
+                <tr>
+                    <td><code>g</code></td>
+                    <td>greater</td>
+                    <td>The maximum of width and height.</td>
+                </tr>
+            </table>
+        </p>
+    </li>
+    <li>
+        <span class="calc-part">Multiplication</span> is an optional floating number factor of the variable. It's a number followed by the <code>*</code> symbol.
+        <pre><code>1.5 *</code></pre>
+    </li>
+    <li>
+        <span class="calc-part">Addition or Subtraction</span> is an optional floating number addend or subtrahend of the variable. It's a <code>+</code> or <code>-</code> symbol followed by a number.
+        <pre><code>+ 5</code></pre>
+    </li>
+</ul>
+
+<h5 class="calc-header">Notes:</h5>
+
+<ul>
+    <li>Expression is case-sensitive.</li>
+    <li>The <code>+</code>, <code>-</code> and <code>*</code> operators do not require whitespace.</li>
+    <li>No extra parentheses are allowed.</li>
+</ul>
+
+<p>It can be used with the following attributes:</p>
+
+<ul>
+    <li>
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/rect">SVGRectElement</a>
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/image">SVGImageElement</a>
+        <ul>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/x">x</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/y">y</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/rx">rx</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/ry">ry</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/width">width</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/height">height</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/line">SVGLineElement</a>
+        <ul>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/x1">x1</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/x2">x2</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/y2">y2</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/y2">y2</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle">SVGCircleElement</a>,
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/ellipse">SVGEllipseElement</a>
+        <ul>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/cx">cx</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/cy">cy</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/r">r</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/rx">rx</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/ry">ry</a></li>
+        </ul>
+    </li>
+
+    <li>
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline">SVGPolylineElement</a>,
+        <a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polygon">SVGPolygonElement</a>
+        <ul>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/points">points</a></li>
+        </ul>
+    </li>
+
+    <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/path">SVGPathElement</a>
+        <ul>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d">d</a></li>
+        </ul>
+    </li>
+
+    <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text">SVGTextElement</a>
+        <ul>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dx">dx</a></li>
+            <li><a target="_blank" href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/dy">dy</a></li>
+        </ul>
+    </li>
+</ul>
+
+<h5 class="calc-header">Examples:</h5>
+
+<pre><code>el.resize(200, 100); // dia.Element
+
+// &lt;rect joint-selector="myRect" width="200" height="100" rx="20" ry="10" /&gt;
+el.attr('myRect', {
+   width: 'calc(w)',
+   height: 'calc(h)',
+   rx: 'calc(0.1*w)',
+   ry: 'calc(0.1*h)'
+});
+
+// &lt;image joint-selector="myImage" x="105" y="55" /&gt;
+el.attr('myImage/x', 'calc(0.5*w+5)');
+el.attr('myImage/y', 'calc(0.5*h+5)');
+
+// &lt;path joint-selector="myPath" d="M 10 50 190 50" /&gt;
+el.attr('myPath/d', 'M 10 calc(0.5*h) calc(w-10) calc(0.5*h)')
+
+// &lt;polygon joint-selector="myPolygon" points="0,0 200,0 200,100 0,100" /&gt;
+el.attr('myPolygon/d', '0,0 calc(w),0 calc(w),calc(h) 0,calc(h)');
+</code></pre>
+
+
+<p>Here is the list of all built-in attributes.</pre>

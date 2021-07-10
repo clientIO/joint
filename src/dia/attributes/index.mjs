@@ -1,8 +1,8 @@
-import { Point, Path, Polyline } from '../g/index.mjs';
-import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../util/util.mjs';
+import { Point, Path, Polyline } from '../../g/index.mjs';
+import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../../util/util.mjs';
 import { isCalcExpression, calcSetWrapper } from './calc.mjs';
 import $ from 'jquery';
-import V from '../V/index.mjs';
+import V from '../../V/index.mjs';
 
 function setWrapper(attrName, dimension) {
     return function(value, refBBox) {

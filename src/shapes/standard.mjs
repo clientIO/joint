@@ -2,7 +2,7 @@ import V from '../V/index.mjs';
 import { Element } from '../dia/Element.mjs';
 import { Link as LinkBase } from '../dia/Link.mjs';
 import { isPercentage, assign } from '../util/index.mjs';
-import { attributes } from '../dia/attributes.mjs';
+import { attributes } from '../dia/attributes/index.mjs';
 import { env } from '../env/index.mjs';
 
 

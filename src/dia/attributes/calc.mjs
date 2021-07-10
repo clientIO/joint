@@ -1,5 +1,5 @@
-const props = { w: 'w', W: 'W', h: 'h', H: 'H' };
-const propsList = `${props.W}${props.w}${props.H}${props.h}`;
+const props = { w: 'w', W: 'W', h: 'h', H: 'H', l: 'l', g: 'g' };
+const propsList = Object.keys(props).map(key => props[key]).join('');
 const numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
 const findSpacesRegex = /\s/g;
 const findExpressionsRegExp = /calc\(([^)]*)\)/g;
@@ -15,7 +15,9 @@ export function evalExpression(expression, bbox) {
         [props.W]: [x, width],
         [props.w]: [0, width],
         [props.H]: [y, height],
-        [props.h]: [0, height]
+        [props.h]: [0, height],
+        [props.l]: [0, Math.min(height, width)],
+        [props.g]: [0, Math.max(height, width)]
     }[property];
     return offset + parseFloat(multiply) * dimension + parseFloat(add);
 }
