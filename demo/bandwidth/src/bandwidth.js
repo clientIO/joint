@@ -37,7 +37,7 @@ const line = vectorizer('line', {
 line.appendTo(paper.getLayerNode(dia.Paper.Layers.BACK));
 
 // The style can be added in an external CSS file too
-const style = V.createSVGStyle(`
+const style = vectorizer.createSVGStyle(`
     .joint-type-bandwidth .bandwidth__halo,
     .joint-type-bandwidth:hover .bandwidth__sideband {
         stroke: #FC3465;
