@@ -1,20 +1,23 @@
-XX-06-2021 (v3.4.0)
-* Add VueJS 3.0 Demo
-* Add Tree-Shake Demo
-* Add TypeScript shape definition tutorial
-* Remove polyfill for XMLHttpRequest support of IE9
-* Mark library as side-effect-free
-* dia.Paper - add allowNegativeBottomRight option to fitToContent()
-* dia.Paper - add missing frontParentOnly option documentation
-* dia.Graph - fix order of cells in getElements() and getLinks()
-* dia.Cell - add option to use DFS to index embedded cells in toFront() and toBack()
-* util.breakText - fix wrapping when the last word contains a hyphen
-* routers.Manhattan - improve points comparison performance
-* Geometry - split to files
-* Geometry - add Rect methods to find a union of rectangles or points
+13-07-2021 (v3.4.0)
+  * Add VueJS 3.0 Demo
+  * Add Tree-Shake Demo
+  * Add Carrier Frequency Bandwidth Demo
+  * Add TypeScript shape definition tutorial
+  * Remove polyfill for XMLHttpRequest support of IE9
+  * Mark library as side-effect-free
+  * dia.Paper - add allowNegativeBottomRight option to fitToContent()
+  * dia.Paper - add routerNamespace and connectorNamespace options, document missing namespace options
+  * dia.Paper - add validateUnembedding() option
+  * dia.Paper - add missing frontParentOnly option documentation
+  * dia.Graph - fix order of cells in getElements() and getLinks()
+  * dia.Cell - add option to use DFS to index embedded cells in toFront() and toBack()
+  * dia.attributes - use calc() in various SVG attributes
+  * util.breakText - fix wrapping when the last word contains a hyphen
+  * routers.Manhattan - improve points comparison performance
+  * Geometry - split to files
+  * Geometry - add Rect methods to find a union of rectangles or points
 
 06-02-2021 (v3.3.1)
-
  * uglified files encode Unicode characters as ASCII
  * use polyfills from core-js
  * dia.Cell - remove() passes options to unembed() internally to maintain consistency
@@ -74,12 +77,10 @@ XX-06-2021 (v3.4.0)
  * Geometry - add parallel() to Line, add serialize() to Point and Line
 
 28-11-2019 (v3.1.1)
-
  * dia.CellView - prevent DOM exceptions when invalid attrs provided
  * dia.ToolView - prevent `contextmenu` event (uses paper.options.guard now)
 
 15-10-2019 (v3.1.0)
-
  * add RoughJS demo
  * add elementTools: Button, Remove, Boundary
  * improve low-level performance for large graphs
@@ -100,14 +101,12 @@ XX-06-2021 (v3.4.0)
  * Geometry - add simplify() to Polyline (remove redundant points)
 
 02-08-2019 (v3.0.4)
-
   * package.json - add a browser key to point to dist (fix webpack build in IE11)
   * dia.Paper - pass Backbone model options to view update (cell removal & `z` change)
   * dia.CellView -  fix `mouseleave` event in async mode
   * linkTools.Vertices - fix vertexAdding option
 
 23-07-2019 (v3.0.3)
-
   * allow for automatic patch upgrades for dependencies
   * changes to config options are respected
   * dia.Paper - ensure SVG document has id
@@ -116,18 +115,15 @@ XX-06-2021 (v3.4.0)
   * dia.CellView - properly separate elements and ports CSS selectors
 
 27-06-2019 (v3.0.2)
-
   * layout.DirectedGraph - allow injecting `dagre` and `graphlib` as an option property
   * routers.Manhattan - use fallback when source and target are exactly the same
   * fix markup TypeScript definition
 
 17-06-2019 (v3.0.1)
-
   * remove all global variables
   * dia.LinkView - fix `cell:pointerup` event
 
 07-06-2019 (v3.0.0)
-
   * dia.Paper - async mode revamped (viewport matching, rendering progress) [breaking change]
   * dia.Paper - cells are rendered into the `paper.cells` (previously called `paper.viewport`), transformations are applied to `paper.layers` (parent of `paper.cells`) [breaking change]
   * dia.Graph - getBBox() accepts no parameters and returns the bounding box of the entire graph [breaking change]
