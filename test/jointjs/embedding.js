@@ -86,7 +86,12 @@ QUnit.module('embedding', function(hooks) {
             size: { width: 100, height: 100 }
         });
 
-        graph.addCells([r1, r2]);
+        var l = new joint.shapes.standard.Link({
+            target: { id: r2.id },
+            z: -1
+        });
+
+        graph.addCells([r1, r2, l]);
 
         var v1 = r1.findView(paper);
         var v2 = r2.findView(paper);
@@ -123,6 +128,8 @@ QUnit.module('embedding', function(hooks) {
         r1.embed(r2);
         var newPosition2 = { x: 600, y: 601 };
 
+        var prevGraphJSON = graph.toJSON();
+
         evt = { target: paper.el };
         v2.pointerdown(evt, newPosition1.x, newPosition1.y);
         v2.pointermove(evt, newPosition2.x, newPosition2.y);
@@ -135,6 +142,8 @@ QUnit.module('embedding', function(hooks) {
         assert.ok(r2.isEmbeddedIn(r1));
         assert.equal(r2.parent(), r1.id);
         assert.deepEqual(r2.position().toJSON(), newPosition1); // not newPosition2
+
+        assert.deepEqual(prevGraphJSON, graph.toJSON());
 
         // Try to Unembedded (And remove when invalid)
         assert.ok(graph.getCell(r2.id));
