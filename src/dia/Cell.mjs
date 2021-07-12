@@ -27,7 +27,7 @@ import {
     has
 } from '../util/util.mjs';
 import { cloneCells } from '../util/cloneCells.mjs';
-import { attributes } from './attributes.mjs';
+import { attributes } from './attributes/index.mjs';
 import * as g from '../g/index.mjs';
 
 

@@ -1,7 +1,8 @@
-import { Point, Path, Polyline } from '../g/index.mjs';
-import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../util/util.mjs';
+import { Point, Path, Polyline } from '../../g/index.mjs';
+import { assign, isPlainObject, pick, isObject, isPercentage, breakText } from '../../util/util.mjs';
+import { isCalcAttribute, evalCalcAttribute } from './calc.mjs';
 import $ from 'jquery';
-import V from '../V/index.mjs';
+import V from '../../V/index.mjs';
 
 function setWrapper(attrName, dimension) {
     return function(value, refBBox) {
@@ -292,11 +293,16 @@ const attributesNS = {
         qualify: function(_text, _node, attrs) {
             return !attrs.textWrap || !isPlainObject(attrs.textWrap);
         },
-        set: function(text, _refBBox, node, attrs) {
+        set: function(text, refBBox, node, attrs) {
             var $node = $(node);
             var cacheName = 'joint-text';
             var cache = $node.data(cacheName);
             var textAttrs = pick(attrs, 'lineHeight', 'annotations', 'textPath', 'x', 'textVerticalAnchor', 'eol', 'displayEmpty');
+            // eval `x` if using calc()
+            const { x } = textAttrs;
+            if (isCalcAttribute(x)) {
+                textAttrs.x = evalCalcAttribute(x, refBBox);
+            }
             var fontSize = textAttrs.fontSize = attrs['font-size'] || attrs['fontSize'];
             var textHash = JSON.stringify([text, textAttrs]);
             // Update the text only if there was a change in the string
@@ -613,6 +619,26 @@ const attributesNS = {
         set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
     }
 };
+
+// Support `calc()` with the following SVG attributes
+[
+    'd', // path
+    'points', // polyline / polygon
+    'width', 'height', // rect / image
+    'cx', 'cy', // circle / ellipse
+    'r', // circle
+    'rx', 'ry', // rect / ellipse
+    'x1', 'x2', 'y1', 'y2', // line
+    'x', 'y', // rect / text / image
+    'dx', 'dy' // text
+].forEach(attribute => {
+    attributesNS[attribute] = {
+        qualify: isCalcAttribute,
+        set: function setCalcAttribute(value, refBBox) {
+            return { [attribute]: evalCalcAttribute(value, refBBox) };
+        }
+    };
+});
 
 // Aliases
 attributesNS.refR = attributesNS.refRInscribed;
