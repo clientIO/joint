@@ -11,94 +11,94 @@
   * dia.Paper - add missing frontParentOnly option documentation
   * dia.Graph - fix order of cells in getElements() and getLinks()
   * dia.Cell - add option to use DFS to index embedded cells in toFront() and toBack()
-  * dia.attributes - use calc() in various SVG attributes
+  * dia.attributes - add calc() function to be used in various SVG attributes
   * util.breakText - fix wrapping when the last word contains a hyphen
   * routers.Manhattan - improve points comparison performance
   * Geometry - split to files
   * Geometry - add Rect methods to find a union of rectangles or points
 
 06-02-2021 (v3.3.1)
- * uglified files encode Unicode characters as ASCII
- * use polyfills from core-js
- * dia.Cell - remove() passes options to unembed() internally to maintain consistency
+  * uglified files encode Unicode characters as ASCII
+  * use polyfills from core-js
+  * dia.Cell - remove() passes options to unembed() internally to maintain consistency
 
 15-01-2021 (v3.3.0)
- * Prevent prototype pollution - lodash v4.17.20, fix util.setByPath()
- * Prevent DoS - fix util.unsetByPath()
- * demo.ELK - add Eclipse Layout Kernel demo
- * demo.Container - add collapse/expand container demo
- * demo.Typescript - show class style shape definition
- * demo.HTML - implement z-index sorting
- * add Element Tools tutorial
- * dia.Paper - add snapLabels option
- * dia.Paper - restrictTranslate option defined as function returning a function
- * dia.Element - prevent unnecessary rounding errors in resize()
- * dia.Element - add insertPort() to support inserting port at a given position
- * dia.Link - fix order of points in getPolyline()
- * dia.LinkView - prevent connection validation on magnets previously validated
- * dia.CellView - fix update order of nodes when 'ref' in use
- * dia.ToolsView - enable adding tool to a view, which has not been rendered
- * util.breakText - fix height for a text with empty lines
- * highlighters - new API, add mask highlighter
- * highlighters.stroke - add useFirstSubpath option
- * routers.manhattan - fix scan directions order
- * dia.attributes - add magnetSelector & containerSelector
- * dia.attributes - textWrap takes letter-spacing into account
- * Vectorizer - add createSVGStyle() and createCDATASection() static methods
- * Geometry - add getSubpaths() to Path
- * Geometry - add round() methods
+  * Prevent prototype pollution - lodash v4.17.20, fix util.setByPath()
+  * Prevent DoS - fix util.unsetByPath()
+  * demo.ELK - add Eclipse Layout Kernel demo
+  * demo.Container - add collapse/expand container demo
+  * demo.Typescript - show class style shape definition
+  * demo.HTML - implement z-index sorting
+  * add Element Tools tutorial
+  * dia.Paper - add snapLabels option
+  * dia.Paper - restrictTranslate option defined as function returning a function
+  * dia.Element - prevent unnecessary rounding errors in resize()
+  * dia.Element - add insertPort() to support inserting port at a given position
+  * dia.Link - fix order of points in getPolyline()
+  * dia.LinkView - prevent connection validation on magnets previously validated
+  * dia.CellView - fix update order of nodes when 'ref' in use
+  * dia.ToolsView - enable adding tool to a view, which has not been rendered
+  * util.breakText - fix height for a text with empty lines
+  * highlighters - new API, add mask highlighter
+  * highlighters.stroke - add useFirstSubpath option
+  * routers.manhattan - fix scan directions order
+  * dia.attributes - add magnetSelector & containerSelector
+  * dia.attributes - textWrap takes letter-spacing into account
+  * Vectorizer - add createSVGStyle() and createCDATASection() static methods
+  * Geometry - add getSubpaths() to Path
+  * Geometry - add round() methods
 
 04-6-2020 (v3.2.0)
- * add Sequence Diagram demo
- * add HTML Elements demo
- * upgrade jQuery dependency
- * dia.Paper - add beforeRender and afterRender options, add hasScheduledUpdates(), trigger `render:done` in sync mode
- * dia.Paper - fix missing initial render:done event
- * dia.Paper - prevent the prototype options modification, persist functions passed as options
- * dia.Paper - scaleContentToFit() padding option accepts object
- * dia.Paper - fix isMounted argument of viewport() option
- * dia.Paper - dynamic link update priorities (fix for "link connected to other two links" update bug)
- * dia.Element - port removal runs in batch
- * dia.Element - add getGroupPorts()
- * dia.Element - prevent exception in getPointFromConnectedLink() when port does not exist
- * dia.LinkView - fix never ending batch for legacy link tools
- * dia.LinkView - add requestConnectionUpdate()
- * dia.LinkView - trigger link:snap:connect and link:snap:disconnect events
- * dia.LinkView - prevent exception when labels and connection require update
- * dia.LinkView - measure snap distance for links from magnet's boundary
- * dia.LinkView - add getEndConnectionPoint()
- * mvc.View - add DETACHABLE property to ignore viewport matching, FLAG_INSERT & FLAG_REMOVE defined on per view basis
- * linkTools.Anchor: add resetAnchor option
- * linkTools.Segments: add stopPropagation option
- * connectionPoints.anchor - add align and alignOffset options
- * attributes.textWrap: add maxLineCount option
- * util.breakText - retain new line characters, add maxLineCount option
- * util.sanitizeHTML: sanitize attribute values with "data:" and "vbscript:"
- * Geometry - add parallel() to Line, add serialize() to Point and Line
+  * add Sequence Diagram demo
+  * add HTML Elements demo
+  * upgrade jQuery dependency
+  * dia.Paper - add beforeRender and afterRender options, add hasScheduledUpdates(), trigger `render:done` in sync mode
+  * dia.Paper - fix missing initial render:done event
+  * dia.Paper - prevent the prototype options modification, persist functions passed as options
+  * dia.Paper - scaleContentToFit() padding option accepts object
+  * dia.Paper - fix isMounted argument of viewport() option
+  * dia.Paper - dynamic link update priorities (fix for "link connected to other two links" update bug)
+  * dia.Element - port removal runs in batch
+  * dia.Element - add getGroupPorts()
+  * dia.Element - prevent exception in getPointFromConnectedLink() when port does not exist
+  * dia.LinkView - fix never ending batch for legacy link tools
+  * dia.LinkView - add requestConnectionUpdate()
+  * dia.LinkView - trigger link:snap:connect and link:snap:disconnect events
+  * dia.LinkView - prevent exception when labels and connection require update
+  * dia.LinkView - measure snap distance for links from magnet's boundary
+  * dia.LinkView - add getEndConnectionPoint()
+  * mvc.View - add DETACHABLE property to ignore viewport matching, FLAG_INSERT & FLAG_REMOVE defined on per view basis
+  * linkTools.Anchor: add resetAnchor option
+  * linkTools.Segments: add stopPropagation option
+  * connectionPoints.anchor - add align and alignOffset options
+  * attributes.textWrap: add maxLineCount option
+  * util.breakText - retain new line characters, add maxLineCount option
+  * util.sanitizeHTML: sanitize attribute values with "data:" and "vbscript:"
+  * Geometry - add parallel() to Line, add serialize() to Point and Line
 
 28-11-2019 (v3.1.1)
- * dia.CellView - prevent DOM exceptions when invalid attrs provided
- * dia.ToolView - prevent `contextmenu` event (uses paper.options.guard now)
+  * dia.CellView - prevent DOM exceptions when invalid attrs provided
+  * dia.ToolView - prevent `contextmenu` event (uses paper.options.guard now)
 
 15-10-2019 (v3.1.0)
- * add RoughJS demo
- * add elementTools: Button, Remove, Boundary
- * improve low-level performance for large graphs
- * fix ES5 dependencies
- * dia.Paper - validateMagnet() callback has `evt` argument
- * dia.Paper - ignore viewport when removing views, register unmounted views on render
- * dia.Graph - fix bfs() stop condition
- * dia.Element - make sure only elements are taken into account in fitEmbeds()
- * dia.LinkView - fix label rendering after multiple changes made to model
- * dia.LinkView - fix missing `pointerup` event for non-interactive labels
- * linkTools.Boundary - padding can be defined separately for each side
- * dia.ToolView - support reusable tools
- * connectors.jumpover - add `radius` option to make corners rounded
- * layout.DirectedGraph - remove unnecessary vertices
- * dia.attributes - add `stubs` option to `connection` attribute
- * dia.attributes - add `displayEmpty` for text elements
- * Vectorizer - fix e2c() overflowing the stack in normalizePathData()
- * Geometry - add simplify() to Polyline (remove redundant points)
+  * add RoughJS demo
+  * add elementTools: Button, Remove, Boundary
+  * improve low-level performance for large graphs
+  * fix ES5 dependencies
+  * dia.Paper - validateMagnet() callback has `evt` argument
+  * dia.Paper - ignore viewport when removing views, register unmounted views on render
+  * dia.Graph - fix bfs() stop condition
+  * dia.Element - make sure only elements are taken into account in fitEmbeds()
+  * dia.LinkView - fix label rendering after multiple changes made to model
+  * dia.LinkView - fix missing `pointerup` event for non-interactive labels
+  * linkTools.Boundary - padding can be defined separately for each side
+  * dia.ToolView - support reusable tools
+  * connectors.jumpover - add `radius` option to make corners rounded
+  * layout.DirectedGraph - remove unnecessary vertices
+  * dia.attributes - add `stubs` option to `connection` attribute
+  * dia.attributes - add `displayEmpty` for text elements
+  * Vectorizer - fix e2c() overflowing the stack in normalizePathData()
+  * Geometry - add simplify() to Polyline (remove redundant points)
 
 02-08-2019 (v3.0.4)
   * package.json - add a browser key to point to dist (fix webpack build in IE11)
@@ -381,42 +381,41 @@
   * other bug fixes and improvements
 
 13-06-2016 (v0.9.10)
-* Fixes for webpack, browserify
+  * Fixes for webpack, browserify
 
 31-05-2016 (v0.9.9)
-  * JointJS:
-    * Added env namespace with env.test(name) and env.addTest(name, fn) methods
-    * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.
-    * dia.Paper:
-      * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
-      * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
-      * Added paper.setInteractivity() for changing interactivity.
-      * Added blank:mousewheel and cell:mousewheel events to paper
-      * Added link:connect, link:disconnect paper events for easier link source/target change detection
-      * Changed the link tool event signature (e.g. `link:options`) to be the same as the rest of the cell events.
-    * dia.Cell:
-      * Added isElement() and isLink() methods
-    * dia.Element:
-      * Added scale() for transforming element by providing a scale ratio and origin.
-    * dia.Link:
-      * Added scale() for transforming link by providing a scale ratio and origin.
-    * dia.Graph:
-      * Added resize(), resizeCells() for a group resizing
-      * Added getCellsBBox() for getting a group bounding box
-      * Added removeCells()
-      * Can now use addCells(), removeCells(), and resetCells() with the same method signature. For example: addCells(cell, cell) addCells(cell, cell, opt) addCells([cell, cell]) addCells([cell, cell], opt) are all valid usage.
-    * layout.DirectedGraph:
-      * Added layout() `align` option for rank nodes alignment.
+  * Added env namespace with env.test(name) and env.addTest(name, fn) methods
+  * Added highlighters namespace with two highlighters (stroke and opacity). Highlighting now done automatically when: embedding an element, connecting a link to a port or element.
+  * dia.Paper:
+  * Added paper.drawGrid(opt) - draws grid lines on the paper's DOM element.
+  * Added paper.setGridSize(gridSize) - changes the grid size of the paper.
+  * Added paper.setInteractivity() for changing interactivity.
+  * Added blank:mousewheel and cell:mousewheel events to paper
+  * Added link:connect, link:disconnect paper events for easier link source/target change detection
+  * Changed the link tool event signature (e.g. `link:options`) to be the same as the rest of the cell events.
+  * dia.Cell:
+  * Added isElement() and isLink() methods
+  * dia.Element:
+  * Added scale() for transforming element by providing a scale ratio and origin.
+  * dia.Link:
+  * Added scale() for transforming link by providing a scale ratio and origin.
+  * dia.Graph:
+  * Added resize(), resizeCells() for a group resizing
+  * Added getCellsBBox() for getting a group bounding box
+  * Added removeCells()
+  * Can now use addCells(), removeCells(), and resetCells() with the same method signature. For example: addCells(cell, cell) addCells(cell, cell, opt) addCells([cell, cell]) addCells([cell, cell], opt) are all valid usage.
+  * layout.DirectedGraph:
+  * Added layout() `align` option for rank nodes alignment.
   * Vectorizer:
-    * Added transform() method to apply SVG matrix to SVG element
-    * Added empty(), before() method
-    * prepend() method now accepts single or multiple nodes
-    * createSVGTransform() now accepts optionally an SVG matrix
+  * Added transform() method to apply SVG matrix to SVG element
+  * Added empty(), before() method
+  * prepend() method now accepts single or multiple nodes
+  * createSVGTransform() now accepts optionally an SVG matrix
   * Geometry:
-    * Added point.scale(), rect.scale() - scale point/rect with given origin.
-    * Added point.toJSON(), rect.toJSON() - converts point/rect into JSON object.
-    * Added leftMiddle(), rightMiddle(), topMiddle(), bottomMiddle() for finding middle points of rect sides.
-    * Added ellipse.fromRect(), rect.fromEllipse() for rect-ellipse interchangeability.
+  * Added point.scale(), rect.scale() - scale point/rect with given origin.
+  * Added point.toJSON(), rect.toJSON() - converts point/rect into JSON object.
+  * Added leftMiddle(), rightMiddle(), topMiddle(), bottomMiddle() for finding middle points of rect sides.
+  * Added ellipse.fromRect(), rect.fromEllipse() for rect-ellipse interchangeability.
 
 19-12-2015 (v0.9.6/v0.9.7)
   * dia.Graph introduces new functions for traversing graphs: dfs(), bfs(), search(), isSuccessor(), isPredecessor(), getPredecessors(), getSuccessors(), isNeighbor(), isSource(), isSink(), getSources(), getSinks(), getSubgraph(), getFirstCell(), getLastCell() and getCells()
