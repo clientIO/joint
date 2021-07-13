@@ -337,40 +337,49 @@ export const ElementView = CellView.extend({
     // Embedding mode methods.
     // -----------------------
 
-    prepareEmbedding: function(data) {
+    prepareEmbedding: function(data = {}) {
 
-        data || (data = {});
+        const element = data.model || this.model;
+        const paper = data.paper || this.paper;
+        const graph = paper.model;
 
-        var model = data.model || this.model;
-        var paper = data.paper || this.paper;
-        var graph = paper.model;
+        const initialZIndices = data.initialZIndices = {};
+        const embeddedCells = element.getEmbeddedCells({ deep: true });
+        const connectedLinks = graph.getConnectedLinks(element, { deep: true, includeEnclosed: true });
 
-        model.startBatch('to-front');
+        // Note: an embedded cell can be a connect link, but it's fine
+        // to iterate over the cell twice.
+        [
+            element,
+            ...embeddedCells,
+            ...connectedLinks
+        ].forEach(cell => initialZIndices[cell.id] = cell.attributes.z);
+
+        element.startBatch('to-front');
 
         // Bring the model to the front with all his embeds.
-        model.toFront({ deep: true, ui: true });
+        element.toFront({ deep: true, ui: true });
 
         // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
         // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
-        var maxZ = graph.getElements().reduce(function(max, cell) {
-            return Math.max(max, cell.attributes.z || 0);
-        }, 0);
+        const maxZ = graph.getElements().reduce((max, cell) => Math.max(max, cell.attributes.z || 0), 0);
 
         // Move to front also all the inbound and outbound links that are connected
         // to any of the element descendant. If we bring to front only embedded elements,
         // links connected to them would stay in the background.
-        var connectedLinks = graph.getConnectedLinks(model, { deep: true, includeEnclosed: true });
-        connectedLinks.forEach(function(link) {
-            if (link.attributes.z <= maxZ) link.set('z', maxZ + 1, { ui: true });
+        connectedLinks.forEach((link) => {
+            if (link.attributes.z <= maxZ) {
+                link.set('z', maxZ + 1, { ui: true });
+            }
         });
 
-        model.stopBatch('to-front');
+        element.stopBatch('to-front');
 
         // Before we start looking for suitable parent we remove the current one.
-        const parentId = model.parent();
+        const parentId = element.parent();
         if (parentId) {
             const parent = graph.getCell(parentId);
-            parent.unembed(model, { ui: true });
+            parent.unembed(element, { ui: true });
             data.initialParentId = parentId;
         } else {
             data.initialParentId = null;
@@ -495,18 +504,30 @@ export const ElementView = CellView.extend({
         const { model, whenNotAllowed = 'revert' } = data;
         const element = model || this.model;
         const paper = data.paper || this.paper;
+        const graph = paper.model;
         switch (whenNotAllowed) {
             case 'remove': {
                 element.remove({ ui: true });
                 break;
             }
             case 'revert': {
-                const { initialParentId, initialPosition } = data;
+                const { initialParentId, initialPosition, initialZIndices } = data;
+                // Revert the element's position (and the position of its embedded cells if any)
                 if (initialPosition) {
                     const { x, y } = initialPosition;
-                    element.position(x, y, { ui: true });
+                    element.position(x, y, { deep: true, ui: true });
                 }
-                const parent = paper.model.getCell(initialParentId);
+                // Revert all the z-indices changed during the embedding
+                if (initialZIndices) {
+                    Object.keys(initialZIndices).forEach(id => {
+                        const cell = graph.getCell(id);
+                        if (cell) {
+                            cell.set('z', initialZIndices[id], { ui: true });
+                        }
+                    });
+                }
+                // Revert the original parent
+                const parent = graph.getCell(initialParentId);
                 if (parent) {
                     parent.embed(element, { ui: true });
                 }
