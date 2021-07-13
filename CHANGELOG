@@ -13,7 +13,8 @@
   * dia.Cell - add option to use DFS to index embedded cells in toFront() and toBack()
   * dia.attributes - add calc() function to be used in various SVG attributes
   * util.breakText - fix wrapping when the last word contains a hyphen
-  * routers.Manhattan - improve points comparison performance
+  * routers.manhattan - improve points comparison performance
+  * routers.manhattan - add isPointObstacle option
   * Geometry - split to files
   * Geometry - add Rect methods to find a union of rectangles or points
 
