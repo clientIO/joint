@@ -46,6 +46,11 @@
         <td><i>Array&lt;string&gt;</i></td>
         <td>An array that specifies the possible ending directions to an element. Change this in situations where you need the link to, for example, always end at the bottom of the source element (then, the value would be <code>['bottom']</code>). Default is <code>['left', 'right', 'top', 'bottom']</code> (all directions allowed).</td>
     </tr>
+    <tr>
+        <th>isPointObstacle</th>
+        <td><i>(point) => boolean</i></td>
+        <td>A function that determines whether a given point is an obstacle or not. If used, the <i>padding</i>, <i>excludeEnds</i> and <i>excludeTypes</i> options are ignored.</td>
+    </tr>
 </table>
 
 <p>Example:</p>

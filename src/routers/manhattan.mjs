@@ -86,6 +86,11 @@ var config = {
         };
     },
 
+    // A function that determines whether a given point is an obstacle or not.
+    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
+    // (point: dia.Point) => boolean;
+    isPointObstacle: null,
+
     // a router to use when the manhattan router fails
     // (one of the partial routes returns null)
     fallbackRouter: function(vertices, opt, linkView) {
@@ -600,8 +605,8 @@ function findRoute(from, to, map, opt) {
     }
 
     // take into account only accessible rect points (those not under obstacles)
-    startPoints = startPoints.filter(map.isPointAccessible, map);
-    endPoints = endPoints.filter(map.isPointAccessible, map);
+    startPoints = startPoints.filter(p => map.isPointAccessible(p));
+    endPoints = endPoints.filter(p => map.isPointAccessible(p));
 
     // Check that there is an accessible route point on both sides.
     // Otherwise, use fallbackRoute().
@@ -780,7 +785,17 @@ function router(vertices, opt, linkView) {
     //var targetAnchor = getTargetAnchor(linkView, opt);
 
     // pathfinding
-    var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
+    let map;
+    const { isPointObstacle } = opt;
+    if (typeof isPointObstacle === 'function') {
+        map = {
+            isPointAccessible: point => !isPointObstacle(point)
+        };
+    } else {
+        map = new ObstacleMap(opt);
+        map.build(linkView.paper.model, linkView.model);
+    }
+
     var oldVertices = util.toArray(vertices).map(g.Point);
     var newVertices = [];
     var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
