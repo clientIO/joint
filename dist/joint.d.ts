@@ -1,4 +1,4 @@
-/*! JointJS v3.3.1 (2021-02-06) - JavaScript diagramming library
+/*! JointJS v3.4.0 (2021-07-13) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -533,6 +533,7 @@ export namespace g {
         translate(tx: PlainPoint): this;
 
         update(x?: number, y?: number): this;
+        update(p: PlainPoint): this;
 
         vectorAngle(p: PlainPoint) : number;
 
@@ -550,7 +551,7 @@ export namespace g {
 
         constructor();
         constructor(svgString: string);
-        constructor(points: Point[]);
+        constructor(points: PlainPoint[]);
 
         bbox(): Rect | null;
 
@@ -688,7 +689,14 @@ export namespace g {
 
         union(rect: PlainRect): Rect;
 
+        update(x?: number, y?: number, width?: number, height?: number): this;
+        update(rect: PlainRect): this;
+
         static fromEllipse(e: Ellipse): Rect;
+
+        static fromPointUnion(...points: PlainPoint[]): Rect | null;
+
+        static fromRectUnion(...rects: PlainRect[]): Rect | null;
     }
 
     namespace bezier {
@@ -1040,6 +1048,8 @@ export class Vectorizer {
     static toNode(el: SVGElement | Vectorizer | SVGElement[]): SVGElement;
 }
 
+export const version: string;
+
 export namespace config {
     var useCSSSelectors: boolean;
     var classNamePrefix: string;
@@ -1258,6 +1268,10 @@ export namespace dia {
             disconnectLinks?: boolean;
         }
 
+        interface GetEmbeddedCellsOptions extends EmbeddableOptions {
+            breadthFirst?: boolean;
+        }
+
         interface TransitionOptions extends Options {
             delay?: number;
             duration?: number;
@@ -1280,9 +1294,9 @@ export namespace dia {
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
-        toFront(opt?: Cell.EmbeddableOptions): this;
+        toFront(opt?: Cell.GetEmbeddedCellsOptions): this;
 
-        toBack(opt?: Cell.EmbeddableOptions): this;
+        toBack(opt?: Cell.GetEmbeddedCellsOptions): this;
 
         parent(): string;
         parent(parentId: string): this;
@@ -1291,7 +1305,7 @@ export namespace dia {
 
         getAncestors(): Cell[];
 
-        getEmbeddedCells(opt?: { deep?: boolean, breadthFirst?: boolean }): Cell[];
+        getEmbeddedCells(opt?: Cell.GetEmbeddedCellsOptions): Cell[];
 
         isEmbeddedIn(cell: Cell, opt?: Cell.EmbeddableOptions): boolean;
 
@@ -1759,6 +1773,16 @@ export namespace dia {
 
     export namespace ElementView {
 
+        enum Flags {
+            UPDATE = 'UPDATE',
+            TRANSLATE = 'TRANSLATE',
+            TOOLS = 'TOOLS',
+            RESIZE = 'RESIZE',
+            PORTS = 'PORTS',
+            ROTATE = 'ROTATE',
+            RENDER = 'RENDER'
+        }
+
         interface InteractivityOptions {
             elementMove?: boolean;
             addLinkFromMagnet?: boolean;
@@ -1803,6 +1827,17 @@ export namespace dia {
 
 
     export namespace LinkView {
+
+        enum Flags {
+            RENDER = 'RENDER',
+            UPDATE = 'UPDATE',
+            TOOLS = 'TOOLS',
+            LEGACY_TOOLS = 'LEGACY_TOOLS',
+            LABELS = 'LABELS',
+            VERTICES = 'VERTICES',
+            SOURCE = 'SOURCE',
+            TARGET = 'TARGET',
+        }
 
         interface InteractivityOptions {
             vertexAdd?: boolean,
@@ -2071,11 +2106,14 @@ export namespace dia {
             linkView?: typeof LinkView | ((link: Link) => typeof LinkView);
             // embedding
             embeddingMode?: boolean;
-            frontParentOnly?: boolean,
+            frontParentOnly?: boolean;
             findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | ((elementView: ElementView) => Element[]);
-            validateEmbedding?: (childView: ElementView, parentView: ElementView) => boolean;
+            validateEmbedding?: (this: Paper, childView: ElementView, parentView: ElementView) => boolean;
+            validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
             cellViewNamespace?: any;
+            routerNamespace?: any;
+            connectorNamespace?: any;
             highlighterNamespace?: any;
             anchorNamespace?: any;
             linkAnchorNamespace?: any,
@@ -2119,6 +2157,7 @@ export namespace dia {
             gridHeight?: number;
             padding?: Padding;
             allowNewOrigin?: 'negative' | 'positive' | 'any';
+            allowNegativeBottomRight?: boolean;
             minWidth?: number;
             minHeight?: number;
             maxWidth?: number;

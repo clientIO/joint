@@ -1,4 +1,4 @@
-/*! JointJS v3.3.1 (2021-02-06) - JavaScript diagramming library
+/*! JointJS v3.4.0 (2021-07-13) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -11,194 +11,2326 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     (global = global || self, factory(global.g = {}));
 }(this, function (exports) { 'use strict';
 
-    // Geometry library.
-    // -----------------
-
     // Declare shorthands to the most used math functions.
-    var math = Math;
-    var abs = math.abs;
-    var cos = math.cos;
-    var sin = math.sin;
-    var sqrt = math.sqrt;
-    var min = math.min;
-    var max = math.max;
-    var atan2 = math.atan2;
-    var round = math.round;
-    var floor = math.floor;
-    var PI = math.PI;
-    var pow = math.pow;
+    var round = Math.round;
+    var floor = Math.floor;
+    var PI = Math.PI;
 
-    var bezier = {
+    var scale = {
 
-        // Cubic Bezier curve path through points.
-        // @deprecated
-        // @param {array} points Array of points through which the smooth line will go.
-        // @return {array} SVG Path commands as an array
-        curveThroughPoints: function(points) {
+        // Return the `value` from the `domain` interval scaled to the `range` interval.
+        linear: function(domain, range, value) {
 
-            console.warn('deprecated');
+            var domainSpan = domain[1] - domain[0];
+            var rangeSpan = range[1] - range[0];
+            return (((value - domain[0]) / domainSpan) * rangeSpan + range[0]) || 0;
+        }
+    };
 
-            return new Path(Curve.throughPoints(points)).serialize();
+    var normalizeAngle = function(angle) {
+
+        return (angle % 360) + (angle < 0 ? 360 : 0);
+    };
+
+    var snapToGrid = function(value, gridSize) {
+
+        return gridSize * round(value / gridSize);
+    };
+
+    var toDeg = function(rad) {
+
+        return (180 * rad / PI) % 360;
+    };
+
+    var toRad = function(deg, over360) {
+
+        over360 = over360 || false;
+        deg = over360 ? deg : (deg % 360);
+        return deg * PI / 180;
+    };
+
+    // Return a random integer from the interval [min,max], inclusive.
+    var random = function(min, max) {
+
+        if (max === undefined) {
+            // use first argument as max, min is 0
+            max = (min === undefined) ? 1 : min;
+            min = 0;
+
+        } else if (max < min) {
+            // switch max and min
+            var temp = min;
+            min = max;
+            max = temp;
+        }
+
+        return floor((Math.random() * (max - min + 1)) + min);
+    };
+
+    // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
+
+    var cos = Math.cos;
+    var sin = Math.sin;
+    var atan2 = Math.atan2;
+
+    var bearing = function(p, q) {
+
+        var lat1 = toRad(p.y);
+        var lat2 = toRad(q.y);
+        var lon1 = p.x;
+        var lon2 = q.x;
+        var dLon = toRad(lon2 - lon1);
+        var y = sin(dLon) * cos(lat2);
+        var x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+        var brng = toDeg(atan2(y, x));
+
+        var bearings = ['NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
+
+        var index = brng - 22.5;
+        if (index < 0)
+            { index += 360; }
+        index = parseInt(index / 45);
+
+        return bearings[index];
+    };
+
+    // @return {integer} length without sqrt
+    // @note for applications where the exact length is not necessary (e.g. compare only)
+    var squaredLength = function(start, end) {
+
+        var x0 = start.x;
+        var y0 = start.y;
+        var x1 = end.x;
+        var y1 = end.y;
+        return (x0 -= x1) * x0 + (y0 -= y1) * y0;
+    };
+
+    var length = function(start, end) {
+        return Math.sqrt(squaredLength(start, end));
+    };
+
+    /*
+        Point is the most basic object consisting of x/y coordinate.
+
+        Possible instantiations are:
+        * `Point(10, 20)`
+        * `new Point(10, 20)`
+        * `Point('10 20')`
+        * `Point(Point(10, 20))`
+    */
+
+    var abs = Math.abs;
+    var cos$1 = Math.cos;
+    var sin$1 = Math.sin;
+    var sqrt = Math.sqrt;
+    var min = Math.min;
+    var max = Math.max;
+    var atan2$1 = Math.atan2;
+    var round$1 = Math.round;
+    var pow = Math.pow;
+    var PI$1 = Math.PI;
+
+    var Point = function(x, y) {
+
+        if (!(this instanceof Point)) {
+            return new Point(x, y);
+        }
+
+        if (typeof x === 'string') {
+            var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
+            x = parseFloat(xy[0]);
+            y = parseFloat(xy[1]);
+
+        } else if (Object(x) === x) {
+            y = x.y;
+            x = x.x;
+        }
+
+        this.x = x === undefined ? 0 : x;
+        this.y = y === undefined ? 0 : y;
+    };
+
+    // Alternative constructor, from polar coordinates.
+    // @param {number} Distance.
+    // @param {number} Angle in radians.
+    // @param {point} [optional] Origin.
+    Point.fromPolar = function(distance, angle, origin) {
+
+        origin = new Point(origin);
+        var x = abs(distance * cos$1(angle));
+        var y = abs(distance * sin$1(angle));
+        var deg = normalizeAngle(toDeg(angle));
+
+        if (deg < 90) {
+            y = -y;
+
+        } else if (deg < 180) {
+            x = -x;
+            y = -y;
+
+        } else if (deg < 270) {
+            x = -x;
+        }
+
+        return new Point(origin.x + x, origin.y + y);
+    };
+
+    // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
+    Point.random = function(x1, x2, y1, y2) {
+
+        return new Point(random(x1, x2), random(y1, y2));
+    };
+
+    Point.prototype = {
+
+        chooseClosest: function(points) {
+
+            var n = points.length;
+            if (n === 1) { return new Point(points[0]); }
+            var closest = null;
+            var minSqrDistance = Infinity;
+            for (var i = 0; i < n; i++) {
+                var p = new Point(points[i]);
+                var sqrDistance = this.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    closest = p;
+                    minSqrDistance = sqrDistance;
+                }
+            }
+            return closest;
         },
 
-        // Get open-ended Bezier Spline Control Points.
-        // @deprecated
-        // @param knots Input Knot Bezier spline points (At least two points!).
-        // @param firstControlPoints Output First Control points. Array of knots.length - 1 length.
-        // @param secondControlPoints Output Second Control points. Array of knots.length - 1 length.
-        getCurveControlPoints: function(knots) {
+        // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
+        // otherwise return point itself.
+        // (see Squeak Smalltalk, Point>>adhereTo:)
+        adhereToRect: function(r) {
 
-            console.warn('deprecated');
-
-            var firstControlPoints = [];
-            var secondControlPoints = [];
-            var n = knots.length - 1;
-            var i;
-
-            // Special case: Bezier curve should be a straight line.
-            if (n == 1) {
-                // 3P1 = 2P0 + P3
-                firstControlPoints[0] = new Point(
-                    (2 * knots[0].x + knots[1].x) / 3,
-                    (2 * knots[0].y + knots[1].y) / 3
-                );
-
-                // P2 = 2P1 – P0
-                secondControlPoints[0] = new Point(
-                    2 * firstControlPoints[0].x - knots[0].x,
-                    2 * firstControlPoints[0].y - knots[0].y
-                );
-
-                return [firstControlPoints, secondControlPoints];
+            if (r.containsPoint(this)) {
+                return this;
             }
 
-            // Calculate first Bezier control points.
-            // Right hand side vector.
-            var rhs = [];
+            this.x = min(max(this.x, r.x), r.x + r.width);
+            this.y = min(max(this.y, r.y), r.y + r.height);
+            return this;
+        },
 
-            // Set right hand side X values.
-            for (i = 1; i < n - 1; i++) {
-                rhs[i] = 4 * knots[i].x + 2 * knots[i + 1].x;
+        // Compute the angle between vector from me to p1 and the vector from me to p2.
+        // ordering of points p1 and p2 is important!
+        // theta function's angle convention:
+        // returns angles between 0 and 180 when the angle is counterclockwise
+        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
+        // returns NaN if any of the points p1, p2 is coincident with this point
+        angleBetween: function(p1, p2) {
+
+            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
+
+            if (angleBetween < 0) {
+                angleBetween += 360; // correction to keep angleBetween between 0 and 360
             }
 
-            rhs[0] = knots[0].x + 2 * knots[1].x;
-            rhs[n - 1] = (8 * knots[n - 1].x + knots[n].x) / 2.0;
+            return angleBetween;
+        },
 
-            // Get first control points X-values.
-            var x = this.getFirstControlPoints(rhs);
+        // Return the bearing between me and the given point.
+        bearing: function(point) {
+            return bearing(this, point);
+        },
 
-            // Set right hand side Y values.
-            for (i = 1; i < n - 1; ++i) {
-                rhs[i] = 4 * knots[i].y + 2 * knots[i + 1].y;
+        // Returns change in angle from my previous position (-dx, -dy) to my new position
+        // relative to ref point.
+        changeInAngle: function(dx, dy, ref) {
+
+            // Revert the translation and measure the change in angle around x-axis.
+            return this.clone().offset(-dx, -dy).theta(ref) - this.theta(ref);
+        },
+
+        clone: function() {
+
+            return new Point(this);
+        },
+
+        // Returns the cross product of this point relative to two other points
+        // this point is the common point
+        // point p1 lies on the first vector, point p2 lies on the second vector
+        // watch out for the ordering of points p1 and p2!
+        // positive result indicates a clockwise ("right") turn from first to second vector
+        // negative result indicates a counterclockwise ("left") turn from first to second vector
+        // zero indicates that the first and second vector are collinear
+        // note that the above directions are reversed from the usual answer on the Internet
+        // that is because we are in a left-handed coord system (because the y-axis points downward)
+        cross: function(p1, p2) {
+
+            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
+        },
+
+        difference: function(dx, dy) {
+
+            if ((Object(dx) === dx)) {
+                dy = dx.y;
+                dx = dx.x;
             }
 
-            rhs[0] = knots[0].y + 2 * knots[1].y;
-            rhs[n - 1] = (8 * knots[n - 1].y + knots[n].y) / 2.0;
+            return new Point(this.x - (dx || 0), this.y - (dy || 0));
+        },
 
-            // Get first control points Y-values.
-            var y = this.getFirstControlPoints(rhs);
+        // Returns distance between me and point `p`.
+        distance: function(p) {
+            return length(this, p);
+        },
 
-            // Fill output arrays.
-            for (i = 0; i < n; i++) {
-                // First control point.
-                firstControlPoints.push(new Point(x[i], y[i]));
+        // Returns the dot product of this point with given other point
+        dot: function(p) {
 
-                // Second control point.
-                if (i < n - 1) {
-                    secondControlPoints.push(new Point(
-                        2 * knots [i + 1].x - x[i + 1],
-                        2 * knots[i + 1].y - y[i + 1]
-                    ));
+            return p ? (this.x * p.x + this.y * p.y) : NaN;
+        },
 
-                } else {
-                    secondControlPoints.push(new Point(
-                        (knots[n].x + x[n - 1]) / 2,
-                        (knots[n].y + y[n - 1]) / 2)
-                    );
+        equals: function(p) {
+
+            return !!p &&
+                this.x === p.x &&
+                this.y === p.y;
+        },
+
+        // Linear interpolation
+        lerp: function(p, t) {
+
+            var x = this.x;
+            var y = this.y;
+            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
+        },
+
+        magnitude: function() {
+
+            return sqrt((this.x * this.x) + (this.y * this.y)) || 0.01;
+        },
+
+        // Returns a manhattan (taxi-cab) distance between me and point `p`.
+        manhattanDistance: function(p) {
+
+            return abs(p.x - this.x) + abs(p.y - this.y);
+        },
+
+        // Move point on line starting from ref ending at me by
+        // distance distance.
+        move: function(ref, distance) {
+
+            var theta = toRad((new Point(ref)).theta(this));
+            var offset = this.offset(cos$1(theta) * distance, -sin$1(theta) * distance);
+            return offset;
+        },
+
+        // Scales x and y such that the distance between the point and the origin (0,0) is equal to the given length.
+        normalize: function(length) {
+
+            var scale = (length || 1) / this.magnitude();
+            return this.scale(scale, scale);
+        },
+
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+
+            if ((Object(dx) === dx)) {
+                dy = dx.y;
+                dx = dx.x;
+            }
+
+            this.x += dx || 0;
+            this.y += dy || 0;
+            return this;
+        },
+
+        // Returns a point that is the reflection of me with
+        // the center of inversion in ref point.
+        reflection: function(ref) {
+
+            return (new Point(ref)).move(this, this.distance(ref));
+        },
+
+        // Rotate point by angle around origin.
+        // Angle is flipped because this is a left-handed coord system (y-axis points downward).
+        rotate: function(origin, angle) {
+
+            if (angle === 0) { return this; }
+
+            origin = origin || new Point(0, 0);
+
+            angle = toRad(normalizeAngle(-angle));
+            var cosAngle = cos$1(angle);
+            var sinAngle = sin$1(angle);
+
+            var x = (cosAngle * (this.x - origin.x)) - (sinAngle * (this.y - origin.y)) + origin.x;
+            var y = (sinAngle * (this.x - origin.x)) + (cosAngle * (this.y - origin.y)) + origin.y;
+
+            this.x = x;
+            this.y = y;
+            return this;
+        },
+
+        round: function(precision) {
+
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow(10, precision); break;
                 }
             }
 
-            return [firstControlPoints, secondControlPoints];
+            this.x = round$1(this.x * f) / f;
+            this.y = round$1(this.y * f) / f;
+            return this;
         },
 
-        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
-        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
-        // @deprecated
-        // @param control points (start, control start, control end, end)
-        // @return a function that accepts t and returns 2 curves.
-        getCurveDivider: function(p0, p1, p2, p3) {
+        // Scale point with origin.
+        scale: function(sx, sy, origin) {
 
-            console.warn('deprecated');
-
-            var curve = new Curve(p0, p1, p2, p3);
-
-            return function divideCurve(t) {
-
-                var divided = curve.divide(t);
-
-                return [{
-                    p0: divided[0].start,
-                    p1: divided[0].controlPoint1,
-                    p2: divided[0].controlPoint2,
-                    p3: divided[0].end
-                }, {
-                    p0: divided[1].start,
-                    p1: divided[1].controlPoint1,
-                    p2: divided[1].controlPoint2,
-                    p3: divided[1].end
-                }];
-            };
+            origin = (origin && new Point(origin)) || new Point(0, 0);
+            this.x = origin.x + sx * (this.x - origin.x);
+            this.y = origin.y + sy * (this.y - origin.y);
+            return this;
         },
 
-        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
-        // @deprecated
-        // @param rhs Right hand side vector.
-        // @return Solution vector.
-        getFirstControlPoints: function(rhs) {
+        snapToGrid: function(gx, gy) {
 
-            console.warn('deprecated');
+            this.x = snapToGrid(this.x, gx);
+            this.y = snapToGrid(this.y, gy || gx);
+            return this;
+        },
 
-            var n = rhs.length;
-            // `x` is a solution vector.
-            var x = [];
-            var tmp = [];
-            var b = 2.0;
+        squaredDistance: function(p) {
+            return squaredLength(this, p);
+        },
 
-            x[0] = rhs[0] / b;
+        // Compute the angle between me and `p` and the x axis.
+        // (cartesian-to-polar coordinates conversion)
+        // Return theta angle in degrees.
+        theta: function(p) {
 
-            // Decomposition and forward substitution.
-            for (var i = 1; i < n; i++) {
-                tmp[i] = 1 / b;
-                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
-                x[i] = (rhs[i] - x[i - 1]) / b;
+            p = new Point(p);
+
+            // Invert the y-axis.
+            var y = -(p.y - this.y);
+            var x = p.x - this.x;
+            var rad = atan2$1(y, x); // defined for all 0 corner cases
+
+            // Correction for III. and IV. quadrant.
+            if (rad < 0) {
+                rad = 2 * PI$1 + rad;
             }
 
-            for (i = 1; i < n; i++) {
-                // Backsubstitution.
-                x[n - i - 1] -= tmp[n - i] * x[n - i];
-            }
-
-            return x;
+            return 180 * rad / PI$1;
         },
 
-        // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
-        // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
-        // which corresponds to that point.
-        // @deprecated
-        // @param control points (start, control start, control end, end)
-        // @return a function that accepts a point and returns t.
-        getInversionSolver: function(p0, p1, p2, p3) {
+        toJSON: function() {
 
-            console.warn('deprecated');
+            return { x: this.x, y: this.y };
+        },
 
-            var curve = new Curve(p0, p1, p2, p3);
+        // Converts rectangular to polar coordinates.
+        // An origin can be specified, otherwise it's 0@0.
+        toPolar: function(o) {
 
-            return function solveInversion(p) {
+            o = (o && new Point(o)) || new Point(0, 0);
+            var x = this.x;
+            var y = this.y;
+            this.x = sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y)); // r
+            this.y = toRad(o.theta(new Point(x, y)));
+            return this;
+        },
 
-                return curve.closestPointT(p);
-            };
+        toString: function() {
+
+            return this.x + '@' + this.y;
+        },
+
+        serialize: function() {
+
+            return this.x + ',' + this.y;
+        },
+
+        update: function(x, y) {
+
+            if ((Object(x) === x)) {
+                y = x.y;
+                x = x.x;
+            }
+
+            this.x = x || 0;
+            this.y = y || 0;
+            return this;
+        },
+
+        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
+        // Returns NaN if p is at 0,0.
+        vectorAngle: function(p) {
+
+            var zero = new Point(0, 0);
+            return zero.angleBetween(this, p);
         }
     };
+
+    Point.prototype.translate = Point.prototype.offset;
+
+    // For backwards compatibility:
+    var point = Point;
+
+    var max$1 = Math.max;
+    var min$1 = Math.min;
+
+    var Line = function(p1, p2) {
+
+        if (!(this instanceof Line)) {
+            return new Line(p1, p2);
+        }
+
+        if (p1 instanceof Line) {
+            return new Line(p1.start, p1.end);
+        }
+
+        this.start = new Point(p1);
+        this.end = new Point(p2);
+    };
+
+    Line.prototype = {
+
+        // @returns the angle of incline of the line.
+        angle: function() {
+
+            var horizontalPoint = new Point(this.start.x + 1, this.start.y);
+            return this.start.angleBetween(this.end, horizontalPoint);
+        },
+
+        bbox: function() {
+
+            var left = min$1(this.start.x, this.end.x);
+            var top = min$1(this.start.y, this.end.y);
+            var right = max$1(this.start.x, this.end.x);
+            var bottom = max$1(this.start.y, this.end.y);
+
+            return new Rect(left, top, (right - left), (bottom - top));
+        },
+
+        // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
+        // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
+        bearing: function() {
+            return bearing(this.start, this.end);
+        },
+
+        clone: function() {
+
+            return new Line(this.start, this.end);
+        },
+
+        // @return {point} the closest point on the line to point `p`
+        closestPoint: function(p) {
+
+            return this.pointAt(this.closestPointNormalizedLength(p));
+        },
+
+        closestPointLength: function(p) {
+
+            return this.closestPointNormalizedLength(p) * this.length();
+        },
+
+        // @return {number} the normalized length of the closest point on the line to point `p`
+        closestPointNormalizedLength: function(p) {
+
+            var product = this.vector().dot((new Line(this.start, p)).vector());
+            var cpNormalizedLength = min$1(1, max$1(0, product / this.squaredLength()));
+
+            // cpNormalizedLength returns `NaN` if this line has zero length
+            // we can work with that - if `NaN`, return 0
+            if (cpNormalizedLength !== cpNormalizedLength) { return 0; } // condition evaluates to `true` if and only if cpNormalizedLength is `NaN`
+            // (`NaN` is the only value that is not equal to itself)
+
+            return cpNormalizedLength;
+        },
+
+        closestPointTangent: function(p) {
+
+            return this.tangentAt(this.closestPointNormalizedLength(p));
+        },
+
+        // Returns `true` if the point lies on the line.
+        containsPoint: function(p) {
+
+            var start = this.start;
+            var end = this.end;
+
+            if (start.cross(p, end) !== 0) { return false; }
+            // else: cross product of 0 indicates that this line and the vector to `p` are collinear
+
+            var length = this.length();
+            if ((new Line(start, p)).length() > length) { return false; }
+            if ((new Line(p, end)).length() > length) { return false; }
+            // else: `p` lies between start and end of the line
+
+            return true;
+        },
+
+        // Divides the line into two at requested `ratio` between 0 and 1.
+        divideAt: function(ratio) {
+
+            var dividerPoint = this.pointAt(ratio);
+
+            // return array with two lines
+            return [
+                new Line(this.start, dividerPoint),
+                new Line(dividerPoint, this.end)
+            ];
+        },
+
+        // Divides the line into two at requested `length`.
+        divideAtLength: function(length) {
+
+            var dividerPoint = this.pointAtLength(length);
+
+            // return array with two new lines
+            return [
+                new Line(this.start, dividerPoint),
+                new Line(dividerPoint, this.end)
+            ];
+        },
+
+        equals: function(l) {
+
+            return !!l &&
+                this.start.x === l.start.x &&
+                this.start.y === l.start.y &&
+                this.end.x === l.end.x &&
+                this.end.y === l.end.y;
+        },
+
+        // @return {point} Point where I'm intersecting a line.
+        // @return [point] Points where I'm intersecting a rectangle.
+        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
+        intersect: function(shape, opt) {
+
+            if (shape && shape.intersectionWithLine) {
+                var intersection = shape.intersectionWithLine(this, opt);
+
+                // Backwards compatibility
+                if (intersection && (shape instanceof Line)) {
+                    intersection = intersection[0];
+                }
+
+                return intersection;
+            }
+
+            return null;
+        },
+
+        intersectionWithLine: function(line) {
+
+            var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
+            var pt2Dir = new Point(line.end.x - line.start.x, line.end.y - line.start.y);
+            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
+            var deltaPt = new Point(line.start.x - this.start.x, line.start.y - this.start.y);
+            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
+            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
+
+            if (det === 0 || alpha * det < 0 || beta * det < 0) {
+                // No intersection found.
+                return null;
+            }
+
+            if (det > 0) {
+                if (alpha > det || beta > det) {
+                    return null;
+                }
+
+            } else {
+                if (alpha < det || beta < det) {
+                    return null;
+                }
+            }
+
+            return [new Point(
+                this.start.x + (alpha * pt1Dir.x / det),
+                this.start.y + (alpha * pt1Dir.y / det)
+            )];
+        },
+
+        isDifferentiable: function() {
+
+            return !this.start.equals(this.end);
+        },
+
+        // @return {double} length of the line
+        length: function() {
+            return length(this.start, this.end);
+        },
+
+        // @return {point} my midpoint
+        midpoint: function() {
+
+            return new Point(
+                (this.start.x + this.end.x) / 2,
+                (this.start.y + this.end.y) / 2
+            );
+        },
+
+        parallel: function(distance) {
+            var l = this.clone();
+            if (!this.isDifferentiable()) { return l; }
+            var start = l.start;
+            var end = l.end;
+            var eRef = start.clone().rotate(end, 270);
+            var sRef = end.clone().rotate(start, 90);
+            start.move(sRef, distance);
+            end.move(eRef, distance);
+            return l;
+        },
+
+        // @return {point} my point at 't' <0,1>
+        pointAt: function(t) {
+
+            var start = this.start;
+            var end = this.end;
+
+            if (t <= 0) { return start.clone(); }
+            if (t >= 1) { return end.clone(); }
+
+            return start.lerp(end, t);
+        },
+
+        pointAtLength: function(length) {
+
+            var start = this.start;
+            var end = this.end;
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var lineLength = this.length();
+            if (length >= lineLength) { return (fromStart ? end.clone() : start.clone()); }
+
+            return this.pointAt((fromStart ? (length) : (lineLength - length)) / lineLength);
+        },
+
+        // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
+        pointOffset: function(p) {
+
+            // Find the sign of the determinant of vectors (start,end), where p is the query point.
+            p = new Point(p);
+            var start = this.start;
+            var end = this.end;
+            var determinant = ((end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x));
+
+            return determinant / this.length();
+        },
+
+        rotate: function(origin, angle) {
+
+            this.start.rotate(origin, angle);
+            this.end.rotate(origin, angle);
+            return this;
+        },
+
+        round: function(precision) {
+
+            this.start.round(precision);
+            this.end.round(precision);
+            return this;
+        },
+
+        scale: function(sx, sy, origin) {
+
+            this.start.scale(sx, sy, origin);
+            this.end.scale(sx, sy, origin);
+            return this;
+        },
+
+        // @return {number} scale the line so that it has the requested length
+        setLength: function(length) {
+
+            var currentLength = this.length();
+            if (!currentLength) { return this; }
+
+            var scaleFactor = length / currentLength;
+            return this.scale(scaleFactor, scaleFactor, this.start);
+        },
+
+        // @return {integer} length without sqrt
+        // @note for applications where the exact length is not necessary (e.g. compare only)
+        squaredLength: function() {
+            return squaredLength(this.start, this.end);
+        },
+
+        tangentAt: function(t) {
+
+            if (!this.isDifferentiable()) { return null; }
+
+            var start = this.start;
+            var end = this.end;
+
+            var tangentStart = this.pointAt(t); // constrains `t` between 0 and 1
+
+            var tangentLine = new Line(start, end);
+            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        tangentAtLength: function(length) {
+
+            if (!this.isDifferentiable()) { return null; }
+
+            var start = this.start;
+            var end = this.end;
+
+            var tangentStart = this.pointAtLength(length);
+
+            var tangentLine = new Line(start, end);
+            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
+
+            return tangentLine;
+        },
+
+        toString: function() {
+
+            return this.start.toString() + ' ' + this.end.toString();
+        },
+
+        serialize: function() {
+
+            return this.start.serialize() + ' ' + this.end.serialize();
+        },
+
+        translate: function(tx, ty) {
+
+            this.start.translate(tx, ty);
+            this.end.translate(tx, ty);
+            return this;
+        },
+
+        // @return vector {point} of the line
+        vector: function() {
+
+            return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
+        }
+    };
+
+    // For backwards compatibility:
+    Line.prototype.intersection = Line.prototype.intersect;
+
+
+    // For backwards compatibility:
+    var line = Line;
+
+    var sqrt$1 = Math.sqrt;
+    var round$2 = Math.round;
+    var pow$1 = Math.pow;
+
+    var Ellipse = function(c, a, b) {
+
+        if (!(this instanceof Ellipse)) {
+            return new Ellipse(c, a, b);
+        }
+
+        if (c instanceof Ellipse) {
+            return new Ellipse(new Point(c.x, c.y), c.a, c.b);
+        }
+
+        c = new Point(c);
+        this.x = c.x;
+        this.y = c.y;
+        this.a = a;
+        this.b = b;
+    };
+
+    Ellipse.fromRect = function(rect) {
+
+        rect = new Rect(rect);
+        return new Ellipse(rect.center(), rect.width / 2, rect.height / 2);
+    };
+
+    Ellipse.prototype = {
+
+        bbox: function() {
+
+            return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
+        },
+
+        /**
+         * @returns {g.Point}
+         */
+        center: function() {
+
+            return new Point(this.x, this.y);
+        },
+
+        clone: function() {
+
+            return new Ellipse(this);
+        },
+
+        /**
+         * @param {g.Point} p
+         * @returns {boolean}
+         */
+        containsPoint: function(p) {
+
+            return this.normalizedDistance(p) <= 1;
+        },
+
+        equals: function(ellipse) {
+
+            return !!ellipse &&
+                ellipse.x === this.x &&
+                ellipse.y === this.y &&
+                ellipse.a === this.a &&
+                ellipse.b === this.b;
+        },
+
+        // inflate by dx and dy
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.a += 2 * dx;
+            this.b += 2 * dy;
+
+            return this;
+        },
+
+        intersectionWithLine: function(line) {
+
+            var intersections = [];
+            var a1 = line.start;
+            var a2 = line.end;
+            var rx = this.a;
+            var ry = this.b;
+            var dir = line.vector();
+            var diff = a1.difference(new Point(this));
+            var mDir = new Point(dir.x / (rx * rx), dir.y / (ry * ry));
+            var mDiff = new Point(diff.x / (rx * rx), diff.y / (ry * ry));
+
+            var a = dir.dot(mDir);
+            var b = dir.dot(mDiff);
+            var c = diff.dot(mDiff) - 1.0;
+            var d = b * b - a * c;
+
+            if (d < 0) {
+                return null;
+            } else if (d > 0) {
+                var root = sqrt$1(d);
+                var ta = (-b - root) / a;
+                var tb = (-b + root) / a;
+
+                if ((ta < 0 || 1 < ta) && (tb < 0 || 1 < tb)) {
+                    // if ((ta < 0 && tb < 0) || (ta > 1 && tb > 1)) outside else inside
+                    return null;
+                } else {
+                    if (0 <= ta && ta <= 1) { intersections.push(a1.lerp(a2, ta)); }
+                    if (0 <= tb && tb <= 1) { intersections.push(a1.lerp(a2, tb)); }
+                }
+            } else {
+                var t = -b / a;
+                if (0 <= t && t <= 1) {
+                    intersections.push(a1.lerp(a2, t));
+                } else {
+                    // outside
+                    return null;
+                }
+            }
+
+            return intersections;
+        },
+
+        // Find point on me where line from my center to
+        // point p intersects my boundary.
+        // @param {number} angle If angle is specified, intersection with rotated ellipse is computed.
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+
+            p = new Point(p);
+
+            if (angle) { p.rotate(new Point(this.x, this.y), angle); }
+
+            var dx = p.x - this.x;
+            var dy = p.y - this.y;
+            var result;
+
+            if (dx === 0) {
+                result = this.bbox().pointNearestToPoint(p);
+                if (angle) { return result.rotate(new Point(this.x, this.y), -angle); }
+                return result;
+            }
+
+            var m = dy / dx;
+            var mSquared = m * m;
+            var aSquared = this.a * this.a;
+            var bSquared = this.b * this.b;
+
+            var x = sqrt$1(1 / ((1 / aSquared) + (mSquared / bSquared)));
+            x = dx < 0 ? -x : x;
+
+            var y = m * x;
+            result = new Point(this.x + x, this.y + y);
+
+            if (angle) { return result.rotate(new Point(this.x, this.y), -angle); }
+            return result;
+        },
+
+        /**
+         * @param {g.Point} point
+         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
+         */
+        normalizedDistance: function(point) {
+
+            var x0 = point.x;
+            var y0 = point.y;
+            var a = this.a;
+            var b = this.b;
+            var x = this.x;
+            var y = this.y;
+
+            return ((x0 - x) * (x0 - x)) / (a * a) + ((y0 - y) * (y0 - y)) / (b * b);
+        },
+
+        round: function(precision) {
+
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow$1(10, precision); break;
+                }
+            }
+
+            this.x = round$2(this.x * f) / f;
+            this.y = round$2(this.y * f) / f;
+            this.a = round$2(this.a * f) / f;
+            this.b = round$2(this.b * f) / f;
+            return this;
+        },
+
+        /** Compute angle between tangent and x axis
+         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
+         * @returns {number} angle between tangent and x axis
+         */
+        tangentTheta: function(p) {
+
+            var refPointDelta = 30;
+            var x0 = p.x;
+            var y0 = p.y;
+            var a = this.a;
+            var b = this.b;
+            var center = this.bbox().center();
+            var m = center.x;
+            var n = center.y;
+
+            var q1 = x0 > center.x + a / 2;
+            var q3 = x0 < center.x - a / 2;
+
+            var y, x;
+            if (q1 || q3) {
+                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
+                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
+
+            } else {
+                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
+                y = (b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
+            }
+
+            return (new Point(x, y)).theta(p);
+
+        },
+
+        toString: function() {
+
+            return (new Point(this.x, this.y)).toString() + ' ' + this.a + ' ' + this.b;
+        }
+    };
+
+    // For backwards compatibility:
+    var ellipse = Ellipse;
+
+    var abs$1 = Math.abs;
+    var cos$2 = Math.cos;
+    var sin$2 = Math.sin;
+    var min$2 = Math.min;
+    var max$2 = Math.max;
+    var round$3 = Math.round;
+    var pow$2 = Math.pow;
+
+    var Rect = function(x, y, w, h) {
+
+        if (!(this instanceof Rect)) {
+            return new Rect(x, y, w, h);
+        }
+
+        if ((Object(x) === x)) {
+            y = x.y;
+            w = x.width;
+            h = x.height;
+            x = x.x;
+        }
+
+        this.x = x === undefined ? 0 : x;
+        this.y = y === undefined ? 0 : y;
+        this.width = w === undefined ? 0 : w;
+        this.height = h === undefined ? 0 : h;
+    };
+
+    Rect.fromEllipse = function(e) {
+
+        e = new Ellipse(e);
+        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
+    };
+
+    Rect.fromPointUnion = function() {
+        var points = [], len = arguments.length;
+        while ( len-- ) points[ len ] = arguments[ len ];
+
+
+        if (points.length === 0) { return null; }
+
+        var p = new Point();
+        var minX, minY, maxX, maxY;
+        minX = minY = Infinity;
+        maxX = maxY = -Infinity;
+
+        for (var i = 0; i < points.length; i++) {
+            p.update(points[i]);
+            var x = p.x;
+            var y = p.y;
+
+            if (x < minX) { minX = x; }
+            if (x > maxX) { maxX = x; }
+            if (y < minY) { minY = y; }
+            if (y > maxY) { maxY = y; }
+        }
+
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    };
+
+    Rect.fromRectUnion = function() {
+        var rects = [], len = arguments.length;
+        while ( len-- ) rects[ len ] = arguments[ len ];
+
+
+        if (rects.length === 0) { return null; }
+
+        var r = new Rect();
+        var minX, minY, maxX, maxY;
+        minX = minY = Infinity;
+        maxX = maxY = -Infinity;
+
+        for (var i = 0; i < rects.length; i++) {
+            r.update(rects[i]);
+            var x = r.x;
+            var y = r.y;
+            var mX = x + r.width;
+            var mY = y + r.height;
+
+            if (x < minX) { minX = x; }
+            if (mX > maxX) { maxX = mX; }
+            if (y < minY) { minY = y; }
+            if (mY > maxY) { maxY = mY; }
+        }
+
+        return new Rect(minX, minY, maxX - minX, maxY - minY);
+    };
+
+    Rect.prototype = {
+
+        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
+        // @return r {rectangle} representing a bounding box
+        bbox: function(angle) {
+
+            if (!angle) { return this.clone(); }
+
+            var theta = toRad(angle);
+            var st = abs$1(sin$2(theta));
+            var ct = abs$1(cos$2(theta));
+            var w = this.width * ct + this.height * st;
+            var h = this.width * st + this.height * ct;
+            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+        },
+
+        bottomLeft: function() {
+
+            return new Point(this.x, this.y + this.height);
+        },
+
+        bottomLine: function() {
+
+            return new Line(this.bottomLeft(), this.bottomRight());
+        },
+
+        bottomMiddle: function() {
+
+            return new Point(this.x + this.width / 2, this.y + this.height);
+        },
+
+        center: function() {
+
+            return new Point(this.x + this.width / 2, this.y + this.height / 2);
+        },
+
+        clone: function() {
+
+            return new Rect(this);
+        },
+
+        // @return {bool} true if point p is inside me.
+        containsPoint: function(p) {
+
+            p = new Point(p);
+            return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
+        },
+
+        // @return {bool} true if rectangle `r` is inside me.
+        containsRect: function(r) {
+
+            var r0 = new Rect(this).normalize();
+            var r1 = new Rect(r).normalize();
+            var w0 = r0.width;
+            var h0 = r0.height;
+            var w1 = r1.width;
+            var h1 = r1.height;
+
+            if (!w0 || !h0 || !w1 || !h1) {
+                // At least one of the dimensions is 0
+                return false;
+            }
+
+            var x0 = r0.x;
+            var y0 = r0.y;
+            var x1 = r1.x;
+            var y1 = r1.y;
+
+            w1 += x1;
+            w0 += x0;
+            h1 += y1;
+            h0 += y0;
+
+            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
+        },
+
+        corner: function() {
+
+            return new Point(this.x + this.width, this.y + this.height);
+        },
+
+        // @return {boolean} true if rectangles are equal.
+        equals: function(r) {
+
+            var mr = (new Rect(this)).normalize();
+            var nr = (new Rect(r)).normalize();
+            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
+        },
+
+        // inflate by dx and dy, recompute origin [x, y]
+        // @param dx {delta_x} representing additional size to x
+        // @param dy {delta_y} representing additional size to y -
+        // dy param is not required -> in that case y is sized by dx
+        inflate: function(dx, dy) {
+
+            if (dx === undefined) {
+                dx = 0;
+            }
+
+            if (dy === undefined) {
+                dy = dx;
+            }
+
+            this.x -= dx;
+            this.y -= dy;
+            this.width += 2 * dx;
+            this.height += 2 * dy;
+
+            return this;
+        },
+
+        // @return {rect} if rectangles intersect, {null} if not.
+        intersect: function(r) {
+
+            var myOrigin = this.origin();
+            var myCorner = this.corner();
+            var rOrigin = r.origin();
+            var rCorner = r.corner();
+
+            // No intersection found
+            if (rCorner.x <= myOrigin.x ||
+                rCorner.y <= myOrigin.y ||
+                rOrigin.x >= myCorner.x ||
+                rOrigin.y >= myCorner.y) { return null; }
+
+            var x = max$2(myOrigin.x, rOrigin.x);
+            var y = max$2(myOrigin.y, rOrigin.y);
+
+            return new Rect(x, y, min$2(myCorner.x, rCorner.x) - x, min$2(myCorner.y, rCorner.y) - y);
+        },
+
+        intersectionWithLine: function(line) {
+
+            var r = this;
+            var rectLines = [r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine()];
+            var points = [];
+            var dedupeArr = [];
+            var pt, i;
+
+            var n = rectLines.length;
+            for (i = 0; i < n; i++) {
+
+                pt = line.intersect(rectLines[i]);
+                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
+                    points.push(pt);
+                    dedupeArr.push(pt.toString());
+                }
+            }
+
+            return points.length > 0 ? points : null;
+        },
+
+        // Find point on my boundary where line starting
+        // from my center ending in point p intersects me.
+        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
+        intersectionWithLineFromCenterToPoint: function(p, angle) {
+
+            p = new Point(p);
+            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
+            var result;
+
+            if (angle) { p.rotate(center, angle); }
+
+            // (clockwise, starting from the top side)
+            var sides = [
+                this.topLine(),
+                this.rightLine(),
+                this.bottomLine(),
+                this.leftLine()
+            ];
+            var connector = new Line(center, p);
+
+            for (var i = sides.length - 1; i >= 0; --i) {
+                var intersection = sides[i].intersection(connector);
+                if (intersection !== null) {
+                    result = intersection;
+                    break;
+                }
+            }
+            if (result && angle) { result.rotate(center, -angle); }
+            return result;
+        },
+
+        leftLine: function() {
+
+            return new Line(this.topLeft(), this.bottomLeft());
+        },
+
+        leftMiddle: function() {
+
+            return new Point(this.x, this.y + this.height / 2);
+        },
+
+        maxRectScaleToFit: function(rect, origin) {
+
+            rect = new Rect(rect);
+            origin || (origin = rect.center());
+
+            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
+            var ox = origin.x;
+            var oy = origin.y;
+
+            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
+            // so when the scale is applied the point is still inside the rectangle.
+
+            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
+
+            // Top Left
+            var p1 = rect.topLeft();
+            if (p1.x < ox) {
+                sx1 = (this.x - ox) / (p1.x - ox);
+            }
+            if (p1.y < oy) {
+                sy1 = (this.y - oy) / (p1.y - oy);
+            }
+            // Bottom Right
+            var p2 = rect.bottomRight();
+            if (p2.x > ox) {
+                sx2 = (this.x + this.width - ox) / (p2.x - ox);
+            }
+            if (p2.y > oy) {
+                sy2 = (this.y + this.height - oy) / (p2.y - oy);
+            }
+            // Top Right
+            var p3 = rect.topRight();
+            if (p3.x > ox) {
+                sx3 = (this.x + this.width - ox) / (p3.x - ox);
+            }
+            if (p3.y < oy) {
+                sy3 = (this.y - oy) / (p3.y - oy);
+            }
+            // Bottom Left
+            var p4 = rect.bottomLeft();
+            if (p4.x < ox) {
+                sx4 = (this.x - ox) / (p4.x - ox);
+            }
+            if (p4.y > oy) {
+                sy4 = (this.y + this.height - oy) / (p4.y - oy);
+            }
+
+            return {
+                sx: min$2(sx1, sx2, sx3, sx4),
+                sy: min$2(sy1, sy2, sy3, sy4)
+            };
+        },
+
+        maxRectUniformScaleToFit: function(rect, origin) {
+
+            var scale = this.maxRectScaleToFit(rect, origin);
+            return min$2(scale.sx, scale.sy);
+        },
+
+        // Move and expand me.
+        // @param r {rectangle} representing deltas
+        moveAndExpand: function(r) {
+
+            this.x += r.x || 0;
+            this.y += r.y || 0;
+            this.width += r.width || 0;
+            this.height += r.height || 0;
+            return this;
+        },
+
+        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
+        // If width < 0 the function swaps the left and right corners,
+        // and it swaps the top and bottom corners if height < 0
+        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
+        normalize: function() {
+
+            var newx = this.x;
+            var newy = this.y;
+            var newwidth = this.width;
+            var newheight = this.height;
+            if (this.width < 0) {
+                newx = this.x + this.width;
+                newwidth = -this.width;
+            }
+            if (this.height < 0) {
+                newy = this.y + this.height;
+                newheight = -this.height;
+            }
+            this.x = newx;
+            this.y = newy;
+            this.width = newwidth;
+            this.height = newheight;
+            return this;
+        },
+
+        // Offset me by the specified amount.
+        offset: function(dx, dy) {
+
+            // pretend that this is a point and call offset()
+            // rewrites x and y according to dx and dy
+            return Point.prototype.offset.call(this, dx, dy);
+        },
+
+        origin: function() {
+
+            return new Point(this.x, this.y);
+        },
+
+        // @return {point} a point on my boundary nearest to the given point.
+        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
+        pointNearestToPoint: function(point) {
+
+            point = new Point(point);
+            if (this.containsPoint(point)) {
+                var side = this.sideNearestToPoint(point);
+                switch (side) {
+                    case 'right':
+                        return new Point(this.x + this.width, point.y);
+                    case 'left':
+                        return new Point(this.x, point.y);
+                    case 'bottom':
+                        return new Point(point.x, this.y + this.height);
+                    case 'top':
+                        return new Point(point.x, this.y);
+                }
+            }
+            return point.adhereToRect(this);
+        },
+
+        rightLine: function() {
+
+            return new Line(this.topRight(), this.bottomRight());
+        },
+
+        rightMiddle: function() {
+
+            return new Point(this.x + this.width, this.y + this.height / 2);
+        },
+
+        round: function(precision) {
+
+            var f = 1; // case 0
+            if (precision) {
+                switch (precision) {
+                    case 1: f = 10; break;
+                    case 2: f = 100; break;
+                    case 3: f = 1000; break;
+                    default: f = pow$2(10, precision); break;
+                }
+            }
+
+            this.x = round$3(this.x * f) / f;
+            this.y = round$3(this.y * f) / f;
+            this.width = round$3(this.width * f) / f;
+            this.height = round$3(this.height * f) / f;
+            return this;
+        },
+
+        // Scale rectangle with origin.
+        scale: function(sx, sy, origin) {
+
+            origin = this.origin().scale(sx, sy, origin);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width *= sx;
+            this.height *= sy;
+            return this;
+        },
+
+        // @return {string} (left|right|top|bottom) side which is nearest to point
+        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
+        sideNearestToPoint: function(point) {
+
+            point = new Point(point);
+            var distToLeft = point.x - this.x;
+            var distToRight = (this.x + this.width) - point.x;
+            var distToTop = point.y - this.y;
+            var distToBottom = (this.y + this.height) - point.y;
+            var closest = distToLeft;
+            var side = 'left';
+
+            if (distToRight < closest) {
+                closest = distToRight;
+                side = 'right';
+            }
+            if (distToTop < closest) {
+                closest = distToTop;
+                side = 'top';
+            }
+            if (distToBottom < closest) {
+                // closest = distToBottom;
+                side = 'bottom';
+            }
+            return side;
+        },
+
+        snapToGrid: function(gx, gy) {
+
+            var origin = this.origin().snapToGrid(gx, gy);
+            var corner = this.corner().snapToGrid(gx, gy);
+            this.x = origin.x;
+            this.y = origin.y;
+            this.width = corner.x - origin.x;
+            this.height = corner.y - origin.y;
+            return this;
+        },
+
+        toJSON: function() {
+
+            return { x: this.x, y: this.y, width: this.width, height: this.height };
+        },
+
+        topLine: function() {
+
+            return new Line(this.topLeft(), this.topRight());
+        },
+
+        topMiddle: function() {
+
+            return new Point(this.x + this.width / 2, this.y);
+        },
+
+        topRight: function() {
+
+            return new Point(this.x + this.width, this.y);
+        },
+
+        toString: function() {
+
+            return this.origin().toString() + ' ' + this.corner().toString();
+        },
+
+        // @return {rect} representing the union of both rectangles.
+        union: function(rect) {
+
+            return Rect.fromRectUnion(this, rect);
+        },
+
+        update: function(x, y, w, h) {
+
+            if ((Object(x) === x)) {
+                y = x.y;
+                w = x.width;
+                h = x.height;
+                x = x.x;
+            }
+
+            this.x = x || 0;
+            this.y = y || 0;
+            this.width = w || 0;
+            this.height = h || 0;
+            return this;
+        }
+    };
+
+    Rect.prototype.bottomRight = Rect.prototype.corner;
+
+    Rect.prototype.topLeft = Rect.prototype.origin;
+
+    Rect.prototype.translate = Rect.prototype.offset;
+
+    // For backwards compatibility:
+    var rect = Rect;
+
+    var abs$2 = Math.abs;
+
+    var Polyline = function(points) {
+
+        if (!(this instanceof Polyline)) {
+            return new Polyline(points);
+        }
+
+        if (typeof points === 'string') {
+            return new Polyline.parse(points);
+        }
+
+        this.points = (Array.isArray(points) ? points.map(Point) : []);
+    };
+
+    Polyline.parse = function(svgString) {
+        svgString = svgString.trim();
+        if (svgString === '') { return new Polyline(); }
+
+        var points = [];
+
+        var coords = svgString.split(/\s*,\s*|\s+/);
+        var n = coords.length;
+        for (var i = 0; i < n; i += 2) {
+            points.push({ x: +coords[i], y: +coords[i + 1] });
+        }
+
+        return new Polyline(points);
+    };
+
+    Polyline.prototype = {
+
+        bbox: function() {
+
+            var x1 = Infinity;
+            var x2 = -Infinity;
+            var y1 = Infinity;
+            var y2 = -Infinity;
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i];
+                var x = point.x;
+                var y = point.y;
+
+                if (x < x1) { x1 = x; }
+                if (x > x2) { x2 = x; }
+                if (y < y1) { y1 = y; }
+                if (y > y2) { y2 = y; }
+            }
+
+            return new Rect(x1, y1, x2 - x1, y2 - y1);
+        },
+
+        clone: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return new Polyline(); } // if points array is empty
+
+            var newPoints = [];
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i].clone();
+                newPoints.push(point);
+            }
+
+            return new Polyline(newPoints);
+        },
+
+        closestPoint: function(p) {
+
+            var cpLength = this.closestPointLength(p);
+
+            return this.pointAtLength(cpLength);
+        },
+
+        closestPointLength: function(p) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return 0; } // if points array is empty
+            if (numPoints === 1) { return 0; } // if there is only one point
+
+            var cpLength;
+            var minSqrDistance = Infinity;
+            var length = 0;
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+
+                var line = new Line(points[i], points[i + 1]);
+                var lineLength = line.length();
+
+                var cpNormalizedLength = line.closestPointNormalizedLength(p);
+                var cp = line.pointAt(cpNormalizedLength);
+
+                var sqrDistance = cp.squaredDistance(p);
+                if (sqrDistance < minSqrDistance) {
+                    minSqrDistance = sqrDistance;
+                    cpLength = length + (cpNormalizedLength * lineLength);
+                }
+
+                length += lineLength;
+            }
+
+            return cpLength;
+        },
+
+        closestPointNormalizedLength: function(p) {
+
+            var cpLength = this.closestPointLength(p);
+            if (cpLength === 0) { return 0; } // shortcut
+
+            var length = this.length();
+            if (length === 0) { return 0; } // prevents division by zero
+
+            return cpLength / length;
+        },
+
+        closestPointTangent: function(p) {
+
+            var cpLength = this.closestPointLength(p);
+
+            return this.tangentAtLength(cpLength);
+        },
+
+        // Returns `true` if the area surrounded by the polyline contains the point `p`.
+        // Implements the even-odd SVG algorithm (self-intersections are "outside").
+        // (Uses horizontal rays to the right of `p` to look for intersections.)
+        // Closes open polylines (always imagines a final closing segment).
+        containsPoint: function(p) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return false; } // shortcut (this polyline has no points)
+
+            var x = p.x;
+            var y = p.y;
+
+            // initialize a final closing segment by creating one from last-first points on polyline
+            var startIndex = numPoints - 1; // start of current polyline segment
+            var endIndex = 0; // end of current polyline segment
+            var numIntersections = 0;
+            for (; endIndex < numPoints; endIndex++) {
+                var start = points[startIndex];
+                var end = points[endIndex];
+                if (p.equals(start)) { return true; } // shortcut (`p` is a point on polyline)
+
+                var segment = new Line(start, end); // current polyline segment
+                if (segment.containsPoint(p)) { return true; } // shortcut (`p` lies on a polyline segment)
+
+                // do we have an intersection?
+                if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
+                    // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
+                    // (when `y === start.y === end.y`)
+                    // this conditional branch IS entered when `segment` touches `ray` at only one point
+                    // (e.g. when `y === start.y !== end.y`)
+                    // since this branch is entered again for the following segment, the two touches cancel out
+
+                    var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
+                    if (xDifference >= 0) {
+                        // segment lies at least partially to the right of `p`
+                        var rayEnd = new Point((x + xDifference), y); // right
+                        var ray = new Line(p, rayEnd);
+
+                        if (segment.intersect(ray)) {
+                            // an intersection was detected to the right of `p`
+                            numIntersections++;
+                        }
+                    } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
+                }
+
+                // move to check the next polyline segment
+                startIndex = endIndex;
+            }
+
+            // returns `true` for odd numbers of intersections (even-odd algorithm)
+            return ((numIntersections % 2) === 1);
+        },
+
+        // Returns a convex-hull polyline from this polyline.
+        // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
+        // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
+        // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+        convexHull: function() {
+
+            var i;
+            var n;
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return new Polyline(); } // if points array is empty
+
+            // step 1: find the starting point - point with the lowest y (if equality, highest x)
+            var startPoint;
+            for (i = 0; i < numPoints; i++) {
+                if (startPoint === undefined) {
+                    // if this is the first point we see, set it as start point
+                    startPoint = points[i];
+
+                } else if (points[i].y < startPoint.y) {
+                    // start point should have lowest y from all points
+                    startPoint = points[i];
+
+                } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
+                    // if two points have the lowest y, choose the one that has highest x
+                    // there are no points to the right of startPoint - no ambiguity about theta 0
+                    // if there are several coincident start point candidates, first one is reported
+                    startPoint = points[i];
+                }
+            }
+
+            // step 2: sort the list of points
+            // sorting by angle between line from startPoint to point and the x-axis (theta)
+
+            // step 2a: create the point records = [point, originalIndex, angle]
+            var sortedPointRecords = [];
+            for (i = 0; i < numPoints; i++) {
+
+                var angle = startPoint.theta(points[i]);
+                if (angle === 0) {
+                    angle = 360; // give highest angle to start point
+                    // the start point will end up at end of sorted list
+                    // the start point will end up at beginning of hull points list
+                }
+
+                var entry = [points[i], i, angle];
+                sortedPointRecords.push(entry);
+            }
+
+            // step 2b: sort the list in place
+            sortedPointRecords.sort(function(record1, record2) {
+                // returning a negative number here sorts record1 before record2
+                // if first angle is smaller than second, first angle should come before second
+
+                var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
+                if (sortOutput === 0) {
+                    // if the two angles are equal, sort by originalIndex
+                    sortOutput = record2[1] - record1[1]; // negative if first index larger
+                    // coincident points will be sorted in reverse-numerical order
+                    // so the coincident points with lower original index will be considered first
+                }
+
+                return sortOutput;
+            });
+
+            // step 2c: duplicate start record from the top of the stack to the bottom of the stack
+            if (sortedPointRecords.length > 2) {
+                var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
+                sortedPointRecords.unshift(startPointRecord);
+            }
+
+            // step 3a: go through sorted points in order and find those with right turns
+            // we want to get our results in clockwise order
+            var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
+            var hullPointRecords = []; // stack of records with right turns - hull point candidates
+
+            var currentPointRecord;
+            var currentPoint;
+            var lastHullPointRecord;
+            var lastHullPoint;
+            var secondLastHullPointRecord;
+            var secondLastHullPoint;
+            while (sortedPointRecords.length !== 0) {
+
+                currentPointRecord = sortedPointRecords.pop();
+                currentPoint = currentPointRecord[0];
+
+                // check if point has already been discarded
+                // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
+                if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
+                    // this point had an incorrect turn at some previous iteration of this loop
+                    // this disqualifies it from possibly being on the hull
+                    continue;
+                }
+
+                var correctTurnFound = false;
+                while (!correctTurnFound) {
+
+                    if (hullPointRecords.length < 2) {
+                        // not enough points for comparison, just add current point
+                        hullPointRecords.push(currentPointRecord);
+                        correctTurnFound = true;
+
+                    } else {
+                        lastHullPointRecord = hullPointRecords.pop();
+                        lastHullPoint = lastHullPointRecord[0];
+                        secondLastHullPointRecord = hullPointRecords.pop();
+                        secondLastHullPoint = secondLastHullPointRecord[0];
+
+                        var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
+
+                        if (crossProduct < 0) {
+                            // found a right turn
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            hullPointRecords.push(lastHullPointRecord);
+                            hullPointRecords.push(currentPointRecord);
+                            correctTurnFound = true;
+
+                        } else if (crossProduct === 0) {
+                            // the three points are collinear
+                            // three options:
+                            // there may be a 180 or 0 degree angle at lastHullPoint
+                            // or two of the three points are coincident
+                            var THRESHOLD = 1e-10; // we have to take rounding errors into account
+                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+                            if (abs$2(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
+                                // if the cross product is 0 because the angle is 180 degrees
+                                // discard last hull point (add to insidePoints)
+                                //insidePoints.unshift(lastHullPoint);
+                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // do not do anything with current point
+                                // correct turn not found
+
+                            } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
+                                // if the cross product is 0 because two points are the same
+                                // discard last hull point (add to insidePoints)
+                                //insidePoints.unshift(lastHullPoint);
+                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // do not do anything with current point
+                                // correct turn not found
+
+                            } else if (abs$2(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
+                                // if the cross product is 0 because the angle is 0 degrees
+                                // remove last hull point from hull BUT do not discard it
+                                // reenter second-to-last hull point (will be last at next iter)
+                                hullPointRecords.push(secondLastHullPointRecord);
+                                // put last hull point back into the sorted point records list
+                                sortedPointRecords.push(lastHullPointRecord);
+                                // we are switching the order of the 0deg and 180deg points
+                                // correct turn not found
+                            }
+
+                        } else {
+                            // found a left turn
+                            // discard last hull point (add to insidePoints)
+                            //insidePoints.unshift(lastHullPoint);
+                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                            // reenter second-to-last hull point (will be last at next iter of loop)
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            // do not do anything with current point
+                            // correct turn not found
+                        }
+                    }
+                }
+            }
+            // at this point, hullPointRecords contains the output points in clockwise order
+            // the points start with lowest-y,highest-x startPoint, and end at the same point
+
+            // step 3b: remove duplicated startPointRecord from the end of the array
+            if (hullPointRecords.length > 2) {
+                hullPointRecords.pop();
+            }
+
+            // step 4: find the lowest originalIndex record and put it at the beginning of hull
+            var lowestHullIndex; // the lowest originalIndex on the hull
+            var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
+            n = hullPointRecords.length;
+            for (i = 0; i < n; i++) {
+
+                var currentHullIndex = hullPointRecords[i][1];
+
+                if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
+                    lowestHullIndex = currentHullIndex;
+                    indexOfLowestHullIndexRecord = i;
+                }
+            }
+
+            var hullPointRecordsReordered = [];
+            if (indexOfLowestHullIndexRecord > 0) {
+                var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
+                var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
+                hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+
+            } else {
+                hullPointRecordsReordered = hullPointRecords;
+            }
+
+            var hullPoints = [];
+            n = hullPointRecordsReordered.length;
+            for (i = 0; i < n; i++) {
+                hullPoints.push(hullPointRecordsReordered[i][0]);
+            }
+
+            return new Polyline(hullPoints);
+        },
+
+        // Checks whether two polylines are exactly the same.
+        // If `p` is undefined or null, returns false.
+        equals: function(p) {
+
+            if (!p) { return false; }
+
+            var points = this.points;
+            var otherPoints = p.points;
+
+            var numPoints = points.length;
+            if (otherPoints.length !== numPoints) { return false; } // if the two polylines have different number of points, they cannot be equal
+
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i];
+                var otherPoint = p.points[i];
+
+                // as soon as an inequality is found in points, return false
+                if (!point.equals(otherPoint)) { return false; }
+            }
+
+            // if no inequality found in points, return true
+            return true;
+        },
+
+        intersectionWithLine: function(l) {
+            var line = new Line(l);
+            var intersections = [];
+            var points = this.points;
+            for (var i = 0, n = points.length - 1; i < n; i++) {
+                var a = points[i];
+                var b = points[i + 1];
+                var l2 = new Line(a, b);
+                var int = line.intersectionWithLine(l2);
+                if (int) { intersections.push(int[0]); }
+            }
+            return (intersections.length > 0) ? intersections : null;
+        },
+
+        isDifferentiable: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return false; }
+
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+
+                var a = points[i];
+                var b = points[i + 1];
+                var line = new Line(a, b);
+
+                // as soon as a differentiable line is found between two points, return true
+                if (line.isDifferentiable()) { return true; }
+            }
+
+            // if no differentiable line is found between pairs of points, return false
+            return false;
+        },
+
+        length: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return 0; } // if points array is empty
+
+            var length = 0;
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+                length += points[i].distance(points[i + 1]);
+            }
+
+            return length;
+        },
+
+        pointAt: function(ratio) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+            if (numPoints === 1) { return points[0].clone(); } // if there is only one point
+
+            if (ratio <= 0) { return points[0].clone(); }
+            if (ratio >= 1) { return points[numPoints - 1].clone(); }
+
+            var polylineLength = this.length();
+            var length = polylineLength * ratio;
+
+            return this.pointAtLength(length);
+        },
+
+        pointAtLength: function(length) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+            if (numPoints === 1) { return points[0].clone(); } // if there is only one point
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var l = 0;
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+                var index = (fromStart ? i : (n - 1 - i));
+
+                var a = points[index];
+                var b = points[index + 1];
+                var line = new Line(a, b);
+                var d = a.distance(b);
+
+                if (length <= (l + d)) {
+                    return line.pointAtLength((fromStart ? 1 : -1) * (length - l));
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the polyline, return last endpoint
+            var lastPoint = (fromStart ? points[numPoints - 1] : points[0]);
+            return lastPoint.clone();
+        },
+
+        round: function(precision) {
+
+            var points = this.points;
+            var numPoints = points.length;
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].round(precision);
+            }
+
+            return this;
+        },
+
+        scale: function(sx, sy, origin) {
+
+            var points = this.points;
+            var numPoints = points.length;
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].scale(sx, sy, origin);
+            }
+
+            return this;
+        },
+
+        simplify: function(opt) {
+            if ( opt === void 0 ) opt = {};
+
+
+            var points = this.points;
+            if (points.length < 3) { return this; } // we need at least 3 points
+
+            // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
+            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
+
+            // start at the beginning of the polyline and go forward
+            var currentIndex = 0;
+            // we need at least one intermediate point (3 points) in every iteration
+            // as soon as that stops being true, we know we reached the end of the polyline
+            while (points[currentIndex + 2]) {
+                var firstIndex = currentIndex;
+                var middleIndex = (currentIndex + 1);
+                var lastIndex = (currentIndex + 2);
+
+                var firstPoint = points[firstIndex];
+                var middlePoint = points[middleIndex];
+                var lastPoint = points[lastIndex];
+
+                var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
+                var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
+                var closestPointDistance = closestPoint.distance(middlePoint);
+                if (closestPointDistance <= threshold) {
+                    // middle point is close enough to the chord = simplify
+                    // 1) remove middle point:
+                    points.splice(middleIndex, 1);
+                    // 2) in next iteration, investigate the newly-created triplet of points
+                    //    - do not change `currentIndex`
+                    //    = (first point stays, point after removed point becomes middle point)
+                } else {
+                    // middle point is far from the chord
+                    // 1) preserve middle point
+                    // 2) in next iteration, move `currentIndex` by one step:
+                    currentIndex += 1;
+                    //    = (point after first point becomes first point)
+                }
+            }
+
+            // `points` array was modified in-place
+            return this;
+        },
+
+        tangentAt: function(ratio) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+            if (numPoints === 1) { return null; } // if there is only one point
+
+            if (ratio < 0) { ratio = 0; }
+            if (ratio > 1) { ratio = 1; }
+
+            var polylineLength = this.length();
+            var length = polylineLength * ratio;
+
+            return this.tangentAtLength(length);
+        },
+
+        tangentAtLength: function(length) {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+            if (numPoints === 1) { return null; } // if there is only one point
+
+            var fromStart = true;
+            if (length < 0) {
+                fromStart = false; // negative lengths mean start calculation from end point
+                length = -length; // absolute value
+            }
+
+            var lastValidLine; // differentiable (with a tangent)
+            var l = 0; // length so far
+            var n = numPoints - 1;
+            for (var i = 0; i < n; i++) {
+                var index = (fromStart ? i : (n - 1 - i));
+
+                var a = points[index];
+                var b = points[index + 1];
+                var line = new Line(a, b);
+                var d = a.distance(b);
+
+                if (line.isDifferentiable()) { // has a tangent line (line length is not 0)
+                    if (length <= (l + d)) {
+                        return line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
+                    }
+
+                    lastValidLine = line;
+                }
+
+                l += d;
+            }
+
+            // if length requested is higher than the length of the polyline, return last valid endpoint
+            if (lastValidLine) {
+                var ratio = (fromStart ? 1 : 0);
+                return lastValidLine.tangentAt(ratio);
+            }
+
+            // if no valid line, return null
+            return null;
+        },
+
+        toString: function() {
+
+            return this.points + '';
+        },
+
+        translate: function(tx, ty) {
+
+            var points = this.points;
+            var numPoints = points.length;
+
+            for (var i = 0; i < numPoints; i++) {
+                points[i].translate(tx, ty);
+            }
+
+            return this;
+        },
+
+        // Return svgString that can be used to recreate this line.
+        serialize: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return ''; } // if points array is empty
+
+            var output = '';
+            for (var i = 0; i < numPoints; i++) {
+
+                var point = points[i];
+                output += point.x + ',' + point.y + ' ';
+            }
+
+            return output.trim();
+        }
+    };
+
+    Object.defineProperty(Polyline.prototype, 'start', {
+        // Getter for the first point of the polyline.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+
+            return this.points[0];
+        },
+    });
+
+    Object.defineProperty(Polyline.prototype, 'end', {
+        // Getter for the last point of the polyline.
+
+        configurable: true,
+
+        enumerable: true,
+
+        get: function() {
+
+            var points = this.points;
+            var numPoints = points.length;
+            if (numPoints === 0) { return null; } // if points array is empty
+
+            return this.points[numPoints - 1];
+        },
+    });
+
+    var abs$3 = Math.abs;
+    var sqrt$2 = Math.sqrt;
+    var min$3 = Math.min;
+    var max$3 = Math.max;
+    var pow$3 = Math.pow;
 
     var Curve = function(p1, p2, p3, p4) {
 
@@ -389,8 +2521,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     c = 3 * y1 - 3 * y0;
                 }
 
-                if (abs(a) < 1e-12) { // Numerical robustness
-                    if (abs(b) < 1e-12) { // Numerical robustness
+                if (abs$3(a) < 1e-12) { // Numerical robustness
+                    if (abs$3(b) < 1e-12) { // Numerical robustness
                         continue;
                     }
 
@@ -401,7 +2533,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 }
 
                 b2ac = b * b - 4 * c * a;
-                sqrtb2ac = sqrt(b2ac);
+                sqrtb2ac = sqrt$2(b2ac);
 
                 if (b2ac < 0) { continue; }
 
@@ -447,10 +2579,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             bounds[1].length = jlen + 2;
             points.length = jlen + 2;
 
-            var left = min.apply(null, bounds[0]);
-            var top = min.apply(null, bounds[1]);
-            var right = max.apply(null, bounds[0]);
-            var bottom = max.apply(null, bounds[1]);
+            var left = min$3.apply(null, bounds[0]);
+            var top = min$3.apply(null, bounds[1]);
+            var right = max$3.apply(null, bounds[0]);
+            var bottom = max$3.apply(null, bounds[1]);
 
             return new Rect(left, top, (right - left), (bottom - top));
         },
@@ -534,7 +2666,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 }
             }
 
-            var precisionRatio = pow(10, -precision);
+            var precisionRatio = pow$3(10, -precision);
 
             // recursively divide investigated subdivision:
             // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
@@ -546,8 +2678,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // - note that this function is not monotonic = it doesn't converge stably but has "teeth"
                 // - the function decreases while one of the endpoints is fixed but "jumps" whenever we switch
                 // - this criterion works well for points lying far away from the curve
-                var startPrecisionRatio = (distFromStart ? (abs(distFromStart - distFromEnd) / distFromStart) : 0);
-                var endPrecisionRatio = (distFromEnd ? (abs(distFromStart - distFromEnd) / distFromEnd) : 0);
+                var startPrecisionRatio = (distFromStart ? (abs$3(distFromStart - distFromEnd) / distFromStart) : 0);
+                var endPrecisionRatio = (distFromEnd ? (abs$3(distFromStart - distFromEnd) / distFromEnd) : 0);
                 var hasRequiredPrecision = ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio < precisionRatio));
 
                 // check if we have reached at least one required minimal distance
@@ -761,7 +2893,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var previousLength = this.endpointDistance();
 
-            var precisionRatio = pow(10, -precision);
+            var precisionRatio = pow$3(10, -precision);
 
             // recursively divide curve at `t = 0.5`
             // until the difference between observed length at subsequent iterations is lower than precision
@@ -1025,7 +3157,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
             var curveLength = this.length(localOpt);
 
-            var precisionRatio = pow(10, -precision);
+            var precisionRatio = pow$3(10, -precision);
 
             // recursively divide investigated subdivision:
             // until distance between baselinePoint and closest path endpoint is within 10^(-precision)
@@ -1116,607 +3248,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     Curve.prototype.divide = Curve.prototype.divideAtT;
 
-    var Ellipse = function(c, a, b) {
-
-        if (!(this instanceof Ellipse)) {
-            return new Ellipse(c, a, b);
-        }
-
-        if (c instanceof Ellipse) {
-            return new Ellipse(new Point(c.x, c.y), c.a, c.b);
-        }
-
-        c = new Point(c);
-        this.x = c.x;
-        this.y = c.y;
-        this.a = a;
-        this.b = b;
-    };
-
-    Ellipse.fromRect = function(rect) {
-
-        rect = new Rect(rect);
-        return new Ellipse(rect.center(), rect.width / 2, rect.height / 2);
-    };
-
-    Ellipse.prototype = {
-
-        bbox: function() {
-
-            return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
-        },
-
-        /**
-         * @returns {g.Point}
-         */
-        center: function() {
-
-            return new Point(this.x, this.y);
-        },
-
-        clone: function() {
-
-            return new Ellipse(this);
-        },
-
-        /**
-         * @param {g.Point} p
-         * @returns {boolean}
-         */
-        containsPoint: function(p) {
-
-            return this.normalizedDistance(p) <= 1;
-        },
-
-        equals: function(ellipse) {
-
-            return !!ellipse &&
-                ellipse.x === this.x &&
-                ellipse.y === this.y &&
-                ellipse.a === this.a &&
-                ellipse.b === this.b;
-        },
-
-        // inflate by dx and dy
-        // @param dx {delta_x} representing additional size to x
-        // @param dy {delta_y} representing additional size to y -
-        // dy param is not required -> in that case y is sized by dx
-        inflate: function(dx, dy) {
-            if (dx === undefined) {
-                dx = 0;
-            }
-
-            if (dy === undefined) {
-                dy = dx;
-            }
-
-            this.a += 2 * dx;
-            this.b += 2 * dy;
-
-            return this;
-        },
-
-        intersectionWithLine: function(line) {
-
-            var intersections = [];
-            var a1 = line.start;
-            var a2 = line.end;
-            var rx = this.a;
-            var ry = this.b;
-            var dir = line.vector();
-            var diff = a1.difference(new Point(this));
-            var mDir = new Point(dir.x / (rx * rx), dir.y / (ry * ry));
-            var mDiff = new Point(diff.x / (rx * rx), diff.y / (ry * ry));
-
-            var a = dir.dot(mDir);
-            var b = dir.dot(mDiff);
-            var c = diff.dot(mDiff) - 1.0;
-            var d = b * b - a * c;
-
-            if (d < 0) {
-                return null;
-            } else if (d > 0) {
-                var root = sqrt(d);
-                var ta = (-b - root) / a;
-                var tb = (-b + root) / a;
-
-                if ((ta < 0 || 1 < ta) && (tb < 0 || 1 < tb)) {
-                    // if ((ta < 0 && tb < 0) || (ta > 1 && tb > 1)) outside else inside
-                    return null;
-                } else {
-                    if (0 <= ta && ta <= 1) { intersections.push(a1.lerp(a2, ta)); }
-                    if (0 <= tb && tb <= 1) { intersections.push(a1.lerp(a2, tb)); }
-                }
-            } else {
-                var t = -b / a;
-                if (0 <= t && t <= 1) {
-                    intersections.push(a1.lerp(a2, t));
-                } else {
-                    // outside
-                    return null;
-                }
-            }
-
-            return intersections;
-        },
-
-        // Find point on me where line from my center to
-        // point p intersects my boundary.
-        // @param {number} angle If angle is specified, intersection with rotated ellipse is computed.
-        intersectionWithLineFromCenterToPoint: function(p, angle) {
-
-            p = new Point(p);
-
-            if (angle) { p.rotate(new Point(this.x, this.y), angle); }
-
-            var dx = p.x - this.x;
-            var dy = p.y - this.y;
-            var result;
-
-            if (dx === 0) {
-                result = this.bbox().pointNearestToPoint(p);
-                if (angle) { return result.rotate(new Point(this.x, this.y), -angle); }
-                return result;
-            }
-
-            var m = dy / dx;
-            var mSquared = m * m;
-            var aSquared = this.a * this.a;
-            var bSquared = this.b * this.b;
-
-            var x = sqrt(1 / ((1 / aSquared) + (mSquared / bSquared)));
-            x = dx < 0 ? -x : x;
-
-            var y = m * x;
-            result = new Point(this.x + x, this.y + y);
-
-            if (angle) { return result.rotate(new Point(this.x, this.y), -angle); }
-            return result;
-        },
-
-        /**
-         * @param {g.Point} point
-         * @returns {number} result < 1 - inside ellipse, result == 1 - on ellipse boundary, result > 1 - outside
-         */
-        normalizedDistance: function(point) {
-
-            var x0 = point.x;
-            var y0 = point.y;
-            var a = this.a;
-            var b = this.b;
-            var x = this.x;
-            var y = this.y;
-
-            return ((x0 - x) * (x0 - x)) / (a * a) + ((y0 - y) * (y0 - y)) / (b * b);
-        },
-
-        round: function(precision) {
-
-            var f = 1; // case 0
-            if (precision) {
-                switch (precision) {
-                    case 1: f = 10; break;
-                    case 2: f = 100; break;
-                    case 3: f = 1000; break;
-                    default: f = pow(10, precision); break;
-                }
-            }
-
-            this.x = round(this.x * f) / f;
-            this.y = round(this.y * f) / f;
-            this.a = round(this.a * f) / f;
-            this.b = round(this.b * f) / f;
-            return this;
-        },
-
-        /** Compute angle between tangent and x axis
-         * @param {g.Point} p Point of tangency, it has to be on ellipse boundaries.
-         * @returns {number} angle between tangent and x axis
-         */
-        tangentTheta: function(p) {
-
-            var refPointDelta = 30;
-            var x0 = p.x;
-            var y0 = p.y;
-            var a = this.a;
-            var b = this.b;
-            var center = this.bbox().center();
-            var m = center.x;
-            var n = center.y;
-
-            var q1 = x0 > center.x + a / 2;
-            var q3 = x0 < center.x - a / 2;
-
-            var y, x;
-            if (q1 || q3) {
-                y = x0 > center.x ? y0 - refPointDelta : y0 + refPointDelta;
-                x = (a * a / (x0 - m)) - (a * a * (y0 - n) * (y - n)) / (b * b * (x0 - m)) + m;
-
-            } else {
-                x = y0 > center.y ? x0 + refPointDelta : x0 - refPointDelta;
-                y = (b * b / (y0 - n)) - (b * b * (x0 - m) * (x - m)) / (a * a * (y0 - n)) + n;
-            }
-
-            return (new Point(x, y)).theta(p);
-
-        },
-
-        toString: function() {
-
-            return (new Point(this.x, this.y)).toString() + ' ' + this.a + ' ' + this.b;
-        }
-    };
-
-    var Line = function(p1, p2) {
-
-        if (!(this instanceof Line)) {
-            return new Line(p1, p2);
-        }
-
-        if (p1 instanceof Line) {
-            return new Line(p1.start, p1.end);
-        }
-
-        this.start = new Point(p1);
-        this.end = new Point(p2);
-    };
-
-    Line.prototype = {
-
-        // @returns the angle of incline of the line.
-        angle: function() {
-
-            var horizontalPoint = new Point(this.start.x + 1, this.start.y);
-            return this.start.angleBetween(this.end, horizontalPoint);
-        },
-
-        bbox: function() {
-
-            var left = min(this.start.x, this.end.x);
-            var top = min(this.start.y, this.end.y);
-            var right = max(this.start.x, this.end.x);
-            var bottom = max(this.start.y, this.end.y);
-
-            return new Rect(left, top, (right - left), (bottom - top));
-        },
-
-        // @return the bearing (cardinal direction) of the line. For example N, W, or SE.
-        // @returns {String} One of the following bearings : NE, E, SE, S, SW, W, NW, N.
-        bearing: function() {
-
-            var lat1 = toRad(this.start.y);
-            var lat2 = toRad(this.end.y);
-            var lon1 = this.start.x;
-            var lon2 = this.end.x;
-            var dLon = toRad(lon2 - lon1);
-            var y = sin(dLon) * cos(lat2);
-            var x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
-            var brng = toDeg(atan2(y, x));
-
-            var bearings = ['NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'];
-
-            var index = brng - 22.5;
-            if (index < 0)
-                { index += 360; }
-            index = parseInt(index / 45);
-
-            return bearings[index];
-        },
-
-        clone: function() {
-
-            return new Line(this.start, this.end);
-        },
-
-        // @return {point} the closest point on the line to point `p`
-        closestPoint: function(p) {
-
-            return this.pointAt(this.closestPointNormalizedLength(p));
-        },
-
-        closestPointLength: function(p) {
-
-            return this.closestPointNormalizedLength(p) * this.length();
-        },
-
-        // @return {number} the normalized length of the closest point on the line to point `p`
-        closestPointNormalizedLength: function(p) {
-
-            var product = this.vector().dot((new Line(this.start, p)).vector());
-            var cpNormalizedLength = min(1, max(0, product / this.squaredLength()));
-
-            // cpNormalizedLength returns `NaN` if this line has zero length
-            // we can work with that - if `NaN`, return 0
-            if (cpNormalizedLength !== cpNormalizedLength) { return 0; } // condition evaluates to `true` if and only if cpNormalizedLength is `NaN`
-            // (`NaN` is the only value that is not equal to itself)
-
-            return cpNormalizedLength;
-        },
-
-        closestPointTangent: function(p) {
-
-            return this.tangentAt(this.closestPointNormalizedLength(p));
-        },
-
-        // Returns `true` if the point lies on the line.
-        containsPoint: function(p) {
-
-            var start = this.start;
-            var end = this.end;
-
-            if (start.cross(p, end) !== 0) { return false; }
-            // else: cross product of 0 indicates that this line and the vector to `p` are collinear
-
-            var length = this.length();
-            if ((new Line(start, p)).length() > length) { return false; }
-            if ((new Line(p, end)).length() > length) { return false; }
-            // else: `p` lies between start and end of the line
-
-            return true;
-        },
-
-        // Divides the line into two at requested `ratio` between 0 and 1.
-        divideAt: function(ratio) {
-
-            var dividerPoint = this.pointAt(ratio);
-
-            // return array with two lines
-            return [
-                new Line(this.start, dividerPoint),
-                new Line(dividerPoint, this.end)
-            ];
-        },
-
-        // Divides the line into two at requested `length`.
-        divideAtLength: function(length) {
-
-            var dividerPoint = this.pointAtLength(length);
-
-            // return array with two new lines
-            return [
-                new Line(this.start, dividerPoint),
-                new Line(dividerPoint, this.end)
-            ];
-        },
-
-        equals: function(l) {
-
-            return !!l &&
-                this.start.x === l.start.x &&
-                this.start.y === l.start.y &&
-                this.end.x === l.end.x &&
-                this.end.y === l.end.y;
-        },
-
-        // @return {point} Point where I'm intersecting a line.
-        // @return [point] Points where I'm intersecting a rectangle.
-        // @see Squeak Smalltalk, LineSegment>>intersectionWith:
-        intersect: function(shape, opt) {
-
-            if (shape instanceof Line ||
-                shape instanceof Rect ||
-                shape instanceof Polyline ||
-                shape instanceof Ellipse ||
-                shape instanceof Path
-            ) {
-                var intersection = shape.intersectionWithLine(this, opt);
-
-                // Backwards compatibility
-                if (intersection && (shape instanceof Line)) {
-                    intersection = intersection[0];
-                }
-
-                return intersection;
-            }
-
-            return null;
-        },
-
-        intersectionWithLine: function(line) {
-
-            var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-            var pt2Dir = new Point(line.end.x - line.start.x, line.end.y - line.start.y);
-            var det = (pt1Dir.x * pt2Dir.y) - (pt1Dir.y * pt2Dir.x);
-            var deltaPt = new Point(line.start.x - this.start.x, line.start.y - this.start.y);
-            var alpha = (deltaPt.x * pt2Dir.y) - (deltaPt.y * pt2Dir.x);
-            var beta = (deltaPt.x * pt1Dir.y) - (deltaPt.y * pt1Dir.x);
-
-            if (det === 0 || alpha * det < 0 || beta * det < 0) {
-                // No intersection found.
-                return null;
-            }
-
-            if (det > 0) {
-                if (alpha > det || beta > det) {
-                    return null;
-                }
-
-            } else {
-                if (alpha < det || beta < det) {
-                    return null;
-                }
-            }
-
-            return [new Point(
-                this.start.x + (alpha * pt1Dir.x / det),
-                this.start.y + (alpha * pt1Dir.y / det)
-            )];
-        },
-
-        isDifferentiable: function() {
-
-            return !this.start.equals(this.end);
-        },
-
-        // @return {double} length of the line
-        length: function() {
-
-            return sqrt(this.squaredLength());
-        },
-
-        // @return {point} my midpoint
-        midpoint: function() {
-
-            return new Point(
-                (this.start.x + this.end.x) / 2,
-                (this.start.y + this.end.y) / 2
-            );
-        },
-
-        parallel: function(distance) {
-            var l = this.clone();
-            if (!this.isDifferentiable()) { return l; }
-            var start = l.start;
-            var end = l.end;
-            var eRef = start.clone().rotate(end, 270);
-            var sRef = end.clone().rotate(start, 90);
-            start.move(sRef, distance);
-            end.move(eRef, distance);
-            return l;
-        },
-
-        // @return {point} my point at 't' <0,1>
-        pointAt: function(t) {
-
-            var start = this.start;
-            var end = this.end;
-
-            if (t <= 0) { return start.clone(); }
-            if (t >= 1) { return end.clone(); }
-
-            return start.lerp(end, t);
-        },
-
-        pointAtLength: function(length) {
-
-            var start = this.start;
-            var end = this.end;
-
-            var fromStart = true;
-            if (length < 0) {
-                fromStart = false; // negative lengths mean start calculation from end point
-                length = -length; // absolute value
-            }
-
-            var lineLength = this.length();
-            if (length >= lineLength) { return (fromStart ? end.clone() : start.clone()); }
-
-            return this.pointAt((fromStart ? (length) : (lineLength - length)) / lineLength);
-        },
-
-        // @return {number} the offset of the point `p` from the line. + if the point `p` is on the right side of the line, - if on the left and 0 if on the line.
-        pointOffset: function(p) {
-
-            // Find the sign of the determinant of vectors (start,end), where p is the query point.
-            p = new Point(p);
-            var start = this.start;
-            var end = this.end;
-            var determinant = ((end.x - start.x) * (p.y - start.y) - (end.y - start.y) * (p.x - start.x));
-
-            return determinant / this.length();
-        },
-
-        rotate: function(origin, angle) {
-
-            this.start.rotate(origin, angle);
-            this.end.rotate(origin, angle);
-            return this;
-        },
-
-        round: function(precision) {
-
-            this.start.round(precision);
-            this.end.round(precision);
-            return this;
-        },
-
-        scale: function(sx, sy, origin) {
-
-            this.start.scale(sx, sy, origin);
-            this.end.scale(sx, sy, origin);
-            return this;
-        },
-
-        // @return {number} scale the line so that it has the requested length
-        setLength: function(length) {
-
-            var currentLength = this.length();
-            if (!currentLength) { return this; }
-
-            var scaleFactor = length / currentLength;
-            return this.scale(scaleFactor, scaleFactor, this.start);
-        },
-
-        // @return {integer} length without sqrt
-        // @note for applications where the exact length is not necessary (e.g. compare only)
-        squaredLength: function() {
-
-            var x0 = this.start.x;
-            var y0 = this.start.y;
-            var x1 = this.end.x;
-            var y1 = this.end.y;
-            return (x0 -= x1) * x0 + (y0 -= y1) * y0;
-        },
-
-        tangentAt: function(t) {
-
-            if (!this.isDifferentiable()) { return null; }
-
-            var start = this.start;
-            var end = this.end;
-
-            var tangentStart = this.pointAt(t); // constrains `t` between 0 and 1
-
-            var tangentLine = new Line(start, end);
-            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
-
-            return tangentLine;
-        },
-
-        tangentAtLength: function(length) {
-
-            if (!this.isDifferentiable()) { return null; }
-
-            var start = this.start;
-            var end = this.end;
-
-            var tangentStart = this.pointAtLength(length);
-
-            var tangentLine = new Line(start, end);
-            tangentLine.translate(tangentStart.x - start.x, tangentStart.y - start.y); // move so that tangent line starts at the point requested
-
-            return tangentLine;
-        },
-
-        toString: function() {
-
-            return this.start.toString() + ' ' + this.end.toString();
-        },
-
-        serialize: function() {
-
-            return this.start.serialize() + ' ' + this.end.serialize();
-        },
-
-        translate: function(tx, ty) {
-
-            this.start.translate(tx, ty);
-            this.end.translate(tx, ty);
-            return this;
-        },
-
-        // @return vector {point} of the line
-        vector: function() {
-
-            return new Point(this.end.x - this.start.x, this.end.y - this.start.y);
-        }
-    };
-
-    // For backwards compatibility:
-    Line.prototype.intersection = Line.prototype.intersect;
-
     // Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
-    // Path created is not guaranteed to be a valid (serializable) path (might not start with an M).
+
     var Path = function(arg) {
 
         if (!(this instanceof Path)) {
@@ -2316,7 +3849,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var numSegments = segments.length;
             // works even if path has no segments
 
-            // note that these are incremented comapared to getSegments()
+            // note that these are incremented compared to getSegments()
             // we can insert after last element (note that this changes the meaning of index -1)
             if (index < 0) { index = numSegments + index + 1; } // convert negative indices to positive
             if (index > numSegments || index < 0) { throw new Error('Index out of range.'); }
@@ -3025,1608 +4558,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         }
     });
 
-    /*
-        Point is the most basic object consisting of x/y coordinate.
-
-        Possible instantiations are:
-        * `Point(10, 20)`
-        * `new Point(10, 20)`
-        * `Point('10 20')`
-        * `Point(Point(10, 20))`
-    */
-    var Point = function(x, y) {
-
-        if (!(this instanceof Point)) {
-            return new Point(x, y);
-        }
-
-        if (typeof x === 'string') {
-            var xy = x.split(x.indexOf('@') === -1 ? ' ' : '@');
-            x = parseFloat(xy[0]);
-            y = parseFloat(xy[1]);
-
-        } else if (Object(x) === x) {
-            y = x.y;
-            x = x.x;
-        }
-
-        this.x = x === undefined ? 0 : x;
-        this.y = y === undefined ? 0 : y;
-    };
-
-    // Alternative constructor, from polar coordinates.
-    // @param {number} Distance.
-    // @param {number} Angle in radians.
-    // @param {point} [optional] Origin.
-    Point.fromPolar = function(distance, angle, origin) {
-
-        origin = new Point(origin);
-        var x = abs(distance * cos(angle));
-        var y = abs(distance * sin(angle));
-        var deg = normalizeAngle(toDeg(angle));
-
-        if (deg < 90) {
-            y = -y;
-
-        } else if (deg < 180) {
-            x = -x;
-            y = -y;
-
-        } else if (deg < 270) {
-            x = -x;
-        }
-
-        return new Point(origin.x + x, origin.y + y);
-    };
-
-    // Create a point with random coordinates that fall into the range `[x1, x2]` and `[y1, y2]`.
-    Point.random = function(x1, x2, y1, y2) {
-
-        return new Point(random(x1, x2), random(y1, y2));
-    };
-
-    Point.prototype = {
-
-        chooseClosest: function(points) {
-
-            var n = points.length;
-            if (n === 1) { return new Point(points[0]); }
-            var closest = null;
-            var minSqrDistance = Infinity;
-            for (var i = 0; i < n; i++) {
-                var p = new Point(points[i]);
-                var sqrDistance = this.squaredDistance(p);
-                if (sqrDistance < minSqrDistance) {
-                    closest = p;
-                    minSqrDistance = sqrDistance;
-                }
-            }
-            return closest;
-        },
-
-        // If point lies outside rectangle `r`, return the nearest point on the boundary of rect `r`,
-        // otherwise return point itself.
-        // (see Squeak Smalltalk, Point>>adhereTo:)
-        adhereToRect: function(r) {
-
-            if (r.containsPoint(this)) {
-                return this;
-            }
-
-            this.x = min(max(this.x, r.x), r.x + r.width);
-            this.y = min(max(this.y, r.y), r.y + r.height);
-            return this;
-        },
-
-        // Compute the angle between vector from me to p1 and the vector from me to p2.
-        // ordering of points p1 and p2 is important!
-        // theta function's angle convention:
-        // returns angles between 0 and 180 when the angle is counterclockwise
-        // returns angles between 180 and 360 to convert clockwise angles into counterclockwise ones
-        // returns NaN if any of the points p1, p2 is coincident with this point
-        angleBetween: function(p1, p2) {
-
-            var angleBetween = (this.equals(p1) || this.equals(p2)) ? NaN : (this.theta(p2) - this.theta(p1));
-
-            if (angleBetween < 0) {
-                angleBetween += 360; // correction to keep angleBetween between 0 and 360
-            }
-
-            return angleBetween;
-        },
-
-        // Return the bearing between me and the given point.
-        bearing: function(point) {
-
-            return (new Line(this, point)).bearing();
-        },
-
-        // Returns change in angle from my previous position (-dx, -dy) to my new position
-        // relative to ref point.
-        changeInAngle: function(dx, dy, ref) {
-
-            // Revert the translation and measure the change in angle around x-axis.
-            return this.clone().offset(-dx, -dy).theta(ref) - this.theta(ref);
-        },
-
-        clone: function() {
-
-            return new Point(this);
-        },
-
-        // Returns the cross product of this point relative to two other points
-        // this point is the common point
-        // point p1 lies on the first vector, point p2 lies on the second vector
-        // watch out for the ordering of points p1 and p2!
-        // positive result indicates a clockwise ("right") turn from first to second vector
-        // negative result indicates a counterclockwise ("left") turn from first to second vector
-        // zero indicates that the first and second vector are collinear
-        // note that the above directions are reversed from the usual answer on the Internet
-        // that is because we are in a left-handed coord system (because the y-axis points downward)
-        cross: function(p1, p2) {
-
-            return (p1 && p2) ? (((p2.x - this.x) * (p1.y - this.y)) - ((p2.y - this.y) * (p1.x - this.x))) : NaN;
-        },
-
-        difference: function(dx, dy) {
-
-            if ((Object(dx) === dx)) {
-                dy = dx.y;
-                dx = dx.x;
-            }
-
-            return new Point(this.x - (dx || 0), this.y - (dy || 0));
-        },
-
-        // Returns distance between me and point `p`.
-        distance: function(p) {
-
-            return (new Line(this, p)).length();
-        },
-
-        // Returns the dot product of this point with given other point
-        dot: function(p) {
-
-            return p ? (this.x * p.x + this.y * p.y) : NaN;
-        },
-
-        equals: function(p) {
-
-            return !!p &&
-                this.x === p.x &&
-                this.y === p.y;
-        },
-
-        // Linear interpolation
-        lerp: function(p, t) {
-
-            var x = this.x;
-            var y = this.y;
-            return new Point((1 - t) * x + t * p.x, (1 - t) * y + t * p.y);
-        },
-
-        magnitude: function() {
-
-            return sqrt((this.x * this.x) + (this.y * this.y)) || 0.01;
-        },
-
-        // Returns a manhattan (taxi-cab) distance between me and point `p`.
-        manhattanDistance: function(p) {
-
-            return abs(p.x - this.x) + abs(p.y - this.y);
-        },
-
-        // Move point on line starting from ref ending at me by
-        // distance distance.
-        move: function(ref, distance) {
-
-            var theta = toRad((new Point(ref)).theta(this));
-            var offset = this.offset(cos(theta) * distance, -sin(theta) * distance);
-            return offset;
-        },
-
-        // Scales x and y such that the distance between the point and the origin (0,0) is equal to the given length.
-        normalize: function(length) {
-
-            var scale = (length || 1) / this.magnitude();
-            return this.scale(scale, scale);
-        },
-
-        // Offset me by the specified amount.
-        offset: function(dx, dy) {
-
-            if ((Object(dx) === dx)) {
-                dy = dx.y;
-                dx = dx.x;
-            }
-
-            this.x += dx || 0;
-            this.y += dy || 0;
-            return this;
-        },
-
-        // Returns a point that is the reflection of me with
-        // the center of inversion in ref point.
-        reflection: function(ref) {
-
-            return (new Point(ref)).move(this, this.distance(ref));
-        },
-
-        // Rotate point by angle around origin.
-        // Angle is flipped because this is a left-handed coord system (y-axis points downward).
-        rotate: function(origin, angle) {
-
-            if (angle === 0) { return this; }
-
-            origin = origin || new Point(0, 0);
-
-            angle = toRad(normalizeAngle(-angle));
-            var cosAngle = cos(angle);
-            var sinAngle = sin(angle);
-
-            var x = (cosAngle * (this.x - origin.x)) - (sinAngle * (this.y - origin.y)) + origin.x;
-            var y = (sinAngle * (this.x - origin.x)) + (cosAngle * (this.y - origin.y)) + origin.y;
-
-            this.x = x;
-            this.y = y;
-            return this;
-        },
-
-        round: function(precision) {
-
-            var f = 1; // case 0
-            if (precision) {
-                switch (precision) {
-                    case 1: f = 10; break;
-                    case 2: f = 100; break;
-                    case 3: f = 1000; break;
-                    default: f = pow(10, precision); break;
-                }
-            }
-
-            this.x = round(this.x * f) / f;
-            this.y = round(this.y * f) / f;
-            return this;
-        },
-
-        // Scale point with origin.
-        scale: function(sx, sy, origin) {
-
-            origin = (origin && new Point(origin)) || new Point(0, 0);
-            this.x = origin.x + sx * (this.x - origin.x);
-            this.y = origin.y + sy * (this.y - origin.y);
-            return this;
-        },
-
-        snapToGrid: function(gx, gy) {
-
-            this.x = snapToGrid(this.x, gx);
-            this.y = snapToGrid(this.y, gy || gx);
-            return this;
-        },
-
-        squaredDistance: function(p) {
-
-            return (new Line(this, p)).squaredLength();
-        },
-
-        // Compute the angle between me and `p` and the x axis.
-        // (cartesian-to-polar coordinates conversion)
-        // Return theta angle in degrees.
-        theta: function(p) {
-
-            p = new Point(p);
-
-            // Invert the y-axis.
-            var y = -(p.y - this.y);
-            var x = p.x - this.x;
-            var rad = atan2(y, x); // defined for all 0 corner cases
-
-            // Correction for III. and IV. quadrant.
-            if (rad < 0) {
-                rad = 2 * PI + rad;
-            }
-
-            return 180 * rad / PI;
-        },
-
-        toJSON: function() {
-
-            return { x: this.x, y: this.y };
-        },
-
-        // Converts rectangular to polar coordinates.
-        // An origin can be specified, otherwise it's 0@0.
-        toPolar: function(o) {
-
-            o = (o && new Point(o)) || new Point(0, 0);
-            var x = this.x;
-            var y = this.y;
-            this.x = sqrt((x - o.x) * (x - o.x) + (y - o.y) * (y - o.y)); // r
-            this.y = toRad(o.theta(new Point(x, y)));
-            return this;
-        },
-
-        toString: function() {
-
-            return this.x + '@' + this.y;
-        },
-
-        serialize: function() {
-
-            return this.x + ',' + this.y;
-        },
-
-        update: function(x, y) {
-
-            this.x = x || 0;
-            this.y = y || 0;
-            return this;
-        },
-
-        // Compute the angle between the vector from 0,0 to me and the vector from 0,0 to p.
-        // Returns NaN if p is at 0,0.
-        vectorAngle: function(p) {
-
-            var zero = new Point(0, 0);
-            return zero.angleBetween(this, p);
-        }
-    };
-
-    Point.prototype.translate = Point.prototype.offset;
-
-    var Polyline = function(points) {
-
-        if (!(this instanceof Polyline)) {
-            return new Polyline(points);
-        }
-
-        if (typeof points === 'string') {
-            return new Polyline.parse(points);
-        }
-
-        this.points = (Array.isArray(points) ? points.map(Point) : []);
-    };
-
-    Polyline.parse = function(svgString) {
-        svgString = svgString.trim();
-        if (svgString === '') { return new Polyline(); }
-
-        var points = [];
-
-        var coords = svgString.split(/\s*,\s*|\s+/);
-        var n = coords.length;
-        for (var i = 0; i < n; i += 2) {
-            points.push({ x: +coords[i], y: +coords[i + 1] });
-        }
-
-        return new Polyline(points);
-    };
-
-    Polyline.prototype = {
-
-        bbox: function() {
-
-            var x1 = Infinity;
-            var x2 = -Infinity;
-            var y1 = Infinity;
-            var y2 = -Infinity;
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-
-            for (var i = 0; i < numPoints; i++) {
-
-                var point = points[i];
-                var x = point.x;
-                var y = point.y;
-
-                if (x < x1) { x1 = x; }
-                if (x > x2) { x2 = x; }
-                if (y < y1) { y1 = y; }
-                if (y > y2) { y2 = y; }
-            }
-
-            return new Rect(x1, y1, x2 - x1, y2 - y1);
-        },
-
-        clone: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-            var newPoints = [];
-            for (var i = 0; i < numPoints; i++) {
-
-                var point = points[i].clone();
-                newPoints.push(point);
-            }
-
-            return new Polyline(newPoints);
-        },
-
-        closestPoint: function(p) {
-
-            var cpLength = this.closestPointLength(p);
-
-            return this.pointAtLength(cpLength);
-        },
-
-        closestPointLength: function(p) {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return 0; } // if points array is empty
-            if (numPoints === 1) { return 0; } // if there is only one point
-
-            var cpLength;
-            var minSqrDistance = Infinity;
-            var length = 0;
-            var n = numPoints - 1;
-            for (var i = 0; i < n; i++) {
-
-                var line = new Line(points[i], points[i + 1]);
-                var lineLength = line.length();
-
-                var cpNormalizedLength = line.closestPointNormalizedLength(p);
-                var cp = line.pointAt(cpNormalizedLength);
-
-                var sqrDistance = cp.squaredDistance(p);
-                if (sqrDistance < minSqrDistance) {
-                    minSqrDistance = sqrDistance;
-                    cpLength = length + (cpNormalizedLength * lineLength);
-                }
-
-                length += lineLength;
-            }
-
-            return cpLength;
-        },
-
-        closestPointNormalizedLength: function(p) {
-
-            var cpLength = this.closestPointLength(p);
-            if (cpLength === 0) { return 0; } // shortcut
-
-            var length = this.length();
-            if (length === 0) { return 0; } // prevents division by zero
-
-            return cpLength / length;
-        },
-
-        closestPointTangent: function(p) {
-
-            var cpLength = this.closestPointLength(p);
-
-            return this.tangentAtLength(cpLength);
-        },
-
-        // Returns `true` if the area surrounded by the polyline contains the point `p`.
-        // Implements the even-odd SVG algorithm (self-intersections are "outside").
-        // (Uses horizontal rays to the right of `p` to look for intersections.)
-        // Closes open polylines (always imagines a final closing segment).
-        containsPoint: function(p) {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return false; } // shortcut (this polyline has no points)
-
-            var x = p.x;
-            var y = p.y;
-
-            // initialize a final closing segment by creating one from last-first points on polyline
-            var startIndex = numPoints - 1; // start of current polyline segment
-            var endIndex = 0; // end of current polyline segment
-            var numIntersections = 0;
-            for (; endIndex < numPoints; endIndex++) {
-                var start = points[startIndex];
-                var end = points[endIndex];
-                if (p.equals(start)) { return true; } // shortcut (`p` is a point on polyline)
-
-                var segment = new Line(start, end); // current polyline segment
-                if (segment.containsPoint(p)) { return true; } // shortcut (`p` lies on a polyline segment)
-
-                // do we have an intersection?
-                if (((y <= start.y) && (y > end.y)) || ((y > start.y) && (y <= end.y))) {
-                    // this conditional branch IS NOT entered when `segment` is collinear/coincident with `ray`
-                    // (when `y === start.y === end.y`)
-                    // this conditional branch IS entered when `segment` touches `ray` at only one point
-                    // (e.g. when `y === start.y !== end.y`)
-                    // since this branch is entered again for the following segment, the two touches cancel out
-
-                    var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
-                    if (xDifference >= 0) {
-                        // segment lies at least partially to the right of `p`
-                        var rayEnd = new Point((x + xDifference), y); // right
-                        var ray = new Line(p, rayEnd);
-
-                        if (segment.intersect(ray)) {
-                            // an intersection was detected to the right of `p`
-                            numIntersections++;
-                        }
-                    } // else: `segment` lies completely to the left of `p` (i.e. no intersection to the right)
-                }
-
-                // move to check the next polyline segment
-                startIndex = endIndex;
-            }
-
-            // returns `true` for odd numbers of intersections (even-odd algorithm)
-            return ((numIntersections % 2) === 1);
-        },
-
-        // Returns a convex-hull polyline from this polyline.
-        // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
-        // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
-        // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
-        convexHull: function() {
-
-            var i;
-            var n;
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-            // step 1: find the starting point - point with the lowest y (if equality, highest x)
-            var startPoint;
-            for (i = 0; i < numPoints; i++) {
-                if (startPoint === undefined) {
-                    // if this is the first point we see, set it as start point
-                    startPoint = points[i];
-
-                } else if (points[i].y < startPoint.y) {
-                    // start point should have lowest y from all points
-                    startPoint = points[i];
-
-                } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
-                    // if two points have the lowest y, choose the one that has highest x
-                    // there are no points to the right of startPoint - no ambiguity about theta 0
-                    // if there are several coincident start point candidates, first one is reported
-                    startPoint = points[i];
-                }
-            }
-
-            // step 2: sort the list of points
-            // sorting by angle between line from startPoint to point and the x-axis (theta)
-
-            // step 2a: create the point records = [point, originalIndex, angle]
-            var sortedPointRecords = [];
-            for (i = 0; i < numPoints; i++) {
-
-                var angle = startPoint.theta(points[i]);
-                if (angle === 0) {
-                    angle = 360; // give highest angle to start point
-                    // the start point will end up at end of sorted list
-                    // the start point will end up at beginning of hull points list
-                }
-
-                var entry = [points[i], i, angle];
-                sortedPointRecords.push(entry);
-            }
-
-            // step 2b: sort the list in place
-            sortedPointRecords.sort(function(record1, record2) {
-                // returning a negative number here sorts record1 before record2
-                // if first angle is smaller than second, first angle should come before second
-
-                var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
-                if (sortOutput === 0) {
-                    // if the two angles are equal, sort by originalIndex
-                    sortOutput = record2[1] - record1[1]; // negative if first index larger
-                    // coincident points will be sorted in reverse-numerical order
-                    // so the coincident points with lower original index will be considered first
-                }
-
-                return sortOutput;
-            });
-
-            // step 2c: duplicate start record from the top of the stack to the bottom of the stack
-            if (sortedPointRecords.length > 2) {
-                var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
-                sortedPointRecords.unshift(startPointRecord);
-            }
-
-            // step 3a: go through sorted points in order and find those with right turns
-            // we want to get our results in clockwise order
-            var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
-            var hullPointRecords = []; // stack of records with right turns - hull point candidates
-
-            var currentPointRecord;
-            var currentPoint;
-            var lastHullPointRecord;
-            var lastHullPoint;
-            var secondLastHullPointRecord;
-            var secondLastHullPoint;
-            while (sortedPointRecords.length !== 0) {
-
-                currentPointRecord = sortedPointRecords.pop();
-                currentPoint = currentPointRecord[0];
-
-                // check if point has already been discarded
-                // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
-                if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
-                    // this point had an incorrect turn at some previous iteration of this loop
-                    // this disqualifies it from possibly being on the hull
-                    continue;
-                }
-
-                var correctTurnFound = false;
-                while (!correctTurnFound) {
-
-                    if (hullPointRecords.length < 2) {
-                        // not enough points for comparison, just add current point
-                        hullPointRecords.push(currentPointRecord);
-                        correctTurnFound = true;
-
-                    } else {
-                        lastHullPointRecord = hullPointRecords.pop();
-                        lastHullPoint = lastHullPointRecord[0];
-                        secondLastHullPointRecord = hullPointRecords.pop();
-                        secondLastHullPoint = secondLastHullPointRecord[0];
-
-                        var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
-
-                        if (crossProduct < 0) {
-                            // found a right turn
-                            hullPointRecords.push(secondLastHullPointRecord);
-                            hullPointRecords.push(lastHullPointRecord);
-                            hullPointRecords.push(currentPointRecord);
-                            correctTurnFound = true;
-
-                        } else if (crossProduct === 0) {
-                            // the three points are collinear
-                            // three options:
-                            // there may be a 180 or 0 degree angle at lastHullPoint
-                            // or two of the three points are coincident
-                            var THRESHOLD = 1e-10; // we have to take rounding errors into account
-                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
-                            if (abs(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
-                                // if the cross product is 0 because the angle is 180 degrees
-                                // discard last hull point (add to insidePoints)
-                                //insidePoints.unshift(lastHullPoint);
-                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-                                // reenter second-to-last hull point (will be last at next iter)
-                                hullPointRecords.push(secondLastHullPointRecord);
-                                // do not do anything with current point
-                                // correct turn not found
-
-                            } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
-                                // if the cross product is 0 because two points are the same
-                                // discard last hull point (add to insidePoints)
-                                //insidePoints.unshift(lastHullPoint);
-                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-                                // reenter second-to-last hull point (will be last at next iter)
-                                hullPointRecords.push(secondLastHullPointRecord);
-                                // do not do anything with current point
-                                // correct turn not found
-
-                            } else if (abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
-                                // if the cross product is 0 because the angle is 0 degrees
-                                // remove last hull point from hull BUT do not discard it
-                                // reenter second-to-last hull point (will be last at next iter)
-                                hullPointRecords.push(secondLastHullPointRecord);
-                                // put last hull point back into the sorted point records list
-                                sortedPointRecords.push(lastHullPointRecord);
-                                // we are switching the order of the 0deg and 180deg points
-                                // correct turn not found
-                            }
-
-                        } else {
-                            // found a left turn
-                            // discard last hull point (add to insidePoints)
-                            //insidePoints.unshift(lastHullPoint);
-                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-                            // reenter second-to-last hull point (will be last at next iter of loop)
-                            hullPointRecords.push(secondLastHullPointRecord);
-                            // do not do anything with current point
-                            // correct turn not found
-                        }
-                    }
-                }
-            }
-            // at this point, hullPointRecords contains the output points in clockwise order
-            // the points start with lowest-y,highest-x startPoint, and end at the same point
-
-            // step 3b: remove duplicated startPointRecord from the end of the array
-            if (hullPointRecords.length > 2) {
-                hullPointRecords.pop();
-            }
-
-            // step 4: find the lowest originalIndex record and put it at the beginning of hull
-            var lowestHullIndex; // the lowest originalIndex on the hull
-            var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
-            n = hullPointRecords.length;
-            for (i = 0; i < n; i++) {
-
-                var currentHullIndex = hullPointRecords[i][1];
-
-                if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
-                    lowestHullIndex = currentHullIndex;
-                    indexOfLowestHullIndexRecord = i;
-                }
-            }
-
-            var hullPointRecordsReordered = [];
-            if (indexOfLowestHullIndexRecord > 0) {
-                var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
-                var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
-                hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
-
-            } else {
-                hullPointRecordsReordered = hullPointRecords;
-            }
-
-            var hullPoints = [];
-            n = hullPointRecordsReordered.length;
-            for (i = 0; i < n; i++) {
-                hullPoints.push(hullPointRecordsReordered[i][0]);
-            }
-
-            return new Polyline(hullPoints);
-        },
-
-        // Checks whether two polylines are exactly the same.
-        // If `p` is undefined or null, returns false.
-        equals: function(p) {
-
-            if (!p) { return false; }
-
-            var points = this.points;
-            var otherPoints = p.points;
-
-            var numPoints = points.length;
-            if (otherPoints.length !== numPoints) { return false; } // if the two polylines have different number of points, they cannot be equal
-
-            for (var i = 0; i < numPoints; i++) {
-
-                var point = points[i];
-                var otherPoint = p.points[i];
-
-                // as soon as an inequality is found in points, return false
-                if (!point.equals(otherPoint)) { return false; }
-            }
-
-            // if no inequality found in points, return true
-            return true;
-        },
-
-        intersectionWithLine: function(l) {
-            var line = new Line(l);
-            var intersections = [];
-            var points = this.points;
-            for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i + 1];
-                var l2 = new Line(a, b);
-                var int = line.intersectionWithLine(l2);
-                if (int) { intersections.push(int[0]); }
-            }
-            return (intersections.length > 0) ? intersections : null;
-        },
-
-        isDifferentiable: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return false; }
-
-            var n = numPoints - 1;
-            for (var i = 0; i < n; i++) {
-
-                var a = points[i];
-                var b = points[i + 1];
-                var line = new Line(a, b);
-
-                // as soon as a differentiable line is found between two points, return true
-                if (line.isDifferentiable()) { return true; }
-            }
-
-            // if no differentiable line is found between pairs of points, return false
-            return false;
-        },
-
-        length: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return 0; } // if points array is empty
-
-            var length = 0;
-            var n = numPoints - 1;
-            for (var i = 0; i < n; i++) {
-                length += points[i].distance(points[i + 1]);
-            }
-
-            return length;
-        },
-
-        pointAt: function(ratio) {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-            if (numPoints === 1) { return points[0].clone(); } // if there is only one point
-
-            if (ratio <= 0) { return points[0].clone(); }
-            if (ratio >= 1) { return points[numPoints - 1].clone(); }
-
-            var polylineLength = this.length();
-            var length = polylineLength * ratio;
-
-            return this.pointAtLength(length);
-        },
-
-        pointAtLength: function(length) {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-            if (numPoints === 1) { return points[0].clone(); } // if there is only one point
-
-            var fromStart = true;
-            if (length < 0) {
-                fromStart = false; // negative lengths mean start calculation from end point
-                length = -length; // absolute value
-            }
-
-            var l = 0;
-            var n = numPoints - 1;
-            for (var i = 0; i < n; i++) {
-                var index = (fromStart ? i : (n - 1 - i));
-
-                var a = points[index];
-                var b = points[index + 1];
-                var line = new Line(a, b);
-                var d = a.distance(b);
-
-                if (length <= (l + d)) {
-                    return line.pointAtLength((fromStart ? 1 : -1) * (length - l));
-                }
-
-                l += d;
-            }
-
-            // if length requested is higher than the length of the polyline, return last endpoint
-            var lastPoint = (fromStart ? points[numPoints - 1] : points[0]);
-            return lastPoint.clone();
-        },
-
-        round: function(precision) {
-
-            var points = this.points;
-            var numPoints = points.length;
-
-            for (var i = 0; i < numPoints; i++) {
-                points[i].round(precision);
-            }
-
-            return this;
-        },
-
-        scale: function(sx, sy, origin) {
-
-            var points = this.points;
-            var numPoints = points.length;
-
-            for (var i = 0; i < numPoints; i++) {
-                points[i].scale(sx, sy, origin);
-            }
-
-            return this;
-        },
-
-        simplify: function(opt) {
-            if ( opt === void 0 ) opt = {};
-
-
-            var points = this.points;
-            if (points.length < 3) { return this; } // we need at least 3 points
-
-            // TODO: we may also accept startIndex and endIndex to specify where to start and end simplification
-            var threshold = opt.threshold || 0; // = max distance of middle point from chord to be simplified
-
-            // start at the beginning of the polyline and go forward
-            var currentIndex = 0;
-            // we need at least one intermediate point (3 points) in every iteration
-            // as soon as that stops being true, we know we reached the end of the polyline
-            while (points[currentIndex + 2]) {
-                var firstIndex = currentIndex;
-                var middleIndex = (currentIndex + 1);
-                var lastIndex = (currentIndex + 2);
-
-                var firstPoint = points[firstIndex];
-                var middlePoint = points[middleIndex];
-                var lastPoint = points[lastIndex];
-
-                var chord = new Line(firstPoint, lastPoint); // = connection between first and last point
-                var closestPoint = chord.closestPoint(middlePoint); // = closest point on chord from middle point
-                var closestPointDistance = closestPoint.distance(middlePoint);
-                if (closestPointDistance <= threshold) {
-                    // middle point is close enough to the chord = simplify
-                    // 1) remove middle point:
-                    points.splice(middleIndex, 1);
-                    // 2) in next iteration, investigate the newly-created triplet of points
-                    //    - do not change `currentIndex`
-                    //    = (first point stays, point after removed point becomes middle point)
-                } else {
-                    // middle point is far from the chord
-                    // 1) preserve middle point
-                    // 2) in next iteration, move `currentIndex` by one step:
-                    currentIndex += 1;
-                    //    = (point after first point becomes first point)
-                }
-            }
-
-            // `points` array was modified in-place
-            return this;
-        },
-
-        tangentAt: function(ratio) {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-            if (numPoints === 1) { return null; } // if there is only one point
-
-            if (ratio < 0) { ratio = 0; }
-            if (ratio > 1) { ratio = 1; }
-
-            var polylineLength = this.length();
-            var length = polylineLength * ratio;
-
-            return this.tangentAtLength(length);
-        },
-
-        tangentAtLength: function(length) {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-            if (numPoints === 1) { return null; } // if there is only one point
-
-            var fromStart = true;
-            if (length < 0) {
-                fromStart = false; // negative lengths mean start calculation from end point
-                length = -length; // absolute value
-            }
-
-            var lastValidLine; // differentiable (with a tangent)
-            var l = 0; // length so far
-            var n = numPoints - 1;
-            for (var i = 0; i < n; i++) {
-                var index = (fromStart ? i : (n - 1 - i));
-
-                var a = points[index];
-                var b = points[index + 1];
-                var line = new Line(a, b);
-                var d = a.distance(b);
-
-                if (line.isDifferentiable()) { // has a tangent line (line length is not 0)
-                    if (length <= (l + d)) {
-                        return line.tangentAtLength((fromStart ? 1 : -1) * (length - l));
-                    }
-
-                    lastValidLine = line;
-                }
-
-                l += d;
-            }
-
-            // if length requested is higher than the length of the polyline, return last valid endpoint
-            if (lastValidLine) {
-                var ratio = (fromStart ? 1 : 0);
-                return lastValidLine.tangentAt(ratio);
-            }
-
-            // if no valid line, return null
-            return null;
-        },
-
-        toString: function() {
-
-            return this.points + '';
-        },
-
-        translate: function(tx, ty) {
-
-            var points = this.points;
-            var numPoints = points.length;
-
-            for (var i = 0; i < numPoints; i++) {
-                points[i].translate(tx, ty);
-            }
-
-            return this;
-        },
-
-        // Return svgString that can be used to recreate this line.
-        serialize: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return ''; } // if points array is empty
-
-            var output = '';
-            for (var i = 0; i < numPoints; i++) {
-
-                var point = points[i];
-                output += point.x + ',' + point.y + ' ';
-            }
-
-            return output.trim();
-        }
-    };
-
-    Object.defineProperty(Polyline.prototype, 'start', {
-        // Getter for the first point of the polyline.
-
-        configurable: true,
-
-        enumerable: true,
-
-        get: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-
-            return this.points[0];
-        },
-    });
-
-    Object.defineProperty(Polyline.prototype, 'end', {
-        // Getter for the last point of the polyline.
-
-        configurable: true,
-
-        enumerable: true,
-
-        get: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return null; } // if points array is empty
-
-            return this.points[numPoints - 1];
-        },
-    });
-
-    var Rect = function(x, y, w, h) {
-
-        if (!(this instanceof Rect)) {
-            return new Rect(x, y, w, h);
-        }
-
-        if ((Object(x) === x)) {
-            y = x.y;
-            w = x.width;
-            h = x.height;
-            x = x.x;
-        }
-
-        this.x = x === undefined ? 0 : x;
-        this.y = y === undefined ? 0 : y;
-        this.width = w === undefined ? 0 : w;
-        this.height = h === undefined ? 0 : h;
-    };
-
-    Rect.fromEllipse = function(e) {
-
-        e = new Ellipse(e);
-        return new Rect(e.x - e.a, e.y - e.b, 2 * e.a, 2 * e.b);
-    };
-
-    Rect.prototype = {
-
-        // Find my bounding box when I'm rotated with the center of rotation in the center of me.
-        // @return r {rectangle} representing a bounding box
-        bbox: function(angle) {
-
-            if (!angle) { return this.clone(); }
-
-            var theta = toRad(angle);
-            var st = abs(sin(theta));
-            var ct = abs(cos(theta));
-            var w = this.width * ct + this.height * st;
-            var h = this.width * st + this.height * ct;
-            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
-        },
-
-        bottomLeft: function() {
-
-            return new Point(this.x, this.y + this.height);
-        },
-
-        bottomLine: function() {
-
-            return new Line(this.bottomLeft(), this.bottomRight());
-        },
-
-        bottomMiddle: function() {
-
-            return new Point(this.x + this.width / 2, this.y + this.height);
-        },
-
-        center: function() {
-
-            return new Point(this.x + this.width / 2, this.y + this.height / 2);
-        },
-
-        clone: function() {
-
-            return new Rect(this);
-        },
-
-        // @return {bool} true if point p is inside me.
-        containsPoint: function(p) {
-
-            p = new Point(p);
-            return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
-        },
-
-        // @return {bool} true if rectangle `r` is inside me.
-        containsRect: function(r) {
-
-            var r0 = new Rect(this).normalize();
-            var r1 = new Rect(r).normalize();
-            var w0 = r0.width;
-            var h0 = r0.height;
-            var w1 = r1.width;
-            var h1 = r1.height;
-
-            if (!w0 || !h0 || !w1 || !h1) {
-                // At least one of the dimensions is 0
-                return false;
-            }
-
-            var x0 = r0.x;
-            var y0 = r0.y;
-            var x1 = r1.x;
-            var y1 = r1.y;
-
-            w1 += x1;
-            w0 += x0;
-            h1 += y1;
-            h0 += y0;
-
-            return x0 <= x1 && w1 <= w0 && y0 <= y1 && h1 <= h0;
-        },
-
-        corner: function() {
-
-            return new Point(this.x + this.width, this.y + this.height);
-        },
-
-        // @return {boolean} true if rectangles are equal.
-        equals: function(r) {
-
-            var mr = (new Rect(this)).normalize();
-            var nr = (new Rect(r)).normalize();
-            return mr.x === nr.x && mr.y === nr.y && mr.width === nr.width && mr.height === nr.height;
-        },
-
-        // inflate by dx and dy, recompute origin [x, y]
-        // @param dx {delta_x} representing additional size to x
-        // @param dy {delta_y} representing additional size to y -
-        // dy param is not required -> in that case y is sized by dx
-        inflate: function(dx, dy) {
-
-            if (dx === undefined) {
-                dx = 0;
-            }
-
-            if (dy === undefined) {
-                dy = dx;
-            }
-
-            this.x -= dx;
-            this.y -= dy;
-            this.width += 2 * dx;
-            this.height += 2 * dy;
-
-            return this;
-        },
-
-        // @return {rect} if rectangles intersect, {null} if not.
-        intersect: function(r) {
-
-            var myOrigin = this.origin();
-            var myCorner = this.corner();
-            var rOrigin = r.origin();
-            var rCorner = r.corner();
-
-            // No intersection found
-            if (rCorner.x <= myOrigin.x ||
-                rCorner.y <= myOrigin.y ||
-                rOrigin.x >= myCorner.x ||
-                rOrigin.y >= myCorner.y) { return null; }
-
-            var x = max(myOrigin.x, rOrigin.x);
-            var y = max(myOrigin.y, rOrigin.y);
-
-            return new Rect(x, y, min(myCorner.x, rCorner.x) - x, min(myCorner.y, rCorner.y) - y);
-        },
-
-        intersectionWithLine: function(line) {
-
-            var r = this;
-            var rectLines = [r.topLine(), r.rightLine(), r.bottomLine(), r.leftLine()];
-            var points = [];
-            var dedupeArr = [];
-            var pt, i;
-
-            var n = rectLines.length;
-            for (i = 0; i < n; i++) {
-
-                pt = line.intersect(rectLines[i]);
-                if (pt !== null && dedupeArr.indexOf(pt.toString()) < 0) {
-                    points.push(pt);
-                    dedupeArr.push(pt.toString());
-                }
-            }
-
-            return points.length > 0 ? points : null;
-        },
-
-        // Find point on my boundary where line starting
-        // from my center ending in point p intersects me.
-        // @param {number} angle If angle is specified, intersection with rotated rectangle is computed.
-        intersectionWithLineFromCenterToPoint: function(p, angle) {
-
-            p = new Point(p);
-            var center = new Point(this.x + this.width / 2, this.y + this.height / 2);
-            var result;
-
-            if (angle) { p.rotate(center, angle); }
-
-            // (clockwise, starting from the top side)
-            var sides = [
-                this.topLine(),
-                this.rightLine(),
-                this.bottomLine(),
-                this.leftLine()
-            ];
-            var connector = new Line(center, p);
-
-            for (var i = sides.length - 1; i >= 0; --i) {
-                var intersection = sides[i].intersection(connector);
-                if (intersection !== null) {
-                    result = intersection;
-                    break;
-                }
-            }
-            if (result && angle) { result.rotate(center, -angle); }
-            return result;
-        },
-
-        leftLine: function() {
-
-            return new Line(this.topLeft(), this.bottomLeft());
-        },
-
-        leftMiddle: function() {
-
-            return new Point(this.x, this.y + this.height / 2);
-        },
-
-        maxRectScaleToFit: function(rect, origin) {
-
-            rect = new Rect(rect);
-            origin || (origin = rect.center());
-
-            var sx1, sx2, sx3, sx4, sy1, sy2, sy3, sy4;
-            var ox = origin.x;
-            var oy = origin.y;
-
-            // Here we find the maximal possible scale for all corner points (for x and y axis) of the rectangle,
-            // so when the scale is applied the point is still inside the rectangle.
-
-            sx1 = sx2 = sx3 = sx4 = sy1 = sy2 = sy3 = sy4 = Infinity;
-
-            // Top Left
-            var p1 = rect.topLeft();
-            if (p1.x < ox) {
-                sx1 = (this.x - ox) / (p1.x - ox);
-            }
-            if (p1.y < oy) {
-                sy1 = (this.y - oy) / (p1.y - oy);
-            }
-            // Bottom Right
-            var p2 = rect.bottomRight();
-            if (p2.x > ox) {
-                sx2 = (this.x + this.width - ox) / (p2.x - ox);
-            }
-            if (p2.y > oy) {
-                sy2 = (this.y + this.height - oy) / (p2.y - oy);
-            }
-            // Top Right
-            var p3 = rect.topRight();
-            if (p3.x > ox) {
-                sx3 = (this.x + this.width - ox) / (p3.x - ox);
-            }
-            if (p3.y < oy) {
-                sy3 = (this.y - oy) / (p3.y - oy);
-            }
-            // Bottom Left
-            var p4 = rect.bottomLeft();
-            if (p4.x < ox) {
-                sx4 = (this.x - ox) / (p4.x - ox);
-            }
-            if (p4.y > oy) {
-                sy4 = (this.y + this.height - oy) / (p4.y - oy);
-            }
-
-            return {
-                sx: min(sx1, sx2, sx3, sx4),
-                sy: min(sy1, sy2, sy3, sy4)
-            };
-        },
-
-        maxRectUniformScaleToFit: function(rect, origin) {
-
-            var scale = this.maxRectScaleToFit(rect, origin);
-            return min(scale.sx, scale.sy);
-        },
-
-        // Move and expand me.
-        // @param r {rectangle} representing deltas
-        moveAndExpand: function(r) {
-
-            this.x += r.x || 0;
-            this.y += r.y || 0;
-            this.width += r.width || 0;
-            this.height += r.height || 0;
-            return this;
-        },
-
-        // Normalize the rectangle; i.e., make it so that it has a non-negative width and height.
-        // If width < 0 the function swaps the left and right corners,
-        // and it swaps the top and bottom corners if height < 0
-        // like in http://qt-project.org/doc/qt-4.8/qrectf.html#normalized
-        normalize: function() {
-
-            var newx = this.x;
-            var newy = this.y;
-            var newwidth = this.width;
-            var newheight = this.height;
-            if (this.width < 0) {
-                newx = this.x + this.width;
-                newwidth = -this.width;
-            }
-            if (this.height < 0) {
-                newy = this.y + this.height;
-                newheight = -this.height;
-            }
-            this.x = newx;
-            this.y = newy;
-            this.width = newwidth;
-            this.height = newheight;
-            return this;
-        },
-
-        // Offset me by the specified amount.
-        offset: function(dx, dy) {
-
-            // pretend that this is a point and call offset()
-            // rewrites x and y according to dx and dy
-            return Point.prototype.offset.call(this, dx, dy);
-        },
-
-        origin: function() {
-
-            return new Point(this.x, this.y);
-        },
-
-        // @return {point} a point on my boundary nearest to the given point.
-        // @see Squeak Smalltalk, Rectangle>>pointNearestTo:
-        pointNearestToPoint: function(point) {
-
-            point = new Point(point);
-            if (this.containsPoint(point)) {
-                var side = this.sideNearestToPoint(point);
-                switch (side) {
-                    case 'right':
-                        return new Point(this.x + this.width, point.y);
-                    case 'left':
-                        return new Point(this.x, point.y);
-                    case 'bottom':
-                        return new Point(point.x, this.y + this.height);
-                    case 'top':
-                        return new Point(point.x, this.y);
-                }
-            }
-            return point.adhereToRect(this);
-        },
-
-        rightLine: function() {
-
-            return new Line(this.topRight(), this.bottomRight());
-        },
-
-        rightMiddle: function() {
-
-            return new Point(this.x + this.width, this.y + this.height / 2);
-        },
-
-        round: function(precision) {
-
-            var f = 1; // case 0
-            if (precision) {
-                switch (precision) {
-                    case 1: f = 10; break;
-                    case 2: f = 100; break;
-                    case 3: f = 1000; break;
-                    default: f = pow(10, precision); break;
-                }
-            }
-
-            this.x = round(this.x * f) / f;
-            this.y = round(this.y * f) / f;
-            this.width = round(this.width * f) / f;
-            this.height = round(this.height * f) / f;
-            return this;
-        },
-
-        // Scale rectangle with origin.
-        scale: function(sx, sy, origin) {
-
-            origin = this.origin().scale(sx, sy, origin);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width *= sx;
-            this.height *= sy;
-            return this;
-        },
-
-        // @return {string} (left|right|top|bottom) side which is nearest to point
-        // @see Squeak Smalltalk, Rectangle>>sideNearestTo:
-        sideNearestToPoint: function(point) {
-
-            point = new Point(point);
-            var distToLeft = point.x - this.x;
-            var distToRight = (this.x + this.width) - point.x;
-            var distToTop = point.y - this.y;
-            var distToBottom = (this.y + this.height) - point.y;
-            var closest = distToLeft;
-            var side = 'left';
-
-            if (distToRight < closest) {
-                closest = distToRight;
-                side = 'right';
-            }
-            if (distToTop < closest) {
-                closest = distToTop;
-                side = 'top';
-            }
-            if (distToBottom < closest) {
-                // closest = distToBottom;
-                side = 'bottom';
-            }
-            return side;
-        },
-
-        snapToGrid: function(gx, gy) {
-
-            var origin = this.origin().snapToGrid(gx, gy);
-            var corner = this.corner().snapToGrid(gx, gy);
-            this.x = origin.x;
-            this.y = origin.y;
-            this.width = corner.x - origin.x;
-            this.height = corner.y - origin.y;
-            return this;
-        },
-
-        toJSON: function() {
-
-            return { x: this.x, y: this.y, width: this.width, height: this.height };
-        },
-
-        topLine: function() {
-
-            return new Line(this.topLeft(), this.topRight());
-        },
-
-        topMiddle: function() {
-
-            return new Point(this.x + this.width / 2, this.y);
-        },
-
-        topRight: function() {
-
-            return new Point(this.x + this.width, this.y);
-        },
-
-        toString: function() {
-
-            return this.origin().toString() + ' ' + this.corner().toString();
-        },
-
-        // @return {rect} representing the union of both rectangles.
-        union: function(rect) {
-
-            var u = new Rect(rect);
-            var ref = this;
-            var x = ref.x;
-            var y = ref.y;
-            var width = ref.width;
-            var height = ref.height;
-            var rx = u.x;
-            var ry = u.y;
-            var rw = u.width;
-            var rh = u.height;
-            var ux = u.x = min(x, rx);
-            var uy = u.y = min(y, ry);
-            u.width = max(x + width, rx + rw) - ux;
-            u.height = max(y + height, ry + rh) - uy;
-            return u;
-        }
-    };
-
-    Rect.prototype.bottomRight = Rect.prototype.corner;
-
-    Rect.prototype.topLeft = Rect.prototype.origin;
-
-    Rect.prototype.translate = Rect.prototype.offset;
-
-    var scale = {
-
-        // Return the `value` from the `domain` interval scaled to the `range` interval.
-        linear: function(domain, range, value) {
-
-            var domainSpan = domain[1] - domain[0];
-            var rangeSpan = range[1] - range[0];
-            return (((value - domain[0]) / domainSpan) * rangeSpan + range[0]) || 0;
-        }
-    };
-
-    var normalizeAngle = function(angle) {
-
-        return (angle % 360) + (angle < 0 ? 360 : 0);
-    };
-
-    var snapToGrid = function(value, gridSize) {
-
-        return gridSize * round(value / gridSize);
-    };
-
-    var toDeg = function(rad) {
-
-        return (180 * rad / PI) % 360;
-    };
-
-    var toRad = function(deg, over360) {
-
-        over360 = over360 || false;
-        deg = over360 ? deg : (deg % 360);
-        return deg * PI / 180;
-    };
-
-    // Return a random integer from the interval [min,max], inclusive.
-    var random = function(min, max) {
-
-        if (max === undefined) {
-            // use first argument as max, min is 0
-            max = (min === undefined) ? 1 : min;
-            min = 0;
-
-        } else if (max < min) {
-            // switch max and min
-            var temp = min;
-            min = max;
-            max = temp;
-        }
-
-        return floor((math.random() * (max - min + 1)) + min);
-    };
-
-    // For backwards compatibility:
-    var ellipse = Ellipse;
-    var line = Line;
-    var point = Point;
-    var rect = Rect;
 
     // Local helper function.
     // Use an array of arguments to call a constructor (function called with `new`).
@@ -5641,6 +5572,178 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         if (typeof data !== 'string') { return false; }
         return this.regexSupportedData.test(data);
+    };
+
+    var bezier = {
+
+        // Cubic Bezier curve path through points.
+        // @deprecated
+        // @param {array} points Array of points through which the smooth line will go.
+        // @return {array} SVG Path commands as an array
+        curveThroughPoints: function(points) {
+
+            console.warn('deprecated');
+
+            return new Path(Curve.throughPoints(points)).serialize();
+        },
+
+        // Get open-ended Bezier Spline Control Points.
+        // @deprecated
+        // @param knots Input Knot Bezier spline points (At least two points!).
+        // @param firstControlPoints Output First Control points. Array of knots.length - 1 length.
+        // @param secondControlPoints Output Second Control points. Array of knots.length - 1 length.
+        getCurveControlPoints: function(knots) {
+
+            console.warn('deprecated');
+
+            var firstControlPoints = [];
+            var secondControlPoints = [];
+            var n = knots.length - 1;
+            var i;
+
+            // Special case: Bezier curve should be a straight line.
+            if (n == 1) {
+                // 3P1 = 2P0 + P3
+                firstControlPoints[0] = new Point(
+                    (2 * knots[0].x + knots[1].x) / 3,
+                    (2 * knots[0].y + knots[1].y) / 3
+                );
+
+                // P2 = 2P1 – P0
+                secondControlPoints[0] = new Point(
+                    2 * firstControlPoints[0].x - knots[0].x,
+                    2 * firstControlPoints[0].y - knots[0].y
+                );
+
+                return [firstControlPoints, secondControlPoints];
+            }
+
+            // Calculate first Bezier control points.
+            // Right hand side vector.
+            var rhs = [];
+
+            // Set right hand side X values.
+            for (i = 1; i < n - 1; i++) {
+                rhs[i] = 4 * knots[i].x + 2 * knots[i + 1].x;
+            }
+
+            rhs[0] = knots[0].x + 2 * knots[1].x;
+            rhs[n - 1] = (8 * knots[n - 1].x + knots[n].x) / 2.0;
+
+            // Get first control points X-values.
+            var x = this.getFirstControlPoints(rhs);
+
+            // Set right hand side Y values.
+            for (i = 1; i < n - 1; ++i) {
+                rhs[i] = 4 * knots[i].y + 2 * knots[i + 1].y;
+            }
+
+            rhs[0] = knots[0].y + 2 * knots[1].y;
+            rhs[n - 1] = (8 * knots[n - 1].y + knots[n].y) / 2.0;
+
+            // Get first control points Y-values.
+            var y = this.getFirstControlPoints(rhs);
+
+            // Fill output arrays.
+            for (i = 0; i < n; i++) {
+                // First control point.
+                firstControlPoints.push(new Point(x[i], y[i]));
+
+                // Second control point.
+                if (i < n - 1) {
+                    secondControlPoints.push(new Point(
+                        2 * knots [i + 1].x - x[i + 1],
+                        2 * knots[i + 1].y - y[i + 1]
+                    ));
+
+                } else {
+                    secondControlPoints.push(new Point(
+                        (knots[n].x + x[n - 1]) / 2,
+                        (knots[n].y + y[n - 1]) / 2)
+                    );
+                }
+            }
+
+            return [firstControlPoints, secondControlPoints];
+        },
+
+        // Divide a Bezier curve into two at point defined by value 't' <0,1>.
+        // Using deCasteljau algorithm. http://math.stackexchange.com/a/317867
+        // @deprecated
+        // @param control points (start, control start, control end, end)
+        // @return a function that accepts t and returns 2 curves.
+        getCurveDivider: function(p0, p1, p2, p3) {
+
+            console.warn('deprecated');
+
+            var curve = new Curve(p0, p1, p2, p3);
+
+            return function divideCurve(t) {
+
+                var divided = curve.divide(t);
+
+                return [{
+                    p0: divided[0].start,
+                    p1: divided[0].controlPoint1,
+                    p2: divided[0].controlPoint2,
+                    p3: divided[0].end
+                }, {
+                    p0: divided[1].start,
+                    p1: divided[1].controlPoint1,
+                    p2: divided[1].controlPoint2,
+                    p3: divided[1].end
+                }];
+            };
+        },
+
+        // Solves a tridiagonal system for one of coordinates (x or y) of first Bezier control points.
+        // @deprecated
+        // @param rhs Right hand side vector.
+        // @return Solution vector.
+        getFirstControlPoints: function(rhs) {
+
+            console.warn('deprecated');
+
+            var n = rhs.length;
+            // `x` is a solution vector.
+            var x = [];
+            var tmp = [];
+            var b = 2.0;
+
+            x[0] = rhs[0] / b;
+
+            // Decomposition and forward substitution.
+            for (var i = 1; i < n; i++) {
+                tmp[i] = 1 / b;
+                b = (i < n - 1 ? 4.0 : 3.5) - tmp[i];
+                x[i] = (rhs[i] - x[i - 1]) / b;
+            }
+
+            for (i = 1; i < n; i++) {
+                // Backsubstitution.
+                x[n - i - 1] -= tmp[n - i] * x[n - i];
+            }
+
+            return x;
+        },
+
+        // Solves an inversion problem -- Given the (x, y) coordinates of a point which lies on
+        // a parametric curve x = x(t)/w(t), y = y(t)/w(t), ﬁnd the parameter value t
+        // which corresponds to that point.
+        // @deprecated
+        // @param control points (start, control start, control end, end)
+        // @return a function that accepts a point and returns t.
+        getInversionSolver: function(p0, p1, p2, p3) {
+
+            console.warn('deprecated');
+
+            var curve = new Curve(p0, p1, p2, p3);
+
+            return function solveInversion(p) {
+
+                return curve.closestPointT(p);
+            };
+        }
     };
 
     exports.Curve = Curve;
