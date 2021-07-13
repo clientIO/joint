@@ -318,6 +318,25 @@ QUnit.module('routers', function(hooks) {
         assert.checkDataPath(d, 'M 20 70 L 0 70 L 0 10 L 760 10 L 760 70 L 740 70',
             'Set startDirections & endDirections parameters makes routing starts and ends from/to the given direction.');
 
+
+        var spyIsPointObstacle = sinon.spy(function() { return false; });
+
+        l0.set({
+            vertices: [],
+            router: {
+                name: 'manhattan',
+                args: {
+                    isPointObstacle: spyIsPointObstacle
+                }
+            }
+        });
+
+        d = v0.$('.connection').attr('d');
+
+        assert.ok(spyIsPointObstacle.called);
+        assert.ok(spyIsPointObstacle.alwaysCalledWithExactly(sinon.match.instanceOf(g.Point)));
+        assert.checkDataPath(d, 'M 140 70 L 620 70','isPointObstacle option is taken into account');
+
     });
 
     QUnit.test('metro routing', function(assert) {

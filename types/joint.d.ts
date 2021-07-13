@@ -2959,7 +2959,8 @@ export namespace routers {
         excludeTypes?: string[];
         startDirections?: dia.OrthogonalDirection[];
         endDirections?: dia.OrthogonalDirection[];
-    }
+        isPointObstacle?: (point: dia.Point) => boolean;
+    };
 
     interface OrthogonalRouterArguments {
         elementPadding?: number;

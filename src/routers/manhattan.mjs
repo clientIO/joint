@@ -86,6 +86,11 @@ var config = {
         };
     },
 
+    // A function that determines whether a given point is an obstacle or not.
+    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
+    // (point: dia.Point) => boolean;
+    isPointObstacle: null,
+
     // a router to use when the manhattan router fails
     // (one of the partial routes returns null)
     fallbackRouter: function(vertices, opt, linkView) {
@@ -552,7 +557,7 @@ function getRectPoints(anchor, bbox, directionList, grid, opt) {
 
 // finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
 // rectangles get rect points assigned by getRectPoints()
-function findRoute(from, to, map, opt) {
+function findRoute(from, to, isPointObstacle, opt) {
 
     var precision = opt.precision;
 
@@ -600,8 +605,8 @@ function findRoute(from, to, map, opt) {
     }
 
     // take into account only accessible rect points (those not under obstacles)
-    startPoints = startPoints.filter(map.isPointAccessible, map);
-    endPoints = endPoints.filter(map.isPointAccessible, map);
+    startPoints = startPoints.filter(p => !isPointObstacle(p));
+    endPoints = endPoints.filter(p => !isPointObstacle(p));
 
     // Check that there is an accessible route point on both sides.
     // Otherwise, use fallbackRoute().
@@ -696,7 +701,7 @@ function findRoute(from, to, map, opt) {
                 var neighborKey = getKey(neighborPoint);
 
                 // Closed points from the openSet were already evaluated.
-                if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) continue;
+                if (openSet.isClose(neighborKey) || isPointObstacle(neighborPoint)) continue;
 
                 // We can only enter end points at an acceptable angle.
                 if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
@@ -780,7 +785,15 @@ function router(vertices, opt, linkView) {
     //var targetAnchor = getTargetAnchor(linkView, opt);
 
     // pathfinding
-    var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
+    let isPointObstacle;
+    if (typeof opt.isPointObstacle === 'function') {
+        isPointObstacle = opt.isPointObstacle;
+    } else {
+        const map = new ObstacleMap(opt);
+        map.build(linkView.paper.model, linkView.model);
+        isPointObstacle = (point) => !map.isPointAccessible(point);
+    }
+
     var oldVertices = util.toArray(vertices).map(g.Point);
     var newVertices = [];
     var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
@@ -817,7 +830,7 @@ function router(vertices, opt, linkView) {
         }
 
         // if partial route has not been calculated yet use the main routing method to find one
-        partialRoute = partialRoute || findRoute.call(linkView, from, to, map, opt);
+        partialRoute = partialRoute || findRoute.call(linkView, from, to, isPointObstacle, opt);
 
         if (partialRoute === null) { // the partial route cannot be found
             return opt.fallbackRouter(vertices, opt, linkView);
