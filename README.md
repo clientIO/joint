@@ -1,6 +1,6 @@
 # JointJS - JavaScript diagramming library
 
-[![Build Status](https://travis-ci.org/clientIO/joint.svg?branch=master)](https://travis-ci.org/clientIO/joint)
+[![Build Status](https://travis-ci.com/clientIO/joint.svg?branch=master)](https://travis-ci.com/clientIO/joint)
 [![Code Quality: Javascript](https://img.shields.io/lgtm/grade/javascript/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/context:javascript)
 [![Total Alerts](https://img.shields.io/lgtm/alerts/g/clientIO/joint.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/clientIO/joint/alerts)
 
