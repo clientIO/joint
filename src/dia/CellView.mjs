@@ -153,7 +153,16 @@ export const CellView = View.extend({
     },
 
     onAttributesChange: function(model, opt) {
-        var flag = model.getChangeFlag(this._presentationAttributes);
+        var presentationAttributes = this._presentationAttributes;
+        var dependencies = this._dependencies;
+        if (Array.isArray(dependencies) && dependencies.length > 0) {
+            const updateFlag = this.getFlag('UPDATE');
+            presentationAttributes = Object.assign({}, presentationAttributes);
+            dependencies.forEach(dependency => {
+                presentationAttributes[dependency] |= updateFlag;
+            });
+        }
+        var flag = model.getChangeFlag(presentationAttributes);
         if (opt.updateHandled || !flag) return;
         if (opt.dirty && this.hasFlag(flag, 'UPDATE')) flag |= this.getFlag('RENDER');
         // TODO: tool changes does not need to be sync
@@ -473,10 +482,45 @@ export const CellView = View.extend({
         var attrName, attrVal, def, i, n;
         var normalAttrs, setAttrs, positionAttrs, offsetAttrs;
         var relatives = [];
+        var dependencies = [];
+
         // divide the attributes between normal and special
         for (attrName in attrs) {
             if (!attrs.hasOwnProperty(attrName)) continue;
             attrVal = attrs[attrName];
+            if (attrName.startsWith('@')) {
+                // attrVal is a path
+                var path = attrVal;
+                var dependency;
+                if (Array.isArray(path)) {
+                    [dependency] = path;
+                } else if (isString(path)) {
+                    // var args = path.split(/[(),]/g).filter(Boolean);
+                    // var CONCAT = function(model, ...args) {
+                    //     return args.reduce((res, arg) => {
+                    //         if (arg[0] === '"') {
+                    //             return res + arg.slice(1, -1);
+                    //         }
+                    //         return res + (model.prop(arg) || '');
+                    //     }, '');
+                    // };
+                    // if (args.length > 1) {
+                    //     attrVal = CONCAT(this.model, ...args.slice(1));
+                    // } else {
+                    //     // Get the actual value of the attribute from the model
+                    //     attrVal = this.model.prop(path);
+                    // }
+                    [dependency] = path.split('/');
+                } else {
+                    continue;
+                }
+                dependencies.push(dependency);
+                // Get the actual value of the attribute from the model
+                attrVal = this.model.prop(path);
+                // Remove @ symbol from the attribute name
+                attrName = attrName.slice(1);
+            }
+
             def = this.getAttributeDefinition(attrName);
             if (def && (!isFunction(def.qualify) || def.qualify.call(this, attrVal, node, attrs))) {
                 if (isString(def.set)) {
@@ -484,7 +528,7 @@ export const CellView = View.extend({
                     normalAttrs[def.set] = attrVal;
                 }
                 if (attrVal !== null) {
-                    relatives.push(attrName, def);
+                    relatives.push(attrName, def, attrVal);
                 }
             } else {
                 normalAttrs || (normalAttrs = {});
@@ -494,10 +538,10 @@ export const CellView = View.extend({
 
         // handle the rest of attributes via related method
         // from the special attributes namespace.
-        for (i = 0, n = relatives.length; i < n; i+=2) {
+        for (i = 0, n = relatives.length; i < n; i+=3) {
             attrName = relatives[i];
             def = relatives[i+1];
-            attrVal = attrs[attrName];
+            attrVal = relatives[i+2];
             if (isFunction(def.set)) {
                 setAttrs || (setAttrs = {});
                 setAttrs[attrName] = attrVal;
@@ -517,7 +561,8 @@ export const CellView = View.extend({
             normal: normalAttrs,
             set: setAttrs,
             position: positionAttrs,
-            offset: offsetAttrs
+            offset: offsetAttrs,
+            dependencies: dependencies
         };
     },
 
@@ -641,6 +686,7 @@ export const CellView = View.extend({
 
     cleanNodesCache: function() {
         this.metrics = {};
+        this._dependencies = [];
     },
 
     nodeCache: function(magnet) {
@@ -790,6 +836,9 @@ export const CellView = View.extend({
             nodeAttrs = nodeData.attributes;
             node = nodeData.node;
             processedAttrs = this.processNodeAttributes(node, nodeAttrs);
+
+            var dependencies = this._dependencies;
+            if (dependencies) dependencies.push(...processedAttrs.dependencies);
 
             if (!processedAttrs.set && !processedAttrs.position && !processedAttrs.offset) {
                 // Set all the normal attributes right on the SVG/HTML element.
