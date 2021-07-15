@@ -607,25 +607,31 @@ export const ElementView = CellView.extend({
     pointerdown: function(evt, x, y) {
 
         if (this.isPropagationStopped(evt)) return;
-
         this.notifyPointerdown(evt, x, y);
+
+        if (this.isDefaultPrevented(evt)) return;
         this.dragStart(evt, x, y);
     },
 
     pointermove: function(evt, x, y) {
 
-        var data = this.eventData(evt);
+        const data = this.eventData(evt);
 
         switch (data.action) {
-            case 'magnet':
+            case 'magnet': {
                 this.dragMagnet(evt, x, y);
                 break;
-            case 'move':
-                (data.delegatedView || this).drag(evt, x, y);
-            // eslint: no-fallthrough=false
-            default:
+            }
+            case 'move': {
+                const view = data.delegatedView || this;
+                view.drag(evt, x, y);
                 this.notifyPointermove(evt, x, y);
                 break;
+            }
+            default: {
+                this.notifyPointermove(evt, x, y);
+                break;
+            }
         }
 
         // Make sure the element view data is passed along.
