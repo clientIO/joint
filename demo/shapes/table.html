@@ -2,10 +2,131 @@
 <html>
 <head>
     <meta charset="utf8"/>
-    <title>Table shape</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+
+    <title>Halo</title>
+
     <link rel="stylesheet" type="text/css" href="../../build/joint.css"/>
+
+    <style>
+        h3 {
+            margin-top: 60px;
+        }
+    </style>
 </head>
 <body>
+
+<h3>Create empty table 2x2</h3>
+<pre><code class="javascript hljs">var table = new Table({
+    position: { x: 40, y: 40 },
+    table: {
+        numberOfRows: 2,
+        numberOfColumns: 2,
+        fill: [
+            { color: '#fbfbfb' },
+        ],
+        border: [
+            { grid: true, sides: undefined, color: '#aaaaaa', size: 1 },
+            { grid: false, color: '#2d2d2d', size: 1 },
+        ]
+    },
+    size: { width: 200, height: 90 },
+});
+graph.addCell(table);
+</code></pre>
+<a onclick="createSimpleTable()" href="javascript:window.scrollTo({top: 0})">RUN</a>
+
+<h3>Create a simple 3x3 table with values </h3>
+<pre><code class="javascript hljs">var table = new Table({
+    position: { x: 40, y: 40 },
+    table: {
+        fill: [
+            { color: '#fbfbfb' },
+        ],
+        border: [
+            { grid: true, sides: undefined, color: '#aaaaaa', size: 1 },
+            { grid: false, color: '#2d2d2d', size: 1 },
+        ],
+        columns: {
+            '0': { width: 100 },
+            '1': { width: 40 },
+            '2': { width: 100 }
+        },
+        rows: {
+            '0': {
+                height: 50,
+                cells: {
+                    '0': { value: 'text value 1' },
+                    '2': { value: 'text value 2' }
+                }
+            },
+            '2': {
+                height: 20,
+                cells: {
+                    '0': { value: 'text value 1' },
+                    '2': { value: 'text value 2' }
+                }
+            },
+
+        },
+        size: { width: 200, height: 90 }
+    }
+});
+graph.addCell(table);
+</code></pre>
+<a onclick="createSimpleTableA()" href="javascript:window.scrollTo({top: 0})">RUN</a>
+
+<h3>Table API</h3>
+<pre><code class="javascript hljs">// add a single row
+table.addRow({
+    cells: {
+        '1': { value: 'A' },
+        '2': { value: 'A' }
+    }
+});
+
+console.assert(table.prop('table/numberOfColumns') === 3, 'should have 3 cols');
+
+// add 2 rows
+table.addRows([{
+    cells: {
+        '1': { value: 'B' },
+        '2': { value: 'B' }
+    }
+}, {
+    cells: {
+        '5': { value: 'C' },
+        '4': { value: 'C' }
+    }
+}, {}]);
+
+console.assert(table.prop('table/numberOfColumns') === 6, 'should have 6 cols');
+
+// add single table column
+table.addColumn({ width: 200 });
+
+// add table columns
+table.addColumns([
+    { width: 10 },
+    { width: 10 },
+    { width: 10 },
+    { width: 10 }
+]);
+
+// set row height
+table.tableRowProp(0, { height: 90 });
+
+// set column width
+table.tableColumnProp(3, { width: 220 });
+
+// read cell value
+var cellValue = table.tableCellValue(4, 1);
+console.assert(cellValue === 'B', 'get table cell value should be "B"', cellValue);
+
+// update cell value
+table.tableCellValue(4, 2, 'BBB');
+</code></pre>
+
 
 <script src="../../node_modules/jquery/dist/jquery.js"></script>
 <script src="../../node_modules/lodash/lodash.js"></script>
@@ -13,5 +134,16 @@
 <script src="../../build/joint.js"></script>
 <script src="./src/table.js"></script>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/vs2015.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+
+<script type="text/javascript">
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightBlock(block);
+        });
+    });
+</script>
 </body>
 </html>
