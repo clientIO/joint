@@ -834,6 +834,8 @@ export namespace dia {
     class LinkView extends CellViewGeneric<Link> {
 
         options: LinkView.Options;
+        sourceAnchor: g.Point;
+        targetAnchor: g.Point;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
