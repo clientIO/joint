@@ -54,7 +54,7 @@ QUnit.module('rect', function() {
             assert.ok(g.Rect.fromPointUnion(originR0, cornerR0).equals(r0), 'rect from g.Points');
             assert.ok(g.Rect.fromPointUnion(topRightR0, bottomLeftR0).equals(r0), 'rect from g.Points 2');
             assert.ok(g.Rect.fromPointUnion({ x: r0.x, y: r0.y }, { x: r0.x + r0.width, y: r0.y + r0.height }).equals(r0), 'rect from PlainPoints');
-            assert.ok(g.Rect.fromPointUnion(cornerR1, { x: r0.x, y: r0.y}, {x: r0.x + r0.width, y: r0.y + r0.height }, originR1).equals(unionR0R1), 'rect from g.Points and PlainPoints');
+            assert.ok(g.Rect.fromPointUnion(cornerR1, { x: r0.x, y: r0.y }, { x: r0.x + r0.width, y: r0.y + r0.height }, originR1).equals(unionR0R1), 'rect from g.Points and PlainPoints');
             assert.ok(g.Rect.fromPointUnion(originR0).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single g.Point has width and height equal to 0');
             assert.ok(g.Rect.fromPointUnion({ x: r0.x, y: r0.y }).equals(new g.Rect(r0.x, r0.y, 0, 0)), 'rect from single PlainPoint has width and height equal to 0');
             assert.ok(g.Rect.fromPointUnion(originR0, cornerR1, cornerR0, originR1).equals(unionR0R1), 'rect from multiple g.Points');
