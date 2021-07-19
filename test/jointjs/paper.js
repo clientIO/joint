@@ -2173,7 +2173,7 @@ QUnit.module('paper', function(hooks) {
                     var eventOrder2 = eventOrder.slice();
                     if (document.elementFromPoint(clientPoint.x, clientPoint.y)) {
                         // For a headless browser only
-                        eventOrder1.splice(eventOrder2.indexOf('cell:mouseleave'), 2);
+                        eventOrder2.splice(eventOrder2.indexOf('cell:mouseleave'), 2);
                     }
                     assert.equal(spy.callCount, eventOrder2.length - 2);
                     localPoint = paper.snapToGrid(13, 17);
