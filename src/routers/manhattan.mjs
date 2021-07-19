@@ -673,8 +673,8 @@ function findRoute(from, to, isPointObstacle, opt) {
             // check if we reached any endpoint
             var samePoints = startPoints.length === endPoints.length;
             if (samePoints) {
-                for (var i = 0; i < startPoints.length; i++) {
-                    if (!startPoints[i].equals(endPoints[i])) {
+                for (var j = 0; j < startPoints.length; j++) {
+                    if (!startPoints[j].equals(endPoints[j])) {
                         samePoints = false;
                         break;
                     }
