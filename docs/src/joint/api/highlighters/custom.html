@@ -19,7 +19,7 @@ const MyHighlighter = joint.dia.HighlighterView.extend({
     // Method called to highlight a CellView
     highlight(cellView, _node) {
         const { padding } = this.options;
-        const bbox = celView.model.getBBox();
+        const bbox = cellView.model.getBBox();
         // Highlighter is always rendered relatively to the CellView origin
         bbox.x = bbox.y = 0;
         // Increase the size of the highlighter
