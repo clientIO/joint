@@ -492,6 +492,7 @@ export const ElementView = CellView.extend({
                 !validateUnembedding.call(paper, this)
             ) {
                 this._disallowUnembed(data);
+                return;
             }
         }
 
