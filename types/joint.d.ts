@@ -1493,9 +1493,9 @@ export namespace dia {
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
 
-        type Options = {
+        interface Options extends mvc.ViewOptions<undefined> {
             layer?: dia.Paper.Layers | string | null;
-        };
+        }
     }
 
     class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
