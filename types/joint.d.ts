@@ -50,7 +50,7 @@ export namespace dia {
         tagName: string;
         selector?: string;
         groupSelector?: string;
-        namespaceUri?: string;
+        namespaceURI?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
         style?: { [key: string]: any };
