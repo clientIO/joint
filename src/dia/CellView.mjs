@@ -12,6 +12,7 @@ import {
     isEmpty,
     isString,
     toKebabCase,
+    result,
     sortedIndex,
     merge,
     uniq
@@ -66,7 +67,7 @@ export const CellView = View.extend({
         var attributes = {};
         var shift = 0;
         var i, n, label;
-        var presentationAttributes = this.presentationAttributes;
+        var presentationAttributes = result(this, 'presentationAttributes');
         for (var attribute in presentationAttributes) {
             if (!presentationAttributes.hasOwnProperty(attribute)) continue;
             var labels = presentationAttributes[attribute];
