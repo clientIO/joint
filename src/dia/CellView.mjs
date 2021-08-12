@@ -81,7 +81,7 @@ export const CellView = View.extend({
                 attributes[attribute] |= flag;
             }
         }
-        var initFlag = this.initFlag;
+        var initFlag = result(this, 'initFlag');
         if (!Array.isArray(initFlag)) initFlag = [initFlag];
         for (i = 0, n = initFlag.length; i < n; i++) {
             label = initFlag[i];
