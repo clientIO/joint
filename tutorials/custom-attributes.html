@@ -36,27 +36,32 @@
         specific problem, all of these could be possible use cases for a custom attribute.
     </p>
 
-    <p>To store custom data on our model, we use <code>set()</code> and <code>prop()</code> methods</p>.
+    <p>To store custom data on our model, we use <code>prop()</code> and <code>set()</code> methods</p>.
+
+    <h3>prop()</h3>
+
+    <p>
+        <!-- Allows possible nesting if needed -->
+        Prop is used to set custom data attributes on the element model. Not only will it allow you set properties directly, it also
+        provides support for nesting making it very flexible.
+    </p>
+
+    <pre><code>
+        element.prop('data/count', 10);
+    </code></pre>
 
     <h3>set()</h3>
 
     <p>
-        Set is used to set custom data attributes on the element model. Set is a method from backbone.js.
+        Set is provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it is used to set custom data attributes on the element model. 
+        <!-- Not suited to nested properties like prop()?? -->
     </p>
 
     <pre><code>
         element.set('confirmed', true);
     </code></pre>
 
-    <h3>prop()</h3>
 
-    <p>
-        Prop is used to set custom data attributes on the element model.
-    </p>
-
-    <pre><code>
-        element.prop('data/count', 10);
-    </code></pre>
 
     <h3>Differences between set() and prop()</h3>
 
