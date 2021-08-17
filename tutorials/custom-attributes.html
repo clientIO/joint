@@ -28,40 +28,80 @@
     <h2>Custom Attributes</h2>
 
     <p>
-        If you have been working with JointJS for any amount of time, you are probably familiar with presentation Attributes.
+        If you have been working with JointJS for any amount of time, you are probably familiar with presentation attributes.
         These are the attributes which contribute to the visual aspect of our shape, and are mostly defined through
-        <code>attrs</code> objects. While presentation Attributes provide us with great functionality, occasionally we might want 
+        <code>attrs</code> objects. While presentation attributes provide us with great functionality, occasionally we might want 
         to create our own attributes to help us work with our shape. This is where custom attributes come in useful. Maybe we 
         want a boolean to represent a state, a number for our threshold value, or just provide some attributes which represent our 
         specific problem, all of these could be possible use cases for a custom attribute.
     </p>
 
-    <p>To store custom data on our model, we use <code>prop()</code> and <code>set()</code> methods</p>.
+    <p>
+        To work with presentation attributes, we usually use the <code>attr()</code> method. However, when working with custom
+        attributes, we suggest working with <code>prop()</code> and <code>set()</code> instead. These methods will help you store
+        custom data on our model, while also providing a nice separation between custom and presentation attributes if needed.
+    </p>
 
     <h3>prop()</h3>
 
     <p>
-        <!-- Allows possible nesting if needed -->
-        Prop is used to set custom data attributes on the element model. Not only will it allow you set properties directly, it also
-        provides support for nesting making it very flexible.
+        Prop is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
+        it also provides support for nesting making it very flexible. When setting an attribute, the first parameter is an object or 
+        string representation of your path, and the second parameter will be the value you wish to set. Prop will merge the properties
+        you want to set with existing ones already present in the Cell.
     </p>
 
     <pre><code>
-        element.prop('data/count', 10);
-    </code></pre>
+        element.prop('attrs/body/stroke': '#FFF'); // Set a presentation attribute
 
-    <h3>set()</h3>
+        element.prop('data', 10); // Set a custom property
+        element.prop({data: 10}); // Set a custom property using an object
+
+        // The following output will be the result
+        data: 10 
+
+        element.prop('data/count', 10); // Set a nested custom property
+
+        // Custom attribute will have the following structure
+        data: {
+            count: 10
+        }
+    </code></pre>
 
     <p>
-        Set is provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it is used to set custom data attributes on the element model. 
-        <!-- Not suited to nested properties like prop()?? -->
+        <code>prop()</code> not only provides support for nested objects, but for nested arrays too.
+    </p>
+
+    <code>
+        element.prop('mylist/0/data/0/value', 50);
+
+        // This will produce the following custom attribute
+        mylist: [{
+            data: [{
+                value: 50
+            }]
+        }]
+    </code>
+
+    <h3>set()</h3>
+    <!-- set overrides everything so it doesn't merge -->
+    <p>
+        Set is provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to set custom data attributes 
+        on the element model. However, <code>set()</code> doesn't provide you with that nice nesting functionality that we get
+        with <code>prop()</code>.
     </p>
 
     <pre><code>
-        element.set('confirmed', true);
+        element.set('data', 10); // Set a custom property
+
+        // The following output will be the result
+        data: 10 
+
+        element.prop('data/count', 10); // Try to set a nested custom property
+
+        // The output produced will not be nested like when using prop()
+        data/count: 10
     </code></pre>
-
-
 
     <h3>Differences between set() and prop()</h3>
 
