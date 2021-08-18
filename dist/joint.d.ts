@@ -1,4 +1,4 @@
-/*! JointJS v3.4.0 (2021-07-13) - JavaScript diagramming library
+/*! JointJS v3.4.1 (2021-08-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1100,7 +1100,7 @@ export namespace dia {
         tagName: string;
         selector?: string;
         groupSelector?: string;
-        namespaceUri?: string;
+        namespaceURI?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
         style?: { [key: string]: any };
@@ -1884,6 +1884,8 @@ export namespace dia {
     class LinkView extends CellViewGeneric<Link> {
 
         options: LinkView.Options;
+        sourceAnchor: g.Point;
+        targetAnchor: g.Point;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
         sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
@@ -2541,9 +2543,9 @@ export namespace dia {
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
 
-        type Options = {
+        interface Options extends mvc.ViewOptions<undefined> {
             layer?: dia.Paper.Layers | string | null;
-        };
+        }
     }
 
     class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
@@ -4009,6 +4011,7 @@ export namespace routers {
         excludeTypes?: string[];
         startDirections?: dia.OrthogonalDirection[];
         endDirections?: dia.OrthogonalDirection[];
+        isPointObstacle?: (point: dia.Point) => boolean;
     }
 
     interface OrthogonalRouterArguments {
