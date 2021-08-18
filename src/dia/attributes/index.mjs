@@ -622,6 +622,7 @@ const attributesNS = {
 
 // Support `calc()` with the following SVG attributes
 [
+    'transform', // g
     'd', // path
     'points', // polyline / polygon
     'width', 'height', // rect / image
