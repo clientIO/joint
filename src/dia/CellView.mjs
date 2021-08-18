@@ -1113,7 +1113,7 @@ export const CellView = View.extend({
     Highlighting: HighlightingTypes,
 
     addPresentationAttributes: function(presentationAttributes) {
-        return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {
+        return merge({}, result(this.prototype, 'presentationAttributes'), presentationAttributes, function(a, b) {
             if (!a || !b) return;
             if (typeof a === 'string') a = [a];
             if (typeof b === 'string') b = [b];
