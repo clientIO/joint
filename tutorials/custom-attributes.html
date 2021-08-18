@@ -63,7 +63,7 @@
 
         element.prop('data/count', 10); // Set a nested custom property
 
-        // Custom attribute will have the following structure
+        // The nested custom attribute will have the following structure
         data: {
             count: 10
         }
@@ -90,8 +90,8 @@
         Set is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
         attributes on the element model. Like <code>prop()</code>, when setting an attribute, the first parameter can be on object 
         or string, but <code>set()</code> doesn't provide nesting capability in the form of a string. That means any path representation 
-        is considered to be one attribute. Again, the second parameter is the value you wish to set. Another difference from 
-        <code>prop()</code> is that <code>set()</code> will override attributes while <code>prop()</code> merges them.
+        is considered to be one attribute. Again, the second parameter is the value you wish to set. Another difference to take note of
+        is that <code>set()</code> will override attributes while <code>prop()</code> merges them.
     </p>
 
     <pre><code>
@@ -110,8 +110,8 @@
     <h3>Relationship between prop() and attr()</h3>
 
     <p>
-        Both of these methods have similar results, but there are a few small differences. Internally, <code>attr()</code>
-        implements <code>prop()</code> to process our attributes, and then the method places the presentation attributes within 
+        Both of these methods function similarly, but there are a few small differences to be aware of. Internally, <code>attr()</code>
+        implements <code>prop()</code> to process our attributes. Afterwards, the method places the presentation attributes within 
         the <code>attrs</code> object. Separating attributes in this manner also provides our model with a nice semantic
         and organizational divide between our custom and presentation properties.
     </p>
