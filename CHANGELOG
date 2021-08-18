@@ -1,3 +1,10 @@
+18-08-2021 (v3.4.1)
+  * dia.ElementView - prevent unnecessary re-parenting after invalid un-embedding
+  * dia.CellView - support calc() in `transform` attribute
+  * dia.CellView - allow `presentationAttributes` and `initFlag` to be defined as a function
+  * Fix minor TS issues
+  * Fix minor Docs issues
+
 13-07-2021 (v3.4.0)
   * Add VueJS 3.0 Demo
   * Add Tree-Shake Demo

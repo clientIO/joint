@@ -1,4 +1,4 @@
-/*! JointJS v3.4.0 (2021-07-13) - JavaScript diagramming library
+/*! JointJS v3.4.1 (2021-08-18) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12349,6 +12349,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	// Support `calc()` with the following SVG attributes
 	[
+	    'transform', // g
 	    'd', // path
 	    'points', // polyline / polygon
 	    'width', 'height', // rect / image
@@ -17423,7 +17424,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var attributes = {};
 	        var shift = 0;
 	        var i, n, label;
-	        var presentationAttributes = this.presentationAttributes;
+	        var presentationAttributes = result(this, 'presentationAttributes');
 	        for (var attribute in presentationAttributes) {
 	            if (!presentationAttributes.hasOwnProperty(attribute)) { continue; }
 	            var labels = presentationAttributes[attribute];
@@ -17437,7 +17438,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                attributes[attribute] |= flag;
 	            }
 	        }
-	        var initFlag = this.initFlag;
+	        var initFlag = result(this, 'initFlag');
 	        if (!Array.isArray(initFlag)) { initFlag = [initFlag]; }
 	        for (i = 0, n = initFlag.length; i < n; i++) {
 	            label = initFlag[i];
@@ -18493,7 +18494,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    Highlighting: HighlightingTypes,
 
 	    addPresentationAttributes: function(presentationAttributes) {
-	        return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {
+	        return merge({}, result(this.prototype, 'presentationAttributes'), presentationAttributes, function(a, b) {
 	            if (!a || !b) { return; }
 	            if (typeof a === 'string') { a = [a]; }
 	            if (typeof b === 'string') { b = [b]; }
@@ -18834,39 +18835,49 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // -----------------------
 
 	    prepareEmbedding: function(data) {
+	        if ( data === void 0 ) data = {};
 
-	        data || (data = {});
 
-	        var model = data.model || this.model;
+	        var element = data.model || this.model;
 	        var paper = data.paper || this.paper;
 	        var graph = paper.model;
 
-	        model.startBatch('to-front');
+	        var initialZIndices = data.initialZIndices = {};
+	        var embeddedCells = element.getEmbeddedCells({ deep: true });
+	        var connectedLinks = graph.getConnectedLinks(element, { deep: true, includeEnclosed: true });
+
+	        // Note: an embedded cell can be a connect link, but it's fine
+	        // to iterate over the cell twice.
+	        [
+	            element ].concat( embeddedCells,
+	            connectedLinks
+	        ).forEach(function (cell) { return initialZIndices[cell.id] = cell.attributes.z; });
+
+	        element.startBatch('to-front');
 
 	        // Bring the model to the front with all his embeds.
-	        model.toFront({ deep: true, ui: true });
+	        element.toFront({ deep: true, ui: true });
 
 	        // Note that at this point cells in the collection are not sorted by z index (it's running in the batch, see
 	        // the dia.Graph._sortOnChangeZ), so we can't assume that the last cell in the collection has the highest z.
-	        var maxZ = graph.getElements().reduce(function(max, cell) {
-	            return Math.max(max, cell.attributes.z || 0);
-	        }, 0);
+	        var maxZ = graph.getElements().reduce(function (max, cell) { return Math.max(max, cell.attributes.z || 0); }, 0);
 
 	        // Move to front also all the inbound and outbound links that are connected
 	        // to any of the element descendant. If we bring to front only embedded elements,
 	        // links connected to them would stay in the background.
-	        var connectedLinks = graph.getConnectedLinks(model, { deep: true, includeEnclosed: true });
-	        connectedLinks.forEach(function(link) {
-	            if (link.attributes.z <= maxZ) { link.set('z', maxZ + 1, { ui: true }); }
+	        connectedLinks.forEach(function (link) {
+	            if (link.attributes.z <= maxZ) {
+	                link.set('z', maxZ + 1, { ui: true });
+	            }
 	        });
 
-	        model.stopBatch('to-front');
+	        element.stopBatch('to-front');
 
 	        // Before we start looking for suitable parent we remove the current one.
-	        var parentId = model.parent();
+	        var parentId = element.parent();
 	        if (parentId) {
 	            var parent = graph.getCell(parentId);
-	            parent.unembed(model, { ui: true });
+	            parent.unembed(element, { ui: true });
 	            data.initialParentId = parentId;
 	        } else {
 	            data.initialParentId = null;
@@ -18982,6 +18993,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                !validateUnembedding.call(paper, this)
 	            ) {
 	                this._disallowUnembed(data);
+	                return;
 	            }
 	        }
 
@@ -18995,6 +19007,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var whenNotAllowed = data.whenNotAllowed; if ( whenNotAllowed === void 0 ) whenNotAllowed = 'revert';
 	        var element = model || this.model;
 	        var paper = data.paper || this.paper;
+	        var graph = paper.model;
 	        switch (whenNotAllowed) {
 	            case 'remove': {
 	                element.remove({ ui: true });
@@ -19003,12 +19016,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            case 'revert': {
 	                var initialParentId = data.initialParentId;
 	                var initialPosition = data.initialPosition;
+	                var initialZIndices = data.initialZIndices;
+	                // Revert the element's position (and the position of its embedded cells if any)
 	                if (initialPosition) {
 	                    var x = initialPosition.x;
 	                    var y = initialPosition.y;
-	                    element.position(x, y, { ui: true });
+	                    element.position(x, y, { deep: true, ui: true });
 	                }
-	                var parent = paper.model.getCell(initialParentId);
+	                // Revert all the z-indices changed during the embedding
+	                if (initialZIndices) {
+	                    Object.keys(initialZIndices).forEach(function (id) {
+	                        var cell = graph.getCell(id);
+	                        if (cell) {
+	                            cell.set('z', initialZIndices[id], { ui: true });
+	                        }
+	                    });
+	                }
+	                // Revert the original parent
+	                var parent = graph.getCell(initialParentId);
 	                if (parent) {
 	                    parent.embed(element, { ui: true });
 	                }
@@ -19813,6 +19838,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        };
 	    },
 
+	    // A function that determines whether a given point is an obstacle or not.
+	    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
+	    // (point: dia.Point) => boolean;
+	    isPointObstacle: null,
+
 	    // a router to use when the manhattan router fails
 	    // (one of the partial routes returns null)
 	    fallbackRouter: function(vertices, opt, linkView) {
@@ -20279,7 +20309,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	// finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
 	// rectangles get rect points assigned by getRectPoints()
-	function findRoute(from, to, map, opt) {
+	function findRoute(from, to, isPointObstacle, opt) {
 
 	    var precision = opt.precision;
 
@@ -20327,8 +20357,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 
 	    // take into account only accessible rect points (those not under obstacles)
-	    startPoints = startPoints.filter(map.isPointAccessible, map);
-	    endPoints = endPoints.filter(map.isPointAccessible, map);
+	    startPoints = startPoints.filter(function (p) { return !isPointObstacle(p); });
+	    endPoints = endPoints.filter(function (p) { return !isPointObstacle(p); });
 
 	    // Check that there is an accessible route point on both sides.
 	    // Otherwise, use fallbackRoute().
@@ -20395,8 +20425,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // check if we reached any endpoint
 	            var samePoints = startPoints.length === endPoints.length;
 	            if (samePoints) {
-	                for (var i = 0; i < startPoints.length; i++) {
-	                    if (!startPoints[i].equals(endPoints[i])) {
+	                for (var j = 0; j < startPoints.length; j++) {
+	                    if (!startPoints[j].equals(endPoints[j])) {
 	                        samePoints = false;
 	                        break;
 	                    }
@@ -20423,7 +20453,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var neighborKey = getKey(neighborPoint);
 
 	                // Closed points from the openSet were already evaluated.
-	                if (openSet.isClose(neighborKey) || !map.isPointAccessible(neighborPoint)) { continue; }
+	                if (openSet.isClose(neighborKey) || isPointObstacle(neighborPoint)) { continue; }
 
 	                // We can only enter end points at an acceptable angle.
 	                if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
@@ -20507,7 +20537,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    //var targetAnchor = getTargetAnchor(linkView, opt);
 
 	    // pathfinding
-	    var map = (new ObstacleMap(opt)).build(linkView.paper.model, linkView.model);
+	    var isPointObstacle;
+	    if (typeof opt.isPointObstacle === 'function') {
+	        isPointObstacle = opt.isPointObstacle;
+	    } else {
+	        var map = new ObstacleMap(opt);
+	        map.build(linkView.paper.model, linkView.model);
+	        isPointObstacle = function (point) { return !map.isPointAccessible(point); };
+	    }
+
 	    var oldVertices = toArray(vertices).map(Point);
 	    var newVertices = [];
 	    var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
@@ -20544,7 +20582,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        // if partial route has not been calculated yet use the main routing method to find one
-	        partialRoute = partialRoute || findRoute.call(linkView, from, to, map, opt);
+	        partialRoute = partialRoute || findRoute.call(linkView, from, to, isPointObstacle, opt);
 
 	        if (partialRoute === null) { // the partial route cannot be found
 	            return opt.fallbackRouter(vertices, opt, linkView);
@@ -25852,7 +25890,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else {
 	            view = views[cell.id] = this.createViewForModel(cell);
 	            view.paper = this;
-	            flag = this.registerUnmountedView(view) | view.getFlag(view.initFlag);
+	            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
 	        }
 	        this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
 	        return view;
@@ -31297,7 +31335,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Boundary: Boundary
 	});
 
-	var version = "3.4.0";
+	var version = "3.4.1";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
