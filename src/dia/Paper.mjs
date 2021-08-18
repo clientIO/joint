@@ -16,6 +16,7 @@ import {
     isString,
     normalizeEvent,
     omit,
+    result,
     merge,
     camelCase,
     cloneDeep,
@@ -1450,7 +1451,7 @@ export const Paper = View.extend({
         } else {
             view = views[cell.id] = this.createViewForModel(cell);
             view.paper = this;
-            flag = this.registerUnmountedView(view) | view.getFlag(view.initFlag);
+            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
         }
         this.requestViewUpdate(view, flag, view.UPDATE_PRIORITY, opt);
         return view;

@@ -12,6 +12,7 @@ import {
     isEmpty,
     isString,
     toKebabCase,
+    result,
     sortedIndex,
     merge,
     uniq
@@ -66,7 +67,7 @@ export const CellView = View.extend({
         var attributes = {};
         var shift = 0;
         var i, n, label;
-        var presentationAttributes = this.presentationAttributes;
+        var presentationAttributes = result(this, 'presentationAttributes');
         for (var attribute in presentationAttributes) {
             if (!presentationAttributes.hasOwnProperty(attribute)) continue;
             var labels = presentationAttributes[attribute];
@@ -80,7 +81,7 @@ export const CellView = View.extend({
                 attributes[attribute] |= flag;
             }
         }
-        var initFlag = this.initFlag;
+        var initFlag = result(this, 'initFlag');
         if (!Array.isArray(initFlag)) initFlag = [initFlag];
         for (i = 0, n = initFlag.length; i < n; i++) {
             label = initFlag[i];
@@ -1112,7 +1113,7 @@ export const CellView = View.extend({
     Highlighting: HighlightingTypes,
 
     addPresentationAttributes: function(presentationAttributes) {
-        return merge({}, this.prototype.presentationAttributes, presentationAttributes, function(a, b) {
+        return merge({}, result(this.prototype, 'presentationAttributes'), presentationAttributes, function(a, b) {
             if (!a || !b) return;
             if (typeof a === 'string') a = [a];
             if (typeof b === 'string') b = [b];
