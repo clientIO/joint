@@ -43,7 +43,7 @@
         if needed.
     </p>
 
-    <h3>prop()</h3>
+    <h3>The prop() method</h3>
 
     <p>
         <i>Prop</i> is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
@@ -122,7 +122,7 @@
     }
     </code></pre>
 
-    <h3>set()</h3>
+    <h3>The set() method</h3>
 
     <p>
         <i>Set</i> is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
@@ -170,7 +170,7 @@
     }
     </code></pre>
 
-    <h3>Relationship between prop() and attr()</h3>
+    <h3>Relationship between prop() and attr() methods</h3>
 
     <p>
         Both of these methods function similarly, but there are a few small differences to be aware of. Internally, <code>attr()</code>
@@ -179,13 +179,39 @@
         and organizational divide between our custom and presentation properties.
     </p>
 
-    <pre><code>
+    <p>
+        In the following example, you can see both <i>attr()</i> and <i>prop()</i> in action. It would be possible to set both of these 
+        attributes using <i>prop()</i>, but as mentioned above, both these methods achieve what we want in our example. We see a nice 
+        separation between our presentation and custom attributes, because after <i>attr()</i> implements <i>prop()</i>, it also 
+        prepends our path with 'attrs'. This means we find our presentation attributes in the <code>attrs</code> object.
+    </p>
 
+    <pre><code>
+    element.attr('body/strokeWidth', 2);
+
+    element.prop('isCollapsed', true);
+
+    export class Rect extends shapes.standard.Rectangle {
+        defaults() {
+            return util.defaultsDeep({
+                type: 'app.Rect',
+                isCollapsed: true,
+                attrs: {
+                    body: {
+                        strokeWidth: 2
+                    }
+                }
+            }, super.defaults);
+        }
+        ...
+    }
     </code></pre>
 
     <p>
-        If you would like to explore any of the features mentioned here in more detail, you can find extra information in our 
-        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html" target="_blank">JointJS documentation</a>.
+        Thanks for reading this far. As you can see, custom attributes open up a new world of functionality within our shapes, and
+        don't get in the way of our presentation attributes which is nice. If you would like to explore any of the features mentioned here in 
+        more detail, you can find our full JointJS documentation
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html" target="_blank">here</a>.
     </p>
 
     </div><!--end tutorial-->
