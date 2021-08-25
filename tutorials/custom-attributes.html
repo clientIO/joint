@@ -126,23 +126,48 @@
 
     <p>
         <i>Set</i> is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
-        attributes on the element model. Like <code>prop()</code>, when setting an attribute, the first parameter can be on object 
+        attributes on the element model. Like <code>prop()</code>, when setting an attribute, the first parameter can be an object 
         or string, but <code>set()</code> doesn't provide nesting capability in the form of a string. That means any path representation 
         is considered to be one attribute. Again, the second parameter is the value you wish to set. Another difference to take note of
         is that <code>set()</code> will override attributes while <code>prop()</code> merges them.
     </p>
 
     <pre><code>
-    element.set('data', 10); // Set a custom property
-    element.set({ data: 10 }); // Set a custom property using an object
+    element.set('data', 10); // Set custom attribute with path
+    element.set({ data: 10 }); // Set custom attribute with object
 
-    // The following output will be the result
-    data: 10 
 
-    element.prop('data/count', 10); // We try to set a nested custom property
+    export class Rect extends shapes.standard.Rectangle {
+        defaults() {
+            return util.defaultsDeep({
+                type: 'app.Rect',
+                data: 10, // Our custom attribute
+                attrs: {
+                ...
+                }
+            }, super.defaults);
+        }
+        ...
+    }
+
+
+
+    element.set('data/count', 10); // We try to set a nested custom property using set()
 
     // The output produced will not be nested as is the case when using prop()
-    data/count: 10
+    
+    export class Rect extends shapes.standard.Rectangle {
+        defaults() {
+            return util.defaultsDeep({
+                type: 'app.Rect',
+                data/count: 10, // Note the important difference here
+                attrs: {
+                ...
+                }
+            }, super.defaults);
+        }
+        ...
+    }
     </code></pre>
 
     <h3>Relationship between prop() and attr()</h3>
