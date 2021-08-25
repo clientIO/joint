@@ -46,26 +46,53 @@
     <h3>prop()</h3>
 
     <p>
-        Prop is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
+        <i>Prop</i> is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
         it also provides support for nesting making it very flexible. When setting an attribute, the first parameter is an object or 
         string representation of your path, and the second parameter will be the value you wish to set. Prop will merge the properties
         you want to set with existing ones already present in the Cell.
     </p>
 
     <pre><code>
-    element.prop('attrs/body/stroke', '#FFF'); // Set a presentation attribute
+    element.prop('attrs/body/stroke', '#FFF'); // Set presentation attribute
 
-    element.prop('data', 10); // Set a custom property
-    element.prop({ data: 10 }); // Set a custom property using an object
+    element.prop('data', 10); // Set custom attribute with path
+    element.prop({ data: 10 }); // Set custom attribute with object 
 
-    // The following output will be the result
-    data: 10 
+    export class Rect extends shapes.standard.Rectangle {
+        defaults() {
+            return util.defaultsDeep({
+                type: 'app.Rect',
+                data: 10, // Our custom attribute
+                attrs: {
+                ...
+                    body: {
+                        stroke: '#FFF', // Our presentation attribute
+                    },
+                ...
+                }
+            }, super.defaults);
+        }
+        ...
+    }
 
-    element.prop('data/count', 10); // Set a nested custom property
 
-    // The nested custom attribute will have the following structure
-    data: {
-        count: 10
+
+    element.prop('data/count', 10); // Set nested custom attribute with path
+    element.prop({ data: { count: 10 }}); // Set nested custom attribute using object
+
+    export class Rect extends shapes.standard.Rectangle {
+        defaults() {
+            return util.defaultsDeep({
+                type: 'app.Rect',
+                data: {
+                    count: 10 // Our nested custom attribute
+                },
+                attrs: {
+                ...
+                }
+            }, super.defaults);
+        }
+        ...
     }
     </code></pre>
 
@@ -74,20 +101,31 @@
     </p>
 
     <pre><code>
-    element.prop('mylist/0/data/0/value', 50);
-
-    // This will produce the following custom attribute
-    mylist: [{
-        data: [{
-            value: 50
-        }]
-    }]
+    element.prop('mylist/0/data/0/value', 50); // Set custom attribute as nested array
+    
+    
+    export class Rect extends shapes.standard.Rectangle {
+        defaults() {
+            return util.defaultsDeep({
+                type: 'app.Rect',
+                mylist: [{
+                    data: [{
+                        value: 50 // Our custom attribute 
+                    }]
+                }],
+                attrs: {
+                ...
+                }
+            }, super.defaults);
+        }
+        ...
+    }
     </code></pre>
 
     <h3>set()</h3>
 
     <p>
-        Set is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
+        <i>Set</i> is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
         attributes on the element model. Like <code>prop()</code>, when setting an attribute, the first parameter can be on object 
         or string, but <code>set()</code> doesn't provide nesting capability in the form of a string. That means any path representation 
         is considered to be one attribute. Again, the second parameter is the value you wish to set. Another difference to take note of
@@ -115,6 +153,10 @@
         the <code>attrs</code> object. Separating attributes in this manner also provides our model with a nice semantic
         and organizational divide between our custom and presentation properties.
     </p>
+
+    <pre><code>
+
+    </code></pre>
 
     <p>
         If you would like to explore any of the features mentioned here in more detail, you can find extra information in our 
