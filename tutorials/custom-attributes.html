@@ -53,36 +53,36 @@
     </p>
 
     <pre><code>
-        element.prop('attrs/body/stroke', '#FFF'); // Set a presentation attribute
+    element.prop('attrs/body/stroke', '#FFF'); // Set a presentation attribute
 
-        element.prop('data', 10); // Set a custom property
-        element.prop({ data: 10 }); // Set a custom property using an object
+    element.prop('data', 10); // Set a custom property
+    element.prop({ data: 10 }); // Set a custom property using an object
 
-        // The following output will be the result
-        data: 10 
+    // The following output will be the result
+    data: 10 
 
-        element.prop('data/count', 10); // Set a nested custom property
+    element.prop('data/count', 10); // Set a nested custom property
 
-        // The nested custom attribute will have the following structure
-        data: {
-            count: 10
-        }
+    // The nested custom attribute will have the following structure
+    data: {
+        count: 10
+    }
     </code></pre>
 
     <p>
         <code>prop()</code> not only provides support for nested objects, but for nested arrays too.
     </p>
 
-    <code>
-        element.prop('mylist/0/data/0/value', 50);
+    <pre><code>
+    element.prop('mylist/0/data/0/value', 50);
 
-        // This will produce the following custom attribute
-        mylist: [{
-            data: [{
-                value: 50
-            }]
+    // This will produce the following custom attribute
+    mylist: [{
+        data: [{
+            value: 50
         }]
-    </code>
+    }]
+    </code></pre>
 
     <h3>set()</h3>
 
@@ -95,16 +95,16 @@
     </p>
 
     <pre><code>
-        element.set('data', 10); // Set a custom property
-        element.set({ data: 10 }); // Set a custom property using an object
+    element.set('data', 10); // Set a custom property
+    element.set({ data: 10 }); // Set a custom property using an object
 
-        // The following output will be the result
-        data: 10 
+    // The following output will be the result
+    data: 10 
 
-        element.prop('data/count', 10); // We try to set a nested custom property
+    element.prop('data/count', 10); // We try to set a nested custom property
 
-        // The output produced will not be nested as is the case when using prop()
-        data/count: 10
+    // The output produced will not be nested as is the case when using prop()
+    data/count: 10
     </code></pre>
 
     <h3>Relationship between prop() and attr()</h3>
