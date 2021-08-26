@@ -37,25 +37,27 @@
     </p>
 
     <p>
-        To work with presentation attributes, we usually use the <code>attr()</code> method. However, when working with custom
-        attributes, we suggest working with <code>prop()</code> and <code>set()</code>. These methods will help you store
-        custom data on the model, while at the same time also providing a nice separation between custom and presentation attributes 
-        if needed.
+        To work with presentation attributes, we usually use the 
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.Element.prototype.attr" target="_blank"><i>attr()</i></a>
+        method. However, when working with custom attributes, we recommend working with <code>prop()</code> and <code>set()</code>. 
+        These methods will help you store custom data on the model, while at the same time also providing a nice separation between 
+        custom and presentation attributes if needed.
     </p>
 
     <h3>The prop() method</h3>
 
     <p>
-        <i>Prop</i> is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.Element.prototype.prop" target="_blank"><i>Prop</i></a> 
+        is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
         it also provides support for nesting making it very flexible. When setting an attribute, the first parameter is an object or 
-        string representation of your path, and the second parameter will be the value you wish to set. Prop will merge the properties
-        you want to set with existing ones already present in the Cell.
+        string representation of our path, and when not using an object, the second parameter will be the value we wish to set. Prop 
+        will merge the properties you want to set with existing ones already present in the <i>Cell</i>.
     </p>
 
     <pre><code>
     element.prop('attrs/body/stroke', '#FFF'); // Set presentation attribute
 
-    element.prop('data', 10); // Set custom attribute with path
+    element.prop('data', 10); // Set custom attribute with string
     element.prop({ data: 10 }); // Set custom attribute with object 
 
     export class Rect extends shapes.standard.Rectangle {
@@ -77,8 +79,8 @@
 
 
 
-    element.prop('data/count', 10); // Set nested custom attribute with path
-    element.prop({ data: { count: 10 }}); // Set nested custom attribute using object
+    element.prop('data/count', 10); // Set nested custom attribute with string
+    element.prop({ data: { count: 10 }}); // Set nested custom attribute with object
 
     export class Rect extends shapes.standard.Rectangle {
         defaults() {
@@ -128,12 +130,12 @@
         <i>Set</i> is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
         attributes on the element model. Like <code>prop()</code>, when setting an attribute, the first parameter can be an object 
         or string, but <code>set()</code> doesn't provide nesting capability in the form of a string. That means any path representation 
-        is considered to be one attribute. Again, the second parameter is the value you wish to set. Another difference to take note of
-        is that <code>set()</code> will override attributes while <code>prop()</code> merges them.
+        is considered to be one attribute. Again, when not using an object, the second parameter is the value we wish to set. Another 
+        difference to take note of is that <code>set()</code> will override attributes, while <code>prop()</code> merges them.
     </p>
 
     <pre><code>
-    element.set('data', 10); // Set custom attribute with path
+    element.set('data', 10); // Set custom attribute with string
     element.set({ data: 10 }); // Set custom attribute with object
 
 
@@ -183,7 +185,7 @@
         In the following example, you can see both <i>attr()</i> and <i>prop()</i> in action. It would be possible to set both of these 
         attributes using <i>prop()</i>, but as mentioned above, both these methods achieve what we want in our example. We see a nice 
         separation between our presentation and custom attributes, because after <i>attr()</i> implements <i>prop()</i>, it also 
-        prepends our path with 'attrs'. This means we find our presentation attributes in the <code>attrs</code> object.
+        prepends our path with <i>'attrs'</i>. This means we find our presentation attributes in the <code>attrs</code> object.
     </p>
 
     <pre><code>
@@ -209,8 +211,9 @@
 
     <p>
         Thanks for reading this far. As you can see, custom attributes open up a new world of functionality within our shapes, and
-        don't get in the way of our presentation attributes which is nice. If you would like to explore any of the features mentioned here in 
-        more detail, you can find our full JointJS documentation
+        don't get in the way of our presentation attributes which is nice. The most important take away is that
+        <code>prop()</code> and <code>set()</code> are the right set of tools to work with custom attributes. If you would like 
+        to explore any of the features mentioned here in more detail, you can find our full JointJS documentation
         <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html" target="_blank">here</a>.
     </p>
 
