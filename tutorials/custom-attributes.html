@@ -166,14 +166,14 @@
 
     <p>
         As mentioned previously, <i>set()</i> will overwrite attributes, while <i>prop()</i> merges them. We do provide some
-        extra functionality when using prop, and that is to enable <i>rewrite</i> mode. This will change the default behaviour,
-        and you can see the results in our example below. To enable <i>rewrite</i> mode, we simply use 
-        <code>{ rewrite: true }</code> as the 3rd argument in our <i>prop()</i> method.
+        extra functionality when using prop, and that is to enable <i>rewrite</i> mode. To enable <i>rewrite</i> mode, we simply use 
+        <code>{ rewrite: true }</code> as the 3rd argument in our <i>prop()</i> method. This will replace the value referenced by the
+        path with the new one. This differs from the default behaviour which is to merge our properties.
     </p>
 
     <pre><code>
-    element.prop('attrs/body/stroke', '#FFF');
-    element.prop('attrs/body', { strokeWidth: 1 });
+    rect.prop('custom/state/isCollapsed', true);
+    rect.prop('custom/state', { isActive: false });
 
     // Output from element.toJSON();
 
@@ -183,31 +183,33 @@
         "position": { "x": 0, "y": 0 },
         "size": { "width": 1, "height": 1 },
         "angle": 0,
-        "id": "9703386c-9919-4888-9465-b3524a50a2d1",
-        "attrs": {
-            "body": {
-                "strokeWidth": 1,
-                "stroke": "#FFF"
+        "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+        "custom": {
+            "state": {
+                "isCollapsed": true,
+                "isActive": false
             }
-        }
+        },
+        "attrs": {}
     }
 
 
-    element.prop('attrs/body/stroke', '#FFF');
-    element.prop('attrs/body', { strokeWidth: 1 }, { rewrite: true });
+    rect.prop('custom/state/isCollapsed', true);
+    rect.prop('custom/state', { isActive: false }, { rewrite: true });
 
     // We can see our attributes have been overwritten
     {
         "type": "standard.Rectangle",
         "position": { "x": 0, "y": 0 },
-        "size": { "width": 1, "height": 1},
+        "size": { "width": 1, "height": 1 },
         "angle": 0,
-        "id": "f9786f1e-ac23-4927-89fb-29a194a17ec6",
-        "attrs": {
-            "body": {
-                "strokeWidth": 1
+        "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+        "custom": {
+            "state": {
+                "isActive": false
             }
-        }
+        },
+        "attrs": {}
     }
     </code></pre>
 
@@ -222,8 +224,8 @@
 
     <p>
         In the following example, you can see both <i>attr()</i> and <i>prop()</i> in action. It would be possible to set both of these 
-        attributes using <i>prop()</i>, but as mentioned above, both these methods achieve what we want in our example. We see a nice 
-        separation between our presentation and custom attributes, because after <i>attr()</i> implements <i>prop()</i>, it also 
+        attributes using <i>prop()</i>, but as mentioned above, both these methods achieve what we want in our example. We see that nice 
+        separation between attributes, because after <i>attr()</i> implements <i>prop()</i>, it also 
         prepends our path with <i>'attrs'</i>. This means we find our presentation attributes in the <code>attrs</code> object.
     </p>
 
@@ -241,7 +243,7 @@
         "isCollapsed": true,
         "attrs": {
             "body": {
-                "strokeWidth": 10
+                "strokeWidth": 2
             }
         }
     }
