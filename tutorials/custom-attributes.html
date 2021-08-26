@@ -58,43 +58,39 @@
     element.prop('attrs/body/stroke', '#FFF'); // Set presentation attribute
 
     element.prop('data', 10); // Set custom attribute with string
-    element.prop({ data: 10 }); // Set custom attribute with object 
-
-    export class Rect extends shapes.standard.Rectangle {
-        defaults() {
-            return util.defaultsDeep({
-                type: 'app.Rect',
-                data: 10, // Our custom attribute
-                attrs: {
-                ...
-                    body: {
-                        stroke: '#FFF', // Our presentation attribute
-                    },
-                ...
-                }
-            }, super.defaults);
+    element.prop({ data: 10 }); // Set custom attribute with object
+    
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
+        "data": 10, // Our custom attribute
+        "attrs": {
+            "body": {
+                "stroke": "#FFF" // Our presentation attribute
+            }
         }
-        ...
     }
 
 
 
     element.prop('data/count', 10); // Set nested custom attribute with string
     element.prop({ data: { count: 10 }}); // Set nested custom attribute with object
+    element.prop('data': { count: 10 }); // This also creates a nested custom attribute
 
-    export class Rect extends shapes.standard.Rectangle {
-        defaults() {
-            return util.defaultsDeep({
-                type: 'app.Rect',
-                data: {
-                    count: 10 // Our nested custom attribute
-                },
-                attrs: {
-                ...
-                }
-            }, super.defaults);
-        }
-        ...
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
+        "data": {
+            "count": 10  // Our nested custom attribute
+        },
+        "attrs": {}
     }
     </code></pre>
 
@@ -105,22 +101,23 @@
     <pre><code>
     element.prop('mylist/0/data/0/value', 50); // Set custom attribute as nested array
     
-    
-    export class Rect extends shapes.standard.Rectangle {
-        defaults() {
-            return util.defaultsDeep({
-                type: 'app.Rect',
-                mylist: [{
-                    data: [{
-                        value: 50 // Our custom attribute 
-                    }]
-                }],
-                attrs: {
-                ...
-                }
-            }, super.defaults);
-        }
-        ...
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "9adab5e5-cebe-419f-8d62-39cce5486d0d",
+        "mylist": [
+            {
+                "data": [
+                    {
+                        "value": 50 // Our nested custom attribute
+                    }
+                ]
+            }
+        ],
+        "attrs": {}
     }
     </code></pre>
 
@@ -138,18 +135,15 @@
     element.set('data', 10); // Set custom attribute with string
     element.set({ data: 10 }); // Set custom attribute with object
 
-
-    export class Rect extends shapes.standard.Rectangle {
-        defaults() {
-            return util.defaultsDeep({
-                type: 'app.Rect',
-                data: 10, // Our custom attribute
-                attrs: {
-                ...
-                }
-            }, super.defaults);
-        }
-        ...
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "c0a6696d-1857-4fb7-892d-409433f84d29",
+        "data": 10, // Our custom attribute
+        "attrs": {}
     }
 
 
@@ -157,18 +151,63 @@
     element.set('data/count', 10); // We try to set a nested custom property using set()
 
     // The output produced will not be nested as is the case when using prop()
-    
-    export class Rect extends shapes.standard.Rectangle {
-        defaults() {
-            return util.defaultsDeep({
-                type: 'app.Rect',
-                data/count: 10, // Note the important difference here
-                attrs: {
-                ...
-                }
-            }, super.defaults);
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "afdc42ce-5b10-45e5-832e-afcf2a221314",
+        "data/count": 10, // Note the important difference here
+        "attrs": {}
+    }
+    </code></pre>
+
+    <h3>Overwriting attributes with prop()</h3>
+
+    <p>
+        As mentioned previously, <i>set()</i> will overwrite attributes, while <i>prop()</i> merges them. We do provide some
+        extra functionality when using prop, and that is to enable <i>rewrite</i> mode. This will change the default behaviour,
+        and you can see the results in our example below. To enable <i>rewrite</i> mode, we simply use 
+        <code>{ rewrite: true }</code> as the 3rd argument in our <i>prop()</i> method.
+    </p>
+
+    <pre><code>
+    element.prop('attrs/body/stroke', '#FFF');
+    element.prop('attrs/body', { strokeWidth: 1 });
+
+    // Output from element.toJSON();
+
+    // We can see our attributes have been merged
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "9703386c-9919-4888-9465-b3524a50a2d1",
+        "attrs": {
+            "body": {
+                "strokeWidth": 1,
+                "stroke": "#FFF"
+            }
         }
-        ...
+    }
+
+
+    element.prop('attrs/body/stroke', '#FFF');
+    element.prop('attrs/body', { strokeWidth: 1 }, { rewrite: true });
+
+    // We can see our attributes have been overwritten
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1},
+        "angle": 0,
+        "id": "f9786f1e-ac23-4927-89fb-29a194a17ec6",
+        "attrs": {
+            "body": {
+                "strokeWidth": 1
+            }
+        }
     }
     </code></pre>
 
@@ -190,22 +229,21 @@
 
     <pre><code>
     element.attr('body/strokeWidth', 2);
-
     element.prop('isCollapsed', true);
 
-    export class Rect extends shapes.standard.Rectangle {
-        defaults() {
-            return util.defaultsDeep({
-                type: 'app.Rect',
-                isCollapsed: true,
-                attrs: {
-                    body: {
-                        strokeWidth: 2
-                    }
-                }
-            }, super.defaults);
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "edafa2ac-27e6-4fbc-951a-aa3f9512c741",
+        "isCollapsed": true,
+        "attrs": {
+            "body": {
+                "strokeWidth": 10
+            }
         }
-        ...
     }
     </code></pre>
 
