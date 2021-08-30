@@ -250,7 +250,6 @@ QUnit.module('vectorizer', function(hooks) {
 
         QUnit.test('line height', function(assert) {
 
-            var svg = getSvg();
             var t = V('text', { 'font-size': 20 });
             var linesDy;
             var text = 'abcd\nefgh';
@@ -291,8 +290,6 @@ QUnit.module('vectorizer', function(hooks) {
                 return vTSpan.attr('dy');
             });
             assert.deepEqual(linesDy, ['0', '36']); // max font-size * 1.2
-
-            svg.remove();
         });
 
         QUnit.test('custom EOL', function(assert) {
