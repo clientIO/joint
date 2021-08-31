@@ -248,6 +248,50 @@ QUnit.module('vectorizer', function(hooks) {
             svg.remove();
         });
 
+        QUnit.test('line height', function(assert) {
+
+            var t = V('text', { 'font-size': 20 });
+            var linesDy;
+            var text = 'abcd\nefgh';
+            var annotations = [
+                { start: 0, end: 4, attrs: { fill: 'red' }},
+                { start: 5, end: 9, attrs: { fill: 'blue' }}
+            ];
+
+            t.text(text, {
+                lineHeight: '2.1em',
+                annotations: annotations
+            });
+
+            linesDy = t.children().map(function(vTSpan) {
+                return vTSpan.attr('dy');
+            });
+            assert.deepEqual(linesDy, ['0', '2.1em']); // hard-coded line-height
+
+            t.text(text, {
+                lineHeight: 'auto',
+                annotations: annotations
+            });
+
+            linesDy = t.children().map(function(vTSpan) {
+                return vTSpan.attr('dy');
+            });
+            assert.deepEqual(linesDy, ['0', '24']); // base font-size * 1.2
+
+            t.text(text, {
+                lineHeight: 'auto',
+                annotations: [
+                    { start: 0, end: 4, attrs: { fill: 'red' }},
+                    { start: 5, end: 9, attrs: { fill: 'blue', 'font-size': 30 }}
+                ]
+            });
+
+            linesDy = t.children().map(function(vTSpan) {
+                return vTSpan.attr('dy');
+            });
+            assert.deepEqual(linesDy, ['0', '36']); // max font-size * 1.2
+        });
+
         QUnit.test('custom EOL', function(assert) {
 
             var svg = getSvg();

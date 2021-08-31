@@ -425,7 +425,7 @@ const V = (function() {
                 if (includeAnnotationIndices) vTSpan.attr('annotations', annotation.annotations);
                 // Check for max font size
                 fontSize = parseFloat(annotationAttrs['font-size']);
-                if (fontSize === undefined) fontSize = baseSize;
+                if (!isFinite(fontSize)) fontSize = baseSize;
                 if (fontSize && fontSize > maxFontSize) maxFontSize = fontSize;
             } else {
                 if (eol && j === lastJ) annotation += eol;
