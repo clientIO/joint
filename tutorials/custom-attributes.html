@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="canonical" href="http://www.jointjs.com/"/>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use."/>
+    <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts"/>
+
+    <link href="http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/tutorial.css"/>
+    <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+    <!-- Dependencies: -->
+    <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+
+    <title>JointJS - Create custom attributes with prop() and set()</title>
+
+</head>
+<body class="language-javascript tutorial-page">
+    <div class="tutorial">
+
+    <h2>Custom Attributes</h2>
+
+    <p>
+        If you have been working with JointJS for any amount of time, you are probably familiar with presentation attributes.
+        These are the attributes which contribute to the visual aspect of our shape, and are mostly defined through
+        <code>attrs</code> objects. While presentation attributes provide us with great functionality, occasionally we might want 
+        to create our own attributes to help us work with our shape. This is where custom attributes come in useful. Maybe we 
+        want a boolean to represent a state, a number for our threshold value, or just provide some attributes which represent our 
+        specific problem, all of these could be possible use cases for a custom attribute.
+    </p>
+
+    <p>
+        To work with presentation attributes, we usually use the 
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.Element.prototype.attr" target="_blank"><i>attr()</i></a>
+        method. However, when working with custom attributes, we recommend working with <code>prop()</code> and <code>set()</code>. 
+        These methods will help you store custom data on the model, while at the same time also providing a nice separation between 
+        custom and presentation attributes if needed.
+    </p>
+
+    <h3>The prop() method</h3>
+
+    <p>
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.Element.prototype.prop" target="_blank"><i>Prop</i></a> 
+        is used to set attributes on the element model. It can be used to set both custom and presentation attributes, and
+        it also provides support for nesting making it very flexible. When setting an attribute, the first parameter is an object or 
+        string representation of our path, and when not using an object, the second parameter will be the value we wish to set. Prop 
+        will merge the properties you want to set with existing ones already present in the <i>Cell</i>.
+    </p>
+
+    <pre><code>
+    element.prop('attrs/body/stroke', '#FFF'); // Set presentation attribute
+
+    element.prop('data', 10); // Set custom attribute with string
+    element.prop({ data: 10 }); // Set custom attribute with object
+    
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
+        "data": 10, // Our custom attribute
+        "attrs": {
+            "body": {
+                "stroke": "#FFF" // Our presentation attribute
+            }
+        }
+    }
+
+
+
+    element.prop('data/count', 10); // Set nested custom attribute with string
+    element.prop({ data: { count: 10 }}); // Set nested custom attribute with object
+    element.prop('data': { count: 10 }); // This also creates a nested custom attribute
+
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "19cf14e6-cb78-4c32-b9a1-4256dc53776f",
+        "data": {
+            "count": 10  // Our nested custom attribute
+        },
+        "attrs": {}
+    }
+    </code></pre>
+
+    <p>
+        <code>prop()</code> not only provides support for nested objects, but for nested arrays too.
+    </p>
+
+    <pre><code>
+    element.prop('mylist/0/data/0/value', 50); // Set custom attribute as nested array
+    
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "9adab5e5-cebe-419f-8d62-39cce5486d0d",
+        "mylist": [
+            {
+                "data": [
+                    {
+                        "value": 50 // Our nested custom attribute
+                    }
+                ]
+            }
+        ],
+        "attrs": {}
+    }
+    </code></pre>
+
+    <h3>The set() method</h3>
+
+    <p>
+        <i>Set</i> is a method provided by <i>backbone.js</i>, and similarly to <code>prop()</code>, it can be used to create custom data 
+        attributes on the element model. Like <code>prop()</code>, when setting an attribute, the first parameter can be an object 
+        or string, but <code>set()</code> doesn't provide nesting capability in the form of a string. That means any path representation 
+        is considered to be one attribute. Again, when not using an object, the second parameter is the value we wish to set. Another 
+        difference to take note of is that <code>set()</code> will override attributes, while <code>prop()</code> merges them.
+    </p>
+
+    <pre><code>
+    element.set('data', 10); // Set custom attribute with string
+    element.set({ data: 10 }); // Set custom attribute with object
+
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "c0a6696d-1857-4fb7-892d-409433f84d29",
+        "data": 10, // Our custom attribute
+        "attrs": {}
+    }
+
+
+
+    element.set('data/count', 10); // We try to set a nested custom property using set()
+
+    // The output produced will not be nested as is the case when using prop()
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "afdc42ce-5b10-45e5-832e-afcf2a221314",
+        "data/count": 10, // Note the important difference here
+        "attrs": {}
+    }
+    </code></pre>
+
+    <h3>Overwriting attributes with prop()</h3>
+
+    <p>
+        We do provide some extra functionality when using prop, and that is to enable <i>rewrite</i> mode. To 
+        enable <i>rewrite</i> mode, we simply use <code>{ rewrite: true }</code> as the 3rd argument in our <i>prop()</i> method. 
+        This will replace the value referenced by the path with the new one. This differs from the default behaviour which is to 
+        merge our properties.
+    </p>
+
+    <pre><code>
+    rect.prop('custom/state/isCollapsed', true);
+    rect.prop('custom/state', { isActive: false });
+
+    // Output from element.toJSON();
+
+    // We can see our attributes have been merged
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+        "custom": {
+            "state": {
+                "isCollapsed": true,
+                "isActive": false
+            }
+        },
+        "attrs": {}
+    }
+
+
+    rect.prop('custom/state/isCollapsed', true);
+    rect.prop('custom/state', { isActive: false }, { rewrite: true });
+
+    // We can see our attributes have been overwritten
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+        "custom": {
+            "state": {
+                "isActive": false
+            }
+        },
+        "attrs": {}
+    }
+    </code></pre>
+
+    <h3>Relationship between prop() and attr() methods</h3>
+
+    <p>
+        Both of these methods function similarly, but there are a few small differences to be aware of. Internally, <code>attr()</code>
+        implements <code>prop()</code> to process our attributes. Afterwards, the method places the presentation attributes within 
+        the <code>attrs</code> object. Separating attributes in this manner also provides our model with a nice semantic
+        and organizational divide between our custom and presentation properties.
+    </p>
+
+    <p>
+        In the following example, you can see both <i>attr()</i> and <i>prop()</i> in action. It would be possible to set both of these 
+        attributes using <i>prop()</i>, but as mentioned above, both these methods achieve what we want in our example. We see that nice 
+        separation between attributes, because after <i>attr()</i> implements <i>prop()</i>, it also 
+        prepends our path with <i>'attrs'</i>. This means we find our presentation attributes in the <code>attrs</code> object.
+    </p>
+
+    <pre><code>
+    element.attr('body/strokeWidth', 2);
+    element.prop('isCollapsed', true);
+
+    // Output from element.toJSON();
+    {
+        "type": "standard.Rectangle",
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 1, "height": 1 },
+        "angle": 0,
+        "id": "edafa2ac-27e6-4fbc-951a-aa3f9512c741",
+        "isCollapsed": true,
+        "attrs": {
+            "body": {
+                "strokeWidth": 2
+            }
+        }
+    }
+    </code></pre>
+
+    <p>
+        Thanks for reading this far. As you can see, custom attributes open up a new world of functionality within our shapes, and
+        don't get in the way of our presentation attributes which is nice. The most important take away is that
+        <code>prop()</code> and <code>set()</code> are the right set of tools to work with custom attributes. If you would like 
+        to explore any of the features mentioned here in more detail, you can find our full JointJS documentation
+        <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html" target="_blank">here</a>.
+    </p>
+
+    </div><!--end tutorial-->
+    <script src="../node_modules/prismjs/prism.js"></script>
+</body>
+</html>
