@@ -1,3 +1,9 @@
+06-09-2021 (v3.4.2)
+  * dia.CellView - update typings for ES6 class extension
+  * dia.Cell -  fix toJSON() when defaults() is defined as a method
+  * util - prevent prototype pollution in `setByPath()`
+  * Vectorizer - fix multi-line text line heights when 100% of the line is annotated
+
 18-08-2021 (v3.4.1)
   * dia.ElementView - prevent unnecessary re-parenting after invalid un-embedding
   * dia.CellView - support calc() in `transform` attribute
