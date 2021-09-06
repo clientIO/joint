@@ -728,10 +728,6 @@ export namespace dia {
 
         protected getNodeData(magnet: SVGElement): CellView.NodeData;
 
-        protected getNodeMatrix(magnet: SVGElement): SVGMatrix;
-
-        protected getNodeBoundingRect(magnet: SVGElement): g.Rect;
-
         protected getNodeShape(magnet: SVGElement): g.Shape;
 
         static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
