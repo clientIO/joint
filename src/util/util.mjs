@@ -140,6 +140,9 @@ export const getByPath = function(obj, path, delimiter) {
 const isGetSafe = function(obj, key) {
     // Prevent prototype pollution
     // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
+    if (typeof key !== 'string' && typeof key !== 'number') {
+        key = String(key);
+    }
     if (key === 'constructor' && typeof obj[key] === 'function') {
         return false;
     }

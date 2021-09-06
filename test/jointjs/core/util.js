@@ -336,7 +336,11 @@ QUnit.module('util', function(hooks) {
             assert.deepEqual(joint.util.setByPath({ object: {}}, 'object/1', 'property'), { object: { '1': 'property' }}, 'define property');
         });
 
-        ['__proto__/polluted', 'constructor/prototype/polluted'].forEach(function(path) {
+        [
+            '__proto__/polluted',
+            'constructor/prototype/polluted',
+            [['__proto__'], 'polluted']
+        ].forEach(function(path) {
             QUnit.test('setting "' + path + '" does not pollute prototype' , function(assert) {
                 var obj = {};
                 assert.notOk(obj.polluted);
