@@ -210,6 +210,8 @@ export class Vectorizer {
 
     findIntersection(ref: g.PlainPoint, target: SVGElement | Vectorizer): g.PlainPoint | undefined;
 
+    toGeometryShape(): g.Shape;
+
     private setAttributes(attrs: { [key: string]: any }): this;
 
     private setAttribute(name: string, value: string): this;

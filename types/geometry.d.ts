@@ -1,5 +1,6 @@
 export namespace g {
 
+    export type Shape = Path | Point | Line | Polyline | Rect | Ellipse;
     export interface PlainPoint {
 
         x: number;
