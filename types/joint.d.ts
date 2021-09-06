@@ -626,7 +626,7 @@ export namespace dia {
 
         initFlag(): CellView.FlagLabel;
 
-        presentationAttributes(): CellView.PresentationAttributes
+        presentationAttributes(): CellView.PresentationAttributes;
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
