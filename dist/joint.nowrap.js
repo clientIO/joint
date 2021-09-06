@@ -1,4 +1,4 @@
-/*! JointJS v3.4.1 (2021-08-18) - JavaScript diagramming library
+/*! JointJS v3.4.2 (2021-09-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -7829,7 +7829,7 @@ var joint = (function (exports, Backbone, _, $) {
 	                if (includeAnnotationIndices) { vTSpan.attr('annotations', annotation.annotations); }
 	                // Check for max font size
 	                fontSize = parseFloat(annotationAttrs['font-size']);
-	                if (fontSize === undefined) { fontSize = baseSize; }
+	                if (!isFinite(fontSize)) { fontSize = baseSize; }
 	                if (fontSize && fontSize > maxFontSize) { maxFontSize = fontSize; }
 	            } else {
 	                if (eol && j === lastJ) { annotation += eol; }
@@ -10038,6 +10038,9 @@ var joint = (function (exports, Backbone, _, $) {
 	var isGetSafe = function(obj, key) {
 	    // Prevent prototype pollution
 	    // https://snyk.io/vuln/SNYK-JS-JSON8MERGEPATCH-1038399
+	    if (typeof key !== 'string' && typeof key !== 'number') {
+	        key = String(key);
+	    }
 	    if (key === 'constructor' && typeof obj[key] === 'function') {
 	        return false;
 	    }
@@ -12426,12 +12429,13 @@ var joint = (function (exports, Backbone, _, $) {
 
 	    toJSON: function() {
 
-	        var defaultAttrs = this.constructor.prototype.defaults.attrs || {};
+	        var defaults = result(this.constructor.prototype, 'defaults');
+	        var defaultAttrs = defaults.attrs || {};
 	        var attrs = this.attributes.attrs;
 	        var finalAttrs = {};
 
 	        // Loop through all the attributes and
-	        // omit the default attributes as they are implicitly reconstructable by the cell 'type'.
+	        // omit the default attributes as they are implicitly reconstructible by the cell 'type'.
 	        forIn(attrs, function(attr, selector) {
 
 	            var defaultAttr = defaultAttrs[selector];
@@ -31332,7 +31336,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Boundary: Boundary
 	});
 
-	var version = "3.4.1";
+	var version = "3.4.2";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

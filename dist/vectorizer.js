@@ -1,4 +1,4 @@
-/*! JointJS v3.4.1 (2021-08-18) - JavaScript diagramming library
+/*! JointJS v3.4.2 (2021-09-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -6190,7 +6190,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     if (includeAnnotationIndices) { vTSpan.attr('annotations', annotation.annotations); }
                     // Check for max font size
                     fontSize = parseFloat(annotationAttrs['font-size']);
-                    if (fontSize === undefined) { fontSize = baseSize; }
+                    if (!isFinite(fontSize)) { fontSize = baseSize; }
                     if (fontSize && fontSize > maxFontSize) { maxFontSize = fontSize; }
                 } else {
                     if (eol && j === lastJ) { annotation += eol; }

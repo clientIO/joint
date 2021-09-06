@@ -1,4 +1,4 @@
-/*! JointJS v3.4.1 (2021-08-18) - JavaScript diagramming library
+/*! JointJS v3.4.2 (2021-09-06) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -24,6 +24,7 @@ export as namespace joint;
 
 export namespace g {
 
+    export type Shape = Path | Point | Line | Polyline | Rect | Ellipse;
     export interface PlainPoint {
 
         x: number;
@@ -947,6 +948,8 @@ export class Vectorizer {
 
     findIntersection(ref: g.PlainPoint, target: SVGElement | Vectorizer): g.PlainPoint | undefined;
 
+    toGeometryShape(): g.Shape;
+
     private setAttributes(attrs: { [key: string]: any }): this;
 
     private setAttribute(name: string, value: string): this;
@@ -1657,6 +1660,15 @@ export namespace dia {
 
         type FlagLabel = string | string[];
         type PresentationAttributes = { [key: string]: FlagLabel };
+
+        type NodeData = { [key: string]: any };
+
+        type NodeMetrics = {
+            data: NodeData;
+            boundingRect: g.Rect;
+            magnetMatrix: SVGMatrix;
+            geometryShape: g.Shape;
+        }
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
@@ -1665,9 +1677,9 @@ export namespace dia {
 
         paper: Paper | null;
 
-        initFlag: CellView.FlagLabel;
+        initFlag(): CellView.FlagLabel;
 
-        presentationAttributes: CellView.PresentationAttributes;
+        presentationAttributes(): CellView.PresentationAttributes;
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -1757,11 +1769,21 @@ export namespace dia {
 
         protected onmagnet(evt: dia.Event, x: number, y: number): void;
 
-        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
-
         protected getLinkEnd(magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
 
+        protected getMagnetFromLinkEnd(end: dia.Link.EndJSON): SVGElement;
+
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected cleanNodesCache(): void;
+
+        protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
+
+        protected getNodeData(magnet: SVGElement): CellView.NodeData;
+
+        protected getNodeShape(magnet: SVGElement): g.Shape;
+
+        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -1805,6 +1827,18 @@ export namespace dia {
         protected renderJSONMarkup(markup: MarkupJSON): void;
 
         protected renderStringMarkup(markup: string): void;
+
+        protected updateTransformation(): void;
+
+        protected resize(): void;
+
+        protected translate(): void;
+
+        protected rotate(): void;
+
+        protected getTranslateString(): string;
+
+        protected getRotateString(): string;
 
         protected dragStart(evt: dia.Event, x: number, y: number): void;
 
