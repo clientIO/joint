@@ -607,6 +607,15 @@ export namespace dia {
 
         type FlagLabel = string | string[];
         type PresentationAttributes = { [key: string]: FlagLabel };
+
+        type NodeData = { [key: string]: any };
+
+        type NodeMetrics = {
+            data: NodeData;
+            boundingRect: g.Rect;
+            magnetMatrix: SVGMatrix;
+            geometryShape: g.Shape;
+        }
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
@@ -615,9 +624,9 @@ export namespace dia {
 
         paper: Paper | null;
 
-        initFlag: CellView.FlagLabel;
+        initFlag(): CellView.FlagLabel;
 
-        presentationAttributes: CellView.PresentationAttributes;
+        presentationAttributes(): CellView.PresentationAttributes;
 
         highlight(el?: SVGElement | JQuery | string, opt?: { [key: string]: any }): this;
 
@@ -707,11 +716,21 @@ export namespace dia {
 
         protected onmagnet(evt: dia.Event, x: number, y: number): void;
 
-        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
-
         protected getLinkEnd(magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
 
+        protected getMagnetFromLinkEnd(end: dia.Link.EndJSON): SVGElement;
+
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected cleanNodesCache(): void;
+
+        protected nodeCache(magnet: SVGElement): CellView.NodeMetrics;
+
+        protected getNodeData(magnet: SVGElement): CellView.NodeData;
+
+        protected getNodeShape(magnet: SVGElement): g.Shape;
+
+        static addPresentationAttributes(attributes: CellView.PresentationAttributes): CellView.PresentationAttributes;
     }
 
     class CellView extends CellViewGeneric<Cell> {
@@ -755,6 +774,18 @@ export namespace dia {
         protected renderJSONMarkup(markup: MarkupJSON): void;
 
         protected renderStringMarkup(markup: string): void;
+
+        protected updateTransformation(): void;
+
+        protected resize(): void;
+
+        protected translate(): void;
+
+        protected rotate(): void;
+
+        protected getTranslateString(): string;
+
+        protected getRotateString(): string;
 
         protected dragStart(evt: dia.Event, x: number, y: number): void;
 
