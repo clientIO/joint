@@ -64,15 +64,16 @@ export const Cell = Backbone.Model.extend({
 
     toJSON: function() {
 
-        var defaultAttrs = this.constructor.prototype.defaults.attrs || {};
-        var attrs = this.attributes.attrs;
-        var finalAttrs = {};
+        const defaults = result(this.constructor.prototype, 'defaults');
+        const defaultAttrs = defaults.attrs || {};
+        const attrs = this.attributes.attrs;
+        const finalAttrs = {};
 
         // Loop through all the attributes and
-        // omit the default attributes as they are implicitly reconstructable by the cell 'type'.
+        // omit the default attributes as they are implicitly reconstructible by the cell 'type'.
         forIn(attrs, function(attr, selector) {
 
-            var defaultAttr = defaultAttrs[selector];
+            const defaultAttr = defaultAttrs[selector];
 
             forIn(attr, function(value, name) {
 
@@ -99,7 +100,7 @@ export const Cell = Backbone.Model.extend({
             });
         });
 
-        var attributes = cloneDeep(omit(this.attributes, 'attrs'));
+        const attributes = cloneDeep(omit(this.attributes, 'attrs'));
         attributes.attrs = finalAttrs;
 
         return attributes;

@@ -355,5 +355,41 @@ QUnit.module('cell', function(hooks) {
             });
         });
     });
+
+    QUnit.module('toJSON()', function() {
+
+        QUnit.test('`defaults` defined as property', function(assert) {
+
+            var El = joint.dia.Element.extend({
+                defaults: {
+                    attrs: { test1: { prop1: true }}
+                }
+            });
+
+            var el = new El({
+                id: 'el1',
+                attrs: { test1: { prop1: true }, test2: { prop2: true }}
+            });
+
+            assert.deepEqual(el.toJSON(), { id: 'el1', attrs: { test2: { prop2: true }}});
+        });
+
+        QUnit.test('`defaults()` defined as function', function(assert) {
+            var El = joint.dia.Element.extend({
+                defaults: function() {
+                    return {
+                        attrs: { test1: { prop1: true }}
+                    };
+                }
+            });
+
+            var el = new El({
+                id: 'el1',
+                attrs: { test1: { prop1: true }, test2: { prop2: true }}
+            });
+
+            assert.deepEqual(el.toJSON(), { id: 'el1', attrs: { test2: { prop2: true }}});
+        });
+    });
 });
 
