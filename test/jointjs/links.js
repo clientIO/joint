@@ -1315,12 +1315,15 @@ QUnit.module('links', function(hooks) {
         var l2v = l2.findView(this.paper);
 
         sinon.spy(lv, 'update');
-        sinon.spy(lv, 'findRoute');
+        sinon.spy(lv, 'translate');
+        sinon.spy(lv, 'updateRoute');
+        sinon.spy(lv, 'updatePath');
+        sinon.spy(lv, 'updateDOM');
         sinon.spy(l2v, 'update');
 
         l.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link point to point, link translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link point to point, link translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link point to point, link translated');
 
         l.set('target', { id: 'a' });
         lv.update.resetHistory();
@@ -1382,8 +1385,10 @@ QUnit.module('links', function(hooks) {
         // loop + vertices + embedded (moving container)
         c.embed(a);
         lv.update.resetHistory();
+        lv.translate.resetHistory();
         c.translate(10, 10);
-        assert.equal(lv.update.callCount, 1, 'update: embedded loop link with vertices, container translated.');
+        assert.equal(lv.update.callCount, 0, 'update: embedded loop link with vertices, container translated.');
+        assert.equal(lv.translate.callCount, 1, 'translate: embedded loop link with vertices, container translated.');
 
         // loop + vertices + embedded (resizing source)
         lv.update.resetHistory();
@@ -1400,109 +1405,115 @@ QUnit.module('links', function(hooks) {
 
         // source, target and link with vertices are embedded,
         // translating container
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
+        lv.translate.resetHistory();
         c.translate(10, 10);
-        assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, container translated');
-        assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element with vertices embedded, container translated');
+        assert.equal(lv.update.callCount, 0, 'update: link element-element with vertices embedded, container translated');
+        assert.equal(lv.updateRoute.callCount, 0, 'updateRoute: link element-element with vertices embedded, container translated');
+        assert.equal(lv.translate.callCount, 1, 'translate: link element-element with vertices embedded, container translated');
 
         // translating source
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, source translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, source translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element with vertices embedded, source translated');
 
         // translating target
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         b.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with vertices embedded, target translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with vertices embedded, target translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element with vertices embedded, target translated');
 
         // source, target and link are embedded,
         // translating container
         l.set('vertices', []);
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
+        lv.translate.resetHistory();
         c.translate(10, 10);
-        assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, container translated');
-        assert.equal(lv.findRoute.callCount, 0, 'findRoute: link element-element embedded, container translated');
+        assert.equal(lv.update.callCount, 0, 'update: link element-element embedded, container translated');
+        assert.equal(lv.updateRoute.callCount, 0, 'updateRoute: link element-element embedded, container translated');
+        assert.equal(lv.translate.callCount, 1, 'translate: link element-element embedded, container translated');
 
         // translating source
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, source translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, source translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element embedded, source translated');
 
         // translating target
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         b.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element embedded, target translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element embedded, target translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element embedded, target translated');
 
         // loop link and element are embedded
         // translating container
         l.set('target', { id: 'a' });
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
+        lv.translate.resetHistory();
         c.translate(10, 10);
-        assert.equal(lv.update.callCount, 1, 'update: loop link embedded, container translated');
-        assert.equal(lv.findRoute.callCount, 0, 'findRoute: loop link embedded, container translated');
+        assert.equal(lv.update.callCount, 0, 'update: loop link embedded, container translated');
+        assert.equal(lv.updateRoute.callCount, 0, 'updateRoute: loop link embedded, container translated');
+        assert.equal(lv.translate.callCount, 1, 'translate: loop link embedded, container translated');
 
         // translating element
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: loop link embedded, source translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: loop link embedded, source translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: loop link embedded, source translated');
 
         // link is not embedded, source and target embedded
         // translateing container
         c.unembed(l);
         l.set('target', { id: 'b' });
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         c.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, container translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, container translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element with embedded ends, container translated');
 
         // translating source
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         a.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, source translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, source translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element with embedded ends, source translated');
 
         // translating target
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         b.translate(10, 10);
         assert.equal(lv.update.callCount, 1, 'update: link element-element with embedded ends, source translated');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: link element-element with embedded ends, source translated');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: link element-element with embedded ends, source translated');
 
         // adding vertex
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         l.set('vertices', [{ x: 0, y: 0 }]);
         assert.equal(lv.update.callCount, 1, 'update: vertex added');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: vertex added');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: vertex added');
 
         // changing attr
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         l.attr('.connection/stroke', 'red');
         assert.equal(lv.update.callCount, 1, 'update: change attrs');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: change attrs');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: change attrs');
 
         // source resize
-        lv.findRoute.resetHistory();
+        lv.updateRoute.resetHistory();
         lv.update.resetHistory();
         a.resize(20, 20);
         assert.equal(lv.update.callCount, 1, 'update: source resized');
-        assert.equal(lv.findRoute.callCount, 1, 'findRoute: source resized');
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: source resized');
 
         // 2 loop links connected to the same element.
         l2.set('source', { id: 'a' }).set('target', { id: 'b' });
@@ -1513,8 +1524,31 @@ QUnit.module('links', function(hooks) {
         assert.equal(lv.update.callCount, 1, 'update: 2 loops link, source translated (first)');
         assert.equal(l2v.update.callCount, 1, 'update: 2 loops link, source translated (second)');
 
+        lv.updateRoute.resetHistory();
+        lv.updatePath.resetHistory();
+        lv.updateDOM.resetHistory();
+        lv.translate.resetHistory();
+        lv.requestConnectionUpdate();
+        assert.equal(lv.updateRoute.callCount, 1, 'updateRoute: requestUpdate(UPDATE)');
+        assert.equal(lv.updatePath.callCount, 1, 'updatePath: requestUpdate(UPDATE)');
+        assert.equal(lv.updateDOM.callCount, 1, 'updateDOM: requestUpdate(UPDATE)');
+        assert.equal(lv.translate.callCount, 0, 'translate: requestUpdate(UPDATE)');
+
+        lv.updateRoute.resetHistory();
+        lv.updatePath.resetHistory();
+        lv.updateDOM.resetHistory();
+        lv.translate.resetHistory();
+        lv.requestUpdate(lv.getFlag(joint.dia.LinkView.Flags.CONNECTOR));
+        assert.equal(lv.updateRoute.callCount, 0, 'updateRoute: requestUpdate(CONNECTOR)');
+        assert.equal(lv.updatePath.callCount, 1, 'updatePath: requestUpdate(CONNECTOR)');
+        assert.equal(lv.updateDOM.callCount, 1, 'updateDOM: requestUpdate(CONNECTOR)');
+        assert.equal(lv.translate.callCount, 0, 'translate: requestUpdate(CONNECTOR)');
+
         lv.update.restore();
-        lv.findRoute.restore();
+        lv.updateRoute.restore();
+        lv.updatePath.restore();
+        lv.updateDOM.restore();
+        lv.translate.restore();
         l2v.update.restore();
     });
 
