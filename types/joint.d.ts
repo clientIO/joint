@@ -210,8 +210,8 @@ export namespace dia {
             [key: string]: any;
         }
 
-        interface EmbeddableOptions extends Options {
-            deep?: boolean;
+        interface EmbeddableOptions<T = boolean> extends Options {
+            deep?: T;
         }
 
         interface DisconnectableOptions extends Options {
@@ -271,8 +271,9 @@ export namespace dia {
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
         attr(key: Path, value: any, opt?: Cell.Options): this;
 
-        clone(): Cell;
-        clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
+        clone(): this;
+        clone(opt: Cell.EmbeddableOptions<false>): this;
+        clone(opt: Cell.EmbeddableOptions<true>): Cell[];
 
         removeAttr(path: Path, opt?: Cell.Options): this;
 
