@@ -271,8 +271,8 @@ export namespace dia {
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
         attr(key: Path, value: any, opt?: Cell.Options): this;
 
-        clone(): typeof this;
-        clone(opt: Cell.EmbeddableOptions<false>): typeof this;
+        clone(): this;
+        clone(opt: Cell.EmbeddableOptions<false>): this;
         clone(opt: Cell.EmbeddableOptions<true>): Cell[];
 
         removeAttr(path: Path, opt?: Cell.Options): this;
