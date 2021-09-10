@@ -745,36 +745,6 @@ export const ElementView = CellView.extend({
         paper.delegateDragEvents(this, evt.data);
     },
 
-    dragLinkStart: function(evt, magnet, x, y) {
-
-        this.model.startBatch('add-link');
-
-        var linkView = this.addLinkFromMagnet(magnet, x, y);
-
-        // backwards compatibility events
-        linkView.notifyPointerdown(evt, x, y);
-
-        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
-        this.eventData(evt, { linkView: linkView });
-    },
-
-    addLinkFromMagnet: function(magnet, x, y) {
-
-        var paper = this.paper;
-        var graph = paper.model;
-
-        var link = paper.getDefaultLink(this, magnet);
-        link.set({
-            source: this.getLinkEnd(magnet, x, y, link, 'source'),
-            target: { x: x, y: y }
-        }).addTo(graph, {
-            async: false,
-            ui: true
-        });
-
-        return link.findView(paper);
-    },
-
     // Drag Handlers
 
     drag: function(evt, x, y) {
@@ -808,25 +778,7 @@ export const ElementView = CellView.extend({
     },
 
     dragMagnet: function(evt, x, y) {
-
-        var data = this.eventData(evt);
-        var linkView = data.linkView;
-        if (linkView) {
-            linkView.pointermove(evt, x, y);
-        } else {
-            var paper = this.paper;
-            var magnetThreshold = paper.options.magnetThreshold;
-            var currentTarget = this.getEventTarget(evt);
-            var targetMagnet = data.targetMagnet;
-            if (magnetThreshold === 'onleave') {
-                // magnetThreshold when the pointer leaves the magnet
-                if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) return;
-            } else {
-                // magnetThreshold defined as a number of movements
-                if (paper.eventData(evt).mousemoved <= magnetThreshold) return;
-            }
-            this.dragLinkStart(evt, targetMagnet, x, y);
-        }
+        this.dragLink(evt, x, y);
     },
 
     // Drag End Handlers
@@ -838,12 +790,7 @@ export const ElementView = CellView.extend({
     },
 
     dragMagnetEnd: function(evt, x, y) {
-
-        var data = this.eventData(evt);
-        var linkView = data.linkView;
-        if (!linkView) return;
-        linkView.pointerup(evt, x, y);
-        this.model.stopBatch('add-link');
+        this.dragLinkEnd(evt, x, y);
     },
 
     magnetpointerclick: function(evt, magnet, x, y) {

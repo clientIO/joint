@@ -787,6 +787,9 @@ var Button = ToolView.extend({
 
 
 var Remove = Button.extend({
+    documentEvents: {
+
+    },
     children: [{
         tagName: 'circle',
         selector: 'button',
@@ -814,6 +817,61 @@ var Remove = Button.extend({
         }
     }
 });
+
+var Link = Button.extend({
+    documentEvents: {
+        mousemove: 'onPointerMove',
+        touchmove: 'onPointerMove',
+        mouseup: 'onPointerUp',
+        touchend: 'onPointerUp',
+        touchcancel: 'onPointerUp'
+    },
+    children: [{
+        tagName: 'circle',
+        selector: 'button',
+        attributes: {
+            'r': 7,
+            'fill': '#333333',
+            'cursor': 'pointer'
+        }
+    }, {
+        tagName: 'path',
+        selector: 'icon',
+        attributes: {
+            'd': 'M -4 -1 L 0 -1 L 0 -4 L 4 0 L 0 4 0 1 -4 1 z',
+            'fill': '#FFFFFF',
+            'stroke': 'none',
+            'stroke-width': 2,
+            'pointer-events': 'none'
+        }
+    }],
+    options: {
+        distance: 60,
+        offset: 0,
+        magnet: (view) => view.el,
+        action: function(evt, view, tool) {
+            const { paper } = view;
+            const magnet = tool.options.magnet(view);
+            const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
+            view.dragLinkStart(evt, magnet, x, y);
+            paper.undelegateEvents();
+            tool.delegateDocumentEvents(null, evt.data);
+        }
+    },
+    onPointerMove: function(evt) {
+        const { paper, relatedView } = this;
+        const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
+        relatedView.dragLink(evt, x, y);
+    },
+    onPointerUp: function(evt) {
+        const { paper, relatedView } = this;
+        const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
+        relatedView.dragLinkEnd(evt, x, y);
+        this.undelegateDocumentEvents();
+        paper.delegateEvents();
+    }
+});
+
 
 var Boundary = ToolView.extend({
     name: 'boundary',
@@ -1078,4 +1136,7 @@ var TargetAnchor = Anchor.extend({
     type: 'target'
 });
 
-export { Vertices, Segments, SourceArrowhead, TargetArrowhead, SourceAnchor, TargetAnchor, Button, Remove, Boundary };
+
+
+
+export { Vertices, Segments, SourceArrowhead, TargetArrowhead, SourceAnchor, TargetAnchor, Button, Remove, Link, Boundary };
