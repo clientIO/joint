@@ -78,7 +78,9 @@ function setupUpdating(jumpOverLinkView) {
 function updateJumpOver(paper) {
     var updateList = paper._jumpOverUpdateList;
     for (var i = 0; i < updateList.length; i++) {
-        updateList[i].requestConnectionUpdate();
+        const linkView = updateList[i];
+        const updateFlag = linkView.getFlag(linkView.constructor.Flags.CONNECTOR);
+        linkView.requestUpdate(updateFlag);
     }
 }
 

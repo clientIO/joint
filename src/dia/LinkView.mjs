@@ -16,6 +16,7 @@ const Flags = {
     VERTICES: 'VERTICES',
     SOURCE: 'SOURCE',
     TARGET: 'TARGET',
+    CONNECTOR: 'CONNECTOR'
 };
 
 // Link base view and controller.
@@ -70,14 +71,14 @@ export const LinkView = CellView.extend({
         this._V = {};
 
         // connection path metrics
-        this.metrics = {};
+        this.cleanNodesCache();
     },
 
     presentationAttributes: {
         markup: [Flags.RENDER],
         attrs: [Flags.UPDATE],
         router: [Flags.UPDATE],
-        connector: [Flags.UPDATE],
+        connector: [Flags.CONNECTOR],
         smooth: [Flags.UPDATE],
         manhattan: [Flags.UPDATE],
         toolMarkup: [Flags.LEGACY_TOOLS],
@@ -117,7 +118,7 @@ export const LinkView = CellView.extend({
             this.render();
             this.updateHighlighters(true);
             this.updateTools(opt);
-            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.VERTICES, Flags.LABELS, Flags.TOOLS, Flags.LEGACY_TOOLS]);
+            flags = this.removeFlag(flags, [Flags.RENDER, Flags.UPDATE, Flags.VERTICES, Flags.LABELS, Flags.TOOLS, Flags.LEGACY_TOOLS, Flags.CONNECTOR]);
             return flags;
         }
 
@@ -144,10 +145,23 @@ export const LinkView = CellView.extend({
             flags = this.removeFlag(flags, Flags.LEGACY_TOOLS);
         }
 
-        if (this.hasFlag(flags, Flags.UPDATE)) {
-            this.update(model, null, opt);
+        const updateAll = this.hasFlag(flags, Flags.UPDATE);
+        const updateConnector = this.hasFlag(flags, Flags.CONNECTOR);
+        if (updateAll || updateConnector) {
+            if (!updateAll) {
+                // Keep the current route and update the geometry
+                this.updatePath();
+                this.updateDOM();
+            } else if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
+                // The link is being translated by an ancestor that will
+                // shift source point, target point and all vertices
+                // by an equal distance.
+                this.translate(opt.tx, opt.ty);
+            } else {
+                this.update();
+            }
             this.updateTools(opt);
-            flags = this.removeFlag(flags, [Flags.UPDATE, Flags.TOOLS]);
+            flags = this.removeFlag(flags, [Flags.UPDATE, Flags.TOOLS, Flags.CONNECTOR]);
             updateLabels = false;
             updateLegacyTools = false;
             updateHighlighters = true;
@@ -174,7 +188,7 @@ export const LinkView = CellView.extend({
     },
 
     requestConnectionUpdate: function(opt) {
-        this.requestUpdate(this.getFlag(Flags.UPDATE, opt));
+        this.requestUpdate(this.getFlag(Flags.UPDATE), opt);
     },
 
     isLabelsRenderRequired: function(opt = {}) {
@@ -550,38 +564,6 @@ export const LinkView = CellView.extend({
         return this;
     },
 
-    // Updating.
-    // ---------
-
-    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
-    update: function(model, attributes, opt) {
-
-        opt || (opt = {});
-
-        this.cleanNodesCache();
-
-        // update the link path
-        this.updateConnection(opt);
-
-        // update SVG attributes defined by 'attrs/'.
-        this.updateDOMSubtreeAttributes(this.el, this.model.attr(), { selectors: this.selectors });
-
-        this.updateDefaultConnectionPath();
-
-        // update the label position etc.
-        this.updateLabelPositions();
-        this.updateToolsPosition();
-        this.updateArrowheadMarkers();
-
-        // *Deprecated*
-        // Local perpendicular flag (as opposed to one defined on paper).
-        // Could be enabled inside a connector/router. It's valid only
-        // during the update execution.
-        this.options.perpendicular = null;
-
-        return this;
-    },
-
     // remove vertices that lie on (or nearly on) straight lines within the link
     // return the number of removed points
     removeRedundantLinearVertices: function(opt) {
@@ -674,56 +656,72 @@ export const LinkView = CellView.extend({
         return null;
     },
 
-    updateConnection: function(opt) {
 
-        opt = opt || {};
+    // Updating.
+    // ---------
 
-        var model = this.model;
-        var route, path;
+    update: function() {
+        this.updateRoute();
+        this.updatePath();
+        this.updateDOM();
+        return this;
+    },
 
-        if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
-            // The link is being translated by an ancestor that will
-            // shift source point, target point and all vertices
-            // by an equal distance.
-            var tx = opt.tx || 0;
-            var ty = opt.ty || 0;
+    translate: function(tx = 0, ty = 0) {
+        const { route, path } = this;
+        if (!route || !path) return;
+        // translate the route
+        const polyline = new Polyline(route);
+        polyline.translate(tx, ty);
+        this.route = polyline.points;
+        // translate source and target connection and marker points.
+        this._translateConnectionPoints(tx, ty);
+        // translate the geometry path
+        path.translate(tx, ty);
+        this.updateDOM();
+    },
 
-            route = (new Polyline(this.route)).translate(tx, ty).points;
+    updateDOM() {
+        const { el, model, selectors } = this;
+        this.cleanNodesCache();
+        // update SVG attributes defined by 'attrs/'.
+        this.updateDOMSubtreeAttributes(el, model.attr(), { selectors });
+        // legacy link path update
+        this.updateDefaultConnectionPath();
+        // update the label position etc.
+        this.updateLabelPositions();
+        this.updateToolsPosition();
+        this.updateArrowheadMarkers();
+        // *Deprecated*
+        // Local perpendicular flag (as opposed to one defined on paper).
+        // Could be enabled inside a connector/router. It's valid only
+        // during the update execution.
+        this.options.perpendicular = null;
+    },
 
-            // translate source and target connection and marker points.
-            this._translateConnectionPoints(tx, ty);
-
-            // translate the path itself
-            path = this.path;
-            path.translate(tx, ty);
-
-        } else {
-
-            var vertices = model.vertices();
-            // 1. Find Anchors
-
-            var anchors = this.findAnchors(vertices);
-            var sourceAnchor = this.sourceAnchor = anchors.source;
-            var targetAnchor = this.targetAnchor = anchors.target;
-
-            // 2. Find Route
-            route = this.findRoute(vertices, opt);
-
-            // 3. Find Connection Points
-            var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
-            var sourcePoint = this.sourcePoint = connectionPoints.source;
-            var targetPoint = this.targetPoint = connectionPoints.target;
-
-            // 3b. Find Marker Connection Point - Backwards Compatibility
-            var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
-
-            // 4. Find Connection
-            path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
-        }
-
+    updateRoute: function() {
+        const { model } = this;
+        const vertices = model.vertices();
+        // 1. Find Anchors
+        const anchors = this.findAnchors(vertices);
+        const sourceAnchor = this.sourceAnchor = anchors.source;
+        const targetAnchor = this.targetAnchor = anchors.target;
+        // 2. Find Route
+        const route = this.findRoute(vertices);
         this.route = route;
+        // 3. Find Connection Points
+        var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
+        this.sourcePoint = connectionPoints.source;
+        this.targetPoint = connectionPoints.target;
+    },
+
+    updatePath: function() {
+        const { route, sourcePoint, targetPoint } = this;
+        // 3b. Find Marker Connection Point - Backwards Compatibility
+        const markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
+        // 4. Find Connection
+        const path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
         this.path = path;
-        this.metrics = {};
     },
 
     findMarkerPoints: function(route, sourcePoint, targetPoint) {

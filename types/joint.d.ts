@@ -818,6 +818,7 @@ export namespace dia {
             VERTICES = 'VERTICES',
             SOURCE = 'SOURCE',
             TARGET = 'TARGET',
+            CONNECTOR = 'CONNECTOR'
         }
 
         interface InteractivityOptions {
@@ -909,7 +910,9 @@ export namespace dia {
         getVertexIndex(x: number, y: number): number;
         getVertexIndex(point: Point): number;
 
-        update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
+        update(): this;
+
+        translate(tx: number, ty: number): void;
 
         requestConnectionUpdate(opt?: { [key: string]: any }): void;
 
@@ -924,6 +927,12 @@ export namespace dia {
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
         findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+
+        protected updateRoute(): void;
+
+        protected updatePath(): void;
+
+        protected updateDOM(): void;
 
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
