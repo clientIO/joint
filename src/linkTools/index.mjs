@@ -851,10 +851,24 @@ const Connect = Button.extend({
     getMagnetNode: function() {
         const { options, relatedView } = this;
         const { magnet } = options;
-        const magnetNode = (typeof magnet === 'function')
-            ? magnet.call(this, relatedView, this)
-            : magnet;
-        return magnetNode;
+        let magnetNode;
+        switch (typeof magnet) {
+            case 'function': {
+                magnetNode = magnet.call(this, relatedView, this);
+                break;
+            }
+            case 'string': {
+                [magnetNode] = relatedView.findBySelector(magnet);
+                break;
+            }
+            default: {
+                magnetNode = magnet;
+                break;
+            }
+        }
+        if (!magnetNode) magnetNode = relatedView.el;
+        if (magnetNode instanceof SVGElement) return magnetNode;
+        throw new Error('Connect: magnet must be an SVGElement');
     },
     dragstart: function(evt) {
         const { paper, relatedView } = this;

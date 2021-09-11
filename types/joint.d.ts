@@ -623,6 +623,8 @@ export namespace dia {
 
         constructor(opt?: CellView.Options<T>);
 
+        el: SVGElement;
+
         paper: Paper | null;
 
         initFlag(): CellView.FlagLabel;
@@ -637,7 +639,7 @@ export namespace dia {
 
         findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
+        findBySelector(selector: string, root?: SVGElement | JQuery | string): SVGElement[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -2932,6 +2934,8 @@ export namespace mvc {
 
         vel: Vectorizer | null;
 
+        svgElement: boolean;
+
         options: ViewOptions<T>;
 
         theme: string;
@@ -3636,8 +3640,10 @@ export namespace elementTools {
 
     namespace Connect {
 
+        type MagnetCallback = ((this: Connect, view: dia.CellView, tool: Connect) => SVGElement);
+
         interface Options extends Button.Options {
-            magnet?: SVGElement | ((view: dia.CellView) => SVGElement);
+            magnet?: string | SVGElement | MagnetCallback;
         }
     }
 
