@@ -787,9 +787,6 @@ var Button = ToolView.extend({
 
 
 var Remove = Button.extend({
-    documentEvents: {
-
-    },
     children: [{
         tagName: 'circle',
         selector: 'button',
@@ -818,13 +815,13 @@ var Remove = Button.extend({
     }
 });
 
-var Link = Button.extend({
+const Connect = Button.extend({
     documentEvents: {
-        mousemove: 'onPointerMove',
-        touchmove: 'onPointerMove',
-        mouseup: 'onPointerUp',
-        touchend: 'onPointerUp',
-        touchcancel: 'onPointerUp'
+        mousemove: 'drag',
+        touchmove: 'drag',
+        mouseup: 'dragend',
+        touchend: 'dragend',
+        touchcancel: 'dragend'
     },
     children: [{
         tagName: 'circle',
@@ -846,29 +843,42 @@ var Link = Button.extend({
         }
     }],
     options: {
-        distance: 60,
+        distance: 80,
         offset: 0,
         magnet: (view) => view.el,
-        action: function(evt, view, tool) {
-            const { paper } = view;
-            const magnet = tool.options.magnet(view);
-            const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
-            view.dragLinkStart(evt, magnet, x, y);
-            paper.undelegateEvents();
-            tool.delegateDocumentEvents(null, evt.data);
-        }
+        action: (evt, _view, tool) => tool.dragstart(evt),
     },
-    onPointerMove: function(evt) {
-        const { paper, relatedView } = this;
-        const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
-        relatedView.dragLink(evt, x, y);
+    getMagnetNode: function() {
+        const { options, relatedView } = this;
+        const { magnet } = options;
+        const magnetNode = (typeof magnet === 'function')
+            ? magnet.call(this, relatedView, this)
+            : magnet;
+        return magnetNode;
     },
-    onPointerUp: function(evt) {
+    dragstart: function(evt) {
         const { paper, relatedView } = this;
-        const { x, y } = paper.clientToLocalPoint(evt.clientX, evt.clientY);
-        relatedView.dragLinkEnd(evt, x, y);
+        const normalizedEvent = util.normalizeEvent(evt);
+        const { x, y } = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
+        relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
+        paper.undelegateEvents();
+        this.delegateDocumentEvents(null, evt.data);
+        this.focus();
+    },
+    drag: function(evt) {
+        const { paper, relatedView } = this;
+        const normalizedEvent = util.normalizeEvent(evt);
+        const { x, y } = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+        relatedView.dragLink(normalizedEvent, x, y);
+    },
+    dragend: function(evt) {
+        const { paper, relatedView } = this;
+        const normalizedEvent = util.normalizeEvent(evt);
+        const { x, y } = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+        relatedView.dragLinkEnd(normalizedEvent, x, y);
         this.undelegateDocumentEvents();
         paper.delegateEvents();
+        this.blur();
     }
 });
 
@@ -1139,4 +1149,4 @@ var TargetAnchor = Anchor.extend({
 
 
 
-export { Vertices, Segments, SourceArrowhead, TargetArrowhead, SourceAnchor, TargetAnchor, Button, Remove, Link, Boundary };
+export { Vertices, Segments, SourceArrowhead, TargetArrowhead, SourceAnchor, TargetAnchor, Button, Remove, Connect, Boundary };

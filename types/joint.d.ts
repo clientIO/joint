@@ -3634,6 +3634,26 @@ export namespace elementTools {
 
     }
 
+    namespace Connect {
+
+        interface Options extends Button.Options {
+            magnet?: SVGElement | ((view: dia.CellView) => SVGElement);
+        }
+    }
+
+    class Connect extends Button {
+
+        constructor(opt?: Connect.Options);
+
+        protected getMagnetNode(): SVGElement;
+
+        protected dragstart(evt: dia.Event): void;
+
+        protected drag(evt: dia.Event): void;
+
+        protected dragend(evt: dia.Event): void;
+    }
+
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
             padding?: number | dia.Sides;
