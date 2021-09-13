@@ -8,3 +8,25 @@ element.prop({ name: { first: 'John' } })
 // Nested arrays are supported too:
 element.prop('mylist/0/data/0/value', 50)
 element.prop({ mylist: [ { data: [ { value: 50 } ] } ] })</code></pre>
+
+<p>To overwrite attributes, enable <i>rewrite</i> mode by adding <code>{ rewrite: true }</code> as the 3rd argument. This differs from the default behaviour which is to merge our properties.</p>
+
+<pre><code>element.prop('custom/state/isCollapsed', true);
+element.prop('custom/state', { isActive: false }, { rewrite: true });
+
+// Output from element.toJSON();
+// We can see our attributes have been overwritten
+{
+    "type": "standard.Rectangle",
+    "position": { "x": 0, "y": 0 },
+    "size": { "width": 1, "height": 1 },
+    "angle": 0,
+    "id": "b1c02090-e46a-4d90-a5dc-5096f1559b9f",
+    "custom": {
+        "state": {
+            "isActive": false
+        }
+    },
+    "attrs": {}
+}   
+</code></pre>
