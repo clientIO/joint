@@ -82,9 +82,9 @@ export namespace dia {
         }
     }
 
-    class Graph extends Backbone.Model<any, ModelSetOptions> {
+    class Graph<A = any, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
-        constructor(attributes?: any, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: A, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
         addCell(cell: Cell | Cell[], opt?: Graph.Options): this;
 
@@ -106,7 +106,7 @@ export namespace dia {
 
         getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
-        disconnectLinks(cell: Cell, opt?: ModelSetOptions): void;
+        disconnectLinks(cell: Cell, opt?: S): void;
 
         removeLinks(cell: Cell, opt?: Cell.DisconnectableOptions): void;
 
@@ -148,7 +148,7 @@ export namespace dia {
 
         toJSON(): any;
 
-        fromJSON(json: any, opt?: ModelSetOptions): this;
+        fromJSON(json: any, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
 
@@ -174,9 +174,9 @@ export namespace dia {
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
-        resize(width: number, height: number, opt?: ModelSetOptions): this;
+        resize(width: number, height: number, opt?: S): this;
 
-        resizeCells(width: number, height: number, cells: Cell[], opt?: ModelSetOptions): this;
+        resizeCells(width: number, height: number, cells: Cell[], opt?: S): this;
 
         startBatch(name: string, data?: { [key: string]: any }): this;
 
@@ -234,9 +234,9 @@ export namespace dia {
         }
     }
 
-    class Cell extends Backbone.Model<any, ModelSetOptions> {
+    class Cell<A = Cell.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
-        constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
+        constructor(attributes?: A, opt?: Graph.Options);
 
         id: string | number;
         graph: Graph;
@@ -266,7 +266,7 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
-        prop(object: Cell.Attributes, opt?: Cell.Options): this;
+        prop(object: A, opt?: Cell.Options): this;
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
@@ -376,9 +376,7 @@ export namespace dia {
         }
     }
 
-    class Element extends Cell {
-
-        constructor(attributes?: Element.Attributes, opt?: Graph.Options);
+    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A,S> {
 
         isElement(): boolean;
 
@@ -404,16 +402,16 @@ export namespace dia {
 
         getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
 
-        addPort(port: Element.Port, opt?: Cell.Options): this;
+        addPort(port: Element.Port, opt?: S): this;
 
-        addPorts(ports: Element.Port[], opt?: Cell.Options): this;
+        addPorts(ports: Element.Port[], opt?: S): this;
 
-        insertPort(before: number | string | Element.Port, port: Element.Port, opt?: Cell.Options): this;
+        insertPort(before: number | string | Element.Port, port: Element.Port, opt?: S): this;
 
-        removePort(port: string | Element.Port, opt?: Cell.Options): this;
+        removePort(port: string | Element.Port, opt?: S): this;
 
-        removePorts(opt?: Cell.Options): this;
-        removePorts(ports: Array<Element.Port|string>, opt?: Cell.Options): this;
+        removePorts(opt?: S): this;
+        removePorts(ports: Array<Element.Port|string>, opt?: S): this;
 
         hasPorts(): boolean;
 
@@ -431,7 +429,7 @@ export namespace dia {
 
         portProp(portId: string, path: dia.Path): any;
 
-        portProp(portId: string, path: dia.Path, value?: any, opt?: Cell.Options): Element;
+        portProp(portId: string, path: dia.Path, value?: any, opt?: S): Element;
 
         protected generatePortId(): string | number;
 
@@ -502,7 +500,7 @@ export namespace dia {
         }
     }
 
-    class Link extends Cell {
+    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A,S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
@@ -511,8 +509,6 @@ export namespace dia {
         labelMarkup?: string | MarkupJSON; // default label markup
         labelProps?: Link.Label; // default label props
 
-        constructor(attributes?: Link.Attributes, opt?: Graph.Options);
-
         isElement(): boolean;
 
         isLink(): boolean;
@@ -520,44 +516,44 @@ export namespace dia {
         disconnect(): this;
 
         source(): Link.EndJSON;
-        source(source: Link.EndJSON, opt?: Cell.Options): this;
-        source(source: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
+        source(source: Link.EndJSON, opt?: S): this;
+        source(source: Cell, args?: Link.EndCellArgs, opt?: S): this;
 
         target(): Link.EndJSON;
-        target(target: Link.EndJSON, opt?: Cell.Options): this;
-        target(target: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
+        target(target: Link.EndJSON, opt?: S): this;
+        target(target: Cell, args?: Link.EndCellArgs, opt?: S): this;
 
         router(): routers.Router | routers.RouterJSON | null;
-        router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
-        router(name: routers.RouterType, args?: routers.RouterArguments, opt?: Cell.Options): this;
+        router(router: routers.Router | routers.RouterJSON, opt?: S): this;
+        router(name: routers.RouterType, args?: routers.RouterArguments, opt?: S): this;
 
         connector(): connectors.Connector | connectors.ConnectorJSON | null;
-        connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: Cell.Options): this;
-        connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: Cell.Options): this;
+        connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: S): this;
+        connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: S): this;
 
         label(index?: number): Link.Label;
-        label(index: number, label: Link.Label, opt?: Cell.Options): this;
+        label(index: number, label: Link.Label, opt?: S): this;
 
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
 
-        insertLabel(index: number, label: Link.Label, opt?: Cell.Options): Link.Label[];
+        insertLabel(index: number, label: Link.Label, opt?: S): Link.Label[];
 
-        appendLabel(label: Link.Label, opt?: Cell.Options): Link.Label[];
+        appendLabel(label: Link.Label, opt?: S): Link.Label[];
 
-        removeLabel(index?: number, opt?: Cell.Options): Link.Label[];
+        removeLabel(index?: number, opt?: S): Link.Label[];
 
         vertex(index?: number): Link.Vertex;
-        vertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
+        vertex(index: number, vertex: Link.Vertex, opt?: S): this;
 
         vertices(): Link.Vertex[];
         vertices(vertices: Link.Vertex[]): this;
 
-        insertVertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): Link.Vertex[];
+        insertVertex(index: number, vertex: Link.Vertex, opt?: S): Link.Vertex[];
 
-        removeVertex(index?: number, opt?: Cell.Options): Link.Vertex[];
+        removeVertex(index?: number, opt?: S): Link.Vertex[];
 
-        reparent(opt?: Cell.Options): Element;
+        reparent(opt?: S): Element;
 
         getSourceElement(): null | Element;
 
@@ -581,11 +577,11 @@ export namespace dia {
 
         isRelationshipEmbeddedIn(cell: Cell): boolean;
 
-        applyToPoints(fn: (p: Point) => Point, opt?: Cell.Options): this;
+        applyToPoints(fn: (p: Point) => Point, opt?: S): this;
 
-        scale(sx: number, sy: number, origin?: Point, opt?: Cell.Options): this;
+        scale(sx: number, sy: number, origin?: Point, opt?: S): this;
 
-        translate(tx: number, ty: number, opt?: Cell.Options): this;
+        translate(tx: number, ty: number, opt?: S): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
     }
@@ -1884,14 +1880,11 @@ export namespace shapes {
             top?: attributes.SVGEllipseAttributes;
         }
 
-        class Cylinder extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<CylinderSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
+        class Cylinder<S = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
-            topRy(t: string | number, opt?: dia.Cell.Options): this;
+            topRy(t: string | number, opt?: S): this;
         }
 
         interface TextBlockSelectors {
