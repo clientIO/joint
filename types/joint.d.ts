@@ -3640,7 +3640,7 @@ export namespace elementTools {
 
     namespace Connect {
 
-        type MagnetCallback = ((this: Connect, view: dia.CellView, tool: Connect) => SVGElement);
+        type MagnetCallback = ((this: Connect, view: dia.ElementView, tool: Connect) => SVGElement);
 
         interface Options extends Button.Options {
             magnet?: string | SVGElement | MagnetCallback;
@@ -3792,6 +3792,28 @@ export namespace linkTools {
 
     class Remove extends Button {
 
+    }
+
+    namespace Connect {
+
+        type MagnetCallback = ((this: Connect, view: dia.LinkView, tool: Connect) => SVGElement);
+
+        interface Options extends Button.Options {
+            magnet?: string | SVGElement | MagnetCallback;
+        }
+    }
+
+    class Connect extends Button {
+
+        constructor(opt?: Connect.Options);
+
+        protected getMagnetNode(): SVGElement;
+
+        protected dragstart(evt: dia.Event): void;
+
+        protected drag(evt: dia.Event): void;
+
+        protected dragend(evt: dia.Event): void;
     }
 
     namespace Boundary {
