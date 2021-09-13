@@ -623,8 +623,6 @@ export namespace dia {
 
         constructor(opt?: CellView.Options<T>);
 
-        el: SVGElement;
-
         paper: Paper | null;
 
         initFlag(): CellView.FlagLabel;
@@ -679,6 +677,12 @@ export namespace dia {
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
 
+        dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
+
+        dragLink(evt: dia.Event, x: number, y: number): void;
+
+        dragLinkEnd(evt: dia.Event, x: number, y: number): void;
+
         protected removeHighlighters(): void;
 
         protected updateHighlighters(): void;
@@ -724,6 +728,8 @@ export namespace dia {
         protected getMagnetFromLinkEnd(end: dia.Link.EndJSON): SVGElement;
 
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
 
         protected cleanNodesCache(): void;
 
@@ -801,10 +807,6 @@ export namespace dia {
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
-
-        protected dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
-
-        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
     }
 
     // dia.LinkView
