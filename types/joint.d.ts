@@ -62,6 +62,10 @@ export namespace dia {
 
     type Path = string | Array<string | number>;
 
+    interface ModelSetOptions extends Backbone.ModelSetOptions {
+        dry?:  boolean;
+        [key: string]: any;
+    }
     export namespace Graph {
 
         interface Options {
@@ -78,15 +82,15 @@ export namespace dia {
         }
     }
 
-    class Graph extends Backbone.Model {
+    class Graph extends Backbone.Model<any, ModelSetOptions> {
 
         constructor(attributes?: any, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: { [key: string]: any }): this;
+        addCell(cell: Cell | Cell[], opt?: Graph.Options): this;
 
-        addCells(cells: Cell[], opt?: { [key: string]: any }): this;
+        addCells(cells: Cell[], opt?: Graph.Options): this;
 
-        resetCells(cells: Cell[], opt?: { [key: string]: any }): this;
+        resetCells(cells: Cell[], opt?: Graph.Options): this;
 
         getCell(id: string | number | Cell): Cell;
 
@@ -102,9 +106,9 @@ export namespace dia {
 
         getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
-        disconnectLinks(cell: Cell, opt?: { [key: string]: any }): void;
+        disconnectLinks(cell: Cell, opt?: ModelSetOptions): void;
 
-        removeLinks(cell: Cell, opt?: { [key: string]: any }): void;
+        removeLinks(cell: Cell, opt?: Cell.DisconnectableOptions): void;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -144,7 +148,7 @@ export namespace dia {
 
         toJSON(): any;
 
-        fromJSON(json: any, opt?: { [key: string]: any }): this;
+        fromJSON(json: any, opt?: ModelSetOptions): this;
 
         clear(opt?: { [key: string]: any }): this;
 
@@ -170,9 +174,9 @@ export namespace dia {
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
-        resize(width: number, height: number, opt?: { [key: string]: any }): this;
+        resize(width: number, height: number, opt?: ModelSetOptions): this;
 
-        resizeCells(width: number, height: number, cells: Cell[], opt?: { [key: string]: any }): this;
+        resizeCells(width: number, height: number, cells: Cell[], opt?: ModelSetOptions): this;
 
         startBatch(name: string, data?: { [key: string]: any }): this;
 
@@ -230,7 +234,7 @@ export namespace dia {
         }
     }
 
-    class Cell extends Backbone.Model {
+    class Cell extends Backbone.Model<any, ModelSetOptions> {
 
         constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
 
