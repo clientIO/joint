@@ -637,7 +637,7 @@ export namespace dia {
 
         findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
+        findBySelector(selector: string, root?: SVGElement | JQuery | string): SVGElement[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -676,6 +676,12 @@ export namespace dia {
         getFlag(label: CellView.FlagLabel): number;
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
+
+        dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
+
+        dragLink(evt: dia.Event, x: number, y: number): void;
+
+        dragLinkEnd(evt: dia.Event, x: number, y: number): void;
 
         protected removeHighlighters(): void;
 
@@ -722,6 +728,8 @@ export namespace dia {
         protected getMagnetFromLinkEnd(end: dia.Link.EndJSON): SVGElement;
 
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
 
         protected cleanNodesCache(): void;
 
@@ -799,10 +807,6 @@ export namespace dia {
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
-
-        protected dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
-
-        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
     }
 
     // dia.LinkView
@@ -2932,6 +2936,8 @@ export namespace mvc {
 
         vel: Vectorizer | null;
 
+        svgElement: boolean;
+
         options: ViewOptions<T>;
 
         theme: string;
@@ -3634,6 +3640,28 @@ export namespace elementTools {
 
     }
 
+    namespace Connect {
+
+        type MagnetCallback = ((this: Connect, view: dia.ElementView, tool: Connect) => SVGElement);
+
+        interface Options extends Button.Options {
+            magnet?: string | SVGElement | MagnetCallback;
+        }
+    }
+
+    class Connect extends Button {
+
+        constructor(opt?: Connect.Options);
+
+        protected getMagnetNode(): SVGElement;
+
+        protected dragstart(evt: dia.Event): void;
+
+        protected drag(evt: dia.Event): void;
+
+        protected dragend(evt: dia.Event): void;
+    }
+
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
             padding?: number | dia.Sides;
@@ -3766,6 +3794,28 @@ export namespace linkTools {
 
     class Remove extends Button {
 
+    }
+
+    namespace Connect {
+
+        type MagnetCallback = ((this: Connect, view: dia.LinkView, tool: Connect) => SVGElement);
+
+        interface Options extends Button.Options {
+            magnet?: string | SVGElement | MagnetCallback;
+        }
+    }
+
+    class Connect extends Button {
+
+        constructor(opt?: Connect.Options);
+
+        protected getMagnetNode(): SVGElement;
+
+        protected dragstart(evt: dia.Event): void;
+
+        protected drag(evt: dia.Event): void;
+
+        protected dragend(evt: dia.Event): void;
     }
 
     namespace Boundary {

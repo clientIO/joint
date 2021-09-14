@@ -1,0 +1,25 @@
+<p>The <code>Connect</code> tool allows the user to create links in drag & drop fashion. The tool extends the <a href="#elementTools.Button">Button</a> tool and accepts additional arguments, which can be passed as an object to the connect tool constructor:</p>
+
+<table>
+    <tr>
+        <th>magnet</th>
+        <td><i>string<br>SVGElement<br>(view: dia.LinkView) => SVGElement</i></td>
+        <td>Choose the source magnet of the link view which the new link should be connected to.
+
+            <pre><code>'body' // as a string Selector</code></pre>
+            <pre><code>linkView.el // as an SVGElement</code></pre>
+            <pre><code>(linkView) => linkView.el // as a function</code></pre>
+
+            <p>The callback function is expected to have the signature <code>function(linkView, toolView)</code> where <code>linkView</code> is the link view with the tool attached. The connect button view is available inside the function as <code>this</code> and as the last parameter.</p>
+        </td>
+    </tr>
+</table>
+
+<p>Example:</p>
+
+<pre><code>const connectButton = new joint.elementTools.Connect({
+    x: '100%',
+    y: '0%'',
+    offset: { x: -5, y: -5 },
+    magnet: 'body'
+});</code></pre>
