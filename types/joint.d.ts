@@ -390,7 +390,7 @@ export namespace dia {
         }
     }
 
-    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A,S> {
+    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
 
         isElement(): boolean;
 
@@ -513,7 +513,7 @@ export namespace dia {
         }
     }
 
-    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A,S> {
+    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
