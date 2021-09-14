@@ -66,6 +66,12 @@ export namespace dia {
         dry?:  boolean;
         [key: string]: any;
     }
+
+    interface CollectionAddOptions extends Backbone.AddOptions {
+        dry?:  boolean;
+        [key: string]: any;
+    }
+
     export namespace Graph {
 
         interface Options {
@@ -80,15 +86,25 @@ export namespace dia {
         interface ExploreOptions extends ConnectionOptions {
             breadthFirst?: boolean;
         }
+
+        class Cells extends Backbone.Collection<Cell> {
+            graph: Graph;
+            cellNamespace: any;
+        }
+
+        interface Attributes {
+            cells: Cells,
+            [key: string]: any;
+        }
     }
 
-    class Graph<A = any, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
+    class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
         constructor(attributes?: A, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: Graph.Options): this;
+        addCell(cell: Cell | Cell[], opt?: CollectionAddOptions): this;
 
-        addCells(cells: Cell[], opt?: Graph.Options): this;
+        addCells(cells: Cell[], opt?: CollectionAddOptions): this;
 
         resetCells(cells: Cell[], opt?: Graph.Options): this;
 
@@ -202,7 +218,6 @@ export namespace dia {
         }
 
         interface Attributes extends GenericAttributes<Selectors> {
-            [key: string]: any;
         }
 
         interface Constructor<T extends Backbone.Model> {
@@ -335,7 +350,6 @@ export namespace dia {
         }
 
         interface Attributes extends GenericAttributes<Cell.Selectors> {
-            [key: string]: any
         }
 
         type PositionType = string | {
@@ -478,7 +492,6 @@ export namespace dia {
         }
 
         interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
-            [key: string]: any;
         }
 
         interface LabelPosition {
@@ -1720,98 +1733,84 @@ export namespace shapes {
 
     namespace standard {
 
-        interface RectangleSelectors {
+        interface RectangleSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Rectangle extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<RectangleSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type RectangleAttributes = dia.Element.GenericAttributes<RectangleSelectors>;
+
+        class Rectangle extends dia.Element<RectangleAttributes> {
         }
 
-        interface CircleSelectors {
+        interface CircleSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGCircleAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Circle extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type CircleAttributes = dia.Element.GenericAttributes<CircleSelectors>;
+
+        class Circle extends dia.Element<CircleAttributes> {
         }
 
-        interface EllipseSelectors {
+        interface EllipseSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGCircleAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Ellipse extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type EllipseAttributes = dia.Element.GenericAttributes<EllipseSelectors>;
+
+        class Ellipse extends dia.Element<EllipseAttributes> {
         }
 
-        interface PathSelectors {
+        interface PathSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPathAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Path extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PathSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type PathAttributes = dia.Element.GenericAttributes<PathSelectors>;
+
+        class Path extends dia.Element<PathAttributes> {
         }
 
-        interface PolygonSelectors {
+        interface PolygonSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPolygonAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Polygon extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type PolygonAttributes = dia.Element.GenericAttributes<PolygonSelectors>;
+
+        class Polygon extends dia.Element<PolygonAttributes> {
         }
 
-        interface PolylineSelectors {
+        interface PolylineSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPolylineAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Polyline extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type PolylineAttributes = dia.Element.GenericAttributes<PolylineSelectors>;
+
+        class Polyline extends dia.Element<PolylineAttributes> {
         }
 
-        interface ImageSelectors {
+        interface ImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Image extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type ImageAttributes = dia.Element.GenericAttributes<ImageSelectors>;
+
+        class Image extends dia.Element<ImageAttributes> {
         }
 
-        interface BorderedImageSelectors {
+        interface BorderedImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGRectAttributes;
             background?: attributes.SVGRectAttributes;
@@ -1819,28 +1818,24 @@ export namespace shapes {
             label?: attributes.SVGTextAttributes;
         }
 
-        class BorderedImage extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<BorderedImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type BorderedImageAttributes = dia.Element.GenericAttributes<BorderedImageSelectors>;
+
+        class BorderedImage extends dia.Element<BorderedImageAttributes> {
         }
 
-        interface EmbeddedImageSelectors {
+        interface EmbeddedImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class EmbeddedImage extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type EmbeddedImageAttributes = dia.Element.GenericAttributes<EmbeddedImageSelectors>;
+
+        class EmbeddedImage extends dia.Element<EmbeddedImageAttributes> {
         }
 
-        interface InscribedImageSelectors {
+        interface InscribedImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGEllipseAttributes;
             background?: attributes.SVGEllipseAttributes;
@@ -1848,14 +1843,12 @@ export namespace shapes {
             label?: attributes.SVGTextAttributes;
         }
 
-        class InscribedImage extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<InscribedImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type InscribedImageAttributes = dia.Element.GenericAttributes<InscribedImageSelectors>;
+
+        class InscribedImage extends dia.Element<InscribedImageAttributes> {
         }
 
-        interface HeaderedRectangleSelectors {
+        interface HeaderedRectangleSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             header?: attributes.SVGRectAttributes;
@@ -1863,18 +1856,16 @@ export namespace shapes {
             bodyText?: attributes.SVGTextAttributes;
         }
 
-        class HeaderedRectangle extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<HeaderedRectangleSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type HeaderedRectangleAttributes = dia.Element.GenericAttributes<HeaderedRectangleSelectors>;
+
+        class HeaderedRectangle extends dia.Element<HeaderedRectangleAttributes> {
         }
 
         interface CylinderBodyAttributes extends attributes.SVGPathAttributes {
             lateralArea?: string | number;
         }
 
-        interface CylinderSelectors {
+        interface CylinderSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: CylinderBodyAttributes;
             top?: attributes.SVGEllipseAttributes;
@@ -1887,7 +1878,7 @@ export namespace shapes {
             topRy(t: string | number, opt?: S): this;
         }
 
-        interface TextBlockSelectors {
+        interface TextBlockSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             label?: {
@@ -1897,50 +1888,42 @@ export namespace shapes {
             }
         }
 
-        class TextBlock extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type TextBlockAttributes = dia.Element.GenericAttributes<TextBlockSelectors>;
+
+        class TextBlock extends dia.Element<TextBlockAttributes> {
         }
 
-        interface LinkSelectors {
+        interface LinkSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             line?: attributes.SVGPathAttributes;
             wrapper?: attributes.SVGPathAttributes;
         }
 
-        class Link extends dia.Link {
-            constructor(
-                attributes?: dia.Link.GenericAttributes<LinkSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type LinkAttributes = dia.Link.GenericAttributes<LinkSelectors>;
+
+        class Link extends dia.Link<LinkAttributes> {
         }
 
-        interface DoubleLinkSelectors {
+        interface DoubleLinkSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             line?: attributes.SVGPathAttributes;
             outline?: attributes.SVGPathAttributes;
         }
 
-        class DoubleLink extends dia.Link {
-            constructor(
-                attributes?: dia.Link.GenericAttributes<DoubleLinkSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type DoubleLinkAttributes = dia.Link.GenericAttributes<DoubleLinkSelectors>;
+
+        class DoubleLink extends dia.Link<DoubleLinkAttributes> {
         }
 
-        interface ShadowLinkSelectors {
+        interface ShadowLinkSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             line?: attributes.SVGPathAttributes;
             shadow?: attributes.SVGPathAttributes;
         }
 
-        class ShadowLink extends dia.Link {
-            constructor(
-                attributes?: dia.Link.GenericAttributes<ShadowLinkSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type ShadowLinkAttributes = dia.Link.GenericAttributes<ShadowLinkSelectors>;
+
+        class ShadowLink extends dia.Link<ShadowLinkAttributes> {
         }
     }
 
