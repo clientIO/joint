@@ -54,6 +54,19 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('lifecycle methods', function() {
+        QUnit.test('sanity', function(assert) {
+            var spyPreinitilize = sinon.spy(joint.dia.Cell.prototype, 'preinitialize');
+            var spyInitilize = sinon.spy(joint.dia.Cell.prototype, 'initialize');
+            new joint.dia.Cell({ testAttribute: true }, { testOption: true });
+            assert.equal(spyPreinitilize.callCount, 1);
+            assert.ok(spyPreinitilize.calledWithExactly({ testAttribute: true }, { testOption: true }));
+            assert.equal(spyInitilize.callCount, 1);
+            assert.ok(spyInitilize.calledWithExactly({ testAttribute: true }, { testOption: true }));
+            assert.ok(spyPreinitilize.calledBefore(spyInitilize));
+        });
+    });
+
     QUnit.module('parent', function(hooks) {
 
         QUnit.test('parent', function(assert) {

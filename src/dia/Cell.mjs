@@ -42,6 +42,10 @@ export const Cell = Backbone.Model.extend({
 
         var defaults;
         var attrs = attributes || {};
+        if (typeof this.preinitialize === 'function') {
+            // Check to support an older version of Backbone (prior v1.4)
+            this.preinitialize.apply(this, arguments);
+        }
         this.cid = uniqueId('c');
         this.attributes = {};
         if (options && options.collection) this.collection = options.collection;
