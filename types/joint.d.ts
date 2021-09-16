@@ -611,7 +611,7 @@ export namespace dia {
             ELEMENT_AVAILABILITY = 'elementAvailability'
         }
 
-        interface Options<T extends Cell> extends mvc.ViewOptions<T> {
+        interface Options<T extends Cell> extends mvc.ViewOptions<T, SVGElement> {
             id?: string
         }
 
@@ -632,7 +632,7 @@ export namespace dia {
         }
     }
 
-    abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
+    abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGElement> {
 
         constructor(opt?: CellView.Options<T>);
 
@@ -871,7 +871,7 @@ export namespace dia {
 
         }
 
-        interface Options extends mvc.ViewOptions<Link> {
+        interface Options extends mvc.ViewOptions<Link, SVGElement> {
             shortLinkLength?: number,
             doubleLinkTools?: boolean,
             longLinkLength?: number,
@@ -1472,7 +1472,7 @@ export namespace dia {
 
     namespace ToolsView {
 
-        interface Options extends mvc.ViewOptions<undefined> {
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             tools?: dia.ToolView[];
             name?: string | null;
             relatedView?: dia.CellView;
@@ -1480,7 +1480,7 @@ export namespace dia {
         }
     }
 
-    class ToolsView extends mvc.View<undefined> {
+    class ToolsView extends mvc.View<undefined, SVGElement> {
 
         constructor(opt?: ToolsView.Options);
 
@@ -1506,13 +1506,12 @@ export namespace dia {
     }
 
     namespace ToolView {
-
-        interface Options {
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             focusOpacity?: number;
         }
     }
 
-    class ToolView extends mvc.View<undefined> {
+    class ToolView extends mvc.View<undefined, SVGElement> {
 
         name: string | null;
         parentView: ToolsView;
@@ -1551,12 +1550,12 @@ export namespace dia {
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
 
-        interface Options extends mvc.ViewOptions<undefined> {
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
         }
     }
 
-    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
+    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
 
         constructor(options?: Options);
 
@@ -2897,7 +2896,7 @@ export namespace layout {
 
 export namespace mvc {
 
-    interface ViewOptions<T extends Backbone.Model> extends Backbone.ViewOptions<T> {
+    interface ViewOptions<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
     }
 
@@ -2905,20 +2904,20 @@ export namespace mvc {
         [key: string]: any;
     }
 
-    class View<T extends Backbone.Model> extends Backbone.View<T> {
+    class View<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.View<T, E> {
 
-        constructor(opt?: ViewOptions<T>);
+        constructor(opt?: ViewOptions<T, E>);
 
         UPDATE_PRIORITY: number;
         DETACHABLE: boolean;
         FLAG_INSERT: number;
         FLAG_REMOVE: number;
 
-        vel: Vectorizer | null;
+        vel: E extends HTMLElement ? null : Vectorizer;
 
         svgElement: boolean;
 
-        options: ViewOptions<T>;
+        options: ViewOptions<T, E>;
 
         theme: string;
 

@@ -8,7 +8,7 @@ module.exports = {
             noImplicitThis: true,
             strictNullChecks: false,
             suppressImplicitAnyIndexErrors: true,
-            noUnusedLocals: true
+            noUnusedLocals: false
         }
     }
 };
