@@ -40,7 +40,9 @@
     "css",
     "dist",
     "src",
-    "types"
+    "types",
+    "index.js",
+    "joint.mjs"
   ],
   "dependencies": {
     "backbone": "~1.4.0",
