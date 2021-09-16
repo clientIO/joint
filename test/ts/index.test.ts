@@ -1,4 +1,5 @@
-// Typescript sanity check
+type AssertExtends<A,B> = A extends B ? true : never;
+
 import * as joint from '../../build/joint';
 
 const graph = new joint.dia.Graph;
@@ -37,3 +38,13 @@ const cylinder = new joint.shapes.standard.Cylinder({ z: 0 });
 cylinder.set({ position: { x: 4, y: 5 }});
 cylinder.set('z', cylinder.attributes.z + 1);
 
+const paper = new joint.dia.Paper({
+    model: graph,
+    frozen: true
+});
+
+const cellView = cell.findView(paper);
+cellView.vel.addClass('test-class');
+
+let isHTMLView: AssertExtends<typeof paper.vel, null> = true;
+let isSVGView: AssertExtends<typeof cellView.vel, joint.Vectorizer> = true;
