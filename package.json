@@ -36,6 +36,12 @@
     "url": "https://github.com/clientIO/joint/issues"
   },
   "license": "MPL-2.0",
+  "files": [
+    "css",
+    "dist",
+    "src",
+    "types"
+  ],
   "dependencies": {
     "backbone": "~1.4.0",
     "dagre": "~0.8.5",
