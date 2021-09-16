@@ -5,3 +5,4 @@ coverage/
 demo/**/dist/**
 /test/ts/*.js*
 .tscache/
+.DS_Store
