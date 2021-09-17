@@ -3698,10 +3698,18 @@ export namespace linkTools {
         constructor(opt?: Segments.Options);
     }
 
+    namespace Arrowhead {
+        interface Options extends dia.ToolView.Options {
+            attributes?: attributes.NativeSVGAttributes;
+        }
+    }
+
     abstract class Arrowhead extends dia.ToolView {
 
         ratio: number;
         arrowheadType: string;
+
+        constructor(opt?: Arrowhead.Options);
 
         protected onPointerDown(evt: dia.Event): void;
 
