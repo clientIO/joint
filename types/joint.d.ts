@@ -64,6 +64,7 @@ export namespace dia {
 
     interface ModelSetOptions extends Backbone.ModelSetOptions {
         dry?:  boolean;
+        isolate?: boolean;
         [key: string]: any;
     }
 
