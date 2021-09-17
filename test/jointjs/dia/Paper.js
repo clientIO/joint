@@ -1473,23 +1473,37 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
         QUnit.module('flags', function() {
 
-            QUnit.module('isolate', function() {
+            QUnit.module('isolate', function(hooks) {
 
-                [{ value: true, expected: 1 }, { value: false, expected: 2 }].forEach(function(testCase) {
-                    var testValue = testCase.value;
-                    var expected = testCase.expected;
-                    QUnit.test(testValue, function(assert) {
-                        addCells(graph, { async: false });
-                        var element = graph.getElements()[0];
-                        element.attr(['body', 'fill'], 'red', { isolate: testValue });
-                        var done = assert.async();
-                        var renderDoneSpy = sinon.spy(function(stats) {
-                            assert.equal(stats.updated, expected);
+                var element;
+
+                hooks.beforeEach(function() {
+                    addCells(graph, { async: false });
+                    element = graph.getElements()[0];
+                    paper.freeze();
+                });
+
+                QUnit.test('true', function(assert) {
+                    var done = assert.async();
+                    assert.expect(1);
+                    element.attr(['body', 'fill'], 'red', { isolate: true });
+                    paper.unfreeze({
+                        afterRender: function(stats) {
+                            assert.equal(stats.updated, 1);
                             done();
-                        });
-                        paper.unfreeze({
-                            afterRender: renderDoneSpy
-                        });
+                        }
+                    });
+                });
+
+                QUnit.test('false', function(assert) {
+                    var done = assert.async();
+                    assert.expect(1);
+                    element.attr(['body', 'fill'], 'red', { isolate: false });
+                    paper.unfreeze({
+                        afterRender: function(stats) {
+                            assert.equal(stats.updated, 2);
+                            done();
+                        }
                     });
                 });
             });
