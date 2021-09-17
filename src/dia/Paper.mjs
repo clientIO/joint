@@ -237,7 +237,11 @@ export const Paper = View.extend({
 
         // no docs yet
         onViewUpdate: function(view, flag, priority, opt, paper) {
-            if ((flag & view.FLAG_INSERT) || opt.mounting) return;
+            // Do not update connected links when:
+            // 1. the view was just inserted (added to the graph and rendered)
+            // 2. the view was just mounted (added back to the paper by viewport function)
+            // 3. the change was marked as `isolate`.
+            if ((flag & view.FLAG_INSERT) || opt.mounting || opt.isolate) return;
             paper.requestConnectedLinksUpdate(view, priority, opt);
         },
 

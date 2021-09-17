@@ -9,7 +9,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         return V(paper.cells).children().length;
     }
 
-    function addCells(graph) {
+    function addCells(graph, opt) {
         var rect1 = new joint.shapes.standard.Rectangle();
         var rect2 = new joint.shapes.standard.Rectangle();
         var link = new joint.shapes.standard.Link();
@@ -20,9 +20,9 @@ QUnit.module('joint.dia.Paper', function(hooks) {
         link.source(rect1);
         link.target(rect2);
         link.vertices([{ x: 0, y: 300 }]);
-        rect1.addTo(graph);
-        rect2.addTo(graph);
-        link.addTo(graph);
+        rect1.addTo(graph, opt);
+        rect2.addTo(graph, opt);
+        link.addTo(graph, opt);
     }
 
     hooks.beforeEach(function() {
@@ -1469,6 +1469,44 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
             });
 
+        });
+
+        QUnit.module('flags', function() {
+
+            QUnit.module('isolate', function(hooks) {
+
+                var element;
+
+                hooks.beforeEach(function() {
+                    addCells(graph, { async: false });
+                    element = graph.getElements()[0];
+                    paper.freeze();
+                });
+
+                QUnit.test('true', function(assert) {
+                    var done = assert.async();
+                    assert.expect(1);
+                    element.attr(['body', 'fill'], 'red', { isolate: true });
+                    paper.unfreeze({
+                        afterRender: function(stats) {
+                            assert.equal(stats.updated, 1);
+                            done();
+                        }
+                    });
+                });
+
+                QUnit.test('false', function(assert) {
+                    var done = assert.async();
+                    assert.expect(1);
+                    element.attr(['body', 'fill'], 'red', { isolate: false });
+                    paper.unfreeze({
+                        afterRender: function(stats) {
+                            assert.equal(stats.updated, 2);
+                            done();
+                        }
+                    });
+                });
+            });
         });
     });
 });

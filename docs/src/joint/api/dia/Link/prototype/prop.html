@@ -28,5 +28,10 @@ link.prop('custom/state', { isActive: false }, { rewrite: true });
         }
     },
     "attrs": {}
-} 
+}
 </code></pre>
+
+
+<p><i>Advanced:</i> Pass <code>{ isolate: true }</code> if the property change does not affect the connected links. Typically, changing the link color has zero effect on attached links. By default, the link and all connected links are updated.</p>
+
+<pre><code>link.attr(['line', 'stroke'], 'red', { isolate: true });</code></pre>
