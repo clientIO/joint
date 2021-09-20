@@ -1,4 +1,4 @@
-import { dia, shapes, g, linkTools } from 'jointjs';
+import { dia, shapes, g, linkTools, util } from 'jointjs';
 
 const GRID_SIZE = 8;
 const PADDING_S = GRID_SIZE;
@@ -24,8 +24,8 @@ const LIST_ADD_BUTTON_SIZE = 20;
 const LIST_REMOVE_BUTTON_SIZE = 16;
 const LIST_IMAGE_SIZE = 20;
 
-const outputPortPosition = (portsArgs: dia.Element.Port[], elBBox: dia.BBox): g.Point[] => {
-    return portsArgs.map((port: dia.Element.Port, index: number, { length }) => {
+const itemPosition = (portsArgs: dia.Element.Port[], elBBox: dia.BBox): g.Point[] => {
+    return portsArgs.map((_port: dia.Element.Port, index: number, { length }) => {
         const bottom = elBBox.height - (LIST_ITEM_HEIGHT + LIST_ADD_BUTTON_SIZE) / 2 - PADDING_S;
         const y = (length - 1 - index) * (LIST_ITEM_HEIGHT + LIST_ITEM_GAP);
         return new g.Point(0, bottom - y);
@@ -219,7 +219,7 @@ class ListElement extends dia.Element {
             ports: {
                 groups: {
                     [LIST_GROUP_NAME]: {
-                        position: outputPortPosition,
+                        position: itemPosition,
                         ...itemAttributes
                     }
                 },
@@ -242,12 +242,20 @@ class ListElement extends dia.Element {
 
     addDefaultPort() {
         if (!this.canAddPort(LIST_GROUP_NAME)) return;
-        const ports = this.getGroupPorts(LIST_GROUP_NAME);
-        const portName = `${LIST_ITEM_LABEL} ${ports.length + 1}`;
         this.addPort({
             group: LIST_GROUP_NAME,
-            attrs: { portLabel: { text: portName }}
+            attrs: { portLabel: { text: this.getDefaultPortName() }}
         });
+    }
+
+    getDefaultPortName() {
+        const ports = this.getGroupPorts(LIST_GROUP_NAME);
+        let portName;
+        let i = 1;
+        do {
+            portName = `${LIST_ITEM_LABEL} ${i++}`;
+        } while (ports.find(port => port.attrs.portLabel.text === portName));
+        return portName;
     }
 
     canAddPort(group: string): boolean {
@@ -264,9 +272,31 @@ class ListElement extends dia.Element {
     }
 }
 
+class ListLink extends shapes.standard.DoubleLink {
+
+    defaults() {
+        return util.defaultsDeep({
+            type: 'ListLink',
+            z: -1,
+            attrs: {
+                line: {
+                    stroke: LIGHT_COLOR,
+                    targetMarker: {
+                        stroke: SECONDARY_DARK_COLOR
+                    }
+                },
+                outline: {
+                    stroke: SECONDARY_DARK_COLOR
+                }
+            }
+        }, super.defaults);
+    }
+}
+
 const shapeNamespace = {
     ...shapes,
-    ListElement
+    ListElement,
+    ListLink
 }
 
 const graph = new dia.Graph({}, { cellNamespace: shapeNamespace });
@@ -279,17 +309,7 @@ const paper = new dia.Paper({
     model: graph,
     frozen: true,
     async: true,
-    defaultLink: () => new shapes.standard.DoubleLink({
-        attrs: {
-            line: {
-                stroke: LIGHT_COLOR
-            },
-            outline: {
-                stroke: SECONDARY_DARK_COLOR
-            }
-        },
-        z: -1
-    }),
+    defaultLink: () => new ListLink(),
     sorting: dia.Paper.sorting.APPROX,
     magnetThreshold: 'onleave',
     linkPinning: false,
