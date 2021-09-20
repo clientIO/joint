@@ -353,10 +353,14 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Cell.Selectors> {
         }
 
-        type PositionType = string | {
+        type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
+
+        interface PortPositionJSON {
             name?: string,
             args?: { [key: string]: any }
         }
+
+        type PositionType = string | PortPositionCallback | PortPositionJSON;
 
         interface PortGroup {
             position?: PositionType,
