@@ -386,48 +386,44 @@ export const ElementView = CellView.extend({
         }
     },
 
-    processEmbedding: function(data) {
+    processEmbedding: function(data = {}, evt, x, y) {
 
-        data || (data = {});
+        const model = data.model || this.model;
+        const paper = data.paper || this.paper;
+        const graph = paper.model;
+        const { findParentBy, frontParentOnly, validateEmbedding } = paper.options;
 
-        var model = data.model || this.model;
-        var paper = data.paper || this.paper;
-        var paperOptions = paper.options;
-
-        var candidates = [];
-        if (isFunction(paperOptions.findParentBy)) {
-            var parents = toArray(paperOptions.findParentBy.call(paper.model, this));
-            candidates = parents.filter(function(el) {
-                return el instanceof Cell && this.model.id !== el.id && !el.isEmbeddedIn(this.model);
-            }.bind(this));
+        let candidates;
+        if (isFunction(findParentBy)) {
+            candidates = toArray(findParentBy.call(graph, this, evt, x, y));
+        } else if (findParentBy === 'pointer') {
+            candidates = toArray(graph.findModelsFromPoint({ x, y }));
         } else {
-            candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+            candidates = graph.findModelsUnderElement(model, { searchBy: findParentBy });
         }
 
-        if (paperOptions.frontParentOnly) {
+        candidates = candidates.filter((el) => {
+            return (el instanceof Cell) && (model.id !== el.id) && !el.isEmbeddedIn(model);
+        });
+
+        if (frontParentOnly) {
             // pick the element with the highest `z` index
             candidates = candidates.slice(-1);
         }
 
-        var newCandidateView = null;
-        var prevCandidateView = data.candidateEmbedView;
+        let newCandidateView = null;
+        const prevCandidateView = data.candidateEmbedView;
 
         // iterate over all candidates starting from the last one (has the highest z-index).
-        for (var i = candidates.length - 1; i >= 0; i--) {
-
-            var candidate = candidates[i];
-
+        for (let i = candidates.length - 1; i >= 0; i--) {
+            const candidate = candidates[i];
             if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
-
                 // candidate remains the same
                 newCandidateView = prevCandidateView;
                 break;
-
             } else {
-
-                var view = candidate.findView(paper);
-                if (paperOptions.validateEmbedding.call(paper, this, view)) {
-
+                const view = candidate.findView(paper);
+                if (!isFunction(validateEmbedding) || validateEmbedding.call(paper, this, view)) {
                     // flip to the new candidate
                     newCandidateView = view;
                     break;
@@ -769,7 +765,7 @@ export const ElementView = CellView.extend({
                 this.prepareEmbedding(data);
                 embedding = true;
             }
-            this.processEmbedding(data);
+            this.processEmbedding(data, evt, x, y);
         }
 
         this.eventData(evt, {

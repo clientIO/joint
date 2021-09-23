@@ -206,7 +206,7 @@ QUnit.module('embedding', function(hooks) {
 
         data = {};
         v2.prepareEmbedding(data);
-        v2.processEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 100, 101);
         v2.finalizeEmbedding(data);
 
         assert.equal(r2.get('parent'), r1.id, 'parent found by bbox');
@@ -217,7 +217,7 @@ QUnit.module('embedding', function(hooks) {
 
         data = {};
         v2.prepareEmbedding(data);
-        v2.processEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 100, 101);
         v2.finalizeEmbedding(data);
 
         assert.equal(r2.get('parent'), r1.id, 'parent found by corner');
@@ -228,10 +228,54 @@ QUnit.module('embedding', function(hooks) {
 
         data = {};
         v2.prepareEmbedding(data);
-        v2.processEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 100, 101);
         v2.finalizeEmbedding(data);
 
         assert.notEqual(r2.get('parent'), r1.id, 'parent not found by origin');
+
+        r1.unembed(r2);
+
+        // Pointer
+
+        this.paper.options.findParentBy = 'pointer';
+
+        data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 150, 151);
+        v2.finalizeEmbedding(data);
+
+        assert.equal(r2.get('parent'), r1.id, 'parent not found by origin');
+
+        r1.unembed(r2);
+
+        data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 250, 251);
+        v2.finalizeEmbedding(data);
+
+        assert.notEqual(r2.get('parent'), r1.id, 'parent not found by origin');
+
+        r1.unembed(r2);
+
+        // Callback
+
+        var spyFindParentBy = sinon.spy(function() {
+            return [r1];
+        }.bind(this));
+
+        this.paper.options.findParentBy = spyFindParentBy;
+
+        data = {};
+        v2.prepareEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 100, 101);
+        v2.finalizeEmbedding(data);
+
+        assert.equal(r2.get('parent'), r1.id, 'parent found by callback');
+        assert.ok(spyFindParentBy.calledOnce);
+        assert.ok(spyFindParentBy.calledWithExactly(v2, sinon.match.instanceOf($.Event), 100, 101));
+        assert.ok(spyFindParentBy.calledOn(this.graph));
+
+        r1.unembed(r2);
     });
 
     QUnit.test('highlighting & unhighlighting', function(assert) {
@@ -257,7 +301,7 @@ QUnit.module('embedding', function(hooks) {
 
         var data = {};
         v2.prepareEmbedding(data);
-        v2.processEmbedding(data);
+        v2.processEmbedding(data, new $.Event(), 100, 101);
         v2.finalizeEmbedding(data);
 
     });
@@ -281,7 +325,7 @@ QUnit.module('embedding', function(hooks) {
 
         data = {};
         v3.prepareEmbedding(data);
-        v3.processEmbedding(data);
+        v3.processEmbedding(data, new $.Event(), 100, 101);
         v3.finalizeEmbedding(data);
 
         assert.ok(!r3.get('parent'), 'disabled: parent on the bottom not found');
@@ -290,7 +334,7 @@ QUnit.module('embedding', function(hooks) {
 
         data = {};
         v3.prepareEmbedding(data);
-        v3.processEmbedding(data);
+        v3.processEmbedding(data, new $.Event(), 100, 101);
         v3.finalizeEmbedding(data);
 
         assert.equal(r3.get('parent'), r1.id, 'enabled: parent on the bottom found');
