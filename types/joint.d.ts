@@ -1094,7 +1094,7 @@ export namespace dia {
         type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
         type FindParentByType =  'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | 'pointer';
-        type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Element[]);
+        type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
