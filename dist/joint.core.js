@@ -1,4 +1,4 @@
-/*! JointJS v3.4.2 (2021-09-06) - JavaScript diagramming library
+/*! JointJS v3.4.3 (2021-09-24) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12269,6 +12269,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var defaults;
 	        var attrs = attributes || {};
+	        if (typeof this.preinitialize === 'function') {
+	            // Check to support an older version of Backbone (prior v1.4)
+	            this.preinitialize.apply(this, arguments);
+	        }
 	        this.cid = uniqueId('c');
 	        this.attributes = {};
 	        if (options && options.collection) { this.collection = options.collection; }
@@ -15867,6 +15871,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return selector;
 	    },
 
+	    addLinkFromMagnet: function(magnet, x, y) {
+
+	        var paper = this.paper;
+	        var graph = paper.model;
+
+	        var link = paper.getDefaultLink(this, magnet);
+	        link.set({
+	            source: this.getLinkEnd(magnet, x, y, link, 'source'),
+	            target: { x: x, y: y }
+	        }).addTo(graph, {
+	            async: false,
+	            ui: true
+	        });
+
+	        return link.findView(paper);
+	    },
+
 	    getLinkEnd: function(magnet) {
 	        var ref;
 
@@ -15926,6 +15947,44 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        return this.findProxyNode(magnet, 'magnet');
+	    },
+
+	    dragLinkStart: function(evt, magnet, x, y) {
+	        this.model.startBatch('add-link');
+	        var linkView = this.addLinkFromMagnet(magnet, x, y);
+	        // backwards compatibility events
+	        linkView.notifyPointerdown(evt, x, y);
+	        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
+	        this.eventData(evt, { linkView: linkView });
+	    },
+
+	    dragLink: function(evt, x, y) {
+	        var data = this.eventData(evt);
+	        var linkView = data.linkView;
+	        if (linkView) {
+	            linkView.pointermove(evt, x, y);
+	        } else {
+	            var paper = this.paper;
+	            var magnetThreshold = paper.options.magnetThreshold;
+	            var currentTarget = this.getEventTarget(evt);
+	            var targetMagnet = data.targetMagnet;
+	            if (magnetThreshold === 'onleave') {
+	                // magnetThreshold when the pointer leaves the magnet
+	                if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) { return; }
+	            } else {
+	                // magnetThreshold defined as a number of movements
+	                if (paper.eventData(evt).mousemoved <= magnetThreshold) { return; }
+	            }
+	            this.dragLinkStart(evt, targetMagnet, x, y);
+	        }
+	    },
+
+	    dragLinkEnd: function(evt, x, y) {
+	        var data = this.eventData(evt);
+	        var linkView = data.linkView;
+	        if (!linkView) { return; }
+	        linkView.pointerup(evt, x, y);
+	        this.model.stopBatch('add-link');
 	    },
 
 	    getAttributeDefinition: function(attrName) {
@@ -17355,36 +17414,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        paper.delegateDragEvents(this, evt.data);
 	    },
 
-	    dragLinkStart: function(evt, magnet, x, y) {
-
-	        this.model.startBatch('add-link');
-
-	        var linkView = this.addLinkFromMagnet(magnet, x, y);
-
-	        // backwards compatibility events
-	        linkView.notifyPointerdown(evt, x, y);
-
-	        linkView.eventData(evt, linkView.startArrowheadMove('target', { whenNotAllowed: 'remove' }));
-	        this.eventData(evt, { linkView: linkView });
-	    },
-
-	    addLinkFromMagnet: function(magnet, x, y) {
-
-	        var paper = this.paper;
-	        var graph = paper.model;
-
-	        var link = paper.getDefaultLink(this, magnet);
-	        link.set({
-	            source: this.getLinkEnd(magnet, x, y, link, 'source'),
-	            target: { x: x, y: y }
-	        }).addTo(graph, {
-	            async: false,
-	            ui: true
-	        });
-
-	        return link.findView(paper);
-	    },
-
 	    // Drag Handlers
 
 	    drag: function(evt, x, y) {
@@ -17420,25 +17449,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    dragMagnet: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        var linkView = data.linkView;
-	        if (linkView) {
-	            linkView.pointermove(evt, x, y);
-	        } else {
-	            var paper = this.paper;
-	            var magnetThreshold = paper.options.magnetThreshold;
-	            var currentTarget = this.getEventTarget(evt);
-	            var targetMagnet = data.targetMagnet;
-	            if (magnetThreshold === 'onleave') {
-	                // magnetThreshold when the pointer leaves the magnet
-	                if (targetMagnet === currentTarget || V(targetMagnet).contains(currentTarget)) { return; }
-	            } else {
-	                // magnetThreshold defined as a number of movements
-	                if (paper.eventData(evt).mousemoved <= magnetThreshold) { return; }
-	            }
-	            this.dragLinkStart(evt, targetMagnet, x, y);
-	        }
+	        this.dragLink(evt, x, y);
 	    },
 
 	    // Drag End Handlers
@@ -17450,12 +17461,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    dragMagnetEnd: function(evt, x, y) {
-
-	        var data = this.eventData(evt);
-	        var linkView = data.linkView;
-	        if (!linkView) { return; }
-	        linkView.pointerup(evt, x, y);
-	        this.model.stopBatch('add-link');
+	        this.dragLinkEnd(evt, x, y);
 	    },
 
 	    magnetpointerclick: function(evt, magnet, x, y) {
@@ -19321,7 +19327,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	function updateJumpOver(paper) {
 	    var updateList = paper._jumpOverUpdateList;
 	    for (var i = 0; i < updateList.length; i++) {
-	        updateList[i].requestConnectionUpdate();
+	        var linkView = updateList[i];
+	        var updateFlag = linkView.getFlag(linkView.constructor.Flags.CONNECTOR);
+	        linkView.requestUpdate(updateFlag);
 	    }
 	}
 
@@ -23136,6 +23144,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    VERTICES: 'VERTICES',
 	    SOURCE: 'SOURCE',
 	    TARGET: 'TARGET',
+	    CONNECTOR: 'CONNECTOR'
 	};
 
 	// Link base view and controller.
@@ -23190,14 +23199,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this._V = {};
 
 	        // connection path metrics
-	        this.metrics = {};
+	        this.cleanNodesCache();
 	    },
 
 	    presentationAttributes: {
 	        markup: [Flags$1.RENDER],
 	        attrs: [Flags$1.UPDATE],
 	        router: [Flags$1.UPDATE],
-	        connector: [Flags$1.UPDATE],
+	        connector: [Flags$1.CONNECTOR],
 	        smooth: [Flags$1.UPDATE],
 	        manhattan: [Flags$1.UPDATE],
 	        toolMarkup: [Flags$1.LEGACY_TOOLS],
@@ -23240,7 +23249,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            this.render();
 	            this.updateHighlighters(true);
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.VERTICES, Flags$1.LABELS, Flags$1.TOOLS, Flags$1.LEGACY_TOOLS]);
+	            flags = this.removeFlag(flags, [Flags$1.RENDER, Flags$1.UPDATE, Flags$1.VERTICES, Flags$1.LABELS, Flags$1.TOOLS, Flags$1.LEGACY_TOOLS, Flags$1.CONNECTOR]);
 	            return flags;
 	        }
 
@@ -23268,10 +23277,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            flags = this.removeFlag(flags, Flags$1.LEGACY_TOOLS);
 	        }
 
-	        if (this.hasFlag(flags, Flags$1.UPDATE)) {
-	            this.update(model, null, opt);
+	        var updateAll = this.hasFlag(flags, Flags$1.UPDATE);
+	        var updateConnector = this.hasFlag(flags, Flags$1.CONNECTOR);
+	        if (updateAll || updateConnector) {
+	            if (!updateAll) {
+	                // Keep the current route and update the geometry
+	                this.updatePath();
+	                this.updateDOM();
+	            } else if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
+	                // The link is being translated by an ancestor that will
+	                // shift source point, target point and all vertices
+	                // by an equal distance.
+	                this.translate(opt.tx, opt.ty);
+	            } else {
+	                this.update();
+	            }
 	            this.updateTools(opt);
-	            flags = this.removeFlag(flags, [Flags$1.UPDATE, Flags$1.TOOLS]);
+	            flags = this.removeFlag(flags, [Flags$1.UPDATE, Flags$1.TOOLS, Flags$1.CONNECTOR]);
 	            updateLabels = false;
 	            updateLegacyTools = false;
 	            updateHighlighters = true;
@@ -23298,7 +23320,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    requestConnectionUpdate: function(opt) {
-	        this.requestUpdate(this.getFlag(Flags$1.UPDATE, opt));
+	        this.requestUpdate(this.getFlag(Flags$1.UPDATE), opt);
 	    },
 
 	    isLabelsRenderRequired: function(opt) {
@@ -23677,38 +23699,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return this;
 	    },
 
-	    // Updating.
-	    // ---------
-
-	    // Default is to process the `attrs` object and set attributes on subelements based on the selectors.
-	    update: function(model, attributes, opt) {
-
-	        opt || (opt = {});
-
-	        this.cleanNodesCache();
-
-	        // update the link path
-	        this.updateConnection(opt);
-
-	        // update SVG attributes defined by 'attrs/'.
-	        this.updateDOMSubtreeAttributes(this.el, this.model.attr(), { selectors: this.selectors });
-
-	        this.updateDefaultConnectionPath();
-
-	        // update the label position etc.
-	        this.updateLabelPositions();
-	        this.updateToolsPosition();
-	        this.updateArrowheadMarkers();
-
-	        // *Deprecated*
-	        // Local perpendicular flag (as opposed to one defined on paper).
-	        // Could be enabled inside a connector/router. It's valid only
-	        // during the update execution.
-	        this.options.perpendicular = null;
-
-	        return this;
-	    },
-
 	    // remove vertices that lie on (or nearly on) straight lines within the link
 	    // return the number of removed points
 	    removeRedundantLinearVertices: function(opt) {
@@ -23801,56 +23791,84 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return null;
 	    },
 
-	    updateConnection: function(opt) {
 
-	        opt = opt || {};
+	    // Updating.
+	    // ---------
 
-	        var model = this.model;
-	        var route, path;
+	    update: function() {
+	        this.updateRoute();
+	        this.updatePath();
+	        this.updateDOM();
+	        return this;
+	    },
 
-	        if (opt.translateBy && model.isRelationshipEmbeddedIn(opt.translateBy)) {
-	            // The link is being translated by an ancestor that will
-	            // shift source point, target point and all vertices
-	            // by an equal distance.
-	            var tx = opt.tx || 0;
-	            var ty = opt.ty || 0;
+	    translate: function(tx, ty) {
+	        if ( tx === void 0 ) tx = 0;
+	        if ( ty === void 0 ) ty = 0;
 
-	            route = (new Polyline(this.route)).translate(tx, ty).points;
+	        var ref = this;
+	        var route = ref.route;
+	        var path = ref.path;
+	        if (!route || !path) { return; }
+	        // translate the route
+	        var polyline = new Polyline(route);
+	        polyline.translate(tx, ty);
+	        this.route = polyline.points;
+	        // translate source and target connection and marker points.
+	        this._translateConnectionPoints(tx, ty);
+	        // translate the geometry path
+	        path.translate(tx, ty);
+	        this.updateDOM();
+	    },
 
-	            // translate source and target connection and marker points.
-	            this._translateConnectionPoints(tx, ty);
+	    updateDOM: function updateDOM() {
+	        var ref = this;
+	        var el = ref.el;
+	        var model = ref.model;
+	        var selectors = ref.selectors;
+	        this.cleanNodesCache();
+	        // update SVG attributes defined by 'attrs/'.
+	        this.updateDOMSubtreeAttributes(el, model.attr(), { selectors: selectors });
+	        // legacy link path update
+	        this.updateDefaultConnectionPath();
+	        // update the label position etc.
+	        this.updateLabelPositions();
+	        this.updateToolsPosition();
+	        this.updateArrowheadMarkers();
+	        // *Deprecated*
+	        // Local perpendicular flag (as opposed to one defined on paper).
+	        // Could be enabled inside a connector/router. It's valid only
+	        // during the update execution.
+	        this.options.perpendicular = null;
+	    },
 
-	            // translate the path itself
-	            path = this.path;
-	            path.translate(tx, ty);
-
-	        } else {
-
-	            var vertices = model.vertices();
-	            // 1. Find Anchors
-
-	            var anchors = this.findAnchors(vertices);
-	            var sourceAnchor = this.sourceAnchor = anchors.source;
-	            var targetAnchor = this.targetAnchor = anchors.target;
-
-	            // 2. Find Route
-	            route = this.findRoute(vertices, opt);
-
-	            // 3. Find Connection Points
-	            var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
-	            var sourcePoint = this.sourcePoint = connectionPoints.source;
-	            var targetPoint = this.targetPoint = connectionPoints.target;
-
-	            // 3b. Find Marker Connection Point - Backwards Compatibility
-	            var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
-
-	            // 4. Find Connection
-	            path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
-	        }
-
+	    updateRoute: function() {
+	        var ref = this;
+	        var model = ref.model;
+	        var vertices = model.vertices();
+	        // 1. Find Anchors
+	        var anchors = this.findAnchors(vertices);
+	        var sourceAnchor = this.sourceAnchor = anchors.source;
+	        var targetAnchor = this.targetAnchor = anchors.target;
+	        // 2. Find Route
+	        var route = this.findRoute(vertices);
 	        this.route = route;
+	        // 3. Find Connection Points
+	        var connectionPoints = this.findConnectionPoints(route, sourceAnchor, targetAnchor);
+	        this.sourcePoint = connectionPoints.source;
+	        this.targetPoint = connectionPoints.target;
+	    },
+
+	    updatePath: function() {
+	        var ref = this;
+	        var route = ref.route;
+	        var sourcePoint = ref.sourcePoint;
+	        var targetPoint = ref.targetPoint;
+	        // 3b. Find Marker Connection Point - Backwards Compatibility
+	        var markerPoints = this.findMarkerPoints(route, sourcePoint, targetPoint);
+	        // 4. Find Connection
+	        var path = this.findPath(route, markerPoints.source || sourcePoint, markerPoints.target || targetPoint);
 	        this.path = path;
-	        this.metrics = {};
 	    },
 
 	    findMarkerPoints: function(route, sourcePoint, targetPoint) {
@@ -25745,7 +25763,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // no docs yet
 	        onViewUpdate: function(view, flag, priority, opt, paper) {
-	            if ((flag & view.FLAG_INSERT) || opt.mounting) { return; }
+	            // Do not update connected links when:
+	            // 1. the view was just inserted (added to the graph and rendered)
+	            // 2. the view was just mounted (added back to the paper by viewport function)
+	            // 3. the change was marked as `isolate`.
+	            if ((flag & view.FLAG_INSERT) || opt.mounting || opt.isolate) { return; }
 	            paper.requestConnectedLinksUpdate(view, priority, opt);
 	        },
 
@@ -29770,7 +29792,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Boundary: Boundary
 	});
 
-	var version = "3.4.2";
+	var version = "3.4.3";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

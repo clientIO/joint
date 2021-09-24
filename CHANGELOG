@@ -1,3 +1,12 @@
+24-09-2021 (v3.4.3)
+  * Add List Demo (element with a vertical list of items)
+  * Whitelist files for NPM publish
+  * TypeScript mvc.View improvements
+  * dia.Paper - skip update of connected links when isolate flag used
+  * dia.LinkView - optimize connector only update
+  * dia.Cell - support preinitilize() lifecycle method
+  * connectors.jumpover - prevent unnecessary route recalculations
+
 06-09-2021 (v3.4.2)
   * dia.CellView - update typings for ES6 class extension
   * dia.Cell -  fix toJSON() when defaults() is defined as a method
