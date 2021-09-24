@@ -123,55 +123,6 @@ QUnit.module('elementTools', function(hooks) {
         });
     });
 
-    QUnit.module('Connect', function() {
-        QUnit.test('options: magnet', function(assert) {
-            var newLink;
-            var defaultLinkSpy = sinon.spy(function() {
-                newLink = new joint.shapes.standard.Link();
-                return newLink;
-            });
-            // magnet defined as a function
-            var magnetSpy = sinon.spy(function(view) {
-                return view.findBySelector('body')[0];
-            });
-            paper.options.defaultLink = defaultLinkSpy;
-            var connect = new joint.elementTools.Connect({ magnet: magnetSpy });
-            elementView.addTools(new joint.dia.ToolsView({ tools: [connect] }));
-            var evt = {};
-            connect.dragstart(evt);
-            connect.drag(evt);
-            connect.dragend(evt);
-            assert.ok(newLink);
-            assert.equal(defaultLinkSpy.callCount, 1);
-            assert.equal(magnetSpy.callCount, 1);
-            assert.ok(magnetSpy.calledWithExactly(elementView, connect));
-            assert.deepEqual(newLink.source(), { id: element.id, magnet: 'body' });
-            assert.ok(magnetSpy.calledOn(connect));
-            // magnet defined as an SVGElement
-            connect.options.magnet = elementView.findBySelector('label')[0];
-            evt = {};
-            connect.dragstart(evt);
-            connect.drag(evt);
-            connect.dragend(evt);
-            assert.equal(defaultLinkSpy.callCount, 2);
-            assert.deepEqual(newLink.source(), { id: element.id, magnet: 'label' });
-            // magnet defined as a selector
-            connect.options.magnet = 'body';
-            evt = {};
-            connect.dragstart(evt);
-            connect.drag(evt);
-            connect.dragend(evt);
-            assert.equal(defaultLinkSpy.callCount, 3);
-            assert.deepEqual(newLink.source(), { id: element.id, magnet: 'body' });
-            // invalid magnet
-            connect.options.magnet = 1;
-            evt = {};
-            assert.throws(function() {
-                connect.dragstart(evt);
-            }, /Connect: magnet must be an SVGElement/);
-        });
-    });
-
     QUnit.test('Rendering', function(assert) {
         element.remove();
         paper.freeze();
