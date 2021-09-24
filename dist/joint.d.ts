@@ -1,4 +1,4 @@
-/*! JointJS v3.4.2 (2021-09-06) - JavaScript diagramming library
+/*! JointJS v3.4.3 (2021-09-24) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1115,6 +1115,17 @@ export namespace dia {
 
     type Path = string | Array<string | number>;
 
+    interface ModelSetOptions extends Backbone.ModelSetOptions {
+        dry?:  boolean;
+        isolate?: boolean;
+        [key: string]: any;
+    }
+
+    interface CollectionAddOptions extends Backbone.AddOptions {
+        dry?:  boolean;
+        [key: string]: any;
+    }
+
     export namespace Graph {
 
         interface Options {
@@ -1129,17 +1140,27 @@ export namespace dia {
         interface ExploreOptions extends ConnectionOptions {
             breadthFirst?: boolean;
         }
+
+        class Cells extends Backbone.Collection<Cell> {
+            graph: Graph;
+            cellNamespace: any;
+        }
+
+        interface Attributes {
+            cells: Cells,
+            [key: string]: any;
+        }
     }
 
-    class Graph extends Backbone.Model {
+    class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
-        constructor(attributes?: any, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: A, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: { [key: string]: any }): this;
+        addCell(cell: Cell | Cell[], opt?: CollectionAddOptions): this;
 
-        addCells(cells: Cell[], opt?: { [key: string]: any }): this;
+        addCells(cells: Cell[], opt?: CollectionAddOptions): this;
 
-        resetCells(cells: Cell[], opt?: { [key: string]: any }): this;
+        resetCells(cells: Cell[], opt?: Graph.Options): this;
 
         getCell(id: string | number | Cell): Cell;
 
@@ -1155,9 +1176,9 @@ export namespace dia {
 
         getConnectedLinks(cell: Cell, opt?: Graph.ConnectionOptions): Link[];
 
-        disconnectLinks(cell: Cell, opt?: { [key: string]: any }): void;
+        disconnectLinks(cell: Cell, opt?: S): void;
 
-        removeLinks(cell: Cell, opt?: { [key: string]: any }): void;
+        removeLinks(cell: Cell, opt?: Cell.DisconnectableOptions): void;
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
@@ -1197,7 +1218,7 @@ export namespace dia {
 
         toJSON(): any;
 
-        fromJSON(json: any, opt?: { [key: string]: any }): this;
+        fromJSON(json: any, opt?: S): this;
 
         clear(opt?: { [key: string]: any }): this;
 
@@ -1223,9 +1244,9 @@ export namespace dia {
 
         removeCells(cells: Cell[], opt?: Cell.DisconnectableOptions): this;
 
-        resize(width: number, height: number, opt?: { [key: string]: any }): this;
+        resize(width: number, height: number, opt?: S): this;
 
-        resizeCells(width: number, height: number, cells: Cell[], opt?: { [key: string]: any }): this;
+        resizeCells(width: number, height: number, cells: Cell[], opt?: S): this;
 
         startBatch(name: string, data?: { [key: string]: any }): this;
 
@@ -1251,7 +1272,6 @@ export namespace dia {
         }
 
         interface Attributes extends GenericAttributes<Selectors> {
-            [key: string]: any;
         }
 
         interface Constructor<T extends Backbone.Model> {
@@ -1263,8 +1283,8 @@ export namespace dia {
             [key: string]: any;
         }
 
-        interface EmbeddableOptions extends Options {
-            deep?: boolean;
+        interface EmbeddableOptions<T = boolean> extends Options {
+            deep?: T;
         }
 
         interface DisconnectableOptions extends Options {
@@ -1283,9 +1303,9 @@ export namespace dia {
         }
     }
 
-    class Cell extends Backbone.Model {
+    class Cell<A = Cell.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
-        constructor(attributes?: Cell.Attributes, opt?: Graph.Options);
+        constructor(attributes?: A, opt?: Graph.Options);
 
         id: string | number;
         graph: Graph;
@@ -1315,7 +1335,7 @@ export namespace dia {
         isEmbedded(): boolean;
 
         prop(key: Path): any;
-        prop(object: Cell.Attributes, opt?: Cell.Options): this;
+        prop(object: A, opt?: Cell.Options): this;
         prop(key: Path, value: any, opt?: Cell.Options): this;
 
         removeProp(path: Path, opt?: Cell.Options): this;
@@ -1324,8 +1344,9 @@ export namespace dia {
         attr(object: Cell.Selectors, opt?: Cell.Options): this;
         attr(key: Path, value: any, opt?: Cell.Options): this;
 
-        clone(): Cell;
-        clone(opt: Cell.EmbeddableOptions): Cell | Cell[];
+        clone(): this;
+        clone(opt: Cell.EmbeddableOptions<false>): this;
+        clone(opt: Cell.EmbeddableOptions<true>): Cell[];
 
         removeAttr(path: Path, opt?: Cell.Options): this;
 
@@ -1383,13 +1404,16 @@ export namespace dia {
         }
 
         interface Attributes extends GenericAttributes<Cell.Selectors> {
-            [key: string]: any
         }
 
-        type PositionType = string | {
+        type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
+
+        interface PortPositionJSON {
             name?: string,
             args?: { [key: string]: any }
         }
+
+        type PositionType = string | PortPositionCallback | PortPositionJSON;
 
         interface PortGroup {
             position?: PositionType,
@@ -1424,9 +1448,7 @@ export namespace dia {
         }
     }
 
-    class Element extends Cell {
-
-        constructor(attributes?: Element.Attributes, opt?: Graph.Options);
+    class Element<A = Element.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
 
         isElement(): boolean;
 
@@ -1452,16 +1474,16 @@ export namespace dia {
 
         getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
 
-        addPort(port: Element.Port, opt?: Cell.Options): this;
+        addPort(port: Element.Port, opt?: S): this;
 
-        addPorts(ports: Element.Port[], opt?: Cell.Options): this;
+        addPorts(ports: Element.Port[], opt?: S): this;
 
-        insertPort(before: number | string | Element.Port, port: Element.Port, opt?: Cell.Options): this;
+        insertPort(before: number | string | Element.Port, port: Element.Port, opt?: S): this;
 
-        removePort(port: string | Element.Port, opt?: Cell.Options): this;
+        removePort(port: string | Element.Port, opt?: S): this;
 
-        removePorts(opt?: Cell.Options): this;
-        removePorts(ports: Array<Element.Port|string>, opt?: Cell.Options): this;
+        removePorts(opt?: S): this;
+        removePorts(ports: Array<Element.Port|string>, opt?: S): this;
 
         hasPorts(): boolean;
 
@@ -1479,7 +1501,7 @@ export namespace dia {
 
         portProp(portId: string, path: dia.Path): any;
 
-        portProp(portId: string, path: dia.Path, value?: any, opt?: Cell.Options): Element;
+        portProp(portId: string, path: dia.Path, value?: any, opt?: S): Element;
 
         protected generatePortId(): string | number;
 
@@ -1528,7 +1550,6 @@ export namespace dia {
         }
 
         interface Attributes extends Cell.GenericAttributes<LinkSelectors> {
-            [key: string]: any;
         }
 
         interface LabelPosition {
@@ -1550,7 +1571,7 @@ export namespace dia {
         }
     }
 
-    class Link extends Cell {
+    class Link<A = Link.Attributes, S = dia.ModelSetOptions> extends Cell<A, S> {
 
         toolMarkup: string;
         doubleToolMarkup?: string;
@@ -1559,8 +1580,6 @@ export namespace dia {
         labelMarkup?: string | MarkupJSON; // default label markup
         labelProps?: Link.Label; // default label props
 
-        constructor(attributes?: Link.Attributes, opt?: Graph.Options);
-
         isElement(): boolean;
 
         isLink(): boolean;
@@ -1568,44 +1587,44 @@ export namespace dia {
         disconnect(): this;
 
         source(): Link.EndJSON;
-        source(source: Link.EndJSON, opt?: Cell.Options): this;
-        source(source: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
+        source(source: Link.EndJSON, opt?: S): this;
+        source(source: Cell, args?: Link.EndCellArgs, opt?: S): this;
 
         target(): Link.EndJSON;
-        target(target: Link.EndJSON, opt?: Cell.Options): this;
-        target(target: Cell, args?: Link.EndCellArgs, opt?: Cell.Options): this;
+        target(target: Link.EndJSON, opt?: S): this;
+        target(target: Cell, args?: Link.EndCellArgs, opt?: S): this;
 
         router(): routers.Router | routers.RouterJSON | null;
-        router(router: routers.Router | routers.RouterJSON, opt?: Cell.Options): this;
-        router(name: routers.RouterType, args?: routers.RouterArguments, opt?: Cell.Options): this;
+        router(router: routers.Router | routers.RouterJSON, opt?: S): this;
+        router(name: routers.RouterType, args?: routers.RouterArguments, opt?: S): this;
 
         connector(): connectors.Connector | connectors.ConnectorJSON | null;
-        connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: Cell.Options): this;
-        connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: Cell.Options): this;
+        connector(connector: connectors.Connector | connectors.ConnectorJSON, opt?: S): this;
+        connector(name: connectors.ConnectorType, args?: connectors.ConnectorArguments, opt?: S): this;
 
         label(index?: number): Link.Label;
-        label(index: number, label: Link.Label, opt?: Cell.Options): this;
+        label(index: number, label: Link.Label, opt?: S): this;
 
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
 
-        insertLabel(index: number, label: Link.Label, opt?: Cell.Options): Link.Label[];
+        insertLabel(index: number, label: Link.Label, opt?: S): Link.Label[];
 
-        appendLabel(label: Link.Label, opt?: Cell.Options): Link.Label[];
+        appendLabel(label: Link.Label, opt?: S): Link.Label[];
 
-        removeLabel(index?: number, opt?: Cell.Options): Link.Label[];
+        removeLabel(index?: number, opt?: S): Link.Label[];
 
         vertex(index?: number): Link.Vertex;
-        vertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): this;
+        vertex(index: number, vertex: Link.Vertex, opt?: S): this;
 
         vertices(): Link.Vertex[];
         vertices(vertices: Link.Vertex[]): this;
 
-        insertVertex(index: number, vertex: Link.Vertex, opt?: Cell.Options): Link.Vertex[];
+        insertVertex(index: number, vertex: Link.Vertex, opt?: S): Link.Vertex[];
 
-        removeVertex(index?: number, opt?: Cell.Options): Link.Vertex[];
+        removeVertex(index?: number, opt?: S): Link.Vertex[];
 
-        reparent(opt?: Cell.Options): Element;
+        reparent(opt?: S): Element;
 
         getSourceElement(): null | Element;
 
@@ -1629,11 +1648,11 @@ export namespace dia {
 
         isRelationshipEmbeddedIn(cell: Cell): boolean;
 
-        applyToPoints(fn: (p: Point) => Point, opt?: Cell.Options): this;
+        applyToPoints(fn: (p: Point) => Point, opt?: S): this;
 
-        scale(sx: number, sy: number, origin?: Point, opt?: Cell.Options): this;
+        scale(sx: number, sy: number, origin?: Point, opt?: S): this;
 
-        translate(tx: number, ty: number, opt?: Cell.Options): this;
+        translate(tx: number, ty: number, opt?: S): this;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Link>;
     }
@@ -1650,7 +1669,7 @@ export namespace dia {
             ELEMENT_AVAILABILITY = 'elementAvailability'
         }
 
-        interface Options<T extends Cell> extends mvc.ViewOptions<T> {
+        interface Options<T extends Cell> extends mvc.ViewOptions<T, SVGElement> {
             id?: string
         }
 
@@ -1671,7 +1690,7 @@ export namespace dia {
         }
     }
 
-    abstract class CellViewGeneric<T extends Cell> extends mvc.View<T> {
+    abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGElement> {
 
         constructor(opt?: CellView.Options<T>);
 
@@ -1689,7 +1708,7 @@ export namespace dia {
 
         findMagnet(el: SVGElement | JQuery | string): SVGElement | undefined;
 
-        findBySelector(selector: string, root?: SVGElement | JQuery | string): JQuery;
+        findBySelector(selector: string, root?: SVGElement | JQuery | string): SVGElement[];
 
         findProxyNode(el: SVGElement | null, type: string): SVGElement;
 
@@ -1728,6 +1747,12 @@ export namespace dia {
         getFlag(label: CellView.FlagLabel): number;
 
         requestUpdate(flags: number, opt?: { [key: string]: any }): void;
+
+        dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
+
+        dragLink(evt: dia.Event, x: number, y: number): void;
+
+        dragLinkEnd(evt: dia.Event, x: number, y: number): void;
 
         protected removeHighlighters(): void;
 
@@ -1774,6 +1799,8 @@ export namespace dia {
         protected getMagnetFromLinkEnd(end: dia.Link.EndJSON): SVGElement;
 
         protected customizeLinkEnd(end: dia.Link.EndJSON, magnet: SVGElement, x: number, y: number, link: dia.Link, endType: dia.LinkEnd): dia.Link.EndJSON;
+
+        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
 
         protected cleanNodesCache(): void;
 
@@ -1851,10 +1878,6 @@ export namespace dia {
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
-
-        protected dragLinkStart(evt: dia.Event, magnet: SVGElement, x: number, y: number): void;
-
-        protected addLinkFromMagnet(magnet: SVGElement, x: number, y: number): LinkView;
     }
 
     // dia.LinkView
@@ -1871,6 +1894,7 @@ export namespace dia {
             VERTICES = 'VERTICES',
             SOURCE = 'SOURCE',
             TARGET = 'TARGET',
+            CONNECTOR = 'CONNECTOR'
         }
 
         interface InteractivityOptions {
@@ -1905,7 +1929,7 @@ export namespace dia {
 
         }
 
-        interface Options extends mvc.ViewOptions<Link> {
+        interface Options extends mvc.ViewOptions<Link, SVGElement> {
             shortLinkLength?: number,
             doubleLinkTools?: boolean,
             longLinkLength?: number,
@@ -1962,7 +1986,9 @@ export namespace dia {
         getVertexIndex(x: number, y: number): number;
         getVertexIndex(point: Point): number;
 
-        update(link: Link, attributes: any, opt?: { [key: string]: any }): this;
+        update(): this;
+
+        translate(tx: number, ty: number): void;
 
         requestConnectionUpdate(opt?: { [key: string]: any }): void;
 
@@ -1977,6 +2003,12 @@ export namespace dia {
         getEndMagnet(endType: dia.LinkEnd): SVGElement | null;
 
         findLabelNode(labelIndex: string | number, selector?: string): SVGElement | null;
+
+        protected updateRoute(): void;
+
+        protected updatePath(): void;
+
+        protected updateDOM(): void;
 
         protected onLabelsChange(link: Link, labels: Link.Label[], opt: { [key: string]: any }): void;
 
@@ -2498,7 +2530,7 @@ export namespace dia {
 
     namespace ToolsView {
 
-        interface Options extends mvc.ViewOptions<undefined> {
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             tools?: dia.ToolView[];
             name?: string | null;
             relatedView?: dia.CellView;
@@ -2506,7 +2538,7 @@ export namespace dia {
         }
     }
 
-    class ToolsView extends mvc.View<undefined> {
+    class ToolsView extends mvc.View<undefined, SVGElement> {
 
         constructor(opt?: ToolsView.Options);
 
@@ -2532,13 +2564,12 @@ export namespace dia {
     }
 
     namespace ToolView {
-
-        interface Options {
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             focusOpacity?: number;
         }
     }
 
-    class ToolView extends mvc.View<undefined> {
+    class ToolView extends mvc.View<undefined, SVGElement> {
 
         name: string | null;
         parentView: ToolsView;
@@ -2577,12 +2608,12 @@ export namespace dia {
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
 
-        interface Options extends mvc.ViewOptions<undefined> {
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
         }
     }
 
-    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined> {
+    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
 
         constructor(options?: Options);
 
@@ -2763,98 +2794,84 @@ export namespace shapes {
 
     namespace standard {
 
-        interface RectangleSelectors {
+        interface RectangleSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Rectangle extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<RectangleSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type RectangleAttributes = dia.Element.GenericAttributes<RectangleSelectors>;
+
+        class Rectangle extends dia.Element<RectangleAttributes> {
         }
 
-        interface CircleSelectors {
+        interface CircleSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGCircleAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Circle extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<CircleSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type CircleAttributes = dia.Element.GenericAttributes<CircleSelectors>;
+
+        class Circle extends dia.Element<CircleAttributes> {
         }
 
-        interface EllipseSelectors {
+        interface EllipseSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGCircleAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Ellipse extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EllipseSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type EllipseAttributes = dia.Element.GenericAttributes<EllipseSelectors>;
+
+        class Ellipse extends dia.Element<EllipseAttributes> {
         }
 
-        interface PathSelectors {
+        interface PathSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPathAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Path extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PathSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type PathAttributes = dia.Element.GenericAttributes<PathSelectors>;
+
+        class Path extends dia.Element<PathAttributes> {
         }
 
-        interface PolygonSelectors {
+        interface PolygonSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPolygonAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Polygon extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolygonSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type PolygonAttributes = dia.Element.GenericAttributes<PolygonSelectors>;
+
+        class Polygon extends dia.Element<PolygonAttributes> {
         }
 
-        interface PolylineSelectors {
+        interface PolylineSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGPolylineAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Polyline extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<PolylineSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type PolylineAttributes = dia.Element.GenericAttributes<PolylineSelectors>;
+
+        class Polyline extends dia.Element<PolylineAttributes> {
         }
 
-        interface ImageSelectors {
+        interface ImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class Image extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<ImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type ImageAttributes = dia.Element.GenericAttributes<ImageSelectors>;
+
+        class Image extends dia.Element<ImageAttributes> {
         }
 
-        interface BorderedImageSelectors {
+        interface BorderedImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGRectAttributes;
             background?: attributes.SVGRectAttributes;
@@ -2862,28 +2879,24 @@ export namespace shapes {
             label?: attributes.SVGTextAttributes;
         }
 
-        class BorderedImage extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<BorderedImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type BorderedImageAttributes = dia.Element.GenericAttributes<BorderedImageSelectors>;
+
+        class BorderedImage extends dia.Element<BorderedImageAttributes> {
         }
 
-        interface EmbeddedImageSelectors {
+        interface EmbeddedImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             image?: attributes.SVGImageAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
-        class EmbeddedImage extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<EmbeddedImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type EmbeddedImageAttributes = dia.Element.GenericAttributes<EmbeddedImageSelectors>;
+
+        class EmbeddedImage extends dia.Element<EmbeddedImageAttributes> {
         }
 
-        interface InscribedImageSelectors {
+        interface InscribedImageSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             border?: attributes.SVGEllipseAttributes;
             background?: attributes.SVGEllipseAttributes;
@@ -2891,14 +2904,12 @@ export namespace shapes {
             label?: attributes.SVGTextAttributes;
         }
 
-        class InscribedImage extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<InscribedImageSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type InscribedImageAttributes = dia.Element.GenericAttributes<InscribedImageSelectors>;
+
+        class InscribedImage extends dia.Element<InscribedImageAttributes> {
         }
 
-        interface HeaderedRectangleSelectors {
+        interface HeaderedRectangleSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             header?: attributes.SVGRectAttributes;
@@ -2906,34 +2917,29 @@ export namespace shapes {
             bodyText?: attributes.SVGTextAttributes;
         }
 
-        class HeaderedRectangle extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<HeaderedRectangleSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type HeaderedRectangleAttributes = dia.Element.GenericAttributes<HeaderedRectangleSelectors>;
+
+        class HeaderedRectangle extends dia.Element<HeaderedRectangleAttributes> {
         }
 
         interface CylinderBodyAttributes extends attributes.SVGPathAttributes {
             lateralArea?: string | number;
         }
 
-        interface CylinderSelectors {
+        interface CylinderSelectors  extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: CylinderBodyAttributes;
             top?: attributes.SVGEllipseAttributes;
         }
 
-        class Cylinder extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<CylinderSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type CylinderAttributes = dia.Element.GenericAttributes<CylinderSelectors>;
 
+        class Cylinder<S = dia.ModelSetOptions> extends dia.Element<CylinderAttributes, S> {
             topRy(): string | number;
-            topRy(t: string | number, opt?: dia.Cell.Options): this;
+            topRy(t: string | number, opt?: S): this;
         }
 
-        interface TextBlockSelectors {
+        interface TextBlockSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             body?: attributes.SVGRectAttributes;
             label?: {
@@ -2943,50 +2949,42 @@ export namespace shapes {
             }
         }
 
-        class TextBlock extends dia.Element {
-            constructor(
-                attributes?: dia.Element.GenericAttributes<TextBlockSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type TextBlockAttributes = dia.Element.GenericAttributes<TextBlockSelectors>;
+
+        class TextBlock extends dia.Element<TextBlockAttributes> {
         }
 
-        interface LinkSelectors {
+        interface LinkSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             line?: attributes.SVGPathAttributes;
             wrapper?: attributes.SVGPathAttributes;
         }
 
-        class Link extends dia.Link {
-            constructor(
-                attributes?: dia.Link.GenericAttributes<LinkSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type LinkAttributes = dia.Link.GenericAttributes<LinkSelectors>;
+
+        class Link extends dia.Link<LinkAttributes> {
         }
 
-        interface DoubleLinkSelectors {
+        interface DoubleLinkSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             line?: attributes.SVGPathAttributes;
             outline?: attributes.SVGPathAttributes;
         }
 
-        class DoubleLink extends dia.Link {
-            constructor(
-                attributes?: dia.Link.GenericAttributes<DoubleLinkSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type DoubleLinkAttributes = dia.Link.GenericAttributes<DoubleLinkSelectors>;
+
+        class DoubleLink extends dia.Link<DoubleLinkAttributes> {
         }
 
-        interface ShadowLinkSelectors {
+        interface ShadowLinkSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
             line?: attributes.SVGPathAttributes;
             shadow?: attributes.SVGPathAttributes;
         }
 
-        class ShadowLink extends dia.Link {
-            constructor(
-                attributes?: dia.Link.GenericAttributes<ShadowLinkSelectors>,
-                opt?: dia.Graph.Options
-            )
+        type ShadowLinkAttributes = dia.Link.GenericAttributes<ShadowLinkSelectors>;
+
+        class ShadowLink extends dia.Link<ShadowLinkAttributes> {
         }
     }
 
@@ -3956,7 +3954,7 @@ export namespace layout {
 
 export namespace mvc {
 
-    interface ViewOptions<T extends Backbone.Model> extends Backbone.ViewOptions<T> {
+    interface ViewOptions<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
     }
 
@@ -3964,18 +3962,20 @@ export namespace mvc {
         [key: string]: any;
     }
 
-    class View<T extends Backbone.Model> extends Backbone.View<T> {
+    class View<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.View<T, E> {
 
-        constructor(opt?: ViewOptions<T>);
+        constructor(opt?: ViewOptions<T, E>);
 
         UPDATE_PRIORITY: number;
         DETACHABLE: boolean;
         FLAG_INSERT: number;
         FLAG_REMOVE: number;
 
-        vel: Vectorizer | null;
+        vel: E extends HTMLElement ? null : Vectorizer;
 
-        options: ViewOptions<T>;
+        svgElement: boolean;
+
+        options: ViewOptions<T, E>;
 
         theme: string;
 
