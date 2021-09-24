@@ -40,7 +40,8 @@ cylinder.set('z', cylinder.attributes.z + 1);
 
 const paper = new joint.dia.Paper({
     model: graph,
-    frozen: true
+    frozen: true,
+    findParentBy: (_elementView, _evt, x, y) => graph.findModelsFromPoint({ x, y })
 });
 
 const cellView = cell.findView(paper);
