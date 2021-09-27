@@ -2,7 +2,7 @@ type AssertExtends<A,B> = A extends B ? true : never;
 
 import * as joint from '../../build/joint';
 
-const graph = new joint.dia.Graph;
+const graph = new joint.dia.Graph({ graphAttribute: true });
 
 const rectangle = new joint.shapes.standard.Rectangle();
 
