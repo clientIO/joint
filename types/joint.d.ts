@@ -94,14 +94,14 @@ export namespace dia {
         }
 
         interface Attributes {
-            cells: Cells,
+            cells?: Cells;
             [key: string]: any;
         }
     }
 
     class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
-        constructor(attributes?: A, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
         addCell(cell: Cell | Cell[], opt?: CollectionAddOptions): this;
 
