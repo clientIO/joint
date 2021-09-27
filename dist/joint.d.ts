@@ -1,4 +1,4 @@
-/*! JointJS v3.4.3 (2021-09-24) - JavaScript diagramming library
+/*! JointJS v3.4.4 (2021-09-27) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1147,14 +1147,14 @@ export namespace dia {
         }
 
         interface Attributes {
-            cells: Cells,
+            cells?: Cells,
             [key: string]: any;
         }
     }
 
     class Graph<A = Graph.Attributes, S = dia.ModelSetOptions> extends Backbone.Model<A, S> {
 
-        constructor(attributes?: A, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
+        constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
         addCell(cell: Cell | Cell[], opt?: CollectionAddOptions): this;
 

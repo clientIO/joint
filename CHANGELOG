@@ -1,3 +1,6 @@
+27-09-2021 (v3.4.4)
+  * dia.Graph - prevent attribute type inference from the constructor
+
 24-09-2021 (v3.4.3)
   * Add List Demo (element with a vertical list of items)
   * Whitelist files for NPM publish
