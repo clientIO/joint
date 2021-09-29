@@ -2712,8 +2712,9 @@ export const Paper = View.extend({
                 markerVEl.append(fragment);
             }
         } else {
+            // marker object is a flat structure
             const { type = 'path' } = marker;
-            const markerContentVEl = V(type, omit(marker, 'type', 'markerUnit', 'markerAttrs'));
+            const markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
             markerVEl.append(markerContentVEl);
         }
         markerVEl.appendTo(defs);
