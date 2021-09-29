@@ -73,14 +73,22 @@ QUnit.module('vectorizer', function(hooks) {
         return (new XMLSerializer()).serializeToString(node);
     }
 
-    QUnit.test('constuctor', function(assert) {
+    QUnit.test('constructor', function(assert) {
 
         var vRect = V('rect');
 
         assert.ok(V.isVElement(vRect), 'Constructor produces a vectorizer element, when a string was provided.');
-        assert.ok(vRect.node instanceof SVGElement, 'The vectorizer element has the attribute "node" that references to an SVGElement.');
+        assert.ok(vRect.node instanceof SVGRectElement, 'The vectorizer element has the attribute "node" that references to an SVGElement.');
         assert.ok(V.isVElement(V(vRect)), 'Constructor produces a vectorizer element, when a vectorizer element was provided.');
-        assert.ok(V(vRect).node instanceof SVGElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
+        assert.ok(V(vRect).node instanceof SVGRectElement, 'The vectorizer element has again the attribute "node" that references to an SVGElement.');
+
+        var vRect2 = V(' rect ');
+        assert.ok(V.isVElement(vRect2));
+        assert.ok(vRect2.node instanceof SVGRectElement);
+
+        var vSVG = V('\n svg ');
+        assert.ok(V.isVElement(vSVG));
+        assert.ok(vSVG.node instanceof SVGSVGElement);
     });
 
     QUnit.test('id', function(assert) {
