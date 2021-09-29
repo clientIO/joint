@@ -1027,6 +1027,17 @@ export namespace dia {
                 opacity?: number;
             }>;
         }
+        interface FilterOptions {
+            [key: string]: any;
+        }
+
+        interface PatternOptions {
+            [key: string]: any;
+        }
+
+        interface MarkerOptions {
+            [key: string]: any;
+        }
 
         interface GridOptions {
             color?: string;
@@ -1257,11 +1268,13 @@ export namespace dia {
         snapToGrid(x: number, y: number): g.Point;
         snapToGrid(point: Point): g.Point;
 
-        defineFilter(filter: { [key: string]: any }): string;
+        defineFilter(filter: Paper.FilterOptions): string;
 
         defineGradient(gradient: Paper.GradientOptions): string;
 
-        defineMarker(marker: { [key: string]: any }): string;
+        defineMarker(marker: Paper.MarkerOptions): string;
+
+        definePattern(pattern: Paper.PatternOptions): string;
 
         isDefined(defId: string): boolean;
 

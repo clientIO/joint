@@ -413,10 +413,7 @@ QUnit.module('Attributes', function() {
             QUnit.test('sourceMarker - string markup', function(assert) {
 
                 cell.attr('body/sourceMarker', {
-                    markup: `
-                        <circle cx="6" cy="0" r="10" fill="blue" test-content-attribute="true"/>
-                        <polygon points="0,0 6,6 12,0 6,-6" stroke="red" fill="red" />
-                    `,
+                    markup: '<circle r="10" test-content-attribute="true"/>',
                     attrs: {
                         'test-attribute': true
                     }
@@ -498,10 +495,7 @@ QUnit.module('Attributes', function() {
 
                 cell.attr('body/fill', {
                     type: 'pattern',
-                    markup: `
-                        <circle cx="6" cy="0" r="10" fill="blue" test-content-attribute="true"/>
-                        <polygon points="0,0 6,6 12,0 6,-6" stroke="red" fill="red" />
-                    `,
+                    markup: '<circle r="10" test-content-attribute="true"/>',
                     attrs: {
                         'test-attribute': true
                     }
@@ -527,8 +521,6 @@ QUnit.module('Attributes', function() {
                     markup: [{
                         tagName: 'circle',
                         attributes: {
-                            'cx': 6,
-                            'cy': 0,
                             'r': 10,
                             'test-content-attribute': true
                         }
