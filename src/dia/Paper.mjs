@@ -2621,10 +2621,10 @@ export const Paper = View.extend({
         }
         const { svg, defs } = this;
         const {
+            type,
             // Generate a hash code from the stringified filter definition. This gives us
             // a unique filter ID for different definitions.
             id = type + svg.id + hashCode(JSON.stringify(gradient)),
-            type,
             stops,
             attrs = {}
         } = gradient;
@@ -2632,16 +2632,16 @@ export const Paper = View.extend({
         // we're done and we can just use it (reference it using `url()`).
         if (this.isDefined(id)) return id;
         // If not, create one.
-        const stopVEls = toArray(stops).map(
-            ({ offset, color, opacity }) => V('stop').attr({
+        const stopVEls = toArray(stops).map(({ offset, color, opacity }) => {
+            return V('stop').attr({
                 'offset': offset,
                 'stop-color': color,
                 'stop-opacity': Number.isFinite(opacity) ? opacity : 1
-            })
-        );
-        const gradientVEl = V(type);
+            });
+        });
+        const gradientVEl = V(type, attrs, stopVEls);
         gradientVEl.id = id;
-        gradientVEl.attr(attrs).append(stopVEls).appendTo(defs);
+        gradientVEl.appendTo(defs);
         return id;
     },
 
@@ -2664,7 +2664,9 @@ export const Paper = View.extend({
         // we're done and we can just use it (reference it using `url()`).
         if (this.isDefined(id)) return id;
         // If not, create one.
-        const patternVEl = V('pattern');
+        const patternVEl = V('pattern', {
+            patternUnits: 'userSpaceOnUse'
+        });
         patternVEl.id = id;
         patternVEl.attr(attrs);
         if (typeof markup === 'string') {
@@ -2686,19 +2688,22 @@ export const Paper = View.extend({
             // Generate a hash code from the stringified filter definition. This gives us
             // a unique filter ID for different definitions.
             id = svg.id + hashCode(JSON.stringify(marker)),
-            type = 'path',
             markup,
+            attrs = {},
+            // deprecated in favour of `attrs`
             markerUnits = 'userSpaceOnUse'
         } = marker;
+        // If the marker already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
         if (this.isDefined(id)) return id;
-        const markerVEl = V('marker');
-        markerVEl.id = id;
-        markerVEl.attr({
+        // If not, create one.
+        const markerVEl = V('marker', {
             orient: 'auto',
             overflow: 'visible',
             markerUnits: markerUnits
         });
-        markerVEl.appendTo(defs);
+        markerVEl.id = id;
+        markerVEl.attr(attrs);
         if (markup) {
             if (typeof markup === 'string') {
                 markerVEl.append(V(markup));
@@ -2707,9 +2712,11 @@ export const Paper = View.extend({
                 markerVEl.append(fragment);
             }
         } else {
+            const { type = 'path' } = marker;
             const markerContentVEl = V(type, omit(marker, 'type', 'markerUnit', 'markerAttrs'));
             markerVEl.append(markerContentVEl);
         }
+        markerVEl.appendTo(defs);
         return id;
     }
 
