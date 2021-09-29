@@ -61,6 +61,8 @@ const V = (function() {
 
         if (V.isString(el)) {
 
+            el = el.trim();
+
             if (el.toLowerCase() === 'svg') {
 
                 // Create a new SVG canvas.
