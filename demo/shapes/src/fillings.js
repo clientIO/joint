@@ -100,17 +100,21 @@ const linearGradientStroke = new shapes.standard.DoubleLink({
             stroke: {
                 type: 'linearGradient',
                 stops: [
-                    { offset: '0%', color: '#333' },
+                    { offset: '0%', color: '#7B5CCE' },
                     { offset: '100%', color: '#fff' },
                 ]
             },
+            outline: {
+                stroke: '#7b5cce'
+            },
             targetMarker: {
-                fill: '#fff'
+                fill: '#fff',
+                stroke: '#7b5cce'
             },
             sourceMarker: {
                 markup: `
-                    <circle cx="6" cy="0" r="12" fill="#333"/>
-                    <polygon points="0,0 6,6 12,0 6,-6" fill="#fff" />
+                    <circle cx="6" cy="0" r="12" fill="#7b5cce"/>
+                    <polygon points="0,0 6,6 12,0 6,-6" fill="#d63865" stroke="#fff" />
                 `
             }
         }
