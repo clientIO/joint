@@ -73,6 +73,49 @@ export namespace dia {
         [key: string]: any;
     }
 
+    interface SVGPatternJSON {
+        id?: string;
+        type: 'pattern';
+        attrs?: attributes.NativeSVGAttributes;
+        markup: string | MarkupJSON;
+    }
+
+    interface SVGGradientJSON {
+        id?: string;
+        type: 'linearGradient' | 'radialGradient';
+        attrs?: attributes.NativeSVGAttributes;
+        stops: Array<{
+            offset: number | string;
+            color: string;
+            opacity?: number;
+        }>;
+    }
+
+    interface SVGMarkerJSON {
+        id?: string;
+        markup?: string | MarkupJSON;
+        attrs?: attributes.NativeSVGAttributes;
+        type?: string;
+        [key: keyof attributes.NativeSVGAttributes]: any;
+        /**
+         * @deprecated use `attrs` instead
+         */
+        markerUnits?: string;
+    }
+
+    type SVGFilterJSON =
+        util.filter.FilterJSON<'outline'> |
+        util.filter.FilterJSON<'highlight'> |
+        util.filter.FilterJSON<'blur'> |
+        util.filter.FilterJSON<'dropShadow'> |
+        util.filter.FilterJSON<'grayscale'> |
+        util.filter.FilterJSON<'sepia'> |
+        util.filter.FilterJSON<'saturate'> |
+        util.filter.FilterJSON<'hueRotate'> |
+        util.filter.FilterJSON<'invert'> |
+        util.filter.FilterJSON<'brightness'> |
+        util.filter.FilterJSON<'contrast'>;
+
     export namespace Graph {
 
         interface Options {
@@ -1268,13 +1311,13 @@ export namespace dia {
         snapToGrid(x: number, y: number): g.Point;
         snapToGrid(point: Point): g.Point;
 
-        defineFilter(filter: Paper.FilterOptions): string;
+        defineFilter(filter: SVGFilterJSON): string;
 
-        defineGradient(gradient: Paper.GradientOptions): string;
+        defineGradient(gradient: SVGGradientJSON): string;
 
-        defineMarker(marker: Paper.MarkerOptions): string;
+        defineMarker(marker: SVGMarkerJSON): string;
 
-        definePattern(pattern: Paper.PatternOptions): string;
+        definePattern(pattern: Omit<SVGPatternJSON, 'type'>): string;
 
         isDefined(defId: string): boolean;
 
@@ -2705,6 +2748,12 @@ export namespace util {
         }
 
         type FilterFunction<K extends keyof FilterArgumentsMap> = (args: FilterArgumentsMap[K]) => string;
+        interface FilterJSON<K extends keyof FilterArgumentsMap> {
+            name: K;
+            id?: string;
+            args?: FilterArgumentsMap[K];
+            attrs?: attributes.NativeSVGAttributes;
+        }
 
         export var outline: FilterFunction<'outline'>;
         export var highlight: FilterFunction<'highlight'>;
@@ -3435,12 +3484,12 @@ export namespace attributes {
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
         eol?: string;
-        filter?: string | { [key: string]: any };
-        fill?: string | { [key: string]: any };
-        stroke?: string | { [key: string]: any };
-        sourceMarker?: { [key: string]: any };
-        targetMarker?: { [key: string]: any };
-        vertexMarker?: { [key: string]: any };
+        filter?: string | dia.SVGFilterJSON;
+        fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
+        stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
+        sourceMarker?: dia.SVGMarkerJSON;
+        targetMarker?: dia.SVGMarkerJSON;
+        vertexMarker?: dia.SVGMarkerJSON;
         text?: string;
         textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;

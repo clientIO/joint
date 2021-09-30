@@ -4,7 +4,51 @@ import * as joint from '../../build/joint';
 
 const graph = new joint.dia.Graph({ graphAttribute: true });
 
-const rectangle = new joint.shapes.standard.Rectangle();
+const rectangle = new joint.shapes.standard.Rectangle({
+    attrs: {
+        body: {
+            fill: {
+                type: 'pattern',
+                markup: [{
+                    tagName: 'circle',
+                    attributes: {
+                        r: 5
+                    }
+                }]
+            },
+            stroke: {
+                type: 'linearGradient',
+                stops: [{ offset: 0.5, color: 'red' }]
+            },
+            filter: {
+                id: 'test-filter',
+                name: 'dropShadow',
+                args: {
+                    dx: 5,
+                    dy: 5,
+                    blur: 5
+                }
+            }
+        }
+    }
+});
+
+const link = new joint.shapes.standard.Link({
+    attrs: {
+        line: {
+            sourceMarker: {
+                markup: '<circle cx="0" cy="0" r="5"/>',
+                attrs: {
+                    fill: 'red'
+                }
+            },
+            targetMarker: {
+                type: 'path',
+                d: 'M 10 10 20 20'
+            }
+        }
+    }
+});
 
 graph.addCells([
     rectangle,
@@ -20,7 +64,7 @@ graph.addCells([
     new joint.shapes.standard.HeaderedRectangle(),
     new joint.shapes.standard.Circle(),
     new joint.shapes.standard.Ellipse(),
-    new joint.shapes.standard.Link(),
+    link,
     new joint.shapes.standard.DoubleLink(),
     new joint.shapes.standard.ShadowLink(),
 ]);
