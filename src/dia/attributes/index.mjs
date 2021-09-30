@@ -182,6 +182,14 @@ function contextMarker(context) {
     return marker;
 }
 
+function setPaintURL(def) {
+    const { paper } = this;
+    const url = (def.type === 'pattern')
+        ? paper.definePattern(def)
+        : paper.defineGradient(def);
+    return `url(#${url})`;
+}
+
 const attributesNS = {
 
     xlinkHref: {
@@ -253,24 +261,12 @@ const attributesNS = {
 
     fill: {
         qualify: isPlainObject,
-        set: function(fill) {
-            const { paper } = this;
-            const url = (fill.type === 'pattern')
-                ? paper.definePattern(fill)
-                : paper.defineGradient(fill);
-            return `url(#${url})`;
-        }
+        set: setPaintURL
     },
 
     stroke: {
         qualify: isPlainObject,
-        set: function(stroke) {
-            const { paper } = this;
-            const url = (stroke.type === 'pattern')
-                ? paper.definePattern(stroke)
-                : paper.defineGradient(stroke);
-            return `url(#${url})`;
-        }
+        set: setPaintURL
     },
 
     sourceMarker: {
