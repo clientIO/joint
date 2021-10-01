@@ -91,12 +91,17 @@ export namespace dia {
         }>;
     }
 
-    interface SVGMarkerJSON {
+    type SVGMarkerJSON = SVGComplexMarkerJSON | SVGSimpleMarkerJSON;
+
+    interface SVGComplexMarkerJSON {
         id?: string;
-        markup?: string | MarkupJSON;
+        markup: string | MarkupJSON;
         attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface SVGSimpleMarkerJSON extends attributes.NativeSVGAttributes {
+        id?: string;
         type?: string;
-        [key: keyof attributes.NativeSVGAttributes]: any;
         /**
          * @deprecated use `attrs` instead
          */
@@ -3664,6 +3669,14 @@ export namespace attributes {
         'path-length'?: number;
     }
 
+    interface SVGLineAttributes extends SVGAttributes {
+        x1?: number | string;
+        x2?: number | string;
+        y1?: number | string;
+        y2?: number | string;
+        pathLength?: number;
+        'path-length'?: number;
+    }
 }
 
 export function setTheme(theme: string): void;
