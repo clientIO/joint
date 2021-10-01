@@ -1,7 +1,6 @@
-<p>Valid for <code>&lt;path&gt;</code> subelements. It draws an SVG element at the beginning of a path. The element is automatically rotated based on the path direction.
-    It's defined as an object with <code>type</code> property and any other visual attributes. The valid values for <code>type</code> are <code>'path'</code>, <code>'circle'</code>, <code>'ellipse'</code>, <code>'rect'</code>, <code>'polyline'</code> and <code>'polygon'</code>.
-
-<pre><code>link.attr('.connection/sourceMarker', {
+<p>Valid for <code>&lt;path&gt;</code> subelements. It draws an SVG element at the beginning of a path (the source of the link). The element is automatically rotated based on the path direction.
+  It must have the form defined by the <a href="#dia.Paper.prototype.defineMarker">defineMarker()</a> paper method.</p>
+<pre><code>link.attr('line/sourceMarker', {
   type: 'circle', // SVG Circle
   fill: '#666',
   stroke: '#333',
