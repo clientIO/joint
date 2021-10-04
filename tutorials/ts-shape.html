@@ -40,18 +40,17 @@
         can see our custom element <code>MyShape</code>.
     </p>
     
-    <pre><code>
-        import { dia } from './vendor/joint';
-    
-        export class MyShape extends dia.Element {
-    
-            defaults() {
-                return {
-                    ...super.defaults,
-                }
-            }
-    
+    <pre><code>import { dia } from './vendor/joint';
+
+export class MyShape extends dia.Element {
+
+    defaults() {
+        return {
+            ...super.defaults,
         }
+    }
+
+}
     </code></pre>
 
     <p>
@@ -77,33 +76,32 @@
         <code>joint.shapes.myNamespace.MyShape</code>.
     </p>
 
-    <pre><code>
-        defaults() {
-            return {
-                ...super.defaults,
-                type: 'myNamespace.MyShape',
-                size: { width: 100, height: 80 },
-                attrs: {
-                    body: {
-                        refCx: '50%',
-                        refCy: '50%',
-                        refRx: '50%',
-                        refRy: '50%',
-                        strokeWidth: 2,
-                        stroke: '#333333',
-                        fill: '#FFFFFF'
-                    },
-                    label: {
-                        textVerticalAnchor: 'middle',
-                        textAnchor: 'middle',
-                        refX: '50%',
-                        refY: '50%',
-                        fontSize: 14,
-                        fill: '#333333'
-                    }
-                }
+    <pre><code>defaults() {
+    return {
+        ...super.defaults,
+        type: 'myNamespace.MyShape',
+        size: { width: 100, height: 80 },
+        attrs: {
+            body: {
+                refCx: '50%',
+                refCy: '50%',
+                refRx: '50%',
+                refRy: '50%',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
             }
         }
+    }
+}
     </code></pre>
 
     <p>
@@ -128,30 +126,29 @@
         <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.Cell.markup" target="_blank">Markup</a>.
     </p>
 
-    <pre><code>
-            defaults() {
-                return {
-                    ...super.defaults,
-                    type: 'myNamespace.MyShape',
-                    size: { width: 100, height: 80 },
-                    attrs: {
-                        body: {
-                            // Attributes
-                        },
-                        label: {
-                            // Attributes
-                        }
-                    }
-                }
+    <pre><code>defaults() {
+    return {
+        ...super.defaults,
+        type: 'myNamespace.MyShape',
+        size: { width: 100, height: 80 },
+        attrs: {
+            body: {
+                // Attributes
+            },
+            label: {
+                // Attributes
             }
-        
-            markup = [{
-                tagName: 'ellipse',
-                selector: 'body'
-            }, {
-                tagName: 'text',
-                selector: 'label'
-            }]
+        }
+    }
+}
+
+markup = [{
+    tagName: 'ellipse',
+    selector: 'body'
+}, {
+    tagName: 'text',
+    selector: 'label'
+}]
     </code></pre>
 
     <p>
@@ -167,34 +164,33 @@
         or we can create static methods to call on the class itself.
     </p>
 
-    <pre><code>
-            defaults() {
-                return {
-                    ...super.defaults,
-                    type: 'myNamespace.MyShape',
-                    size: { width: 100, height: 80 },
-                    attrs: {
-                        body: {
-                            // Attributes
-                        },
-                        label: {
-                            // Attributes
-                        }
-                    }
-                }
+    <pre><code>defaults() {
+    return {
+        ...super.defaults,
+        type: 'myNamespace.MyShape',
+        size: { width: 100, height: 80 },
+        attrs: {
+            body: {
+                // Attributes
+            },
+            label: {
+                // Attributes
             }
-        
-            markup = [{
-                // Markup
-            }]
-        
-            test(): void {
-                console.log(`A prototype method test for ${this.get('type')}`);
-            }
-        
-            static staticTest(i: number): void {
-                console.log(`A static method test with an argument: ${i}`);
-            }
+        }
+    }
+}
+
+markup = [{
+    // Markup
+}]
+
+test(): void {
+    console.log(`A prototype method test for ${this.get('type')}`);
+}
+
+static staticTest(i: number): void {
+    console.log(`A static method test with an argument: ${i}`);
+}
     </code></pre>
 
     <p>
@@ -204,16 +200,15 @@
         argument to the constructor. 
     </p>
 
-    <pre><code>
-        // Custom shape prototype method
+    <pre><code>// Custom shape prototype method
 
-        setText(text: string): dia.Element {
-            return this.attr('label/text', text || '');
-        }
+setText(text: string): dia.Element {
+    return this.attr('label/text', text || '');
+}
 
-        // Create instance using the method
+// Create instance using the method
 
-        const myNewShape = new MyShape().setText(text);
+const myNewShape = new MyShape().setText(text);
     </code></pre>
 
     <p>
@@ -232,63 +227,62 @@
         our namespace under the shape definition using <code>Object.assign()</code>.
     </p>
 
-    <pre><code>
-        import { shapes, dia } from './vendor/joint';
+    <pre><code>import { shapes, dia } from './vendor/joint';
 
 
-        export class MyShape extends dia.Element {
+export class MyShape extends dia.Element {
 
-            defaults() {
-                return {
-                    ...super.defaults,
-                    type: 'myNamespace.MyShape',
-                    size: { width: 100, height: 80 },
-                    attrs: {
-                        body: {
-                            refCx: '50%',
-                            refCy: '50%',
-                            refRx: '50%',
-                            refRy: '50%',
-                            strokeWidth: 2,
-                            stroke: '#333333',
-                            fill: '#FFFFFF'
-                        },
-                        label: {
-                            textVerticalAnchor: 'middle',
-                            textAnchor: 'middle',
-                            refX: '50%',
-                            refY: '50%',
-                            fontSize: 14,
-                            fill: '#333333'
-                        }
-                    }
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'myNamespace.MyShape',
+            size: { width: 100, height: 80 },
+            attrs: {
+                body: {
+                    refCx: '50%',
+                    refCy: '50%',
+                    refRx: '50%',
+                    refRy: '50%',
+                    strokeWidth: 2,
+                    stroke: '#333333',
+                    fill: '#FFFFFF'
+                },
+                label: {
+                    textVerticalAnchor: 'middle',
+                    textAnchor: 'middle',
+                    refX: '50%',
+                    refY: '50%',
+                    fontSize: 14,
+                    fill: '#333333'
                 }
             }
-        
-            markup = [{
-                tagName: 'ellipse',
-                selector: 'body'
-            }, {
-                tagName: 'text',
-                selector: 'label'
-            }]
-        
-            test(): void {
-                console.log(`A prototype method test for ${this.get('type')}`);
-            }
-        
-            static staticTest(i: number): void {
-                console.log(`A static method test with an argument: ${i}`);
-            }
         }
+    }
+
+    markup = [{
+        tagName: 'ellipse',
+        selector: 'body'
+    }, {
+        tagName: 'text',
+        selector: 'label'
+    }]
+
+    test(): void {
+        console.log(`A prototype method test for ${this.get('type')}`);
+    }
+
+    static staticTest(i: number): void {
+        console.log(`A static method test with an argument: ${i}`);
+    }
+}
 
 
 
-        Object.assign(shapes, {
-            myNamespace: {
-                MyShape
-            }
-        });
+Object.assign(shapes, {
+    myNamespace: {
+        MyShape
+    }
+});
     </code></pre>
 
 
@@ -300,73 +294,73 @@
         <code>graph</code> and <code>paper</code> respectively. Let's see how that might look.
     </p>
 
-    <pre><code>
-    const canvas = document.getElementById('canvas') as HTMLElement;
-    
-    const myNamespace = {};
+    <pre><code>const canvas = document.getElementById('canvas') as HTMLElement;
 
-    const graph = new dia.Graph({}, { cellNamespace: myNamespace });
-    const paper = new dia.Paper({
-        el: canvas,
-        model: graph,
-        width: 800,
-        height: 800,
-        gridSize: 1,
-        interactive: true,
-        async: true,
-        frozen: false,
-        sorting: dia.Paper.sorting.APPROX,
-        background: { color: '#F3F7F6' },
-        cellViewNamespace: myNamespace,
-    });
+const myNamespace = {};
+
+const graph = new dia.Graph({}, { cellNamespace: myNamespace });
+const paper = new dia.Paper({
+    el: canvas,
+    model: graph,
+    width: 800,
+    height: 800,
+    gridSize: 1,
+    interactive: true,
+    async: true,
+    frozen: false,
+    sorting: dia.Paper.sorting.APPROX,
+    background: { color: '#F3F7F6' },
+    cellViewNamespace: myNamespace,
+});
 
 
-    class MyShape extends dia.Element {
-        defaults() {
-            return {
-                ...super.defaults,
-                type: 'myShapeGroup.MyShape',
-                size: { width: 100, height: 30 }, 
-                position: {x: 10, y: 10 },
-                attrs: {
-                    body: {
-                        refWidth: '100%',
-                        refHeight: '100%',
-                    }
-                } 
-            }
+class MyShape extends dia.Element {
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'myShapeGroup.MyShape',
+            size: { width: 100, height: 30 }, 
+            position: {x: 10, y: 10 },
+            attrs: {
+                body: {
+                    refWidth: '100%',
+                    refHeight: '100%',
+                }
+            } 
         }
-        markup = [{
-            tagName: 'rect',
-            selector: 'body',
-            attributes: {
-                'cursor': 'pointer',
-            }
-        }]
     }
     
-
-
-    Object.assign(myNamespace, {
-        myShapeGroup: {
-            MyShape
-        },
-        standard: {
-            Rectangle: shapes.standard.Rectangle
+    markup = [{
+        tagName: 'rect',
+        selector: 'body',
+        attributes: {
+            'cursor': 'pointer',
         }
-    });
+    }]
+}
 
 
-    graph.fromJSON({ 
-        cells: [
-            { type: 'myShapeGroup.MyShape'}, 
-            { 
-                type: 'standard.Rectangle',
-                size: { width: 40, height: 40 },
-                position: {x: 40, y: 50 }
-            }
-        ]
-    });
+
+Object.assign(myNamespace, {
+    myShapeGroup: {
+        MyShape
+    },
+    standard: {
+        Rectangle: shapes.standard.Rectangle
+    }
+});
+
+
+graph.fromJSON({ 
+    cells: [
+        { type: 'myShapeGroup.MyShape'}, 
+        { 
+            type: 'standard.Rectangle',
+            size: { width: 40, height: 40 },
+            position: {x: 40, y: 50 }
+        }
+    ]
+});
     </code></pre>
 
     <p>
@@ -381,39 +375,38 @@
         There is one alternative way to return attributes in our custom shape, and you can see that in the following example.
     </p>
 
-    <pre><code>
-        import { shapes, dia, util } from './vendor/joint';
+    <pre><code>import { shapes, dia, util } from './vendor/joint';
 
 
-        defaults() {
-            return util.defaultsDeep({
-                size: {
-                    width: 80,
-                    // `height` will be taken from the parent class
-                },
-                type: 'myNamespace.MyShape',
-                size: { width: 100, height: 80 },
-                attrs: {
-                    body: {
-                        refCx: '50%',
-                        refCy: '50%',
-                        refRx: '50%',
-                        refRy: '50%',
-                        strokeWidth: 2,
-                        stroke: '#333333',
-                        fill: '#FFFFFF'
-                    },
-                    label: {
-                        textVerticalAnchor: 'middle',
-                        textAnchor: 'middle',
-                        refX: '50%',
-                        refY: '50%',
-                        fontSize: 14,
-                        fill: '#333333'
-                    }
-                }
-            }, super.defaults)
+defaults() {
+    return util.defaultsDeep({
+        size: {
+            width: 80,
+            // `height` will be taken from the parent class
+        },
+        type: 'myNamespace.MyShape',
+        size: { width: 100, height: 80 },
+        attrs: {
+            body: {
+                refCx: '50%',
+                refCy: '50%',
+                refRx: '50%',
+                refRy: '50%',
+                strokeWidth: 2,
+                stroke: '#333333',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                refX: '50%',
+                refY: '50%',
+                fontSize: 14,
+                fill: '#333333'
+            }
         }
+    }, super.defaults)
+}
     </code></pre>
     
     <p>
@@ -441,95 +434,95 @@
         opacity of elements.
     </p>
     
-    <pre><code>
-        class MyShape extends dia.Element {
-            defaults() {
-                return {
-                    ...super.defaults,
-                    type: 'myShapeGroup.MyShape',
-                    size: { width: 100, height: 30 }, 
-                    position: {x: 10, y: 10 },
-                    attrs: {
-                        body: {
-                            refWidth: '100%',
-                            refHeight: '100%',
-                        }
-                    } 
+    <pre><code>class MyShape extends dia.Element {
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'myShapeGroup.MyShape',
+            size: { width: 100, height: 30 }, 
+            position: {x: 10, y: 10 },
+            attrs: {
+                body: {
+                    refWidth: '100%',
+                    refHeight: '100%',
                 }
-            }
-            markup = [{
-                tagName: 'rect',
-                selector: 'body',
-                attributes: {
-                    'cursor': 'pointer',
-                }
-            }]
+            } 
         }
+    }
 
-    
-        const MyShapeView: dia.ElementView = dia.ElementView.extend({
-        
-            // Make sure that all super class presentation attributes are preserved
-
-                presentationAttributes: dia.ElementView.addPresentationAttributes({
-                    // mapping the model attributes to flag labels
-                    faded: 'flag:opacity'
-                }),
-
-                confirmUpdate(flags, ...args) {
-                    dia.ElementView.prototype.confirmUpdate.call(this, flags, ...args);
-                    if (this.hasFlag(flags, 'flag:opacity')) this.toggleFade();
-                },
-
-                toggleFade() {
-                    this.el.style.opacity = this.model.get('faded') ? 0.5 : 1;
-                }
-        });
-
-    
-        const graph = new dia.Graph({}, { cellNamespace: shapes });
-        const paper = new dia.Paper({
-            model: graph,
-            width: 800,
-            height: 800,
-            gridSize: 1,
-            interactive: true,
-            async: true,
-            frozen: false,
-            sorting: dia.Paper.sorting.APPROX,
-            background: { color: '#F3F7F6' },
-            cellViewNamespace: shapes,
-        });
-        
-    
-    
-        document.getElementById('canvas').appendChild(paper.el);
+    markup = [{
+        tagName: 'rect',
+        selector: 'body',
+        attributes: {
+            'cursor': 'pointer',
+        }
+    }]
+}
 
 
-        Object.assign(shapes, {
-            myShapeGroup: {
-                MyShape,
-                MyShapeView
-            },
-            standard: {
-                Rectangle: shapes.standard.Rectangle
-            }
-        });
-    
-        
-        graph.fromJSON({ 
-            cells: [
-                { type: 'myShapeGroup.MyShape'}, 
-                { 
-                    type: 'standard.Rectangle',
-                    size: { width: 40, height: 40 },
-                    position: {x: 40, y: 50 }
-                }
-            ]
-        });  
+const MyShapeView: dia.ElementView = dia.ElementView.extend({
 
-    
-        graph.getElements()[0].set('faded', true);
+    // Make sure that all super class presentation attributes are preserved
+
+        presentationAttributes: dia.ElementView.addPresentationAttributes({
+            // mapping the model attributes to flag labels
+            faded: 'flag:opacity'
+        }),
+
+        confirmUpdate(flags, ...args) {
+            dia.ElementView.prototype.confirmUpdate.call(this, flags, ...args);
+            if (this.hasFlag(flags, 'flag:opacity')) this.toggleFade();
+        },
+
+        toggleFade() {
+            this.el.style.opacity = this.model.get('faded') ? 0.5 : 1;
+        }
+});
+
+
+const graph = new dia.Graph({}, { cellNamespace: shapes });
+const paper = new dia.Paper({
+    model: graph,
+    width: 800,
+    height: 800,
+    gridSize: 1,
+    interactive: true,
+    async: true,
+    frozen: false,
+    sorting: dia.Paper.sorting.APPROX,
+    background: { color: '#F3F7F6' },
+    cellViewNamespace: shapes,
+});
+
+
+
+document.getElementById('canvas').appendChild(paper.el);
+
+
+Object.assign(shapes, {
+    myShapeGroup: {
+        MyShape,
+        MyShapeView
+    },
+    standard: {
+        Rectangle: shapes.standard.Rectangle
+    }
+});
+
+
+graph.fromJSON({ 
+    cells: [
+        { type: 'myShapeGroup.MyShape'}, 
+        { 
+            type: 'standard.Rectangle',
+            size: { width: 40, height: 40 },
+            position: {x: 40, y: 50 }
+        }
+    ]
+});  
+
+
+graph.getElements()[0].set('faded', true);
     </code></pre>
    
     <p>
@@ -546,21 +539,20 @@
         needs. To override the default view, we use the <code>elementView</code> setting in our Paper options. You can see that in action below. 
     </p>
   
-    <pre><code>
-        const MyShapeView = dia.ElementView.extend({
+    <pre><code>const MyShapeView = dia.ElementView.extend({
 
-            // Custom view functionality
+    // Custom view functionality
 
-        });
-    
-        
-        const graph = new dia.Graph({}, { cellNamespace: shapes });
-        const paper = new dia.Paper({
+});
 
-            // Options
 
-            elementView: () => MyShapeView
-        });
+const graph = new dia.Graph({}, { cellNamespace: shapes });
+const paper = new dia.Paper({
+
+    // Options
+
+    elementView: () => MyShapeView
+});
     </code></pre>
 
     <p>
