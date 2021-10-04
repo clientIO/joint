@@ -1,0 +1,42 @@
+<pre class="docs-method-signature"><code>paper.definePattern(patternDefinition)</code></pre>
+
+<p>Define an SVG pattern for later reuse within the paper. The method returns the pattern id and the <code>patternDefinition</code> must be an object with the following properties:</p>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>string</td>
+        <td><i>(optional)</i> - A unique identifier of the pattern. The <i>id</i> is generated if none provided.</td>
+    </tr>
+    <tr>
+        <td>attrs</td>
+        <td>object</td>
+        <td><i>(optional)</i> - Additional SVG attributes for the <i>SVGGradientElement</i>.</td>
+    </tr>
+    <tr>
+        <td>markup</td>
+        <td>string | array</td>
+        <td>String or JSON <a href="#dia.Cell.markup">Markup</a> of the pattern content.</td>
+    </tr>
+</table>
+
+<pre><code>const patternId = paper.definePattern({
+    attrs: {
+        width: 10,
+        height: 10
+    },
+    markup: [{
+        tagName: 'polygon',
+        attributes: {
+            points: '0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2'
+        }
+    }]
+});
+
+svgNode.setAttribute('fill', `url(#${patternId})`);
+</code></pre>

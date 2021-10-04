@@ -387,5 +387,163 @@ QUnit.module('Attributes', function() {
             });
         });
     });
+
+    QUnit.module('Defs Attributes', function(hooks) {
+
+        var paper, graph, cell, cellView;
+        var idRegex = /^url\(#(.+)\)$/;
+
+        hooks.beforeEach(function() {
+            graph = new joint.dia.Graph;
+            var fixtures = document.getElementById('qunit-fixture');
+            var paperEl = document.createElement('div');
+            fixtures.appendChild(paperEl);
+            paper = new joint.dia.Paper({ el: paperEl, model: graph });
+            cell = new joint.shapes.standard.Rectangle();
+            cell.addTo(graph);
+            cellView = cell.findView(paper);
+        });
+
+        hooks.afterEach(function() {
+            paper.remove();
+        });
+
+        QUnit.module('markers', function() {
+
+            QUnit.test('sourceMarker - string markup', function(assert) {
+
+                cell.attr('body/sourceMarker', {
+                    markup: '<circle r="10" test-content-attribute="true"/>',
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-start');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+            });
+
+            QUnit.test('targetMarker - json markup', function(assert) {
+
+                cell.attr('body/targetMarker', {
+                    markup: [{
+                        tagName: 'circle',
+                        attributes: {
+                            'cx': 6,
+                            'cy': 0,
+                            'r': 10,
+                            'test-content-attribute': true
+                        }
+                    }],
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-end');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+            });
+
+
+            QUnit.test('vertexMarker - with type and id', function(assert) {
+
+                cell.attr('body/vertexMarker', {
+                    id: 'marker-test',
+                    type: 'circle',
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('marker-mid');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(id, 'marker-test');
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'MARKER');
+                assert.equal(V(markerNode).children()[0].tagName(), 'CIRCLE');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+            });
+
+        });
+
+        QUnit.module('patterns', function() {
+
+            QUnit.test('fill - string markup', function(assert) {
+
+                cell.attr('body/fill', {
+                    type: 'pattern',
+                    markup: '<circle r="10" test-content-attribute="true"/>',
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('fill');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'PATTERN');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+            });
+
+            QUnit.test('stroke - json markup', function(assert) {
+
+                cell.attr('body/stroke', {
+                    type: 'pattern',
+                    markup: [{
+                        tagName: 'circle',
+                        attributes: {
+                            'r': 10,
+                            'test-content-attribute': true
+                        }
+                    }],
+                    attrs: {
+                        'test-attribute': true
+                    }
+                });
+
+                var bodyNode = cellView.findBySelector('body')[0];
+                var markerAttribute = bodyNode.getAttribute('stroke');
+                var match = idRegex.exec(markerAttribute);
+                assert.ok(match);
+                var id = match[1];
+                assert.ok(paper.el.querySelector('[test-attribute="true"]'));
+                assert.ok(paper.isDefined(id));
+                var markerNode = paper.svg.getElementById(id);
+                assert.equal(V(markerNode).tagName(), 'PATTERN');
+                assert.equal(markerNode.getAttribute('test-attribute'), 'true');
+                assert.ok(markerNode.querySelector('[test-content-attribute="true"]'));
+            });
+
+        });
+    });
 });
 

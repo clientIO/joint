@@ -23,7 +23,7 @@ import {
     invoke,
     hashCode,
     filter as _filter,
-    template,
+    parseDOMJSON,
     toArray,
     has
 } from '../util/index.mjs';
@@ -2616,77 +2616,109 @@ export const Paper = View.extend({
     },
 
     defineGradient: function(gradient) {
-
         if (!isObject(gradient)) {
             throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
         }
+        const { svg, defs } = this;
+        const {
+            type,
+            // Generate a hash code from the stringified filter definition. This gives us
+            // a unique filter ID for different definitions.
+            id = type + svg.id + hashCode(JSON.stringify(gradient)),
+            stops,
+            attrs = {}
+        } = gradient;
+        // If the gradient already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        if (this.isDefined(id)) return id;
+        // If not, create one.
+        const stopVEls = toArray(stops).map(({ offset, color, opacity }) => {
+            return V('stop').attr({
+                'offset': offset,
+                'stop-color': color,
+                'stop-opacity': Number.isFinite(opacity) ? opacity : 1
+            });
+        });
+        const gradientVEl = V(type, attrs, stopVEls);
+        gradientVEl.id = id;
+        gradientVEl.appendTo(defs);
+        return id;
+    },
 
-        var gradientId = gradient.id;
-        var type = gradient.type;
-        var stops = gradient.stops;
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        if (!gradientId) {
-            gradientId = type + this.svg.id + hashCode(JSON.stringify(gradient));
+    definePattern: function(pattern) {
+        if (!isObject(pattern)) {
+            throw new TypeError('dia.Paper: definePattern() requires 1. argument to be an object.');
+        }
+        const { svg, defs } = this;
+        const {
+            // Generate a hash code from the stringified filter definition. This gives us
+            // a unique filter ID for different definitions.
+            id = svg.id + hashCode(JSON.stringify(pattern)),
+            markup,
+            attrs = {}
+        } = pattern;
+        if (!markup) {
+            throw new TypeError('dia.Paper: definePattern() requires markup.');
         }
         // If the gradient already exists in the document,
         // we're done and we can just use it (reference it using `url()`).
+        if (this.isDefined(id)) return id;
         // If not, create one.
-        if (!this.isDefined(gradientId)) {
-
-            var stopTemplate = template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-            var gradientStopsStrings = toArray(stops).map(function(stop) {
-                return stopTemplate({
-                    offset: stop.offset,
-                    color: stop.color,
-                    opacity: Number.isFinite(stop.opacity) ? stop.opacity : 1
-                });
-            });
-
-            var gradientSVGString = [
-                '<' + type + '>',
-                gradientStopsStrings.join(''),
-                '</' + type + '>'
-            ].join('');
-
-            var gradientAttrs = assign({ id: gradientId }, gradient.attrs);
-
-            V(gradientSVGString, gradientAttrs).appendTo(this.defs);
+        const patternVEl = V('pattern', {
+            patternUnits: 'userSpaceOnUse'
+        });
+        patternVEl.id = id;
+        patternVEl.attr(attrs);
+        if (typeof markup === 'string') {
+            patternVEl.append(V(markup));
+        } else {
+            const { fragment } = parseDOMJSON(markup);
+            patternVEl.append(fragment);
         }
-
-        return gradientId;
+        patternVEl.appendTo(defs);
+        return id;
     },
 
     defineMarker: function(marker) {
-
         if (!isObject(marker)) {
             throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
         }
-
-        var markerId = marker.id;
-
-        // Generate a hash code from the stringified filter definition. This gives us
-        // a unique filter ID for different definitions.
-        if (!markerId) {
-            markerId = this.svg.id + hashCode(JSON.stringify(marker));
+        const { svg, defs } = this;
+        const {
+            // Generate a hash code from the stringified filter definition. This gives us
+            // a unique filter ID for different definitions.
+            id = svg.id + hashCode(JSON.stringify(marker)),
+            markup,
+            attrs = {},
+            // deprecated in favour of `attrs`
+            markerUnits = 'userSpaceOnUse'
+        } = marker;
+        // If the marker already exists in the document,
+        // we're done and we can just use it (reference it using `url()`).
+        if (this.isDefined(id)) return id;
+        // If not, create one.
+        const markerVEl = V('marker', {
+            orient: 'auto',
+            overflow: 'visible',
+            markerUnits: markerUnits
+        });
+        markerVEl.id = id;
+        markerVEl.attr(attrs);
+        if (markup) {
+            if (typeof markup === 'string') {
+                markerVEl.append(V(markup));
+            } else {
+                const { fragment } = parseDOMJSON(markup);
+                markerVEl.append(fragment);
+            }
+        } else {
+            // marker object is a flat structure
+            const { type = 'path' } = marker;
+            const markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
+            markerVEl.append(markerContentVEl);
         }
-
-        if (!this.isDefined(markerId)) {
-
-            var attrs = omit(marker, 'type', 'userSpaceOnUse');
-            var pathMarker = V('marker', {
-                id: markerId,
-                orient: 'auto',
-                overflow: 'visible',
-                markerUnits: marker.markerUnits || 'userSpaceOnUse'
-            }, [
-                V(marker.type || 'path', attrs)
-            ]);
-
-            pathMarker.appendTo(this.defs);
-        }
-
-        return markerId;
+        markerVEl.appendTo(defs);
+        return id;
     }
 
 }, {

@@ -1,11 +1,33 @@
 <pre class="docs-method-signature"><code>paper.defineMarker(markerDefinition)</code></pre>
 
-<p>Define an SVG marker for later reuse within the paper. The method returns the marker id and the <code>markerDefinition</code> is an object with <code>type</code> property and any other visual attributes. The valid values for <code>type</code> are <code>'path'</code>, <code>'circle'</code>, <code>'ellipse'</code>, <code>'rect'</code>, <code>'polyline'</code> and <code>'polygon'</code>.</p>
 
-<pre><code>var markerId = paper.defineMarker({
-  type: 'path', // SVG Path
-  fill: '#666',
-  stroke: '#333',
+<p>Define an SVG marker for later reuse within the paper. The method returns the marker id and the <code>markerDefinition</code> must be an object with the following properties:</p>
+
+<table>
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>string</td>
+        <td><i>(optional)</i> - A unique identifier of the marker. The <i>id</i> is generated if none provided.</td>
+    </tr>
+    <tr>
+        <td>attrs</td>
+        <td>object</td>
+        <td><i>(optional)</i> - Additional SVG attributes for the <i>SVGMarkerElement</i>.</td>
+    </tr>
+    <tr>
+        <td>markup</td>
+        <td>string | array</td>
+        <td>String or JSON <a href="#dia.Cell.markup">Markup</a> of the marker content.</td>
+    </tr>
+</table>
+
+<pre><code>paper.defineMarker({
+  id: 'my-marker',
   // The coordinate system for defining the path data
   // ------------------------------------------------
   // 0,0: marker-start, marker-end or marker-mid
@@ -13,11 +35,49 @@
   //      n < 0 opposite path direction
   // 0,m: m > 0 left to the path direction
   //      m < 0 right to the path direction
+  markup: `
+    &lt;circle cx="6" cy="0" r="12" fill="#7b5cce"/&gt;
+    &lt;polygon points="0,0 6,6 12,0 6,-6" fill="#d63865" stroke="#fff" /&gt;
+  `
+});
+
+svgNode.setAttribute('marker-start', `url(#my-marker)`);
+</code></pre>
+
+<p>An alternative definition of the <code>markerDefinition</code> is:</p>
+
+<table>
+  <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+  </tr>
+  <tr>
+      <td>id</td>
+      <td>string</td>
+      <td><i>(optional)</i> - A unique identifier of the marker. The <i>id</i> is generated if none provided.</td>
+  </tr>
+  <tr>
+      <td>type</td>
+      <td>string</td>
+      <td>The type of the SVGElement representing the marker (<code>'path'</code>, <code>'circle'</code>, <code>'ellipse'</code>, <code>'rect'</code>, <code>'polyline'</code> and <code>'polygon'</code>).</td>
+  </tr>
+  <tr>
+      <td>[SVGAttribute]</td>
+      <td>any</td>
+      <td><i>(optional)</i> - a presentation SVG attribute (e.g <code>fill: 'red'</code>)</td>
+  </tr>
+</table>
+
+<pre><code>const markerId = paper.defineMarker({
+  type: 'path', // SVG Path
+  fill: '#666',
+  stroke: '#333',
   d: 'M 10 -10 0 0 10 10 z'
 });
 
 // Draw an arrow at the start and the end of a path
-svgPath.setAttribute('marker-start', 'url(#' + markerId + ')');
-svgPath.setAttribute('marker-end', 'url(#' + markerId + ')');
+svgPath.setAttribute('marker-start', `url(#${markerId})`);
+svgPath.setAttribute('marker-end', `url(#${markerId})`);
 </code></pre>
 
