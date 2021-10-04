@@ -360,8 +360,11 @@ QUnit.module('Attributes', function() {
                 ['M 0 0 calc(w) calc(h) 200 200', 'M 0 0 ' + WIDTH + ' ' + HEIGHT + ' 200 200'],
                 ['M 0 0 calc(w+10) calc(h+10)', 'M 0 0 ' + (WIDTH + 10) + ' ' + (HEIGHT + 10)],
                 ['M 0 0 calc(1*w-10) calc(1*h-10)', 'M 0 0 ' + (WIDTH - 10) + ' ' + (HEIGHT - 10)],
-                // misc
-                ['M 0 0 calc(10 0', 'M 0 0 calc(10 0']
+                // nested expression
+                ['M 0 0 calc(w + calc(h)) 0', 'M 0 0 ' + (WIDTH + HEIGHT) + ' 0'],
+                ['M 0 0 calc(calc(h) * w + calc(h)) 0', 'M 0 0 ' + (HEIGHT * WIDTH + HEIGHT) + ' 0'],
+                ['M 0 0 calc(w + calc(h + calc(w))) 0', 'M 0 0 ' + (WIDTH + HEIGHT + WIDTH) + ' 0'],
+                ['M 0 0 calc(2 * w + calc(h)) calc(3 * w + calc(h))', 'M 0 0 ' + (2 * WIDTH + HEIGHT) + ' ' + (3 * WIDTH + HEIGHT)],
             ].forEach(function(testCase) {
                 var attrs = ns.d.set.call(cellView, testCase[0], refBBox.clone(), node, {});
                 assert.deepEqual(attrs, { d: testCase[1] });
