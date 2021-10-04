@@ -37,6 +37,41 @@
 
             <h2>Working with Ports</h2>
 
+            <p>
+                <strong>Disclaimer</strong> 
+                - 
+                <i>
+                    The following tutorial was created with a past version of JointJS. The tutorial is still provided for 
+                    those who may face a similar problem, but it may no longer show the best practices of JointJS. You may
+                    encounter the following issues:
+                </i>
+            </p>
+
+            <p>
+                <b><i>Note</i></b>
+                - 
+                <i>
+                    We now recommend not using <code>dev</code> shapes as they are maintained for backwards compatibility
+                    reasons only. They could be used if you are not planning to change an individual port's attributes. 
+                    Use any other shape with the 
+                    <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.Element.ports" target="_blank">
+                    Element Port API</a> instead.
+                </i>
+            </p>
+
+            <ul>
+                <li>Use of outdated/deprecated API calls, or inheritance from superseded shape collections.</li>
+                <li>Use of SVG string markup for custom Element/Link shape definitions; we have since started
+                recommending using JSON markup instead.</li>
+                <li>The Element and Link types defined may not serialize properly.</li>
+                <li>Other unexpected problems.</li>
+            </ul>
+
+            <p><i>
+                Our current recommendations on best practices can be found in the appropriate sections of the
+                <a href="hello-world.html">basic</a> and <a href="intermediate.html">intermediate</a> tutorials.
+            </i></p>
+
             <p>Many diagramming applications deal with elements with ports. Ports are usually displayed
                 as circles inside diagram elements and are used not only as "sticky" points for connected links but they
                 also further structure the linking information. It is common that certain elements have lists of input and
