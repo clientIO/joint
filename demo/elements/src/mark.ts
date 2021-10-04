@@ -2,7 +2,7 @@ import { dia } from 'jointjs';
 
 export default class Mark extends dia.Element {
 
-    static version = '3.4';
+    static version = '3.5';
 
     defaults() {
         return {

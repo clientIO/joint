@@ -2,7 +2,7 @@ import { dia } from 'jointjs';
 
 export default class Input extends dia.Element {
 
-    static version = '3.5';
+    static version = '3.4';
 
     defaults() {
         return {
