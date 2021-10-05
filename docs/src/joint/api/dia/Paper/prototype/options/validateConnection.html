@@ -1,4 +1,11 @@
 <code>validateConnection(cellViewS, magnetS, cellViewT, magnetT, end, linkView)</code> - 
-                                decide whether to allow or disallow a connection between the source view/magnet (<code>cellViewS/magnetS</code>) 
-                                and target view/magnet (<code>cellViewT/magnetT</code>). <code>end</code> is either <code>&quot;source&quot;</code> or <code>&quot;target&quot;</code> and tells which end of
-                                the link is being dragged. This is useful for defining whether, for example, a link starting in a port POut of element A can lead to a port PIn of elmement B. By default, all linkings are allowed.
+a function that allows you control which link connections can be made between the source cellView/magnet (<code>cellViewS/magnetS</code>), and the target cellView/magnet (<code>cellViewT/magnetT</code>). 
+<code>end</code> is either the <code>&quot;source&quot;</code> or the <code>&quot;target&quot;</code>, and indicates which end of the link is being dragged. 
+This is useful for defining whether a link starting in port <i>POut</i> of element A can lead to port <i>PIn</i> of element B. By default, all connections are allowed.
+
+<pre><code>// The following would mean a link is not allowed connect to itself
+
+validateConnection: function(cellViewS, magnetS, cellViewT, magnetT) {
+    return magnetS !== magnetT;
+}  
+</code></pre>
