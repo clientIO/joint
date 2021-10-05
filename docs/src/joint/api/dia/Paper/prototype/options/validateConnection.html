@@ -16,7 +16,7 @@ validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkVi
     if (cellViewT.model.isLink() || cellVIewS.model.isLink()) return false;
 
     // Prevent loop linking - This means the source and target cannot connect to the same magnet (e.g. port)
-    if (srcMagnet === tgtMagnet) return false;
+    if (magnetS === magnetT) return false;
 
     // Only allow target end to be reconnected
     if (end === 'source') return false;
