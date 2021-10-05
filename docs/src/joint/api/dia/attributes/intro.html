@@ -108,6 +108,9 @@ All the standard SVG <a href="https://www.w3.org/TR/SVG/styling.html" target="_b
     <li>Expression is case-sensitive.</li>
     <li>The <code>+</code>, <code>-</code> and <code>*</code> operators do not require whitespace.</li>
     <li>No extra parentheses are allowed.</li>
+    <li>It is permitted to nest <code>calc()</code> functions, in which case the inner ones are evaluated first.
+        e.g <pre><code>'M 0 0 H calc(w - calc(h))'</code></pre>.
+    </li>
 </ul>
 
 <p>It can be used with the following attributes:</p>
