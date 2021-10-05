@@ -379,6 +379,7 @@ QUnit.module('Attributes', function() {
                 'calc(w+(10))',
                 'calc(2*i+10)',
                 'calc(10+2*w)',
+                'calc(10 0',
             ].forEach(function(testCase) {
                 assert.throws(
                     function() {
