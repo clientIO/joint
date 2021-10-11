@@ -35,7 +35,7 @@ export default class Actor extends dia.Element {
                     d: `M 0 calc(0.5*h) h calc(w) M 0 calc(h) calc(0.5*w) calc(${Y_LEGS}*h) calc(w) calc(h) M calc(0.5*w) calc(${Y_LEGS}*h) V calc(${Y_BODY}*h)`
                 },
                 label: {
-                    text: 'Input',
+                    text: 'Actor',
                     textVerticalAnchor: 'top',
                     textAnchor: 'middle',
                     y: 'calc(h+10)',
