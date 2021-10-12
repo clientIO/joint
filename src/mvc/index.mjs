@@ -323,17 +323,13 @@ if (!(DoubleTapEventName in $.event.special)) {
         bindType: 'touchend',
         delegateType: 'touchend',
         handle: function(event, ...args) {
-            const { handleObj, target, originalEvent } = event;
+            const { handleObj, target } = event;
             const targetData  = $.data(target);
             const now = new Date().getTime();
             const delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
             if (delta < maxDelay && delta > minDelay) {
                 targetData.lastTouch = null;
                 event.type = handleObj.origType;
-                ['clientX', 'clientY', 'pageX', 'pageY'].forEach(property => {
-                    const [changedTouch] = originalEvent.changedTouches;
-                    event[property] = changedTouch[property];
-                });
                 // let jQuery handle the triggering of "dbltap" event handlers
                 handleObj.handler.call(this, event, ...args);
             } else {
