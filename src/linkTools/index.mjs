@@ -263,7 +263,7 @@ var Vertices = ToolView.extend({
         var index = relatedView.getVertexIndex(vertex.x, vertex.y);
         this.snapVertex(vertex, index);
         relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
-        this.render();
+        this.update();
         var handle = this.handles[index];
         this.eventData(normalizedEvent, { vertexAdded: true });
         handle.onPointerDown(normalizedEvent);
