@@ -8,5 +8,7 @@ export const config = {
     // export let classNamePrefix = 'joint-';
     // export let defaultTheme = 'default';
     classNamePrefix: 'joint-',
-    defaultTheme: 'default'
+    defaultTheme: 'default',
+
+    doubleTapInterval: 300
 };

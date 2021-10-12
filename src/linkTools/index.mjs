@@ -45,7 +45,8 @@ var VertexHandle = mvc.View.extend({
     events: {
         mousedown: 'onPointerDown',
         touchstart: 'onPointerDown',
-        dblclick: 'onDoubleClick'
+        dblclick: 'onDoubleClick',
+        dbltap: 'onDoubleClick'
     },
     documentEvents: {
         mousemove: 'onPointerMove',
@@ -965,7 +966,8 @@ var Anchor = ToolView.extend({
     events: {
         mousedown: 'onPointerDown',
         touchstart: 'onPointerDown',
-        dblclick: 'onPointerDblClick'
+        dblclick: 'onPointerDblClick',
+        dbltap: 'onDoubleClick'
     },
     documentEvents: {
         mousemove: 'onPointerMove',
