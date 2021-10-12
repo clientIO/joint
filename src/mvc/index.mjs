@@ -316,7 +316,7 @@ export const View = Backbone.View.extend({
 });
 
 const DoubleTapEventName = 'dbltap';
-if (!(DoubleTapEventName in $.event.special)) {
+if ($.event && !(DoubleTapEventName in $.event.special)) {
     const maxDelay = config.doubleTapInterval;
     const minDelay = 30;
     $.event.special[DoubleTapEventName] = {
