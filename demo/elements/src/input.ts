@@ -16,7 +16,7 @@ export default class Input extends dia.Element {
                 body: {
                     strokeWidth: 2,
                     stroke: '#333333',
-                    fill: '#FFF',
+                    fill: '#ffffff',
                     d: 'M 0 0 h calc(w) v calc(h-10) C calc(0.6*w) calc(h-10) calc(0.3*w) calc(h+5) 0 calc(h-5) z'
                 },
                 label: {

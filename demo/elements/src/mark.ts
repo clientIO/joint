@@ -16,7 +16,7 @@ export default class Mark extends dia.Element {
                 body: {
                     strokeWidth: 2,
                     stroke: '#333333',
-                    fill: '#FFF',
+                    fill: '#ffffff',
                     d: 'M 0 calc(0.5*h) calc(0.5*h) 0 H calc(w-calc(0.5 * h)) a 3 3 0 0 1 3 calc(h) H calc(0.5*h) z'
                 },
                 label: {

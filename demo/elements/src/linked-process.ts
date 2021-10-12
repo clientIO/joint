@@ -16,7 +16,7 @@ export default class LinkedProcess extends dia.Element {
                 body: {
                     strokeWidth: 2,
                     stroke: '#333333',
-                    fill: '#FFF',
+                    fill: '#ffffff',
                     x: 0,
                     y: 0,
                     width: 'calc(w)',
