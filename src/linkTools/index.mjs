@@ -967,7 +967,7 @@ var Anchor = ToolView.extend({
         mousedown: 'onPointerDown',
         touchstart: 'onPointerDown',
         dblclick: 'onPointerDblClick',
-        dbltap: 'onDoubleClick'
+        dbltap: 'onPointerDblClick'
     },
     documentEvents: {
         mousemove: 'onPointerMove',
