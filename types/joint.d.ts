@@ -4,6 +4,7 @@ export namespace config {
     var useCSSSelectors: boolean;
     var classNamePrefix: string;
     var defaultTheme: string;
+    var doubleTapInterval: number;
 }
 
 export namespace dia {

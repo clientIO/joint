@@ -9,6 +9,7 @@ export const config = {
     // export let defaultTheme = 'default';
     classNamePrefix: 'joint-',
     defaultTheme: 'default',
-
+    // The maximum delay required for two consecutive touchend events to be interpreted
+    // as a double-tap.
     doubleTapInterval: 300
 };
