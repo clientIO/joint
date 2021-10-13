@@ -27,15 +27,15 @@ const paper = new dia.Paper({
 
 paper.el.style.border = `1px solid #e2e2e2`;
 
-const color = 'lightblue';
-
 @cell({
     namespace: shapeNamespace,
     attributes: {
         size: {
             width: 100,
             height: 100
-        }
+        },
+        color: 'lightblue',
+        textColor: 'red'
     },
     presentation: `
         <g title="Test SVG Markup">
@@ -44,7 +44,7 @@ const color = 'lightblue';
                 y="0"
                 width="calc(w)"
                 height="calc(h)"
-                fill="${color}"
+                [fill]="color"
                 stroke="#000"
                 stroke-width="2"
             />
@@ -52,7 +52,7 @@ const color = 'lightblue';
                 text-anchor="middle"
                 text-vertical-anchor="middle"
                 font-size="14"
-                fill="#333"
+                [fill]="textColor"
                 text="Hello World!"
                 transform="translate(calc(0.5*w),calc(0.5*h))"
             />
@@ -80,5 +80,8 @@ const el1 = new TestElement({
 });
 el1.addTo(graph);
 el1.logType();
+
+el1.set('color', '#fff');
+el1.set('textColor', '#333');
 
 paper.unfreeze();

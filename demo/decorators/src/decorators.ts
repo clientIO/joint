@@ -9,7 +9,7 @@ type CellDecorator = {
 export function cell(value: CellDecorator) {
     const { attributes, presentation, namespace } = value;
     return function Entity<Ctor extends { new(...args: any[]): dia.Cell }>(target: Ctor): Ctor {
-        const { markup, attrs } = fromSVG(presentation);
+        const { markup, attrs, bindings } = fromSVG(presentation);
         // console.log(markup, attrs);
         // Object.defineProperty(target.prototype, 'markup', {
         //     value: markup,
@@ -27,7 +27,9 @@ export function cell(value: CellDecorator) {
         // return target;
         const type = target.name;
         const extendedTarget = class extends target {
+
             markup = markup;
+
             defaults() {
                 return {
                     ...super.defaults,
@@ -35,6 +37,26 @@ export function cell(value: CellDecorator) {
                     type,
                     attrs
                 }
+            }
+
+            initialize(...args) {
+                super.initialize(...args);
+                this.on('change', this.__onChange);
+                this.__updateBindings(this.attributes);
+            }
+
+            __updateBindings(changed: any, opt?: dia.Cell.Options) {
+                const attrs = {};
+                for (let attribute in changed) {
+                    if (attribute in bindings) {
+                        util.setByPath(attrs, bindings[attribute], changed[attribute]);
+                    }
+                }
+                this.attr(attrs, opt);
+            }
+
+            __onChange(cell: dia.Cell, opt: dia.Cell.Options) {
+                this.__updateBindings(this.changed, opt);
             }
         }
         namespace[type] = extendedTarget;
@@ -52,6 +74,7 @@ function fromSVG(str: string) {
 
     const markup = [];
     const attrs = {};
+    const bindings = {};
 
     function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Cell.Attributes) {
 
@@ -70,9 +93,14 @@ function fromSVG(str: string) {
         let hasNodeAttrs = false;
         Array.from(attributes).forEach(attribute => {
             const { name, value } = attribute;
-            if (name.startsWith('@')) return;
-            nodeAttrs[util.camelCase(name)] = value;
-            hasNodeAttrs = true;
+            if (name.startsWith('@')) {
+                // noop
+            } else if (name.startsWith('[')) {
+                bindings[value] = [`${selector}`, name.slice(1, -1)];
+            } else {
+                nodeAttrs[util.camelCase(name)] = value;
+                hasNodeAttrs = true;
+            }
         });
         if (hasNodeAttrs) {
             attrs[selector] = nodeAttrs;
@@ -89,6 +117,7 @@ function fromSVG(str: string) {
 
     return {
         markup,
-        attrs
+        attrs,
+        bindings
     };
 }
