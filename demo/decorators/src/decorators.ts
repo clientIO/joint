@@ -49,7 +49,9 @@ export function cell(value: CellDecorator) {
                 const attrs = {};
                 for (let attribute in changed) {
                     if (attribute in bindings) {
-                        util.setByPath(attrs, bindings[attribute], changed[attribute]);
+                        bindings[attribute].forEach(path => {
+                            util.setByPath(attrs, path, changed[attribute]);
+                        });
                     }
                 }
                 this.attr(attrs, opt);
@@ -76,48 +78,52 @@ function fromSVG(str: string) {
     const attrs = {};
     const bindings = {};
 
-    function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Cell.Attributes) {
-
-        const { tagName, attributes } = node;
-
-        let selector = markup.selector;
-        if (!selector) {
-            const selectorAttribute = attributes.getNamedItem('@selector');
-            selector = (selectorAttribute ? selectorAttribute.value : util.uuid());
-        }
-
-        markup.selector = selector;
-        markup.tagName = tagName;
-
-        const nodeAttrs = {};
-        let hasNodeAttrs = false;
-        Array.from(attributes).forEach(attribute => {
-            const { name, value } = attribute;
-            if (name.startsWith('@')) {
-                // noop
-            } else if (name.startsWith('[')) {
-                bindings[value] = [`${selector}`, name.slice(1, -1)];
-            } else {
-                nodeAttrs[util.camelCase(name)] = value;
-                hasNodeAttrs = true;
-            }
-        });
-        if (hasNodeAttrs) {
-            attrs[selector] = nodeAttrs;
-        }
-
-        Array.from(node.children).forEach(childNode => {
-            const json: Partial<dia.MarkupNodeJSON> = { children: [] };
-            build(childNode, json, attrs);
-            markup.children.push(json as dia.MarkupNodeJSON);
-        });
-    }
-
-    build(g, { selector: 'root', children: markup }, attrs);
+    build(g, { selector: 'root', children: markup }, attrs, bindings);
 
     return {
         markup,
         attrs,
         bindings
     };
+}
+
+function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Cell.Attributes, bindings: any) {
+
+    const { tagName, attributes } = node;
+
+    let selector = markup.selector;
+    if (!selector) {
+        const selectorAttribute = attributes.getNamedItem('@selector');
+        selector = (selectorAttribute ? selectorAttribute.value : util.uuid());
+    }
+
+    markup.selector = selector;
+    markup.tagName = tagName;
+
+    const nodeAttrs = {};
+    let hasNodeAttrs = false;
+    Array.from(attributes).forEach(attribute => {
+        const { name, value } = attribute;
+        if (name.startsWith('@')) {
+            // noop
+        } else if (name.startsWith('[')) {
+            let attributeBindings = bindings[value];
+            if (!attributeBindings) {
+                attributeBindings = bindings[value] = [];
+            }
+            attributeBindings.push([`${selector}`, name.slice(1, -1)]);
+        } else {
+            nodeAttrs[util.camelCase(name)] = value;
+            hasNodeAttrs = true;
+        }
+    });
+    if (hasNodeAttrs) {
+        attrs[selector] = nodeAttrs;
+    }
+
+    Array.from(node.children).forEach(childNode => {
+        const json: Partial<dia.MarkupNodeJSON> = { children: [] };
+        build(childNode, json, attrs, bindings);
+        markup.children.push(json as dia.MarkupNodeJSON);
+    });
 }
