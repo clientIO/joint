@@ -45,7 +45,8 @@ var VertexHandle = mvc.View.extend({
     events: {
         mousedown: 'onPointerDown',
         touchstart: 'onPointerDown',
-        dblclick: 'onDoubleClick'
+        dblclick: 'onDoubleClick',
+        dbltap: 'onDoubleClick'
     },
     documentEvents: {
         mousemove: 'onPointerMove',
@@ -262,7 +263,7 @@ var Vertices = ToolView.extend({
         var index = relatedView.getVertexIndex(vertex.x, vertex.y);
         this.snapVertex(vertex, index);
         relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
-        this.render();
+        this.update();
         var handle = this.handles[index];
         this.eventData(normalizedEvent, { vertexAdded: true });
         handle.onPointerDown(normalizedEvent);
@@ -965,7 +966,8 @@ var Anchor = ToolView.extend({
     events: {
         mousedown: 'onPointerDown',
         touchstart: 'onPointerDown',
-        dblclick: 'onPointerDblClick'
+        dblclick: 'onPointerDblClick',
+        dbltap: 'onPointerDblClick'
     },
     documentEvents: {
         mousemove: 'onPointerMove',
