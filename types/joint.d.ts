@@ -50,7 +50,7 @@ export namespace dia {
     type MarkupNodeJSON = {
         tagName: string;
         selector?: string;
-        groupSelector?: string;
+        groupSelector?: string | string[];
         namespaceURI?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
