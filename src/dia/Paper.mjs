@@ -1447,14 +1447,24 @@ export const Paper = View.extend({
 
     renderView: function(cell, opt) {
 
-        var id = cell.id;
-        var views = this._views;
-        var view, flag;
+        const { id } = cell;
+        const views = this._views;
+        let view, flag;
+        let create = true;
         if (id in views) {
             view = views[id];
-            flag = view.FLAG_INSERT;
-        } else {
-            view = views[cell.id] = this.createViewForModel(cell);
+            if (view.model.cid === cell.cid) {
+                flag = view.FLAG_INSERT;
+                create = false;
+            } else {
+                // The view for this `id` already exist.
+                // The cell is a new instance of the model with identical id
+                // We simply remove the existing view and create a new one
+                view.remove();
+            }
+        }
+        if (create) {
+            view = views[id] = this.createViewForModel(cell);
             view.paper = this;
             flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
         }
