@@ -1169,7 +1169,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.equal(cellNodesCount(paper), 0);
                         });
 
-                        QUnit.test('remove+change+add while frozen', function(assert) {
+                        QUnit.test('remove+recreate+change+add while frozen', function(assert) {
                             var id = 'test-id';
                             var rect = new joint.shapes.standard.Rectangle({ id: id });
                             rect.resize(50, 50);
