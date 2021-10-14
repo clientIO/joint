@@ -1,5 +1,5 @@
 import { dia, shapes } from 'jointjs';
-import { cell } from './decorators';
+import { Model, View, on } from './decorators';
 
 const shapeNamespace = {
     ...shapes,
@@ -27,7 +27,7 @@ const paper = new dia.Paper({
 
 paper.el.style.border = `1px solid #e2e2e2`;
 
-@cell({
+@Model({
     namespace: shapeNamespace,
     attributes: {
         size: {
@@ -64,6 +64,20 @@ class TestElement extends dia.Element {
     logType() {
         console.log(this.get('type'));
     }
+}
+
+
+@View({
+    namespace: shapeNamespace,
+    // model: TestElement
+})
+class TestElementView extends dia.ElementView {
+
+    @on('click')
+    onClick() {
+        console.log('click!', this.model.id);
+    }
+
 }
 
 graph.fromJSON({

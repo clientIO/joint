@@ -6,7 +6,15 @@ type CellDecorator = {
     namespace: any;
 }
 
-export function cell(value: CellDecorator) {
+export function View(value: any) {
+    const { namespace } = value;
+    return function Entity<Ctor extends { new(...args: any[]): dia.CellView }>(target: Ctor): Ctor {
+        namespace[target.name] = target;
+        return target;
+    }
+}
+
+export function Model(value: CellDecorator) {
     const { attributes, presentation, namespace } = value;
     return function Entity<Ctor extends { new(...args: any[]): dia.Cell }>(target: Ctor): Ctor {
         const { markup, attrs, bindings } = fromSVG(presentation);
@@ -126,4 +134,21 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
         build(childNode, json, attrs, bindings);
         markup.children.push(json as dia.MarkupNodeJSON);
     });
+}
+
+export function on(eventName) {
+    return function (target, name, descriptor) {
+        if (!target.events) {
+            target.events = {};
+        }
+        if (typeof target.events === 'function') {
+            throw new Error('The on decorator is not compatible with an events method');
+            return;
+        }
+        if (!eventName) {
+            throw new Error('The on decorator requires an eventName argument');
+        }
+        target.events[eventName] = name;
+        return descriptor;
+    }
 }
