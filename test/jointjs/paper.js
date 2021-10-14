@@ -1770,6 +1770,28 @@ QUnit.module('paper', function(hooks) {
             );
         });
 
+        QUnit.test('image cancellation', function(assert) {
+
+            assert.expect(1);
+
+            var done = assert.async();
+            var paper = this.paper;
+
+            paper.drawBackground({ image: bgImageDataURL });
+            paper.drawBackground({ image: null });
+
+            setTimeout(
+                function() {
+                    assert.equal(
+                        getUrlFromAttribute(paper.$background.css('backgroundImage')),
+                        null
+                    );
+                    done();
+                },
+                0
+            );
+        });
+
         QUnit.test('opacity', function(assert) {
 
             assert.expect(1);
