@@ -14,6 +14,7 @@ import {
     getByPath,
     sortElements,
     isString,
+    guid,
     normalizeEvent,
     omit,
     result,
@@ -2481,6 +2482,11 @@ export const Paper = View.extend({
             return;
         }
 
+        if (!this._background || this._background.id !== opt.id) {
+            // Draw only the last image requested (see drawBackground())
+            return;
+        }
+
         opt = opt || {};
 
         var backgroundImage;
@@ -2547,6 +2553,7 @@ export const Paper = View.extend({
 
         if (opt.image) {
             opt = this._background = cloneDeep(opt);
+            guid(opt);
             var img = document.createElement('img');
             img.onload = this.drawBackgroundImage.bind(this, img, opt);
             img.src = opt.image;
