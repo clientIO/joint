@@ -1453,14 +1453,14 @@ export const Paper = View.extend({
         let create = true;
         if (id in views) {
             view = views[id];
-            if (view.model.cid === cell.cid) {
+            if (view.model === cell) {
                 flag = view.FLAG_INSERT;
                 create = false;
             } else {
                 // The view for this `id` already exist.
                 // The cell is a new instance of the model with identical id
                 // We simply remove the existing view and create a new one
-                view.remove();
+                this.removeView(cell);
             }
         }
         if (create) {
