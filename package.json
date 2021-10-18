@@ -46,6 +46,7 @@
   ],
   "dependencies": {
     "backbone": "~1.4.0",
+    "cash-dom": "^8.1.0",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
     "jquery": "~3.6.0",
