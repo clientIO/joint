@@ -1169,6 +1169,23 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             assert.equal(cellNodesCount(paper), 0);
                         });
 
+                        QUnit.test('remove+recreate+change+add while frozen', function(assert) {
+                            var id = 'test-id';
+                            var rect = new joint.shapes.standard.Rectangle({ id: id });
+                            rect.resize(50, 50);
+                            rect.position(0, 0);
+                            rect.addTo(graph);
+                            paper.freeze();
+                            rect.remove();
+                            rect = new joint.shapes.standard.Rectangle({ id: id });
+                            rect.resize(101, 102);
+                            rect.translate(201, 202);
+                            rect.addTo(graph);
+                            paper.unfreeze();
+                            assert.equal(cellNodesCount(paper), 1);
+                            assert.checkBbox(paper, rect, 201, 202, 101, 102);
+                        });
+
                         QUnit.test('keep frozen on reset views', function(assert) {
                             paper.freeze();
                             var rect = new joint.shapes.standard.Rectangle();
