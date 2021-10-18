@@ -1549,7 +1549,7 @@ export namespace dia {
 
     namespace ToolsView {
 
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+        interface Options extends mvc.ViewOptions<any, SVGElement> {
             tools?: dia.ToolView[];
             name?: string | null;
             relatedView?: dia.CellView;
@@ -1557,7 +1557,7 @@ export namespace dia {
         }
     }
 
-    class ToolsView extends mvc.View<undefined, SVGElement> {
+    class ToolsView extends mvc.View<any, SVGElement> {
 
         constructor(opt?: ToolsView.Options);
 
@@ -1583,12 +1583,12 @@ export namespace dia {
     }
 
     namespace ToolView {
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+        interface Options extends mvc.ViewOptions<any, SVGElement> {
             focusOpacity?: number;
         }
     }
 
-    class ToolView extends mvc.View<undefined, SVGElement> {
+    class ToolView extends mvc.View<any, SVGElement> {
 
         name: string | null;
         parentView: ToolsView;
@@ -1627,12 +1627,12 @@ export namespace dia {
 
         type NodeSelector = string | SVGElement | NodeSelectorJSON;
 
-        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+        interface Options extends mvc.ViewOptions<any, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
         }
     }
 
-    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<undefined, SVGElement> {
+    class HighlighterView<Options = HighlighterView.Options> extends mvc.View<any, SVGElement> {
 
         constructor(options?: Options);
 
