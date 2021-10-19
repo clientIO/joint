@@ -237,12 +237,16 @@ export const View = Backbone.View.extend({
     delegateElementEvents: function(element, events, data) {
         if (!events) return this;
         data || (data = {});
-        var eventNS = this.getEventNamespace();
-        for (var eventName in events) {
-            var method = events[eventName];
+        const eventNS = this.getEventNamespace();
+        for (let eventName in events) {
+            let method = events[eventName];
             if (typeof method !== 'function') method = this[method];
             if (!method) continue;
-            $(element).on(eventName + eventNS, data, method.bind(this));
+            $(element).on(eventName + eventNS, (evt, ...args) => {
+                Object.defineProperty(evt, 'data',  { writable: true, configurable: true });
+                evt.data = data;
+                return method.call(this, evt, ...args);
+            });
         }
         return this;
     },
