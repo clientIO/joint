@@ -35,7 +35,7 @@ export const View = Backbone.View.extend({
             $el = this.$el.find(selector);
         } else {
             const el = $(selector)[0];
-            $el = (this.el === el || this.el.contains(el)) ? selector : $();
+            $el = (this.el === el || this.el.contains(el)) ? $(selector) : $();
         }
         return $el;
     },
