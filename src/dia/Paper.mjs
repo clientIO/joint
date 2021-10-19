@@ -2089,12 +2089,13 @@ export const Paper = View.extend({
             this.trigger('blank:pointerup', normalizedEvt, localPoint.x, localPoint.y);
         }
 
-        if (!normalizedEvt.cancelBubble) {
-            const clickEvt = new Event('click');
+        if (!normalizedEvt.originalEvent.cancelBubble) {
+            const clickEvt = new MouseEvent('click', evt);
             Object.defineProperty(clickEvt, 'data',  { writable: true, configurable: true });
             clickEvt.data = evt.data;
-
+            evt.target.dispatchEvent(clickEvt);
             // this.pointerclick($.Event(evt, { type: 'click', data: evt.data }));
+            this.pointerclick(clickEvt);
         }
 
         evt.stopImmediatePropagation();

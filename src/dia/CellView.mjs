@@ -217,7 +217,7 @@ export const CellView = View.extend({
 
         // Maintaining backwards compatibility
         // e.g. `circle:first` would fail with querySelector() call
-        if (config.useCSSSelectors) return $(root).find(selector).toArray();
+        if (config.useCSSSelectors) return Array.from($(root).find(selector));
 
         return [];
     },
