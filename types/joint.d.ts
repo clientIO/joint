@@ -2979,7 +2979,7 @@ export namespace layout {
 
 export namespace mvc {
 
-    interface ViewOptions<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
+    interface ViewOptions<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
     }
 
@@ -2987,7 +2987,7 @@ export namespace mvc {
         [key: string]: any;
     }
 
-    class View<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.View<T, E> {
+    class View<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.View<T, E> {
 
         constructor(opt?: ViewOptions<T, E>);
 
