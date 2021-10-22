@@ -3758,8 +3758,17 @@ export namespace linkTools {
     ) => T;
 
     namespace Vertices {
+
+        class VertexHandle extends mvc.View<undefined, SVGElement> {
+            position(x: number, y: number):void;
+            protected onPointerDown(evt: dia.Event): void;
+            protected onPointerMove(evt: dia.Event): void;
+            protected onPointerUp(evt: dia.Event): void;
+            protected onPointerClick(evt: dia.Event): void;
+        }
+
         interface Options extends dia.ToolView.Options {
-            handleClass?: any;
+            handleClass?: typeof VertexHandle;
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
@@ -3773,8 +3782,18 @@ export namespace linkTools {
     }
 
     namespace Segments {
+
+        class SegmentHandle extends mvc.View<undefined, SVGElement> {
+            position(x: number, y: number, angle: number, view: dia.LinkView):void;
+            show(): void;
+            hide(): void;
+            protected onPointerDown(evt: dia.Event): void;
+            protected onPointerMove(evt: dia.Event): void;
+            protected onPointerUp(evt: dia.Event): void;
+        }
+
         interface Options extends dia.ToolView.Options {
-            handleClass?: any;
+            handleClass?: typeof SegmentHandle;
             snapRadius?: number;
             snapHandle?: boolean;
             redundancyRemoval?: boolean;
