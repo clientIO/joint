@@ -35,7 +35,9 @@ paper.el.style.border = `1px solid #e2e2e2`;
             height: 100
         },
         primaryColor: 'lightblue',
-        secondaryColor: 'red'
+        secondaryColor: 'red',
+        firstName: 'John',
+        lastName: 'Goodman'
     },
     presentation: `
         <g title="Test SVG Markup">
@@ -44,16 +46,16 @@ paper.el.style.border = `1px solid #e2e2e2`;
                 y="0"
                 width="calc(w)"
                 height="calc(h)"
-                [fill]="primaryColor"
-                [stroke]="secondaryColor"
+                [fill]="{{primaryColor}}"
+                [stroke]="{{secondaryColor}}"
                 stroke-width="2"
             />
             <text @selector="label"
                 text-anchor="middle"
                 text-vertical-anchor="middle"
                 font-size="14"
-                [fill]="secondaryColor"
-                text="Hello World!"
+                [fill]="{{secondaryColor}}"
+                [text]="{{firstName}}\n{{lastName}}"
                 transform="translate(calc(0.5*w),calc(0.5*h))"
             />
         </g>
@@ -86,11 +88,7 @@ graph.fromJSON({
 
 const el1 = new TestElement({
     position: { x: 200, y: 200 },
-    attrs: {
-        label: {
-            text: 'Another hello!'
-        }
-    }
+    lastName: 'Badman'
 });
 el1.addTo(graph);
 el1.logType();

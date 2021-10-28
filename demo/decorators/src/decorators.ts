@@ -57,8 +57,17 @@ export function Model(value: CellDecorator) {
                 const attrs = {};
                 for (let attribute in changed) {
                     if (attribute in bindings) {
-                        bindings[attribute].forEach(path => {
-                            util.setByPath(attrs, path, changed[attribute]);
+                        bindings[attribute].forEach(({ path, expression }) => {
+                            const existingExpression = util.getByPath(attrs, path);
+                            let evalExpression;
+                            if (existingExpression !== undefined) {
+                                evalExpression = existingExpression;
+                            } else {
+                                evalExpression = expression;
+                            }
+                            const expressionRegex = new RegExp(`{{${attribute}}}`, 'g');
+                            evalExpression = evalExpression.replace(expressionRegex, changed[attribute]);
+                            util.setByPath(attrs, path, evalExpression);
                         });
                     }
                 }
@@ -115,11 +124,21 @@ function build(node: Element, markup: Partial<dia.MarkupNodeJSON>, attrs: dia.Ce
         if (name.startsWith('@')) {
             // noop
         } else if (name.startsWith('[')) {
-            let attributeBindings = bindings[value];
-            if (!attributeBindings) {
-                attributeBindings = bindings[value] = [];
+            if (typeof value !== 'string') throw Error('?');
+            const matches = value.match(/{{\w+}}/g);
+            if (matches) {
+                matches.forEach(match => {
+                    const path = match.slice(2,-2);
+                    let attributeBindings = bindings[path];
+                    if (!attributeBindings) {
+                        attributeBindings = bindings[path] = [];
+                    }
+                    attributeBindings.push({
+                        path: [`${selector}`, name.slice(1, -1)],
+                        expression: value
+                    });
+                });
             }
-            attributeBindings.push([`${selector}`, name.slice(1, -1)]);
         } else {
             nodeAttrs[util.camelCase(name)] = value;
             hasNodeAttrs = true;
