@@ -83,7 +83,6 @@ export function Model(value: CellDecorator) {
     }
 }
 
-
 function fromSVG(str: string) {
 
     const parser = new DOMParser();
@@ -171,3 +170,21 @@ export function on(eventName) {
         return descriptor;
     }
 }
+
+export function attribute(attributeName: string, type: 'set' | 'offset' | 'position' = 'set') {
+    return function (target, name, descriptor) {
+        if (!attributeName) {
+            throw new Error('The on decorator requires an eventName argument');
+        }
+        if (!target.constructor.attributes) {
+            target.constructor.attributes = {};
+        }
+        target.constructor.attributes[util.camelCase(attributeName)] = {
+            [type]: (...args) => {
+                return target[name](...args);
+            }
+        }
+        return descriptor;
+    }
+}
+

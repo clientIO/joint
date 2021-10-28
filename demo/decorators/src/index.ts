@@ -1,5 +1,5 @@
-import { dia, shapes } from 'jointjs';
-import { Model, View, on } from './decorators';
+import { g, dia, shapes } from 'jointjs';
+import { Model, View, on, attribute } from './decorators';
 
 const shapeNamespace = {
     ...shapes,
@@ -49,6 +49,7 @@ paper.el.style.border = `1px solid #e2e2e2`;
                 [fill]="{{primaryColor}}"
                 [stroke]="{{secondaryColor}}"
                 stroke-width="2"
+                line-style="solid"
             />
             <text @selector="label"
                 text-anchor="middle"
@@ -65,6 +66,16 @@ class TestElement extends dia.Element {
 
     logType() {
         console.log(this.get('type'));
+    }
+
+    @attribute('line-style')
+    setTestAttribute(lineStyle: string, _refBBox: g.Rect, _node: SVGElement, attrs: any) {
+        const n = attrs.strokeWidth|| 1;
+        const dasharray = {
+            'dashed': (4*n) + ',' + (2*n),
+            'dotted': n + ',' + n
+        }[lineStyle] || 'none';
+        return { 'stroke-dasharray': dasharray };
     }
 }
 
@@ -88,7 +99,12 @@ graph.fromJSON({
 
 const el1 = new TestElement({
     position: { x: 200, y: 200 },
-    lastName: 'Badman'
+    lastName: 'Badman',
+    attrs: {
+        body: {
+            lineStyle: 'dashed'
+        }
+    }
 });
 el1.addTo(graph);
 el1.logType();
