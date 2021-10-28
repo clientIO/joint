@@ -72,8 +72,8 @@ class TestElement extends dia.Element {
     setTestAttribute(lineStyle: string, _refBBox: g.Rect, _node: SVGElement, attrs: any) {
         const n = attrs.strokeWidth|| 1;
         const dasharray = {
-            'dashed': (4*n) + ',' + (2*n),
-            'dotted': n + ',' + n
+            'dashed': `${4*n},${2*n}`,
+            'dotted': `${n},${n}`
         }[lineStyle] || 'none';
         return { 'stroke-dasharray': dasharray };
     }
