@@ -77,6 +77,11 @@ class TestElement extends dia.Element {
         }[lineStyle] || 'none';
         return { 'stroke-dasharray': dasharray };
     }
+
+    // @pipe()
+    // uppercase(value) {
+    //     return value.toUpperCase();
+    // }
 }
 
 
