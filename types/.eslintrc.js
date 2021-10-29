@@ -11,5 +11,8 @@ module.exports = {
         'sinon': true,
         'blanket': true,
         'simulate': true
+    },
+    'rules': {
+        '@typescript-eslint/type-annotation-spacing': ['error', { 'after': true }]
     }
 };
