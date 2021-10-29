@@ -3760,7 +3760,7 @@ export namespace linkTools {
     namespace Vertices {
 
         class VertexHandle extends mvc.View<undefined, SVGElement> {
-            position(x: number, y: number):void;
+            position(x: number, y: number): void;
             protected onPointerDown(evt: dia.Event): void;
             protected onPointerMove(evt: dia.Event): void;
             protected onPointerUp(evt: dia.Event): void;
@@ -3784,7 +3784,7 @@ export namespace linkTools {
     namespace Segments {
 
         class SegmentHandle extends mvc.View<undefined, SVGElement> {
-            position(x: number, y: number, angle: number, view: dia.LinkView):void;
+            position(x: number, y: number, angle: number, view: dia.LinkView): void;
             show(): void;
             hide(): void;
             protected onPointerDown(evt: dia.Event): void;
