@@ -1,6 +1,14 @@
 
 module.exports = {
-    'extends': 'eslint:recommended',
+    'root': true,
+    'parser': '@typescript-eslint/parser',
+    'plugins': [
+        '@typescript-eslint',
+    ],
+    'extends': [
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended'
+    ],
     'rules': {
         'indent': ['error', 4, { 'SwitchCase': 1 }],
         'space-before-function-paren': ['error', 'never'],
@@ -10,7 +18,8 @@ module.exports = {
         'no-undef': ['error'],
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         'quotes': ['error', 'single'],
-        'semi': ['error', 'always']
+        'semi': ['error', 'always'],
+        '@typescript-eslint/type-annotation-spacing': ['error', { 'after': true }],
     },
     'env': {
         'browser': true,
