@@ -304,7 +304,7 @@ export namespace dia {
         constructor(attributes?: A, opt?: Graph.Options);
 
         id: string | number;
-        graph:Graph;
+        graph: Graph;
         markup: string | MarkupJSON;
 
         protected generateId(): string | number;

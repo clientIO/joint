@@ -19,15 +19,15 @@ module.exports = {
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         'quotes': ['error', 'single'],
         'semi': ['error', 'always'],
-        '@typescript-eslint/type-annotation-spacing': ['error', { 'after': true }],
+        '@typescript-eslint/type-annotation-spacing': ['error', { 'after': true }]
     },
     'env': {
         'browser': true,
         'node': true
     },
     'globals': {
-       'Uint8Array': true,
-       'CDATASection': true
+        'Uint8Array': true,
+        'CDATASection': true
     },
     'parserOptions': {
         'ecmaVersion': 6,
