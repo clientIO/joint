@@ -43,7 +43,7 @@ export const Control = ToolView.extend({
             //
         },
 
-        defaultAnchorAttributes: {
+        defaultHandleAttributes: {
             'stroke-width': 2,
             'stroke': '#FFFFFF',
             'fill': 'orange',
@@ -73,7 +73,7 @@ export const Control = ToolView.extend({
         var options = this.options;
         var position = new g.Point(options.getPosition.call(this, relatedView, this));
         handleNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
-        var anchorAttributes = options.defaultAnchorAttributes;
+        var anchorAttributes = options.defaultHandleAttributes;
         for (var attrName in anchorAttributes) {
             handleNode.setAttribute(attrName, anchorAttributes[attrName]);
         }
