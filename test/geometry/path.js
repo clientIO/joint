@@ -990,7 +990,7 @@ QUnit.module('path', function(hooks) {
             assert.ok(segment instanceof g.Path.segmentTypes.z);
             clonedPath = path.clone();
             clonedPath.appendSegment(segment);
-            // lowecase `z` still translates into capital `Z`
+            // lowercase `z` still translates into capital `Z`
             assert.equal(clonedPath.toString(), 'Z');
 
             // closepath -> no arguments (correct)

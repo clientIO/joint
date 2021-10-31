@@ -935,7 +935,7 @@ QUnit.module('links', function(hooks) {
         assert.equal(linkView.sourceMagnet, myrectView.$('text')[0], 'source selector points to the magnet element');
         assert.equal(linkView.targetMagnet, myrect2View.$('text')[0], 'target selector points to the magnet element');
 
-        // The functionality below is not implemented, hence skiping the test.
+        // The functionality below is not implemented, hence skipping the test.
         // myrect.attr('text', { port: 'port3' });
         // equal(link.get('source').port, 'port3', 'changing port on an element automatically changes the same port on a link');
     });

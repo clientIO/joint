@@ -24,7 +24,7 @@ var highlighter = V('path', {
     'pointer-events': 'none'
 });
 
-// Define a specific highligthing path for every shape.
+// Define a specific highlighting path for every shape.
 
 erd.Attribute.prototype.getHighlighterPath = function(w, h) {
 
