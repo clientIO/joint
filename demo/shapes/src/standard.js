@@ -3,6 +3,7 @@
 var dia = joint.dia;
 var util = joint.util;
 var standard = joint.shapes.standard;
+var elementTools = joint.elementTools;
 
 // Custom attribute for retrieving image placeholder with specific size
 dia.attributes.placeholderURL = {
@@ -15,7 +16,7 @@ dia.attributes.placeholderURL = {
 };
 
 var graph = new dia.Graph();
-new dia.Paper({
+var paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
@@ -97,6 +98,22 @@ cylinder.attr('top/fill','#fe854f');
 cylinder.attr('top/fillOpacity', 0.8);
 cylinder.attr('label/text', 'Cylinder');
 cylinder.addTo(graph);
+cylinder.findView(paper).addTools(new dia.ToolsView({
+    tools: [new elementTools.Control({
+        getPosition: function(view) {
+            const { x, y, width } = view.model.getBBox();
+            const tilt = view.model.topRy();
+            return { x: x + width / 2, y: y + 2 * tilt };
+        },
+        setPosition: function(view, coords, tool) {
+            const { model } = view;
+            const { y, height } = model.getBBox();
+            const tilt = Math.min(Math.max((coords.y - y), 0), height) / 2;
+            model.topRy(tilt, { ui: true, tool: tool.cid });
+        },
+        areaSelector: 'body'
+    })]
+}));
 
 var image = new standard.Image();
 image.resize(150, 100);
