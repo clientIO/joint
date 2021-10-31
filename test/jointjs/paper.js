@@ -1531,7 +1531,7 @@ QUnit.module('paper', function(hooks) {
 
                 var drawGridTestFixtures = [
                     { name: 'doubleMesh', args: { color: 'red', thickness: 11 }}, //update first layer
-                    { name: 'doubleMesh', args: [{ color: 'red', thickness: 11 }, { color: 'black', thickness: 55 }] }, //udate both alyers
+                    { name: 'doubleMesh', args: [{ color: 'red', thickness: 11 }, { color: 'black', thickness: 55 }] }, //update both layers
                     { name: 'doubleMesh', color: 'red', thickness: 11 } // update firs layer
                 ];
 

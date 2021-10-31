@@ -90,7 +90,7 @@ joint.shapes.logic.Output.prototype.onSignal = function(signal) {
     toggleLive(this, signal);
 };
 
-// diagramm setup
+// diagram setup
 
 var gates = {
     repeater: new joint.shapes.logic.Repeater({ position: { x: 410, y: 25 }}),
