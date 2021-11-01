@@ -1,3 +1,7 @@
+import Backbone from 'backbone';
+import { g } from './geometry';
+import { Vectorizer } from './vectorizer';
+
 export const version: string;
 
 export namespace config {
