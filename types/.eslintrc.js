@@ -1,23 +1,26 @@
 module.exports = {
-    'root': true,
     'plugins': [
         '@typescript-eslint',
     ],
     'parser': '@typescript-eslint/parser',
-    'extends': [],
+    'rules': {
+        '@typescript-eslint/type-annotation-spacing': ['error', { 'after': true }]
+    },
     'globals': {
         'joint': true,
-        'V': true,
+        'Vectorizer': true,
         'g': true,
         '$': true,
         'Backbone': true,
         '_': true,
-        'QUnit': true,
-        'sinon': true,
-        'blanket': true,
-        'simulate': true
+        'JQuery': true
     },
-    'rules': {
-        '@typescript-eslint/type-annotation-spacing': ['error', { 'after': true }]
-    }
+    'overrides': [{
+        'files': [ './*'],
+        'rules': {
+            'no-unused-vars': 'off',
+            'no-dupe-class-members': 'off',
+            'no-redeclare': 'off'
+        }
+    }]
 };

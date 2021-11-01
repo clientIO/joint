@@ -3004,7 +3004,7 @@ export namespace mvc {
 
         theme: string;
 
-        themeClassNamePrefix: string
+        themeClassNamePrefix: string;
 
         defaultTheme: string;
 
