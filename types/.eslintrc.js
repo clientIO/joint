@@ -1,5 +1,10 @@
 module.exports = {
-    'extends': ['../.eslintrc.js'],
+    'root': true,
+    'plugins': [
+        '@typescript-eslint',
+    ],
+    'parser': '@typescript-eslint/parser',
+    'extends': [],
     'globals': {
         'joint': true,
         'V': true,
