@@ -1,12 +1,5 @@
-
 module.exports = {
-    'root': true,
-    'plugins': [
-        '@typescript-eslint',
-    ],
-    'extends': [
-        'eslint:recommended',
-    ],
+    'extends': 'eslint:recommended',
     'rules': {
         'indent': ['error', 4, { 'SwitchCase': 1 }],
         'space-before-function-paren': ['error', 'never'],
@@ -26,7 +19,6 @@ module.exports = {
         'Uint8Array': true,
         'CDATASection': true
     },
-    'parser': '@typescript-eslint/parser',
     'parserOptions': {
         'ecmaVersion': 6,
         sourceType: 'module'
