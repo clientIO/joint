@@ -1,5 +1,3 @@
-import { g } from './geometry';
-
 export function V(
     svg: SVGElement | Vectorizer | string,
     attrs?: { [key: string]: any },

@@ -1,7 +1,3 @@
-import Backbone from 'backbone';
-import { g } from './geometry';
-import { Vectorizer } from './vectorizer';
-
 export const version: string;
 
 export namespace config {
@@ -37,7 +33,7 @@ export namespace dia {
         bottom?: number;
         horizontal?: number;
         vertical?: number;
-    }
+    };
 
     type Sides = number | SidesJSON;
 
@@ -61,7 +57,7 @@ export namespace dia {
         style?: { [key: string]: any };
         children?: MarkupJSON;
         textContent?: string;
-    }
+    };
 
     type MarkupJSON = MarkupNodeJSON[];
 
@@ -229,7 +225,7 @@ export namespace dia {
         findModelsUnderElement(element: Element, opt?: {
             searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
                 'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
-                'topMiddle' | 'topRight' | 'bbox'
+                'topMiddle' | 'topRight' | 'bbox';
         }): Element[];
 
         getBBox(): g.Rect | null;
@@ -398,9 +394,9 @@ export namespace dia {
             size?: Size;
             angle?: number;
             ports?: {
-                groups?: { [key: string]: PortGroup},
-                items?: Port[]
-            }
+                groups?: { [key: string]: PortGroup };
+                items?: Port[];
+            };
         }
 
         interface Attributes extends GenericAttributes<Cell.Selectors> {
@@ -409,20 +405,20 @@ export namespace dia {
         type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
 
         interface PortPositionJSON {
-            name?: string,
-            args?: { [key: string]: any }
+            name?: string;
+            args?: { [key: string]: any };
         }
 
         type PositionType = string | PortPositionCallback | PortPositionJSON;
 
         interface PortGroup {
-            position?: PositionType,
+            position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
-            }
+            };
         }
 
         interface Port {
@@ -434,7 +430,7 @@ export namespace dia {
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
-            }
+            };
             z?: number | 'auto';
         }
 
@@ -554,7 +550,7 @@ export namespace dia {
 
         interface LabelPosition {
             distance?: number; // optional for default labels
-            offset?: number | { x: number; y: number; };
+            offset?: number | { x: number, y: number };
             angle?: number;
             args?: LinkView.LabelOptions;
         }
@@ -670,7 +666,7 @@ export namespace dia {
         }
 
         interface Options<T extends Cell> extends mvc.ViewOptions<T, SVGElement> {
-            id?: string
+            id?: string;
         }
 
         interface InteractivityOptions extends ElementView.InteractivityOptions, LinkView.InteractivityOptions {
@@ -687,7 +683,7 @@ export namespace dia {
             boundingRect: g.Rect;
             magnetMatrix: SVGMatrix;
             geometryShape: g.Shape;
-        }
+        };
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGElement> {
@@ -906,8 +902,8 @@ export namespace dia {
         }
 
         interface InteractivityOptions {
-            vertexAdd?: boolean,
-            vertexMove?: boolean,
+            vertexAdd?: boolean;
+            vertexMove?: boolean;
             vertexRemove?: boolean;
             arrowheadMove?: boolean;
             labelMove?: boolean;
@@ -938,12 +934,12 @@ export namespace dia {
         }
 
         interface Options extends mvc.ViewOptions<Link, SVGElement> {
-            shortLinkLength?: number,
-            doubleLinkTools?: boolean,
-            longLinkLength?: number,
-            linkToolsOffset?: number,
-            doubleLinkToolsOffset?: number,
-            sampleInterval?: number
+            shortLinkLength?: number;
+            doubleLinkTools?: boolean;
+            longLinkLength?: number;
+            linkToolsOffset?: number;
+            doubleLinkToolsOffset?: number;
+            sampleInterval?: number;
         }
     }
 
@@ -954,7 +950,7 @@ export namespace dia {
         targetAnchor: g.Point;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
-        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string, connection?: string }, callback?: () => void): void;
 
         addLabel(coordinates: Point, opt?: LinkView.LabelOptions): number;
         addLabel(coordinates: Point, angle: number, opt?: LinkView.LabelOptions): number;
@@ -1171,8 +1167,8 @@ export namespace dia {
             background?: BackgroundOptions;
             // interactions
             gridSize?: number;
-            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>
-            interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
+            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>;
+            interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions;
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
@@ -1205,7 +1201,7 @@ export namespace dia {
             connectorNamespace?: any;
             highlighterNamespace?: any;
             anchorNamespace?: any;
-            linkAnchorNamespace?: any,
+            linkAnchorNamespace?: any;
             connectionPointNamespace?: any;
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
@@ -1222,8 +1218,8 @@ export namespace dia {
             viewport?: ViewportCallback | null;
             onViewUpdate?: (view: mvc.View<any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
             onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
-            beforeRender?: Paper.BeforeRenderCallback
-            afterRender?: Paper.AfterRenderCallback
+            beforeRender?: Paper.BeforeRenderCallback;
+            afterRender?: Paper.AfterRenderCallback;
         }
 
         interface ScaleContentOptions {
@@ -1457,7 +1453,7 @@ export namespace dia {
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
             progress?: Paper.ProgressCallback;
-            before?: Paper.BeforeRenderCallback
+            before?: Paper.BeforeRenderCallback;
         }): void;
 
         protected updateViewsBatch(opt?: {
@@ -1621,7 +1617,7 @@ export namespace dia {
 
     namespace HighlighterView {
 
-        type Constructor<T> = { new (): T }
+        type Constructor<T> = { new (): T };
 
         type NodeSelectorJSON = {
             selector?: string;
@@ -1969,7 +1965,7 @@ export namespace shapes {
                 text?: string;
                 style?: { [key: string]: any };
                 [key: string]: any;
-            }
+            };
         }
 
         type TextBlockAttributes = dia.Element.GenericAttributes<TextBlockSelectors>;
@@ -2632,9 +2628,9 @@ export namespace util {
 
     export function isPercentage(val: any): boolean;
 
-    export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
+    export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
 
-    export function breakText(text: string, size: { width: number; height?: number; }, attrs?: attributes.NativeSVGAttributes, opt?: {
+    export function breakText(text: string, size: { width: number, height?: number }, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;
         separator?: string | any;
         eol?: string;
@@ -2660,7 +2656,7 @@ export namespace util {
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
     export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
@@ -2669,9 +2665,9 @@ export namespace util {
     export function toggleFullScreen(el?: Element): void;
 
     interface DOMJSONDocument {
-        fragment: DocumentFragment,
-        selectors: { [key: string]: Element },
-        groupSelectors: { [key: string]: Element[] }
+        fragment: DocumentFragment;
+        selectors: { [key: string]: Element };
+        groupSelectors: { [key: string]: Element[] };
     }
 
     export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
@@ -2781,10 +2777,10 @@ export namespace util {
     namespace format {
 
         interface NumberLocale {
-            currency: [string, string],
-            decimal: string,
-            thousands: string,
-            grouping: number[]
+            currency: [string, string];
+            decimal: string;
+            thousands: string;
+            grouping: number[];
         }
 
         export function number(specifier: string, value: number, locale?: NumberLocale): string;
@@ -2793,11 +2789,11 @@ export namespace util {
 
         export function convert(type: string, value: number, precision: number): string;
 
-        export function round(value: number, precision?: number): number
+        export function round(value: number, precision?: number): number;
 
         export function precision(value: number, precision: number): number;
 
-        export function prefix(value: number, precision: number): { scale: (d: number) => number; symbol: string; } | undefined
+        export function prefix(value: number, precision: number): { scale: (d: number) => number, symbol: string } | undefined;
     }
 
     // LODASH FUNCTIONS:
@@ -2967,8 +2963,8 @@ export namespace layout {
         }
 
         interface toGraphLibOptions {
-            graphlib?: any,
-            [key: string]: any
+            graphlib?: any;
+            [key: string]: any;
         }
 
         export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
@@ -3216,15 +3212,15 @@ export namespace anchors {
     }
 
     interface AnchorArgumentsMap {
-        'center': BBoxAnchorArguments,
-        'top': BBoxAnchorArguments,
-        'bottom': BBoxAnchorArguments,
-        'left': BBoxAnchorArguments,
-        'right': BBoxAnchorArguments,
-        'topLeft': BBoxAnchorArguments,
-        'topRight': BBoxAnchorArguments,
-        'bottomLeft': BBoxAnchorArguments,
-        'bottomRight': BBoxAnchorArguments,
+        'center': BBoxAnchorArguments;
+        'top': BBoxAnchorArguments;
+        'bottom': BBoxAnchorArguments;
+        'left': BBoxAnchorArguments;
+        'right': BBoxAnchorArguments;
+        'topLeft': BBoxAnchorArguments;
+        'topRight': BBoxAnchorArguments;
+        'bottomLeft': BBoxAnchorArguments;
+        'bottomRight': BBoxAnchorArguments;
         'perpendicular': PaddingAnchorArguments;
         'midSide': MidSideAnchorArguments;
         'modelCenter': ModelCenterAnchorArguments;
@@ -3277,11 +3273,11 @@ export namespace anchors {
 export namespace linkAnchors {
 
     interface ConnectionLengthAnchorArguments {
-        length?: number
+        length?: number;
     }
 
     interface ConnectionRatioAnchorArguments {
-        ratio?: number
+        ratio?: number;
     }
 
     interface ConnectionPerpendicularAnchorArguments {
@@ -3327,10 +3323,10 @@ export namespace connectionPoints {
     }
 
     interface ConnectionPointArgumentsMap {
-        'anchor': DefaultConnectionPointArguments,
-        'bbox': StrokeConnectionPointArguments,
-        'rectangle': StrokeConnectionPointArguments,
-        'boundary': BoundaryConnectionPointArguments,
+        'anchor': DefaultConnectionPointArguments;
+        'bbox': StrokeConnectionPointArguments;
+        'rectangle': StrokeConnectionPointArguments;
+        'boundary': BoundaryConnectionPointArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -3488,7 +3484,7 @@ export namespace attributes {
         ellipsis?: boolean | string;
         hyphen?: string;
         maxLineCount?: number;
-        [key: string]: any
+        [key: string]: any;
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
@@ -3836,8 +3832,8 @@ export namespace linkTools {
 
     namespace Anchor {
         interface Options extends dia.ToolView.Options {
-            snap?: AnchorCallback<dia.Point>,
-            anchor?: AnchorCallback<anchors.AnchorJSON>,
+            snap?: AnchorCallback<dia.Point>;
+            anchor?: AnchorCallback<anchors.AnchorJSON>;
             resetAnchor?: boolean | anchors.AnchorJSON;
             customAnchorAttributes?: attributes.NativeSVGAttributes;
             defaultAnchorAttributes?: attributes.NativeSVGAttributes;

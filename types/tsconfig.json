@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+      "skipLibCheck": true,
+  },
+  "files": [
+    "joint.d.ts",
+    "geometry.d.ts",
+    "vectorizer.d.ts",
+  ]
+}
