@@ -15,7 +15,7 @@ export const Control = ToolView.extend({
         }
     }, {
         tagName: 'rect',
-        selector: 'area',
+        selector: 'extras',
         attributes: {
             'pointer-events': 'none',
             'fill': 'none',
@@ -40,8 +40,8 @@ export const Control = ToolView.extend({
     },
     options: {
         handleAttributes: null,
-        areaSelector: 'root',
-        areaPadding: 6,
+        selector: 'root',
+        padding: 6,
     },
 
     getPosition: function() {
@@ -55,19 +55,23 @@ export const Control = ToolView.extend({
     },
     onRender: function() {
         this.renderChildren();
-        this.toggleArea(false);
+        this.toggleExtras(false);
         this.update();
     },
     update: function() {
-        this.updateHandle();
-        this.updateArea();
+        const { handle, extras } = this.childNodes;
+        if (handle) {
+            this.updateHandle(handle);
+        } else {
+            throw new Error('Control: markup selector `handle` is required');
+        }
+        if (extras) {
+            this.updateExtras(extras);
+        }
         return this;
     },
-    updateHandle: function() {
-        const { relatedView, childNodes, options } = this;
-        if (!childNodes) return;
-        const handleNode = childNodes.handle;
-        if (!handleNode) throw new Error('Control: markup selector `handle` is required');
+    updateHandle: function(handleNode) {
+        const { relatedView, options } = this;
         const position = this.getPosition(relatedView, this);
         handleNode.setAttribute('transform', `translate(${position.x},${position.y})`);
         const { handleAttributes } = options;
@@ -77,30 +81,28 @@ export const Control = ToolView.extend({
             }
         }
     },
-    updateArea: function() {
-        const { relatedView, childNodes, options } = this;
-        if (!childNodes) return;
-        const areaNode = childNodes.area;
-        if (!areaNode) return;
-        const [magnet] = relatedView.findBySelector(options.areaSelector);
+    updateExtras: function(extrasNode) {
+        const { relatedView, options } = this;
+        const [magnet] = relatedView.findBySelector(options.selector);
         if (!magnet) return;
-        const model = relatedView.model;
-        let padding = options.areaPadding;
+        let padding = options.padding;
         if (!isFinite(padding)) padding = 0;
-        let bbox, angle, center;
-        bbox = relatedView.getNodeUnrotatedBBox(magnet);
-        angle = model.angle();
-        center = bbox.center();
+        const bbox = relatedView.getNodeUnrotatedBBox(magnet);
+        const model = relatedView.model;
+        const angle = model.angle();
+        const center = bbox.center();
         if (angle) center.rotate(model.getBBox().center(), -angle);
         bbox.inflate(padding);
-        areaNode.setAttribute('x', -bbox.width / 2);
-        areaNode.setAttribute('y', -bbox.height / 2);
-        areaNode.setAttribute('width', bbox.width);
-        areaNode.setAttribute('height', bbox.height);
-        areaNode.setAttribute('transform', `translate(${center.x},${center.y}) rotate(${angle})`);
+        extrasNode.setAttribute('x', -bbox.width / 2);
+        extrasNode.setAttribute('y', -bbox.height / 2);
+        extrasNode.setAttribute('width', bbox.width);
+        extrasNode.setAttribute('height', bbox.height);
+        extrasNode.setAttribute('transform', `translate(${center.x},${center.y}) rotate(${angle})`);
     },
-    toggleArea: function(visible) {
-        this.childNodes.area.style.display = (visible) ? '' : 'none';
+    toggleExtras: function(visible) {
+        const { extras } = this.childNodes;
+        if (!extras) return;
+        extras.style.display = (visible) ? '' : 'none';
     },
     onPointerDown: function(evt) {
         const { relatedView, paper } = this;
@@ -110,7 +112,7 @@ export const Control = ToolView.extend({
         paper.undelegateEvents();
         this.delegateDocumentEvents();
         this.focus();
-        this.toggleArea(true);
+        this.toggleExtras(true);
         relatedView.model.startBatch('control-move', { ui: true, tool: this.cid });
     },
     onPointerMove: function(evt) {
@@ -125,7 +127,7 @@ export const Control = ToolView.extend({
         paper.delegateEvents();
         this.undelegateDocumentEvents();
         this.blur();
-        this.toggleArea(false);
+        this.toggleExtras(false);
         relatedView.model.stopBatch('control-move', { ui: true, tool: this.cid });
     },
     onPointerDblClick: function() {

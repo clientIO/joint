@@ -784,7 +784,18 @@ export const Cell = Backbone.Model.extend({
 
         // To be overridden
         return new g.Rect(0, 0, 0, 0);
-    }
+    },
+
+    getUnrotatedPointFromPoint(x, y, sign = 1) {
+        const angle = this.angle();
+        const point = new g.Point(x, y);
+        if (angle) point.rotate(this.getBBox().center(), sign * angle);
+        return point;
+    },
+
+    getPointFromUnrotatedPoint(x, y) {
+        return this.getUnrotatedPointFromPoint(x, y, -1);
+    },
 
 }, {
 

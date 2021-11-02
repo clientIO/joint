@@ -20,26 +20,29 @@ var CylinderTiltTool = elementTools.Control.extend({
         var model = view.model;
         var bbox = model.getBBox();
         var tilt = model.topRy();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y + 2 * tilt };
+        return model.getPointFromUnrotatedPoint(bbox.x + bbox.width / 2, bbox.y + 2 * tilt);
     },
     setPosition: function(view, coordinates) {
-        const { model } = view;
-        const { y, height } = model.getBBox();
-        const tilt = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
+        var model = view.model;
+        var bbox = model.getBBox();
+        var point = model.getUnrotatedPointFromPoint(coordinates);
+        var tilt = Math.min(Math.max((point.y - bbox.y), 0), bbox.height) / 2;
         model.topRy(tilt, { ui: true, tool: this.cid });
     }
 });
 
 var RadiusTool = elementTools.Control.extend({
     getPosition: function(view) {
-        var bbox = view.model.getBBox();
-        var radius = view.model.attr(['body', 'ry']) || 0;
-        return { x: bbox.x, y: bbox.y + radius };
+        var model = view.model;
+        var bbox = model.getBBox();
+        var radius = model.attr(['body', 'ry']) || 0;
+        return model.getPointFromUnrotatedPoint(bbox.x, bbox.y + radius);
     },
     setPosition: function(view, coordinates) {
         var model = view.model;
         var bbox = model.getBBox();
-        var ry = Math.min(Math.max((coordinates.y - bbox.y), 0), bbox.height) / 2;
+        var point = model.getUnrotatedPointFromPoint(coordinates);
+        var ry = Math.min(Math.max((point.y - bbox.y), 0), bbox.height) / 2;
         model.attr(['body'], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
     }
 });
@@ -131,7 +134,7 @@ cylinder.attr('top/fillOpacity', 0.8);
 cylinder.attr('label/text', 'Cylinder');
 cylinder.addTo(graph);
 cylinder.findView(paper).addTools(new dia.ToolsView({
-    tools: [new CylinderTiltTool()]
+    tools: [new CylinderTiltTool({ selector: 'body' })]
 }));
 
 var image = new standard.Image();

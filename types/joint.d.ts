@@ -374,6 +374,12 @@ export namespace dia {
 
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
+        getPointFromUnrotatedPoint(x: number, y: number): g.Point;
+        getPointFromUnrotatedPoint(point: dia.Point): g.Point;
+
+        getUnrotatedPointFromPoint(x: number, y: number): g.Point;
+        getUnrotatedPointFromPoint(point: dia.Point): g.Point;
+
         getChangeFlag(attributes: { [key: string]: number }): number;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
@@ -3747,8 +3753,8 @@ export namespace elementTools {
 
     namespace Control {
         interface Options extends dia.ToolView.Options {
-            areaSelector?: string;
-            areaPadding?: number;
+            selector?: string;
+            padding?: number;
             handleAttributes?: Partial<NativeSVGAttributes>
         }
     }
@@ -3760,6 +3766,10 @@ export namespace elementTools {
         protected getPosition(view: dia.ElementView): dia.Point;
         protected setPosition(view: dia.ElementView, coordinates: g.Point): void;
         protected resetPosition(view: dia.ElementView): void;
+
+        protected updateHandle(handleNode: SVGElement): void;
+        protected updateExtras(extrasNode: SVGElement): void;
+        protected toggleExtras(visible: boolean): void;
 
         protected onPointerDown(evt: dia.Event): void;
         protected onPointerMove(evt: dia.Event): void;
