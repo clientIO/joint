@@ -15,6 +15,35 @@ dia.attributes.placeholderURL = {
     }
 };
 
+var CylinderTiltTool = elementTools.Control.extend({
+    getPosition: function(view) {
+        var model = view.model;
+        var bbox = model.getBBox();
+        var tilt = model.topRy();
+        return { x: bbox.x + bbox.width / 2, y: bbox.y + 2 * tilt };
+    },
+    setPosition: function(view, coordinates) {
+        const { model } = view;
+        const { y, height } = model.getBBox();
+        const tilt = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
+        model.topRy(tilt, { ui: true, tool: this.cid });
+    }
+});
+
+var RadiusTool = elementTools.Control.extend({
+    getPosition: function(view) {
+        var bbox = view.model.getBBox();
+        var radius = view.model.attr(['body', 'ry']) || 0;
+        return { x: bbox.x, y: bbox.y + radius };
+    },
+    setPosition: function(view, coordinates) {
+        var model = view.model;
+        var bbox = model.getBBox();
+        var ry = Math.min(Math.max((coordinates.y - bbox.y), 0), bbox.height) / 2;
+        model.attr(['body'], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
+    }
+});
+
 var graph = new dia.Graph();
 var paper = new dia.Paper({
     el: document.getElementById('paper'),
@@ -33,20 +62,6 @@ rectangle.attr('body/fill', '#30d0c6');
 rectangle.attr('body/fillOpacity', 0.5);
 rectangle.attr('label/text', 'Rectangle');
 rectangle.addTo(graph);
-var RadiusTool = elementTools.Control.extend({
-    getPosition: function(view) {
-        const { x, y } = view.model.getBBox();
-        const ry = view.model.attr(['body', 'ry']) || 0;
-        return { x: x, y: y + ry };
-    },
-    setPosition: function(view, coordinates, tool) {
-        const { model } = view;
-        const { y, height } = model.getBBox();
-        const ry = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
-        const rx = ry;
-        model.attr(['body'], { rx, ry }, { ui: true, tool: tool.cid });
-    }
-});
 rectangle.findView(paper).addTools(new dia.ToolsView({
     tools: [new RadiusTool({ handleAttributes: { fill: 'orange' }})]
 }));
@@ -115,20 +130,6 @@ cylinder.attr('top/fill','#fe854f');
 cylinder.attr('top/fillOpacity', 0.8);
 cylinder.attr('label/text', 'Cylinder');
 cylinder.addTo(graph);
-var CylinderTiltTool = elementTools.Control.extend({
-    getPosition: function(view) {
-        const { model } = view;
-        const { x, y, width } = model.getBBox();
-        const tilt = model.topRy();
-        return { x: x + width / 2, y: y + 2 * tilt };
-    },
-    setPosition: function(view, coordinates, tool) {
-        const { model } = view;
-        const { y, height } = model.getBBox();
-        const tilt = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
-        model.topRy(tilt, { ui: true, tool: tool.cid });
-    },
-});
 cylinder.findView(paper).addTools(new dia.ToolsView({
     tools: [new CylinderTiltTool()]
 }));

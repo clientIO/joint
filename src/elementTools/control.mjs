@@ -1,4 +1,3 @@
-import * as g from '../g/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
 import * as util from '../util/index.mjs';
 

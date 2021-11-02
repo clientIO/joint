@@ -3757,9 +3757,9 @@ export namespace elementTools {
         options: T;
         constructor(opt?: T);
 
-        protected getPosition(view: dia.ElementView, tool: Control): dia.Point;
-        protected setPosition(view: dia.ElementView, coordinates: g.Point, tool: Control): void;
-        protected resetPosition(view: dia.ElementView, tool: Control): void;
+        protected getPosition(view: dia.ElementView): dia.Point;
+        protected setPosition(view: dia.ElementView, coordinates: g.Point): void;
+        protected resetPosition(view: dia.ElementView): void;
 
         protected onPointerDown(evt: dia.Event): void;
         protected onPointerMove(evt: dia.Event): void;
