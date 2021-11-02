@@ -3744,6 +3744,28 @@ export namespace elementTools {
 
         constructor(opt?: Boundary.Options);
     }
+
+    namespace Control {
+        interface Options extends dia.ToolView.Options {
+            areaSelector?: string;
+            areaPadding?: number;
+            handleAttributes?: Partial<NativeSVGAttributes>
+        }
+    }
+
+    class Control<T = Control.Options> extends dia.ToolView {
+        options: T;
+        constructor(opt?: T);
+
+        protected getPosition(view: dia.ElementView, tool: Control): dia.Point;
+        protected setPosition(view: dia.ElementView, coordinates: g.Point, tool: Control): void;
+        protected resetPosition(view: dia.ElementView, tool: Control): void;
+
+        protected onPointerDown(evt: dia.Event): void;
+        protected onPointerMove(evt: dia.Event): void;
+        protected onPointerUp(evt: dia.Event): void;
+        protected onPointerDblClick(evt: dia.Event): void;
+    }
 }
 
 export namespace linkTools {

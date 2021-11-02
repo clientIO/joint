@@ -8,7 +8,11 @@ export const Control = ToolView.extend({
         tagName: 'circle',
         selector: 'handle',
         attributes: {
-            'cursor': 'pointer'
+            'cursor': 'pointer',
+            'stroke-width': 2,
+            'stroke': '#FFFFFF',
+            'fill': '#33334F',
+            'r': 6
         }
     }, {
         tagName: 'rect',
@@ -24,7 +28,9 @@ export const Control = ToolView.extend({
     }],
     events: {
         mousedown: 'onPointerDown',
-        touchstart: 'onPointerDown'
+        touchstart: 'onPointerDown',
+        dblclick: 'onPointerDblClick',
+        dbltap: 'onPointerDblClick'
     },
     documentEvents: {
         mousemove: 'onPointerMove',
@@ -34,24 +40,19 @@ export const Control = ToolView.extend({
         touchcancel: 'onPointerUp'
     },
     options: {
-
-        getPosition: function(view) {
-            //
-        },
-
-        setPosition: function(view, coords, tool) {
-            //
-        },
-
-        defaultHandleAttributes: {
-            'stroke-width': 2,
-            'stroke': '#FFFFFF',
-            'fill': 'orange',
-            'r': 6
-        },
-
+        handleAttributes: null,
         areaSelector: 'root',
         areaPadding: 6,
+    },
+
+    getPosition: function() {
+        // To be overridden
+    },
+    setPosition: function() {
+        // To be overridden
+    },
+    resetPosition: function() {
+        // To be overridden
     },
     onRender: function() {
         this.renderChildren();
@@ -63,35 +64,32 @@ export const Control = ToolView.extend({
         this.updateArea();
         return this;
     },
-
     updateHandle: function() {
-        var childNodes = this.childNodes;
+        const { relatedView, childNodes, options } = this;
         if (!childNodes) return;
-        var handleNode = childNodes.handle;
-        if (!handleNode) return;
-        var relatedView = this.relatedView;
-        var options = this.options;
-        var position = new g.Point(options.getPosition.call(this, relatedView, this));
-        handleNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
-        var anchorAttributes = options.defaultHandleAttributes;
-        for (var attrName in anchorAttributes) {
-            handleNode.setAttribute(attrName, anchorAttributes[attrName]);
+        const handleNode = childNodes.handle;
+        if (!handleNode) throw new Error('Control: markup selector `handle` is required');
+        const position = this.getPosition(relatedView, this);
+        handleNode.setAttribute('transform', `translate(${position.x},${position.y})`);
+        const { handleAttributes } = options;
+        if (handleAttributes) {
+            for (let attrName in handleAttributes) {
+                handleNode.setAttribute(attrName, handleAttributes[attrName]);
+            }
         }
     },
     updateArea: function() {
-        var childNodes = this.childNodes;
+        const { relatedView, childNodes, options } = this;
         if (!childNodes) return;
-        var areaNode = childNodes.area;
+        const areaNode = childNodes.area;
         if (!areaNode) return;
-        var relatedView = this.relatedView;
-        var view = relatedView;
-        var [magnet] = view.findBySelector(this.options.areaSelector);
+        const [magnet] = relatedView.findBySelector(options.areaSelector);
         if (!magnet) return;
-        var model = view.model;
-        var padding = this.options.areaPadding;
+        const model = relatedView.model;
+        let padding = options.areaPadding;
         if (!isFinite(padding)) padding = 0;
-        var bbox, angle, center;
-        bbox = view.getNodeUnrotatedBBox(magnet);
+        let bbox, angle, center;
+        bbox = relatedView.getNodeUnrotatedBBox(magnet);
         angle = model.angle();
         center = bbox.center();
         if (angle) center.rotate(model.getBBox().center(), -angle);
@@ -100,38 +98,41 @@ export const Control = ToolView.extend({
         areaNode.setAttribute('y', -bbox.height / 2);
         areaNode.setAttribute('width', bbox.width);
         areaNode.setAttribute('height', bbox.height);
-        areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle + ')');
+        areaNode.setAttribute('transform', `translate(${center.x},${center.y}) rotate(${angle})`);
     },
-
     toggleArea: function(visible) {
         this.childNodes.area.style.display = (visible) ? '' : 'none';
     },
-
     onPointerDown: function(evt) {
+        const { relatedView, paper } = this;
         if (this.guard(evt)) return;
         evt.stopPropagation();
         evt.preventDefault();
-        this.paper.undelegateEvents();
+        paper.undelegateEvents();
         this.delegateDocumentEvents();
         this.focus();
         this.toggleArea(true);
-        this.relatedView.model.startBatch('control-move', { ui: true, tool: this.cid });
+        relatedView.model.startBatch('control-move', { ui: true, tool: this.cid });
     },
-
     onPointerMove: function(evt) {
-        var relatedView = this.relatedView;
-        var normalizedEvent = util.normalizeEvent(evt);
-        var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
-        this.options.setPosition.call(this, relatedView, coords, this);
+        const { relatedView, paper } = this;
+        const { clientX, clientY } = util.normalizeEvent(evt);
+        const coords = paper.clientToLocalPoint(clientX, clientY);
+        this.setPosition(relatedView, coords, this);
         this.update();
     },
-
-    onPointerUp: function(evt) {
-        this.paper.delegateEvents();
+    onPointerUp: function(_evt) {
+        const { relatedView, paper } = this;
+        paper.delegateEvents();
         this.undelegateDocumentEvents();
         this.blur();
         this.toggleArea(false);
-        var linkView = this.relatedView;
-        linkView.model.stopBatch('control-move', { ui: true, tool: this.cid });
+        relatedView.model.stopBatch('control-move', { ui: true, tool: this.cid });
+    },
+    onPointerDblClick: function() {
+        const { relatedView } = this;
+        this.resetPosition(relatedView, this);
+        this.update();
     }
+
 });

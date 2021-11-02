@@ -32,46 +32,23 @@ rectangle.attr('root/title', 'joint.shapes.standard.Rectangle');
 rectangle.attr('body/fill', '#30d0c6');
 rectangle.attr('body/fillOpacity', 0.5);
 rectangle.attr('label/text', 'Rectangle');
-// rectangle.set('angle', 45);
 rectangle.addTo(graph);
+var RadiusTool = elementTools.Control.extend({
+    getPosition: function(view) {
+        const { x, y } = view.model.getBBox();
+        const ry = view.model.attr(['body', 'ry']) || 0;
+        return { x: x, y: y + ry };
+    },
+    setPosition: function(view, coordinates, tool) {
+        const { model } = view;
+        const { y, height } = model.getBBox();
+        const ry = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
+        const rx = ry;
+        model.attr(['body'], { rx, ry }, { ui: true, tool: tool.cid });
+    }
+});
 rectangle.findView(paper).addTools(new dia.ToolsView({
-    tools: [new elementTools.Control({
-        // getPosition: function(view) {
-        //     const { x, y } = view.model.getBBox();
-        //     const rx = view.model.attr(['body', 'rx']) || 0;
-        //     const ry = view.model.attr(['body', 'ry']) || 0;
-        //     return { x: x + rx, y: y + ry };
-        // },
-        // setPosition: function(view, coordinates, tool) {
-        //     const { model } = view;
-        //     const { x, y, width, height } = model.getBBox();
-        //     let ry = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
-        //     let rx = Math.min(Math.max((coordinates.x - x), 0), width) / 2;
-        //     if (Math.abs(ry - rx) < 10) {
-        //         rx = ry = Math.max(rx, ry);
-        //     }
-        //     model.attr(['body'],{ rx, ry }, { ui: true, tool: tool.cid });
-        // },
-        defaultHandleAttributes: {
-            'stroke-width': 2,
-            'stroke': '#FFFFFF',
-            'fill': '#5654a0',
-            'r': 6
-        },
-        getPosition: function(view) {
-            const { x, y } = view.model.getBBox();
-            const ry = view.model.attr(['body', 'ry']) || 0;
-            return { x: x, y: y + ry };
-        },
-        setPosition: function(view, coordinates, tool) {
-            const { model } = view;
-            const { y, height } = model.getBBox();
-            const ry = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
-            const rx = ry;
-            model.attr(['body'], { rx, ry }, { ui: true, tool: tool.cid });
-        },
-        areaSelector: 'body'
-    })]
+    tools: [new RadiusTool({ handleAttributes: { fill: 'orange' }})]
 }));
 
 var circle = new standard.Circle();
@@ -138,22 +115,22 @@ cylinder.attr('top/fill','#fe854f');
 cylinder.attr('top/fillOpacity', 0.8);
 cylinder.attr('label/text', 'Cylinder');
 cylinder.addTo(graph);
+var CylinderTiltTool = elementTools.Control.extend({
+    getPosition: function(view) {
+        const { model } = view;
+        const { x, y, width } = model.getBBox();
+        const tilt = model.topRy();
+        return { x: x + width / 2, y: y + 2 * tilt };
+    },
+    setPosition: function(view, coordinates, tool) {
+        const { model } = view;
+        const { y, height } = model.getBBox();
+        const tilt = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
+        model.topRy(tilt, { ui: true, tool: tool.cid });
+    },
+});
 cylinder.findView(paper).addTools(new dia.ToolsView({
-    tools: [new elementTools.Control({
-        getPosition: function(view) {
-            const { model } = view;
-            const { x, y, width } = model.getBBox();
-            const tilt = model.topRy();
-            return { x: x + width / 2, y: y + 2 * tilt };
-        },
-        setPosition: function(view, coordinates, tool) {
-            const { model } = view;
-            const { y, height } = model.getBBox();
-            const tilt = Math.min(Math.max((coordinates.y - y), 0), height) / 2;
-            model.topRy(tilt, { ui: true, tool: tool.cid });
-        },
-        areaSelector: 'body'
-    })]
+    tools: [new CylinderTiltTool()]
 }));
 
 var image = new standard.Image();
