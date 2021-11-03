@@ -9,7 +9,9 @@ module.exports = {
         'no-undef': ['error'],
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         'quotes': ['error', 'single'],
-        'semi': ['error', 'always']
+        'semi': ['error', 'always'],
+        'no-prototype-builtins': ['off'],
+        'no-redeclare': ['error']
     },
     'env': {
         'browser': true,
@@ -21,6 +23,6 @@ module.exports = {
     },
     'parserOptions': {
         'ecmaVersion': 6,
-        sourceType: 'module'
+        'sourceType': 'module'
     }
 };

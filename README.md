@@ -103,6 +103,15 @@ To run code style checks:
 grunt test:code-style
 ```
 
+### Lint
+
+To auto fix errors, run eslint for src and type directories:
+
+```
+npm run lint
+```
+If using vscode, you should see changes upon saving file.
+
 ### Code Coverage Reports
 
 To output a code coverage report in HTML:
