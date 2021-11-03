@@ -10,8 +10,7 @@ module.exports = {
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         'quotes': ['error', 'single'],
         'semi': ['error', 'always'],
-        'no-prototype-builtins': ['off'],
-        'no-redeclare': ['error']
+        'no-prototype-builtins': ['off']
     },
     'env': {
         'browser': true,
