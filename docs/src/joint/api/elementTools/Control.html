@@ -52,9 +52,7 @@ abstract class Control<T = Control.Options> extends dia.ToolView {
 </table>
 
 
-<p>Here's an example of a tool, which provides the user a way to modify a rectangle border radius.
-
-ES5 example of a custom control:</p>
+<p>Here's an ES5 example of a tool, which provides the user a way to modify the border radius of an rectangle.</p>
 
 <pre><code>var RadiusTool = elementTools.Control.extend({
 
@@ -78,7 +76,7 @@ ES5 example of a custom control:</p>
     }
 });</code></pre>
 
-<p>TS example of a custom control:</p>
+<p>TypeScript example of the same control:</p>
 
 <pre><code>interface RadiusControlOptions extends elementTools.Control.Options {
     defaultRadius?: number;
@@ -102,7 +100,7 @@ class RadiusControl extends elementTools.Control<RadiusControlOptions> {
     protected resetPosition(view): void {
         const { model } = view;
         const { defaultRadius = 0 } = this.options;
-        model.attr(['body'], { rx: defaultRadius, ry: defautRadius });
+        model.attr(['body'], { rx: defaultRadius, ry: defaultRadius });
     }
 }</code></pre>
 
