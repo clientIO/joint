@@ -452,7 +452,7 @@ export namespace g {
 
         adhereToRect(r: Rect): this;
 
-        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
+        angleBetween(p1: PlainPoint, p2: PlainPoint): number;
 
         bearing(p: Point): CardinalDirection;
 
@@ -460,7 +460,7 @@ export namespace g {
 
         clone(): Point;
 
-        cross(p1: PlainPoint, p2: PlainPoint) : number;
+        cross(p1: PlainPoint, p2: PlainPoint): number;
 
         difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
@@ -512,7 +512,7 @@ export namespace g {
         update(x?: number, y?: number): this;
         update(p: PlainPoint): this;
 
-        vectorAngle(p: PlainPoint) : number;
+        vectorAngle(p: PlainPoint): number;
 
         static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
 

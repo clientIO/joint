@@ -803,11 +803,11 @@ export const Cell = Backbone.Model.extend({
 
         var Cell = this.extend(protoProps, staticProps);
         // es5 backward compatibility
-        /* global joint: true */
+        /* eslint-disable no-undef */
         if (typeof joint !== 'undefined' && has(joint, 'shapes')) {
             setByPath(joint.shapes, type, Cell, '.');
         }
-        /* global joint: false */
+        /* eslint-enable no-undef */
         return Cell;
     }
 });

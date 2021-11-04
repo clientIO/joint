@@ -336,9 +336,9 @@ export const Paper = View.extend({
 
         const { options, el } = this;
         if (!options.cellViewNamespace) {
-            /* global joint: true */
+            /* eslint-disable no-undef */
             options.cellViewNamespace = typeof joint !== 'undefined' && has(joint, 'shapes') ? joint.shapes : null;
-            /* global joint: false */
+            /* eslint-enable no-undef */
         }
 
         const model = this.model = options.model || new Graph;
@@ -459,11 +459,11 @@ export const Paper = View.extend({
         } = options;
 
         // Default cellView namespace for ES5
-        /* global joint: true */
+        /* eslint-disable no-undef */
         if (!cellViewNamespace && typeof joint !== 'undefined' && has(joint, 'shapes')) {
             options.cellViewNamespace = joint.shapes;
         }
-        /* global joint: false */
+        /* eslint-enable no-undef */
 
         // Here if a function was provided, we can not clone it, as this would result in loosing the function.
         // If the default is used, the cloning is necessary in order to prevent modifying the options on prototype.

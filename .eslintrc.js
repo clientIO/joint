@@ -1,4 +1,3 @@
-
 module.exports = {
     'extends': 'eslint:recommended',
     'rules': {
@@ -10,18 +9,19 @@ module.exports = {
         'no-undef': ['error'],
         'no-unused-vars': ['error', { 'vars': 'local', 'args': 'none' }],
         'quotes': ['error', 'single'],
-        'semi': ['error', 'always']
+        'semi': ['error', 'always'],
+        'no-prototype-builtins': ['off']
     },
     'env': {
         'browser': true,
         'node': true
     },
     'globals': {
-       'Uint8Array': true,
-       'CDATASection': true
+        'Uint8Array': true,
+        'CDATASection': true
     },
     'parserOptions': {
         'ecmaVersion': 6,
-        sourceType: 'module'
+        'sourceType': 'module'
     }
 };

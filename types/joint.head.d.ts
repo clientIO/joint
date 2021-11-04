@@ -11,6 +11,6 @@
 
 /// <reference types="backbone" />
 
-import * as Backbone from "backbone";
+import * as Backbone from 'backbone';
 
 export as namespace joint;

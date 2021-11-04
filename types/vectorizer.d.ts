@@ -138,7 +138,7 @@ export class Vectorizer {
 
     bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
 
-    getBBox(opt?: Vectorizer.GetBBoxOptions) : g.Rect;
+    getBBox(opt?: Vectorizer.GetBBoxOptions): g.Rect;
 
     text(content: string, opt?: Vectorizer.TextOptions): this;
 
@@ -161,7 +161,7 @@ export class Vectorizer {
 
     before(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
 
-    appendTo(el: SVGElement | Vectorizer) : this;
+    appendTo(el: SVGElement | Vectorizer): this;
 
     parent(): Vectorizer | null;
 
