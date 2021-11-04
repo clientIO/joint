@@ -25,7 +25,7 @@ var CylinderTiltTool = elementTools.Control.extend({
     setPosition: function(view, coordinates) {
         var model = view.model;
         var size = model.size();
-        var tilt = Math.min(Math.max((coordinates.y), 0), size.height) / 2;
+        var tilt = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
         model.topRy(tilt, { ui: true, tool: this.cid });
     }
 });
@@ -38,8 +38,8 @@ var RadiusTool = elementTools.Control.extend({
     },
     setPosition: function(view, coordinates) {
         var model = view.model;
-        var size = model.getBBox();
-        var ry = Math.min(Math.max((coordinates.y), 0), size.height) / 2;
+        var size = model.size();
+        var ry = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
         model.attr(['body'], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
     }
 });

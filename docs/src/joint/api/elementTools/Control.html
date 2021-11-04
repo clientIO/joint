@@ -102,7 +102,7 @@ class RadiusControl extends elementTools.Control<RadiusControlOptions> {
     protected resetPosition(view): void {
         const { model } = view;
         const { defaultRadius = 0 } = this.options;
-        model.attr(['body'], { rx: radius, ry: radius });
+        model.attr(['body'], { rx: defaultRadius, ry: defautRadius });
     }
 }</code></pre>
 
