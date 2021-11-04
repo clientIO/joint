@@ -114,7 +114,7 @@ npm run lint
 To auto fix errors, run eslint for src and type directories:
 
 ```
-npm run lint_fix
+npm run lint:fix
 ```
 
 ### Code Coverage Reports
