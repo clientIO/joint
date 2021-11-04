@@ -105,12 +105,17 @@ grunt test:code-style
 
 ### Lint
 
-To auto fix errors, run eslint for src and type directories:
+To check for linting errors in src and type directories:
 
 ```
 npm run lint
 ```
-If using vscode, you should see changes upon saving file.
+
+To auto fix errors, run eslint for src and type directories:
+
+```
+npm run lint_fix
+```
 
 ### Code Coverage Reports
 

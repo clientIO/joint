@@ -116,9 +116,9 @@ export const DirectedGraph = {
             exportLink: this.exportLink
         });
 
-        /* global dagre: true */
+        /* eslint-disable no-undef */
         const dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
-        /* global dagre: false */
+        /* eslint-enable no-undef */
 
         if (dagreUtil === undefined) throw new Error('The the "dagre" utility is a mandatory dependency.');
 
@@ -239,9 +239,9 @@ export const DirectedGraph = {
 
         opt = opt || {};
 
-        /* global graphlib: true */
+        /* eslint-disable no-undef */
         const graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
-        /* global graphlib: false */
+        /* eslint-enable no-undef */
 
         if (graphlibUtil === undefined) throw new Error('The the "graphlib" utility is a mandatory dependency.');
 

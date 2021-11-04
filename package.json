@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "test": "grunt test",
-    "lint": "eslint types/**/*.d.ts src/**/*.mjs --fix"
+    "lint": "eslint types/**/*.d.ts src/**/*.mjs",
+    "lint_fix": "eslint types/**/*.d.ts src/**/*.mjs --fix"
   },
   "sideEffects": false,
   "version": "3.4.4",
