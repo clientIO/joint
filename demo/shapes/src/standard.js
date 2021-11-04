@@ -18,15 +18,14 @@ dia.attributes.placeholderURL = {
 var CylinderTiltTool = elementTools.Control.extend({
     getPosition: function(view) {
         var model = view.model;
-        var bbox = model.getBBox();
+        var size = model.size();
         var tilt = model.topRy();
-        return model.getPointFromUnrotatedPoint(bbox.x + bbox.width / 2, bbox.y + 2 * tilt);
+        return { x: size.width / 2, y: 2 * tilt };
     },
     setPosition: function(view, coordinates) {
         var model = view.model;
-        var bbox = model.getBBox();
-        var point = model.getUnrotatedPointFromPoint(coordinates);
-        var tilt = Math.min(Math.max((point.y - bbox.y), 0), bbox.height) / 2;
+        var size = model.size();
+        var tilt = Math.min(Math.max((coordinates.y), 0), size.height) / 2;
         model.topRy(tilt, { ui: true, tool: this.cid });
     }
 });
@@ -34,15 +33,13 @@ var CylinderTiltTool = elementTools.Control.extend({
 var RadiusTool = elementTools.Control.extend({
     getPosition: function(view) {
         var model = view.model;
-        var bbox = model.getBBox();
         var radius = model.attr(['body', 'ry']) || 0;
-        return model.getPointFromUnrotatedPoint(bbox.x, bbox.y + radius);
+        return { x: 0, y: radius };
     },
     setPosition: function(view, coordinates) {
         var model = view.model;
-        var bbox = model.getBBox();
-        var point = model.getUnrotatedPointFromPoint(coordinates);
-        var ry = Math.min(Math.max((point.y - bbox.y), 0), bbox.height) / 2;
+        var size = model.getBBox();
+        var ry = Math.min(Math.max((coordinates.y), 0), size.height) / 2;
         model.attr(['body'], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
     }
 });

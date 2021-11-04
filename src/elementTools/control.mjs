@@ -72,8 +72,15 @@ export const Control = ToolView.extend({
     },
     updateHandle: function(handleNode) {
         const { relatedView, options } = this;
-        const position = this.getPosition(relatedView, this);
-        handleNode.setAttribute('transform', `translate(${position.x},${position.y})`);
+        const { model } = relatedView;
+        const relativePos = this.getPosition(relatedView, this);
+        const absolutePos = model
+            // Rotate the position to take the model angle into account
+            .getPointFromUnrotatedPoint(
+                // Transform the relative position to absolute
+                model.position().offset(relativePos)
+            );
+        handleNode.setAttribute('transform', `translate(${absolutePos.x},${absolutePos.y})`);
         const { handleAttributes } = options;
         if (handleAttributes) {
             for (let attrName in handleAttributes) {
@@ -83,8 +90,13 @@ export const Control = ToolView.extend({
     },
     updateExtras: function(extrasNode) {
         const { relatedView, options } = this;
-        const [magnet] = relatedView.findBySelector(options.selector);
-        if (!magnet) return;
+        const { selector } = this.options;
+        if (!selector) {
+            this.toggleExtras(false);
+            return;
+        }
+        const [magnet] = relatedView.findBySelector(selector);
+        if (!magnet) throw new Error('Control: invalid selector.');
         let padding = options.padding;
         if (!isFinite(padding)) padding = 0;
         const bbox = relatedView.getNodeUnrotatedBBox(magnet);
@@ -117,9 +129,15 @@ export const Control = ToolView.extend({
     },
     onPointerMove: function(evt) {
         const { relatedView, paper } = this;
+        const { model } = relatedView;
         const { clientX, clientY } = util.normalizeEvent(evt);
         const coords = paper.clientToLocalPoint(clientX, clientY);
-        this.setPosition(relatedView, coords, this);
+        const relativeCoords = model
+            // Rotate the coordinates to mitigate the element's rotation.
+            .getUnrotatedPointFromPoint(coords)
+            // Transform the absolute position into relative
+            .difference(model.position());
+        this.setPosition(relatedView, relativeCoords, this);
         this.update();
     },
     onPointerUp: function(_evt) {
