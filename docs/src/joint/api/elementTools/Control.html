@@ -68,7 +68,7 @@ abstract class Control<T = Control.Options> extends dia.ToolView {
     setPosition: function(view, coordinates) {
         var model = view.model;
         var size = model.size();
-        var tilt = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
+        var tilt = Math.min(Math.max(coordinates.y, 0), size.height / 2);
         model.topRy(tilt, { ui: true, tool: this.cid });
     },
 
@@ -95,7 +95,7 @@ class RadiusControl extends elementTools.Control<RadiusControlOptions> {
     protected setPosition(view: dia.ElementView, coordinates: dia.Point): void {
         const { model } = view;
         const { height } = model.size();
-        const radius = Math.min(Math.max(coordinates.y, 0), height) / 2;
+        const radius = Math.min(Math.max(coordinates.y, 0), height / 2);
         model.attr(['body'], { rx: radius, ry: radius  });
     }
 
