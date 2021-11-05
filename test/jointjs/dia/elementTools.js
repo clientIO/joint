@@ -135,7 +135,7 @@ QUnit.module('elementTools', function(hooks) {
                 var angle = testCase.angle;
                 var position = { x: 10, y: 10 };
                 var CustomControl = joint.elementTools.Control.extend({
-                    getPosition() { return position; }
+                    getPosition: function() { return position; }
                 });
                 var control = new CustomControl;
                 element.rotate(angle);
