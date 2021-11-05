@@ -786,16 +786,28 @@ export const Cell = Backbone.Model.extend({
         return new g.Rect(0, 0, 0, 0);
     },
 
-    getUnrotatedPointFromPoint(x, y, sign = 1) {
-        const angle = this.angle();
+    getPointRotatedAroundCenter(angle, x, y) {
         const point = new g.Point(x, y);
-        if (angle) point.rotate(this.getBBox().center(), sign * angle);
+        if (angle) point.rotate(this.getBBox().center(), angle);
         return point;
     },
 
-    getPointFromUnrotatedPoint(x, y) {
-        return this.getUnrotatedPointFromPoint(x, y, -1);
+    getAbsolutePointFromRelative(x, y) {
+        // Rotate the position to take the model angle into account
+        return this.getPointRotatedAroundCenter(
+            -this.angle(),
+            // Transform the relative position to absolute
+            this.position().offset(x, y)
+        );
     },
+
+    getRelativePointFromAbsolute(x, y) {
+        return this
+            // Rotate the coordinates to mitigate the element's rotation.
+            .getPointRotatedAroundCenter(this.angle(), x, y)
+            // Transform the absolute position into relative
+            .difference(this.position());
+    }
 
 }, {
 

@@ -54,6 +54,8 @@ abstract class Control<T = Control.Options> extends dia.ToolView {
 
 <p>Here's an ES5 example of a tool, which provides the user a way to modify the border radius of an rectangle.</p>
 
+<iframe src="about:blank" data-src="demo/elementTools/control.html" style="height: 426px; width: 423px;"></iframe>
+
 <pre><code>var RadiusTool = elementTools.Control.extend({
 
     getPosition: function(view) {
@@ -111,8 +113,6 @@ class RadiusControl extends elementTools.Control<RadiusControlOptions> {
         new RadiusTool({ handleAttributes: { fill: 'orange' }})
     ]
 }));</code></pre>
-
-
 
 
 

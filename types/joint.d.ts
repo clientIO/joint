@@ -374,11 +374,14 @@ export namespace dia {
 
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
-        getPointFromUnrotatedPoint(x: number, y: number): g.Point;
-        getPointFromUnrotatedPoint(point: dia.Point): g.Point;
+        getPointRotatedAroundCenter(angle: number, x: number, y: number): g.Point;
+        getPointRotatedAroundCenter(angle: number, point: dia.Point): g.Point;
 
-        getUnrotatedPointFromPoint(x: number, y: number): g.Point;
-        getUnrotatedPointFromPoint(point: dia.Point): g.Point;
+        getRelativePointFromAbsolute(x: number, y: number): g.Point;
+        getRelativePointFromAbsolute(absolutePoint: dia.Point): g.Point;
+
+        getAbsolutePointFromRelative(x: number, y: number): g.Point;
+        getAbsolutePointFromRelative(relativePoint: dia.Point): g.Point;
 
         getChangeFlag(attributes: { [key: string]: number }): number;
 
@@ -3759,7 +3762,7 @@ export namespace elementTools {
         }
     }
 
-    class Control<T = Control.Options> extends dia.ToolView {
+    abstract class Control<T = Control.Options> extends dia.ToolView {
         options: T;
         constructor(opt?: T);
 
