@@ -118,6 +118,7 @@ interface VCallable extends VStatic {
         children?: VElement | VElement[] | SVGElement | SVGElement[]
     ): VElement;
 }
+
 export class VElement {
 
     id: string;
