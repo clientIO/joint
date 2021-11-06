@@ -3,6 +3,7 @@ export type V = VElement;
 
 export const Vectorizer: VCallable;
 export type Vectorizer = VElement;
+
 export namespace Vectorizer {
     interface RotateOptions {
         absolute?: boolean;
