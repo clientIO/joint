@@ -117,8 +117,6 @@ interface VCallable extends VStatic {
         attrs?: { [key: string]: any },
         children?: VElement | VElement[] | SVGElement | SVGElement[]
     ): VElement;
-
-    prototype: VElement;
 }
 export class VElement {
 
@@ -317,4 +315,6 @@ interface VStatic {
     normalizePathData(path: string): string;
 
     toNode(el: SVGElement | VElement | SVGElement[]): SVGElement;
+
+    prototype: VElement;
 }
