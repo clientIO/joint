@@ -9,8 +9,13 @@ module.exports = {
         '$': true,
         '_': true
     },
-    'rules': {
-        // Exceptions currently used in tutorial directory
-        'no-unused-vars': ['off']
-    }
+    'overrides': [{
+        'files': [
+            'js/pipes.js'
+        ],
+        'rules': {
+            // Exceptions currently used in tutorial directory
+            'no-unused-vars': ['off']
+        }
+    }]
 };

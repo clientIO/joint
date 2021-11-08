@@ -98,10 +98,6 @@ To run only the client-side tests:
 grunt test:client
 ```
 
-To run code style checks:
-```
-grunt test:code-style
-```
 
 ### Lint
 
