@@ -1,7 +1,7 @@
 import * as joint from '../../../build/joint';
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorker from 'elkjs/lib/elk-worker.js';
-import { Child, Label, Edge } from "./shapes";
+import { Child, Label, Edge } from './shapes';
 import elkGraph from '../elkGraph.json';
 
 export const init = () => {
@@ -142,7 +142,7 @@ export const init = () => {
         addEdges(edges);
 
         paper.unfreeze();
-        paper.fitToContent({ useModelGeometry: true, padding: 100, allowNewOrigin: 'any' })
+        paper.fitToContent({ useModelGeometry: true, padding: 100, allowNewOrigin: 'any' });
     });
 
     canvas.appendChild(paper.el);
@@ -155,8 +155,8 @@ const addZoomListeners = paper => {
 
     const zoom = zoomLevel => {
         paper.scale(zoomLevel);
-        paper.fitToContent({ useModelGeometry: true, padding: 100 * zoomLevel, allowNewOrigin: 'any' })
-    }
+        paper.fitToContent({ useModelGeometry: true, padding: 100 * zoomLevel, allowNewOrigin: 'any' });
+    };
 
     document.getElementById('zoom-in').addEventListener('click', () => {
         zoomLevel = Math.min(3, zoomLevel + 0.2);
@@ -167,7 +167,7 @@ const addZoomListeners = paper => {
         zoomLevel = Math.max(0.2, zoomLevel - 0.2);
         zoom(zoomLevel);
     });
-}
+};
 
 const placementsOptions = {
     H_RIGHT: 'H_RIGHT',
@@ -176,7 +176,7 @@ const placementsOptions = {
     V_TOP: 'V_TOP',
     V_BOTTOM: 'V_BOTTOM',
     V_CENTER: 'V_CENTER',
-}
+};
 
 const getLabelPlacement = label => {
     const placement = {};
@@ -203,4 +203,4 @@ const getLabelPlacement = label => {
     }
 
     return placement;
-}
+};

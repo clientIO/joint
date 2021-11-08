@@ -41,7 +41,7 @@ var g6 = new joint.shapes.basic.Circle({
 });
 
 _.times(36, function(index) {
-    g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index } } });
+    g6.addPort({ group: 'a', id: index + '', attrs: { text: { text: index }}});
 });
 
 paper6.model.addCell(g6);

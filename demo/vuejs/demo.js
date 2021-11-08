@@ -62,13 +62,13 @@ var TaskComponent = {
 
         var taskElement = Vue.ref(null);
         var taskElementPosition = Vue.shallowRef({ x: 0, y: 0 });
-        var taskElementStyle = Vue.computed(function () {
+        var taskElementStyle = Vue.computed(function() {
             return {
                 top: (taskElementPosition.value.y || 0) + 'px',
                 left: (taskElementPosition.value.x || 0) + 'px',
                 transform: 'scale(' + props.scale + ')',
                 transformOrigin: '0 0',
-            }
+            };
         });
 
         // Update task element position to match the graph Element View
@@ -80,7 +80,7 @@ var TaskComponent = {
             }
         }
 
-        Vue.onMounted(function () {
+        Vue.onMounted(function() {
             // Resize the graph Element to match the task element ...
             graph.getCell(props.id).resize(taskElement.value.offsetWidth, taskElement.value.offsetHeight);
             // ... and update task element position afterwards
@@ -89,13 +89,13 @@ var TaskComponent = {
 
         // React to changes of position/scale
         Vue.watch(
-            function () {
+            function() {
                 return {
                     position: props.position,
                     scale: props.scale,
                 };
             },
-            updateTaskElementPosition,
+            updateTaskElementPosition
         );
 
         return {
@@ -133,7 +133,7 @@ var JointPaperComponent = {
         Vue.provide('paperContext', paperContext);
 
         // Create JointJS Paper (after the paper element is available)
-        Vue.onMounted(function () {
+        Vue.onMounted(function() {
             paperContext.paper = new joint.dia.Paper({
                 el: paperElement.value,
                 model: graph,
@@ -151,13 +151,13 @@ var JointPaperComponent = {
          * too many updates and cause performance issues.
         */
         var htmlElements = Vue.shallowRef(
-            graph.getElements().map(function (cell) {
-                return { id: cell.get('id'), position: cell.get('position')};
+            graph.getElements().map(function(cell) {
+                return { id: cell.get('id'), position: cell.get('position') };
             })
         );
 
         // Track positions of graph elements
-        graph.on('change:position', function (cell) {
+        graph.on('change:position', function(cell) {
             for (var i = 0; i < htmlElements.value.length; i += 1) {
                 if (htmlElements.value[i].id === cell.get('id')) {
                     htmlElements.value[i].position = cell.get('position');
@@ -169,8 +169,8 @@ var JointPaperComponent = {
 
         // React to changes of scale
         Vue.watch(
-            function () { return scale.value; },
-            function (value) {
+            function() { return scale.value; },
+            function(value) {
                 var size = paperContext.paper.getComputedSize();
                 paperContext.paper.translate(0, 0);
                 paperContext.paper.scale(value, value, size.width / 2, size.height / 2);
@@ -224,8 +224,8 @@ var app = Vue.createApp({
             graph.getCell('taskB').position(297, 100);
             graph.getCell('taskC').position(576, 100);
 
-            Object.entries(DATA.tasks).forEach(function ([taskId, task]) {
-                Object.entries(task).forEach(function ([key, value]) {
+            Object.entries(DATA.tasks).forEach(function([taskId, task]) {
+                Object.entries(task).forEach(function([key, value]) {
                     handleTaskChange(taskId, key, value);
                 });
             });

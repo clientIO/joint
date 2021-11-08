@@ -1657,7 +1657,7 @@ function MakeMove(move){
     if (flags) {
         if (flags & moveflagCastleKing) {
             if (IsSquareAttackable(from + 1, otherColor) ||
-            	IsSquareAttackable(from + 2, otherColor)) {
+                IsSquareAttackable(from + 2, otherColor)) {
                 g_moveCount--;
                 return false;
             }
@@ -1680,7 +1680,7 @@ function MakeMove(move){
             g_pieceList[((rook & 0xF) << 4) | rookIndex] = to - 1;
         } else if (flags & moveflagCastleQueen) {
             if (IsSquareAttackable(from - 1, otherColor) ||
-            	IsSquareAttackable(from - 2, otherColor)) {
+                IsSquareAttackable(from - 2, otherColor)) {
                 g_moveCount--;
                 return false;
             }

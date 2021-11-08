@@ -40,7 +40,7 @@ var g3 = new joint.shapes.basic.Circle({
 
 
 _.times(10, function(index) {
-    g3.addPort({ attrs: { text: { text: 'L ' + index } }, group: 'a' });
+    g3.addPort({ attrs: { text: { text: 'L ' + index }}, group: 'a' });
 });
 
 g3.addPort({
@@ -74,7 +74,7 @@ var g33 = new joint.shapes.basic.Rect({
                     name: 'top',
                     args: { dr: 0, dx: 0, dy: -9 }
                 },
-                label: { position: { name: 'left', args: { offset: 12 } } },
+                label: { position: { name: 'left', args: { offset: 12 }}},
                 attrs: {
                     circle: { fill: '#ffffff', stroke: '#31d0c6', 'stroke-width': 2, r: 10 },
                     text: { fill: '#6a6c8a' }
@@ -85,7 +85,7 @@ var g33 = new joint.shapes.basic.Rect({
 });
 
 _.times(3, function(index) {
-    g33.addPort({ attrs: { text: { text: 'L' + index }, circle: { magnet: true } }, group: 'a' });
+    g33.addPort({ attrs: { text: { text: 'L' + index }, circle: { magnet: true }}, group: 'a' });
 });
 
 g33.addPort({

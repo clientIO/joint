@@ -91,6 +91,6 @@ module.exports = function(grunt) {
                 coverageReporter: karmaCoverageReporters('joint')
             }
         }
-    }
+    };
 };
 

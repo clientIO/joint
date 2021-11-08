@@ -115,9 +115,9 @@ svg.append(curvePath);
 var text = V('text', { x: 250, y: 30, fill: 'black' });
 
 text.text('This is a rich text.\nThis text goes to multiple lines.', { lineHeight: 'auto', annotations: [
-    { start: 5, end: 10, attrs: { fill: 'red', 'font-size': 30, rotate: '20' } },
-    { start: 7, end: 15, attrs: { fill: 'blue' } },
-    { start: 20, end: 30, attrs: { fill: 'blue', 'class': 'text-link', style: 'text-decoration: underline' } }
+    { start: 5, end: 10, attrs: { fill: 'red', 'font-size': 30, rotate: '20' }},
+    { start: 7, end: 15, attrs: { fill: 'blue' }},
+    { start: 20, end: 30, attrs: { fill: 'blue', 'class': 'text-link', style: 'text-decoration: underline' }}
 ], includeAnnotationIndices: true });
 
 svg.append(text);

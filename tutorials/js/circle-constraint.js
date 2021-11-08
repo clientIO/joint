@@ -42,10 +42,10 @@
         position: constraint.intersectionWithLineFromCenterToPoint(g.point(100, 100)).offset(-20, -20),
         size: { width: 40, height: 40 },
         attrs: {
-            text: { text: 'earth', 'font-size': 12, fill: 'white', style: { 'text-shadow': '1px 1px 1px black' } },
+            text: { text: 'earth', 'font-size': 12, fill: 'white', style: { 'text-shadow': '1px 1px 1px black' }},
             circle: { fill: '#2ECC71', stroke: '#27AE60', 'stroke-width': 1 }
         },
         name: 'earth'
     });
     graph.addCell(earth);
-}())
+}());

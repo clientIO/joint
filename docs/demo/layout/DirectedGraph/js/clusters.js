@@ -25,7 +25,7 @@
     function makeElement(attrs) {
         var el = new joint.shapes.basic.Rect({
             size: { width: 30, height: 30 },
-            attrs: { rect: { rx: 2, ry: 2, fill: '#31D0C6', stroke: '#4B4A67', 'stroke-width': 2 }, text: { text: 'rect', fill: 'white' } }
+            attrs: { rect: { rx: 2, ry: 2, fill: '#31D0C6', stroke: '#4B4A67', 'stroke-width': 2 }, text: { text: 'rect', fill: 'white' }}
         });
         el.attr(attrs);
         return el;
