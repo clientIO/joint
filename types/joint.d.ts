@@ -3758,7 +3758,7 @@ export namespace elementTools {
         interface Options extends dia.ToolView.Options {
             selector?: string | null;
             padding?: number;
-            handleAttributes?: Partial<attributes.NativeSVGAttributes>
+            handleAttributes?: Partial<attributes.NativeSVGAttributes>;
         }
     }
 
