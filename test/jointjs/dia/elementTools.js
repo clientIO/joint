@@ -123,6 +123,39 @@ QUnit.module('elementTools', function(hooks) {
         });
     });
 
+    QUnit.module('Control', function() {
+        [{
+            angle: 0
+        }, {
+            angle: 45
+        }, {
+            angle: 90
+        }].forEach(function(testCase) {
+            QUnit.test('position (angle ' + testCase.angle + ')', function(assert) {
+                var angle = testCase.angle;
+                var position = { x: 10, y: 10 };
+                var CustomControl = joint.elementTools.Control.extend({
+                    getPosition: function() { return position; }
+                });
+                var control = new CustomControl;
+                element.rotate(angle);
+                elementView.addTools(new joint.dia.ToolsView({ tools: [control] }));
+                var bbox = element.getBBox();
+                // 1. `getPosition()`
+                var resultingPosition = control.vel.getBBox({ target: paper.svg }).center();
+                var expectedPosition = element.position().offset(position).rotate(bbox.center(), -angle);
+                assert.ok(resultingPosition.round().equals(expectedPosition.round()));
+                // 2. `update`
+                position.x = bbox.width;
+                position.y = bbox.height;
+                control.update();
+                resultingPosition = control.vel.getBBox({ target: paper.svg }).center();
+                expectedPosition = element.position().offset(position).rotate(bbox.center(), -angle);
+                assert.ok(resultingPosition.round().equals(expectedPosition.round()));
+            });
+        });
+    });
+
     QUnit.module('Connect', function() {
         QUnit.test('options: magnet', function(assert) {
             var newLink;

@@ -3,6 +3,7 @@
 var dia = joint.dia;
 var util = joint.util;
 var standard = joint.shapes.standard;
+var elementTools = joint.elementTools;
 
 // Custom attribute for retrieving image placeholder with specific size
 dia.attributes.placeholderURL = {
@@ -14,8 +15,37 @@ dia.attributes.placeholderURL = {
     }
 };
 
+var CylinderTiltTool = elementTools.Control.extend({
+    getPosition: function(view) {
+        var model = view.model;
+        var size = model.size();
+        var tilt = model.topRy();
+        return { x: size.width / 2, y: 2 * tilt };
+    },
+    setPosition: function(view, coordinates) {
+        var model = view.model;
+        var size = model.size();
+        var tilt = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
+        model.topRy(tilt, { ui: true, tool: this.cid });
+    }
+});
+
+var RadiusTool = elementTools.Control.extend({
+    getPosition: function(view) {
+        var model = view.model;
+        var radius = model.attr(['body', 'ry']) || 0;
+        return { x: 0, y: radius };
+    },
+    setPosition: function(view, coordinates) {
+        var model = view.model;
+        var size = model.size();
+        var ry = Math.min(Math.max(coordinates.y, 0), size.height) / 2;
+        model.attr(['body'], { rx: ry, ry: ry }, { ui: true, tool: this.cid });
+    }
+});
+
 var graph = new dia.Graph();
-new dia.Paper({
+var paper = new dia.Paper({
     el: document.getElementById('paper'),
     width: 650,
     height: 800,
@@ -32,6 +62,9 @@ rectangle.attr('body/fill', '#30d0c6');
 rectangle.attr('body/fillOpacity', 0.5);
 rectangle.attr('label/text', 'Rectangle');
 rectangle.addTo(graph);
+rectangle.findView(paper).addTools(new dia.ToolsView({
+    tools: [new RadiusTool({ handleAttributes: { fill: 'orange' }})]
+}));
 
 var circle = new standard.Circle();
 circle.resize(100, 100);
@@ -97,6 +130,9 @@ cylinder.attr('top/fill','#fe854f');
 cylinder.attr('top/fillOpacity', 0.8);
 cylinder.attr('label/text', 'Cylinder');
 cylinder.addTo(graph);
+cylinder.findView(paper).addTools(new dia.ToolsView({
+    tools: [new CylinderTiltTool({ selector: 'body' })]
+}));
 
 var image = new standard.Image();
 image.resize(150, 100);

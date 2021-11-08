@@ -1,3 +1,5 @@
+export * from './control.mjs';
+
 export {
     Button,
     Remove,

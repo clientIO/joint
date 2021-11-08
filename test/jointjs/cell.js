@@ -404,5 +404,63 @@ QUnit.module('cell', function(hooks) {
             assert.deepEqual(el.toJSON(), { id: 'el1', attrs: { test2: { prop2: true }}});
         });
     });
+
+    QUnit.module('relative vs absolute points', function() {
+
+        QUnit.test('getRelativePointFromAbsolute()', function(assert) {
+            var res;
+            var point = { x: 130, y: 130 };
+            var el = new joint.dia.Element({
+                size: { width: 30, height: 30 },
+                position: { x: 100, y: 100 },
+                angle: 0
+            });
+            // 0
+            res = el.getRelativePointFromAbsolute(point.x, point.y);
+            assert.equal(res.round().toString(), '30@30');
+            res = el.getRelativePointFromAbsolute(point);
+            assert.equal(res.round().toString(), '30@30');
+            // 90
+            el.rotate(90);
+            res = el.getRelativePointFromAbsolute(point.x, point.y);
+            assert.equal(res.round().toString(), '30@0');
+            res = el.getRelativePointFromAbsolute(point);
+            assert.equal(res.round().toString(), '30@0');
+            // -90
+            el.rotate(-180);
+            res = el.getRelativePointFromAbsolute(point.x, point.y);
+            assert.equal(res.round().toString(), '0@30');
+            res = el.getRelativePointFromAbsolute(point);
+            assert.equal(res.round().toString(), '0@30');
+        });
+
+        QUnit.test('getAbsolutePointFromAbsolute()', function(assert) {
+            var res;
+            var point = { x: 30, y: 30 };
+            var el = new joint.dia.Element({
+                size: { width: 30, height: 30 },
+                position: { x: 100, y: 100 },
+                angle: 0
+            });
+            // 0
+            res = el.getAbsolutePointFromRelative(point.x, point.y);
+            assert.equal(res.round().toString(), '130@130');
+            res = el.getAbsolutePointFromRelative(point);
+            assert.equal(res.round().toString(), '130@130');
+            // 90
+            el.rotate(90);
+            res = el.getAbsolutePointFromRelative(point.x, point.y);
+            assert.equal(res.round().toString(), '100@130');
+            res = el.getAbsolutePointFromRelative(point);
+            assert.equal(res.round().toString(), '100@130');
+            // -90
+            el.rotate(-180);
+            res = el.getAbsolutePointFromRelative(point.x, point.y);
+            assert.equal(res.round().toString(), '130@100');
+            res = el.getAbsolutePointFromRelative(point);
+            assert.equal(res.round().toString(), '130@100');
+        });
+    });
+
 });
 

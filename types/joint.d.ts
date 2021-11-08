@@ -374,6 +374,15 @@ export namespace dia {
 
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
 
+        getPointRotatedAroundCenter(angle: number, x: number, y: number): g.Point;
+        getPointRotatedAroundCenter(angle: number, point: dia.Point): g.Point;
+
+        getRelativePointFromAbsolute(x: number, y: number): g.Point;
+        getRelativePointFromAbsolute(absolutePoint: dia.Point): g.Point;
+
+        getAbsolutePointFromRelative(x: number, y: number): g.Point;
+        getAbsolutePointFromRelative(relativePoint: dia.Point): g.Point;
+
         getChangeFlag(attributes: { [key: string]: number }): number;
 
         static define(type: string, defaults?: any, protoProps?: any, staticProps?: any): Cell.Constructor<Cell>;
@@ -3743,6 +3752,32 @@ export namespace elementTools {
     class Boundary extends dia.ToolView {
 
         constructor(opt?: Boundary.Options);
+    }
+
+    namespace Control {
+        interface Options extends dia.ToolView.Options {
+            selector?: string | null;
+            padding?: number;
+            handleAttributes?: Partial<attributes.NativeSVGAttributes>;
+        }
+    }
+
+    abstract class Control<T = Control.Options> extends dia.ToolView {
+        options: T;
+        constructor(opt?: T);
+
+        protected getPosition(view: dia.ElementView): dia.Point;
+        protected setPosition(view: dia.ElementView, coordinates: g.Point): void;
+        protected resetPosition(view: dia.ElementView): void;
+
+        protected updateHandle(handleNode: SVGElement): void;
+        protected updateExtras(extrasNode: SVGElement): void;
+        protected toggleExtras(visible: boolean): void;
+
+        protected onPointerDown(evt: dia.Event): void;
+        protected onPointerMove(evt: dia.Event): void;
+        protected onPointerUp(evt: dia.Event): void;
+        protected onPointerDblClick(evt: dia.Event): void;
     }
 }
 
