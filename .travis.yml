@@ -9,3 +9,7 @@ install: npm install
 
 before_script:
   - grunt install
+
+script:
+  - npm run test
+  - npm run lint
