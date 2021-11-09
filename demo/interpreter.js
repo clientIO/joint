@@ -52,7 +52,7 @@ graph.on('signal', function(cell) {
 
         var token = V('circle', { r: 7, fill: 'green' });
         cell.findView(paper).sendToken(token, 1000, function() {
-	        targetCell.trigger('signal', targetCell);
+            targetCell.trigger('signal', targetCell);
         });
 
     } else {

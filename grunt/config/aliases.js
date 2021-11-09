@@ -58,7 +58,6 @@ module.exports = function(grunt) {
             'shell:rollup-test-bundle',
             'test:server',
             'test:client',
-            'test:code-style',
             'ts:test'
         ],
         'test:server': ['mochaTest:server'],
@@ -77,7 +76,6 @@ module.exports = function(grunt) {
             'qunit:vectorizer',
             'qunit:geometry'
         ],
-        'test:code-style': ['eslint'],
         'test:coverage': ['test:src'],
         'test:e2e': ['mochaTest:e2e'],
         'test:e2e:all': [

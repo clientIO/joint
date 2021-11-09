@@ -94,5 +94,5 @@ module.exports = function(grunt) {
                 { nonull: true, src: 'build/joint.css', dest: 'demo/ts-demo/vendor/joint.css' }
             ]
         }
-    }
+    };
 };

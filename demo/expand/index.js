@@ -207,7 +207,7 @@ var isCollapsed = function(cell, portId) {
 
 var runTests = function() {
 
-/////////////
+    /////////////
     a.hide();
     console.assert(aa.portProp('in1', 'collapsed'), 'aa in1 is collapsed');
 

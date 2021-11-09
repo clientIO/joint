@@ -24,7 +24,7 @@ var g2Rect = new joint.shapes.basic.Rect({
                         return g.point({ x: index * 12, y: y + elBBox.height });
                     });
                 },
-                label: { position: { name: 'manual', args: { attrs: { '.': { y: 40, 'text-anchor': 'middle' } } } } },
+                label: { position: { name: 'manual', args: { attrs: { '.': { y: 40, 'text-anchor': 'middle' }}}}},
 
                 attrs: {
                     rect: { fill: '#fe854f', width: 11 },
@@ -83,7 +83,7 @@ _.times(4, function() {
 _.times(24, function() {
     g2Rect.addPort({ group: 'reds' });
 });
-g2Rect.addPort({ group: 'reds', attrs: { text: { text: 'fn: sin(x)' } } });
+g2Rect.addPort({ group: 'reds', attrs: { text: { text: 'fn: sin(x)' }}});
 
 g2Rect.addPort({
     group: 'greens',

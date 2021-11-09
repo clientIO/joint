@@ -12,14 +12,14 @@ var paper = new joint.dia.Paper({
 
 var member = function(x, y, rank, name, image, background, textColor) {
 
-    textColor = textColor || "#000";
+    textColor = textColor || '#000';
 
     var cell = new joint.shapes.org.Member({
         position: { x: x, y: y },
         attrs: {
-            '.card': { fill: background, stroke: 'none'},
-              image: { 'xlink:href': 'images/'+ image, opacity: 0.7 },
-            '.rank': { text: rank, fill: textColor, 'word-spacing': '-5px', 'letter-spacing': 0},
+            '.card': { fill: background, stroke: 'none' },
+            image: { 'xlink:href': 'images/'+ image, opacity: 0.7 },
+            '.rank': { text: rank, fill: textColor, 'word-spacing': '-5px', 'letter-spacing': 0 },
             '.name': { text: name, fill: textColor, 'font-size': 13, 'font-family': 'Arial', 'letter-spacing': 0 }
         }
     });
@@ -57,9 +57,9 @@ var carl = member(190, 500, 'Manager', 'Carl Carlson', 'male.png', '#feb563');
 
 
 
-link(bart, marge, [{x: 385, y: 180}]);
-link(bart, homer, [{x: 385, y: 180}, {x: 175, y: 180}]);
-link(bart, lisa, [{x: 385, y: 180}, {x: 585, y: 180}]);
-link(homer, lenny, [{x:175 , y: 380}]);
-link(homer, carl, [{x:175 , y: 530}]);
-link(marge, maggie, [{x:385 , y: 380}]);
+link(bart, marge, [{ x: 385, y: 180 }]);
+link(bart, homer, [{ x: 385, y: 180 }, { x: 175, y: 180 }]);
+link(bart, lisa, [{ x: 385, y: 180 }, { x: 585, y: 180 }]);
+link(homer, lenny, [{ x:175 , y: 380 }]);
+link(homer, carl, [{ x:175 , y: 530 }]);
+link(marge, maggie, [{ x:385 , y: 380 }]);

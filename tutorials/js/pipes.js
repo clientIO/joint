@@ -103,8 +103,8 @@ var PatternLinkView = joint.dia.LinkView.extend({
 
         var ctx = canvas.getContext('2d');
         ctx.lineWidth = strokeWidth;
-        ctx.lineJoin = "round";
-        ctx.lineCap = "round";
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
 
         // iterate over the points and execute the drawing function
         // for each segment
@@ -169,7 +169,7 @@ var PatternLinkView = joint.dia.LinkView.extend({
         ctx.stroke();
         ctx.closePath();
 
-        ctx.lineCap = "square";
+        ctx.lineCap = 'square';
 
         ctx.beginPath();
         ctx.lineWidth = innerWidth;
