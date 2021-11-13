@@ -1296,6 +1296,83 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             paper.dumpViews();
             assert.equal(cellNodesCount(paper), 3);
         });
+
+        QUnit.module('stats', function() {
+
+            QUnit.module('priority', function() {
+
+                QUnit.test('in a single batch', function(assert) {
+                    assert.expect(8);
+                    var done = assert.async();
+                    var runNumber = 0;
+                    var view1 = new joint.mvc.View();
+                    var view2 = new joint.mvc.View();
+                    paper.unfreeze({
+                        afterRender: function(stats) {
+                            switch (runNumber++) {
+                                case 0:
+                                    assert.equal(stats.updated, paper.model.getCells().length);
+                                    assert.equal(stats.priority, 0);
+                                    paper.requestViewUpdate(view1, 1, 100);
+                                    break;
+                                case 1:
+                                    assert.equal(stats.updated, 1);
+                                    assert.equal(stats.priority, 100);
+                                    paper.requestViewUpdate(view1, 1, 50);
+                                    paper.requestViewUpdate(view1, 2, 49);
+                                    break;
+                                case 2:
+                                    assert.equal(stats.updated, 2);
+                                    assert.equal(stats.priority, 49);
+                                    paper.requestViewUpdate(view1, 1, 21);
+                                    paper.requestViewUpdate(view2, 1, 22);
+                                    break;
+                                default:
+                                    assert.equal(stats.updated, 2);
+                                    assert.equal(stats.priority, 21);
+                                    done();
+                                    break;
+                            }
+                        }
+                    });
+                });
+
+                QUnit.test('over multiple batches', function(assert) {
+                    assert.expect(8);
+                    var done = assert.async();
+                    var runNumber = 0;
+                    var view1 = new joint.mvc.View();
+                    var view2 = new joint.mvc.View();
+                    paper.dumpViews();
+                    paper.requestViewUpdate(view1, 1, 50);
+                    paper.requestViewUpdate(view2, 1, 51);
+                    paper.unfreeze({
+                        batchSize: 1,
+                        afterRender: function(stats) {
+                            switch (runNumber++) {
+                                case 0:
+                                    assert.equal(stats.empty, true);
+                                    // single view updated in the last batch
+                                    assert.equal(stats.updated, 1);
+                                    assert.equal(stats.processed, 2);
+                                    assert.equal(stats.priority, 50);
+                                    paper.requestViewUpdate(view2, 1, 101);
+                                    paper.requestViewUpdate(view2, 2, 100);
+                                    break;
+                                default:
+                                    assert.equal(stats.empty, true);
+                                    assert.equal(stats.updated, 1);
+                                    assert.equal(stats.processed, 2);
+                                    assert.equal(stats.priority, 100);
+                                    done();
+                                    break;
+                            }
+                        }
+                    });
+                });
+
+            });
+        });
     });
 
     QUnit.module('async = TRUE, frozen = FALSE', function(hooks) {
