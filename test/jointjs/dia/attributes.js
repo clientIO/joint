@@ -2,7 +2,7 @@ QUnit.module('Attributes', function() {
 
     QUnit.module('getAttributeDefinition()', function() {
 
-        QUnit.test('will find correct defintion', function(assert) {
+        QUnit.test('will find correct definition', function(assert) {
 
             joint.dia.attributes.globalTest = 'global';
             joint.dia.attributes.priority = 'lower';
@@ -353,6 +353,8 @@ QUnit.module('Attributes', function() {
                 ['calc(h-10)', String(HEIGHT - 10)],
                 ['calc(2*w+10)', String(WIDTH * 2 + 10)],
                 ['calc(2*h+10)', String(HEIGHT * 2 + 10)],
+                ['calc(w+-10)', String(WIDTH - 10)],
+                ['calc(h--10)', String(HEIGHT + 10)],
                 // spaces
                 ['calc( 2 * w + 10 )', String(WIDTH * 2 + 10)],
                 ['calc( 2 * h + 10 )', String(HEIGHT * 2 + 10)],

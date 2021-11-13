@@ -8,7 +8,7 @@ const props = {
 const propsList = Object.keys(props).map(key => props[key]).join('');
 const numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
 const findSpacesRegex = /\s/g;
-const parseExpressionRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])([-+]${numberPattern})?$`, 'g');
+const parseExpressionRegExp = new RegExp(`^(${numberPattern}\\*)?([${propsList}])([-+]{1,2}${numberPattern})?$`, 'g');
 
 function throwInvalid(expression) {
     throw new Error(`Invalid calc() expression: ${expression}`);
@@ -44,7 +44,21 @@ export function evalCalcExpression(expression, bbox) {
             break;
         }
     }
-    return parseFloat(multiply) * dimension + parseFloat(add);
+    return parseFloat(multiply) * dimension + evalAddExpression(add);
+}
+
+function evalAddExpression(addExpression) {
+    if (!addExpression) return 0;
+    const [sign] = addExpression;
+    switch (sign) {
+        case '+': {
+            return parseFloat(addExpression.substr(1));
+        }
+        case '-': {
+            return -parseFloat(addExpression.substr(1));
+        }
+    }
+    return parseFloat(addExpression);
 }
 
 export function isCalcAttribute(value) {
