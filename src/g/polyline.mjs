@@ -149,12 +149,16 @@ Polyline.prototype = {
         var startIndex = numPoints - 1; // start of current polyline segment
         var endIndex = 0; // end of current polyline segment
         var numIntersections = 0;
+        var segment = new Line();
+        var ray = new Line();
+        var rayEnd = new Point();
         for (; endIndex < numPoints; endIndex++) {
             var start = points[startIndex];
             var end = points[endIndex];
             if (p.equals(start)) return true; // shortcut (`p` is a point on polyline)
-
-            var segment = new Line(start, end); // current polyline segment
+            // current polyline segment
+            segment.start = start;
+            segment.end = end;
             if (segment.containsPoint(p)) return true; // shortcut (`p` lies on a polyline segment)
 
             // do we have an intersection?
@@ -168,9 +172,10 @@ Polyline.prototype = {
                 var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
                 if (xDifference >= 0) {
                     // segment lies at least partially to the right of `p`
-                    var rayEnd = new Point((x + xDifference), y); // right
-                    var ray = new Line(p, rayEnd);
-
+                    rayEnd.x = x + xDifference;
+                    rayEnd.y = y; // right
+                    ray.start = p;
+                    ray.end = rayEnd;
                     if (segment.intersect(ray)) {
                         // an intersection was detected to the right of `p`
                         numIntersections++;
@@ -184,6 +189,120 @@ Polyline.prototype = {
 
         // returns `true` for odd numbers of intersections (even-odd algorithm)
         return ((numIntersections % 2) === 1);
+    },
+
+    intersectWithLine: function(line, opt = {}) {
+        const { closed = false } = opt;
+        let thisPoints;
+        if (closed) {
+            // If any point of the polyline lies inside this polygon (closed = true)
+            // there is an intersection (we've chosen the start point)
+            if (this.containsPoint(line.start)) {
+                return true;
+            }
+            const { start, end, points } = this;
+            thisPoints = end.equals(start) ? points : [...points, start];
+        } else {
+            thisPoints = this.points;
+        }
+        const { length } = thisPoints;
+        const segment = new Line();
+        for (let i = 0; i < length - 1; i++) {
+            segment.start = thisPoints[i];
+            segment.end = thisPoints[i + 1];
+            if (line.intersectionWithLine(segment)) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    intersectWithPolyline: function(polyline, opt = {}) {
+        const { closed = false } = opt;
+        let otherPolyline, otherPoints;
+        if (closed) {
+            const { start, end, points } = polyline;
+            // If any point of the polyline lies inside this polygon (closed = true)
+            // there is an intersection (we've chosen the start point)
+            if (this.containsPoint(start)) {
+                return true;
+            }
+            // We don't want to check again if the segments are contained
+            // within the polyline in the code below (calling `intersectWithLine()`).
+            // We add the closing segment to the polyline ourselves, but
+            // treat it as an open polyline
+            otherPoints = end.equals(start) ? points : [...points, start];
+            otherPolyline = new Polyline(otherPoints);
+        } else {
+            otherPoints = this.points;
+            otherPolyline = polyline;
+        }
+        const { length } = otherPoints;
+        const segment = new Line();
+        for (let i = 0; i < length - 1; i++) {
+            segment.start = otherPoints[i];
+            segment.end = otherPoints[i + 1];
+            if (otherPolyline.intersectWithLine(segment, { closed: false })) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    intersectWithPolygon: function(polygon, opt) {
+        return this.intersectWithPolyline(polygon, opt) || polygon.containsPoint(this.start);
+    },
+
+    intersectWithPath: function(path, opt) {
+        return path.getSubpaths().some(subpath => {
+            const [polyline] = subpath.toPolylines(opt);
+            const { type } = subpath.getSegment(-1);
+            if (type === 'Z') {
+                return this.intersectWithPolygon(polyline, opt);
+            } else {
+                return this.intersectWithPolyline(polyline, opt);
+            }
+        });
+    },
+
+    intersectWithRect: function(rect, opt) {
+        const polyline = new Polyline([
+            rect.topLeft(),
+            rect.topRight(),
+            rect.bottomRight(),
+            rect.bottomLeft()
+        ]);
+        return this.intersectWithPolygon(polyline, opt);
+    },
+
+    intersectWithEllipse: function(ellipse, opt = {}) {
+        const { start, end, points } = this;
+        if (ellipse.containsPoint(start)) {
+            return true;
+        }
+        let thisPoints;
+        const { closed = false } = opt;
+        if (closed) {
+            // If any point of the ellipse lies inside this polygon (closed = true)
+            // there is an intersection (we've chosen the center point)
+            if (this.containsPoint(ellipse.center())) {
+                return true;
+            }
+            thisPoints = end.equals(start) ? points : [...points, start];
+        } else {
+            thisPoints = points;
+        }
+
+        const { length } = thisPoints;
+        const segment = new Line();
+        for (let i = 0; i < length - 1; i++) {
+            segment.start = thisPoints[i];
+            segment.end = thisPoints[i + 1];
+            if (ellipse.intersectionWithLine(segment)) {
+                return true;
+            }
+        }
+        return false;
     },
 
     // Returns a convex-hull polyline from this polyline.
