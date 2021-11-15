@@ -219,38 +219,34 @@ Polyline.prototype = {
 
     intersectWithPolyline: function(polyline, opt = {}) {
         const { closed = false } = opt;
-        let otherPolyline, otherPoints;
         if (closed) {
-            const { start, end, points } = polyline;
+            const { start } = polyline;
             // If any point of the polyline lies inside this polygon (closed = true)
             // there is an intersection (we've chosen the start point)
             if (this.containsPoint(start)) {
                 return true;
             }
-            // We don't want to check again if the segments are contained
-            // within the polyline in the code below (calling `intersectWithLine()`).
-            // We add the closing segment to the polyline ourselves, but
-            // treat it as an open polyline
-            otherPoints = end.equals(start) ? points : [...points, start];
-            otherPolyline = new Polyline(otherPoints);
-        } else {
-            otherPoints = this.points;
-            otherPolyline = polyline;
         }
+        const otherPoints = polyline.points;
         const { length } = otherPoints;
         const segment = new Line();
         for (let i = 0; i < length - 1; i++) {
             segment.start = otherPoints[i];
             segment.end = otherPoints[i + 1];
-            if (otherPolyline.intersectWithLine(segment, { closed: false })) {
+            if (this.intersectWithLine(segment, { closed: false })) {
                 return true;
             }
         }
         return false;
     },
 
+    toPolygon() {
+        const { start, end, points } = this;
+        return start.equals(end) ? this.clone() : new Polyline([...points, start]);
+    },
+
     intersectWithPolygon: function(polygon, opt) {
-        return this.intersectWithPolyline(polygon, opt) || polygon.containsPoint(this.start);
+        return this.intersectWithPolyline(polygon.toPolygon(), opt) || polygon.containsPoint(this.start);
     },
 
     intersectWithPath: function(path, opt) {
@@ -266,13 +262,13 @@ Polyline.prototype = {
     },
 
     intersectWithRect: function(rect, opt) {
-        const polyline = new Polyline([
+        const polygon = new Polyline([
             rect.topLeft(),
             rect.topRight(),
             rect.bottomRight(),
             rect.bottomLeft()
         ]);
-        return this.intersectWithPolygon(polyline, opt);
+        return this.intersectWithPolygon(polygon, opt);
     },
 
     intersectWithEllipse: function(ellipse, opt = {}) {
