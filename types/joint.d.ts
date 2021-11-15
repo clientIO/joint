@@ -152,13 +152,14 @@ export namespace dia {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: CollectionAddOptions): this;
+        addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
+        addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
-        addCells(cells: Cell[], opt?: CollectionAddOptions): this;
+        addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
-        resetCells(cells: Cell[], opt?: Graph.Options): this;
+        resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        getCell(id: string | number | Cell): Cell;
+        getCell(id: Cell.ID | Cell): Cell;
 
         getElements(): Element[];
 
@@ -257,6 +258,8 @@ export namespace dia {
 
     export namespace Cell {
 
+        type ID = string | number;
+
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
@@ -270,8 +273,15 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Selectors> {
         }
 
+        type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
+            [attribute in keyof T]: T[attribute];
+        } & {
+            id: ID;
+            type: string;
+        };
+
         interface Constructor<T extends Backbone.Model> {
-            new (opt?: { id?: string, [key: string]: any }): T;
+            new (opt?: { id?: ID, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
@@ -303,13 +313,13 @@ export namespace dia {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
-        id: string | number;
+        id: Cell.ID;
         graph: Graph;
         markup: string | MarkupJSON;
 
         protected generateId(): string | number;
 
-        toJSON(): any;
+        toJSON(): Cell.JSON<any, A>;
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
@@ -318,7 +328,7 @@ export namespace dia {
         toBack(opt?: Cell.GetEmbeddedCellsOptions): this;
 
         parent(): string;
-        parent(parentId: string): this;
+        parent(parentId: Cell.ID): this;
 
         getParentCell(): Cell | null;
 
@@ -367,6 +377,8 @@ export namespace dia {
         startBatch(name: string, opt?: Graph.Options): this;
 
         stopBatch(name: string, opt?: Graph.Options): this;
+
+        position(): g.Point;
 
         angle(): number;
 
@@ -527,7 +539,7 @@ export namespace dia {
         }
 
         interface EndJSON extends EndCellArgs {
-            id?: number | string;
+            id?: Cell.ID;
             x?: number;
             y?: number;
         }
@@ -1140,7 +1152,7 @@ export namespace dia {
             batches?: number;
         };
 
-        type ViewportCallback = (view: mvc.View<any>, isMounted: boolean, paper: Paper) => boolean;
+        type ViewportCallback = (view: mvc.View<any, any>, isMounted: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
         type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
@@ -1225,8 +1237,8 @@ export namespace dia {
             sorting?: sorting;
             frozen?: boolean;
             viewport?: ViewportCallback | null;
-            onViewUpdate?: (view: mvc.View<any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
-            onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
+            onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
             beforeRender?: Paper.BeforeRenderCallback;
             afterRender?: Paper.AfterRenderCallback;
         }
@@ -1349,7 +1361,7 @@ export namespace dia {
 
         findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
 
-        findViewByModel<T extends ElementView | LinkView>(model: Cell | string | number): T;
+        findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
         findViewsFromPoint(point: string | Point): ElementView[];
 
@@ -1368,7 +1380,7 @@ export namespace dia {
 
         getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-        getModelById(id: string | number | Cell): Cell;
+        getModelById(id: Cell.ID | Cell): Cell;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
 
@@ -1410,9 +1422,9 @@ export namespace dia {
 
         isFrozen(): boolean;
 
-        requestViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+        requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(model: Cell | string | number, opt?: dia.Cell.Options): T;
+        requireView<T extends ElementView | LinkView>(model: Cell | Cell.ID, opt?: dia.Cell.Options): T;
 
         dumpViews(opt?: {
             batchSize?: number;
@@ -1444,17 +1456,17 @@ export namespace dia {
 
         // protected
 
-        protected scheduleViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+        protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        protected dumpViewUpdate(view: mvc.View<any>): number;
+        protected dumpViewUpdate(view: mvc.View<any, any>): number;
 
-        protected dumpView(view: mvc.View<any>, opt?: { [key: string]: any }): number;
+        protected dumpView(view: mvc.View<any, any>, opt?: { [key: string]: any }): number;
 
-        protected updateView(view: mvc.View<any>, flag: number, opt?: { [key: string]: any }): number;
+        protected updateView(view: mvc.View<any, any>, flag: number, opt?: { [key: string]: any }): number;
 
-        protected registerUnmountedView(view: mvc.View<any>): number;
+        protected registerUnmountedView(view: mvc.View<any, any>): number;
 
-        protected registerMountedView(view: mvc.View<any>): number;
+        protected registerMountedView(view: mvc.View<any, any>): number;
 
         protected updateViewsAsync(opt?: {
             batchSize?: number;

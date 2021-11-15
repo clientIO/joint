@@ -67,7 +67,21 @@ graph.addCells([
     link,
     new joint.shapes.standard.DoubleLink(),
     new joint.shapes.standard.ShadowLink(),
+    {
+        id: 'test-id-1',
+        type: 'standard.Rectangle'
+    }
 ]);
+
+graph.addCell({
+    id: 'test-id-2',
+    type: 'standard.Ellipse',
+    attrs: {
+        body: {
+            fill: 'red'
+        }
+    }
+});
 
 // `cells` attribute is a collection of cells
 const cell = graph.get('cells').at(0);
@@ -93,3 +107,7 @@ cellView.vel.addClass('test-class');
 
 let isHTMLView: AssertExtends<typeof paper.vel, null> = true;
 let isSVGView: AssertExtends<typeof cellView.vel, joint.Vectorizer> = true;
+
+const { size, position } = rectangle.toJSON();
+let isTypeofSize: AssertExtends<typeof size, joint.dia.Size> = true;
+let isTypeofPoint: AssertExtends<typeof position, joint.dia.Point> = true;

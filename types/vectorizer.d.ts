@@ -262,9 +262,9 @@ export class Vectorizer {
 
     static isSVGGraphicsElement(value: any): boolean;
 
-    static createSVGMatrix(matrix: SVGMatrix | Vectorizer.Matrix): SVGMatrix;
+    static createSVGMatrix(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGMatrix;
 
-    static createSVGTransform(matrix?: SVGMatrix | Vectorizer.Matrix): SVGTransform;
+    static createSVGTransform(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGTransform;
 
     static createSVGPoint(x: number, y: number): SVGPoint;
 
