@@ -519,6 +519,12 @@ export namespace g {
         static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
 
+    namespace Polyline {
+
+        interface IntersectOptions {
+            closed?: boolean;
+        }
+    }
     class Polyline {
 
         points: Point[];
@@ -551,6 +557,18 @@ export namespace g {
         isDifferentiable(): boolean;
 
         intersectionWithLine(l: Line): Point[] | null;
+
+        intersectWithLine(line: Line, opt?: Polyline.IntersectOptions): boolean;
+
+        intersectWithRect(rect: Rect, opt?: Polyline.IntersectOptions): boolean;
+
+        intersectWithEllipse(ellipse: Ellipse, opt?: Polyline.IntersectOptions): boolean;
+
+        intersectWithPolyline(polyline: Polyline, opt?: Polyline.IntersectOptions): boolean;
+
+        intersectWithPolygon(polygon: Polyline, opt?: Polyline.IntersectOptions): boolean;
+
+        intersectWithPath(path: Path, opt?: Polyline.IntersectOptions & SubdivisionsOpt): boolean;
 
         length(): number;
 
