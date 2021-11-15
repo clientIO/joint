@@ -863,6 +863,7 @@ export const Paper = View.extend({
                     stats.priority = data.priority;
                     this.notifyAfterRender(stats, opt);
                     data.processed = 0;
+                    data.priority = MIN_PRIORITY;
                     updates.count = 0;
                 } else {
                     data.processed = processed;
@@ -917,7 +918,7 @@ export const Paper = View.extend({
         if (typeof postponeViewFn !== 'function') postponeViewFn = null;
         var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
         main: for (var i = 0, n = priorityIndexes.length; i < n; i++) {
-            var priority = priorityIndexes[i];
+            var priority = +priorityIndexes[i];
             var priorityUpdates = priorities[priority];
             for (var cid in priorityUpdates) {
                 if (updateCount >= batchSize) {
