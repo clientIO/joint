@@ -1628,6 +1628,27 @@ QUnit.module('basic', function(hooks) {
         }, 300);
     });
 
+    QUnit.test('transition: stopTransitions()', function(assert) {
+        assert.expect(6);
+        var done = assert.async();
+        var el = new joint.shapes.standard.Rectangle({ test1: 0, test2: 0, test3: 0 });
+        this.graph.addCell(el);
+        el.transition('test1', 100);
+        el.transition('test2', 100);
+        el.transition('test3', 100);
+        assert.equal(el.getTransitions().length, 3);
+        el.stopTransitions('test2');
+        assert.equal(el.getTransitions().length, 2);
+        el.stopTransitions();
+        assert.equal(el.getTransitions().length, 0);
+        setTimeout(function() {
+            assert.equal(el.attributes.test1, 0);
+            assert.equal(el.attributes.test2, 0);
+            assert.equal(el.attributes.test3, 0);
+            done();
+        }, 200);
+    });
+
     QUnit.test('cell.getAncestors()', function(assert) {
 
         var r0 = new joint.shapes.basic.Rect;
