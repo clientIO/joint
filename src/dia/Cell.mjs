@@ -682,7 +682,9 @@ export const Cell = Backbone.Model.extend({
 
         }.bind(this);
 
-        return setTimeout(initiator, opt.delay, setter);
+        var initialId = setTimeout(initiator, opt.delay, setter);
+        this._transitionIds[path] = initialId;
+        return initialId;
     },
 
     getTransitions: function() {
@@ -690,25 +692,27 @@ export const Cell = Backbone.Model.extend({
         return Object.keys(this._transitionIds);
     },
 
-    stopTransitions: function(path, delim) {
+    stopTransitions: function(path, delim = '/') {
 
-        delim = delim || '/';
+        const { _transitionIds } = this;
+        let transitions = Object.keys(_transitionIds);
 
-        var pathArray = path && path.split(delim);
+        if (path) {
+            const pathArray = path.split(delim);
+            transitions = transitions.filter((key) => {
+                return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            });
+        }
 
-        Object.keys(this._transitionIds).filter(pathArray && function(key) {
-
-            return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
-
-        }).forEach(function(key) {
-
-            cancelFrame(this._transitionIds[key]);
-
-            delete this._transitionIds[key];
-
-            this.trigger('transition:end', this, key);
-
-        }, this);
+        transitions.forEach((key) => {
+            const transitionId = _transitionIds[key];
+            // stop the setter
+            cancelFrame(transitionId);
+            // or stop the initiator if the id belongs to it
+            clearTimeout(transitionId);
+            delete _transitionIds[key];
+            this.trigger('transition:end', this, transitionId);
+        });
 
         return this;
     },
