@@ -39,10 +39,10 @@
             },
             outline: {
                 ref: 'label',
-                refX: 0,
-                refY: 0,
-                refWidth: '100%',
-                refHeight: '100%',
+                x: '-calc(0.5*w)',
+                y: '-calc(0.5*h)',
+                width: 'calc(w)',
+                height: 'calc(h)',
                 strokeWidth: 1,
                 stroke: '#000000',
                 strokeDasharray: '5 5',
@@ -76,25 +76,23 @@
         },
         e: {
             ref: 'label',
-            refRx: '50%',
-            refRy: '25%',
-            refCx: '50%',
-            refCy: 0,
-            refX: '-50%',
-            refY: '25%'
+            rx: 'calc(0.5*w)',
+            ry: 'calc(0.25*h)',
+            cx: '-calc(0.5*w)',
+            cy: '-calc(0.25*h)'
         },
         r: {
             ref: 'label',
-            refX: '100%',
-            x: -10, // additional x offset
-            refY: '100%',
-            y: -10, // additional y offset
-            refWidth: '50%',
-            refHeight: '50%',
+            // additional x offset
+            x: 'calc(0.5*w-10)',
+            // additional y offset
+            y: 'calc(0.5*h-10)',
+            width: 'calc(0.5*w)',
+            height: 'calc(0.5*h)'
         },
         c: {
             ref: 'label',
-            refRCircumscribed: '50%',
+            r: 'calc(0.5*d)'
             // c is already centered at label anchor
         }
     });
