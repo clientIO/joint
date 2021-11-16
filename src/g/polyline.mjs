@@ -219,6 +219,7 @@ Polyline.prototype = {
 
     intersectWithPolyline: function(polyline, opt = {}) {
         const { closed = false } = opt;
+        let thisPolyline;
         if (closed) {
             const { start } = polyline;
             // If any point of the polyline lies inside this polygon (closed = true)
@@ -226,6 +227,9 @@ Polyline.prototype = {
             if (this.containsPoint(start)) {
                 return true;
             }
+            thisPolyline = this.toPolygon();
+        } else {
+            thisPolyline = this;
         }
         const otherPoints = polyline.points;
         const { length } = otherPoints;
@@ -233,7 +237,7 @@ Polyline.prototype = {
         for (let i = 0; i < length - 1; i++) {
             segment.start = otherPoints[i];
             segment.end = otherPoints[i + 1];
-            if (this.intersectWithLine(segment, { closed: false })) {
+            if (thisPolyline.intersectWithLine(segment, { closed: false })) {
                 return true;
             }
         }
