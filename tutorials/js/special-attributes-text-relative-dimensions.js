@@ -39,8 +39,8 @@
             },
             outline: {
                 ref: 'label',
-                x: `-${'calc(0.5*w)'}`,
-                y: `-${'calc(0.5*h)'}`,
+                x: '-calc(0.5*w)',
+                y: '-calc(0.5*h)',
                 width: 'calc(w)',
                 height: 'calc(h)',
                 strokeWidth: 1,
@@ -78,8 +78,8 @@
             ref: 'label',
             rx: 'calc(0.5*w)',
             ry: 'calc(0.25*h)',
-            cx: `-${'calc(0.5*w)'}`,
-            cy: `-${'calc(0.25*h)'}`
+            cx: '-calc(0.5*w)',
+            cy: '-calc(0.25*h)'
         },
         r: {
             ref: 'label',
