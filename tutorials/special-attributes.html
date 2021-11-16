@@ -67,50 +67,71 @@
 
             <h3 id="relative-dimensions">Relative Dimensions</h3>
 
-            <p>One of the most common requests when working with SVG is to set the dimensions of SVGElements relatively.
-                JointJS allows you to do that with a suite of <code>ref</code> attributes.
-                These attributes allow you to size shape subelements as a percentage of the dimensions of the shape's
-                model.
-                Moreover, since all calculations are programmatic and do not rely on browser's bbox measurements, using
-                these attributes does not impact performance of your app.
+            <p>
+                One of the most common requests when working with SVG is to set the dimensions of SVGElements relatively.
+                JointJs provides a <code>calc()</code> function which lets you perform calculations when specifying SVG 
+                attributes values. This allows you to size subelements relative to the size of the shape's model. You can 
+                view the documentation for <code>calc()</code> in our attributes section 
+                <a href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.attributes" target="_blank">here</a>.
+                Moreover, since all the calculations are programmatic and do not rely on the browser's bbox measurements, using
+                this function does not impact performance of your app.
                 (<a href="#text-relative-dimensions">There is also a view-based method if you need to work with text; it
-                is explained in the following section.</a>)</p>
+                is explained here in more detail.</a>)
+            </p>
 
-            <ul>
-                <li><a href="/docs/jointjs#dia.attributes.refWidth" target="_blank"><code>refWidth</code></a> and
-                    <a href="/docs/jointjs#dia.attributes.refHeight" target="_blank"><code>refHeight</code></a> - sets
-                    the width of the subelement relative to model bbox.</li>
-                <li><a href="/docs/jointjs#dia.attributes.refX" target="_blank"><code>refX</code></a> and
-                    <a href="/docs/jointjs#dia.attributes.refY" target="_blank"><code>refY</code></a> - sets the
-                    coordinates of the top-left corner of the subelement relative to the top-left corner of model
-                    bbox.
-                    Percentages are interpreted relative to model bbox.</li>
-                    Stacks with the native <code>x</code>/<code>y</code> attribute.
-                <li><a href="/docs/jointjs#dia.attributes.refCx" target="_blank"><code>refCx</code></a> and
-                    <a href="/docs/jointjs#dia.attributes.refCy" target="_blank"><code>refCy</code></a> - sets the
-                    coordinates of the circle/ellipse center.
-                    Percentages are interpreted relative to model bbox.</li>
-                    Can be used alongside <code>refX</code>/<code>refY</code>.
-                <li><a href="/docs/jointjs#dia.attributes.refRx" target="_blank"><code>refRx</code></a> and
-                    <a href="/docs/jointjs#dia.attributes.refRy" target="_blank"><code>refRy</code></a> - sets the
-                    radius of the ellipse relative to model bbox dimensions.
-                    Percentages are interpreted relative to model bbox.
-                    Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
-                    will be 100% of model size while the diameter of the ellipse in that direction will be 200% of model
-                    size.
-                    Thus, if you want the ellipse to fit into the model, use <code>'50%'</code>.</li>
-                <li><a href="/docs/jointjs#dia.attributes.refR" target="_blank"><code>refR</code></a> - sets the radius
-                    of the circle relative to the length of the shorter side of model bbox.
-                    Percentages are interpreted relative to model bbox.
-                    Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
-                    will be 100% of the length of model side.
-                    If you want the circle to fit inside the model, use <code>'50%'</code>.
-                    There is also
-                    <a href="/docs/jointjs#dia.attributes.refRCircumscribed" target="_blank"><code>refRCircumscribed</code></a>,
-                    which sets the radius of the circle relative to the longest diagonal of model bbox.</li>
-            </ul>
+            <p>
+                As <code>calc()</code> works with normal SVG attributes, you can perform relative sizing easily using the 
+                SVG attributes you are familiar with. For example, <code>'calc(w)'</code> and <code>'calc(h)'</code> performs 
+                calculations using the shape model width and height respectively. If we wanted to set the <code>x</code> 
+                coordinate of the top-left corner of a subelement relative to the top-left corner of the shape model bbox, 
+                we could use <code>x: 'calc(w)'</code> on the subelement.
+            </p>
 
-            <p>Let us see the relative attributes in action.
+            <p><em>
+                JointJs also contains a suite of <code>ref</code> attributes to work with relative dimensions. However, we now 
+                recommend using <code>calc()</code> for relative sizing.
+            </em></p>
+
+            <details>
+                <summary>Ref attributes</summary>
+                <ul>
+                    <li><a href="/docs/jointjs#dia.attributes.refWidth" target="_blank"><code>refWidth</code></a> and
+                        <a href="/docs/jointjs#dia.attributes.refHeight" target="_blank"><code>refHeight</code></a> - sets
+                        the width of the subelement relative to model bbox.</li>
+                    <li><a href="/docs/jointjs#dia.attributes.refX" target="_blank"><code>refX</code></a> and
+                        <a href="/docs/jointjs#dia.attributes.refY" target="_blank"><code>refY</code></a> - sets the
+                        coordinates of the top-left corner of the subelement relative to the top-left corner of model
+                        bbox.
+                        Percentages are interpreted relative to model bbox.</li>
+                        Stacks with the native <code>x</code>/<code>y</code> attribute.
+                    <li><a href="/docs/jointjs#dia.attributes.refCx" target="_blank"><code>refCx</code></a> and
+                        <a href="/docs/jointjs#dia.attributes.refCy" target="_blank"><code>refCy</code></a> - sets the
+                        coordinates of the circle/ellipse center.
+                        Percentages are interpreted relative to model bbox.</li>
+                        Can be used alongside <code>refX</code>/<code>refY</code>.
+                    <li><a href="/docs/jointjs#dia.attributes.refRx" target="_blank"><code>refRx</code></a> and
+                        <a href="/docs/jointjs#dia.attributes.refRy" target="_blank"><code>refRy</code></a> - sets the
+                        radius of the ellipse relative to model bbox dimensions.
+                        Percentages are interpreted relative to model bbox.
+                        Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
+                        will be 100% of model size while the diameter of the ellipse in that direction will be 200% of model
+                        size.
+                        Thus, if you want the ellipse to fit into the model, use <code>'50%'</code>.</li>
+                    <li><a href="/docs/jointjs#dia.attributes.refR" target="_blank"><code>refR</code></a> - sets the radius
+                        of the circle relative to the length of the shorter side of model bbox.
+                        Percentages are interpreted relative to model bbox.
+                        Note that for backwards compatibility, setting <code>'100%'</code> here means that the <i>radius</i>
+                        will be 100% of the length of model side.
+                        If you want the circle to fit inside the model, use <code>'50%'</code>.
+                        There is also
+                        <a href="/docs/jointjs#dia.attributes.refRCircumscribed" target="_blank"><code>refRCircumscribed</code></a>,
+                        which sets the radius of the circle relative to the longest diagonal of model bbox.</li>
+                        </ul>
+            </details>
+
+
+            <p>
+                Let's see relative sizing with <code>calc()</code> in action.
                 We define a <a href="custom-elements.html">custom element type</a> named <code>CustomElement</code> as a
                 subtype of <code>joint.dia.Element</code>.
                 We want it to have three SVGElements - a red-tinted <code>ellipse</code> named <code>e</code>, a
@@ -121,7 +142,8 @@
                 to (270,100).
                 (We also adjust position to make sure the element stays in the visible area of our paper.)
                 Notice that the subelements of the shape adjust automatically as the size of the reference model
-                changes:</p>
+                changes:
+            </p>
 
             <div class="paper" id="paper-special-attributes-relative-dimensions"></div>
 
@@ -143,10 +165,10 @@
             fill: 'rgba(0,0,255,0.3)'
         },
         outline: {
-            refX: 0,
-            refY: 0,
-            refWidth: '100%',
-            refHeight: '100%',
+            x: 0,
+            y: 0,
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 1,
             stroke: '#000000',
             strokeDasharray: '5 5',
@@ -173,25 +195,23 @@
 var element = new CustomElement();
 element.attr({
     e: {
-        refRx: '50%',
-        refRy: '25%',
-        refCx: '50%',
-        refCy: 0,
-        refX: '-50%',
-        refY: '25%'
+        rx: 'calc(0.5*w)',
+        ry: 'calc(0.25*h)',
+        cx: 0,
+        cy: 'calc(0.25*h)'
     },
     r: {
-        refX: '100%',
-        x: -10, // additional x offset
-        refY: '100%',
-        y: -10, // additional y offset
-        refWidth: '50%',
-        refHeight: '50%',
+        // additional x offset
+        x: 'calc(w-10)',
+        // additional y offset
+        y: 'calc(h-10)',
+        width: 'calc(0.5*w)',
+        height: 'calc(0.5*h)'
     },
     c: {
-        refRCircumscribed: '50%',
-        refCx: '50%',
-        refCy: '50%'
+        r: 'calc(0.5*d)',
+        cx: 'calc(0.5*w)',
+        cy: 'calc(0.5*h)'
     }
 });</code></pre>
 
@@ -199,7 +219,7 @@ element.attr({
 
             <h3 id="text-relative-dimensions">Relative Dimensions Based on Text</h3>
 
-            <p>An advanced application of relative attributes is using them to set the dimensions of shape subelements
+            <p>An advanced application of relative sizing is setting the dimensions of shape subelements
                 based on the dimensions of bboxes of rendered JointJS views.
                 This is especially valuable when you need to base the position and size of shape components on
                 <code>&lt;text&gt;</code> subelements since JointJS is not able to work with them programmatically.
@@ -212,7 +232,7 @@ element.attr({
             <ul>
                 <li><a href="/docs/jointjs#dia.attributes.ref" target="_blank"><code>ref</code></a> - a selector
                     reference to the subelement whose measured bbox should be used as the base of relative
-                    attributes.</li>
+                    calculations.</li>
             </ul>
 
             <p>We define a <a href="custom-elements.html">custom element type</a> named <code>CustomTextElement</code>
@@ -249,10 +269,10 @@ element.attr({
         },
         outline: {
             ref: 'label',
-            refX: 0,
-            refY: 0,
-            refWidth: '100%',
-            refHeight: '100%',
+            x: `-${'calc(0.5*w)'}`,
+            y: `-${'calc(0.5*h)'}`,
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 1,
             stroke: '#000000',
             strokeDasharray: '5 5',
@@ -286,25 +306,23 @@ element.attr({
     },
     e: {
         ref: 'label',
-        refRx: '50%',
-        refRy: '25%',
-        refCx: '50%',
-        refCy: 0,
-        refX: '-50%',
-        refY: '25%'
+        rx: 'calc(0.5*w)',
+        ry: 'calc(0.25*h)',
+        cx: `-${'calc(0.5*w)'}`,
+        cy: `-${'calc(0.25*h)'}`
     },
     r: {
         ref: 'label',
-        refX: '100%',
-        x: -10, // additional x offset
-        refY: '100%',
-        y: -10, // additional y offset
-        refWidth: '50%',
-        refHeight: '50%',
+        // additional x offset
+        x: 'calc(0.5*w-10)',
+        // additional y offset
+        y: 'calc(0.5*h-10)',
+        width: 'calc(0.5*w)',
+        height: 'calc(0.5*h)'
     },
     c: {
         ref: 'label',
-        refRCircumscribed: '50%',
+        r: 'calc(0.5*d)'
         // c is already centered at label anchor
     }
 });</code></pre>
