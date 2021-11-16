@@ -1,58 +1,74 @@
 import * as g from '../g/index.mjs';
 
-function getPointBox(p) {
-    return new g.Rect(p.x, p.y, 0, 0);
+function defaultPath(sourcePoint, targetPoint) {
+    let path = new g.Path();
+
+    let segment;
+
+    segment = g.Path.createSegment('M', sourcePoint);
+    path.appendSegment(segment);
+
+    if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
+        var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
+
+        segment = g.Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
+        path.appendSegment(segment);
+
+    } else {
+        var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
+
+        segment = g.Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
+        path.appendSegment(segment);
+
+    }    
+
+    return path;
 }
 
-function getSourceAnchor(linkView) {
+function autoDirectionPath(linkView, sourcePoint, targetPoint) {
+    let path = new g.Path();
 
-    if (linkView.sourceAnchor) return linkView.sourceAnchor;
-
-    // fallback: center of bbox    
-    return linkView.sourceBBox.center();
-}
-
-function getTargetAnchor(linkView) {
-
-    if (linkView.targetAnchor) return linkView.targetAnchor;
-
-    // fallback: center of bbox    
-    return linkView.targetBBox.center();
-}
-
-function getConnectionDirection(from, to) {
-    const distX = to.x - from.x;
-    const distY = to.y - from.y;
-    if (distX < 0) {
-        if (Math.abs(distY) < Math.abs(distX)) return 'W';
-        if (distY > 0) return 'S';
-        if (distY <= 0) return 'N';
+    const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
+    const targetSide = linkView.targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
+ 
+    let cp1x;
+    let cp1y;
+    let cp2x;
+    let cp2y;
+    switch (sourceSide) {
+        case 'top':
+        case 'bottom':
+            cp1x = sourcePoint.x;
+            cp1y = (sourcePoint.y + targetPoint.y) / 2;
+            break;
+        case 'right':
+        case 'left':
+            cp1x = (sourcePoint.x + targetPoint.x) / 2;
+            cp1y = sourcePoint.y;
+            break;
     }
-    if (distX >= 0) {
-        if (Math.abs(distY) < Math.abs(distX)) return 'E';
-        if (distY > 0) return 'S';
-        if (distY <= 0) return 'N';
+    switch (targetSide) {
+        case 'top':
+        case 'bottom':
+            cp2x = targetPoint.x;
+            cp2y = (sourcePoint.y + targetPoint.y) / 2;
+            break;
+        case 'right':
+        case 'left':
+            cp2x = (sourcePoint.x + targetPoint.x) / 2;
+            cp2y = targetPoint.y;
+            break;
     }
-    return null;
-}
 
-function getConnectionPoint(bearing, bbox) {
-    switch (bearing) {
-        case 'N':
-            return g.Point(bbox.x + bbox.width / 2, bbox.y);
-        case 'S':
-            return g.Point(bbox.x + bbox.width / 2, bbox.y + bbox.height);
-        case 'W':
-            return g.Point(bbox.x, bbox.y + bbox.height / 2);
-        case 'E':
-            return g.Point(bbox.x + bbox.width, bbox.y + bbox.height / 2);
-    }
+    path = new g.Path();
+    path.appendSegment(g.Path.createSegment('M', sourcePoint));
+    path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
+
+    return path;
 }
 
 export const smooth = function(sourcePoint, targetPoint, route, opt) {
-    if (!opt) {
-        opt = {};
-    }
+    const linkView = this;
 
     var raw = !!opt.raw;
     var path;
@@ -70,7 +86,17 @@ export const smooth = function(sourcePoint, targetPoint, route, opt) {
         // the control points have `x` midway between source and target
         // this produces an S-like curve
 
-        if (opt.mode === 'stepDirection') {
+        switch (opt.direction) {
+            case 'auto': 
+                path = autoDirectionPath(linkView, sourcePoint, targetPoint);
+                break;
+            case 'horizontal':
+                break;
+            default:
+                path = defaultPath(sourcePoint, targetPoint);
+                break;
+        }
+        /* if (opt.mode === 'stepDirection') {
             let sourceBBox = this.sourceBBox.clone();
             let targetBBox = this.targetBBox.clone();
         
@@ -119,29 +145,7 @@ export const smooth = function(sourcePoint, targetPoint, route, opt) {
             path = new g.Path();
             path.appendSegment(g.Path.createSegment('M', sourcePoint));
             path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
-        }
-        else {
-            path = new g.Path();
-
-            var segment;
-
-            segment = g.Path.createSegment('M', sourcePoint);
-            path.appendSegment(segment);
-
-            if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
-                var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
-
-                segment = g.Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
-                path.appendSegment(segment);
-
-            } else {
-                var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
-
-                segment = g.Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
-                path.appendSegment(segment);
-
-            }    
-        }
+        } */
     }
 
     return (raw) ? path : path.serialize();
