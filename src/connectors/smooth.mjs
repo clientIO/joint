@@ -67,6 +67,110 @@ function autoDirectionPath(linkView, sourcePoint, targetPoint) {
     return path;
 }
 
+function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
+    let path = new g.Path();
+
+    let offset = 100;
+ 
+    const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
+    const targetSide = linkView.targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
+
+    let cp1x;
+    let cp1y;
+    let cp2x;
+    let cp2y;
+    const centerOffset = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
+    offset = Math.max(centerOffset, offset);
+
+    switch (sourceSide) {
+        case 'left':
+            cp1x = sourcePoint.x - offset;
+            cp1y = sourcePoint.y;
+            break;
+        case 'right':
+            cp1x = sourcePoint.x + offset;
+            cp1y = sourcePoint.y;
+            break;
+        default:
+            cp1x = sourcePoint.x + offset;
+            cp1y = sourcePoint.y;
+            break;
+    }
+
+    switch (targetSide) {
+        case 'left':
+            cp2x = targetPoint.x - offset;
+            cp2y = targetPoint.y;   
+            break;
+        case 'right':
+            cp2x = targetPoint.x + offset;
+            cp2y = targetPoint.y;   
+            break;
+        default:
+            cp2x = targetPoint.x - offset;
+            cp2y = targetPoint.y;   
+            break;
+    }
+
+    path = new g.Path();
+    path.appendSegment(g.Path.createSegment('M', sourcePoint));
+    path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
+
+    return path;
+}
+
+function verticalDirectionPath(linkView, sourcePoint, targetPoint) {
+    let path = new g.Path();
+
+    let offset = 100;
+ 
+    const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
+    const targetSide = linkView.targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
+
+    let cp1x;
+    let cp1y;
+    let cp2x;
+    let cp2y;
+    const centerOffset = Math.abs(sourcePoint.y - ((sourcePoint.y + targetPoint.y) / 2));
+    offset = Math.max(centerOffset, offset);
+
+    switch (sourceSide) {
+        case 'top':
+            cp1x = sourcePoint.x;
+            cp1y = sourcePoint.y - offset;
+            break;
+        case 'bottom':
+            cp1x = sourcePoint.x;
+            cp1y = sourcePoint.y + offset;
+            break;
+        default:
+            cp1x = sourcePoint.x;
+            cp1y = sourcePoint.y + offset;
+            break;
+    }
+
+    switch (targetSide) {
+        case 'top':
+            cp2x = targetPoint.x;
+            cp2y = targetPoint.y - offset;   
+            break;
+        case 'bottom':
+            cp2x = targetPoint.x;
+            cp2y = targetPoint.y + offset;   
+            break;
+        default:
+            cp2x = targetPoint.x;
+            cp2y = targetPoint.y - offset;   
+            break;
+    }
+
+    path = new g.Path();
+    path.appendSegment(g.Path.createSegment('M', sourcePoint));
+    path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
+
+    return path;
+}
+
 export const smooth = function(sourcePoint, targetPoint, route, opt) {
     const linkView = this;
 
@@ -91,61 +195,15 @@ export const smooth = function(sourcePoint, targetPoint, route, opt) {
                 path = autoDirectionPath(linkView, sourcePoint, targetPoint);
                 break;
             case 'horizontal':
+                path = horisontalDirectionPath(linkView, sourcePoint, targetPoint);
+                break;
+            case 'vertical':
+                path = verticalDirectionPath(linkView, sourcePoint, targetPoint);
                 break;
             default:
                 path = defaultPath(sourcePoint, targetPoint);
                 break;
         }
-        /* if (opt.mode === 'stepDirection') {
-            let sourceBBox = this.sourceBBox.clone();
-            let targetBBox = this.targetBBox.clone();
-        
-            const sourceAnchor = getSourceAnchor(this);
-            const targetAnchor = getTargetAnchor(this);
-        
-            // if anchor lies outside of bbox, the bbox expands to include it
-            sourceBBox = sourceBBox.union(getPointBox(sourceAnchor));
-            targetBBox = targetBBox.union(getPointBox(targetAnchor));
-            
-            const sourceBearing = getConnectionDirection(sourceAnchor, targetAnchor);
-            const targetBearing = getConnectionDirection(targetAnchor, sourceAnchor);
-            
-            sourcePoint = getConnectionPoint(sourceBearing, sourceBBox);
-            targetPoint = getConnectionPoint(targetBearing, targetBBox);
-
-            let cp1x;
-            let cp1y;
-            let cp2x;
-            let cp2y;
-            switch (sourceBearing) {
-                case 'N':
-                case 'S':
-                    cp1x = sourcePoint.x;
-                    cp1y = (sourcePoint.y + targetPoint.y) / 2;
-                    break;
-                case 'W':
-                case 'E':
-                    cp1x = (sourcePoint.x + targetPoint.x) / 2;
-                    cp1y = sourcePoint.y;
-                    break;
-            }
-            switch (targetBearing) {
-                case 'N':
-                case 'S':
-                    cp2x = targetPoint.x;
-                    cp2y = (sourcePoint.y + targetPoint.y) / 2;
-                    break;
-                case 'W':
-                case 'E':
-                    cp2x = (sourcePoint.x + targetPoint.x) / 2;
-                    cp2y = targetPoint.y;
-                    break;
-            }
-
-            path = new g.Path();
-            path.appendSegment(g.Path.createSegment('M', sourcePoint));
-            path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
-        } */
     }
 
     return (raw) ? path : path.serialize();
