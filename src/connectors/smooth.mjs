@@ -26,8 +26,6 @@ function defaultPath(sourcePoint, targetPoint) {
 }
 
 function autoDirectionPath(linkView, sourcePoint, targetPoint) {
-    let path = new g.Path();
-
     const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = linkView.targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
  
@@ -60,7 +58,7 @@ function autoDirectionPath(linkView, sourcePoint, targetPoint) {
             break;
     }
 
-    path = new g.Path();
+    const path = new g.Path();
     path.appendSegment(g.Path.createSegment('M', sourcePoint));
     path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
 
@@ -68,8 +66,6 @@ function autoDirectionPath(linkView, sourcePoint, targetPoint) {
 }
 
 function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
-    let path = new g.Path();
-
     let offset = 100;
  
     const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
@@ -112,7 +108,7 @@ function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
             break;
     }
 
-    path = new g.Path();
+    const path = new g.Path();
     path.appendSegment(g.Path.createSegment('M', sourcePoint));
     path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
 
@@ -120,8 +116,6 @@ function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
 }
 
 function verticalDirectionPath(linkView, sourcePoint, targetPoint) {
-    let path = new g.Path();
-
     let offset = 100;
  
     const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
@@ -164,7 +158,7 @@ function verticalDirectionPath(linkView, sourcePoint, targetPoint) {
             break;
     }
 
-    path = new g.Path();
+    const path = new g.Path();
     path.appendSegment(g.Path.createSegment('M', sourcePoint));
     path.appendSegment(g.Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
 
