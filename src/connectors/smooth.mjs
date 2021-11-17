@@ -1,6 +1,7 @@
 import * as g from '../g/index.mjs';
 
 const directionMode = {
+    AUTO: 'auto',
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
     LEGACY: 'legacy'
@@ -163,7 +164,7 @@ function verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) {
     return path;
 }
 
-export const smooth = function(sourcePoint, targetPoint, route, opt) {
+export const smooth = function(sourcePoint, targetPoint, route, opt = { directionMode: directionMode.AUTO }) {
     if (!opt) opt = {};
 
     const linkView = this;
@@ -198,6 +199,7 @@ export const smooth = function(sourcePoint, targetPoint, route, opt) {
             case directionMode.VERTICAL:
                 path = verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset);
                 break;
+            case directionMode.AUTO:
             default:
                 path = autoDirectionPath(linkView, sourcePoint, targetPoint);
                 break;
