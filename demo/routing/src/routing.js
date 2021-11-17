@@ -105,7 +105,7 @@ $('.router-switch').on('click', function(evt) {
         link.unset('router');
     }
 
-    let args = {};
+    var args = {};
     if (direction) {
         args.direction = direction;
     }
