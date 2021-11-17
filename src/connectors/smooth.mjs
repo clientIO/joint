@@ -1,25 +1,27 @@
 import * as g from '../g/index.mjs';
 
-function defaultPath(sourcePoint, targetPoint) {
+const directionMode = {
+    HORIZONTAL: 'horizontal',
+    VERTICAL: 'vertical',
+    LEGACY: 'legacy'
+};
+
+function legacyPath(sourcePoint, targetPoint) {
     let path = new g.Path();
 
-    let segment;
-
-    segment = g.Path.createSegment('M', sourcePoint);
+    let segment = g.Path.createSegment('M', sourcePoint);
     path.appendSegment(segment);
 
     if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
-        var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
+        const controlPointX = (sourcePoint.x + targetPoint.x) / 2;
 
         segment = g.Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
         path.appendSegment(segment);
-
     } else {
-        var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
+        const controlPointY = (sourcePoint.y + targetPoint.y) / 2;
 
         segment = g.Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
         path.appendSegment(segment);
-
     }    
 
     return path;
@@ -65,9 +67,7 @@ function autoDirectionPath(linkView, sourcePoint, targetPoint) {
     return path;
 }
 
-function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
-    let offset = 100;
- 
+function horizontalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) {
     const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = linkView.targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
 
@@ -76,7 +76,7 @@ function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
     let cp2x;
     let cp2y;
     const centerOffset = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
-    offset = Math.max(centerOffset, offset);
+    const offset = Math.max(centerOffset, minOffset);
 
     switch (sourceSide) {
         case 'left':
@@ -115,9 +115,7 @@ function horisontalDirectionPath(linkView, sourcePoint, targetPoint) {
     return path;
 }
 
-function verticalDirectionPath(linkView, sourcePoint, targetPoint) {
-    let offset = 100;
- 
+function verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) { 
     const sourceSide = linkView.sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = linkView.targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
 
@@ -126,7 +124,7 @@ function verticalDirectionPath(linkView, sourcePoint, targetPoint) {
     let cp2x;
     let cp2y;
     const centerOffset = Math.abs(sourcePoint.y - ((sourcePoint.y + targetPoint.y) / 2));
-    offset = Math.max(centerOffset, offset);
+    const offset = Math.max(centerOffset, minOffset);
 
     switch (sourceSide) {
         case 'top':
@@ -166,36 +164,42 @@ function verticalDirectionPath(linkView, sourcePoint, targetPoint) {
 }
 
 export const smooth = function(sourcePoint, targetPoint, route, opt) {
+    if (!opt) opt = {};
+
     const linkView = this;
 
-    var raw = !!opt.raw;
-    var path;
+    const raw = Boolean(opt.raw);
+    let path;
 
     if (route && route.length !== 0) {
 
-        var points = [sourcePoint].concat(route).concat([targetPoint]);
-        var curves = g.Curve.throughPoints(points);
+        const points = [sourcePoint].concat(route).concat([targetPoint]);
+        const curves = g.Curve.throughPoints(points);
 
         path = new g.Path(curves);
 
     } else {
-        // if we have no route, use a default cubic bezier curve
-        // cubic bezier requires two control points
-        // the control points have `x` midway between source and target
-        // this produces an S-like curve
+        // without route it will be rendered depending on direction option
+        // if option is not presented it will change direction depending on 
+        // source and target orientation
+
+        // Min offset of curve point in case of source and target proximity
+        let minOffset = 100;
+        if (opt.minOffset != null)
+            minOffset = opt.minOffset;
 
         switch (opt.direction) {
-            case 'auto': 
-                path = autoDirectionPath(linkView, sourcePoint, targetPoint);
+            case directionMode.LEGACY: 
+                path = legacyPath(sourcePoint, targetPoint);
                 break;
-            case 'horizontal':
-                path = horisontalDirectionPath(linkView, sourcePoint, targetPoint);
+            case directionMode.HORIZONTAL:
+                path = horizontalDirectionPath(linkView, sourcePoint, targetPoint, minOffset);
                 break;
-            case 'vertical':
-                path = verticalDirectionPath(linkView, sourcePoint, targetPoint);
+            case directionMode.VERTICAL:
+                path = verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset);
                 break;
             default:
-                path = defaultPath(sourcePoint, targetPoint);
+                path = autoDirectionPath(linkView, sourcePoint, targetPoint);
                 break;
         }
     }
