@@ -590,6 +590,8 @@ export namespace g {
 
         bbox(angle?: number): Rect;
 
+        rotateAroundCenter(angle: number): this;
+
         bottomLeft(): Point;
 
         bottomLine(): Line;

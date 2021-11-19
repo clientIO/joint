@@ -400,25 +400,27 @@ export const Element = Cell.extend({
         return normalizeAngle(this.get('angle') || 0);
     },
 
-    getBBox: function(opt) {
+    getBBox: function(opt = {}) {
 
-        opt = opt || {};
+        const { graph, attributes } = this;
+        const { deep, rotate } = opt;
 
-        if (opt.deep && this.graph) {
-
-            // Get all the embedded elements using breadth first algorithm,
-            // that doesn't use recursion.
-            var elements = this.getEmbeddedCells({ deep: true, breadthFirst: true });
+        if (deep && graph) {
+            // Get all the embedded elements using breadth first algorithm.
+            const elements = this.getEmbeddedCells({ deep: true, breadthFirst: true });
             // Add the model itself.
             elements.push(this);
-
-            return this.graph.getCellsBBox(elements);
+            // Note: the default of getCellsBBox() is rotate=true and can't be
+            // changed without a breaking change
+            return graph.getCellsBBox(elements, opt);
         }
 
-        var position = this.get('position');
-        var size = this.get('size');
-
-        return new Rect(position.x, position.y, size.width, size.height);
+        const { angle = 0, position: { x, y }, size: { width, height }} = attributes;
+        const bbox = new Rect(x, y, width, height);
+        if (rotate) {
+            bbox.rotateAroundCenter(angle);
+        }
+        return bbox;
     },
 
     getPointFromConnectedLink: function(link, endType) {

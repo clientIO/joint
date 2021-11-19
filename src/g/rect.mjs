@@ -91,15 +91,22 @@ Rect.prototype = {
     // Find my bounding box when I'm rotated with the center of rotation in the center of me.
     // @return r {rectangle} representing a bounding box
     bbox: function(angle) {
+        return this.clone().rotateAroundCenter(angle);
+    },
 
-        if (!angle) return this.clone();
-
-        var theta = toRad(angle);
-        var st = abs(sin(theta));
-        var ct = abs(cos(theta));
-        var w = this.width * ct + this.height * st;
-        var h = this.width * st + this.height * ct;
-        return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+    rotateAroundCenter: function(angle) {
+        if (!angle) return this;
+        const { width, height } = this;
+        const theta = toRad(angle);
+        const st = abs(sin(theta));
+        const ct = abs(cos(theta));
+        const w = width * ct + height * st;
+        const h = width * st + height * ct;
+        this.x += (width - w) / 2;
+        this.y += (height - h) / 2;
+        this.width = w;
+        this.height = h;
+        return this;
     },
 
     bottomLeft: function() {

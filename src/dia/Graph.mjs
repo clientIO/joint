@@ -962,41 +962,27 @@ export const Graph = Backbone.Model.extend({
 
     // Find all elements at given point
     findModelsFromPoint: function(p) {
-
-        return this.getElements().filter(function(el) {
-            return el.getBBox().containsPoint(p);
-        });
+        return this.getElements().filter(el => el.getBBox({ rotate: true }).containsPoint(p));
     },
 
     // Find all elements in given area
-    findModelsInArea: function(rect, opt) {
-
-        rect = g.rect(rect);
-        opt = util.defaults(opt || {}, { strict: false });
-
-        var method = opt.strict ? 'containsRect' : 'intersect';
-
-        return this.getElements().filter(function(el) {
-            return rect[method](el.getBBox());
-        });
+    findModelsInArea: function(rect, opt = {}) {
+        const r = new g.Rect(rect);
+        const { strict = false } = opt;
+        const method = strict ? 'containsRect' : 'intersect';
+        return this.getElements().filter(el => r[method](el.getBBox({ rotate: true })));
     },
 
     // Find all elements under the given element.
-    findModelsUnderElement: function(element, opt) {
-
-        opt = util.defaults(opt || {}, { searchBy: 'bbox' });
-
-        var bbox = element.getBBox();
-        var elements = (opt.searchBy === 'bbox')
+    findModelsUnderElement: function(element, opt = {}) {
+        const { searchBy = 'bbox' } = opt;
+        const bbox = element.getBBox().rotateAroundCenter(element.angle());
+        const elements = (searchBy === 'bbox')
             ? this.findModelsInArea(bbox)
-            : this.findModelsFromPoint(bbox[opt.searchBy]());
-
+            : this.findModelsFromPoint(bbox[searchBy]());
         // don't account element itself or any of its descendants
-        return elements.filter(function(el) {
-            return element.id !== el.id && !el.isEmbeddedIn(element);
-        });
+        return elements.filter(el => element.id !== el.id && !el.isEmbeddedIn(element));
     },
-
 
     // Return bounding box of all elements.
     getBBox: function() {
@@ -1006,12 +992,10 @@ export const Graph = Backbone.Model.extend({
 
     // Return the bounding box of all cells in array provided.
     getCellsBBox: function(cells, opt) {
-        opt || (opt = {});
+        const cellBBoxOpt = util.assign({ rotate: true }, opt);
         return util.toArray(cells).reduce(function(memo, cell) {
-            var rect = cell.getBBox(opt);
+            const rect = cell.getBBox(cellBBoxOpt);
             if (!rect) return memo;
-            var angle = cell.angle();
-            if (angle) rect = rect.bbox(angle);
             if (memo) {
                 return memo.union(rect);
             }
