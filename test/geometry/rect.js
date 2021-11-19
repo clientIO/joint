@@ -110,6 +110,22 @@ QUnit.module('rect', function() {
 
         QUnit.module('bbox()', function() {
 
+            QUnit.test('returns a rotated rectangle', function(assert) {
+                var r1 = new g.Rect(10, 20, 30, 40);
+                var r2 = r1.bbox(90);
+                assert.notEqual(r1, r2);
+                assert.ok(r1.round().equals(new g.Rect(10, 20, 30, 40)));
+                assert.ok(r2.round().equals(new g.Rect(5, 25, 40, 30)));
+            });
+        });
+
+        QUnit.module('rotateAroundCenter()', function() {
+
+            QUnit.test('rotates the rectangle', function(assert) {
+                var r = new g.Rect(10, 20, 30, 40);
+                r.rotateAroundCenter(90);
+                assert.ok(r.round().equals(new g.Rect(5, 25, 40, 30)));
+            });
         });
 
         QUnit.module('bottomLeft()', function() {
