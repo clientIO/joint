@@ -185,7 +185,7 @@ export const smooth = function(sourcePoint, targetPoint, route, opt = {}) {
         // if the option is not presented, it will change direction 
         // depending on the orientation of the source and target.
         
-        // Minimum curve point offset in case of source and target proximity.
+        // Minimum curve point offset in case of the source and target proximity.
         const { minOffset = 100, direction = Directions.AUTO } = opt;
 
         switch (direction) {

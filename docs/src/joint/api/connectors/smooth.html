@@ -1,8 +1,32 @@
-<p>The <code>'smooth'</code> connector interpolates route points using a cubic bezier curve.</p>
+<p>The <code>'smooth'</code> connector interpolates route points using a cubic bezier curve. Without a route it uses options to render the link.</p>
+
+<p>Available options:</p>
+<table>
+    <tr>
+        <th>direction</th>
+        <td><i>string</i></td>
+        <td>Direction of the connector's curve. 
+            <p>There is exported <code>Directions</code> enum object that provides values for this option</p>
+            <ul>
+                <li><b>Directions.AUTO</b> - the default direction option. Changes orientation depending on the relative position of the source and target</li>
+                <li><b>Directions.HORIZONTAL</b> - fixes the direction in the horizontal orientation</li>
+                <li><b>Directions.VERTICAL</b> - fixes the direction in the vertical orientation</li>
+                <li><b>Directions.LEGACY</b> - enables a legacy connection render algorithm</li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <th>minOffset</th>
+        <td><i>number</i></td>
+        <td>Minimal curve point offset in case of the source and target proximity. Default is <code>100</code>.</td>
+    </tr>
+</table>
 
 <p>Example:</p>
-
-<pre><code>link.connector('smooth');</code></pre>
+<pre><code>link.connector('smooth', {
+    minOffset: 80,
+    direction: Directions.HORIZONTAL // 'horizontal'
+});</code></pre>
 
 <p>(<i>Deprecated</i>) For the purposes of backwards compatibility, the <code>'smooth'</code> connector may also be enabled by setting the <code>link.smooth</code> property to <code>true</code>.</p>
 
