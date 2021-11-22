@@ -75,4 +75,58 @@ QUnit.module('connectors', function(hooks) {
             'A link with the custom connector was succesfully added to the graph');
 
     });
+
+    QUnit.test('smooth connector default', function(assert) {
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 800, y: 450 }, size: { width: 140, height: 70 }});
+
+        var link = new joint.dia.Link({
+            source: { id: r1.id },
+            target: { id: r2.id },
+            connector: { name: 'smooth' }
+        });
+
+        this.graph.addCells([r1, r2, link]);
+
+        var linkView = this.paper.findViewByModel(link);
+        var pathData = linkView.$('.connection').attr('d');
+
+        assert.checkDataPath(pathData, 'M 186 120 C 186 285 804 285 804 450', 'default link was correctly rendered');    
+    });
+
+    QUnit.test('smooth connector horizontal', function(assert) {
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 800, y: 450 }, size: { width: 140, height: 70 }});
+
+        var link = new joint.dia.Link({
+            source: { id: r1.id },
+            target: { id: r2.id },
+            connector: { name: 'smooth', args: { direction: 'horizontal' }}
+        });
+
+        this.graph.addCells([r1, r2, link]);
+
+        var linkView = this.paper.findViewByModel(link);
+        var pathData = linkView.$('.connection').attr('d');
+
+        assert.checkDataPath(pathData, 'M 186 120 C 495 120 495 450 804 450', 'horizontal link was correctly rendered');    
+    });
+
+    QUnit.test('smooth connector vertical', function(assert) {
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 50, y: 50 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.basic.Rect({ position: { x: 800, y: 450 }, size: { width: 140, height: 70 }});
+
+        var link = new joint.dia.Link({
+            source: { id: r1.id },
+            target: { id: r2.id },
+            connector: { name: 'smooth', args: { direction: 'vertical' }}
+        });
+
+        this.graph.addCells([r1, r2, link]);
+
+        var linkView = this.paper.findViewByModel(link);
+        var pathData = linkView.$('.connection').attr('d');
+
+        assert.checkDataPath(pathData, 'M 186 120 C 186 285 804 285 804 450', 'vertical link was correctly rendered');    
+    });
 });
