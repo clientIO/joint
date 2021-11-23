@@ -75,6 +75,16 @@ All the standard SVG <a href="https://www.w3.org/TR/SVG/styling.html" target="_b
                     <td>The current height of the model (<code>model.prop('size/height')</code>). The value can be bound to an SVGElement's size instead by using <a href="#dia.attributes.ref">ref</a> attribute.</td>
                 </tr>
                 <tr>
+                    <td><code>x</code></td>
+                    <td>x</td>
+                    <td>The current x coordinate of the SVGElement in the element's coordinate system. If the attribute is not bound to a specific SVGElement with <a href="#dia.attributes.ref">ref</a> attribute, the value of x is always zero.</td>
+                </tr>
+                <tr>
+                    <td><code>y</code></td>
+                    <td>y</td>
+                    <td>The current y coordinate of the SVGElement in the element's coordinate system. If the attribute is not bound to a specific SVGElement with <a href="#dia.attributes.ref">ref</a> attribute, the value of y is always zero.</td>
+                </tr>
+                <tr>
                     <td><code>s</code></td>
                     <td>shortest</td>
                     <td>The shortest side of the rectangle. The minimum of <i>width</i> and <i>height</i>.</td>
@@ -224,6 +234,17 @@ el.attr('myPath/d', 'M 10 calc(0.5*h) calc(w-10) calc(0.5*h)')
 
 // &lt;polygon joint-selector="myPolygon" points="0,0 200,0 200,100 0,100" /&gt;
 el.attr('myPolygon/d', '0,0 calc(w),0 calc(w),calc(h) 0,calc(h)');
+
+// Resize the rectangle to match the text size with extra 5 pixels of padding
+// &lt;rect joint-selector="myTextBackground" /&gt;
+// &lt;text joint-selector="myText" &gtSome text&lt;/text&gt;
+el.attr('myTextBackground', {
+    ref: 'myText',
+    x: 'calc(x - 5)',
+    y: 'calc(y - 5)'
+    width: 'calc(w + 10)',
+    height: 'calc(h + 10)',
+ });
 </code></pre>
 
 

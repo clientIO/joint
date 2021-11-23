@@ -302,6 +302,8 @@ QUnit.module('Attributes', function() {
 
     QUnit.module('Calc()', function(hooks) {
 
+        var X = 13;
+        var Y = 17;
         var WIDTH = 85;
         var HEIGHT = 97;
 
@@ -316,7 +318,7 @@ QUnit.module('Attributes', function() {
             cell = new joint.shapes.standard.Rectangle();
             cell.addTo(graph);
             cellView = cell.findView(paper);
-            refBBox = new g.Rect(0, 0, WIDTH, HEIGHT);
+            refBBox = new g.Rect(X, Y, WIDTH, HEIGHT);
             node = cellView.el.querySelector('path');
         });
 
@@ -335,6 +337,8 @@ QUnit.module('Attributes', function() {
                 ['calc(s)', String(Math.min(WIDTH, HEIGHT))],
                 ['calc(l)', String(Math.max(WIDTH, HEIGHT))],
                 ['calc(d)', String(Math.sqrt(WIDTH * WIDTH + HEIGHT * HEIGHT))],
+                ['calc(x)', String(X)],
+                ['calc(y)', String(Y)],
                 // multiply
                 ['calc(2*w)', String(WIDTH * 2)],
                 ['calc(2*h)', String(HEIGHT * 2)],
@@ -363,6 +367,8 @@ QUnit.module('Attributes', function() {
                 ['M 0 0 calc(w+10) calc(h+10)', 'M 0 0 ' + (WIDTH + 10) + ' ' + (HEIGHT + 10)],
                 ['M 0 0 calc(1*w-10) calc(1*h-10)', 'M 0 0 ' + (WIDTH - 10) + ' ' + (HEIGHT - 10)],
                 // nested expression
+                ['calc(w+calc(x))', String(WIDTH + X)],
+                ['calc(h+calc(y))', String(HEIGHT + Y)],
                 ['M 0 0 calc(w + calc(h)) 0', 'M 0 0 ' + (WIDTH + HEIGHT) + ' 0'],
                 ['M 0 0 calc(calc(h) * w + calc(h)) 0', 'M 0 0 ' + (HEIGHT * WIDTH + HEIGHT) + ' 0'],
                 ['M 0 0 calc(w + calc(h + calc(w))) 0', 'M 0 0 ' + (WIDTH + HEIGHT + WIDTH) + ' 0'],

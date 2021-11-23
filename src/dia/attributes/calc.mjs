@@ -1,4 +1,6 @@
 const props = {
+    x: 'x',
+    y: 'y',
     width: 'w',
     height: 'h',
     minimum: 's',
@@ -19,32 +21,39 @@ export function evalCalcExpression(expression, bbox) {
     if (!match) throwInvalid(expression);
     parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
     const [,multiply = 1, property, add = 0] = match;
-    // Note: currently, we do not take x and y into account
-    const { width, height } = bbox;
-    let dimension = 0;
+    const { x, y, width, height } = bbox;
+    let value = 0;
     switch (property) {
         case props.width: {
-            dimension = width;
+            value = width;
             break;
         }
         case props.height: {
-            dimension = height;
+            value = height;
+            break;
+        }
+        case props.x: {
+            value = x;
+            break;
+        }
+        case props.y: {
+            value = y;
             break;
         }
         case props.minimum: {
-            dimension = Math.min(height, width);
+            value = Math.min(height, width);
             break;
         }
         case props.maximum: {
-            dimension = Math.max(height, width);
+            value = Math.max(height, width);
             break;
         }
         case props.diagonal: {
-            dimension = Math.sqrt((height * height) + (width * width));
+            value = Math.sqrt((height * height) + (width * width));
             break;
         }
     }
-    return parseFloat(multiply) * dimension + evalAddExpression(add);
+    return parseFloat(multiply) * value + evalAddExpression(add);
 }
 
 function evalAddExpression(addExpression) {
