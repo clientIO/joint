@@ -9,6 +9,34 @@
         height: 300
     });
 
+    joint.dia.Element.define('standard.Rectangle', {
+        attrs: {
+            body: {
+                width: 'calc(w)',
+                height: 'calc(h)',
+                strokeWidth: 2,
+                stroke: '#000000',
+                fill: '#FFFFFF'
+            },
+            label: {
+                textVerticalAnchor: 'middle',
+                textAnchor: 'middle',
+                x: 'calc(0.5*w)',
+                y: 'calc(0.5*h)',
+                fontSize: 14,
+                fill: '#333333'
+            }
+        }
+    }, {
+        markup: [{
+            tagName: 'rect',
+            selector: 'body',
+        }, {
+            tagName: 'text',
+            selector: 'label'
+        }]
+    });
+
     joint.shapes.standard.Rectangle.define('examples.CustomRectangle', {
         attrs: {
             body: {
@@ -19,7 +47,7 @@
             },
             label: {
                 textAnchor: 'left', // align text to left
-                refX: 10, // offset text from right edge of model bbox
+                x: 10, // offset text from right edge of model bbox
                 fill: 'white',
                 fontSize: 18
             }
