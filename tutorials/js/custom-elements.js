@@ -6,7 +6,7 @@
         el: document.getElementById('paper-custom-elements'),
         model: graph,
         width: 600,
-        height: 300
+        height: 400
     });
 
     joint.dia.Element.define('standard.Rectangle', {
@@ -96,23 +96,38 @@
     });
     rect.addTo(graph);
 
-    var rect2 = new joint.shapes.examples.CustomRectangle();
+    var rect2 = new joint.shapes.standard.Rectangle();
     rect2.position(50, 125);
     rect2.resize(500, 50);
     rect2.attr({
+        body: {
+            rx: 10, // add a corner radius
+            ry: 10,
+            fill: '#ADD8E6'
+        },
         label: {
-            text: 'shapes.examples.CustomRectangle()'
+            text: 'shapes.\nstandard.Rectangle()' // add Multiline label with Newline character
         }
     });
     rect2.addTo(graph);
 
-    var rect3 = joint.shapes.examples.CustomRectangle.createRandom();
+    var rect3 = new joint.shapes.examples.CustomRectangle();
     rect3.position(50, 225);
     rect3.resize(500, 50);
     rect3.attr({
         label: {
-            text: 'shapes.examples.CustomRectangle.createRandom()'
+            text: 'shapes.examples.CustomRectangle()'
         }
     });
     rect3.addTo(graph);
+
+    var rect4 = joint.shapes.examples.CustomRectangle.createRandom();
+    rect4.position(50, 325);
+    rect4.resize(500, 50);
+    rect4.attr({
+        label: {
+            text: 'shapes.examples.CustomRectangle.createRandom()'
+        }
+    });
+    rect4.addTo(graph);
 }());

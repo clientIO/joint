@@ -194,7 +194,7 @@
                 In <code>joint.shapes.standard.Rectangle</code>, we can see that the subelement referenced by
                 <code>body</code> (i.e. the SVGRectElement component of the shape) has its default width and height set
                 in terms of the shape model size (using the <code>calc()</code> function). Read more about <code>calc()</code>
-                in our <a target="_blank" href="https://resources.jointjs.com/docs/jointjs/v3.4/joint.html#dia.attributes">attributes</a> 
+                in our <a target="_blank" href="/docs/jointjs#dia.attributes">attributes</a> 
                 documentation. Alongside sizing, you can see the fill and stroke styling.
                 The <code>label</code> subelement (the SVGTextElement component of the shape) has its text anchor set to
                 the center of the text bbox; that point is then positioned into the center of the model bbox by <code>x</code>
@@ -338,9 +338,32 @@
     }
 });</code></pre>
 
+            <p>
+                We add our shapes to the graph in the same manner described in our basic <a href="graph-and-paper.html">Graph & Paper</a>
+                tutorial. In the code below, we add a <code>joint.shapes.standard.Rectangle</code> with rounded corners and
+                a Multiline label. The Multiline label respects the <code>x</code> and <code>y</code> values that we 
+                calculated with the <code>calc()</code> function earlier.
+            </p>
+
+            <pre><code>var rect2 = new joint.shapes.standard.Rectangle();
+rect2.position(50, 125);
+rect2.resize(500, 50);
+rect2.attr({
+    body: {
+        rx: 10, // add a corner radius
+        ry: 10,
+        fill: '#ADD8E6'
+    },
+    label: {
+        text: 'shapes.\nstandard.Rectangle()' // add Multiline label with Newline character
+    }
+});
+rect2.addTo(graph);
+            </code></pre>
+
             <p>The following example shows the default look of <code>joint.shapes.standard.Rectangle</code> (i.e. with
-                no instance attributes set) alongside the default look of our custom element and the randomized results
-                of the <code>createRandom()</code> constructor function.
+                no instance attributes set), and the Multiline label example above. Alongside those, you can see the default 
+                look of our custom element, and the randomized results of the <code>createRandom()</code> constructor function.
                 Try <a onClick="window.location.reload()" style="cursor: pointer">refreshing the page</a> to see
                 <code>createRandom()</code> in action.</p>
 
