@@ -27,7 +27,7 @@
             }
         },
         attrs: {
-            '.label': { text: 'Model', 'ref-x': .5, 'ref-y': .2 },
+            '.label': { text: 'Model', x: 0, y: 'calc(0.2*h)' },
             rect: { fill: '#2ECC71' }
         }
     });
