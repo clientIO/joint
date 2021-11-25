@@ -28,8 +28,6 @@
                 stroke: '#000000'
             },
             link: {
-                width: 'calc(w)',
-                height: 'calc(h)',
                 xlinkShow: 'new',
                 cursor: 'pointer'
             },
