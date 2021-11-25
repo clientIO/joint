@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
     <link rel="canonical" href="http://www.jointjs.com/"/>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -16,17 +15,13 @@
     <link rel="stylesheet" href="css/tutorial.css"/>
     <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
 
-    <!-- Dependencies: -->
-    <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
-
     <title>JointJS - Create a custom shape using TypeScript</title>
-
 </head>
 <body class="language-javascript tutorial-page">
     <div class="tutorial">
 
     <p>
-        At client IO, we often get asked how to incorporate TypeScript with JointJS. As JointJS is a standard JavaScript library, the
+        We often get asked how to incorporate TypeScript with JointJS. As JointJS is a standard JavaScript library, the
         integration process is quite simple and straightforward. In the following tutorial, we are going to create our very own custom
         shape using TypeScript, and also try to provide you with some useful information along the way.
     </p>
@@ -83,10 +78,10 @@ export class MyShape extends dia.Element {
         size: { width: 100, height: 80 },
         attrs: {
             body: {
-                refCx: '50%',
-                refCy: '50%',
-                refRx: '50%',
-                refRy: '50%',
+                cx: 'calc(0.5*w)',
+                cy: 'calc(0.5*h)',
+                rx: 'calc(0.5*w)',
+                ry: 'calc(0.5*h)',
                 strokeWidth: 2,
                 stroke: '#333333',
                 fill: '#FFFFFF'
@@ -94,8 +89,8 @@ export class MyShape extends dia.Element {
             label: {
                 textVerticalAnchor: 'middle',
                 textAnchor: 'middle',
-                refX: '50%',
-                refY: '50%',
+                x: 'calc(0.5*w)',
+                y: 'calc(0.5*h)',
                 fontSize: 14,
                 fill: '#333333'
             }
@@ -112,18 +107,17 @@ export class MyShape extends dia.Element {
 
     <p>
         As we have already set up any parent attributes, we should now add some unique attributes for each instance of our custom 
-        shape. In order to do this, we create an <code>attrs</code> object with keys that correspond to our subelement selectors which are 
-        defined in <code>markup</code>. <code>body</code> and <code>label</code> are the respective keys in our example. The attributes 
-        can consist of standard <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute" target="_blank">SVG attributes</a>, 
-        but also special <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.attributes" target="_blank">JointJS 
-        attributes</a>.
+        shape. In order to do this, we create an <code>attrs</code> object with keys that correspond to our subelement selectors which are defined in 
+        <code>markup</code>. <code>body</code> and <code>label</code> are the respective keys in our example. The attributes can consist of 
+        standard <a href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute" target="_blank">SVG attributes</a>, but also special 
+        <a href="/docs/jointjs#dia.attributes" target="_blank">JointJS attributes</a>.
     </p>
 
     <h3>Markup</h3>
 
     <p>
         We already mentioned the next building block of our custom shape, and that is the 
-        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.Cell.markup" target="_blank">Markup</a>.
+        <a href="/docs/jointjs#dia.Cell.markup" target="_blank">Markup</a>.
     </p>
 
     <pre><code>defaults() {
@@ -239,10 +233,10 @@ export class MyShape extends dia.Element {
             size: { width: 100, height: 80 },
             attrs: {
                 body: {
-                    refCx: '50%',
-                    refCy: '50%',
-                    refRx: '50%',
-                    refRy: '50%',
+                    cx: 'calc(0.5*w)',
+                    cy: 'calc(0.5*h)',
+                    rx: 'calc(0.5*w)',
+                    ry: 'calc(0.5*h)',
                     strokeWidth: 2,
                     stroke: '#333333',
                     fill: '#FFFFFF'
@@ -250,8 +244,8 @@ export class MyShape extends dia.Element {
                 label: {
                     textVerticalAnchor: 'middle',
                     textAnchor: 'middle',
-                    refX: '50%',
-                    refY: '50%',
+                    x: 'calc(0.5*w)',
+                    y: 'calc(0.5*h)',
                     fontSize: 14,
                     fill: '#333333'
                 }
@@ -323,8 +317,8 @@ class MyShape extends dia.Element {
             position: {x: 10, y: 10 },
             attrs: {
                 body: {
-                    refWidth: '100%',
-                    refHeight: '100%',
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 }
             } 
         }
@@ -388,10 +382,10 @@ defaults() {
         size: { width: 100, height: 80 },
         attrs: {
             body: {
-                refCx: '50%',
-                refCy: '50%',
-                refRx: '50%',
-                refRy: '50%',
+                cx: 'calc(0.5*w)',
+                cy: 'calc(0.5*h)',
+                rx: 'calc(0.5*w)',
+                ry: 'calc(0.5*h)',
                 strokeWidth: 2,
                 stroke: '#333333',
                 fill: '#FFFFFF'
@@ -399,8 +393,8 @@ defaults() {
             label: {
                 textVerticalAnchor: 'middle',
                 textAnchor: 'middle',
-                refX: '50%',
-                refY: '50%',
+                x: 'calc(0.5*w)',
+                y: 'calc(0.5*h)',
                 fontSize: 14,
                 fill: '#333333'
             }
@@ -419,14 +413,14 @@ defaults() {
     <p>
         Congratulations! You now know how to set up custom shapes in JointJS with TypeScript, and unlock the powerful functionality it 
         gives to the user. Of course, there are many other ways to define shapes in JointJS, and you can see some other methods of doing 
-        this in our <a href="https://resources.jointjs.com/tutorial/custom-elements" target="_blank">documentation</a>. We think this method 
+        this in our <a href="custom-elements.html">custom elements</a> tutorial. We think this method 
         is a nice way to work with TypeScript, and you can see that we use it throughout our Rappid demos.
     </p>
     
     <h3>Custom Views</h3>
     
     <p>
-        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html#dia.CellView.custom" target="_blank">Custom views</a> provide
+        <a href="/docs/jointjs#dia.CellView.custom" target="_blank">Custom views</a> provide
         some extra flexibility when it comes to working with our models. If we want some additional behaviour, but don't believe that 
         behaviour should live alongside the presentational attributes on our models, custom views can provide this for us. Maybe you want 
         to capture user input, see a minimal version of the same graph, or apply some interesting effect to your elements, those are just 
@@ -443,8 +437,8 @@ defaults() {
             position: {x: 10, y: 10 },
             attrs: {
                 body: {
-                    refWidth: '100%',
-                    refHeight: '100%',
+                    width: 'calc(w)',
+                    height: 'calc(h)'
                 }
             } 
         }
@@ -558,7 +552,7 @@ const paper = new dia.Paper({
     <p>
         That's all we will cover in this tutorial. Thanks for staying with us if you got this far. If you would like 
         to explore any of the features mentioned here in more detail, you can find extra information in our 
-        <a href="https://resources.jointjs.com/docs/jointjs/v3.3/joint.html" target="_blank">JointJS documentation</a>.
+        <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
     </p>
 
     </div><!--end tutorial-->
