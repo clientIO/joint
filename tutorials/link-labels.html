@@ -62,14 +62,14 @@
                     - removes the label at <code>index</code>.</li>
             </ul>
 
-            <h3 id="builtin-default-label">Builtin Default Label</h3>
+            <h3 id="builtin-default-label">Built-in Default Label</h3>
 
             <p>A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
                 class, from which all subtypes, including <code>joint.shapes.standard.Link</code>, inherit it.
-                The builtin default label has two tags:
+                The built-in default label has two tags:
                 <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
-                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
-                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for the label background).
+                The built-in default attributes specify a simple vertical-centered text on a white rounded rectangle.
                 Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
 
             <div class="paper" id="paper-links-label-builtin"></div>
@@ -91,13 +91,13 @@
 
             <p>Labels are positioned at the center point of the link (<code>distance</code> of <code>0.5</code>) by
                 default.
-                Three kinds of <code>label.position.distance</code> values are recognized for setting custom position.
+                Three kinds of <code>label.position.distance</code> values are recognized for setting a custom position.
                 A value between <code>0</code> and <code>1</code> causes the label to be positioned relatively to link length.
-                Positive values signify absolute position in local SVG units away from start point.
+                Positive values signify absolute position in local SVG units away from the start point.
                 Finally, negative values mean absolute position away from end point.
                 An animated example is presented below.
                 (<a href="special-attributes.html#link-subelement-labels">Link labels can also be emulated with link
-                subelements and special attributes; this technique is explained elsewhere in the tutorial.</a>)</p>
+                subelements and special attributes; this technique is explained elsewhere in the tutorial</a>).</p>
 
             <div class="paper" id="paper-link-labels-distance"></div>
 
@@ -190,7 +190,7 @@ link.appendLabel({
 
             <p>JointJS source code: <a href="js/link-labels-offset.js" target="_blank">link-labels-offset.js</a></p>
 
-            <p>By default, labels' anchor point is centered horizontally and vertically, as it was in this example.
+            <p>By default, the labels' anchor point is centered horizontally and vertically, as it was in this example.
                 This can be changed by the <code>textAnchor</code> and
                 <a href="/docs/jointjs#dia.attributes.textVerticalAnchor"><code>textVerticalAnchor</code></a>
                 attributes, respectively.</p>
@@ -200,7 +200,7 @@ link.appendLabel({
             <p>Link labels are horizontal by default, but JointJS allows you to specify label rotation.
                 If you provide a value for the <code>label.position.angle</code> property, the link will rotate clockwise by that amount (with respect to the path of the link).
                 Furthermore, the <code>label.position.args.keepGradient</code> boolean flag has another function, which may be combined with providing a specific rotation angle - when set to <code>true</code>, it rotates the label according to the slope of the connection path at the given position.
-                Additionally, if the <code>label.position.args.ensureLegibility</code> boolean flag is set to <code>true</code>, it ensures that the text never rotates to end up upside-down - if necessary, JointJS adds additional 180-degree rotation to make the text legible.
+                Additionally, if the <code>label.position.args.ensureLegibility</code> boolean flag is set to <code>true</code>, it ensures that the text never rotates to end up upside-down - if necessary, JointJS adds an additional 180-degree rotation to make the text legible.
                 The following example shows rotated links in action.
                 The red asterisk marks the reference point of the two labels that are offset from the connection path.</p>
 
@@ -328,9 +328,9 @@ link.appendLabel({
             fill: '#ffffff',
             stroke: '#000000',
             strokeWidth: 1,
-            refR: 1,
-            refCx: 0,
-            refCy: 0
+            r: 'calc(w+1)',
+            cx: 0,
+            cy: 0
         },
         asterisk: {
             ref: 'label',
@@ -338,21 +338,19 @@ link.appendLabel({
             fill: '#ff0000',
             fontSize: 8,
             textAnchor: 'middle',
-            yAlignment: 'middle',
+            textVerticalAnchor: 'middle',
             pointerEvents: 'none',
-            refX: 16.5,
-            refY: -2
+            x: 10,
+            y: -9
         },
         asteriskBody: {
             ref: 'asterisk',
             fill: '#ffffff',
             stroke: '#000000',
             strokeWidth: 1,
-            refR: 1,
-            refCx: '50%',
-            refCy: '50%',
-            refX: 0,
-            refY: 0
+            r: 'calc(w+1)',
+            cx: 'calc(w+2)',
+            cy: '-calc(h+1)'
         }
     }
 });</code></pre>
@@ -387,7 +385,7 @@ link.appendLabel({
 
             <p>The new position of dragged labels is recorded relatively to the link path.
                 That means that the label will reposition itself when the link changes.
-                (Unfortunately, it also means that the label can never be dragged beyond the endpoints of the link.)</p>
+                (Unfortunately, it also means that the label can never be dragged beyond the endpoints of the link).</p>
 
             <p>If you only want to allow the label to be dragged along the length of the link (and not outside of it), you can do so by specifying the <code>paper.options.snapLabels</code> <a href="/docs/jointjs#dia.Paper.prototype.options.snapLabels">paper option</a>:</p>
 

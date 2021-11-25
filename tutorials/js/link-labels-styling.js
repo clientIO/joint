@@ -48,9 +48,9 @@
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeWidth: 1,
-                refR: 1,
-                refCx: 0,
-                refCy: 0
+                r: 'calc(w+1)',
+                cx: 0,
+                cy: 0
             },
             asterisk: {
                 ref: 'label',
@@ -58,21 +58,19 @@
                 fill: '#ff0000',
                 fontSize: 8,
                 textAnchor: 'middle',
-                yAlignment: 'middle',
+                textVerticalAnchor: 'middle',
                 pointerEvents: 'none',
-                refX: 16.5,
-                refY: -2
+                x: 10,
+                y: -9
             },
             asteriskBody: {
                 ref: 'asterisk',
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeWidth: 1,
-                refR: 1,
-                refCx: '50%',
-                refCy: '50%',
-                refX: 0,
-                refY: 0
+                r: 'calc(w+1)',
+                cx: 'calc(w+2)',
+                cy: '-calc(h+1)'
             }
         }
     });
