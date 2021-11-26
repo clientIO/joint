@@ -991,10 +991,10 @@ export const Graph = Backbone.Model.extend({
     },
 
     // Return the bounding box of all cells in array provided.
-    getCellsBBox: function(cells, opt) {
-        const cellBBoxOpt = util.assign({ rotate: true }, opt);
+    getCellsBBox: function(cells, opt = {}) {
+        const { rotate = true } = opt;
         return util.toArray(cells).reduce(function(memo, cell) {
-            const rect = cell.getBBox(cellBBoxOpt);
+            const rect = cell.getBBox({ rotate });
             if (!rect) return memo;
             if (memo) {
                 return memo.union(rect);
