@@ -464,7 +464,7 @@ export namespace dia {
             transition?: Cell.TransitionOptions;
         }
 
-        interface BBoxOptions extends EmbeddableOptions {
+        interface BBoxOptions extends Cell.EmbeddableOptions {
             rotate?: boolean;
         }
     }
