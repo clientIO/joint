@@ -882,7 +882,7 @@ QUnit.module('graph', function(hooks) {
 
         QUnit.test('rotated elements', function(assert) {
 
-            var graph =this.graph;
+            var graph = this.graph;
             var rect1 = new joint.shapes.standard.Rectangle({ size: { width: 10, height: 100 }});
             var rect2 = rect1.clone().translate(30, 30);
             graph.addCells([rect1, rect2]);
