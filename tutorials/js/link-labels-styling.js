@@ -69,8 +69,8 @@
                 stroke: '#000000',
                 strokeWidth: 1,
                 r: 'calc(s)',
-                cx: 'calc(x+4)',
-                cy: 'calc(y+4)'
+                cx: 'calc(x+calc(0.5*w))',
+                cy: 'calc(y+calc(0.5*h))'
             }
         }
     });

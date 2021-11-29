@@ -36,8 +36,8 @@
                 ref: 'buttonLabel',
                 width: 'calc(1.5*w)',
                 height: 'calc(1.5*h)',
-                x: 'calc(x-2)',
-                y: 'calc(y-2)'
+                x: 'calc(x-calc(0.25*w))',
+                y: 'calc(y-calc(0.25*h))'
             },
             buttonLabel: {
                 pointerEvents: 'none',

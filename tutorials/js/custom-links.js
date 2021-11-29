@@ -48,8 +48,8 @@
                     strokeWidth: 2,
                     width: 'calc(1.2*w)',
                     height: 'calc(1.2*h)',
-                    x: 'calc(x-7)',
-                    y: 'calc(y-1)'
+                    x: 'calc(x-calc(0.1*w))',
+                    y: 'calc(y-calc(0.1*h))'
                 }
             },
             position: {
