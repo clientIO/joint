@@ -33,10 +33,11 @@
             },
             button: {
                 cursor: 'pointer',
-                width: 'calc(0.14*w)',
-                height: 'calc(0.45*h)',
-                x: 'calc(w-7)',
-                y: '-calc(0.25*h)'
+                ref: 'buttonLabel',
+                width: 'calc(1.5*w)',
+                height: 'calc(1.5*h)',
+                x: 'calc(x-2)',
+                y: 'calc(y-2)'
             },
             buttonLabel: {
                 pointerEvents: 'none',

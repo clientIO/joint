@@ -48,7 +48,7 @@
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeWidth: 1,
-                r: 'calc(w+1)',
+                r: 'calc(s)',
                 cx: 0,
                 cy: 0
             },
@@ -60,17 +60,17 @@
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle',
                 pointerEvents: 'none',
-                x: 10,
-                y: -9
+                x: 'calc(x+16.5)',
+                y: 'calc(y-2)'
             },
             asteriskBody: {
                 ref: 'asterisk',
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeWidth: 1,
-                r: 'calc(w+1)',
-                cx: 'calc(w+2)',
-                cy: '-calc(h+1)'
+                r: 'calc(s)',
+                cx: 'calc(x+4)',
+                cy: 'calc(y+4)'
             }
         }
     });
