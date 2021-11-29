@@ -850,32 +850,51 @@ QUnit.module('graph', function(hooks) {
         });
     });
 
-    QUnit.test('graph.findModelsUnderElement()', function(assert) {
+    QUnit.module('graph.findModelsUnderElement()', function() {
 
-        var rect = new joint.shapes.basic.Rect({
-            size: { width: 100, height: 100 },
-            position: { x: 100, y: 100 }
+        QUnit.test('sanity', function(assert) {
+
+            var rect = new joint.shapes.basic.Rect({
+                size: { width: 100, height: 100 },
+                position: { x: 100, y: 100 }
+            });
+
+            var under = rect.clone();
+            var away = rect.clone().translate(200, 200);
+
+            this.graph.addCells([rect, under, away]);
+
+            assert.deepEqual(this.graph.findModelsUnderElement(away), [], 'There are no models under the element.');
+            assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is a model under the element.');
+
+            under.translate(50, 50);
+
+            assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
+            assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
+
+            var embedded = rect.clone().addTo(this.graph);
+            rect.embed(embedded);
+
+            assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is 1 model under the element found and 1 embedded element is omitted.');
+            assert.deepEqual(this.graph.findModelsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
+            assert.deepEqual(this.graph.findModelsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
         });
 
-        var under = rect.clone();
-        var away = rect.clone().translate(200, 200);
+        QUnit.test('rotated elements', function(assert) {
 
-        this.graph.addCells([rect, under, away]);
-
-        assert.deepEqual(this.graph.findModelsUnderElement(away), [], 'There are no models under the element.');
-        assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is a model under the element.');
-
-        under.translate(50, 50);
-
-        assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'origin' }), [], 'There is no model under the element if searchBy origin option used.');
-        assert.deepEqual(this.graph.findModelsUnderElement(rect, { searchBy: 'corner' }), [under], 'There is a model under the element if searchBy corner options used.');
-
-        var embedded = rect.clone().addTo(this.graph);
-        rect.embed(embedded);
-
-        assert.deepEqual(this.graph.findModelsUnderElement(rect), [under], 'There is 1 model under the element found and 1 embedded element is omitted.');
-        assert.deepEqual(this.graph.findModelsUnderElement(under), [rect, embedded], 'There are 2 models under the element. Parent and its embed.');
-        assert.deepEqual(this.graph.findModelsUnderElement(embedded), [rect, under], 'There are 2 models under the element. The element\'s parent and one other element.');
+            var graph = this.graph;
+            var rect1 = new joint.shapes.standard.Rectangle({ size: { width: 10, height: 100 }});
+            var rect2 = rect1.clone().translate(30, 30);
+            graph.addCells([rect1, rect2]);
+            assert.deepEqual(graph.findModelsUnderElement(rect1), []);
+            rect1.set('angle', 90);
+            assert.deepEqual(graph.findModelsUnderElement(rect1), [rect2]);
+            rect2.set('angle', 90);
+            // there is no intersection when both elements are rotated
+            assert.deepEqual(graph.findModelsUnderElement(rect1), []);
+            rect1.set('angle', 0);
+            assert.deepEqual(graph.findModelsUnderElement(rect1), [rect2]);
+        });
     });
 
     QUnit.test('graph.options: cellNamespace', function(assert) {

@@ -85,7 +85,7 @@ graph.addCell({
 
 // `cells` attribute is a collection of cells
 const cell = graph.get('cells').at(0);
-cell.getBBox().inflate(5);
+(<joint.dia.Element>cell).getBBox({ rotate: true }).inflate(5);
 
 // ModelSetOptions
 graph.set('test', true, { dry: true });
