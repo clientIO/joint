@@ -17,8 +17,8 @@
     var CustomElement = joint.dia.Element.define('examples.CustomElement', {
         attrs: {
             body: {
-                refWidth: '100%',
-                refHeight: '100%',
+                width: 'calc(w)',
+                height: 'calc(h)',
                 strokeWidth: 2,
                 stroke: 'black',
                 fill: 'white'
@@ -26,23 +26,23 @@
             label: {
                 textVerticalAnchor: 'middle',
                 textAnchor: 'middle',
-                refX: '50%',
-                refY: '50%',
+                x: 'calc(0.5*w)',
+                y: 'calc(0.5*h)',
                 fontSize: 14,
                 fill: 'black'
             },
             button: {
                 cursor: 'pointer',
                 ref: 'buttonLabel',
-                refWidth: '150%',
-                refHeight: '150%',
-                refX: '-25%',
-                refY: '-25%'
+                width: 'calc(1.5*w)',
+                height: 'calc(1.5*h)',
+                x: 'calc(x-calc(0.25*w))',
+                y: 'calc(y-calc(0.25*h))'
             },
             buttonLabel: {
                 pointerEvents: 'none',
-                refX: '100%',
-                refY: 0,
+                x: 'calc(w)',
+                y: 0,
                 textAnchor: 'middle',
                 textVerticalAnchor: 'middle'
             }

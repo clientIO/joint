@@ -46,10 +46,10 @@
                     fill: 'white',
                     stroke: 'cornflowerblue',
                     strokeWidth: 2,
-                    refWidth: '120%',
-                    refHeight: '120%',
-                    refX: '-10%',
-                    refY: '-10%'
+                    width: 'calc(1.2*w)',
+                    height: 'calc(1.2*h)',
+                    x: 'calc(x-calc(0.1*w))',
+                    y: 'calc(y-calc(0.1*h))'
                 }
             },
             position: {

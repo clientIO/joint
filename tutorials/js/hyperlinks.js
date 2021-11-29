@@ -28,8 +28,6 @@
                 stroke: '#000000'
             },
             link: {
-                refWidth: '100%',
-                refHeight: '100%',
                 xlinkShow: 'new',
                 cursor: 'pointer'
             },

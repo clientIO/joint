@@ -37,9 +37,11 @@
 
             <h2>Custom Elements</h2>
 
-            <p>This is the fourth article of the intermediate section of the JointJS tutorial.
-                <a href="serialization.html">Go back to serialization.</a>
-                Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
+            <p><i>
+                This is the fourth article of the intermediate section of the JointJS tutorial. Return to 
+                <a href="serialization.html">serialization</a>. See <a href="intermediate.html">index</a> 
+                of basic and intermediate articles.
+            </i></p>
 
             <p>JointJS comes with several collections of built-in element shapes.
                 We already saw two members of the <code>joint.shapes.standard</code> collection in the basic
@@ -86,15 +88,15 @@
                 functions</a>.</li>
             </ul>
 
-            <p>Let us use the familiar
+            <p>Let's use the familiar
                 <a href="/docs/jointjs#shapes.standard.Rectangle" target="_blank"><code>joint.shapes.standard.Rectangle</code></a>
                 shape definition as an example:</p>
 
             <pre><code>joint.dia.Element.define('standard.Rectangle', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 2,
             stroke: '#000000',
             fill: '#FFFFFF'
@@ -102,8 +104,8 @@
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(0.5*w)',
+            y: 'calc(0.5*h)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -131,9 +133,9 @@
             <p>Markup is usually provided inside the third argument of the <code>define()</code> function (prototype
                 properties) for improved performance.
                 (This is because markup is something that all instances of the element type are expected to have in
-                common, so inheriting from subtype prototype is more efficient.
+                common, so inheriting from the subtype prototype is more efficient.
                 Nevertheless, it is still possible to provide custom markup to individual instances of your class by
-                providing individual <code>markup</code> later.)</p>
+                providing individual <code>markup</code> later).</p>
 
             <p>The <code>markup</code> property is specified as a JSON array.
                 Each member of the array is taken to define one subelement of the new shape.
@@ -180,7 +182,7 @@
             <p>Default attributes are usually provided inside the second argument of the <code>define()</code> function
                 (default instance properties).
                 (This is because all instances of the element type are expected to have their own individual attributes,
-                so inheriting from the prototype is likely to cause unnecessary overhead.)</p>
+                so inheriting from the prototype is likely to cause unnecessary overhead).</p>
 
             <p>In the <code>attrs</code> object, keys correspond to subelement selectors, as defined in the
                 <a href="#markup">markup</a>.
@@ -188,23 +190,23 @@
                 Each of these attributes can be a native SVG attribute or a <a href="special-attributes.html">JointJS
                 special attribute</a>.</p>
 
-            <p>In <code>joint.shapes.standard.Rectangle</code>, we can see that the subelement referenced by
+            <p>
+                In <code>joint.shapes.standard.Rectangle</code>, we can see that the subelement referenced by
                 <code>body</code> (i.e. the SVGRectElement component of the shape) has its default width and height set
-                in terms of the model size (using the
-                <a href="special-attributes.html#relative-dimensions">relative-dimension special attributes</a>
-                <code>refWidth</code>/<code>refHeight</code>),
-                alongside the fill and stroke styling.
+                in terms of the shape model size (using the <code>calc()</code> function). Read more about <code>calc()</code>
+                in our <a target="_blank" href="/docs/jointjs#dia.attributes">attributes</a> 
+                documentation. Alongside sizing, you can see the fill and stroke styling.
                 The <code>label</code> subelement (the SVGTextElement component of the shape) has its text anchor set to
-                the center of the text bbox; that point is then positioned into the center of the model bbox by the
-                <a href="special-attributes.html#relative-dimensions">two relative-position special attributes</a>
-                <code>refX</code>/<code>refY</code>.
-                Its font size is specified, and the font fill color:</p>
+                the center of the text bbox; that point is then positioned into the center of the model bbox by <code>x</code>
+                and <code>y</code> attributes.
+                Its font size is specified, and the font fill color:
+            </p>
 
             <pre><code>{
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 2,
             stroke: '#000000',
             fill: '#FFFFFF'
@@ -212,8 +214,8 @@
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(0.5*w)',
+            y: 'calc(0.5*h)',
             fontSize: 14,
             fill: '#333333'
         }
@@ -231,31 +233,32 @@
                 Here, that subelement is the <code>body</code> subelement.</p>
 
             <p>There does not need to be a direct mapping between model size and any visible subelements.
-                It is perfectly possible to replace the <code>refWidth</code>/<code>refHeight</code> relative
-                attributes with the native SVG (absolute) <code>width</code>/<code>height</code>; this would create a
+                It is perfectly possible to replace relative sizing using <code>calc()</code> with regular values
+                for <code>width</code> and <code>height</code> respectively; this would create a
                 subelement with constant dimensions - 20px by 20px, for example - regardless of model size.
                 That may be ideal for control buttons.</p>
 
-            <p>Similarly, the position of <code>label</code> anchor is defined in terms of model size and position.
+            <p>Similarly, the position of the <code>label</code> anchor is defined in terms of model size and position.
                 Model position is modified by calling the
                 <a href="/docs/jointjs#dia.Element.prototype.position"><code>element.position()</code></a> function on
                 an instance of <code>joint.shapes.standard.Rectangle</code>.
                 For example, if we called <code>element.position(-100, -100)</code>, the origin of the reference
                 coordinates would move to the point (-100,-100) on the paper.</p>
 
-            <p>We can see that the anchor of the <code>label</code> of <code>joint.shapes.standard.Rectangle</code> is
-                placed at <code>refX: '50%'</code>,<code>refY: '50%'</code> by default.
-                The percentages refer to model size; thus, if model size were kept at (100,100), they would mean that
-                the anchor of the <code>label</code> will be offset from the reference origin by (50,50).
-                Thus, if model position were (-100,-100) and size were (100, 100), the label anchor would be positioned
-                at (-50,-50).</p>
+            <p>
+                We can see that the anchor of the <code>label</code> of <code>joint.shapes.standard.Rectangle</code>
+                in our example is placed centrally. We use <code>calc()</code> to place the label relative to our
+                shape model. If the model size was kept at (100, 100), that would mean that the anchor of the label 
+                will be offset from the reference origin by (50, 50) when using <code>x: 'calc(0.5*w)'</code> and 
+                <code>y: 'calc(0.5*h)'</code>.
+            </p>
 
             <p>Relative positioning and sizing of elements is explained in more detail in a
                 <a href="special-attributes.html#relative-dimensions">separate section of the tutorial</a>.</p>
 
             <h3 id="static-properties">Static Properties</h3>
 
-            <p>Static properties are not used by <code>joint.shapes.standard.Rectangle</code>, but let us discuss them a
+            <p>Static properties are not used by <code>joint.shapes.standard.Rectangle</code>, but let's discuss them a
                 little bit to gain a complete overview of custom elements.</p>
 
             <p>Imagine we wanted to define our own subtype of <code>joint.shapes.standard.Rectangle</code> (which we
@@ -277,8 +280,8 @@
 
             <h3 id="example">Example</h3>
 
-            <p>Let us apply everything we learned so far and create a new
-                <cdoe>joint.shapes.examples.CustomRectangle</cdoe> class based on
+            <p>Let's apply everything we learned so far and create a new
+                <code>joint.shapes.examples.CustomRectangle</code> class based on
                 <code>joint.shapes.standard.Rectangle</code>.
                 Keep in mind that the provided instance properties are mixined with the parent definition, but prototype
                 and static properties are not.
@@ -296,7 +299,7 @@
         },
         label: {
             textAnchor: 'left', // align text to left
-            refX: 10, // offset text from right edge of model bbox
+            x: 10, // offset text from right edge of model bbox
             fill: 'white',
             fontSize: 18
         }
@@ -335,9 +338,32 @@
     }
 });</code></pre>
 
+            <p>
+                We add our shapes to the graph in the same manner described in our basic <a href="graph-and-paper.html">Graph & Paper</a>
+                tutorial. In the code below, we add a <code>joint.shapes.standard.Rectangle</code> with rounded corners and
+                a Multiline label. The Multiline label respects the <code>x</code> and <code>y</code> values that we 
+                calculated with the <code>calc()</code> function earlier.
+            </p>
+
+            <pre><code>var rect2 = new joint.shapes.standard.Rectangle();
+rect2.position(50, 125);
+rect2.resize(500, 50);
+rect2.attr({
+    body: {
+        rx: 10, // add a corner radius
+        ry: 10,
+        fill: '#ADD8E6'
+    },
+    label: {
+        text: 'shapes.\nstandard.Rectangle()' // add Multiline label with Newline character
+    }
+});
+rect2.addTo(graph);
+            </code></pre>
+
             <p>The following example shows the default look of <code>joint.shapes.standard.Rectangle</code> (i.e. with
-                no instance attributes set) alongside the default look of our custom element and the randomized results
-                of the <code>createRandom()</code> constructor function.
+                no instance attributes set), and the Multiline label example above. Alongside those, you can see the default 
+                look of our custom element, and the randomized results of the <code>createRandom()</code> constructor function.
                 Try <a onClick="window.location.reload()" style="cursor: pointer">refreshing the page</a> to see
                 <code>createRandom()</code> in action.</p>
 

@@ -37,14 +37,15 @@
 
             <h2>Custom Links</h2>
 
-            <p>This is the fifth article of the intermediate section of the JointJS tutorial.
-                <a href="custom-elements.html">Go back to custom elements.</a>
-                Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
+            <p><i>
+                This is the fifth article of the intermediate section of the JointJS tutorial. Return to 
+                <a href="custom-elements.html">custom elements</a>. See <a href="intermediate.html">index</a>
+                of basic and intermediate articles.
+            </i></p>
 
             <p>JointJS comes with several built-in link shapes; we have already encountered
-                <code>joint.shapes.standard.Link</code> in the <a href="links.html">basic links</a> tutorial.</p>
-
-            <p>However, builtin link definitions are not as plentiful as element definitions.
+                <code>joint.shapes.standard.Link</code> in the <a href="links.html">basic links</a> tutorial.
+                However, built-in link definitions are not as plentiful as element definitions.
                 It is thus very possible that you will find the need to define your own custom link type.
                 Creating custom links is very similar to <a href="custom-elements.html">creating custom elements</a>,
                 with a few differences.
@@ -135,9 +136,9 @@
             <p>Markup is usually provided inside the third argument of the <code>define()</code> function (prototype
                 properties) for improved performance.
                 (This is because markup is something that all instances of the link type are expected to have in
-                common, so inheriting from subtype prototype is more efficient.
+                common, so inheriting from the subtype prototype is more efficient.
                 Nevertheless, it is still possible to provide custom markup to individual instances of your class by
-                providing individual <code>markup</code> later.)</p>
+                providing individual <code>markup</code> later).</p>
 
             <p>The <code>markup</code> property is specified as a JSON array.
                 Each member of the array is taken to define one subelement of the new shape.
@@ -178,7 +179,7 @@
                 of each instance having their own copy because it avoids unnecessary iterations in the cell attributes
                 update loop.
                 (Nevertheless, again, it is possible to overwrite these prototype attributes by individual instance
-                attributes if absolutely necessary.)</p>
+                attributes if absolutely necessary).</p>
 
             <p>In our example, <code>markup.attributes</code> are used to reflect the intended use of the two
                 subelements of the link, which is not expected to change - <code>wrapper</code> has a transparent stroke
@@ -189,8 +190,8 @@
 
             <p>An important caveat is that <code>markup.attributes</code> can only store <i>native SVG attributes</i>,
                 not JointJS attrs.
-                This means that JointJS special attributes are not recognized (since <code>markup.attributes</code> are
-                supposed not to change, they would not be able to reflect possible changes in referenced subelements or in the
+                This means that JointJS special attributes are not recognized (since <code>markup.attributes</code> are not
+                supposed to change, they would not be able to reflect possible changes in referenced subelements or in the
                 size/position of model bbox).
                 Additionally, this means that there is no JointJS kebab-case translation of attribute names; thus, using
                 quotes around all attribute names is encouraged in this context, to communicate these restrictions to
@@ -202,7 +203,7 @@
             <p>Default attributes are usually provided inside the second argument of the <code>define()</code> function
                 (default instance properties).
                 (This is because all instances of the link type are expected to have their own individual attributes, so
-                inheriting from the prototype is likely to cause unnecessary overhead.)</p>
+                inheriting from the prototype is likely to cause unnecessary overhead).</p>
 
             <p>In the <code>attrs</code> object, keys correspond to subelement selectors, as defined in the
                 <a href="#markup">markup</a>.
@@ -277,7 +278,7 @@
 
             <h3 id="static-properties">Static Properties</h3>
 
-            <p>Static properties are not used by <code>joint.shapes.standard.Link</code>, but let us discuss them a
+            <p>Static properties are not used by <code>joint.shapes.standard.Link</code>, but let's discuss them a
                 little bit to gain a complete overview of custom links.</p>
 
             <p>Similarly to our <a href="custom-elements.html#static-properties">custom element example</a>, imagine we
@@ -300,7 +301,7 @@
             <h3 id="example">Example</h3>
 
             <p>Let us apply everything we learned so far and create a new
-                <cdoe>joint.shapes.examples.CustomLink</cdoe> class based on <code>joint.shapes.standard.Link</code>.
+                <code>joint.shapes.examples.CustomLink</code> class based on <code>joint.shapes.standard.Link</code>.
                 Keep in mind that the provided instance properties are mixined with the parent definition, but prototype
                 and static properties are not.
                 This means that it is enough for us to record only the attributes that changed in the definition of the
@@ -344,10 +345,10 @@
                 fill: 'white',
                 stroke: 'cornflowerblue',
                 strokeWidth: 2,
-                refWidth: '120%',
-                refHeight: '120%',
-                refX: '-10%',
-                refY: '-10%'
+                width: 'calc(1.2*w)',
+                height: 'calc(1.2*h)',
+                x: 'calc(x-calc(0.1*w))',
+                y: 'calc(y-calc(0.1*h))'
             }
         },
         position: {

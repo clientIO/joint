@@ -35,21 +35,23 @@
 
             <h2>Events</h2>
 
-            <p>This is the second article of the intermediate section of the JointJS tutorial.
-                <a href="special-attributes.html">Go back to special attributes.</a>
-                Alternatively, you can <a href="intermediate.html">return to index</a> of all articles.</p>
+            <p><i>
+                This is the second article of the intermediate section of the JointJS tutorial. Return to
+                <a href="special-attributes.html">special attributes</a>.
+                See <a href="intermediate.html">index</a> of basic and intermediate articles.
+            </i></p>
 
             <p>JointJS offers several different ways to enable user interaction.
                 Events are triggered on your paper, on individual element/link views.</p>
 
-            <h3 id="paper-events">Builtin Paper Events</h3>
+            <h3 id="paper-events">Built-in Paper Events</h3>
 
-            <p>Paper automatically triggers several builtin events upon user interaction.
+            <p>Paper automatically triggers several built-in events upon user interaction.
                 These include pointerdown, double click and right click events, as well as link connection or cell
                 highlighting events.
-                You can find the full list in <a href="/docs/jointjs#dia.Paper.events" target="_blank">Paper
+                You can find the full list in the <a href="/docs/jointjs#dia.Paper.events" target="_blank">Paper
                 documentation</a>.
-                Reacting on any of these events is as simple as adding a listener on your paper; this is the easiest way
+                Reacting to any of these events is as simple as adding a listener on your paper; this is the easiest way
                 to detect one type of interaction on all instances of a component.</p>
 
             <p>For example, the event <code>'link:pointerdblclick'</code> is triggered when a double click is detected
@@ -72,28 +74,28 @@
 
     this.drawBackground({
         color: 'orange'
-    })
+    });
 });
 
 paper.on('element:pointerdblclick', function(elementView) {
     resetAll(this);
 
     var currentElement = elementView.model;
-    currentElement.attr('body/stroke', 'orange')
+    currentElement.attr('body/stroke', 'orange');
 });
 
 paper.on('link:pointerdblclick', function(linkView) {
     resetAll(this);
 
     var currentLink = linkView.model;
-    currentLink.attr('line/stroke', 'orange')
+    currentLink.attr('line/stroke', 'orange');
     currentLink.label(0, {
         attrs: {
             body: {
                 stroke: 'orange'
             }
         }
-    })
+    });
 });
 
 paper.on('cell:pointerdblclick', function(cellView) {
@@ -108,7 +110,7 @@ paper.on('cell:pointerdblclick', function(cellView) {
 function resetAll(paper) {
     paper.drawBackground({
         color: 'white'
-    })
+    });
 
     var elements = paper.model.getElements();
     for (var i = 0, ii = elements.length; i < ii; i++) {
@@ -126,7 +128,7 @@ function resetAll(paper) {
                     stroke: 'black'
                 }
             }
-        })
+        });
     }
 }</code></pre>
 
@@ -150,16 +152,16 @@ function resetAll(paper) {
                 interaction options is better practice in JavaScript than having dozens of listeners for individual
                 views.</p>
 
-            <h3 id="graph-events">Builtin Graph Events</h3>
+            <h3 id="graph-events">Built-in Graph Events</h3>
 
-            <p>The Graph model comes with several builtin events as well.
+            <p>The Graph model comes with several built-in events as well.
                 These events react to changes in the cell model's properties, including position, size, attributes, and
                 status of JointJS transitions.
                 JointJS documentation contains a generic list of
-                <a href="/docs/jointjs#dia.Graph.events" target="_blank">Graph events</a> you can react on, alongside
+                <a href="/docs/jointjs#dia.Graph.events" target="_blank">Graph events</a> you can react to, alongside
                 more specific lists for <a href="/docs/jointjs#dia.Element.events" target="_blank">Element events</a>
                 and <a href="/docs/jointjs#dia.Link.events" target="_blank">Link events</a>.
-                To react on these events, add a listener on your Graph model.</p>
+                To react to these events, add a listener on your Graph model.</p>
 
             <p>In the following example, the event <code>'change:position'</code> is triggered on the element when it is
                 moved; we determine the new position of the element's center and write it into its text label.
@@ -194,8 +196,8 @@ graph.on('change:target', function(cell) {
                 In our example, we were able to assume that the received <code>cell</code> model is of the type Element
                 and Link, respectively, because <code>Link</code> objects do not trigger <code>'change:position'</code>
                 events, and <code>Element</code> objects do not trigger <code>'change:target'</code>.
-                Keep in mind that some Graph events can be triggered on both data types, however (e.g.
-                <code>'change:attrs'</code>); depending on what you are trying to do, you might need to check the actual
+                Keep in mind that some Graph events can be triggered on both data types (e.g.
+                <code>'change:attrs'</code>). However, depending on what you are trying to do, you might need to check the actual
                 <code>cell</code> data type first.</p>
 
             <p>Other graph event listeners are provided with different parameters.
@@ -205,7 +207,7 @@ graph.on('change:target', function(cell) {
                 (<code>callback(cell, newCells)</code>), whereas the <code>'graph:remove'</code> event listeners receive
                 the removed cell and the <i>original</i> cells array (<code>callback(cell, oldCells)</code>).</p>
 
-            <p>Similarly to builtin paper events, these events are also triggered on the individual <code>cell</code>
+            <p>Similarly to built-in paper events, these events are also triggered on the individual <code>cell</code>
                 (element or link model) the user interacted with.
                 Therefore, you could achieve the same functionality as above by adding a listener on every element and
                 link separately.
@@ -258,8 +260,8 @@ graph.on('change:target', function(cell) {
                 <code>button</code> subelement.
                 We attach a custom event <code>'element:button:pointerdown'</code> to the <code>button</code> and listen
                 for it.
-                When <code>button</code> is pressed, the element's <code>body</code> and <code>label</code> are hidden
-                (<q>minimized</q>), and the symbol in the button is changed to indicate that the element can be now be
+                When the <code>button</code> is pressed, the element's <code>body</code> and <code>label</code> are hidden
+                (<q>minimized</q>), and the symbol in the button is changed to indicate that the element can now be
                 unminimized:</p>
 
             <div class="paper" id="paper-events-event-attribute"></div>
@@ -267,8 +269,8 @@ graph.on('change:target', function(cell) {
             <pre><code>var CustomElement = joint.dia.Element.define('examples.CustomElement', {
     attrs: {
         body: {
-            refWidth: '100%',
-            refHeight: '100%',
+            width: 'calc(w)',
+            height: 'calc(h)',
             strokeWidth: 2,
             stroke: 'black',
             fill: 'white'
@@ -276,23 +278,23 @@ graph.on('change:target', function(cell) {
         label: {
             textVerticalAnchor: 'middle',
             textAnchor: 'middle',
-            refX: '50%',
-            refY: '50%',
+            x: 'calc(0.5*w)',
+            y: 'calc(0.5*h)',
             fontSize: 14,
             fill: 'black'
         },
         button: {
             cursor: 'pointer',
             ref: 'buttonLabel',
-            refWidth: '150%',
-            refHeight: '150%',
-            refX: '-25%',
-            refY: '-25%'
+            width: 'calc(1.5*w)',
+            height: 'calc(1.5*h)',
+            x: 'calc(x-calc(0.25*w))',
+            y: 'calc(y-calc(0.25*h))'
         },
         buttonLabel: {
             pointerEvents: 'none',
-            refX: '100%',
-            refY: 0,
+            x: 'calc(w)',
+            y: 0,
             textAnchor: 'middle',
             textVerticalAnchor: 'middle'
         }
@@ -370,11 +372,11 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Paper.prototype.options.elementView" target="_blank"><code>elementView</code></a>
-                    - sets the ElementView to use to render Element models on this paper.
+                    - sets the ElementView to use for rendering Element models on this paper.
                     Defaults to
                     <a href="/docs/jointjs#dia.ElementView" target="_blank"><code>joint.dia.ElementView</code></a>.</li>
                 <li><a href="/docs/jointjs#dia.Paper.prototype.options.linkView" target="_blank"><code>linkView</code></a>
-                    - sets the LinkView to use to render Link models. Defaults to
+                    - sets the LinkView to use for rendering Link models. Defaults to
                     <a href="/docs/jointjs#dia.LinkView" target="_blank"><code>joint.dia.LinkView</code></a>.</li>
             </ul>
 
@@ -409,7 +411,7 @@ paper.on('element:button:pointerdown', function(elementView, evt) {
 
             <h3 id="custom-view-events-propagation">Custom View Event Propagation</h3>
 
-            <p>You can maintain recognition of the event by the <a href="#paper-events">builtin paper mechanism</a>
+            <p>You can maintain recognition of the event by the <a href="#paper-events">built-in paper mechanism</a>
                 if you notify the CellView and Paper about the event.
                 For example, in our custom ElementView pointerdblclick handler, we would include this:</p>
 
