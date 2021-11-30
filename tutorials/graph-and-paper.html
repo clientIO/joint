@@ -36,19 +36,19 @@
 
             <h2>Graph &amp; Paper</h2>
 
-            <p><a href="hello-world.html">In the first part of the tutorial, we saw a working example of a
-                simple JointJS application:</a></p>
+            <p>In the <a href="hello-world.html">first part</a> of the tutorial, we saw a working example of a
+                simple JointJS application:</p>
 
             <div class="paper" id="paper-hello-world"></div>
 
             <p><a href="installation.html">Now that we have included JointJS on our webpage</a>, we can
                 start creating our diagram.</p>
 
-            <p>In this section, we will learn how to finish setting up by creating a graph and a paper in our JointJS code
+            <p>In this section, we will learn how to finish setting up by creating a graph and a paper in our JointJS code,
                 and linking them to our HTML.
-                We will be looking at these portions of the original Hello, World! application:</p>
+                We will be looking at these portions of the original <i>Hello, World!</i> application:</p>
 
-            <pre class="line-numbers" data-line="8,19,21-27"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="8,21,23-30"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -65,15 +65,18 @@
 
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
-
-        var graph = new joint.dia.Graph;
+        
+        var namespace = joint.shapes;
+                
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
             model: graph,
             width: 600,
             height: 100,
-            gridSize: 1
+            gridSize: 1,
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -108,8 +111,8 @@
                 The graph contains a reference to all components of your diagram, and the paper is responsible for
                 rendering the graph.</p>
 
-            <p>The <a href="/docs/jointjs#dia.Graph" target="_blank">Graph model</a> is usually defined on the
-                first line of the JointJS JavaScript code.
+            <p>The <a href="/docs/jointjs#dia.Graph" target="_blank">Graph model</a> is usually defined at the
+                beginning of the JointJS JavaScript code.
                 In our code, we saved a reference to it as <code>var graph</code>.
                 In order to have our cells (elements and links) rendered, we need to add them to the graph; unless we
                 add our cells, the diagram does not know they exist.
@@ -117,10 +120,16 @@
                 <a href="/docs/jointjs#dia.Graph.prototype.addCells" target="_blank"><code>graph.addCells()</code></a>
                 function.</p>
 
+            <p>
+                The second parameter of our graph is an option object that contains the <code>cellNamespace</code> option.
+                This option states where JointJS reads cell model definitions, and by default, the definitions are found
+                on the joint.shapes namespace.
+            </p>
+
             <p>Normally, the <a href="/docs/jointjs#dia.Paper" target="_blank">Paper view</a> is specified directly
                 after the graph definition.
                 We create it with an options object and save it as <code>var paper</code>.
-                Of the five options, two define crucial paper attributes:</p>
+                Of the following options, two define crucial paper attributes:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Paper.prototype.options.el" target="_blank"><code>el</code></a> - an HTML
@@ -133,7 +142,7 @@
                 link models) on the other.
                 This makes paper the most important building block of any diagram.</p>
 
-            <p>The three other options specify the paper's presentation attributes.
+            <p>Three other options specify the paper's presentation attributes.
                 In our example, these are:</p>
 
             <ul>
@@ -145,6 +154,12 @@
                     movement.</li>
             </ul>
 
+            <p>
+                The last option is <code>cellViewNamespace</code>. Again, this option can be used to tell JointJS where to
+                look for cell model definitions. <code>cellViewNamespace</code> and <code>cellNamespace</code> are often used
+                together, but only one of them needs to be provided to state the default namespace.
+            </p>
+
             <p><a href="/docs/jointjs#dia.Paper.prototype.options" target="_blank">The full list of available Paper
                 attributes</a> is long and allows customizing almost everything about the paper rendering.
                 You will encounter these in the advanced portions of the tutorial series.
@@ -153,7 +168,7 @@
 
             <h3 id="paper-styling">Paper Styling</h3>
 
-            <p>Now, let's make some changes to the appearance of the original Hello, World! application.
+            <p>Now, let's make some changes to the appearance of the original <i>Hello, World!</i> application.
                 We can specify a background color with the
                 <a href="/docs/jointjs#dia.Paper.prototype.options.background" target="_blank"><code>background</code></a>
                 attribute, and show the grid with
@@ -165,7 +180,7 @@
             <p>The code is presented below.
                 The changes we made are highlighted:</p>
 
-            <pre class="line-numbers" data-line="26-30"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="28-32"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -183,7 +198,9 @@
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
 
-        var graph = new joint.dia.Graph;
+        var namespace = joint.shapes;
+
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
@@ -194,7 +211,8 @@
             drawGrid: true,
             background: {
                 color: 'rgba(0, 255, 0, 0.3)'
-            }
+            },
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -260,7 +278,7 @@
             <p>We now understand the importance of the Graph and Paper objects, and know how to change the appearance of
                 our paper.</p>
 
-            <p><a href="elements.html">The next step is to learn how to work with elements.</a></p>
+            <p>The next step is to learn how to work with <a href="elements.html">elements</a>.</p>
 
         </div><!--end tutorial-->
 
