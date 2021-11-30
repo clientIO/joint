@@ -1374,6 +1374,8 @@ export namespace dia {
         fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;
 
+        getFitToContentBBox(opt?: Paper.FitToContentOptions): g.Rect;
+
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
         drawBackground(opt?: Paper.BackgroundOptions): this;

@@ -77,6 +77,25 @@ QUnit.module('paper', function(hooks) {
             assert.equal(size.height, paper.$el.height());
         });
 
+        QUnit.test('events', function(assert) {
+            var WIDTH = 100;
+            var HEIGHT = 200;
+            var paper = this.paper;
+            var resizeCbSpy = sinon.spy();
+            paper.on('resize', resizeCbSpy);
+            paper.setDimensions(WIDTH, HEIGHT);
+            assert.ok(resizeCbSpy.calledOnce);
+            assert.ok(resizeCbSpy.calledWithExactly(WIDTH, HEIGHT));
+            resizeCbSpy.resetHistory();
+            paper.setDimensions(WIDTH, HEIGHT);
+            assert.ok(resizeCbSpy.notCalled);
+            resizeCbSpy.resetHistory();
+            paper.setDimensions(WIDTH+1, HEIGHT+1);
+            assert.ok(resizeCbSpy.calledOnce);
+            assert.ok(resizeCbSpy.calledWithExactly(WIDTH+1, HEIGHT+1));
+            resizeCbSpy.resetHistory();
+        });
+
     });
 
     QUnit.test('paper.addCell() number of sortViews()', function(assert) {
@@ -1723,6 +1742,25 @@ QUnit.module('paper', function(hooks) {
             var getterTranslate = this.paper.translate();
             assert.equal(getterTranslate.tx, 10);
             assert.equal(getterTranslate.ty, 20);
+        });
+
+        QUnit.test('setOrigin', function(assert) {
+            var X = 100;
+            var Y = 200;
+            var paper = this.paper;
+            var translateCbSpy = sinon.spy();
+            paper.on('translate', translateCbSpy);
+            paper.setOrigin(X, Y);
+            assert.ok(translateCbSpy.calledOnce);
+            assert.ok(translateCbSpy.calledWithExactly(X, Y));
+            translateCbSpy.resetHistory();
+            paper.setOrigin(X, Y);
+            assert.ok(translateCbSpy.notCalled);
+            translateCbSpy.resetHistory();
+            paper.setOrigin(X+1, Y+1);
+            assert.ok(translateCbSpy.calledOnce);
+            assert.ok(translateCbSpy.calledWithExactly(X+1, Y+1));
+            translateCbSpy.resetHistory();
         });
 
         QUnit.test('rotate', function(assert) {
