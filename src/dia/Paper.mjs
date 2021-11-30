@@ -350,7 +350,7 @@ export const Paper = View.extend({
         this.setGrid(options.drawGrid);
         this.cloneOptions();
         this.render();
-        this.setDimensions();
+        this._setDimensions();
         this.startListening();
 
         // Hash of all cell views.
@@ -1144,7 +1144,6 @@ export const Paper = View.extend({
     },
 
     setDimensions: function(width, height) {
-
         const { options } = this;
         const { width: currentWidth, height: currentHeight } = options;
         let w = (width === undefined) ? currentWidth : width;
@@ -1152,14 +1151,21 @@ export const Paper = View.extend({
         if (currentWidth === w && currentHeight === h) return;
         options.width = w;
         options.height = h;
+        this._setDimensions();
+        const computedSize = this.getComputedSize();
+        this.trigger('resize', computedSize.width, computedSize.height);
+    },
+
+    _setDimensions: function() {
+        const { options } = this;
+        let w = options.width;
+        let h = options.height;
         if (isNumber(w)) w = Math.round(w);
         if (isNumber(h)) h = Math.round(h);
         this.$el.css({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
         });
-        const computedSize = this.getComputedSize();
-        this.trigger('resize', computedSize.width, computedSize.height);
     },
 
     setOrigin: function(ox, oy) {
