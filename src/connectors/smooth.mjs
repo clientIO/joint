@@ -1,4 +1,4 @@
-import { Path, Curve } from '../g/index.mjs';
+import { Path, Point } from '../g/index.mjs';
 
 export const Directions = {
     AUTO: 'auto',
@@ -7,28 +7,19 @@ export const Directions = {
     LEGACY: 'legacy'
 };
 
-function legacyPath(sourcePoint, targetPoint) {
-    const path = new Path();
-
-    let segment = Path.createSegment('M', sourcePoint);
-    path.appendSegment(segment);
-
+function legacyPoints(sourcePoint, targetPoint) {
     if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
         const controlPointX = (sourcePoint.x + targetPoint.x) / 2;
 
-        segment = Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
-        path.appendSegment(segment);
+        return [new Point(controlPointX, sourcePoint.y), new Point(controlPointX, targetPoint.y)];
     } else {
         const controlPointY = (sourcePoint.y + targetPoint.y) / 2;
 
-        segment = Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
-        path.appendSegment(segment);
+        return [new Point(sourcePoint.x, controlPointY), new Point(targetPoint.x, controlPointY)];
     }    
-
-    return path;
 }
 
-function autoDirectionPath(linkView, sourcePoint, targetPoint) {
+function autoDirectionPoints(linkView, sourcePoint, targetPoint) {
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -62,14 +53,10 @@ function autoDirectionPath(linkView, sourcePoint, targetPoint) {
             break;
     }
 
-    const path = new Path();
-    path.appendSegment(Path.createSegment('M', sourcePoint));
-    path.appendSegment(Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
-
-    return path;
+    return [new Point(cp1x, cp1y), new Point(cp2x, cp2y)];
 }
 
-function horizontalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) {
+function horizontalDirectionPoints(linkView, sourcePoint, targetPoint, offset) {
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -78,8 +65,6 @@ function horizontalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) 
     let cp1y;
     let cp2x;
     let cp2y;
-    const centerOffset = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
-    const offset = Math.max(centerOffset, minOffset);
 
     switch (sourceSide) {
         case 'left':
@@ -111,14 +96,10 @@ function horizontalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) 
             break;
     }
 
-    const path = new Path();
-    path.appendSegment(Path.createSegment('M', sourcePoint));
-    path.appendSegment(Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
-
-    return path;
+    return [new Point(cp1x, cp1y), new Point(cp2x, cp2y)];
 }
 
-function verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) { 
+function verticalDirectionPoints(linkView, sourcePoint, targetPoint, offset) { 
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -127,8 +108,6 @@ function verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) {
     let cp1y;
     let cp2x;
     let cp2y;
-    const centerOffset = Math.abs(sourcePoint.y - ((sourcePoint.y + targetPoint.y) / 2));
-    const offset = Math.max(centerOffset, minOffset);
 
     switch (sourceSide) {
         case 'top':
@@ -160,50 +139,71 @@ function verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset) {
             break;
     }
 
-    const path = new Path();
-    path.appendSegment(Path.createSegment('M', sourcePoint));
-    path.appendSegment(Path.createSegment('C', cp1x, cp1y, cp2x, cp2y, targetPoint.x, targetPoint.y));
-
-    return path;
+    return [new Point(cp1x, cp1y), new Point(cp2x, cp2y)];
 }
 
-export const smooth = function(sourcePoint, targetPoint, route, opt = {}) {
+export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
     const linkView = this;
 
     const raw = Boolean(opt.raw);
-    let path;
+    // offset - proximpal curve point offset.
+    const { offset = 100, direction = Directions.AUTO } = opt;
 
-    if (route && route.length !== 0) {
+    let path = new Path();
+    path.appendSegment(Path.createSegment('M', sourcePoint));
 
-        const points = [sourcePoint].concat(route).concat([targetPoint]);
-        const curves = Curve.throughPoints(points);
-
-        path = new Path(curves);
-
-    } else {
-        // Without a route, it will be displayed depending on the direction option.
-        // if the option is not presented, it will change direction 
-        // depending on the orientation of the source and target.
-        
-        // Minimum curve point offset in case of the source and target proximity.
-        const { minOffset = 100, direction = Directions.AUTO } = opt;
-
-        switch (direction) {
-            case Directions.LEGACY: 
-                path = legacyPath(sourcePoint, targetPoint);
-                break;
-            case Directions.HORIZONTAL:
-                path = horizontalDirectionPath(linkView, sourcePoint, targetPoint, minOffset);
-                break;
-            case Directions.VERTICAL:
-                path = verticalDirectionPath(linkView, sourcePoint, targetPoint, minOffset);
-                break;
-            case Directions.AUTO:
-            default:
-                path = autoDirectionPath(linkView, sourcePoint, targetPoint);
-                break;
-        }
+    let points = [];
+    switch (direction) {
+        case Directions.LEGACY: 
+            points = legacyPoints(sourcePoint, targetPoint);
+            break;
+        case Directions.HORIZONTAL:
+            points = horizontalDirectionPoints(linkView, sourcePoint, targetPoint, offset);
+            break;
+        case Directions.VERTICAL:
+            points = verticalDirectionPoints(linkView, sourcePoint, targetPoint, offset);
+            break;
+        case Directions.AUTO:
+        default:
+            points = autoDirectionPoints(linkView, sourcePoint, targetPoint);
+            break;
     }
+
+    const curvePoints = [sourcePoint, points[0]].concat(route).concat([points[1], targetPoint]);
+    const tension = 0.8;
+
+    for (let i = 0; i < curvePoints.length - 1; i += 1) {
+        const p0 = i ? curvePoints[i - 1] : curvePoints[0];
+        const p1 = curvePoints[i];
+        const p2 = curvePoints[i + 1];
+        const p3 = i !== curvePoints.length - 2 ? curvePoints[i + 2] : p2;
+
+        const cp1 = new Point(p1.x + ((p2.x - p0.x) / 6) * tension, p1.y + ((p2.y - p0.y) / 6) * tension);
+        const cp2 = new Point(p2.x - ((p3.x - p1.x) / 6) * tension, p2.y - ((p3.y - p1.y) / 6) * tension);
+
+        path.appendSegment(Path.createSegment('C', cp1, cp2, p2));
+    }
+
+    /*if (route && route.length !== 0) {
+        const curvePoints = [sourcePoint, points[0]].concat(route).concat([points[1], targetPoint]);
+        const tension = 1;
+
+        for (let i = 0; i < curvePoints.length - 1; i++) {
+            const p0 = i ? curvePoints[i - 1] : curvePoints[0];
+            const p1 = curvePoints[0];
+            const p2 = curvePoints[i + 1];
+            const p3 = i !== curvePoints.length - 2 ? curvePoints[i + 2] : p2;
+
+            const cp1 = new Point(p1.x + ((p2.x - p0.x) / 6) * tension, p1.y + ((p2.y - p0.y) / 6) * tension);
+            const cp2 = new Point(p2.x - ((p3.x - p1.x) / 6) * tension, p2.y - ((p3.y - p1.y) / 6) * tension);
+
+            path.appendSegment(Path.createSegment('C', cp1, cp2, p2));
+        }
+        const curves = Curve.throughPoints(curvePoints);
+        path = new Path(curves);
+    } else {
+        path.appendSegment(Path.createSegment('C', points[0], points[1], targetPoint));
+    } */
 
     return (raw) ? path : path.serialize();
 };
