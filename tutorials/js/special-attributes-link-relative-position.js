@@ -1,6 +1,8 @@
 (function specialAttributesLinkRelativePosition() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-special-attributes-link-relative-position'),
@@ -12,7 +14,8 @@
         background: {
             color: 'rgba(0, 255, 0, 0.3)'
         },
-        interactive: false
+        interactive: false,
+        cellViewNamespace: namespace
     });
 
     var CustomLink = joint.dia.Link.define('examples.CustomLink', {
