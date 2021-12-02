@@ -37,22 +37,22 @@
 
             <h2>Links</h2>
 
-            <p><a href="hello-world.html">In the first part of the tutorial, we saw a working example of a
-                simple JointJS application:</a></p>
+            <p>In the <a href="hello-world.html">first part</a> of the tutorial, we saw a working example of a
+                simple JointJS application:</p>
 
             <div class="paper" id="paper-hello-world"></div>
 
-            <p><a href="elements.html">In the previous section, we focused on making the elements look much more
-                interesting:</a></p>
+            <p>In the <a href="elements.html">previous section</a>, we focused on making the elements look much more
+                interesting:</p>
 
             <div class="paper" id="paper-elements"></div>
 
             <p>In this section, we are going to understand the other crucial building block of JointJS diagrams - links.
-                This is an introduction to links as they appear in the Hello, World! application;
+                This is an introduction to links as they appear in the <i>Hello, World!</i> application;
                 <a href="custom-links.html">more advanced topics are covered later in the tutorial series</a>.
                 We will continue with the code we modified in the previous section:</p>
 
-            <pre class="line-numbers" data-line="67-70,107-110,149-152" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="70-73,110-113,152-155" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -70,7 +70,9 @@
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
 
-        var graph = new joint.dia.Graph;
+        var namespace = joint.shapes;           
+
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
@@ -81,7 +83,8 @@
             drawGrid: true,
             background: {
                 color: 'rgba(0, 255, 0, 0.3)'
-            }
+            },
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -258,7 +261,7 @@
                     - sets the <code>vertices</code> array of the link.</li>
             </ul>
 
-            <p>Vertices are user-defined points on the paper that the link should pass trough on its way from
+            <p>Vertices are user-defined points on the paper that the link should pass through on its way from
                 <code>source</code> to <code>target</code>.
                 The default is an empty array (meaning that the link navigates from source to target with no
                 detour).</p>
@@ -313,7 +316,7 @@
                     these attributes.)</li>
             </ul>
 
-            <p>When <code>link.attr()</code> is called with one object as argument, the keys of the object are
+            <p>When <code>link.attr()</code> is called with one object as an argument, the keys of the object are
                 selectors that correspond to SVGElements of the link's markup; each of those can have one or more
                 attributes defined alongside the value to be set.
                 If you only need to change one value, you can also call <code>link.attr()</code> with two arguments;
@@ -407,7 +410,7 @@
             <p>JointJS source code: <a href="js/links-arrowheads-path.js" target="_blank">links-arrowheads-path.js</a></p>
 
             <p>Creating <code>image</code> arrowheads is similarly straightforward.
-                You just need to provide an url with the path to your image to the <code>'xlink:href'</code> property,
+                You just need to provide a url with the path to your image to the <code>'xlink:href'</code> property,
                 and then specify the desired <code>'width'</code> and <code>'height'</code>.
                 The image for <code>targetMarker</code> will be automatically rotated by 180 degrees, as expected.
                 Remember to reposition the image in the <code>'y'</code> axis if you need the arrowhead to be
@@ -451,10 +454,10 @@
                 tutorial</a>.
                 A simple label definition (including markup and attrs) is built into the <code>joint.dia.Link</code>
                 class, from which the <code>joint.shapes.standard.Link</code> type inherits it.
-                The builtin default label has two tags:
+                The built-in default label has two tags:
                 <code>text</code> (the <code>&lt;text&gt;</code> SVGElement of the label), and
                 <code>rect</code> (the <code>&lt;rect&gt;</code> SVGElement for label background).
-                The builtin default attributes specify a simple vertical-centered text on a white rounded rectangle.
+                The built-in default attributes specify a simple vertical-centered text on a white rounded rectangle.
                 Thus, adding a label can be as simple as passing a value for the <code>text/text</code> attribute:</p>
 
             <div class="paper" id="paper-links-label-builtin"></div>
@@ -490,7 +493,7 @@
 
             <div class="paper" id="paper-links"></div>
 
-            <pre class="line-numbers" data-line="67-95,132-163,165-169,208-234" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
+            <pre class="line-numbers" data-line="70-98,135-166,168-172,211-237" style="padding-left:3.5em"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;link rel="stylesheet" type="text/css" href="node_modules/jointjs/dist/joint.css" /&gt;
@@ -508,7 +511,9 @@
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
 
-        var graph = new joint.dia.Graph;
+        var namespace = joint.shapes;
+
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
@@ -519,7 +524,8 @@
             drawGrid: true,
             background: {
                 color: 'rgba(0, 255, 0, 0.3)'
-            }
+            },
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -733,7 +739,7 @@
 
             <p>This concludes the introductory section of the JointJS tutorial!
                 Congratulations!
-                We have come a long way from the initial Hello, World! application:</p>
+                We have come a long way from the initial <i>Hello, World!</i> application:</p>
 
             <div class="paper" id="paper-hello-world-copy"></div>
 
@@ -744,8 +750,8 @@
             <p>Now that you have seen the basics, you should be confident working with the most important building
                 blocks of JointJS - Graphs, Papers, Elements, and Links.</p>
 
-            <p><a href="intermediate.html">The next step is to head over to the intermediate section of the tutorial, which
-                explains some handy but more involved concepts.</a></p>
+            <p>The next step is to head over to the <a href="intermediate.html">intermediate section</a> of the tutorial, which
+                explains some handy but more involved concepts.</p>
 
         </div><!--end tutorial-->
 
