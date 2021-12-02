@@ -3365,8 +3365,8 @@ export namespace connectionPoints {
             endView: dia.CellView,
             endMagnet: SVGElement,
             opt: ConnectionPointArgumentsMap[K],
-            //endType: string,
-            //linkView: dia.LinkView
+            endType: string,
+            linkView: dia.LinkView
         ): g.Point;
     }
 
