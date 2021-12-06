@@ -19,36 +19,54 @@ function legacyPoints(sourcePoint, targetPoint) {
     }    
 }
 
-function autoDirectionPoints(linkView, sourcePoint, targetPoint) {
+function autoDirectionPoints(linkView, sourcePoint, targetPoint, minOffset) {
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
  
+    const centerOffsetX = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
+    const offsetX = Math.max(centerOffsetX, minOffset);
+
+    const centerOffsetY = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
+    const offsetY = Math.max(centerOffsetY, minOffset);
+
     let cp1x;
     let cp1y;
     let cp2x;
     let cp2y;
     switch (sourceSide) {
         case 'top':
+            cp1x = sourcePoint.x;
+            cp1y = sourcePoint.y - offsetY;
+            break;
         case 'bottom':
             cp1x = sourcePoint.x;
-            cp1y = (sourcePoint.y + targetPoint.y) / 2;
+            cp1y = sourcePoint.y + offsetY;
             break;
         case 'right':
+            cp1x = sourcePoint.x + offsetX;
+            cp1y = sourcePoint.y;
+            break;
         case 'left':
-            cp1x = (sourcePoint.x + targetPoint.x) / 2;
+            cp1x = sourcePoint.x - offsetX;
             cp1y = sourcePoint.y;
             break;
     }
     switch (targetSide) {
         case 'top':
+            cp2x = targetPoint.x;
+            cp2y = targetPoint.y - offsetY;
+            break;
         case 'bottom':
             cp2x = targetPoint.x;
-            cp2y = (sourcePoint.y + targetPoint.y) / 2;
+            cp2y = targetPoint.y + offsetY;
             break;
         case 'right':
+            cp2x = targetPoint.x + offsetX;
+            cp2y = targetPoint.y;
+            break;
         case 'left':
-            cp2x = (sourcePoint.x + targetPoint.x) / 2;
+            cp2x = targetPoint.x - offsetX;
             cp2y = targetPoint.y;
             break;
     }
@@ -56,7 +74,7 @@ function autoDirectionPoints(linkView, sourcePoint, targetPoint) {
     return [new Point(cp1x, cp1y), new Point(cp2x, cp2y)];
 }
 
-function horizontalDirectionPoints(linkView, sourcePoint, targetPoint, offset) {
+function horizontalDirectionPoints(linkView, sourcePoint, targetPoint, minOffset) {
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -65,7 +83,9 @@ function horizontalDirectionPoints(linkView, sourcePoint, targetPoint, offset) {
     let cp1y;
     let cp2x;
     let cp2y;
-
+    
+    const centerOffset = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
+    const offset = Math.max(centerOffset, minOffset);
     switch (sourceSide) {
         case 'left':
             cp1x = sourcePoint.x - offset;
@@ -99,7 +119,7 @@ function horizontalDirectionPoints(linkView, sourcePoint, targetPoint, offset) {
     return [new Point(cp1x, cp1y), new Point(cp2x, cp2y)];
 }
 
-function verticalDirectionPoints(linkView, sourcePoint, targetPoint, offset) { 
+function verticalDirectionPoints(linkView, sourcePoint, targetPoint, minOffset) { 
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -109,6 +129,8 @@ function verticalDirectionPoints(linkView, sourcePoint, targetPoint, offset) {
     let cp2x;
     let cp2y;
 
+    const centerOffset = Math.abs(sourcePoint.x - ((sourcePoint.x + targetPoint.x) / 2));
+    const offset = Math.max(centerOffset, minOffset);
     switch (sourceSide) {
         case 'top':
             cp1x = sourcePoint.x;
@@ -146,8 +168,9 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
     const linkView = this;
 
     const raw = Boolean(opt.raw);
-    // offset - proximpal curve point offset.
-    const { offset = 100, direction = Directions.AUTO } = opt;
+    // minOffset - minimal proximal control point offset.
+    // tension - coefficient which increases the distance between control points.
+    const { minOffset = 100, direction = Directions.AUTO, tension = 0 } = opt;
 
     let path = new Path();
     path.appendSegment(Path.createSegment('M', sourcePoint));
@@ -158,52 +181,38 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
             points = legacyPoints(sourcePoint, targetPoint);
             break;
         case Directions.HORIZONTAL:
-            points = horizontalDirectionPoints(linkView, sourcePoint, targetPoint, offset);
+            points = horizontalDirectionPoints(linkView, sourcePoint, targetPoint, minOffset);
             break;
         case Directions.VERTICAL:
-            points = verticalDirectionPoints(linkView, sourcePoint, targetPoint, offset);
+            points = verticalDirectionPoints(linkView, sourcePoint, targetPoint, minOffset);
             break;
         case Directions.AUTO:
         default:
-            points = autoDirectionPoints(linkView, sourcePoint, targetPoint);
+            points = autoDirectionPoints(linkView, sourcePoint, targetPoint, minOffset);
             break;
     }
-
-    const curvePoints = [sourcePoint, points[0]].concat(route).concat([points[1], targetPoint]);
-    const tension = 0.8;
-
-    for (let i = 0; i < curvePoints.length - 1; i += 1) {
-        const p0 = i ? curvePoints[i - 1] : curvePoints[0];
-        const p1 = curvePoints[i];
-        const p2 = curvePoints[i + 1];
-        const p3 = i !== curvePoints.length - 2 ? curvePoints[i + 2] : p2;
-
-        const cp1 = new Point(p1.x + ((p2.x - p0.x) / 6) * tension, p1.y + ((p2.y - p0.y) / 6) * tension);
-        const cp2 = new Point(p2.x - ((p3.x - p1.x) / 6) * tension, p2.y - ((p3.y - p1.y) / 6) * tension);
-
-        path.appendSegment(Path.createSegment('C', cp1, cp2, p2));
-    }
-
-    /*if (route && route.length !== 0) {
-        const curvePoints = [sourcePoint, points[0]].concat(route).concat([points[1], targetPoint]);
-        const tension = 1;
-
-        for (let i = 0; i < curvePoints.length - 1; i++) {
-            const p0 = i ? curvePoints[i - 1] : curvePoints[0];
-            const p1 = curvePoints[0];
-            const p2 = curvePoints[i + 1];
-            const p3 = i !== curvePoints.length - 2 ? curvePoints[i + 2] : p2;
-
-            const cp1 = new Point(p1.x + ((p2.x - p0.x) / 6) * tension, p1.y + ((p2.y - p0.y) / 6) * tension);
-            const cp2 = new Point(p2.x - ((p3.x - p1.x) / 6) * tension, p2.y - ((p3.y - p1.y) / 6) * tension);
-
-            path.appendSegment(Path.createSegment('C', cp1, cp2, p2));
+ 
+    const curvePoints = route.concat([targetPoint]);
+    const cps = [points[0], null, null];
+    for (let i = 0; i < curvePoints.length; i++) {
+        cps[2] = curvePoints[i];
+        if (!cps[1]) {
+            if (i === curvePoints.length - 1) {
+                cps[1] = points[1];
+            }
+            else {
+                const next = curvePoints[i];
+                const tension1x = (next.x - cps[0].x) / 6 * tension;
+                const tension1y = (next.y - cps[0].y) / 6 * tension;         
+                cps[1] = new Point(cps[0].x - tension1x, cps[0].y - tension1y);
+            }
         }
-        const curves = Curve.throughPoints(curvePoints);
-        path = new Path(curves);
-    } else {
-        path.appendSegment(Path.createSegment('C', points[0], points[1], targetPoint));
-    } */
+        
+        path.appendSegment(Path.createSegment('C', cps[0], cps[1], cps[2]));
+
+        cps[0] = new Point(cps[2].x + (cps[2].x - cps[1].x), cps[2].y + (cps[2].y - cps[1].y));
+        cps[1] = null;
+    }
 
     return (raw) ? path : path.serialize();
 };
