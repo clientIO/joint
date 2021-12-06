@@ -1,12 +1,15 @@
 (function customLinks() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-custom-links'),
         model: graph,
         width: 600,
-        height: 300
+        height: 300,
+        cellViewNamespace: namespace
     });
 
     joint.shapes.standard.Link.define('examples.CustomLink', {

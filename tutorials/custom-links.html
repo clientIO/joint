@@ -131,6 +131,89 @@
                 Thus, we can see that the name of a type accessed as <code>joint.shapes.standard.Link</code> has to
                 be <code>'standard.Link'</code>.</p>
 
+<pre><code>var namespace = joint.shapes;
+
+var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+new joint.dia.Paper({
+    el: document.getElementById('paper-custom-links'),
+    model: graph,
+    width: 600,
+    height: 300,
+    cellViewNamespace: namespace
+});
+
+joint.dia.Link.define('standard.Link', {
+    attrs: {
+        // Attributes
+    }
+}, {
+    markup: [{
+        // Markup
+    }]
+});
+</code></pre>
+    
+            <p>
+                By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour, 
+                it is possible to do so. We can achieve this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found 
+                on graph and paper respectively. Let's see how that might look.
+            </p>
+
+<pre><code>var customNamespace = {};
+
+var graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
+    
+new joint.dia.Paper({
+    el: document.getElementById('paper-custom-links-namespace'),
+    model: graph,
+    width: 600,
+    height: 100,
+    cellViewNamespace: customNamespace
+});
+
+var Link = joint.dia.Link.define('shapeGroup.Link', {
+    attrs: {
+        // Attributes
+    }
+}, {
+    markup: [{
+        // Markup
+    }]
+});
+
+Object.assign(customNamespace, {
+    shapeGroup: {
+        Link
+    }
+});
+
+graph.fromJSON({ 
+    cells: [
+        { 
+            "type": "shapeGroup.Link",
+            "source": { "x": 100, "y": 50 },
+            "target": { "x": 500, "y": 50 }
+        }
+    ]
+});
+
+graph.getLinks()[0].appendLabel({
+    attrs: {
+        text: {
+            text: 'customNamespace.shapeGroup.Link'
+        }
+    }
+});
+</code></pre>
+
+            <p>
+                As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON. 
+                In the example above, <code>graph</code> looks at the <code>customNamespace.shapeGroup.Link</code> path to find the correct constructor.
+                If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean graph is unable to find the correct constructor, 
+                and we wouldn't see our custom link.
+            </p>
+
             <h3 id="markup">Markup</h3>
 
             <p>Markup is usually provided inside the third argument of the <code>define()</code> function (prototype
@@ -394,13 +477,18 @@
 
             <p>JointJS source code: <a href="js/custom-links.js" target="_blank">custom-links.js</a></p>
 
-            <p><a href="link-labels.html">In the next section of the intermediate tutorial, we will learn about link
-                labels.</a></p>
+            <div class="paper" id="paper-custom-links-namespace"></div>
+
+            <p>JointJS source code: <a href="js/custom-links-namespace.js" target="_blank">custom-links-namespace.js</a></p>
+
+            <p>In the <a href="link-labels.html">next section</a> of the intermediate tutorial, we will learn about link
+                labels.</p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
         <script src="js/custom-links.js"></script>
+        <script src="js/custom-links-namespace.js"></script>
     </body>
 </html>
