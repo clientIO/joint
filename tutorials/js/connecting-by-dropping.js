@@ -1,11 +1,13 @@
 (function() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper-connection-by-dropping'),
         width: 650,
         height: 200,
-        model: graph
+        model: graph,
+        cellViewNamespace: namespace
     });
 
     var el1 = new joint.shapes.standard.Rectangle({
