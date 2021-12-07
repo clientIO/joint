@@ -1,13 +1,16 @@
 (function filters() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-filters'),
         model: graph,
         width: 660,
         height: 240,
-        gridSize: 1
+        gridSize: 1,
+        cellViewNamespace: namespace
     });
 
     var el = new joint.shapes.standard.Rectangle();

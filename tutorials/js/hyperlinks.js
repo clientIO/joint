@@ -1,12 +1,15 @@
 (function hyperlinks() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-hyperlinks'),
         model: graph,
         width: 600,
         height: 100,
+        cellViewNamespace: namespace,
         // use a custom element view
         // (to ensure that opening the link is not prevented on touch devices)
         elementView: joint.dia.ElementView.extend({

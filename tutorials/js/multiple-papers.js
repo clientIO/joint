@@ -1,7 +1,9 @@
 (function multiplePapers() {
 
+    var namespace = joint.shapes;
+
     // shared graph model
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     // main paper view
     new joint.dia.Paper({
@@ -9,7 +11,8 @@
         model: graph,
         width: 600,
         height: 100,
-        gridSize: 1
+        gridSize: 1,
+        cellViewNamespace: namespace
     });
 
     // minimap paper view
@@ -19,7 +22,8 @@
         width: 150,
         height: 25,
         gridSize: 1,
-        interactive: false
+        interactive: false,
+        cellViewNamespace: namespace
     });
     paperSmall.scale(0.25);
 
