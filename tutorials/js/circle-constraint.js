@@ -19,7 +19,9 @@
         }
     });
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     var paper = new joint.dia.Paper({
 
@@ -28,6 +30,7 @@
         height: 300,
         gridSize: 1,
         model: graph,
+        cellViewNamespace: namespace,
         elementView: ConstraintElementView
     });
 

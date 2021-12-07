@@ -1,7 +1,8 @@
 (function() {
 
-    var graph = new joint.dia.Graph;
-    new joint.dia.Paper({ el: $('#paper-html-elements'), width: 650, height: 400, gridSize: 1, model: graph });
+    var namespace = joint.shapes;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+    new joint.dia.Paper({ el: $('#paper-html-elements'), width: 650, height: 400, gridSize: 1, model: graph, cellViewNamespace: namespace });
 
     // Create a custom element.
     // ------------------------

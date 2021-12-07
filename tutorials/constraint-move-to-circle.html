@@ -106,7 +106,9 @@ var ConstraintElementView = joint.dia.ElementView.extend({
                 be defining a view for a specific type. An example of this can be found in the
                 <a href="https://groups.google.com/forum/#!topic/jointjs/TigaktJ4wFM" target="_blank">forum page</a>.]</p>
 
-            <pre><code>var graph = new joint.dia.Graph;
+            <pre><code>var namespace = joint.shapes;
+
+var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
 var paper = new joint.dia.Paper({
     el: $('#paper'),
@@ -114,6 +116,7 @@ var paper = new joint.dia.Paper({
     height: 400,
     gridSize: 1,
     model: graph,
+    cellViewNamespace: namespace,
     elementView: ConstraintElementView
 });</code></pre>
 
