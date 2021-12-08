@@ -13,7 +13,7 @@
         cellViewNamespace: customNamespace
     });
 
-    var Link = joint.shapes.standard.Link.define('examples.CustomLink', {
+    var Link = joint.shapes.standard.Link.define('shapeGroup.Link', {
         attrs: {
             line: {
                 stroke: 'cornflowerblue',
