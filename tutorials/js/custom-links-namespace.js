@@ -13,9 +13,10 @@
         cellViewNamespace: customNamespace
     });
 
-    var Link = joint.shapes.standard.Link.define('shapeGroup.Link', {
+    var Link = joint.dia.Link.define('shapeGroup.Link', {
         attrs: {
             line: {
+                connection: true,
                 stroke: 'cornflowerblue',
                 strokeWidth: 5,
                 targetMarker: {
@@ -25,6 +26,10 @@
                     'y': -10,
                     'stroke': 'none'
                 }
+            },
+            wrapper: {
+                connection: true,
+                strokeWidth: 10
             }
         },
         defaultLabel: {
@@ -64,7 +69,22 @@
             }
         }
     }, {
-        // inherit joint.shapes.standard.Link.markup
+        markup: [{
+            tagName: 'path',
+            selector: 'wrapper',
+            attributes: {
+                'fill': 'none',
+                'stroke': 'transparent',
+                'cursor': 'pointer'
+            }
+        }, {
+            tagName: 'path',
+            selector: 'line',
+            attributes: {
+                'fill': 'none',
+                'pointer-events': 'none'
+            }
+        }]
     });
 
     Object.assign(customNamespace, {
