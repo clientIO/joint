@@ -1184,16 +1184,16 @@ export const Paper = View.extend({
             opt = assign({ gridWidth, gridHeight, padding }, opt);
         }
 
-        const { x, y, width, height } = this.getFitToContentBBox(opt);
-
-        this.setOrigin(-x, -y);
-        this.setDimensions(width, height);
-
+        const { x, y, width, height } = this.getFitToContentArea(opt);
         const { sx, sy } = this.scale();
-        return new Rect(x / sx, y / sy, width / sx, height / sy);
+
+        this.setOrigin(-x * sx, -y * sy);
+        this.setDimensions(width * sx, height * sy);
+
+        return new Rect(x, y, width, height);
     },
 
-    getFitToContentBBox: function(opt = {}) {
+    getFitToContentArea: function(opt = {}) {
 
         // Calculate the paper size to accommodate all the graph's elements.
 
@@ -1248,7 +1248,7 @@ export const Paper = View.extend({
         calcWidth = Math.min(calcWidth, maxWidth);
         calcHeight = Math.min(calcHeight, maxHeight);
 
-        return new Rect(-tx, -ty, calcWidth, calcHeight);
+        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
     },
 
     scaleContentToFit: function(opt) {
