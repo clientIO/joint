@@ -1,6 +1,8 @@
 (function eventsCustomViewEvents() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-events-custom-view-events'),
@@ -12,6 +14,7 @@
             color: 'white'
         },
         interactive: false,
+        cellViewNamespace: namespace,
         elementView: joint.dia.ElementView.extend({
             pointerdblclick: function(evt, x, y) {
                 this.model.remove();

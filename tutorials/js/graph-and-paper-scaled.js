@@ -1,6 +1,8 @@
 (function graphAndPaperScaled() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper-graph-and-paper-scaled'),
@@ -11,7 +13,8 @@
         drawGrid: true,
         background: {
             color: 'rgba(0, 255, 0, 0.25)'
-        }
+        },
+        cellViewNamespace: namespace
     });
     paper.scale(0.5, 0.5);
 

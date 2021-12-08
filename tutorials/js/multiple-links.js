@@ -158,8 +158,10 @@
         });
     }
 
+    var namespace = joint.shapes;
+
     // create graph
-    var graph = new joint.dia.Graph;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     // create paper
     var paper = new joint.dia.Paper({
@@ -168,6 +170,7 @@
         width: 600,
         height: 400,
         gridSize: 1,
+        cellViewNamespace: namespace,
         // disable built-in link dragging
         interactive: {
             linkMove: false

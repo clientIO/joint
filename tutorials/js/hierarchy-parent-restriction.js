@@ -1,7 +1,8 @@
 (function() {
 
-    var graph = new joint.dia.Graph;
-    new joint.dia.Paper({ el: $('#paper-parent-restriction'), width: 650, height: 250, gridSize: 1, model: graph });
+    var namespace = joint.shapes;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+    new joint.dia.Paper({ el: $('#paper-parent-restriction'), width: 650, height: 250, gridSize: 1, model: graph, cellViewNamespace: namespace });
 
     var r1 = new joint.shapes.basic.Rect({
         position: { x: 20, y: 20 },

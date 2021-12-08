@@ -57,7 +57,7 @@
                 What is important for us is to realize that combining the basic SVG shapes, we can define any 2D shape
                 we need.</p>
 
-            <p>For that, we use a builtin JointJS function:</p>
+            <p>For that, we use a built-in JointJS function:</p>
 
             <ul>
                 <li><a href="/docs/jointjs#dia.Cell.define" target="_blank"><code>Element.define(type [, defaultInstanceProperties, prototypeProperties, staticProperties])</code></a>
@@ -127,6 +127,86 @@
                 The first part of the name, <code>joint.shapes</code>, is implied.
                 Thus, we can see that the name of a type accessed as <code>joint.shapes.standard.Rectangle</code> has to
                 be <code>'standard.Rectangle'</code>.</p>
+
+            <pre><code>var namespace = joint.shapes;
+
+var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+
+new joint.dia.Paper({
+    el: document.getElementById('paper-custom-elements'),
+    model: graph,
+    width: 600,
+    height: 400,
+    cellViewNamespace: namespace
+});
+
+joint.dia.Element.define('standard.Rectangle', {
+    attrs: {
+        // Attributes
+    }
+}, {
+    markup: [{
+        // Markup
+    }]
+});
+</code></pre>
+
+            <p>
+                By default, JointJS reads cell definitions from the <code>joint.shapes</code> namespace. If for some reason you would like to change this behaviour, 
+                it is possible to do so. We can achieve this by combining the <code>cellNamespace</code> and <code>cellViewNamespace</code> options which can be found 
+                on graph and paper respectively. Let's see how that might look.
+            </p>
+
+<pre><code>var customNamespace = {};
+    
+var graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
+
+new joint.dia.Paper({
+    el: document.getElementById('paper-custom-elements-namespace'),
+    model: graph,
+    width: 600,
+    height: 100,
+    cellViewNamespace: customNamespace
+});
+
+var Shape = joint.dia.Element.define('shapeGroup.Shape', {
+    attrs: {
+        // Attributes
+    }
+}, {
+    markup: [{
+        // Markup
+    }]
+});
+
+Object.assign(customNamespace, {
+    shapeGroup: {
+        Shape
+    }
+});
+
+graph.fromJSON({ 
+    cells: [
+        { 
+            "type": "shapeGroup.Shape",
+            "size": { "width": 500, "height": 50 },
+            "position": { "x": 50, "y": 25 },
+            "attrs": {
+                "text": {
+                    "text": "customNamespace.shapeGroup.Shape"
+                }
+            }
+        }
+    ]
+}); 
+</code></pre>
+
+            <p>
+                As you can see, <code>type</code> is very important, especially if you want to import a graph from JSON. 
+                In the example above, <code>graph</code> looks at the <code>customNamespace.shapeGroup.Shape</code> path to find the correct constructor.
+                If we were to use the incorrect type in <code>graph.fromJSON()</code>, that would mean graph is unable to find the correct constructor, 
+                and we wouldn't see our custom element.
+            </p>
 
             <h3 id="markup">Markup</h3>
 
@@ -371,13 +451,18 @@ rect2.addTo(graph);
 
             <p>JointJS source code: <a href="js/custom-elements.js" target="_blank">custom-elements.js</a></p>
 
-            <p><a href="custom-links.html">Now that we know how to create custom element models, let us learn about
-                custom links.</a></p>
+            <div class="paper" id="paper-custom-elements-namespace"></div>
+
+            <p>JointJS source code: <a href="js/custom-elements-namespace.js" target="_blank">custom-elements-namespace.js</a></p>
+
+            <p>Now that we know how to create custom element models, let's learn about
+                <a href="custom-links.html">custom links.</a></p>
 
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
         <script src="js/custom-elements.js"></script>
+        <script src="js/custom-elements-namespace.js"></script>
     </body>
 </html>

@@ -1,12 +1,15 @@
 (function customElements() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-custom-elements'),
         model: graph,
         width: 600,
-        height: 400
+        height: 400,
+        cellViewNamespace: namespace
     });
 
     joint.dia.Element.define('standard.Rectangle', {

@@ -116,8 +116,9 @@
 
 // Now we're ready to require JointJS and write our application code.
 require(['joint'], function(joint) {
-    var graph = new joint.dia.Graph;
-    var paper = new joint.dia.Paper({ width: 600, height: 400, model: graph });
+    var namespace = joint.shapes;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+    var paper = new joint.dia.Paper({ width: 600, height: 400, model: graph, cellViewNamespace: namespace });
 
     var elApp = document.getElementById('app');
     elApp.appendChild(paper.el);

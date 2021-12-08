@@ -1,10 +1,12 @@
 (function() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
     new joint.dia.Paper({
         el: $('#paper-mark-available'),
         width: 650, height: 200, gridSize: 1,
         model: graph,
+        cellViewNamespace: namespace,
         defaultLink: new joint.dia.Link({
             attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
         }),

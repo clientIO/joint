@@ -1,6 +1,8 @@
 (function eventsGraphEvents() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-events-graph-events'),
@@ -11,7 +13,8 @@
         background: {
             color: 'white'
         },
-        interactive: true
+        interactive: true,
+        cellViewNamespace: namespace
     });
 
     var element = new joint.shapes.standard.Rectangle();

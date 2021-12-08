@@ -45,29 +45,32 @@
             <pre class="line-numbers"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
-    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/2.1.0/joint.css" /&gt;
+    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.4/joint.css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
     &lt;!-- content --&gt;
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.3.3/backbone.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/2.1.0/joint.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.4/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
 
-        var graph = new joint.dia.Graph;
+        var namespace = joint.shapes;
+
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
             model: graph,
             width: 600,
             height: 100,
-            gridSize: 1
+            gridSize: 1,
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -111,8 +114,8 @@
             <p>We will look at each of these steps in turn.
                 Use this list as an index of the basic tutorial topics.</p>
 
-            <p><a href="installation.html">First, we need to make sure we have JointJS installed and ready to
-                use.</a></p>
+            <p>First, we need to make sure we have <a href="installation.html">JointJS installed</a> and ready to
+                use.</p>
 
         </div><!--end tutorial-->
 

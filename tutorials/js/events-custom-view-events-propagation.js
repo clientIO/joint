@@ -1,6 +1,8 @@
 (function eventsCustomViewEventsPropagation() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper-events-custom-view-events-propagation'),
@@ -12,6 +14,7 @@
             color: 'white'
         },
         interactive: false,
+        cellViewNamespace: namespace,
         elementView: joint.dia.ElementView.extend({
             pointerdblclick: function(evt, x, y) {
                 joint.dia.CellView.prototype.pointerdblclick.apply(this, arguments);

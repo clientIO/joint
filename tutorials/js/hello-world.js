@@ -1,13 +1,16 @@
 (function helloWorld() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-hello-world'),
         model: graph,
         width: 600,
         height: 100,
-        gridSize: 1
+        gridSize: 1,
+        cellViewNamespace: namespace
     });
 
     var rect = new joint.shapes.standard.Rectangle();

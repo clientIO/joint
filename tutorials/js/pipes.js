@@ -189,7 +189,8 @@ var PatternLinkView = joint.dia.LinkView.extend({
     }
 });
 
-var graph = new joint.dia.Graph;
+var namespace = joint.shapes;
+var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 var paper = new joint.dia.Paper({
     el: $('#paper-pipes'),
     width: 600,
@@ -197,6 +198,7 @@ var paper = new joint.dia.Paper({
     gridSize: 1,
     model: graph,
     perpendicularLinks: true,
+    cellViewNamespace: namespace,
     // tell the paper to use our LinkView
     linkView: PatternLinkView
 });

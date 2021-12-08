@@ -36,8 +36,8 @@
 
             <h2>Installation</h2>
 
-            <p><a href="hello-world.html">In the first part of the tutorial, we saw a working example of a
-                simple JointJS application:</a></p>
+            <p>In the <a href="hello-world.html">first part</a> of the tutorial, we saw a working example of a
+                simple JointJS application:</p>
 
             <div class="paper" id="paper-hello-world"></div>
 
@@ -51,29 +51,32 @@
             <pre class="line-numbers" data-line="4,11-14"><code>&lt;!DOCTYPE html&gt;
 &lt;html&gt;
 &lt;head&gt;
-    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.3.1/joint.css" /&gt;
+    &lt;link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.4/joint.css" /&gt;
 &lt;/head&gt;
 &lt;body&gt;
     &lt;!-- content --&gt;
     &lt;div id="myholder"&gt;&lt;/div&gt;
 
     &lt;!-- dependencies --&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.js"&gt;&lt;/script&gt;
     &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.4.0/backbone.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.3.1/joint.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jointjs/3.4.4/joint.js"&gt;&lt;/script&gt;
 
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
-
-        var graph = new joint.dia.Graph;
+                
+        var namespace = joint.shapes;
+                
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
             model: graph,
             width: 600,
             height: 100,
-            gridSize: 1
+            gridSize: 1,
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -132,14 +135,17 @@
     &lt;!-- code --&gt;
     &lt;script type="text/javascript"&gt;
 
-        var graph = new joint.dia.Graph;
+        var namespace = joint.shapes;
+
+        var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
         var paper = new joint.dia.Paper({
             el: document.getElementById('myholder'),
             model: graph,
             width: 600,
             height: 100,
-            gridSize: 1
+            gridSize: 1,
+            cellViewNamespace: namespace
         });
 
         var rect = new joint.shapes.standard.Rectangle();
@@ -174,8 +180,8 @@
 
             <p>Now that JointJS is included on our page, we can start building our diagram.</p>
 
-            <p><a href="graph-and-paper.html">As a next step, we need to create a graph and assign it to a
-                paper.</a></p>
+            <p>As a next step, we need to <a href="graph-and-paper.html">create a graph</a> and assign it to a
+                paper.</p>
 
         </div><!--end tutorial-->
 

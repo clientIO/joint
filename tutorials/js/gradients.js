@@ -1,13 +1,16 @@
 (function gradients() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-gradients'),
         model: graph,
         width: 650,
         height: 280,
-        gridSize: 1
+        gridSize: 1,
+        cellViewNamespace: namespace
     });
 
     var el = new joint.shapes.standard.Rectangle();

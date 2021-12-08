@@ -1,6 +1,8 @@
 (function linkToolsExample() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     var paper = new joint.dia.Paper({
         el: document.getElementById('paper-link-tools-example'),
@@ -11,7 +13,8 @@
         drawGrid: true,
         background: {
             color: 'rgba(255, 165, 0, 0.3)'
-        }
+        },
+        cellViewNamespace: namespace
     });
 
     var source = new joint.shapes.standard.Rectangle();

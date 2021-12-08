@@ -1,6 +1,8 @@
 (function linksArrowheadsImage() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-links-arrowheads-image'),
@@ -12,7 +14,8 @@
         background: {
             color: 'rgba(0, 255, 0, 0.3)'
         },
-        interactive: false
+        interactive: false,
+        cellViewNamespace: namespace
     });
 
     var link = new joint.shapes.standard.Link();

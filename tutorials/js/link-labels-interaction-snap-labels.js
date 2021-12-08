@@ -1,6 +1,8 @@
 (function linkLabelsInteractionSnapLabels() {
 
-    var graph = new joint.dia.Graph;
+    var namespace = joint.shapes;
+
+    var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 
     new joint.dia.Paper({
         el: document.getElementById('paper-link-labels-interaction-snap-labels'),
@@ -10,6 +12,7 @@
         background: {
             color: 'rgba(255, 165, 0, 0.3)'
         },
+        cellViewNamespace: namespace,
         snapLabels: true,
         interactive: {
             linkMove: false,
