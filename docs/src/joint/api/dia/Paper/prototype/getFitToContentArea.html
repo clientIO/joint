@@ -1,0 +1,29 @@
+<pre class="docs-method-signature"><code>paper.getFitToContentArea([opt])</code></pre>
+<p>Return the bounding box in the local coordinate system based on the position and size of the current content and options provided.</p>
+
+<p>The function accepts an object with the following options:</p>
+
+<ul>
+    <li><code>opt.gridWidth</code> and <code>opt.gridHeight</code> – snap the resulting width and height of the paper to a grid defined by these dimensions.</li>
+    <li><code>opt.padding</code> – additional padding around the resulting paper. It may be specified as a number, in which case it represents the padding width on all sides of the paper. It may be an object of the form <code>{ top?: [number], right?: [number], bottom?: [number], left?: [number], vertical?: [number], horizontal?: [number] }</code>.</li>
+    <li><code>opt.allowNewOrigin</code> – should the origin of the resulting paper be adjusted to match the origin of the paper content? In addition to no value being set, three values are recognized by this option: <code>'positive'</code>,&nbsp;<code>'negative'</code>,&nbsp;<code>'any'</code>.
+      <ul>
+        <li>By default, the method only recognizes the content at positive coordinates and puts the origin of resulting paper at the original point (0,0).</li>
+        <li><code>'positive'</code> – the method only recognizes the content at positive coordinates and puts the origin of resulting paper at the origin of the content. (Still, if the content starts at negative coordinates in an axis, the resulting paper's origin will be assigned <code>0</code> in that axis.)</li>
+        <li><code>'negative'</code> – the method only recognizes the content at negative coordinates and puts the origin of resulting paper at the origin of the content. (However, if the content starts at positive coordinates in an axis, the resulting paper's origin will be assigned <code>0</code> in that axis.)</li>
+        <li><code>'any'</code> – the method recognizes all of the paper content. The origin of the resulting paper will be at the origin of the content.</li>
+      </ul>
+    </li>
+    <li><code>opt.allowNegativeBottomRight</code> - can the bottom-right corner of the resulting paper have negative coordinates? By default, the paper area always contains point (0,0). i.e. <code>false</code>.
+  <pre><code>// Resize the paper to match the tight bounding box of the content regardless of its position.
+  paper.fitToContent({
+    allowNewOrigin: 'any',
+    allowNegativeBottomRight: true
+  });</code></pre>
+    </li>
+    <li><code>opt.minWidth</code> and <code>opt.minHeight</code> – define the minimum width and height of the resulting paper after fitting it to content.</li>
+    <li><code>opt.maxWidth</code> and <code>opt.maxHeight</code> – define the maximum width and height of the resulting paper after fitting it to content.</li>
+    <li><code>opt.useModelGeometry</code> – should paper content area be calculated from cell models instead of views? The default is <code>false</code>. See the documentation of the <code>paper.getContentArea</code> <a href="#dia.Paper.prototype.getContentArea">function</a> for more details.</li>
+    <li><code>opt.contentArea</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area representing the content bounding box in the local coordinate system that paper should be fitted to. By default <code>opt.contentArea</code> is <code>paper.getContentArea(opt)</code>.</li>
+  </ul>
+

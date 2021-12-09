@@ -350,7 +350,7 @@ export const Paper = View.extend({
         this.setGrid(options.drawGrid);
         this.cloneOptions();
         this.render();
-        this.setDimensions();
+        this._setDimensions();
         this.startListening();
 
         // Hash of all cell views.
@@ -1144,72 +1144,78 @@ export const Paper = View.extend({
     },
 
     setDimensions: function(width, height) {
+        const { options } = this;
+        const { width: currentWidth, height: currentHeight } = options;
+        let w = (width === undefined) ? currentWidth : width;
+        let h = (height === undefined) ? currentHeight : height;
+        if (currentWidth === w && currentHeight === h) return;
+        options.width = w;
+        options.height = h;
+        this._setDimensions();
+        const computedSize = this.getComputedSize();
+        this.trigger('resize', computedSize.width, computedSize.height);
+    },
 
-        var options = this.options;
-        var w = (width === undefined) ? options.width : width;
-        var h = (height === undefined) ? options.height : height;
-        this.options.width = w;
-        this.options.height = h;
+    _setDimensions: function() {
+        const { options } = this;
+        let w = options.width;
+        let h = options.height;
         if (isNumber(w)) w = Math.round(w);
         if (isNumber(h)) h = Math.round(h);
         this.$el.css({
             width: (w === null) ? '' : w,
             height: (h === null) ? '' : h
         });
-        var computedSize = this.getComputedSize();
-        this.trigger('resize', computedSize.width, computedSize.height);
     },
 
     setOrigin: function(ox, oy) {
-
-        return this.translate(ox || 0, oy || 0, { absolute: true });
+        return this.translate(ox || 0, oy || 0);
     },
 
-    // Expand/shrink the paper to fit the content. Snap the width/height to the grid
-    // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-    // When options { fitNegative: true } it also translates the viewport in order to make all
-    // the content visible.
-    fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
+    // Expand/shrink the paper to fit the content.
+    // Alternatively signature function(opt)
+    fitToContent: function(gridWidth, gridHeight, padding, opt) {
 
         if (isObject(gridWidth)) {
             // first parameter is an option object
             opt = gridWidth;
-            gridWidth = opt.gridWidth || 1;
-            gridHeight = opt.gridHeight || 1;
-            padding = opt.padding || 0;
-
         } else {
-
-            opt || (opt = {});
-            gridWidth = gridWidth || 1;
-            gridHeight = gridHeight || 1;
-            padding = padding || 0;
+            // Support for a deprecated signature
+            opt = assign({ gridWidth, gridHeight, padding }, opt);
         }
+
+        const { x, y, width, height } = this.getFitToContentArea(opt);
+        const { sx, sy } = this.scale();
+
+        this.setOrigin(-x * sx, -y * sy);
+        this.setDimensions(width * sx, height * sy);
+
+        return new Rect(x, y, width, height);
+    },
+
+    getFitToContentArea: function(opt = {}) {
 
         // Calculate the paper size to accommodate all the graph's elements.
 
-        var minWidth = Math.max(opt.minWidth || 0, gridWidth);
-        var minHeight = Math.max(opt.minHeight || 0, gridHeight);
-        var maxWidth = opt.maxWidth || Number.MAX_VALUE;
-        var maxHeight = opt.maxHeight || Number.MAX_VALUE;
-        var newOrigin = opt.allowNewOrigin;
+        const gridWidth = opt.gridWidth || 1;
+        const gridHeight = opt.gridHeight || 1;
+        const padding = normalizeSides(opt.padding || 0);
 
-        padding = normalizeSides(padding);
+        const minWidth = Math.max(opt.minWidth || 0, gridWidth);
+        const minHeight = Math.max(opt.minHeight || 0, gridHeight);
+        const maxWidth = opt.maxWidth || Number.MAX_VALUE;
+        const maxHeight = opt.maxHeight || Number.MAX_VALUE;
+        const newOrigin = opt.allowNewOrigin;
 
-        var area = ('contentArea' in opt) ? new Rect(opt.contentArea) : this.getContentArea(opt);
-
-        var currentScale = this.scale();
-        var currentTranslate = this.translate();
-        var sx = currentScale.sx;
-        var sy = currentScale.sy;
-
+        const area = ('contentArea' in opt) ? new Rect(opt.contentArea) : this.getContentArea(opt);
+        const { sx, sy } = this.scale();
         area.x *= sx;
         area.y *= sy;
         area.width *= sx;
         area.height *= sy;
 
-        var calcWidth = Math.ceil((area.width + area.x) / gridWidth);
-        var calcHeight = Math.ceil((area.height + area.y) / gridHeight);
+        let calcWidth = Math.ceil((area.width + area.x) / gridWidth);
+        let calcHeight = Math.ceil((area.height + area.y) / gridHeight);
         if (!opt.allowNegativeBottomRight) {
             calcWidth = Math.max(calcWidth, 1);
             calcHeight = Math.max(calcHeight, 1);
@@ -1217,15 +1223,14 @@ export const Paper = View.extend({
         calcWidth *= gridWidth;
         calcHeight *= gridHeight;
 
-        var tx = 0;
-        var ty = 0;
-
+        let tx = 0;
         if ((newOrigin === 'negative' && area.x < 0) || (newOrigin === 'positive' && area.x >= 0) || newOrigin === 'any') {
             tx = Math.ceil(-area.x / gridWidth) * gridWidth;
             tx += padding.left;
             calcWidth += tx;
         }
 
+        let ty = 0;
         if ((newOrigin === 'negative' && area.y < 0) || (newOrigin === 'positive' && area.y >= 0) || newOrigin === 'any') {
             ty = Math.ceil(-area.y / gridHeight) * gridHeight;
             ty += padding.top;
@@ -1242,18 +1247,6 @@ export const Paper = View.extend({
         // Make sure the resulting width and height are lesser than maximum.
         calcWidth = Math.min(calcWidth, maxWidth);
         calcHeight = Math.min(calcHeight, maxHeight);
-
-        var computedSize = this.getComputedSize();
-        var dimensionChange = calcWidth != computedSize.width || calcHeight != computedSize.height;
-        var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
-
-        // Change the dimensions only if there is a size discrepancy or an origin change
-        if (originChange) {
-            this.translate(tx, ty);
-        }
-        if (dimensionChange) {
-            this.setDimensions(calcWidth, calcHeight);
-        }
 
         return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
     },
@@ -1651,22 +1644,27 @@ export const Paper = View.extend({
             return V.matrixToTranslate(this.matrix());
         }
 
-        // setter
+        const { options } = this;
+        const { origin, drawGrid } = options;
 
-        var ctm = this.matrix();
-        ctm.e = tx || 0;
-        ctm.f = ty || 0;
+        // setter
+        tx || (tx = 0);
+        ty || (ty = 0);
+
+        const ctm = this.matrix();
+        if (ctm.e === tx && ctm.f === ty) return this;
+        ctm.e = tx;
+        ctm.f = ty;
 
         this.matrix(ctm);
 
-        var newTranslate = this.translate();
-        var origin = this.options.origin;
-        origin.x = newTranslate.tx;
-        origin.y = newTranslate.ty;
+        const { tx: ox, ty: oy } = this.translate();
+        origin.x = ox;
+        origin.y = oy;
 
-        this.trigger('translate', newTranslate.tx, newTranslate.ty);
+        this.trigger('translate', ox, oy);
 
-        if (this.options.drawGrid) {
+        if (drawGrid) {
             this.drawGrid();
         }
 
