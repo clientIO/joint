@@ -11,7 +11,7 @@
         <li>By default, the method only recognizes the content at positive coordinates and puts the origin of resulting paper at the original point (0,0).</li>
         <li><code>'positive'</code> – the method only recognizes the content at positive coordinates and puts the origin of resulting paper at the origin of the content. (Still, if the content starts at negative coordinates in an axis, the resulting paper's origin will be assigned <code>0</code> in that axis.)</li>
         <li><code>'negative'</code> – the method only recognizes the content at negative coordinates and puts the origin of resulting paper at the origin of the content. (However, if the content starts at positive coordinates in an axis, the resulting paper's origin will be assigned <code>0</code> in that axis.)</li>
-        <li><code>'any'</code> – the method recognizes all of paper content. The origin of the resulting paper will be at the origin of the content.</li>
+        <li><code>'any'</code> – the method recognizes all of the paper content. The origin of the resulting paper will be at the origin of the content.</li>
       </ul>
     </li>
     <li><code>opt.allowNegativeBottomRight</code> - can the bottom-right corner of the resulting paper have negative coordinates? By default, the paper area always contains point (0,0). i.e. <code>false</code>.
@@ -22,9 +22,8 @@
   });</code></pre>
     </li>
     <li><code>opt.minWidth</code> and <code>opt.minHeight</code> – define the minimum width and height of the resulting paper after fitting it to content.</li>
-    <li><code>opt.maxWidth</code> and <code>opt.maxHeight</code> – define the maximum width and height of the resulting paper.
-    after fitting it to content.</li>
-    <li><code>opt.useModelGeometry</code> – should paper content area be calculated from cell models instead of views? Default is <code>false</code>. See the documentation of the <code>paper.getContentArea</code> <a href="#dia.Paper.prototype.getContentArea">function</a> for more details.</li>
+    <li><code>opt.maxWidth</code> and <code>opt.maxHeight</code> – define the maximum width and height of the resulting paper after fitting it to content.</li>
+    <li><code>opt.useModelGeometry</code> – should paper content area be calculated from cell models instead of views? The default is <code>false</code>. See the documentation of the <code>paper.getContentArea</code> <a href="#dia.Paper.prototype.getContentArea">function</a> for more details.</li>
     <li><code>opt.contentArea</code> – an object of the form <code>{ x: [number], y: [number], width: [number], height: [number] }</code> is the area representing the content bounding box in the local coordinate system that paper should be fitted to. By default <code>opt.contentArea</code> is <code>paper.getContentArea(opt)</code>.</li>
   </ul>
 
