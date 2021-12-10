@@ -55,14 +55,170 @@
             <h3 id="create">Creating elements with ports</h3>
 
             <p>
-                To add ports to elements, we can pass a ports definition option to a constructor, or utilize the
+                To add ports to elements, we can pass a ports definition as an option to a constructor, or utilize the
                 <a href="/docs/jointjs#dia.Element.ports" target="_blank">Port API</a> provided by JointJS. Both methods allow us 
                 to add ports to any arbitrary shape we can imagine.
             </p>
 
-            <div id="paper-new-create"></div>
-            <script type="text/javascript" src="js/ports-new-create.js"></script>
-            <!-- <pre data-src="js/ports-create.js" style="height: 440px"></pre> -->
+            <p>
+                In the following example, we define a port with some basic 
+                <a href="/docs/jointjs#dia.Element.ports.interface" target="_blank">configuration</a> , and instantiate a 
+                <code>standard.Rectangle</code> shape. Notice we provide a <code>magnet</code> attribute with a value of <code>true</code>
+                to our port definition. This allows our port to become a source/target of a link during reconnection, and provide that 
+                nice UI interaction. That's why when we click and drag a port, JointJS automatically creates a link coming out of that
+                port. Cool, right?
+            </p>
+
+            <div id="paper-simple"></div>
+            <script type="text/javascript" src="js/ports-simple.js"></script>
+            <p>JointJS source code: <a href="js/ports-simple.js" target="_blank">ports-simple.js</a></p>
+
+<pre><code>var port = {
+    label: {
+        position: {
+            name: 'left'
+        },
+        markup: '&lt;text fill="#03071E"/&gt;'
+    },
+    attrs: { 
+        rect: { 
+            magnet: true 
+        }, 
+        text: { 
+            text: 'port' 
+        }
+    },
+    markup: '&lt;rect width="16" height="16" x="-8" y="-8" fill="#03071E"/&gt;'
+};
+
+var model = new joint.shapes.standard.Rectangle({
+    position: { x: 275, y: 50 },
+    size: { width: 90, height: 90 },
+    attrs: {
+        body: {
+            fill: '#8ECAE6'
+        }
+    },
+    ports: {
+        items: [ port ] // add a port in constructor
+    }
+});
+
+model.addPort(port); // add a port using Port API
+</code></pre>
+
+            <p>
+                What if we want a little more control over our ports? Expanding from our previous example, we will introduce
+                the idea of groups. Groups can provide more structure to our port information, allow us to separate
+                our ports into the catagories we want, and influence the layout of our ports.
+            </p>
+
+            <p>
+                In the following example, we will cover a common use case, the idea of input and output ports.
+            </p>
+
+            <div id="paper-simple-groups"></div>
+            <script type="text/javascript" src="js/ports-simple-groups.js"></script>
+            <p>JointJS source code: <a href="js/ports-simple-groups.js" target="_blank">ports-simple-groups.js</a></p>
+            
+<pre><code>var portsIn = {
+    position: {
+        name: 'left'
+    },
+    attrs: {
+        portBody: {
+            magnet: true,
+            r: 10,
+            fill: '#023047',
+            stroke: '#023047'
+        }
+    },
+    label: {
+        position: {
+            name: 'left',
+            args: { y: 6 } 
+        },
+        markup: [{
+            tagName: 'text',
+            selector: 'label',
+            attributes: {
+                'class': 'label-text'
+            }
+        }]
+    },
+    markup: [{
+        tagName: 'circle',
+        selector: 'portBody'
+    }]
+};
+
+var portsOut = {
+    position: {
+        name: 'right'
+    },
+    attrs: {
+        portBody: {
+            magnet: true,
+            r: 10,
+            fill: '#E6A502',
+            stroke:'#023047'
+        }
+    },
+    label: {
+        position: {
+            name: 'right',
+            args: { y: 6 }
+        },
+        markup: [{
+            tagName: 'text',
+            selector: 'label',
+            attributes: {
+                'class': 'label-text'
+            }
+        }]
+    },
+    markup: [{
+        tagName: 'circle',
+        selector: 'portBody'
+    }]
+};
+
+var model = new joint.shapes.standard.Rectangle({
+    position: { x: 275, y: 50 },
+    size: { width: 90, height: 90 },
+    attrs: {
+        body: {
+            fill: '#8ECAE6',
+        },
+        label: { 
+            text: 'Model',
+            fontSize: 16,
+            y: -10
+        }
+    },
+    ports: {
+        groups: {
+            'in': portsIn,
+            'out': portsOut
+        }
+    }
+});
+
+model.addPorts([
+    { 
+        group: 'in',
+        attrs: { label: { text: 'in1' }}
+    },
+    { 
+        group: 'in',
+        attrs: { label: { text: 'in2' }}
+    },
+    { 
+        group: 'out',
+        attrs: { label: { text: 'out' }}
+    }
+]);
+</code></pre>
 
 
         </div>
