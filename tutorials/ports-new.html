@@ -114,7 +114,21 @@ model.addPort(port); // add a port using Port API
             </p>
 
             <p>
-                In the following example, we will cover a common use case, the idea of input and output ports.
+                In the following example, we will cover a common use case, the idea of input and output ports. To get started,
+                we create a separate port definition for each group, and again add some basic configuration. This
+                allows us to create groups with similar properties, but differences in visual presentation.
+            </p>
+
+            <p>
+                When we are satisfied with our individual port definitions, we can then define our port groups in the 
+                element constructor. You are free to name the groups how you like depending on your specific use case.
+                As we are creating input and output ports, we name our port groups <code>'in'</code>
+                and <code>'out'</code> respectively.
+            </p>
+
+            <p>
+                Lastly, using the Port API, we use the <code>addPorts()</code> method to add an array of ports while 
+                also providing a custom label for each one.
             </p>
 
             <div id="paper-simple-groups"></div>
