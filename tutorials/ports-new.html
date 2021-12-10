@@ -41,7 +41,7 @@
                 Many diagramming applications deal with the idea of elements with ports. Ports are often displayed
                 as circles inside diagram elements. They are not only used as "sticky" points for connected links, but they
                 also further structure the linking information. It is common that certain elements have lists of input and
-                output ports. A link might not then point to an element as a whole, but to a certain port instead.
+                output ports. A link might then not point to an element as a whole, but to a certain port instead.
             </p>
 
             <p>
@@ -170,16 +170,11 @@ var portsOut = {
             args: { y: 6 }
         },
         markup: [{
-            tagName: 'text',
-            selector: 'label',
-            attributes: {
-                'class': 'label-text'
-            }
+           // Markup
         }]
     },
     markup: [{
-        tagName: 'circle',
-        selector: 'portBody'
+        // Markup
     }]
 };
 
