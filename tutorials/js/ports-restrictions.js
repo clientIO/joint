@@ -3,16 +3,27 @@
     var namespace = joint.shapes;
     var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
     new joint.dia.Paper({ 
-        el: $('#paper-linking'),
+        el: $('#paper-restrictions'),
         width: 650,
         height: 200,
         gridSize: 1,
         model: graph, 
         cellViewNamespace: namespace,
-        linkPinning: false, // Don't allow link to be dropped in blank paper area
+        linkPinning: false, // Prevent link being dropped in blank paper area
         defaultLink: new joint.dia.Link({
             attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-        })
+        }),
+        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+            // Prevent linking from output ports to input ports within one element
+            if (cellViewS === cellViewT) return false;
+            // Prevent linking to output ports
+            return magnetT && magnetT.getAttribute('port-group') === 'in';
+        },
+        validateMagnet: function(cellView, magnet) {
+            // Note that this is the default behaviour. It is shown for reference purposes.
+            // Disable linking interaction for magnets marked as passive
+            return magnet.getAttribute('magnet') !== 'passive';
+        }
     });
 
 
@@ -22,7 +33,7 @@
         },
         attrs: {
             portBody: {
-                magnet: true,
+                magnet: 'passive',
                 r: 10,
                 fill: '#023047',
                 stroke: '#023047'
@@ -107,17 +118,14 @@
     model.addPorts([
         { 
             group: 'in',
-            id: 'in1',
             attrs: { label: { text: 'in1' }}
         },
         { 
             group: 'in',
-            id: 'in2',
             attrs: { label: { text: 'in2' }}
         },
         { 
             group: 'out',
-            id: 'out',
             attrs: { label: { text: 'out' }}
         }
     ]);
@@ -125,25 +133,5 @@
     var model2 = model.clone().translate(300, 0).attr('label/text', 'Model 2');
 
     graph.addCells(model, model2);
-
-    graph.on('change:source change:target', function(link) {
-        var sourcePort = link.get('source').port;
-        var sourceId = link.get('source').id;
-        var targetPort = link.get('target').port;
-        var targetId = link.get('target').id;
-
-        var m = [
-            'The port <b>' + sourcePort,
-            '</b> of element with ID <b>' + sourceId,
-            '</b> is connected to port <b>' + targetPort,
-            '</b> of element with ID <b>' + targetId + '</b>'
-        ].join('');
-
-        out(m);
-    });
-
-    function out(m) {
-        $('#paper-linking-out').html(m);
-    }
 
 }());

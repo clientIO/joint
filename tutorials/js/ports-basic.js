@@ -9,12 +9,12 @@
         gridSize: 1,
         model: graph, 
         cellViewNamespace: namespace,
-        linkPinning: false, // Don't allow link to be dropped in blank paper area
+        linkPinning: false, // Prevent link being dropped in blank paper area
         defaultLink: new joint.dia.Link({
             attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
         }),
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
-            // Prevent linking from source element to itself
+            // Prevent linking between ports within one element
             if (cellViewS === cellViewT) return false;
         }
     });
