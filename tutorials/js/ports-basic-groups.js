@@ -3,7 +3,7 @@
     var namespace = joint.shapes;
     var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
     new joint.dia.Paper({ 
-        el: $('#paper-simple-groups'),
+        el: $('#paper-basic-groups'),
         width: 650,
         height: 200,
         gridSize: 1,

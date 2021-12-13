@@ -69,9 +69,9 @@
                 port. Cool, right?
             </p>
 
-            <div id="paper-simple"></div>
-            <script type="text/javascript" src="js/ports-simple.js"></script>
-            <p>JointJS source code: <a href="js/ports-simple.js" target="_blank">ports-simple.js</a></p>
+            <div id="paper-basic"></div>
+            <script type="text/javascript" src="js/ports-basic.js"></script>
+            <p>JointJS source code: <a href="js/ports-basic.js" target="_blank">ports-basic.js</a></p>
 
 <pre><code>var port = {
     label: {
@@ -109,8 +109,8 @@ model.addPort(port); // add a port using Port API
 
             <p>
                 What if we want a little more control over our ports? Expanding from our previous example, we will introduce
-                the idea of groups. Groups can provide more structure to our port information, allow us to separate
-                our ports into the catagories we want, and influence the layout of our ports.
+                the idea of groups. Groups can provide more structure, allow us to separate ports into the catagories we want, 
+                and influence the layout of our ports.
             </p>
 
             <p>
@@ -131,9 +131,9 @@ model.addPort(port); // add a port using Port API
                 also providing a custom label for each one.
             </p>
 
-            <div id="paper-simple-groups"></div>
-            <script type="text/javascript" src="js/ports-simple-groups.js"></script>
-            <p>JointJS source code: <a href="js/ports-simple-groups.js" target="_blank">ports-simple-groups.js</a></p>
+            <div id="paper-basic-groups"></div>
+            <script type="text/javascript" src="js/ports-basic-groups.js"></script>
+            <p>JointJS source code: <a href="js/ports-basic-groups.js" target="_blank">ports-basic-groups.js</a></p>
             
 <pre><code>var portsIn = {
     position: {
@@ -196,6 +196,9 @@ var model = new joint.shapes.standard.Rectangle({
     position: { x: 275, y: 50 },
     size: { width: 90, height: 90 },
     attrs: {
+        root: {
+            magnet: false
+        },
         body: {
             fill: '#8ECAE6',
         },
@@ -229,6 +232,23 @@ model.addPorts([
 ]);
 </code></pre>
 
+        <h3 id="link">Linking elements with ports</h3>
+
+        <p>
+            Ports aren't so interesting all by themselves, so let's look at linking elements with ports. In the
+            diagram that follows, we create two elements much like the previous examples. We can observe which 
+            ports are connected to which, because JointJS stores information about ports in the link models themselves
+            once the links are created via the UI. Try connecting the ports yourself, and you should see a message
+            displaying the linking information.
+        </p>
+
+        <div id="paper-linking"></div>
+        <div id="paper-linking-out"></div>
+        <script type="text/javascript" src="js/ports-linking.js"></script>
+        <p>JointJS source code: <a href="js/ports-linking.js" target="_blank">ports-linking.js</a></p>
+
+
+        <h3 id="restrict">Linking restrictions</h3>
 
         </div>
 
