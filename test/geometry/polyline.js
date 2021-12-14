@@ -529,6 +529,196 @@ QUnit.module('polyline', function() {
             });
         });
 
+        QUnit.module('hasIntersectionWithLine()', function(assert) {
+
+            QUnit.test('returns true if line intersects polyline', function(assert) {
+
+                var polyline = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(10, 20)
+                ]);
+
+                assert.equal(polyline.hasIntersectionWithLine(new g.Line({ x: 15, y: 15 }, { x: 30, y: 15 })), true);
+                assert.equal(polyline.hasIntersectionWithLine(new g.Line({ x: 15, y: 15 }, { x: 0, y: 15 })), false);
+                assert.equal(polyline.hasIntersectionWithLine(new g.Line({ x: 15, y: 15 }, { x: 0, y: 15 }), { closed: true }), true);
+            });
+        });
+
+        QUnit.module('hasIntersectionWithPolyline()', function(assert) {
+
+            QUnit.test('returns true if polyline intersects polyline', function(assert) {
+
+                var polyline1 = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(10, 20),
+                    new g.Point(10, 10)
+                ]);
+
+                var polyline2 = new g.Polyline([
+                    new g.Point(14, 16),
+                    new g.Point(16, 16),
+                    new g.Point(15, 14),
+                    new g.Point(14, 16),
+                ]);
+
+                var polyline3 = new g.Polyline([
+                    new g.Point(0, 0),
+                    new g.Point(0, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 0),
+                ]);
+
+                var polyline4 = new g.Polyline([
+                    new g.Point(0, 15),
+                    new g.Point(100, 15),
+                ]);
+                // self intersection
+                assert.equal(polyline1.hasIntersectionWithPolyline(polyline1), true);
+                // through
+                assert.equal(polyline1.hasIntersectionWithPolyline(polyline4), true);
+                assert.equal(polyline4.hasIntersectionWithPolyline(polyline1), true);
+                // inside
+                assert.equal(polyline1.hasIntersectionWithPolyline(polyline2), false);
+                assert.equal(polyline2.hasIntersectionWithPolyline(polyline1), false);
+                // around
+                assert.equal(polyline1.hasIntersectionWithPolyline(polyline3), false);
+                assert.equal(polyline3.hasIntersectionWithPolyline(polyline1), false);
+                assert.equal(polyline1.hasIntersectionWithPolyline(polyline3, { closed: true }), false);
+                assert.equal(polyline3.hasIntersectionWithPolyline(polyline1, { closed: true }), true);
+            });
+        });
+
+        QUnit.module('hasIntersectionWithPolygon()', function(assert) {
+
+            QUnit.test('returns true if polygon intersects polyline', function(assert) {
+
+                var polyline1 = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(10, 20),
+                    new g.Point(10, 10)
+                ]);
+
+                var polyline2 = new g.Polyline([
+                    new g.Point(14, 16),
+                    new g.Point(16, 16),
+                    new g.Point(15, 14),
+                    new g.Point(14, 16),
+                ]);
+
+                var polyline3 = new g.Polyline([
+                    new g.Point(0, 0),
+                    new g.Point(0, 100),
+                    new g.Point(100, 100),
+                    new g.Point(100, 0),
+                ]);
+
+                var polyline4 = new g.Polyline([
+                    new g.Point(0, 15),
+                    new g.Point(100, 15),
+                ]);
+                // self intersection
+                assert.equal(polyline1.hasIntersectionWithPolygon(polyline1), true);
+                // through
+                assert.equal(polyline1.hasIntersectionWithPolygon(polyline4), true);
+                assert.equal(polyline4.hasIntersectionWithPolygon(polyline1), true);
+                // inside
+                assert.equal(polyline1.hasIntersectionWithPolygon(polyline2), false);
+                assert.equal(polyline2.hasIntersectionWithPolygon(polyline1), true);
+                // around
+                assert.equal(polyline1.hasIntersectionWithPolygon(polyline3), true);
+                assert.equal(polyline3.hasIntersectionWithPolygon(polyline1), false);
+                assert.equal(polyline1.hasIntersectionWithPolygon(polyline3, { closed: true }), true);
+                assert.equal(polyline3.hasIntersectionWithPolygon(polyline1, { closed: true }), true);
+            });
+        });
+
+        QUnit.module('hasIntersectionWithEllipse()', function(assert) {
+
+            QUnit.test('returns true if ellipse intersects polyline', function(assert) {
+
+                var ellipse = new g.Ellipse({ x: 15, y: 15 }, 4, 4);
+
+                var polyline1 = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(10, 20),
+                    new g.Point(10, 10)
+                ]);
+
+                var polyline2 = new g.Polyline([
+                    new g.Point(0, 15),
+                    new g.Point(100, 15),
+                ]);
+
+                assert.equal(polyline1.hasIntersectionWithEllipse(ellipse), false);
+                assert.equal(polyline1.hasIntersectionWithEllipse(ellipse, { closed: true }), true);
+                assert.equal(polyline2.hasIntersectionWithEllipse(ellipse), true);
+            });
+        });
+
+        QUnit.module('hasIntersectionWithRect()', function(assert) {
+
+            QUnit.test('returns true if rectangle intersects polyline', function(assert) {
+
+                var rect = new g.Rect(11, 11, 8, 8);
+
+                var polyline1 = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(10, 20),
+                    new g.Point(10, 10)
+                ]);
+
+                var polyline2 = new g.Polyline([
+                    new g.Point(0, 15),
+                    new g.Point(100, 15),
+                ]);
+
+                assert.equal(polyline1.hasIntersectionWithRect(rect), false);
+                assert.equal(polyline1.hasIntersectionWithRect(rect, { closed: true }), true);
+                assert.equal(polyline2.hasIntersectionWithRect(rect), true);
+            });
+        });
+
+        QUnit.module('hasIntersectionWithPath()', function(assert) {
+
+            QUnit.test('returns true if rectangle intersects polyline', function(assert) {
+
+                var path1 = new g.Path('M 11 11 L 19 11 L 19 19 L 11 19 Z');
+
+                var polyline1 = new g.Polyline([
+                    new g.Point(10, 10),
+                    new g.Point(20, 10),
+                    new g.Point(20, 20),
+                    new g.Point(10, 20),
+                    new g.Point(10, 10)
+                ]);
+
+                var polyline2 = new g.Polyline([
+                    new g.Point(0, 15),
+                    new g.Point(100, 15),
+                ]);
+
+                assert.equal(polyline1.hasIntersectionWithPath(path1), false);
+                assert.equal(polyline1.hasIntersectionWithPath(path1, { closed: true }), true);
+                assert.equal(polyline2.hasIntersectionWithPath(path1), true);
+
+                var path2 = new g.Path('M 50 10 L 150 10 L 150 30 L 50 30');
+                var path3 = new g.Path('M 50 10 L 150 10 L 150 30 L 50 30 Z');
+
+                assert.equal(polyline2.hasIntersectionWithPath(path2), false);
+                assert.equal(polyline2.hasIntersectionWithPath(path3), true);
+            });
+        });
+
         QUnit.module('convexHull()', function(assert) {
 
             QUnit.test('sanity', function(assert) {

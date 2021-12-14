@@ -558,17 +558,19 @@ export namespace g {
 
         intersectionWithLine(l: Line): Point[] | null;
 
-        intersectWithLine(line: Line, opt?: Polyline.IntersectOptions): boolean;
+        hasIntersectionWithLine(line: Line, opt?: Polyline.IntersectOptions): boolean;
 
-        intersectWithRect(rect: Rect, opt?: Polyline.IntersectOptions): boolean;
+        hasIntersectionWithRect(rect: Rect, opt?: Polyline.IntersectOptions): boolean;
 
-        intersectWithEllipse(ellipse: Ellipse, opt?: Polyline.IntersectOptions): boolean;
+        hasIntersectionWithEllipse(ellipse: Ellipse, opt?: Polyline.IntersectOptions): boolean;
 
-        intersectWithPolyline(polyline: Polyline, opt?: Polyline.IntersectOptions): boolean;
+        hasIntersectionWithPolyline(polyline: Polyline, opt?: Polyline.IntersectOptions): boolean;
 
-        intersectWithPolygon(polygon: Polyline, opt?: Polyline.IntersectOptions): boolean;
+        hasIntersectionWithPolygon(polygon: Polyline, opt?: Polyline.IntersectOptions): boolean;
 
-        intersectWithPath(path: Path, opt?: Polyline.IntersectOptions & SubdivisionsOpt): boolean;
+        hasIntersectionWithPath(path: Path, opt?: Polyline.IntersectOptions & SubdivisionsOpt): boolean;
+
+        close(): this;
 
         length(): number;
 

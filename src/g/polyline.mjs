@@ -191,13 +191,13 @@ Polyline.prototype = {
         return ((numIntersections % 2) === 1);
     },
 
-    intersectWithLine: function(line, opt = {}) {
+    hasIntersectionWithLine: function(line, opt = {}) {
         const { closed = false } = opt;
         let thisPoints;
         if (closed) {
-            // If any point of the polyline lies inside this polygon (closed = true)
-            // there is an intersection (we've chosen the start point)
             if (this.containsPoint(line.start)) {
+                // If any point of the polyline lies inside this polygon (closed = true)
+                // there is an intersection (we've chosen the start point)
                 return true;
             }
             const { start, end, points } = this;
@@ -217,17 +217,17 @@ Polyline.prototype = {
         return false;
     },
 
-    intersectWithPolyline: function(polyline, opt = {}) {
+    hasIntersectionWithPolyline: function(polyline, opt = {}) {
         const { closed = false } = opt;
         let thisPolyline;
         if (closed) {
             const { start } = polyline;
-            // If any point of the polyline lies inside this polygon (closed = true)
-            // there is an intersection (we've chosen the start point)
             if (this.containsPoint(start)) {
+                // If any point of the polyline lies inside this polygon (closed = true)
+                // there is an intersection (we've chosen the start point)
                 return true;
             }
-            thisPolyline = this.toPolygon();
+            thisPolyline = this.clone().close();
         } else {
             thisPolyline = this;
         }
@@ -237,45 +237,48 @@ Polyline.prototype = {
         for (let i = 0; i < length - 1; i++) {
             segment.start = otherPoints[i];
             segment.end = otherPoints[i + 1];
-            if (thisPolyline.intersectWithLine(segment, { closed: false })) {
+            if (thisPolyline.hasIntersectionWithLine(segment, { closed: false })) {
                 return true;
             }
         }
         return false;
     },
 
-    toPolygon() {
+    close: function() {
         const { start, end, points } = this;
-        return start.equals(end) ? this.clone() : new Polyline([...points, start]);
+        if (!start.equals(end)) {
+            this.points = [...points, start];
+        }
+        return this;
     },
 
-    intersectWithPolygon: function(polygon, opt) {
-        return this.intersectWithPolyline(polygon.toPolygon(), opt) || polygon.containsPoint(this.start);
+    hasIntersectionWithPolygon: function(polygon, opt) {
+        return polygon.containsPoint(this.start) || this.hasIntersectionWithPolyline(polygon.clone().close(), opt);
     },
 
-    intersectWithPath: function(path, opt) {
+    hasIntersectionWithPath: function(path, opt) {
         return path.getSubpaths().some(subpath => {
             const [polyline] = subpath.toPolylines(opt);
             const { type } = subpath.getSegment(-1);
             if (type === 'Z') {
-                return this.intersectWithPolygon(polyline, opt);
+                return this.hasIntersectionWithPolygon(polyline, opt);
             } else {
-                return this.intersectWithPolyline(polyline, opt);
+                return this.hasIntersectionWithPolyline(polyline, opt);
             }
         });
     },
 
-    intersectWithRect: function(rect, opt) {
+    hasIntersectionWithRect: function(rect, opt) {
         const polygon = new Polyline([
             rect.topLeft(),
             rect.topRight(),
             rect.bottomRight(),
             rect.bottomLeft()
         ]);
-        return this.intersectWithPolygon(polygon, opt);
+        return this.hasIntersectionWithPolygon(polygon, opt);
     },
 
-    intersectWithEllipse: function(ellipse, opt = {}) {
+    hasIntersectionWithEllipse: function(ellipse, opt = {}) {
         const { start, end, points } = this;
         if (ellipse.containsPoint(start)) {
             return true;
@@ -283,9 +286,9 @@ Polyline.prototype = {
         let thisPoints;
         const { closed = false } = opt;
         if (closed) {
-            // If any point of the ellipse lies inside this polygon (closed = true)
-            // there is an intersection (we've chosen the center point)
             if (this.containsPoint(ellipse.center())) {
+                // If any point of the ellipse lies inside this polygon (closed = true)
+                // there is an intersection (we've chosen the center point)
                 return true;
             }
             thisPoints = end.equals(start) ? points : [...points, start];
