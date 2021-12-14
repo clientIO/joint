@@ -518,13 +518,6 @@ export namespace g {
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
-
-    namespace Polyline {
-
-        interface IntersectOptions {
-            interior?: boolean;
-        }
-    }
     class Polyline {
 
         points: Point[];
@@ -557,30 +550,6 @@ export namespace g {
         isDifferentiable(): boolean;
 
         intersectionWithLine(l: Line): Point[] | null;
-
-        hasInteriorIntersectionWithLine(line: Line): boolean;
-
-        hasIntersectionWithLine(line: Line, opt?: Polyline.IntersectOptions): boolean;
-
-        hasInteriorIntersectionWithRect(ret: Rect): boolean;
-
-        hasIntersectionWithRect(rect: Rect, opt?: Polyline.IntersectOptions): boolean;
-
-        hasInteriorIntersectionWithEllipse(ellipse: Ellipse): boolean;
-
-        hasIntersectionWithEllipse(ellipse: Ellipse, opt?: Polyline.IntersectOptions): boolean;
-
-        hasInteriorIntersectionWithPolyline(polyline: Polyline): boolean;
-
-        hasIntersectionWithPolyline(polyline: Polyline, opt?: Polyline.IntersectOptions): boolean;
-
-        hasInteriorIntersectionWithPolygon(polygon: Polyline): boolean;
-
-        hasIntersectionWithPolygon(polygon: Polyline, opt?: Polyline.IntersectOptions): boolean;
-
-        hasInteriorIntersectionWithPath(path: Path, opt?: SegmentSubdivisionsOpt): boolean;
-
-        hasIntersectionWithPath(path: Path, opt?: Polyline.IntersectOptions & SegmentSubdivisionsOpt): boolean;
 
         close(): this;
 
@@ -743,5 +712,32 @@ export namespace g {
     namespace scale {
 
         export function linear(domain: [number, number], range: [number, number], value: number): number;
+    }
+
+    namespace intersection {
+
+        function polygonWithLine(polygon: Polyline, line: Line): boolean;
+
+        function polylineWithLine(polyline: Polyline, line: Line): boolean;
+
+        function polygonWithRect(polygon: Polyline, rect: Rect): boolean;
+
+        function polylineWithRect(polyline: Polyline, rect: Rect): boolean;
+
+        function polygonWithEllipse(polygon: Polyline, ellipse: Ellipse): boolean;
+
+        function polylineWithEllipse(polyline: Polyline, ellipse: Ellipse): boolean;
+
+        function polygonWithPolyline(polygon: Polyline, polyline: Polyline): boolean;
+
+        function polylineWithPolyline(polyline1: Polyline, polyline2: Polyline): boolean;
+
+        function polygonWithPolygon(polygon1: Polyline, polygon2: Polyline): boolean;
+
+        function polygonWithPath(polygon: Polyline, path: Path, opt?: SegmentSubdivisionsOpt): boolean;
+
+        function polylineWithPath(polyline: Polyline, path: Path, opt?: SegmentSubdivisionsOpt): boolean;
+
+        function pathWithPath(path1: Path, path2: Path, opt1?: SegmentSubdivisionsOpt, opt2?: SegmentSubdivisionsOpt): boolean;
     }
 }

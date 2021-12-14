@@ -10,3 +10,6 @@ export * from './path.mjs';
 export * from './point.mjs';
 export * from './polyline.mjs';
 export * from './rect.mjs';
+
+import * as _intersection from './intersection.mjs';
+export const intersection = _intersection;
