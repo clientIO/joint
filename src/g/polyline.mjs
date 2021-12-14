@@ -32,6 +32,16 @@ Polyline.parse = function(svgString) {
     return new Polyline(points);
 };
 
+Polyline.fromRect = function(rect) {
+    return new Polyline([
+        rect.topLeft(),
+        rect.topRight(),
+        rect.bottomRight(),
+        rect.bottomLeft(),
+        rect.topLeft()
+    ]);
+};
+
 Polyline.prototype = {
 
     bbox: function() {

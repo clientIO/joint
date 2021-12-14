@@ -155,7 +155,7 @@ function _polylineWithPolyline(polyline1, polyline2, opt = {}) {
     for (let i = 0; i < length - 1; i++) {
         segment.start = otherPoints[i];
         segment.end = otherPoints[i + 1];
-        if (polylineWithLine(thisPolyline, segment, { interior: false })) {
+        if (polylineWithLine(thisPolyline, segment)) {
             return true;
         }
     }

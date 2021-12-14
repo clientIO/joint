@@ -577,6 +577,8 @@ export namespace g {
         toString(): string;
 
         static parse(svgString: string): Polyline;
+
+        static fromRect(rect: Rect): Polyline;
     }
 
     class Rect implements PlainRect {
