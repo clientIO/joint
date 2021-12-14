@@ -568,7 +568,7 @@ export namespace g {
 
         hasIntersectionWithPolygon(polygon: Polyline, opt?: Polyline.IntersectOptions): boolean;
 
-        hasIntersectionWithPath(path: Path, opt?: Polyline.IntersectOptions & SubdivisionsOpt): boolean;
+        hasIntersectionWithPath(path: Path, opt?: Polyline.IntersectOptions & SegmentSubdivisionsOpt): boolean;
 
         close(): this;
 
