@@ -718,27 +718,29 @@ export namespace g {
 
     namespace intersection {
 
-        function polygonWithLine(polygon: Polyline, line: Line): boolean;
-
         function polylineWithLine(polyline: Polyline, line: Line): boolean;
-
-        function polygonWithRect(polygon: Polyline, rect: Rect): boolean;
 
         function polylineWithRect(polyline: Polyline, rect: Rect): boolean;
 
-        function polygonWithEllipse(polygon: Polyline, ellipse: Ellipse): boolean;
-
         function polylineWithEllipse(polyline: Polyline, ellipse: Ellipse): boolean;
-
-        function polygonWithPolyline(polygon: Polyline, polyline: Polyline): boolean;
 
         function polylineWithPolyline(polyline1: Polyline, polyline2: Polyline): boolean;
 
+        function polygonWithLine(polygon: Polyline, line: Line): boolean;
+
+        function polygonWithRect(polygon: Polyline, rect: Rect): boolean;
+
+        function polygonWithEllipse(polygon: Polyline, ellipse: Ellipse): boolean;
+
+        function polygonWithPolyline(polygon: Polyline, polyline: Polyline): boolean;
+
         function polygonWithPolygon(polygon1: Polyline, polygon2: Polyline): boolean;
 
-        function polygonWithPath(polygon: Polyline, path: Path, opt?: SegmentSubdivisionsOpt): boolean;
+        function pathWithRect(path: Path, rect: Rect, opt?: SegmentSubdivisionsOpt): boolean;
 
-        function polylineWithPath(polyline: Polyline, path: Path, opt?: SegmentSubdivisionsOpt): boolean;
+        function pathWithPolygon(path: Path, polygon: Polyline, opt?: SegmentSubdivisionsOpt): boolean;
+
+        function pathWithPolyline(path: Path, polyline: Polyline, opt?: SegmentSubdivisionsOpt): boolean;
 
         function pathWithPath(path1: Path, path2: Path, opt1?: SegmentSubdivisionsOpt, opt2?: SegmentSubdivisionsOpt): boolean;
     }

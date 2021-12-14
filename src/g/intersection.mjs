@@ -1,48 +1,101 @@
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
 
-export function polygonWithLine(polygon, line) {
-    return _polylineWithLine(polygon, line, { interior: true });
+/* Line */
+
+export function lineWithLine(line1, line2) {
+    // TODO: no need to calculate the intersection points
+    return Boolean(line1.intersectionWithLine(line2));
 }
+
+/* Ellipse */
+
+export function ellipseWithLine(ellipse, line) {
+    // TODO: no need to calculate the intersection points
+    return Boolean(ellipse.intersectionWithLine(line));
+}
+
+export function ellipseWithEllipse(ellipse1, ellipse2) {
+    // TBI
+}
+
+/* Rect */
+
+export function rectWithLine(rect, line) {
+    // TODO: no need to calculate the intersection points
+    return Boolean(rect.intersectionWithLine(line));
+}
+
+export function rectWithEllipse(rect, ellipse) {
+    // TBI
+}
+
+export function rectWithRect(rect1, rect2) {
+    // TODO: no need to calculate the intersection points
+    return Boolean(rect1.intersect(rect2));
+}
+
+/* Polyline */
 
 export function polylineWithLine(polygon, line) {
     return _polylineWithLine(polygon, line, { interior: false });
 }
 
-export function polygonWithPolygon(polygon1, polygon2) {
-    return _polylineWithPolygon(polygon1, polygon2, { interior: true });
-}
-
-export function polygonWithPolyline(polygon, polyline) {
-    return _polylineWithPolyline(polygon, polyline, { interior: true });
-}
-
-export function polylineWithPolyline(polygon, polyline) {
-    return _polylineWithPolyline(polygon, polyline, { interior: false });
-}
-
-export function polygonWithPath(polygon, path, pathOpt) {
-    return _polylineWithPath(polygon, path, pathOpt, { interior: true });
-}
-
-export function polylineWithPath(polygon, path, pathOpt) {
-    return _polylineWithPath(polygon, path, pathOpt, { interior: false });
-}
-
-export function polygonWithRect(polygon, rect) {
-    return _polylineWithRect(polygon, rect, { interior: true });
+export function polylineWithEllipse(polygon, ellipse) {
+    return _polylineWithEllipse(polygon, ellipse, { interior: false });
 }
 
 export function polylineWithRect(polygon, rect) {
     return _polylineWithRect(polygon, rect, { interior: false });
 }
 
+export function polylineWithPolyline(polygon, polyline) {
+    return _polylineWithPolyline(polygon, polyline, { interior: false });
+}
+
+/* Polygon */
+
+export function polygonWithLine(polygon, line) {
+    return _polylineWithLine(polygon, line, { interior: true });
+}
+
 export function polygonWithEllipse(polygon, ellipse) {
     return _polylineWithEllipse(polygon, ellipse, { interior: true });
 }
 
-export function polylineWithEllipse(polygon, ellipse) {
-    return _polylineWithEllipse(polygon, ellipse, { interior: false });
+export function polygonWithRect(polygon, rect) {
+    return _polylineWithRect(polygon, rect, { interior: true });
+}
+
+export function polygonWithPolyline(polygon, polyline) {
+    return _polylineWithPolyline(polygon, polyline, { interior: true });
+}
+
+export function polygonWithPolygon(polygon1, polygon2) {
+    return _polylineWithPolygon(polygon1, polygon2, { interior: true });
+}
+
+/* Path */
+
+export function pathWithLine(path, line, pathOpt) {
+    // TODO: no need to calculate the intersection points
+    return Boolean(path.intersectionWithLine(line, pathOpt));
+}
+
+export function pathWithEllipse(path, ellipse, pathOpt) {
+    // TBI
+}
+
+export function pathWithRect(path, rect, pathOpt) {
+    return pathWithPolygon(path, Polyline.fromRect(rect), pathOpt);
+}
+
+export function pathWithPolyline(path, polygon, pathOpt) {
+    return _pathWithPolyline(path, polygon, pathOpt, { interior: false });
+}
+
+export function pathWithPolygon(path, polygon, pathOpt) {
+    return _pathWithPolyline(path, polygon, pathOpt, { interior: true });
 }
 
 export function pathWithPath(path1, path2, pathOpt1, pathOpt2) {
@@ -50,9 +103,9 @@ export function pathWithPath(path1, path2, pathOpt1, pathOpt2) {
         const [polyline1] = subpath.toPolylines(pathOpt1);
         const { type } = subpath.getSegment(-1);
         if (type === 'Z') {
-            return polygonWithPath(polyline1, path2, pathOpt2);
+            return pathWithPolygon(path2, polyline1, pathOpt2);
         } else {
-            return polylineWithPath(polyline1, path2, pathOpt2);
+            return pathWithPolyline(path2, polyline1, pathOpt2);
         }
     });
 }
@@ -123,7 +176,7 @@ function _polylineWithRect(polyline, rect, opt) {
     return _polylineWithPolygon(polyline, polygon, opt);
 }
 
-function _polylineWithPath(polyline1, path, pathOpt, opt) {
+function _pathWithPolyline(path, polyline1, pathOpt, opt) {
     return path.getSubpaths().some(subpath => {
         const [polyline2] = subpath.toPolylines(pathOpt);
         const { type } = subpath.getSegment(-1);
