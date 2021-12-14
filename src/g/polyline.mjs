@@ -191,12 +191,25 @@ Polyline.prototype = {
         return ((numIntersections % 2) === 1);
     },
 
+
+    close: function() {
+        const { start, end, points } = this;
+        if (!start.equals(end)) {
+            points.push(start.clone());
+        }
+        return this;
+    },
+
+    hasInteriorIntersectionWithLine: function(line) {
+        return this.hasIntersectionWithLine(line, { interior: true });
+    },
+
     hasIntersectionWithLine: function(line, opt = {}) {
-        const { closed = false } = opt;
+        const { interior = false } = opt;
         let thisPoints;
-        if (closed) {
+        if (interior) {
             if (this.containsPoint(line.start)) {
-                // If any point of the polyline lies inside this polygon (closed = true)
+                // If any point of the polyline lies inside this polygon (interior = true)
                 // there is an intersection (we've chosen the start point)
                 return true;
             }
@@ -217,13 +230,17 @@ Polyline.prototype = {
         return false;
     },
 
+    hasInteriorIntersectionWithPolyline: function(line) {
+        return this.hasIntersectionWithPolyline(line, { interior: true });
+    },
+
     hasIntersectionWithPolyline: function(polyline, opt = {}) {
-        const { closed = false } = opt;
+        const { interior = false } = opt;
         let thisPolyline;
-        if (closed) {
+        if (interior) {
             const { start } = polyline;
             if (this.containsPoint(start)) {
-                // If any point of the polyline lies inside this polygon (closed = true)
+                // If any point of the polyline lies inside this polygon (interior = true)
                 // there is an intersection (we've chosen the start point)
                 return true;
             }
@@ -237,23 +254,23 @@ Polyline.prototype = {
         for (let i = 0; i < length - 1; i++) {
             segment.start = otherPoints[i];
             segment.end = otherPoints[i + 1];
-            if (thisPolyline.hasIntersectionWithLine(segment, { closed: false })) {
+            if (thisPolyline.hasIntersectionWithLine(segment, { interior: false })) {
                 return true;
             }
         }
         return false;
     },
 
-    close: function() {
-        const { start, end, points } = this;
-        if (!start.equals(end)) {
-            this.points = [...points, start];
-        }
-        return this;
+    hasInteriorIntersectionWithPolygon: function(line) {
+        return this.hasIntersectionWithPolygon(line, { interior: true });
     },
 
     hasIntersectionWithPolygon: function(polygon, opt) {
         return polygon.containsPoint(this.start) || this.hasIntersectionWithPolyline(polygon.clone().close(), opt);
+    },
+
+    hasInteriorIntersectionWithPath: function(line, opt) {
+        return this.hasIntersectionWithPath(line, Object.assign({ interior: true }, opt));
     },
 
     hasIntersectionWithPath: function(path, opt) {
@@ -268,6 +285,10 @@ Polyline.prototype = {
         });
     },
 
+    hasInteriorIntersectionWithRect: function(rect) {
+        return this.hasIntersectionWithRect(rect, { interior: true });
+    },
+
     hasIntersectionWithRect: function(rect, opt) {
         const polygon = new Polyline([
             rect.topLeft(),
@@ -278,16 +299,20 @@ Polyline.prototype = {
         return this.hasIntersectionWithPolygon(polygon, opt);
     },
 
+    hasInteriorIntersectionWithEllipse: function(ellipse) {
+        return this.hasIntersectionWithEllipse(ellipse, { interior: true });
+    },
+
     hasIntersectionWithEllipse: function(ellipse, opt = {}) {
         const { start, end, points } = this;
         if (ellipse.containsPoint(start)) {
             return true;
         }
         let thisPoints;
-        const { closed = false } = opt;
-        if (closed) {
+        const { interior = false } = opt;
+        if (interior) {
             if (this.containsPoint(ellipse.center())) {
-                // If any point of the ellipse lies inside this polygon (closed = true)
+                // If any point of the ellipse lies inside this polygon (interior = true)
                 // there is an intersection (we've chosen the center point)
                 return true;
             }

@@ -522,7 +522,7 @@ export namespace g {
     namespace Polyline {
 
         interface IntersectOptions {
-            closed?: boolean;
+            interior?: boolean;
         }
     }
     class Polyline {
@@ -558,15 +558,27 @@ export namespace g {
 
         intersectionWithLine(l: Line): Point[] | null;
 
+        hasInteriorIntersectionWithLine(line: Line): boolean;
+
         hasIntersectionWithLine(line: Line, opt?: Polyline.IntersectOptions): boolean;
+
+        hasInteriorIntersectionWithRect(ret: Rect): boolean;
 
         hasIntersectionWithRect(rect: Rect, opt?: Polyline.IntersectOptions): boolean;
 
+        hasInteriorIntersectionWithEllipse(ellipse: Ellipse): boolean;
+
         hasIntersectionWithEllipse(ellipse: Ellipse, opt?: Polyline.IntersectOptions): boolean;
+
+        hasInteriorIntersectionWithPolyline(polyline: Polyline): boolean;
 
         hasIntersectionWithPolyline(polyline: Polyline, opt?: Polyline.IntersectOptions): boolean;
 
+        hasInteriorIntersectionWithPolygon(polygon: Polyline): boolean;
+
         hasIntersectionWithPolygon(polygon: Polyline, opt?: Polyline.IntersectOptions): boolean;
+
+        hasInteriorIntersectionWithPath(path: Path, opt?: SegmentSubdivisionsOpt): boolean;
 
         hasIntersectionWithPath(path: Path, opt?: Polyline.IntersectOptions & SegmentSubdivisionsOpt): boolean;
 
