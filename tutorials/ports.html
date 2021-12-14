@@ -20,6 +20,7 @@
 
 
         <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <link rel="stylesheet" href="css/ports.css">
         <script type="text/javascript" src="../build/joint.min.js"></script>
 
         <title>JointJS - JavaScript diagramming library - Getting started.</title>
@@ -333,7 +334,6 @@ model.addPorts([
             </p>
 
             <div class="paper" id="paper-mark-available"></div>
-            <link rel="stylesheet" href="css/ports-mark-available.css"/>
             <script type="text/javascript" src="js/ports-mark-available.js"></script>
   
 <pre><code>new joint.dia.Paper({ 
@@ -356,12 +356,53 @@ model.addPorts([
 </code></pre>
 
             <p>JointJS source code: <a href="js/ports-mark-available.js" target="_blank">ports-mark-available.js</a></p>
-            <p>JointJS source code: <a href="css/ports-mark-available.css" target="_blank">ports-mark-available.css</a></p>
+            <p>JointJS source code: <a href="css/ports.css" target="_blank">ports.css</a></p>
+
+            <h3 id="layout">Port layouts</h3>
 
             <p>
-                That's all we will cover in this tutorial. Hopefully, we highlighted some information and examples that is useful
-                for you. If you would like to explore any of the features mentioned here in more detail, you can find extra information in our 
-                <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
+                We have already used <a href="/docs/jointjs#layout.Port" target="_blank">Port Layouts</a> briefly in this tutorial.
+                In <a href="#link" target="_self">linking elements with ports</a>, and several other sections, we aligned our port groups
+                to the <code>'left'</code> and <code>'right'</code> of our <code>standard.Rectangle</code> element. This functionality is 
+                very convenient , but did you know JointJS provides even more layout options? Let's explore an example.
+            </p>
+
+            <p>
+                In the diagram below, we create a <code>standard.Ellipse</code> element. The layout we were using before doesn't make much
+                sense for a circular shape if we have more than one port, so we will use a radial layout for our ports instead. In our port
+                definition, notice we now use the <code>'ellipseSpreads'</code> layout to evenly spread our input ports along the ellipse.
+            </p>
+
+            <p>
+                One important note about port layouts is that they can only be defined at <code>group</code> level, so it's something to 
+                be aware of when you are creating port definitions.
+            </p>
+
+            <div class="paper" id="paper-layout"></div>
+            <script type="text/javascript" src="js/ports-layout.js"></script>
+            <p>JointJS source code: <a href="js/ports-layout.js" target="_blank">ports-layout.js</a></p>
+
+<pre><code>var ellipsePortsIn = {
+    position: {
+        name: 'ellipseSpread',
+        args: {
+            dx: 1,
+            dy: 1,
+            dr: 1,
+            startAngle: 220,
+            step: 50,
+            compensateRotation: false
+        }
+    },
+    // Other attributes
+};
+</code></pre>
+
+
+            <p>
+                That's all we will cover in this tutorial. Hopefully, we highlighted some information that is useful
+                for you. If you would like to explore any of the features mentioned here in more detail, you can find extra information 
+                in our <a href="/docs/jointjs" target="_blank">JointJS documentation</a>.
             </p>
 
         </div>
