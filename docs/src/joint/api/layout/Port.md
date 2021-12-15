@@ -98,7 +98,7 @@ A simple layout suitable for rectangular shapes. It evenly spreads ports along a
 
 #### Line
 
-A layout which evenly spreads ports along a line defined by a `start` and en `end` point.
+A layout which evenly spreads ports along a line defined by a `start` and `end` point.
 
 <table>
     <tr>
@@ -142,7 +142,7 @@ A layout which evenly spreads ports along a line defined by a `start` and en `en
 
 #### Absolute
 
-It lay a port out at the given position (defined as a `x`, `y` coordinates or percentage of the element dimensions).
+It lays a port out at the given position (defined as `x`, `y` coordinates or percentage of the element dimensions).
 
 <table>
     <tr>
