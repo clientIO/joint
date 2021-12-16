@@ -171,7 +171,7 @@
     }
 
     function showLinkTools(linkView) {
-        const tools = new joint.dia.ToolsView({
+        var tools = new joint.dia.ToolsView({
             tools: [
                 new joint.linkTools.Remove({
                     distance: '50%',
