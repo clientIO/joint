@@ -63,7 +63,7 @@
 
             <p>
                 In the following example, we define a port with some basic 
-                <a href="/docs/jointjs#dia.Element.ports.interface" target="_blank">configuration</a> , and instantiate a 
+                <a href="/docs/jointjs#dia.Element.ports.interface" target="_blank">configuration</a>, and instantiate a 
                 <code>standard.Rectangle</code> shape. Notice we provide a <code>magnet</code> attribute with a value of <code>true</code>
                 to our port definition. This allows our port to become a source/target of a link during reconnection, and provide that 
                 nice UI interaction. That's why when we click and drag a port, JointJS automatically creates a link coming out of that
@@ -79,17 +79,28 @@
         position: {
             name: 'left'
         },
-        markup: '&lt;text fill="#03071E"/&gt;'
+        markup: [{
+            tagName: 'text',
+            selector: 'label'
+        }]
     },
     attrs: { 
-        rect: { 
-            magnet: true 
+        portBody: { 
+            magnet: true,
+            width: 16,
+            height: 16,
+            x: -8,
+            y: -8,
+            fill:  '#03071E'
         }, 
-        text: { 
+        label: { 
             text: 'port' 
         }
     },
-    markup: '&lt;rect width="16" height="16" x="-8" y="-8" fill="#03071E"/&gt;'
+    markup: [{
+        tagName: 'rect',
+        selector: 'portBody'
+    }]
 };
 
 var model = new joint.shapes.standard.Rectangle({

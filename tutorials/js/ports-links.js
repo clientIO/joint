@@ -2,17 +2,25 @@
 
     var namespace = joint.shapes;
     var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
-    new joint.dia.Paper({ 
-        el: $('#paper-links'),
+    var paper = new joint.dia.Paper({ 
+        el: document.getElementById('paper-links'),
         width: 650,
         height: 200,
         gridSize: 1,
         model: graph, 
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
-        defaultLink: new joint.dia.Link({
-            attrs: { '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }}
-        })
+        defaultLink: new joint.shapes.standard.Link({
+            attrs: {
+                wrapper: {
+                    cursor: 'default'
+                }
+            }
+        }),
+        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+            // Prevent loop linking
+            return (magnetS !== magnetT);
+        }
     });
 
 
@@ -126,24 +134,72 @@
 
     graph.addCells(model, model2);
 
+    // Register events
+    paper.on('link:mouseenter', (linkView) => {
+        showLinkTools(linkView);
+    });
+    
+    paper.on('link:mouseleave', (linkView) => {
+        linkView.removeTools();
+    });
+
     graph.on('change:source change:target', function(link) {
         var sourcePort = link.get('source').port;
         var sourceId = link.get('source').id;
         var targetPort = link.get('target').port;
         var targetId = link.get('target').id;
 
-        var m = [
+        var paragraph = document.createElement('p');
+        paragraph.innerHTML = [
             'The port <b>' + sourcePort,
             '</b> of element with ID <b>' + sourceId,
             '</b> is connected to port <b>' + targetPort,
             '</b> of element with ID <b>' + targetId + '</b>'
         ].join('');
 
-        out(m);
+        appendMessage(paragraph);
     });
 
-    function out(m) {
-        $('#paper-links-message').html(m);
+    // Actions
+    function appendMessage(p) {
+        var body = document.getElementById('paper-links-message');
+
+        // Remove paragraph from DOM if it already exists
+        body.innerHTML = '';
+
+        body.appendChild(p);
+    }
+
+    function showLinkTools(linkView) {
+        const tools = new joint.dia.ToolsView({
+            tools: [
+                new joint.linkTools.Remove({
+                    distance: '50%',
+                    markup: [{
+                        tagName: 'circle',
+                        selector: 'button',
+                        attributes: {
+                            'r': 7,
+                            'fill': '#f6f6f6',
+                            'stroke': '#ff5148',
+                            'stroke-width': 2,
+                            'cursor': 'pointer'
+                        }
+                    }, {
+                        tagName: 'path',
+                        selector: 'icon',
+                        attributes: {
+                            'd': 'M -3 -3 3 3 M -3 3 3 -3',
+                            'fill': 'none',
+                            'stroke': '#ff5148',
+                            'stroke-width': 2,
+                            'pointer-events': 'none'
+                        }
+                    }]
+                })
+            ]
+        });
+        linkView.addTools(tools);
     }
 
 }());

@@ -2,19 +2,25 @@
 
     var namespace = joint.shapes;
     var graph = new joint.dia.Graph({}, { cellNamespace: namespace });
-    new joint.dia.Paper({ 
-        el: $('#paper-layout'),
+    var paper = new joint.dia.Paper({ 
+        el: document.getElementById('paper-layout'),
         width: 650,
         height: 200,
         gridSize: 1,
         model: graph, 
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
-        defaultLink: new joint.dia.Link({
-            attrs: { 
-                '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }
+        defaultLink: new joint.shapes.standard.Link({
+            attrs: {
+                wrapper: {
+                    cursor: 'default'
+                }
             }
-        })
+        }),
+        validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
+            // Prevent loop linking
+            return (magnetS !== magnetT);
+        }
     });
 
 
@@ -234,4 +240,47 @@
     ]);
 
     graph.addCells(model1, model2);
+
+    // Register events
+    paper.on('link:mouseenter', (linkView) => {
+        showLinkTools(linkView);
+    });
+    
+    paper.on('link:mouseleave', (linkView) => {
+        linkView.removeTools();
+    });
+
+    // Actions
+    function showLinkTools(linkView) {
+        const tools = new joint.dia.ToolsView({
+            tools: [
+                new joint.linkTools.Remove({
+                    distance: '50%',
+                    markup: [{
+                        tagName: 'circle',
+                        selector: 'button',
+                        attributes: {
+                            'r': 7,
+                            'fill': '#f6f6f6',
+                            'stroke': '#ff5148',
+                            'stroke-width': 2,
+                            'cursor': 'pointer'
+                        }
+                    }, {
+                        tagName: 'path',
+                        selector: 'icon',
+                        attributes: {
+                            'd': 'M -3 -3 3 3 M -3 3 3 -3',
+                            'fill': 'none',
+                            'stroke': '#ff5148',
+                            'stroke-width': 2,
+                            'pointer-events': 'none'
+                        }
+                    }]
+                })
+            ]
+        });
+        linkView.addTools(tools);
+    }
+
 }());
