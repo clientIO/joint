@@ -17,6 +17,7 @@
                 }
             }
         }),
+        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent linking from output ports to input ports within one element.
             if (cellViewS === cellViewT) return false;
@@ -53,9 +54,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
@@ -84,9 +83,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{

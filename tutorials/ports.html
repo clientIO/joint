@@ -167,9 +167,7 @@ model.addPort(port); // add a port using Port API
         markup: [{
             tagName: 'text',
             selector: 'label',
-            attributes: {
-                'class': 'label-text'
-            }
+            className: 'label-text'
         }]
     },
     markup: [{
@@ -330,8 +328,8 @@ model.addPorts([
         // Prevent loop linking
         return (magnetS !== magnetT);
     },
-    // Enable link snapping within 75px lookup radius
-    snapLinks: { radius: 75 }
+    // Enable link snapping within 20px lookup radius
+    snapLinks: { radius: 20 }
 });
 </code></pre>
 
@@ -364,6 +362,32 @@ model.addPorts([
 .available-cell rect {
     stroke-dasharray: 5, 2;
 }
+</code></pre>
+
+    <p>
+        Using the paper <a href="/docs/jointjs#dia.Paper.prototype.options.highlighting" target="_blank">highlighting</a> option,
+        JointJS also allows us to customize CSS classes relating to available magnets and elements. <code>magnetAvailability</code> and 
+        <code>elementAvailability</code> provide this nice functionality for us.
+    </p>
+
+<pre><code>var paper = new joint.dia.Paper({ 
+    // Other paper options
+
+    highlighting: {
+        'magnetAvailability': {
+            name: 'addClass',
+            options: {
+                className: 'custom-available-magnet'
+            }
+        },
+        'elementAvailability': {
+            name: 'addClass',
+            options: {
+                className: 'custom-available-cell'
+            }
+        }
+    }
+});
 </code></pre>
 
             <p>JointJS source code: <a href="js/ports-mark-available.js" target="_blank">ports-mark-available.js</a></p>

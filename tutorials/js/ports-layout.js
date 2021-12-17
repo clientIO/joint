@@ -17,6 +17,7 @@
                 }
             }
         }),
+        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent loop linking
             return (magnetS !== magnetT);
@@ -44,9 +45,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
@@ -75,9 +74,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
@@ -114,9 +111,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
@@ -145,9 +140,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{

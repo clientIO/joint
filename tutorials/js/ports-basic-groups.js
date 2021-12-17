@@ -11,6 +11,7 @@
         cellViewNamespace: namespace,
         linkPinning: false, // Prevent link being dropped in blank paper area
         defaultLink: new joint.shapes.standard.Link(),
+        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent linking between ports within one element
             if (cellViewS === cellViewT) return false;
@@ -38,9 +39,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
@@ -69,9 +68,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{

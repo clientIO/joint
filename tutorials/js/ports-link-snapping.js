@@ -17,12 +17,13 @@
                 }
             }
         }),
+        defaultConnectionPoint: { name: 'boundary' },
         validateConnection: function(cellViewS, magnetS, cellViewT, magnetT, end, linkView) {
             // Prevent loop linking
             return (magnetS !== magnetT);
         },
-        // Enable link snapping within 75px lookup radius
-        snapLinks: { radius: 75 }
+        // Enable link snapping within 20px lookup radius
+        snapLinks: { radius: 20 }
     });
 
 
@@ -46,9 +47,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
@@ -77,9 +76,7 @@
             markup: [{
                 tagName: 'text',
                 selector: 'label',
-                attributes: {
-                    'class': 'label-text'
-                }
+                className: 'label-text'
             }]
         },
         markup: [{
