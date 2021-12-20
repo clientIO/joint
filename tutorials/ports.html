@@ -366,8 +366,10 @@ model.addPorts([
 
     <p>
         Using the paper <a href="/docs/jointjs#dia.Paper.prototype.options.highlighting" target="_blank">highlighting</a> option,
-        JointJS also allows us to customize CSS classes relating to available magnets and elements. <code>magnetAvailability</code> and 
-        <code>elementAvailability</code> provide this nice functionality for us.
+        JointJS also allows us to customize highlighting behaviour relating to a given interaction. In the code snippet
+        below, <code>magnetAvailability</code> creates a custom CSS class we can target in our stylesheets, and
+        <code>elementAvailability</code> is used to give our element a nice accent color upon availability. You can also
+        utilize your own <a href="/docs/jointjs#highlighters.custom" target="_blank">custom highlighters</a> in this manner.
     </p>
 
 <pre><code>var paper = new joint.dia.Paper({ 
@@ -381,9 +383,13 @@ model.addPorts([
             }
         },
         'elementAvailability': {
-            name: 'addClass',
+            name: 'stroke',
             options: {
-                className: 'custom-available-cell'
+                padding: 20,
+                attrs: {
+                    'stroke-width': 3,
+                    'stroke': '#ED6A5A'
+                }
             }
         }
     }
