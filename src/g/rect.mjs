@@ -2,6 +2,7 @@ import { toRad } from './geometry.helpers.mjs';
 import { Line } from './line.mjs';
 import { Point } from './point.mjs';
 import { Ellipse } from './ellipse.mjs';
+import { types } from './types.mjs';
 
 const {
     abs,
@@ -87,6 +88,8 @@ Rect.fromRectUnion = function(...rects) {
 };
 
 Rect.prototype = {
+
+    type: types.Rect,
 
     // Find my bounding box when I'm rotated with the center of rotation in the center of me.
     // @return r {rectangle} representing a bounding box

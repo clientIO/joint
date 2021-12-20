@@ -1,5 +1,117 @@
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
+import { types } from './types.mjs';
+
+export function exists(shape1, shape2, shape1opt, shape2opt) {
+    switch (shape1.type) {
+        case types.Line: {
+            switch (shape2.type) {
+                case types.Line: {
+                    return lineWithLine(shape1, shape2);
+                }
+            }
+            break;
+        }
+        case types.Ellipse: {
+            switch (shape2.type) {
+                case types.Line: {
+                    return ellipseWithLine(shape1, shape2);
+                }
+                case types.Ellipse: {
+                    return ellipseWithEllipse(shape1, shape2);
+                }
+            }
+            break;
+        }
+        case types.Rect: {
+            switch (shape2.type) {
+                case types.Line: {
+                    return rectWithLine(shape1, shape2);
+                }
+                case types.Ellipse: {
+                    return rectWithEllipse(shape1, shape2);
+                }
+                case types.Rect: {
+                    return rectWithRect(shape1, shape2);
+                }
+            }
+            break;
+        }
+        case types.Polyline: {
+            switch (shape2.type) {
+                case types.Line: {
+                    return polylineWithLine(shape1, shape2);
+                }
+                case types.Ellipse: {
+                    return polylineWithEllipse(shape1, shape2);
+                }
+                case types.Rect: {
+                    return polylineWithRect(shape1, shape2);
+                }
+                case types.Polyline: {
+                    return polylineWithPolyline(shape1, shape2);
+                }
+            }
+            break;
+        }
+        case types.Polygon: {
+            switch (shape2.type) {
+                case types.Line: {
+                    return polygonWithLine(shape1, shape2);
+                }
+                case types.Ellipse: {
+                    return polygonWithEllipse(shape1, shape2);
+                }
+                case types.Rect: {
+                    return polygonWithRect(shape1, shape2);
+                }
+                case types.Polyline: {
+                    return polygonWithPolyline(shape1, shape2);
+                }
+                case types.Polygon: {
+                    return polygonWithPolygon(shape1, shape2);
+                }
+            }
+            break;
+        }
+        case types.Path: {
+            switch (shape2.type) {
+                case types.Line: {
+                    return pathWithLine(shape1, shape2, shape1opt);
+                }
+                case types.Ellipse: {
+                    return pathWithEllipse(shape1, shape2, shape1opt);
+                }
+                case types.Rect: {
+                    return pathWithRect(shape1, shape2, shape1opt);
+                }
+                case types.Polyline: {
+                    return pathWithPolyline(shape1, shape2, shape1opt);
+                }
+                case types.Polygon: {
+                    return pathWithPolygon(shape1, shape2, shape1opt);
+                }
+                case types.Path: {
+                    return pathWithPath(shape1, shape2, shape1opt, shape2opt);
+                }
+            }
+            break;
+        }
+    }
+    // None of the cases above
+    switch (shape2.type) {
+        case types.Ellipse:
+        case types.Rect:
+        case types.Polyline:
+        case types.Polygon:
+        case types.Path: {
+            return exists(shape2, shape1, shape2opt, shape1opt);
+        }
+        default: {
+            throw Error(`The intersection for ${shape1} and ${shape2} could not be found.`);
+        }
+    }
+}
 
 /* Line */
 
@@ -16,7 +128,7 @@ export function ellipseWithLine(ellipse, line) {
 }
 
 export function ellipseWithEllipse(ellipse1, ellipse2) {
-    // TBI
+    return _ellipsesIntersection(ellipse1, 0, ellipse2, 0);
 }
 
 /* Rect */
@@ -129,7 +241,7 @@ function _polylineWithLine(polyline, line, opt = {}) {
     for (let i = 0; i < length - 1; i++) {
         segment.start = thisPoints[i];
         segment.end = thisPoints[i + 1];
-        if (line.intersectionWithLine(segment)) {
+        if (lineWithLine(line, segment)) {
             return true;
         }
     }
@@ -159,7 +271,7 @@ function _polylineWithEllipse(polyline, ellipse, opt = {}) {
     for (let i = 0; i < length - 1; i++) {
         segment.start = thisPoints[i];
         segment.end = thisPoints[i + 1];
-        if (ellipse.intersectionWithLine(segment)) {
+        if (ellipseWithLine(ellipse, segment)) {
             return true;
         }
     }
@@ -217,4 +329,114 @@ function _polylineWithPolyline(polyline1, polyline2, opt = {}) {
 
 function _polylineWithPolygon(polyline, polygon, opt) {
     return polygon.containsPoint(polyline.start) || _polylineWithPolyline(polyline, polygon.clone().close(), opt);
+}
+
+function _ellipsesIntersection(e1, w1, e2, w2) {
+    const { cos, sin } = Math;
+    const sinW1 = sin(w1);
+    const cosW1 = cos(w1);
+    const sinW2 = sin(w2);
+    const cosW2 = cos(w2);
+    const sinW1s = sinW1 * sinW1;
+    const cosW1s = cosW1 * cosW1;
+    const sinCos1 = sinW1 * cosW1;
+    const sinW2s = sinW2 * sinW2;
+    const cosW2s = cosW2 * cosW2;
+    const sinCos2 = sinW2 * cosW2;
+    const a1s = e1.a * e1.a;
+    const b1s = e1.b * e1.b;
+    const a2s = e2.a * e2.a;
+    const b2s = e2.b * e2.b;
+    const A1 = a1s * sinW1s + b1s * cosW1s;
+    const A2 = a2s * sinW2s + b2s * cosW2s;
+    const B1 = a1s * cosW1s + b1s * sinW1s;
+    const B2 = a2s * cosW2s + b2s * sinW2s;
+    let C1 = 2 * (b1s - a1s) * sinCos1;
+    let C2 = 2 * (b2s - a2s) * sinCos2;
+    let D1 = (-2 * A1 * e1.x - C1 * e1.y);
+    let D2 = (-2 * A2 * e2.x - C2 * e2.y);
+    let E1 = (-C1 * e1.x - 2 * B1 * e1.y);
+    let E2 = (-C2 * e2.x - 2 * B2 * e2.y);
+    const F1 = A1 * e1.x * e1.x + B1 * e1.y * e1.y + C1 * e1.x * e1.y - a1s * b1s;
+    const F2 = A2 * e2.x * e2.x + B2 * e2.y * e2.y + C2 * e2.x * e2.y - a2s * b2s;
+
+    C1 = C1 / 2;
+    C2 = C2 / 2;
+    D1 = D1 / 2;
+    D2 = D2 / 2;
+    E1 = E1 / 2;
+    E2 = E2 / 2;
+
+    const l3 = det3([
+        [A1, C1, D1],
+        [C1, B1, E1],
+        [D1, E1, F1]
+    ]);
+    const l0 = det3([
+        [A2, C2, D2],
+        [C2, B2, E2],
+        [D2, E2, F2]
+    ]);
+    const l2 = 0.33333333 * (det3([
+        [A2, C1, D1],
+        [C2, B1, E1],
+        [D2, E1, F1]
+    ]) + det3([
+        [A1, C2, D1],
+        [C1, B2, E1],
+        [D1, E2, F1]
+    ]) + det3([
+        [A1, C1, D2],
+        [C1, B1, E2],
+        [D1, E1, F2]
+    ]));
+    const l1 = 0.33333333 * (det3([
+        [A1, C2, D2],
+        [C1, B2, E2],
+        [D1, E2, F2]
+    ]) + det3([
+        [A2, C1, D2],
+        [C2, B1, E2],
+        [D2, E1, F2]
+    ]) + det3([
+        [A2, C2, D1],
+        [C2, B2, E1],
+        [D2, E2, F1]
+    ]));
+
+    const delta1 = det2([
+        [l3, l2],
+        [l2, l1]
+    ]);
+    const delta2 = det2([
+        [l3, l1],
+        [l2, l0]
+    ]);
+    const delta3 = det2([
+        [l2, l1],
+        [l1, l0]
+    ]);
+
+    const dP = det2([
+        [2 * delta1, delta2],
+        [delta2, 2 * delta3]
+    ]);
+
+    if (dP > 0 && (l1 > 0 || l2 > 0)) {
+        return false;
+    }
+    return true;
+}
+
+function det2(m) {
+    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+}
+
+function det3(m) {
+    return m[0][0] * m[1][1] * m[2][2] -
+        m[0][0] * m[1][2] * m[2][1] -
+        m[0][1] * m[1][0] * m[2][2] +
+        m[0][1] * m[1][2] * m[2][0] +
+        m[0][2] * m[1][0] * m[2][1] -
+        m[0][2] * m[1][1] * m[2][0];
 }

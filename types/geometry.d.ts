@@ -1,6 +1,16 @@
 export namespace g {
 
-    export type Shape = Path | Point | Line | Polyline | Rect | Ellipse;
+    export enum types {
+        Point,
+        Line,
+        Ellipse,
+        Rect,
+        Polyline,
+        Polygon,
+        Path
+    }
+
+    export type Shape = Path | Point | Line | Polyline | Polygon | Rect | Ellipse;
     export interface PlainPoint {
 
         x: number;
@@ -142,6 +152,7 @@ export namespace g {
         controlPoint1: Point;
         controlPoint2: Point;
         end: Point;
+        type: types.Curve;
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string, p3: PlainPoint | string, p4: PlainPoint | string);
         constructor(curve: Curve);
@@ -221,6 +232,7 @@ export namespace g {
         y: number;
         a: number;
         b: number;
+        type: types.Ellipse;
 
         constructor(center: PlainPoint | string, a: number, b: number);
         constructor(ellipse: Ellipse);
@@ -256,6 +268,7 @@ export namespace g {
 
         start: Point;
         end: Point;
+        type: types.Line;
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string);
         constructor(line: Line);
@@ -334,9 +347,9 @@ export namespace g {
     class Path {
 
         segments: Segment[];
-
         start: Point | null; // getter
         end: Point | null; // getter
+        type: types.Path;
 
         constructor();
         constructor(pathData: string);
@@ -444,6 +457,7 @@ export namespace g {
 
         x: number;
         y: number;
+        type: types.Point;
 
         constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
@@ -521,9 +535,9 @@ export namespace g {
     class Polyline {
 
         points: Point[];
-
         start: Point | null; // getter
         end: Point | null; // getter
+        type: types.Polyline;
 
         constructor();
         constructor(svgString: string);
@@ -581,12 +595,19 @@ export namespace g {
         static fromRect(rect: Rect): Polyline;
     }
 
+    class Polygon extends Polyline {
+
+        type: types.Polygon;
+
+    }
+
     class Rect implements PlainRect {
 
         x: number;
         y: number;
         width: number;
         height: number;
+        type: types.Rect;
 
         constructor(x?: number, y?: number, width?: number, height?: number);
         constructor(r: PlainRect);
@@ -717,6 +738,8 @@ export namespace g {
     }
 
     namespace intersection {
+
+        function exists(shape1: Shape, shape2: Shape, shape1opt?: SegmentSubdivisionsOpt, shape2opt?: SegmentSubdivisionsOpt): boolean;
 
         function polylineWithLine(polyline: Polyline, line: Line): boolean;
 

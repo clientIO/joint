@@ -1,6 +1,7 @@
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
 import { Line } from './line.mjs';
+import { types } from './types.mjs';
 
 const { abs } = Math;
 
@@ -43,6 +44,8 @@ Polyline.fromRect = function(rect) {
 };
 
 Polyline.prototype = {
+
+    type: types.Polyline,
 
     bbox: function() {
 
@@ -95,7 +98,7 @@ Polyline.prototype = {
 
     closestPointLength: function(p) {
 
-        var points = this.points;
+        var points = this.lengthPoints();
         var numPoints = points.length;
         if (numPoints === 0) return 0; // if points array is empty
         if (numPoints === 1) return 0; // if there is only one point
@@ -203,10 +206,14 @@ Polyline.prototype = {
 
     close: function() {
         const { start, end, points } = this;
-        if (!start.equals(end)) {
+        if (start && end && !start.equals(end)) {
             points.push(start.clone());
         }
         return this;
+    },
+
+    lengthPoints: function() {
+        return this.points;
     },
 
     // Returns a convex-hull polyline from this polyline.
@@ -448,11 +455,11 @@ Polyline.prototype = {
     intersectionWithLine: function(l) {
         var line = new Line(l);
         var intersections = [];
-        var points = this.points;
+        var points = this.lengthPoints();
+        var l2 = new Line();
         for (var i = 0, n = points.length - 1; i < n; i++) {
-            var a = points[i];
-            var b = points[i + 1];
-            var l2 = new Line(a, b);
+            l2.start = points[i];
+            l2.end = points[i + 1];
             var int = line.intersectionWithLine(l2);
             if (int) intersections.push(int[0]);
         }
@@ -465,13 +472,11 @@ Polyline.prototype = {
         var numPoints = points.length;
         if (numPoints === 0) return false;
 
+        var line = new Line();
         var n = numPoints - 1;
         for (var i = 0; i < n; i++) {
-
-            var a = points[i];
-            var b = points[i + 1];
-            var line = new Line(a, b);
-
+            line.start = points[i];
+            line.end = points[i + 1];
             // as soon as a differentiable line is found between two points, return true
             if (line.isDifferentiable()) return true;
         }
@@ -482,7 +487,7 @@ Polyline.prototype = {
 
     length: function() {
 
-        var points = this.points;
+        var points = this.lengthPoints();
         var numPoints = points.length;
         if (numPoints === 0) return 0; // if points array is empty
 
@@ -497,7 +502,7 @@ Polyline.prototype = {
 
     pointAt: function(ratio) {
 
-        var points = this.points;
+        var points = this.lengthPoints();
         var numPoints = points.length;
         if (numPoints === 0) return null; // if points array is empty
         if (numPoints === 1) return points[0].clone(); // if there is only one point
@@ -513,7 +518,7 @@ Polyline.prototype = {
 
     pointAtLength: function(length) {
 
-        var points = this.points;
+        var points = this.lengthPoints();
         var numPoints = points.length;
         if (numPoints === 0) return null; // if points array is empty
         if (numPoints === 1) return points[0].clone(); // if there is only one point
@@ -616,7 +621,7 @@ Polyline.prototype = {
 
     tangentAt: function(ratio) {
 
-        var points = this.points;
+        var points = this.lengthPoints();
         var numPoints = points.length;
         if (numPoints === 0) return null; // if points array is empty
         if (numPoints === 1) return null; // if there is only one point
@@ -632,7 +637,7 @@ Polyline.prototype = {
 
     tangentAtLength: function(length) {
 
-        var points = this.points;
+        var points = this.lengthPoints();
         var numPoints = points.length;
         if (numPoints === 0) return null; // if points array is empty
         if (numPoints === 1) return null; // if there is only one point

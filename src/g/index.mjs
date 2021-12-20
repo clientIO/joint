@@ -9,7 +9,9 @@ export * from './line.mjs';
 export * from './path.mjs';
 export * from './point.mjs';
 export * from './polyline.mjs';
+export * from './polygon.mjs';
 export * from './rect.mjs';
+export * from './types.mjs';
 
 import * as _intersection from './intersection.mjs';
 export const intersection = _intersection;
