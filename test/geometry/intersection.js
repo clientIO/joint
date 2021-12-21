@@ -236,4 +236,25 @@ QUnit.module('intersection', function() {
         });
     });
 
+    QUnit.module('rectWithEllipse()', function(assert) {
+
+        QUnit.test('returns true if rect intersects ellipse', function(assert) {
+
+            var rect = new g.Rect(0, 0, 10, 10);
+            var ellipse1 = new g.Ellipse({ x: 0, y: 0 }, 5, 5);
+            assert.equal(g.intersection.exists(ellipse1, rect), true);
+            assert.equal(g.intersection.exists(rect, ellipse1), true);
+            ellipse1.x += 14;
+            assert.equal(g.intersection.exists(rect, ellipse1), true);
+            ellipse1.x += 1;
+            assert.equal(g.intersection.exists(rect, ellipse1), false);
+
+            var ellipse2 = new g.Ellipse({ x: 11.5, y: 11.5 }, 2, 2);
+            assert.equal(g.intersection.exists(rect, ellipse2), false);
+            ellipse2.a += 2;
+            ellipse2.b += 2;
+            assert.equal(g.intersection.exists(rect, ellipse2), true);
+        });
+    });
+
 });
