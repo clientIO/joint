@@ -139,7 +139,6 @@ Rect.prototype = {
 
     // @return {bool} true if point p is inside me.
     containsPoint: function(p) {
-
         p = new Point(p);
         return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
     },

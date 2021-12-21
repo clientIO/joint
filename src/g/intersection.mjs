@@ -174,12 +174,22 @@ export function ellipseWithEllipse(ellipse1, ellipse2) {
 /* Rect */
 
 export function rectWithLine(rect, line) {
-    // TODO: no need to calculate the intersection points
-    return Boolean(rect.intersectionWithLine(line));
+    const { start, end } = line;
+    const { x, y, width, height } = rect;
+    if (start.x > x + width && end.x > x + width) return false;
+    if (start.x < x && end.x < x) return false;
+    if (start.y > y + height && end.y > y + height) return false;
+    if (start.y < y && end.y < y) return false;
+    if (rect.containsPoint(line.start) || rect.containsPoint(line.end)) return true;
+    return lineWithLine(rect.topLine(), line)
+        || lineWithLine(rect.rightLine(), line)
+        || lineWithLine(rect.bottomLine(), line)
+        || lineWithLine(rect.leftLine(), line);
 }
 
 export function rectWithEllipse(rect, ellipse) {
     // TBI
+
 }
 
 export function rectWithRect(rect1, rect2) {
@@ -233,18 +243,26 @@ export function polygonWithPolygon(polygon1, polygon2) {
 
 export function pathWithLine(path, line, pathOpt) {
     return path.getSubpaths().some(subpath => {
-        const [polyline1] = subpath.toPolylines(pathOpt);
+        const [polyline] = subpath.toPolylines(pathOpt);
         const { type } = subpath.getSegment(-1);
         if (type === 'Z') {
-            return polygonWithLine(polyline1, line);
+            return polygonWithLine(polyline, line);
         } else {
-            return polylineWithLine(polyline1, line);
+            return polylineWithLine(polyline, line);
         }
     });
 }
 
 export function pathWithEllipse(path, ellipse, pathOpt) {
-    // TBI
+    return path.getSubpaths().some(subpath => {
+        const [polyline] = subpath.toPolylines(pathOpt);
+        const { type } = subpath.getSegment(-1);
+        if (type === 'Z') {
+            return polygonWithEllipse(polyline, ellipse);
+        } else {
+            return polylineWithEllipse(polyline, ellipse);
+        }
+    });
 }
 
 export function pathWithRect(path, rect, pathOpt) {
