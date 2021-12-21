@@ -155,6 +155,27 @@ Line.prototype = {
         return null;
     },
 
+    hasIntersectionWithLine: function(line) {
+        const x1 = this.start.x;
+        const y1 = this.start.y;
+        const x2 = this.end.x;
+        const y2 = this.end.y;
+        const x3 = line.start.x;
+        const y3 = line.start.y;
+        const x4 = line.end.x;
+        const y4 = line.end.y;
+        const s1_x = x2 - x1;
+        const s1_y = y2 - y1;
+        const s2_x = x4 - x3;
+        const s2_y = y4 - y3;
+        const s3_x = x1 - x3;
+        const s3_y = y1 - y3;
+        const p = s1_x * s2_y - s2_x * s1_y;
+        const s = (s1_x * s3_y - s1_y * s3_x) / p;
+        const t = (s2_x * s3_y - s2_y * s3_x) / p;
+        return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+    },
+
     intersectionWithLine: function(line) {
 
         var pt1Dir = new Point(this.end.x - this.start.x, this.end.y - this.start.y);

@@ -116,8 +116,7 @@ export function exists(shape1, shape2, shape1opt, shape2opt) {
 /* Line */
 
 export function lineWithLine(line1, line2) {
-    // TODO: no need to calculate the intersection points
-    return Boolean(line1.intersectionWithLine(line2));
+    return line1.hasIntersectionWithLine(line2);
 }
 
 /* Ellipse */

@@ -533,12 +533,11 @@ export namespace g {
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
-    class Polyline {
+    class PolygonalChain {
 
         points: Point[];
         start: Point | null; // getter
         end: Point | null; // getter
-        type: types.Polyline;
 
         constructor();
         constructor(svgString: string);
@@ -596,10 +595,14 @@ export namespace g {
         static fromRect(rect: Rect): Polyline;
     }
 
-    class Polygon extends Polyline {
+    class Polyline extends PolygonalChain {
+
+        type: types.Polyline;
+    }
+
+    class Polygon extends PolygonalChain {
 
         type: types.Polygon;
-
     }
 
     class Rect implements PlainRect {
