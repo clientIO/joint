@@ -233,7 +233,6 @@ QUnit.module('intersection', function() {
             ellipse3.a += 2;
             ellipse3.b += 2;
             assert.equal(g.intersection.exists(ellipse1, ellipse3), true);
-
         });
     });
 

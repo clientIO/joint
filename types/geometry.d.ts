@@ -7,7 +7,8 @@ export namespace g {
         Rect,
         Polyline,
         Polygon,
-        Path
+        Curve,
+        Path,
     }
 
     export type Shape = Path | Point | Line | Polyline | Polygon | Rect | Ellipse;
@@ -741,30 +742,60 @@ export namespace g {
 
         function exists(shape1: Shape, shape2: Shape, shape1opt?: SegmentSubdivisionsOpt, shape2opt?: SegmentSubdivisionsOpt): boolean;
 
-        function polylineWithLine(polyline: Polyline, line: Line): boolean;
+        /* Line */
 
-        function polylineWithRect(polyline: Polyline, rect: Rect): boolean;
+        export function lineWithLine(line1: Line, line2: Line): boolean;
 
-        function polylineWithEllipse(polyline: Polyline, ellipse: Ellipse): boolean;
+        /* Ellipse */
 
-        function polylineWithPolyline(polyline1: Polyline, polyline2: Polyline): boolean;
+        export function ellipseWithLine(ellipse: Ellipse, line: Line): boolean;
 
-        function polygonWithLine(polygon: Polyline, line: Line): boolean;
+        export function ellipseWithEllipse(ellipse1: Ellipse, ellipse2: Ellipse): boolean;
 
-        function polygonWithRect(polygon: Polyline, rect: Rect): boolean;
+        /* Rect */
 
-        function polygonWithEllipse(polygon: Polyline, ellipse: Ellipse): boolean;
+        export function rectWithLine(rect: Rect, line: Line): boolean;
 
-        function polygonWithPolyline(polygon: Polyline, polyline: Polyline): boolean;
+        export function rectWithEllipse(rect: Rect, ellipse: Ellipse): boolean;
 
-        function polygonWithPolygon(polygon1: Polyline, polygon2: Polyline): boolean;
+        export function rectWithRect(rect1: Rect, rect2: Rect): boolean;
 
-        function pathWithRect(path: Path, rect: Rect, opt?: SegmentSubdivisionsOpt): boolean;
 
-        function pathWithPolygon(path: Path, polygon: Polyline, opt?: SegmentSubdivisionsOpt): boolean;
+        /* Polyline */
 
-        function pathWithPolyline(path: Path, polyline: Polyline, opt?: SegmentSubdivisionsOpt): boolean;
+        export function polylineWithLine(polyline: Polyline, line: Line): boolean;
 
-        function pathWithPath(path1: Path, path2: Path, opt1?: SegmentSubdivisionsOpt, opt2?: SegmentSubdivisionsOpt): boolean;
+        export function polylineWithEllipse(polyline: Polyline, ellipse: Ellipse): boolean;
+
+        export function polylineWithRect(polyline: Polyline, rect: Rect): boolean;
+
+        export function polylineWithPolyline(polyline1: Polyline, polyline2: Polyline): boolean;
+
+        /* Polygon */
+
+        export function polygonWithLine(polygon: Polygon, line: Line): boolean;
+
+        export function polygonWithEllipse(polygon: Polygon, ellipse: Ellipse): boolean;
+
+        export function polygonWithRect(polygon: Polygon, rect: Rect): boolean;
+
+        export function polygonWithPolyline(polygon: Polygon, polyline: Polyline): boolean;
+
+        export function polygonWithPolygon(polygon1: Polygon, polygon2: Polygon): boolean;
+
+        /* Path */
+
+        export function pathWithLine(path: Path, line: Line, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithEllipse(path: Path, ellipse: Ellipse, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithRect(path: Path, rect: Rect, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPolyline(path: Path, polyline: Polyline, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPolygon(path: Path, polygon: Polygon, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPath(path1: Path, path2: Path, pathOpt1?: SegmentSubdivisionsOpt, pathOpt2?: SegmentSubdivisionsOpt): boolean;
+
     }
 }

@@ -149,20 +149,20 @@ export function rectWithRect(rect1, rect2) {
 
 /* Polyline */
 
-export function polylineWithLine(polygon, line) {
-    return _polylineWithLine(polygon, line, { interior: false });
+export function polylineWithLine(polyline, line) {
+    return _polylineWithLine(polyline, line, { interior: false });
 }
 
-export function polylineWithEllipse(polygon, ellipse) {
-    return _polylineWithEllipse(polygon, ellipse, { interior: false });
+export function polylineWithEllipse(polyline, ellipse) {
+    return _polylineWithEllipse(polyline, ellipse, { interior: false });
 }
 
-export function polylineWithRect(polygon, rect) {
-    return _polylineWithRect(polygon, rect, { interior: false });
+export function polylineWithRect(polyline, rect) {
+    return _polylineWithRect(polyline, rect, { interior: false });
 }
 
-export function polylineWithPolyline(polygon, polyline) {
-    return _polylineWithPolyline(polygon, polyline, { interior: false });
+export function polylineWithPolyline(polyline1, polyline2) {
+    return _polylineWithPolyline(polyline1, polyline2, { interior: false });
 }
 
 /* Polygon */
@@ -202,8 +202,8 @@ export function pathWithRect(path, rect, pathOpt) {
     return pathWithPolygon(path, Polyline.fromRect(rect), pathOpt);
 }
 
-export function pathWithPolyline(path, polygon, pathOpt) {
-    return _pathWithPolyline(path, polygon, pathOpt, { interior: false });
+export function pathWithPolyline(path, polyline, pathOpt) {
+    return _pathWithPolyline(path, polyline, pathOpt, { interior: false });
 }
 
 export function pathWithPolygon(path, polygon, pathOpt) {
