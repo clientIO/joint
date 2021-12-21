@@ -1,14 +1,14 @@
 export namespace g {
 
     export enum types {
-        Point,
-        Line,
-        Ellipse,
-        Rect,
-        Polyline,
-        Polygon,
-        Curve,
-        Path,
+        Point = 1,
+        Line = 2,
+        Ellipse = 3,
+        Rect = 4,
+        Polyline = 5,
+        Polygon = 6,
+        Curve = 7,
+        Path = 8,
     }
 
     export type Shape = Path | Point | Line | Polyline | Polygon | Rect | Ellipse;
@@ -796,6 +796,5 @@ export namespace g {
         export function pathWithPolygon(path: Path, polygon: Polygon, pathOpt?: SegmentSubdivisionsOpt): boolean;
 
         export function pathWithPath(path1: Path, path2: Path, pathOpt1?: SegmentSubdivisionsOpt, pathOpt2?: SegmentSubdivisionsOpt): boolean;
-
     }
 }
