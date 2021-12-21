@@ -1,5 +1,6 @@
 import { Line } from './line.mjs';
 import { Polygon } from './polygon.mjs';
+import { Rect } from './rect.mjs';
 import { types } from './types.mjs';
 
 export function exists(shape1, shape2, shape1opt, shape2opt) {
@@ -188,8 +189,8 @@ export function rectWithLine(rect, line) {
 }
 
 export function rectWithEllipse(rect, ellipse) {
-    // TBI
-
+    if (!rectWithRect(rect, Rect.fromEllipse(ellipse))) return false;
+    return polygonWithEllipse(Polygon.fromRect(rect), ellipse);
 }
 
 export function rectWithRect(rect1, rect2) {
