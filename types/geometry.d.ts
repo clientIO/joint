@@ -545,8 +545,6 @@ export namespace g {
 
         bbox(): Rect | null;
 
-        clone(): Polyline;
-
         closestPoint(p: PlainPoint | string): Point | null;
 
         closestPointLength(p: PlainPoint | string): number;
@@ -556,8 +554,6 @@ export namespace g {
         closestPointTangent(p: PlainPoint | string): Line | null;
 
         containsPoint(p: PlainPoint): boolean;
-
-        convexHull(): Polyline;
 
         equals(p: Polyline): boolean;
 
@@ -595,6 +591,10 @@ export namespace g {
 
         type: types.Polyline;
 
+        clone(): Polyline;
+
+        convexHull(): Polyline;
+
         constructor(points: PlainPoint[]);
 
         static parse(svgString: string): Polyline;
@@ -603,6 +603,10 @@ export namespace g {
     class Polygon extends PolygonalChain {
 
         type: types.Polygon;
+
+        clone(): Polygon;
+
+        convexHull(): Polygon;
 
         static parse(svgString: string): Polygon;
 
