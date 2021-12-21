@@ -177,11 +177,17 @@ export function ellipseWithEllipse(ellipse1, ellipse2) {
 export function rectWithLine(rect, line) {
     const { start, end } = line;
     const { x, y, width, height } = rect;
-    if (start.x > x + width && end.x > x + width) return false;
-    if (start.x < x && end.x < x) return false;
-    if (start.y > y + height && end.y > y + height) return false;
-    if (start.y < y && end.y < y) return false;
-    if (rect.containsPoint(line.start) || rect.containsPoint(line.end)) return true;
+    if (
+        (start.x > x + width && end.x > x + width)
+        || (start.x < x && end.x < x)
+        || (start.y > y + height && end.y > y + height)
+        || (start.y < y && end.y < y)
+    ) {
+        return false;
+    }
+    if (rect.containsPoint(line.start) || rect.containsPoint(line.end)) {
+        return true;
+    }
     return lineWithLine(rect.topLine(), line)
         || lineWithLine(rect.rightLine(), line)
         || lineWithLine(rect.bottomLine(), line)

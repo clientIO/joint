@@ -5,6 +5,8 @@ var Paper = joint.dia.Paper;
 var Graph = joint.dia.Graph;
 var Rectangle = joint.shapes.standard.Rectangle;
 var Link = joint.shapes.standard.Link;
+var g = joint.g;
+
 var graph = new Graph;
 
 var windowBBox;
@@ -28,6 +30,10 @@ var viewportTemplate = new Rectangle({
     z: 3
 });
 var viewport = null;
+var viewportBBox;
+function setViewportBBox() {
+    viewportBBox = viewport.getBBox();
+}
 
 var paper = new Paper({
     el: document.getElementById('canvas'),
@@ -43,11 +49,10 @@ var paper = new Paper({
         if (leaveDraggedInViewport && view.cid === draggedCid) return true;
         if (leaveRenderedInViewport && isInViewport) return true;
         if (viewportRect) {
-            var viewportBBox = viewport.getBBox();
-            return viewportBBox.intersect(view.model.getBBox().inflate(padding));
+            return g.intersection.exists(viewportBBox, view.model.getBBox().inflate(padding));
         } else {
             if (view.model === viewport) return false;
-            return windowBBox.intersect(view.model.getBBox().inflate(padding));
+            return g.intersection.exists(windowBBox, view.model.getBBox().inflate(padding));
         }
     }
 });
@@ -179,12 +184,19 @@ function restart() {
     links.shift();
 
     viewport = viewportTemplate.clone();
+    viewport.on('change:position', function(el) {
+        if (el === viewport) {
+            setViewportBBox();
+        }
+    });
 
     console.time('perf-reset');
 
     paper.freeze();
     graph.resetCells(elements.concat(links).concat(viewport));
     paper.fitToContent({ useModelGeometry: true, padding: 10 });
+
+    setViewportBBox();
 
     console.timeEnd('perf-reset');
 
