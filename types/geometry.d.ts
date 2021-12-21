@@ -747,7 +747,7 @@ export namespace g {
 
     namespace intersection {
 
-        function exists(shape1: Shape, shape2: Shape, shape1opt?: SegmentSubdivisionsOpt, shape2opt?: SegmentSubdivisionsOpt): boolean;
+        function exists(shape1: Shape, shape2: Shape, shape1opt?: SegmentSubdivisionsOpt | null, shape2opt?: SegmentSubdivisionsOpt | null): boolean;
 
         /* Line */
 
@@ -802,6 +802,6 @@ export namespace g {
 
         export function pathWithPolygon(path: Path, polygon: Polygon, pathOpt?: SegmentSubdivisionsOpt): boolean;
 
-        export function pathWithPath(path1: Path, path2: Path, pathOpt1?: SegmentSubdivisionsOpt, pathOpt2?: SegmentSubdivisionsOpt): boolean;
+        export function pathWithPath(path1: Path, path2: Path, pathOpt1?: SegmentSubdivisionsOpt | null, pathOpt2?: SegmentSubdivisionsOpt | null): boolean;
     }
 }
