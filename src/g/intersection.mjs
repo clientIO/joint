@@ -124,23 +124,47 @@ export function lineWithLine(line1, line2) {
     const y3 = line2.start.y;
     const x4 = line2.end.x;
     const y4 = line2.end.y;
-    const s1_x = x2 - x1;
-    const s1_y = y2 - y1;
-    const s2_x = x4 - x3;
-    const s2_y = y4 - y3;
-    const s3_x = x1 - x3;
-    const s3_y = y1 - y3;
-    const p = s1_x * s2_y - s2_x * s1_y;
-    const s = (s1_x * s3_y - s1_y * s3_x) / p;
-    const t = (s2_x * s3_y - s2_y * s3_x) / p;
+    const s1x = x2 - x1;
+    const s1y = y2 - y1;
+    const s2x = x4 - x3;
+    const s2y = y4 - y3;
+    const s3x = x1 - x3;
+    const s3y = y1 - y3;
+    const p = s1x * s2y - s2x * s1y;
+    const s = (s1x * s3y - s1y * s3x) / p;
+    const t = (s2x * s3y - s2y * s3x) / p;
     return s >= 0 && s <= 1 && t >= 0 && t <= 1;
 }
 
 /* Ellipse */
 
 export function ellipseWithLine(ellipse, line) {
-    // TODO: no need to calculate the intersection points
-    return Boolean(ellipse.intersectionWithLine(line));
+    const rex = ellipse.a;
+    const rey = ellipse.b;
+    const xe = ellipse.x;
+    const ye = ellipse.y;
+    const x1 = line.start.x - xe;
+    const x2 = line.end.x - xe;
+    const y1 = line.start.y - ye;
+    const y2 = line.end.y - ye;
+    const rex_2 = rex * rex;
+    const rey_2 = rey * rey;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const A = dx * dx / rex_2 + dy * dy / rey_2;
+    const B = 2 * x1 * dx / rex_2 + 2 * y1 * dy / rey_2;
+    const C = x1 * x1 / rex_2 + y1 * y1 / rey_2 - 1;
+    const D = B * B - 4 * A * C;
+    if (D === 0) {
+        const t = -B / 2 / A;
+        return t >= 0 && t <= 1;
+    } else if (D > 0) {
+        const sqrt = Math.sqrt(D);
+        const t1 = (-B + sqrt) / 2 / A;
+        const t2 = (-B - sqrt) / 2 / A;
+        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+    }
+    return false;
 }
 
 export function ellipseWithEllipse(ellipse1, ellipse2) {
@@ -159,8 +183,10 @@ export function rectWithEllipse(rect, ellipse) {
 }
 
 export function rectWithRect(rect1, rect2) {
-    // TODO: no need to calculate the intersection points
-    return Boolean(rect1.intersect(rect2));
+    return rect1.x < rect2.x + rect2.width
+        && rect1.x + rect1.width > rect2.x
+        && rect1.y < rect2.y + rect2.height
+        && rect1.y + rect1.height > rect2.y;
 }
 
 /* Polyline */
@@ -206,8 +232,15 @@ export function polygonWithPolygon(polygon1, polygon2) {
 /* Path */
 
 export function pathWithLine(path, line, pathOpt) {
-    // TODO: no need to calculate the intersection points
-    return Boolean(path.intersectionWithLine(line, pathOpt));
+    return path.getSubpaths().some(subpath => {
+        const [polyline1] = subpath.toPolylines(pathOpt);
+        const { type } = subpath.getSegment(-1);
+        if (type === 'Z') {
+            return polygonWithLine(polyline1, line);
+        } else {
+            return polylineWithLine(polyline1, line);
+        }
+    });
 }
 
 export function pathWithEllipse(path, ellipse, pathOpt) {
