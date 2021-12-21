@@ -1,5 +1,5 @@
 import { Line } from './line.mjs';
-import { Polyline } from './polyline.mjs';
+import { Polygon } from './polygon.mjs';
 import { types } from './types.mjs';
 
 export function exists(shape1, shape2, shape1opt, shape2opt) {
@@ -116,7 +116,24 @@ export function exists(shape1, shape2, shape1opt, shape2opt) {
 /* Line */
 
 export function lineWithLine(line1, line2) {
-    return line1.hasIntersectionWithLine(line2);
+    const x1 = line1.start.x;
+    const y1 = line1.start.y;
+    const x2 = line1.end.x;
+    const y2 = line1.end.y;
+    const x3 = line2.start.x;
+    const y3 = line2.start.y;
+    const x4 = line2.end.x;
+    const y4 = line2.end.y;
+    const s1_x = x2 - x1;
+    const s1_y = y2 - y1;
+    const s2_x = x4 - x3;
+    const s2_y = y4 - y3;
+    const s3_x = x1 - x3;
+    const s3_y = y1 - y3;
+    const p = s1_x * s2_y - s2_x * s1_y;
+    const s = (s1_x * s3_y - s1_y * s3_x) / p;
+    const t = (s2_x * s3_y - s2_y * s3_x) / p;
+    return s >= 0 && s <= 1 && t >= 0 && t <= 1;
 }
 
 /* Ellipse */
@@ -198,7 +215,7 @@ export function pathWithEllipse(path, ellipse, pathOpt) {
 }
 
 export function pathWithRect(path, rect, pathOpt) {
-    return pathWithPolygon(path, Polyline.fromRect(rect), pathOpt);
+    return pathWithPolygon(path, Polygon.fromRect(rect), pathOpt);
 }
 
 export function pathWithPolyline(path, polyline, pathOpt) {
@@ -278,12 +295,7 @@ function _polylineWithEllipse(polyline, ellipse, opt = {}) {
 }
 
 function _polylineWithRect(polyline, rect, opt) {
-    const polygon = new Polyline([
-        rect.topLeft(),
-        rect.topRight(),
-        rect.bottomRight(),
-        rect.bottomLeft()
-    ]);
+    const polygon = Polygon.fromRect(rect);
     return _polylineWithPolygon(polyline, polygon, opt);
 }
 

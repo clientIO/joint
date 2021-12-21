@@ -2,15 +2,12 @@ import { Point } from './point.mjs';
 import { Polyline } from './polyline.mjs';
 import { extend } from './extend.mjs';
 import { types } from './types.mjs';
+import { clonePoints, parsePoints, convexHull } from './points.mjs';
 
 export const Polygon = function(points) {
 
     if (!(this instanceof Polygon)) {
         return new Polygon(points);
-    }
-
-    if (points instanceof Polyline) {
-        return new Polygon(points.points);
     }
 
     if (typeof points === 'string') {
@@ -20,19 +17,29 @@ export const Polygon = function(points) {
     this.points = (Array.isArray(points) ? points.map(Point) : []);
 };
 
-Polygon.parse = Polyline.parse;
-Polygon.fromRect = Polyline.fromRect;
+Polygon.parse = function(svgString) {
+    return new Polygon(parsePoints(svgString));
+};
+
+Polygon.fromRect = function(rect) {
+    return new Polygon([
+        rect.topLeft(),
+        rect.topRight(),
+        rect.bottomRight(),
+        rect.bottomLeft()
+    ]);
+};
 
 Polygon.prototype = extend(Polyline.prototype, {
 
     type: types.Polygon,
 
     clone: function() {
-        return new Polygon(Polyline.prototype.clone.call(this));
+        return new Polygon(clonePoints(this.points));
     },
 
     convexHull: function() {
-        return new Polygon(Polyline.prototype.convexHull.call(this));
+        return new Polygon(convexHull(this.points));
     },
 
     lengthPoints: function() {

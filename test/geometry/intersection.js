@@ -13,7 +13,7 @@ QUnit.module('intersection', function() {
 
             assert.equal(g.intersection.exists(polyline, new g.Line({ x: 15, y: 15 }, { x: 30, y: 15 })), true);
             assert.equal(g.intersection.exists(polyline, new g.Line({ x: 15, y: 15 }, { x: 0, y: 15 })), false);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline), new g.Line({ x: 15, y: 15 }, { x: 0, y: 15 })), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline.points), new g.Line({ x: 15, y: 15 }, { x: 0, y: 15 })), true);
         });
     });
 
@@ -58,8 +58,8 @@ QUnit.module('intersection', function() {
             // around
             assert.equal(g.intersection.exists(polyline1, polyline3), false);
             assert.equal(g.intersection.exists(polyline3, polyline1), false);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), polyline3), false);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline3), polyline1), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), polyline3), false);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline3.points), polyline1), true);
         });
     });
 
@@ -95,18 +95,18 @@ QUnit.module('intersection', function() {
             ]);
 
             // self intersection
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), polyline1), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), polyline1), true);
             // through
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), polyline4), true);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline4), polyline1), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), polyline4), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline4.points), polyline1), true);
             // inside
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), polyline2), true);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline2), polyline1), false);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), polyline2), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline2.points), polyline1), false);
             // around
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), polyline3), false);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline3), polyline1), true);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), new g.Polygon(polyline3)), true);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline3), new g.Polygon(polyline1)), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), polyline3), false);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline3.points), polyline1), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), new g.Polygon(polyline3.points)), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline3.points), new g.Polygon(polyline1.points)), true);
         });
     });
 
@@ -130,7 +130,7 @@ QUnit.module('intersection', function() {
             ]);
 
             assert.equal(g.intersection.exists(polyline1, ellipse), false);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), ellipse), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), ellipse), true);
             assert.equal(g.intersection.exists(polyline2, ellipse), true);
         });
     });
@@ -155,7 +155,7 @@ QUnit.module('intersection', function() {
             ]);
 
             assert.equal(g.intersection.exists(polyline1, rect), false);
-            assert.equal(g.intersection.exists(new g.Polygon(polyline1), rect), true);
+            assert.equal(g.intersection.exists(new g.Polygon(polyline1.points), rect), true);
             assert.equal(g.intersection.exists(polyline2, rect), true);
         });
     });
@@ -180,7 +180,7 @@ QUnit.module('intersection', function() {
             ]);
 
             assert.equal(g.intersection.exists(path1, polyline1), false);
-            assert.equal(g.intersection.exists(path1, new g.Polygon(polyline1)), true);
+            assert.equal(g.intersection.exists(path1, new g.Polygon(polyline1.points)), true);
             assert.equal(g.intersection.exists(path1, polyline2), true);
 
             var path2 = new g.Path('M 50 10 L 150 10 L 150 30 L 50 30');

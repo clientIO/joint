@@ -533,7 +533,7 @@ export namespace g {
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
-    class PolygonalChain {
+    abstract class PolygonalChain {
 
         points: Point[];
         start: Point | null; // getter
@@ -589,20 +589,24 @@ export namespace g {
         serialize(): string;
 
         toString(): string;
-
-        static parse(svgString: string): Polyline;
-
-        static fromRect(rect: Rect): Polyline;
     }
 
     class Polyline extends PolygonalChain {
 
         type: types.Polyline;
+
+        constructor(points: PlainPoint[]);
+
+        static parse(svgString: string): Polyline;
     }
 
     class Polygon extends PolygonalChain {
 
         type: types.Polygon;
+
+        static parse(svgString: string): Polygon;
+
+        static fromRect(rect: Rect): Polygon;
     }
 
     class Rect implements PlainRect {
