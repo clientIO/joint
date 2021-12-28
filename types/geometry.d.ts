@@ -585,28 +585,24 @@ export namespace g {
         serialize(): string;
 
         toString(): string;
+
+        clone(): this;
+
+        convexHull(): this;
     }
 
     class Polyline extends PolygonalChain {
 
         type: types.Polyline;
 
-        clone(): Polyline;
-
-        convexHull(): Polyline;
-
-        constructor(points: PlainPoint[]);
-
         static parse(svgString: string): Polyline;
+
+        static fromRect(rect: Rect): Polyline;
     }
 
     class Polygon extends PolygonalChain {
 
         type: types.Polygon;
-
-        clone(): Polygon;
-
-        convexHull(): Polygon;
 
         static parse(svgString: string): Polygon;
 

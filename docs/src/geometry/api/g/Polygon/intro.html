@@ -1,0 +1,8 @@
+<p>While a <a href="#g.Polyline">Polyline</a> is open ended, the polygon defines a closed area and includes the interior. It's a shape consisting of a series of coordinates in an ordered sequence.</p>
+
+<p>It has the same API as Polyline, but the difference is:
+    <ul>
+        <li>The interior is taken into account when used as an argument to find an <a href="#g.intersection.exists">intersection</a>.</li>
+        <li>It implicitly adds the final closing segment (e.g. when the length is calculated).</li>
+    </ul>
+</p>

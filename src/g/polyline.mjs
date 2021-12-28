@@ -22,6 +22,16 @@ Polyline.parse = function(svgString) {
     return new Polyline(parsePoints(svgString));
 };
 
+Polyline.fromRect = function(rect) {
+    return new Polyline([
+        rect.topLeft(),
+        rect.topRight(),
+        rect.bottomRight(),
+        rect.bottomLeft(),
+        rect.topLeft(),
+    ]);
+};
+
 Polyline.prototype = {
 
     type: types.Polyline,
