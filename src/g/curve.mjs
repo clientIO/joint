@@ -2,7 +2,7 @@ import { Point } from './point.mjs';
 import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
-import { types } from '../../../monorepo/packages/joint/src/g/types.mjs';
+import { types } from './types.mjs';
 
 const {
     abs,
