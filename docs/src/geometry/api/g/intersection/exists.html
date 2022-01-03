@@ -12,7 +12,7 @@
 <pre><code>
 g.intersection.exists(new g.Rect(0, 0, 10, 10), new g.Line({ x: 5, y: 5 }, { x: 30, y: 30 })); // true</code></pre>
 
-Using the the shape options is valid for <a href="#g.Path">Path</a> only. The path is internally convert into polylines with <a href="#g.Path.prototype.toPolylines">toPolylines()</a> method. The options control the conversion of the path.
+Using the shape options is valid for <a href="#g.Path">Path</a> only. The path is internally converted into polylines with <a href="#g.Path.prototype.toPolylines">toPolylines()</a> method. The options control the conversion of the path.
 <pre><code>g.intersection.exists(new g.Rect(), new g.Path(), null, { precision: 2 });
 g.intersection.exists(new g.Path(), new g.Rect(), { precision: 2 });
 
