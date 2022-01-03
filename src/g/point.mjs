@@ -11,6 +11,7 @@ import { normalizeAngle, random, snapToGrid, toDeg, toRad } from './geometry.hel
 import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
+import { types } from './types.mjs';
 
 const {
     abs,
@@ -77,6 +78,8 @@ Point.random = function(x1, x2, y1, y2) {
 };
 
 Point.prototype = {
+
+    type: types.Point,
 
     chooseClosest: function(points) {
 

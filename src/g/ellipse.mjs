@@ -1,5 +1,6 @@
 import { Rect } from './rect.mjs';
 import { Point } from './point.mjs';
+import { types } from './types.mjs';
 
 const {
     sqrt,
@@ -31,6 +32,8 @@ Ellipse.fromRect = function(rect) {
 };
 
 Ellipse.prototype = {
+
+    type: types.Ellipse,
 
     bbox: function() {
 

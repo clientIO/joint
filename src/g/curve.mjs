@@ -2,6 +2,7 @@ import { Point } from './point.mjs';
 import { Rect } from './rect.mjs';
 import { Line } from './line.mjs';
 import { Polyline } from './polyline.mjs';
+import { types } from './types.mjs';
 
 const {
     abs,
@@ -161,6 +162,8 @@ Curve.throughPoints = (function() {
 })();
 
 Curve.prototype = {
+
+    type: types.Curve,
 
     // Returns a bbox that tightly envelops the curve.
     bbox: function() {

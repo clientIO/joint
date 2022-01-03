@@ -3,6 +3,7 @@ import { Rect } from './rect.mjs';
 import { bearing } from './line.bearing.mjs';
 import { squaredLength } from './line.squaredLength.mjs';
 import { length } from './line.length.mjs';
+import { types } from './types.mjs';
 
 const {
     max,
@@ -24,6 +25,8 @@ export const Line = function(p1, p2) {
 };
 
 Line.prototype = {
+
+    type: types.Line,
 
     // @returns the angle of incline of the line.
     angle: function() {

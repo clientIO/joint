@@ -1,6 +1,17 @@
 export namespace g {
 
-    export type Shape = Path | Point | Line | Polyline | Rect | Ellipse;
+    export enum types {
+        Point = 1,
+        Line = 2,
+        Ellipse = 3,
+        Rect = 4,
+        Polyline = 5,
+        Polygon = 6,
+        Curve = 7,
+        Path = 8,
+    }
+
+    export type Shape = Path | Point | Line | Polyline | Polygon | Rect | Ellipse;
     export interface PlainPoint {
 
         x: number;
@@ -142,6 +153,7 @@ export namespace g {
         controlPoint1: Point;
         controlPoint2: Point;
         end: Point;
+        type: types.Curve;
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string, p3: PlainPoint | string, p4: PlainPoint | string);
         constructor(curve: Curve);
@@ -221,6 +233,7 @@ export namespace g {
         y: number;
         a: number;
         b: number;
+        type: types.Ellipse;
 
         constructor(center: PlainPoint | string, a: number, b: number);
         constructor(ellipse: Ellipse);
@@ -256,6 +269,7 @@ export namespace g {
 
         start: Point;
         end: Point;
+        type: types.Line;
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string);
         constructor(line: Line);
@@ -334,9 +348,9 @@ export namespace g {
     class Path {
 
         segments: Segment[];
-
         start: Point | null; // getter
         end: Point | null; // getter
+        type: types.Path;
 
         constructor();
         constructor(pathData: string);
@@ -444,6 +458,7 @@ export namespace g {
 
         x: number;
         y: number;
+        type: types.Point;
 
         constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
@@ -518,11 +533,9 @@ export namespace g {
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
-
-    class Polyline {
+    abstract class PolygonalChain {
 
         points: Point[];
-
         start: Point | null; // getter
         end: Point | null; // getter
 
@@ -531,8 +544,6 @@ export namespace g {
         constructor(points: PlainPoint[]);
 
         bbox(): Rect | null;
-
-        clone(): Polyline;
 
         closestPoint(p: PlainPoint | string): Point | null;
 
@@ -544,13 +555,13 @@ export namespace g {
 
         containsPoint(p: PlainPoint): boolean;
 
-        convexHull(): Polyline;
-
         equals(p: Polyline): boolean;
 
         isDifferentiable(): boolean;
 
         intersectionWithLine(l: Line): Point[] | null;
+
+        close(): this;
 
         length(): number;
 
@@ -575,7 +586,27 @@ export namespace g {
 
         toString(): string;
 
+        clone(): this;
+
+        convexHull(): this;
+    }
+
+    class Polyline extends PolygonalChain {
+
+        type: types.Polyline;
+
         static parse(svgString: string): Polyline;
+
+        static fromRect(rect: Rect): Polyline;
+    }
+
+    class Polygon extends PolygonalChain {
+
+        type: types.Polygon;
+
+        static parse(svgString: string): Polygon;
+
+        static fromRect(rect: Rect): Polygon;
     }
 
     class Rect implements PlainRect {
@@ -584,6 +615,7 @@ export namespace g {
         y: number;
         width: number;
         height: number;
+        type: types.Rect;
 
         constructor(x?: number, y?: number, width?: number, height?: number);
         constructor(r: PlainRect);
@@ -711,5 +743,65 @@ export namespace g {
     namespace scale {
 
         export function linear(domain: [number, number], range: [number, number], value: number): number;
+    }
+
+    namespace intersection {
+
+        function exists(shape1: Shape, shape2: Shape, shape1opt?: SegmentSubdivisionsOpt | null, shape2opt?: SegmentSubdivisionsOpt | null): boolean;
+
+        /* Line */
+
+        export function lineWithLine(line1: Line, line2: Line): boolean;
+
+        /* Ellipse */
+
+        export function ellipseWithLine(ellipse: Ellipse, line: Line): boolean;
+
+        export function ellipseWithEllipse(ellipse1: Ellipse, ellipse2: Ellipse): boolean;
+
+        /* Rect */
+
+        export function rectWithLine(rect: Rect, line: Line): boolean;
+
+        export function rectWithEllipse(rect: Rect, ellipse: Ellipse): boolean;
+
+        export function rectWithRect(rect1: Rect, rect2: Rect): boolean;
+
+
+        /* Polyline */
+
+        export function polylineWithLine(polyline: Polyline, line: Line): boolean;
+
+        export function polylineWithEllipse(polyline: Polyline, ellipse: Ellipse): boolean;
+
+        export function polylineWithRect(polyline: Polyline, rect: Rect): boolean;
+
+        export function polylineWithPolyline(polyline1: Polyline, polyline2: Polyline): boolean;
+
+        /* Polygon */
+
+        export function polygonWithLine(polygon: Polygon, line: Line): boolean;
+
+        export function polygonWithEllipse(polygon: Polygon, ellipse: Ellipse): boolean;
+
+        export function polygonWithRect(polygon: Polygon, rect: Rect): boolean;
+
+        export function polygonWithPolyline(polygon: Polygon, polyline: Polyline): boolean;
+
+        export function polygonWithPolygon(polygon1: Polygon, polygon2: Polygon): boolean;
+
+        /* Path */
+
+        export function pathWithLine(path: Path, line: Line, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithEllipse(path: Path, ellipse: Ellipse, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithRect(path: Path, rect: Rect, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPolyline(path: Path, polyline: Polyline, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPolygon(path: Path, polygon: Polygon, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPath(path1: Path, path2: Path, pathOpt1?: SegmentSubdivisionsOpt | null, pathOpt2?: SegmentSubdivisionsOpt | null): boolean;
     }
 }
