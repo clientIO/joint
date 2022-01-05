@@ -2182,7 +2182,7 @@ export const Paper = View.extend({
 
         var originalEvent = evt.originalEvent;
         var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
+        var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
 
         if (view) {
             view.mousewheel(evt, localPoint.x, localPoint.y, delta);
