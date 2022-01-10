@@ -36,6 +36,7 @@ import { LinkView } from './LinkView.mjs';
 import { Link } from './Link.mjs';
 import { Cell } from './Cell.mjs';
 import { Graph } from './Graph.mjs';
+import { LayersNames, PaperLayer } from './PaperLayer.mjs';
 import * as highlighters from '../highlighters/index.mjs';
 import * as linkAnchors from '../linkAnchors/index.mjs';
 import * as connectionPoints from '../connectionPoints/index.mjs';
@@ -48,13 +49,6 @@ const sortingTypes = {
     NONE: 'sorting-none',
     APPROX: 'sorting-approximate',
     EXACT: 'sorting-exact'
-};
-
-const LayersNames = {
-    CELLS: 'cells',
-    BACK: 'back',
-    FRONT: 'front',
-    TOOLS: 'tools'
 };
 
 const MOUNT_BATCH_SIZE = 1000;
@@ -316,7 +310,6 @@ export const Paper = View.extend({
     $grid: null,
     $document: null,
 
-    _zPivots: null,
     // For storing the current transformation matrix (CTM) of the paper's viewport.
     _viewportMatrix: null,
     // For verifying whether the CTM is up-to-date. The viewport transform attribute
@@ -343,7 +336,6 @@ export const Paper = View.extend({
         const model = this.model = options.model || new Graph;
 
         // Layers (SVGGroups)
-        // TODO: layer classes
         this._layers = {};
 
         this.setGrid(options.drawGrid);
@@ -354,8 +346,7 @@ export const Paper = View.extend({
 
         // Hash of all cell views.
         this._views = {};
-        // z-index pivots
-        this._zPivots = {};
+
         // Reference to the paper owner document
         this.$document = $(el.ownerDocument);
         // Render existing cells in the graph
@@ -417,7 +408,7 @@ export const Paper = View.extend({
     },
 
     onGraphReset: function(collection, opt) {
-        this.removeZPivots();
+        this.resetLayers();
         this.resetViews(collection.models, opt);
     },
 
@@ -520,59 +511,36 @@ export const Paper = View.extend({
             }, {
                 tagName: 'g',
                 className: addClassNamePrefix('layers'),
-                selector: 'layers',
-                children: [{
-                    tagName: 'g',
-                    className: addClassNamePrefix('back-layer'),
-                    selector: 'back',
-                }, {
-                    tagName: 'g',
-                    className: addClassNamePrefix('cells-layer viewport'),
-                    selector: 'cells',
-                }, {
-                    tagName: 'g',
-                    className: addClassNamePrefix('front-layer'),
-                    selector: 'front',
-                }, {
-                    tagName: 'g',
-                    className: addClassNamePrefix('tools-layer'),
-                    selector: 'tools'
-                }]
+                selector: 'layers'
             }]
         }];
     },
 
-    getLayerNode(layerName) {
+    getLayerView(layerName) {
         const { _layers } = this;
         if (layerName in _layers) return _layers[layerName];
         throw new Error(`dia.Paper: Unknown layer "${layerName}"`);
+    },
+
+    getLayerNode(layerName) {
+        return this.getLayerView(layerName).el;
     },
 
     render: function() {
 
         this.renderChildren();
         const { childNodes, options } = this;
-        const { svg, cells, defs, tools, layers, back, front, background, grid } = childNodes;
+        const { svg, defs, layers, background, grid } = childNodes;
 
         this.svg = svg;
         this.defs = defs;
-        this.tools = tools;
-        this.cells = cells;
         this.layers = layers;
         this.$background = $(background);
         this.$grid = $(grid);
 
-        assign(this._layers, {
-            [LayersNames.BACK]: back,
-            [LayersNames.CELLS]: cells,
-            [LayersNames.FRONT]: front,
-            [LayersNames.TOOLS]: tools
-        });
+        this.renderLayers();
 
         V.ensureId(svg);
-
-        // backwards compatibility
-        this.viewport = cells;
 
         if (options.background) {
             this.drawBackground(options.background);
@@ -583,6 +551,58 @@ export const Paper = View.extend({
         }
 
         return this;
+    },
+
+    renderLayers: function() {
+
+        // Note: Exact sorting is done here in Paper class.
+        const sort = this.options.sorting === sortingTypes.APPROX;
+
+        const backLayerView = new PaperLayer({ name: LayersNames.BACK });
+        const cellsLayerView = new PaperLayer({ name: LayersNames.CELLS, sort });
+        const labelsLayerView = new PaperLayer({ name: LayersNames.LABELS, sort });
+        const frontLayerView = new PaperLayer({ name: LayersNames.FRONT });
+        const toolsLayerView = new PaperLayer({ name: LayersNames.TOOLS });
+
+        cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+        labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+
+        this.addLayers([
+            backLayerView,
+            cellsLayerView,
+            labelsLayerView,
+            frontLayerView,
+            toolsLayerView
+        ]);
+
+        this.tools = toolsLayerView.el;
+        this.cells = cellsLayerView.el;
+        // backwards compatibility
+        this.viewport = this.cells;
+    },
+
+    addLayers: function(layers) {
+        this.removeLayers();
+        const { _layers } = this;
+        layers.forEach(layerView => {
+            this.layers.appendChild(layerView.el);
+            _layers[layerView.options.name] = layerView;
+        });
+    },
+
+    removeLayers: function() {
+        const { _layers } = this;
+        Object.keys(_layers, name => {
+            _layers[name].remove();
+            delete _layers[name];
+        });
+    },
+
+    resetLayers: function() {
+        const { _layers } = this;
+        Object.keys(_layers, name => {
+            _layers[name].removePivots();
+        });
     },
 
     update: function() {
@@ -753,7 +773,7 @@ export const Paper = View.extend({
                 return 0;
             }
             if (flag & FLAG_INSERT) {
-                this.insertView(view);
+                view.mount();
                 flag ^= FLAG_INSERT;
             }
         }
@@ -1129,6 +1149,7 @@ export const Paper = View.extend({
 
         this.freeze();
         //clean up all DOM elements/views to prevent memory leaks
+        this.removeLayers();
         this.removeViews();
     },
 
@@ -1522,55 +1543,6 @@ export const Paper = View.extend({
             var zB = cellB.attributes.z || 0;
             return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
         });
-    },
-
-
-    insertView: function(view) {
-        var layer = this.cells;
-        switch (this.options.sorting) {
-            case sortingTypes.APPROX:
-                var z = view.model.get('z');
-                var pivot = this.addZPivot(z);
-                layer.insertBefore(view.el, pivot);
-                break;
-            case sortingTypes.EXACT:
-            default:
-                layer.appendChild(view.el);
-                break;
-        }
-    },
-
-    addZPivot: function(z) {
-        z = +z;
-        z || (z = 0);
-        var pivots = this._zPivots;
-        var pivot = pivots[z];
-        if (pivot) return pivot;
-        pivot = pivots[z] = document.createComment('z-index:' + (z + 1));
-        var neighborZ = -Infinity;
-        for (var currentZ in pivots) {
-            currentZ = +currentZ;
-            if (currentZ < z && currentZ > neighborZ) {
-                neighborZ = currentZ;
-                if (neighborZ === z - 1) continue;
-            }
-        }
-        var layer = this.cells;
-        if (neighborZ !== -Infinity) {
-            var neighborPivot = pivots[neighborZ];
-            // Insert After
-            layer.insertBefore(pivot, neighborPivot.nextSibling);
-        } else {
-            // First Child
-            layer.insertBefore(pivot, layer.firstChild);
-        }
-        return pivot;
-    },
-
-    removeZPivots: function() {
-        var { _zPivots: pivots, viewport } = this;
-        for (var z in pivots) viewport.removeChild(pivots[z]);
-        this._zPivots = {};
     },
 
     scale: function(sx, sy, ox, oy) {
