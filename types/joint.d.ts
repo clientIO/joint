@@ -1500,12 +1500,6 @@ export namespace dia {
 
         protected sortViewsExact(): void;
 
-        protected insertView(view: dia.CellView): void;
-
-        protected addZPivot(z: number): Comment;
-
-        protected removeZPivots(): void
-
         protected pointerdblclick(evt: dia.Event): void;
 
         protected pointerclick(evt: dia.Event): void;

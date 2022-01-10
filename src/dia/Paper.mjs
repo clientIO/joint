@@ -555,6 +555,8 @@ export const Paper = View.extend({
 
     renderLayers: function() {
 
+        this.removeLayers();
+
         // Note: Exact sorting is done here in Paper class.
         const sort = this.options.sorting === sortingTypes.APPROX;
 
@@ -582,7 +584,6 @@ export const Paper = View.extend({
     },
 
     addLayers: function(layers) {
-        this.removeLayers();
         const { _layers } = this;
         layers.forEach(layerView => {
             this.layers.appendChild(layerView.el);
