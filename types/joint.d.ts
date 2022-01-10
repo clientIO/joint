@@ -1420,6 +1420,8 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
+        getLayerView(layerName: Paper.Layers | string): any;
+
         // rendering
 
         freeze(opt?: Paper.FreezeOptions): void;
@@ -1566,6 +1568,28 @@ export namespace dia {
         protected renderView(cell: Cell): CellView;
 
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
+    }
+
+    namespace PaperLayer {
+
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+            name: string;
+            sort?: boolean;
+        }
+    }
+    class PaperLayer extends mvc.View<undefined, SVGElement> {
+
+        constructor(opt?: PaperLayer.Options);
+
+        options: PaperLayer.Options;
+
+        pivotNodes: { [z: number]: Comment };
+
+        insertNode(node: SVGElement, z?: number): void;
+
+        insertPivot(z: number): Comment;
+
+        removePivots(): void;
     }
 
     namespace ToolsView {
