@@ -1,9 +1,8 @@
 import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
-import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage } from '../util/index.mjs';
+import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result } from '../util/index.mjs';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
-import { LayersNames } from './PaperLayer.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
 import $ from 'jquery';
@@ -369,6 +368,10 @@ export const LinkView = CellView.extend({
             // there is no label container in the markup but some labels are defined
             // add a <g class="labels" /> container
             vLabels = cache.labels = V('g').addClass('labels');
+            if (this.options.labelsLayer) {
+                vLabels.addClass(addClassNamePrefix(result(this, 'className')));
+                vLabels.attr('model-id', model.id);
+            }
         }
 
         for (var i = 0; i < labelsCount; i++) {
@@ -404,16 +407,8 @@ export const LinkView = CellView.extend({
 
             labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
         }
-
         if (!vLabels.parent()) {
-            const { paper } = this;
-            if (paper.options.labelsLayer) {
-                vLabels.addClass('joint-link joint-cell');
-                vLabels.attr('model-id', model.id);
-                this.mountLabels();
-            } else {
-                vLabels.appendTo(this.el);
-            }
+            this.mountLabels();
         }
 
         this.updateLabels();
@@ -422,22 +417,26 @@ export const LinkView = CellView.extend({
     },
 
     mountLabels: function() {
-        const { paper, model, _V } = this;
-        const { labels } = _V;
-        if (labels) {
-            paper.getLayerView(LayersNames.LABELS).insertNode(labels.node, model.get('z'));
+        const { paper, model, _V, options } = this;
+        const { labels: vLabels } = _V;
+        if (!vLabels) return;
+        const { node } = vLabels;
+        if (options.labelsLayer) {
+            paper.getLayerView(options.labelsLayer).insertSortedNode(node, model.get('z'));
+        } else {
+            this.el.appendChild(node);
         }
     },
 
     unmountLabels: function() {
-        const { labels } = this._V;
-        if (labels) {
-            labels.remove();
+        const { options, _V } = this;
+        const { labels: vLabels } = _V;
+        if (vLabels && options.labelsLayer) {
+            vLabels.remove();
         }
     },
 
-    mount: function() {
-        CellView.prototype.mount.apply(this, arguments);
+    onMount: function() {
         this.mountLabels();
     },
 

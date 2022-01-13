@@ -17,8 +17,7 @@ export const PaperLayer = mvc.View.extend({
     defaultTheme: null,
 
     options: {
-        name: '',
-        sort: false
+        name: ''
     },
 
     className: function() {
@@ -29,14 +28,14 @@ export const PaperLayer = mvc.View.extend({
         this.pivotNodes = {};
     },
 
-    insertNode: function(node, z) {
-        const { el, options } = this;
-        if (options.sort) {
-            el.insertBefore(node, this.insertPivot(z));
-        } else {
-            if (node.parentNode !== el) {
-                el.appendChild(node);
-            }
+    insertSortedNode: function(node, z) {
+        this.el.insertBefore(node, this.insertPivot(z));
+    },
+
+    insertNode: function(node) {
+        const { el } = this;
+        if (node.parentNode !== el) {
+            el.appendChild(node);
         }
     },
 

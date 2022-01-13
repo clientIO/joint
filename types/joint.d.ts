@@ -965,6 +965,7 @@ export namespace dia {
             linkToolsOffset?: number;
             doubleLinkToolsOffset?: number;
             sampleInterval?: number;
+            labelsLayer?: Paper.Layers;
         }
     }
 
@@ -1086,6 +1087,12 @@ export namespace dia {
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointerup(evt: dia.Event, x: number, y: number): void;
+
+        protected onMount(): void;
+
+        protected mountLabels(): void;
+
+        protected unmountLabels(): void;
     }
 
     // dia.Paper
@@ -1141,9 +1148,10 @@ export namespace dia {
 
         enum Layers {
             CELLS = 'cells',
+            LABEL = 'labels',
             BACK = 'back',
             FRONT = 'front',
-            TOOLS = 'tools'
+            TOOLS = 'tools',
         }
 
         type UpdateStats = {
@@ -1190,6 +1198,7 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
+            labelsLayer?: boolean | Paper.Layers;
             // interactions
             gridSize?: number;
             highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>;
@@ -1574,7 +1583,6 @@ export namespace dia {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             name: string;
-            sort?: boolean;
         }
     }
     class PaperLayer extends mvc.View<undefined, SVGElement> {
@@ -1585,7 +1593,9 @@ export namespace dia {
 
         pivotNodes: { [z: number]: Comment };
 
-        insertNode(node: SVGElement, z?: number): void;
+        insertSortedNode(node: SVGElement, z: number): void;
+
+        insertNode(node: SVGElement): void;
 
         insertPivot(z: number): Comment;
 
@@ -1599,6 +1609,7 @@ export namespace dia {
             name?: string | null;
             relatedView?: dia.CellView;
             component?: boolean;
+            z?: number;
         }
     }
 
@@ -1674,6 +1685,7 @@ export namespace dia {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
+            z?: number;
         }
     }
 

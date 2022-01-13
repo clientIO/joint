@@ -516,6 +516,10 @@ export const Paper = View.extend({
         }];
     },
 
+    hasLayerView(layerName) {
+        return  (layerName in this._layers);
+    },
+
     getLayerView(layerName) {
         const { _layers } = this;
         if (layerName in _layers) return _layers[layerName];
@@ -553,42 +557,38 @@ export const Paper = View.extend({
         return this;
     },
 
+    layersJSON: [{
+        name: LayersNames.BACK,
+    }, {
+        name: LayersNames.CELLS,
+        sorted: true
+    }, {
+        name: LayersNames.LABELS,
+        sorted: true
+    }, {
+        name: LayersNames.FRONT
+    }, {
+        name: LayersNames.TOOLS
+    }],
+
     renderLayers: function() {
-
         this.removeLayers();
-
-        // Note: Exact sorting is done here in Paper class.
-        const sort = this.options.sorting === sortingTypes.APPROX;
-
-        const backLayerView = new PaperLayer({ name: LayersNames.BACK });
-        const cellsLayerView = new PaperLayer({ name: LayersNames.CELLS, sort });
-        const labelsLayerView = new PaperLayer({ name: LayersNames.LABELS, sort });
-        const frontLayerView = new PaperLayer({ name: LayersNames.FRONT });
-        const toolsLayerView = new PaperLayer({ name: LayersNames.TOOLS });
-
+        // TODO: LayersJSON to be read from the graph `layers` attribute
+        this.layersJSON.forEach(({ name, sorted }) => {
+            const layerView = new PaperLayer({ name });
+            this.layers.appendChild(layerView.el);
+            this._layers[name] = layerView;
+        });
+        // Throws an exception if not exists
+        const cellsLayerView = this.getLayerView(LayersNames.CELLS);
+        const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
+        const labelsLayerView = this.getLayerView(LayersNames.LABELS);
+        // backwards compatibility
+        this.tools = toolsLayerView.el;
+        this.cells = this.viewport = cellsLayerView.el;
+        // user-select: none;
         cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
         labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
-
-        this.addLayers([
-            backLayerView,
-            cellsLayerView,
-            labelsLayerView,
-            frontLayerView,
-            toolsLayerView
-        ]);
-
-        this.tools = toolsLayerView.el;
-        this.cells = cellsLayerView.el;
-        // backwards compatibility
-        this.viewport = this.cells;
-    },
-
-    addLayers: function(layers) {
-        const { _layers } = this;
-        layers.forEach(layerView => {
-            this.layers.appendChild(layerView.el);
-            _layers[layerView.options.name] = layerView;
-        });
     },
 
     removeLayers: function() {
@@ -774,7 +774,7 @@ export const Paper = View.extend({
                 return 0;
             }
             if (flag & FLAG_INSERT) {
-                view.mount();
+                this.insertView(view);
                 flag ^= FLAG_INSERT;
             }
         }
@@ -1146,6 +1146,10 @@ export const Paper = View.extend({
         return this.options.sorting === sortingTypes.EXACT;
     },
 
+    isApproxSorting: function() {
+        return this.options.sorting === sortingTypes.APPROX;
+    },
+
     onRemove: function() {
 
         this.freeze();
@@ -1407,6 +1411,7 @@ export const Paper = View.extend({
 
     createViewForModel: function(cell) {
 
+        const { options } = this;
         // A class taken from the paper options.
         var optionalViewClass;
 
@@ -1415,15 +1420,15 @@ export const Paper = View.extend({
 
         // A special class defined for this model in the corresponding namespace.
         // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
-        var namespace = this.options.cellViewNamespace;
+        var namespace = options.cellViewNamespace;
         var type = cell.get('type') + 'View';
         var namespaceViewClass = getByPath(namespace, type, '.');
 
         if (cell.isLink()) {
-            optionalViewClass = this.options.linkView;
+            optionalViewClass = options.linkView;
             defaultViewClass = LinkView;
         } else {
-            optionalViewClass = this.options.elementView;
+            optionalViewClass = options.elementView;
             defaultViewClass = ElementView;
         }
 
@@ -1440,7 +1445,8 @@ export const Paper = View.extend({
 
         return new ViewClass({
             model: cell,
-            interactive: this.options.interactive
+            interactive: options.interactive,
+            labelsLayer: options.labelsLayer === true ? LayersNames.LABELS : options.labelsLayer
         });
     },
 
@@ -1544,6 +1550,21 @@ export const Paper = View.extend({
             var zB = cellB.attributes.z || 0;
             return (zA === zB) ? 0 : (zA < zB) ? -1 : 1;
         });
+    },
+
+    insertView: function(view) {
+        const layerView = this.getLayerView(LayersNames.CELLS);
+        const { el, model } = view;
+        switch (this.options.sorting) {
+            case sortingTypes.APPROX:
+                layerView.insertSortedNode(el, model.get('z'));
+                break;
+            case sortingTypes.EXACT:
+            default:
+                layerView.insertNode(el);
+                break;
+        }
+        view.onMount();
     },
 
     scale: function(sx, sy, ox, oy) {

@@ -780,7 +780,6 @@ QUnit.module('joint.dia.Paper', function(hooks) {
 
                 hooks.beforeEach(function() {
                     paper.options.sorting = Paper.sorting[sortingType];
-                    paper.renderLayers();
                 });
 
                 QUnit.module('options', function() {

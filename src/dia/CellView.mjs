@@ -21,7 +21,6 @@ import { Point, Rect } from '../g/index.mjs';
 import V from '../V/index.mjs';
 import $ from 'jquery';
 import { HighlighterView } from './HighlighterView.mjs';
-import { LayersNames } from './PaperLayer.mjs';
 
 const HighlightingTypes = {
     DEFAULT: 'default',
@@ -150,14 +149,8 @@ export const CellView = View.extend({
         this.startListening();
     },
 
-    mount: function() {
-        const { el, model } = this;
-        this.getLayerView().insertNode(el, model.get('z'));
-    },
-
-    getLayerView: function() {
-        // TODO: to be read from the model
-        return this.paper.getLayerView(LayersNames.CELLS);
+    onMount() {
+        // TBO
     },
 
     startListening: function() {

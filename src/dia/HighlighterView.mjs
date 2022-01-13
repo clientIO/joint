@@ -76,10 +76,8 @@ export const HighlighterView = mvc.View.extend({
         const { vel: cellViewRoot, paper } = cellView;
         const { layer: layerName } = options;
         if (layerName) {
-            this.transformGroup = V('g')
-                .addClass('highlight-transform')
-                .append(el)
-                .appendTo(paper.getLayerNode(layerName));
+            const vGroup = this.transformGroup = V('g').addClass('highlight-transform').append(el);
+            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
         } else {
             // TODO: prepend vs append
             if (!el.parentNode || el.nextSibling) {
