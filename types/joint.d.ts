@@ -965,7 +965,7 @@ export namespace dia {
             linkToolsOffset?: number;
             doubleLinkToolsOffset?: number;
             sampleInterval?: number;
-            labelsLayer?: Paper.Layers;
+            labelsLayer?: Paper.Layers | string | false;
         }
     }
 
@@ -1198,7 +1198,7 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
-            labelsLayer?: boolean | Paper.Layers;
+            labelsLayer?: boolean | Paper.Layers | string;
             // interactions
             gridSize?: number;
             highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>;
@@ -1430,6 +1430,8 @@ export namespace dia {
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
         getLayerView(layerName: Paper.Layers | string): any;
+
+        hasLayerView(layerName: Paper.Layers | string): boolean;
 
         // rendering
 
