@@ -103,6 +103,12 @@ export const Paper = View.extend({
         snapLabels: false, // false, true
         snapLinks: false, // false, true, { radius: value }
 
+        // Should the link labels be rendered into its own layer?
+        // `false` - the labels are part of the links
+        // `true` - the labels are appended to LayersName.LABELS
+        // [LayersName] - the labels are appended to the layer specified
+        labelsLayer: false,
+
         // When set to FALSE, an element may not have more than 1 link with the same source and target element.
         multiLinks: true,
 
@@ -1144,10 +1150,6 @@ export const Paper = View.extend({
 
     isExactSorting: function() {
         return this.options.sorting === sortingTypes.EXACT;
-    },
-
-    isApproxSorting: function() {
-        return this.options.sorting === sortingTypes.APPROX;
     },
 
     onRemove: function() {
