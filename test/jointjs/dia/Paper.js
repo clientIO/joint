@@ -1262,6 +1262,93 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             });
         });
 
+        QUnit.module('labelsLayer = true', function(hooks) {
+
+            var labelsLayer, cellsLayer;
+
+            hooks.beforeEach(function() {
+                paper.options.labelsLayer = true;
+                paper.options.sorting = joint.dia.Paper.sorting.APPROX;
+                labelsLayer = paper.getLayerNode('labels');
+                cellsLayer = paper.getLayerNode('cells');
+            });
+
+            QUnit.test('sanity', function(assert) {
+
+                var link1 = new joint.shapes.standard.Link({ labels: [{}] });
+                var link2 = new joint.shapes.standard.Link({ labels: [{}] });
+                var link3 = new joint.shapes.standard.Link({ labels: [] });
+
+                graph.addCell([link1, link2, link3]);
+
+                assert.equal(labelsLayer.children.length, 2);
+                assert.equal(cellsLayer.children.length, 3);
+
+                assert.ok(paper.findView(cellsLayer.children[0]) instanceof joint.dia.LinkView);
+                assert.ok(paper.findView(cellsLayer.children[1]) instanceof joint.dia.LinkView);
+                assert.ok(paper.findView(cellsLayer.children[2]) instanceof joint.dia.LinkView);
+                assert.ok(paper.findView(labelsLayer.children[0]) instanceof joint.dia.LinkView);
+                assert.ok(paper.findView(labelsLayer.children[1]) instanceof joint.dia.LinkView);
+
+                link2.remove();
+
+                var link1view = link1.findView(paper);
+
+                assert.equal(labelsLayer.children.length, 1);
+                assert.equal(cellsLayer.children.length, 2);
+
+                assert.equal(cellsLayer.children[0], link1view.el);
+
+                link1.remove();
+
+                assert.equal(labelsLayer.children.length, 0);
+                assert.equal(cellsLayer.children.length, 1);
+            });
+
+            QUnit.test('sorting', function(assert) {
+
+                var link1 = new joint.shapes.standard.Link({ labels: [{}], z: 1 });
+                var link2 = new joint.shapes.standard.Link({ labels: [{}], z: 2 });
+
+                graph.addCell([link1, link2]);
+
+                var link1view = link1.findView(paper);
+                var link2view = link2.findView(paper);
+
+                assert.equal(cellsLayer.children[0], link1view.el);
+                assert.equal(cellsLayer.children[1], link2view.el);
+
+                link1.toFront();
+
+                assert.equal(cellsLayer.children[0], link2view.el);
+                assert.equal(cellsLayer.children[1], link1view.el);
+
+                link2.toFront();
+
+                assert.equal(cellsLayer.children[0], link1view.el);
+                assert.equal(cellsLayer.children[1], link2view.el);
+            });
+
+            QUnit.test('mount & unmount', function(assert) {
+
+                var link1 = new joint.shapes.standard.Link({ labels: [{}] });
+
+                graph.addCell([link1]);
+
+                assert.equal(labelsLayer.children.length, 1);
+                assert.equal(cellsLayer.children.length, 1);
+
+                paper.dumpViews({ viewport: function() { return false; } });
+
+                assert.equal(labelsLayer.children.length, 0);
+                assert.equal(cellsLayer.children.length, 0);
+
+                paper.dumpViews({ viewport: function() { return true; } });
+
+                assert.equal(labelsLayer.children.length, 1);
+                assert.equal(cellsLayer.children.length, 1);
+            });
+        });
     });
 
     QUnit.module('async = TRUE, frozen = TRUE', function(hooks) {

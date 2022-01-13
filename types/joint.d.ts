@@ -629,6 +629,8 @@ export namespace dia {
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
 
+        hasLabels(): boolean;
+
         insertLabel(index: number, label: Link.Label, opt?: S): Link.Label[];
 
         appendLabel(label: Link.Label, opt?: S): Link.Label[];

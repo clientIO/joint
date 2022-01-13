@@ -280,6 +280,11 @@ export const Link = Cell.extend({
         return this.set('labels', labels, opt);
     },
 
+    hasLabels: function() {
+        const { labels } = this.attributes;
+        return Array.isArray(labels) && labels.length > 0;
+    },
+
     insertLabel: function(idx, label, opt) {
 
         if (!label) throw new Error('dia.Link: no label provided');

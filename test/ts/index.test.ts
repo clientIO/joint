@@ -114,4 +114,4 @@ let isTypeofPoint: AssertExtends<typeof position, joint.dia.Point> = true;
 
 const layer = new joint.dia.PaperLayer();
 layer.insertNode(cellView.el);
-layer.insertNode(cellView.el, 5);
+layer.insertSortedNode(cellView.el, 5);
