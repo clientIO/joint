@@ -6,7 +6,7 @@ QUnit.module('joint.dia.Paper', function(hooks) {
     var graph;
 
     function cellNodesCount(paper) {
-        return V(paper.cells).children().length;
+        return paper.cells.children.length;
     }
 
     function addCells(graph, opt) {
