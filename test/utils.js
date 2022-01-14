@@ -1,6 +1,6 @@
 (function(asserts) {
 
-    //make sure we have Node.children and Element.children available
+    // Make sure we have Node.children and Element.children available
     (function(constructor) {
         if (constructor &&
         constructor.prototype &&
@@ -8,16 +8,16 @@
             Object.defineProperty(constructor.prototype, 'children', {
                 get: function() {
                     var i = 0, node, nodes = this.childNodes, children = [];
-                    //iterate all childNodes
+                    // Iterate all childNodes
                     while (node = nodes[i++]) {
-                    //remember those, that are Node.ELEMENT_NODE (1)
+                        // Remember those, that are Node.ELEMENT_NODE (1)
                         if (node.nodeType === 1) { children.push(node); }
                     }
                     return children;
                 }
             });
         }
-    //apply the fix to all HTMLElements (window.Element) and to SVG/XML (window.Node)
+        // Apply the fix to all HTMLElements (window.Element) and to SVG/XML (window.Node)
     })(window.Node || window.Element);
 
     asserts.checkBbox = function(paper, el, x, y, w, h, msg) {

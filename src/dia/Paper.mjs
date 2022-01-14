@@ -583,7 +583,7 @@ export const Paper = View.extend({
             this.layers.appendChild(layerView.el);
             this._layers[name] = layerView;
         });
-        // Throws an exception if not exists
+        // Throws an exception if doesn't exist
         const cellsLayerView = this.getLayerView(LayersNames.CELLS);
         const toolsLayerView = this.getLayerView(LayersNames.TOOLS);
         const labelsLayerView = this.getLayerView(LayersNames.LABELS);
