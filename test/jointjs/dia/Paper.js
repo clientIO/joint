@@ -1269,8 +1269,8 @@ QUnit.module('joint.dia.Paper', function(hooks) {
             hooks.beforeEach(function() {
                 paper.options.labelsLayer = true;
                 paper.options.sorting = joint.dia.Paper.sorting.APPROX;
-                labelsLayer = paper.getLayerNode('labels');
-                cellsLayer = paper.getLayerNode('cells');
+                labelsLayer = paper.getLayerNode(joint.dia.Paper.Layers.LABELS);
+                cellsLayer = paper.getLayerNode(joint.dia.Paper.Layers.CELLS);
             });
 
             QUnit.test('sanity', function(assert) {

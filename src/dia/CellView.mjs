@@ -150,7 +150,7 @@ export const CellView = View.extend({
     },
 
     onMount() {
-        // TBO
+        // To be overridden
     },
 
     startListening: function() {

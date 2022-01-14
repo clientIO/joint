@@ -1613,6 +1613,7 @@ export namespace dia {
             name?: string | null;
             relatedView?: dia.CellView;
             component?: boolean;
+            layer?: dia.Paper.Layers | string | null;
             z?: number;
         }
     }
