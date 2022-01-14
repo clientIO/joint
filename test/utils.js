@@ -1,5 +1,25 @@
 (function(asserts) {
 
+    // Make sure we have Node.children and Element.children available
+    (function(constructor) {
+        if (constructor &&
+        constructor.prototype &&
+        constructor.prototype.children == null) {
+            Object.defineProperty(constructor.prototype, 'children', {
+                get: function() {
+                    var i = 0, node, nodes = this.childNodes, children = [];
+                    // Iterate all childNodes
+                    while (node = nodes[i++]) {
+                        // Remember those, that are Node.ELEMENT_NODE (1)
+                        if (node.nodeType === 1) { children.push(node); }
+                    }
+                    return children;
+                }
+            });
+        }
+        // Apply the fix to all HTMLElements (window.Element) and to SVG/XML (window.Node)
+    })(window.Node || window.Element);
+
     asserts.checkBbox = function(paper, el, x, y, w, h, msg) {
         var view = paper.findViewByModel(el);
         var bbox = view.getBBox();

@@ -175,6 +175,24 @@ QUnit.module('joint.mvc.View', function(hooks) {
         });
     });
 
+    QUnit.test('no default theme', function(assert) {
+
+        var SomeView = joint.mvc.View.extend({
+            defaultTheme: null
+        });
+
+        var view1 = new SomeView({ defaultTheme: null });
+        assert.equal(view1.el.className, '');
+        var view2 = new SomeView({ className: 'class' });
+        assert.equal(view2.el.className, 'joint-class');
+        var view3 = new SomeView({ className: 'other-class', theme: 'my-explicit-theme' });
+        assert.equal(view3.el.className, 'joint-other-class joint-theme-my-explicit-theme');
+
+        view1.remove();
+        view2.remove();
+        view3.remove();
+    });
+
     QUnit.test('classNamePrefix', function(assert) {
 
         var className = 'custom-class-name';

@@ -168,5 +168,37 @@ QUnit.module('linkTools', function(hooks) {
         assert.equal(spy.callCount, 2);
     });
 
+    QUnit.module('options', function() {
+
+        [
+            joint.dia.Paper.Layers.TOOLS,
+            joint.dia.Paper.Layers.FRONT
+        ].forEach(function(layer) {
+
+            QUnit.test('> layer = "' + layer + '", z = number', function(assert) {
+
+                var link2 = new joint.shapes.standard.Link();
+                var link3 = new joint.shapes.standard.Link();
+                graph.addCells(link2, link3);
+
+                var toolsLayerNode = paper.getLayerNode(layer);
+                var t1 = new joint.dia.ToolsView({ z: 2, tools: [], layer: layer });
+                var t2 = new joint.dia.ToolsView({ z: 3, tools: [], layer: layer });
+                var t3 = new joint.dia.ToolsView({ z: 1, tools: [], layer: layer });
+
+                linkView.addTools(t1);
+                link2.findView(paper).addTools(t2);
+                link3.findView(paper).addTools(t3);
+
+                assert.equal(toolsLayerNode.children.length, 3);
+                assert.equal(toolsLayerNode.childNodes.length, 6);
+                assert.equal(toolsLayerNode.children[0], t3.el);
+                assert.equal(toolsLayerNode.children[1], t1.el);
+                assert.equal(toolsLayerNode.children[2], t2.el);
+            });
+        });
+    });
+
+
 
 });

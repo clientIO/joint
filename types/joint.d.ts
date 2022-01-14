@@ -629,6 +629,8 @@ export namespace dia {
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
 
+        hasLabels(): boolean;
+
         insertLabel(index: number, label: Link.Label, opt?: S): Link.Label[];
 
         appendLabel(label: Link.Label, opt?: S): Link.Label[];
@@ -965,6 +967,7 @@ export namespace dia {
             linkToolsOffset?: number;
             doubleLinkToolsOffset?: number;
             sampleInterval?: number;
+            labelsLayer?: Paper.Layers | string | false;
         }
     }
 
@@ -1086,6 +1089,12 @@ export namespace dia {
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointerup(evt: dia.Event, x: number, y: number): void;
+
+        protected onMount(): void;
+
+        protected mountLabels(): void;
+
+        protected unmountLabels(): void;
     }
 
     // dia.Paper
@@ -1141,9 +1150,10 @@ export namespace dia {
 
         enum Layers {
             CELLS = 'cells',
+            LABEL = 'labels',
             BACK = 'back',
             FRONT = 'front',
-            TOOLS = 'tools'
+            TOOLS = 'tools',
         }
 
         type UpdateStats = {
@@ -1190,6 +1200,7 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
+            labelsLayer?: boolean | Paper.Layers | string;
             // interactions
             gridSize?: number;
             highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>;
@@ -1420,6 +1431,16 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
+        getLayerView(layerName: Paper.Layers | string): any;
+
+        hasLayerView(layerName: Paper.Layers | string): boolean;
+
+        renderLayers(layers: Array<{ name: string }>): void;
+
+        protected removeLayers(): void;
+
+        protected resetLayers(): void;
+
         // rendering
 
         freeze(opt?: Paper.FreezeOptions): void;
@@ -1500,12 +1521,6 @@ export namespace dia {
 
         protected sortViewsExact(): void;
 
-        protected insertView(view: dia.CellView): void;
-
-        protected addZPivot(z: number): Comment;
-
-        protected removeZPivots(): void
-
         protected pointerdblclick(evt: dia.Event): void;
 
         protected pointerclick(evt: dia.Event): void;
@@ -1574,6 +1589,29 @@ export namespace dia {
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
     }
 
+    namespace PaperLayer {
+
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+            name: string;
+        }
+    }
+    class PaperLayer extends mvc.View<undefined, SVGElement> {
+
+        constructor(opt?: PaperLayer.Options);
+
+        options: PaperLayer.Options;
+
+        pivotNodes: { [z: number]: Comment };
+
+        insertSortedNode(node: SVGElement, z: number): void;
+
+        insertNode(node: SVGElement): void;
+
+        insertPivot(z: number): Comment;
+
+        removePivots(): void;
+    }
+
     namespace ToolsView {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
@@ -1581,6 +1619,8 @@ export namespace dia {
             name?: string | null;
             relatedView?: dia.CellView;
             component?: boolean;
+            layer?: dia.Paper.Layers | string | null;
+            z?: number;
         }
     }
 
@@ -1656,6 +1696,7 @@ export namespace dia {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
+            z?: number;
         }
     }
 

@@ -149,6 +149,18 @@ QUnit.module('HighlighterView', function(hooks) {
 
             });
 
+            QUnit.test('z', function(assert) {
+                var layer = joint.dia.Paper.Layers.FRONT;
+                var h1 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-1', { layer: layer, z: 2 });
+                var h2 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-2', { layer: layer, z: 3  });
+                var h3 = joint.dia.HighlighterView.add(elementView, 'body', 'highlighter-id-3', { layer: layer, z: 1 });
+                var frontLayerNode = paper.getLayerNode(layer);
+                assert.equal(frontLayerNode.children.length, 3);
+                assert.equal(frontLayerNode.children[0], h3.el.parentNode);
+                assert.equal(frontLayerNode.children[1], h1.el.parentNode);
+                assert.equal(frontLayerNode.children[2], h2.el.parentNode);
+            });
+
         });
 
         QUnit.test('Highlight element by a node', function(assert) {

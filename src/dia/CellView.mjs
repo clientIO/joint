@@ -149,6 +149,10 @@ export const CellView = View.extend({
         this.startListening();
     },
 
+    onMount() {
+        // To be overridden
+    },
+
     startListening: function() {
         this.listenTo(this.model, 'change', this.onAttributesChange);
     },

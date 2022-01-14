@@ -1,5 +1,6 @@
 export * from './Graph.mjs';
 export * from './attributes/index.mjs';
+export * from './PaperLayer.mjs';
 export * from './Cell.mjs';
 export * from './CellView.mjs';
 export * from './Element.mjs';

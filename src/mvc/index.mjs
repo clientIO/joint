@@ -169,6 +169,7 @@ export const View = Backbone.View.extend({
     addThemeClassName: function(theme) {
 
         theme = theme || this.theme;
+        if (!theme) return this;
 
         var className = this.themeClassNamePrefix + theme;
 

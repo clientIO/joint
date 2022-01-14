@@ -1,7 +1,7 @@
 import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
-import { removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage } from '../util/index.mjs';
+import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result } from '../util/index.mjs';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
@@ -237,6 +237,7 @@ export const LinkView = CellView.extend({
     render: function() {
 
         this.vel.empty();
+        this.unmountLabels();
         this._V = {};
         this.renderMarkup();
         // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
@@ -367,9 +368,11 @@ export const LinkView = CellView.extend({
             // there is no label container in the markup but some labels are defined
             // add a <g class="labels" /> container
             vLabels = cache.labels = V('g').addClass('labels');
+            if (this.options.labelsLayer) {
+                vLabels.addClass(addClassNamePrefix(result(this, 'className')));
+                vLabels.attr('model-id', model.id);
+            }
         }
-
-        var container = vLabels.node;
 
         for (var i = 0; i < labelsCount; i++) {
 
@@ -395,7 +398,7 @@ export const LinkView = CellView.extend({
             }
 
             labelNode.setAttribute('label-idx', i); // assign label-idx
-            container.appendChild(labelNode);
+            vLabels.append(labelNode);
             labelCache[i] = labelNode; // cache node for `updateLabels()` so it can just update label node positions
 
             var rootSelector = this.selector;
@@ -404,14 +407,44 @@ export const LinkView = CellView.extend({
 
             labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
         }
-
-        if (!container.parentNode) {
-            this.el.appendChild(container);
+        if (!vLabels.parent()) {
+            this.mountLabels();
         }
 
         this.updateLabels();
 
         return this;
+    },
+
+    mountLabels: function() {
+        const { el, paper, model, _V, options } = this;
+        const { labels: vLabels } = _V;
+        if (!vLabels || !model.hasLabels()) return;
+        const { node } = vLabels;
+        if (options.labelsLayer) {
+            paper.getLayerView(options.labelsLayer).insertSortedNode(node, model.get('z'));
+        } else {
+            if (node.parentNode !== el) {
+                el.appendChild(node);
+            }
+        }
+    },
+
+    unmountLabels: function() {
+        const { options, _V } = this;
+        const { labels: vLabels } = _V;
+        if (vLabels && options.labelsLayer) {
+            vLabels.remove();
+        }
+    },
+
+    onMount: function() {
+        this.mountLabels();
+    },
+
+    unmount: function() {
+        CellView.prototype.unmount.apply(this, arguments);
+        this.unmountLabels();
     },
 
     findLabelNode: function(labelIndex, selector) {
@@ -2366,7 +2399,13 @@ export const LinkView = CellView.extend({
         }
 
         return data;
+    },
+
+    onRemove: function() {
+        CellView.prototype.onRemove.apply(this, arguments);
+        this.unmountLabels();
     }
+
 }, {
 
     Flags: Flags,
