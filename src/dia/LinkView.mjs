@@ -417,14 +417,16 @@ export const LinkView = CellView.extend({
     },
 
     mountLabels: function() {
-        const { paper, model, _V, options } = this;
+        const { el, paper, model, _V, options } = this;
         const { labels: vLabels } = _V;
         if (!vLabels || !model.hasLabels()) return;
         const { node } = vLabels;
         if (options.labelsLayer) {
             paper.getLayerView(options.labelsLayer).insertSortedNode(node, model.get('z'));
         } else {
-            this.el.appendChild(node);
+            if (node.parentNode !== el) {
+                el.appendChild(node);
+            }
         }
     },
 
