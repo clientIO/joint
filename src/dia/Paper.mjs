@@ -78,6 +78,18 @@ const defaultHighlighting = {
     }
 };
 
+const defaultLayers = [{
+    name: LayersNames.BACK,
+}, {
+    name: LayersNames.CELLS,
+}, {
+    name: LayersNames.LABELS,
+}, {
+    name: LayersNames.FRONT
+}, {
+    name: LayersNames.TOOLS
+}];
+
 export const Paper = View.extend({
 
     className: 'paper',
@@ -563,24 +575,10 @@ export const Paper = View.extend({
         return this;
     },
 
-    layersJSON: [{
-        name: LayersNames.BACK,
-    }, {
-        name: LayersNames.CELLS,
-        sorted: true
-    }, {
-        name: LayersNames.LABELS,
-        sorted: true
-    }, {
-        name: LayersNames.FRONT
-    }, {
-        name: LayersNames.TOOLS
-    }],
-
-    renderLayers: function() {
+    renderLayers: function(layers = defaultLayers) {
         this.removeLayers();
-        // TODO: LayersJSON to be read from the graph `layers` attribute
-        this.layersJSON.forEach(({ name, sorted }) => {
+        // TODO: Layers to be read from the graph `layers` attribute
+        layers.forEach(({ name, sorted }) => {
             const layerView = new PaperLayer({ name });
             this.layers.appendChild(layerView.el);
             this._layers[name] = layerView;

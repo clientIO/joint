@@ -1435,6 +1435,12 @@ export namespace dia {
 
         hasLayerView(layerName: Paper.Layers | string): boolean;
 
+        renderLayers(layers: Array<{ name: string }>): void;
+
+        protected removeLayers(): void;
+
+        protected resetLayers(): void;
+
         // rendering
 
         freeze(opt?: Paper.FreezeOptions): void;
