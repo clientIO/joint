@@ -115,3 +115,33 @@ let isTypeofPoint: AssertExtends<typeof position, joint.dia.Point> = true;
 const layer = new joint.dia.PaperLayer();
 layer.insertNode(cellView.el);
 layer.insertSortedNode(cellView.el, 5);
+
+// paper events
+paper.on('link:pointerclick', function(linkView, evt) {
+    evt.stopPropagation();
+    linkView.model.vertices([]);
+});
+
+paper.on('element:pointerdblclick', function(elementView) {
+    elementView.model.addPort({});
+});
+
+paper.on({
+    'render:done': function(stats) {
+        if (stats.priority > 2) {
+            paper.on('custom-event', function(paper: joint.dia.Paper) {
+                paper.off('custom-event');
+            });
+        }
+    }
+});
+
+cellView.listenTo(paper, {
+    'cell:highlight': function(cellView, node, opt) {
+        let isHighlightingOptions: AssertExtends<typeof opt, joint.dia.CellView.EventHighlightOptions> = true;
+        let isSVGElement: AssertExtends<typeof node, SVGElement> = true;
+        if (opt.type === joint.dia.CellView.Highlighting.DEFAULT) {
+            cellView.el.classList.add('highlighted');
+        }
+    }
+} as joint.dia.Paper.EventMap);
