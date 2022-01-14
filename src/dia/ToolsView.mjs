@@ -1,7 +1,7 @@
 import * as mvc from '../mvc/index.mjs';
 import * as util from '../util/index.mjs';
 import { CellView } from './CellView.mjs';
-import { LayersNames } from './index.mjs';
+import { LayersNames } from './PaperLayer.mjs';
 import { ToolView } from './ToolView.mjs';
 
 export const ToolsView = mvc.View.extend({
@@ -14,7 +14,8 @@ export const ToolsView = mvc.View.extend({
         tools: null,
         relatedView: null,
         name: null,
-        component: false
+        // layer?: LayersNames.TOOLS
+        // z?: number
     },
 
     configure: function(options) {
@@ -111,12 +112,12 @@ export const ToolsView = mvc.View.extend({
 
     mount: function() {
         const { options, el } = this;
-        const { relatedView, component, layer, z } = options;
+        const { relatedView, layer = LayersNames.TOOLS, z } = options;
         if (relatedView) {
-            if (component) {
-                relatedView.el.appendChild(el);
+            if (layer) {
+                relatedView.paper.getLayerView(layer).insertSortedNode(el, z);
             } else {
-                relatedView.paper.getLayerView(layer || LayersNames.TOOLS).insertSortedNode(el, z);
+                relatedView.el.appendChild(el);
             }
         }
         return this;
