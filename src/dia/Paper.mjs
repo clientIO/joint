@@ -1536,11 +1536,16 @@ export const Paper = View.extend({
     },
 
     sortViewsExact: function() {
+        this.sortLayerExact(LayersNames.CELLS);
+        this.sortLayerExact(LayersNames.LABELS);
+    },
+
+    sortLayerExact: function(layer) {
 
         // Run insertion sort algorithm in order to efficiently sort DOM elements according to their
         // associated model `z` attribute.
 
-        var $cells = $(this.cells).children('[model-id]');
+        var $cells = $(this.getLayerNode(layer)).children('[model-id]');
         var cells = this.model.get('cells');
 
         sortElements($cells, function(a, b) {
