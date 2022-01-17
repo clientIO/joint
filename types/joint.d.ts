@@ -3128,6 +3128,66 @@ export namespace layout {
 
         export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
     }
+
+    export namespace Port {
+
+        interface PortOptions {
+            x?: number;
+            y?: number;
+            dx?: number;
+            dy?: number;
+            angle?: number;
+            start?: g.Point;
+            end?: g.Point;
+            startAngle?: number;
+            step?: number;
+            compensateRotation?: boolean;
+        }
+
+        type PortLayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt?: PortOptions) => Array<g.Point>;
+
+        export var absolute: PortLayoutFunction;
+        export var fn: PortLayoutFunction;
+        export var line: PortLayoutFunction;
+        export var left: PortLayoutFunction;
+        export var right: PortLayoutFunction;
+        export var top: PortLayoutFunction;
+        export var bottom: PortLayoutFunction;
+        export var ellipseSpread: PortLayoutFunction;
+        export var ellipse: PortLayoutFunction;
+    }
+
+    export namespace PortLabel {
+
+        interface PortLabelOptions {
+            x?: number;
+            y?: number;
+            angle?: number;
+            offset?: number;
+            attrs?: dia.Cell.Selectors;
+        }
+
+        interface LabelAttributes {
+            x: number;
+            y: number;
+            angle: number;
+            attrs: dia.Cell.Selectors;
+        }
+
+        type PortLabelLayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt?: PortLabelOptions) => LabelAttributes;
+
+        export var manual: PortLabelLayoutFunction;
+        export var left: PortLabelLayoutFunction;
+        export var right: PortLabelLayoutFunction;
+        export var top: PortLabelLayoutFunction;
+        export var bottom: PortLabelLayoutFunction;
+        export var outsideOriented: PortLabelLayoutFunction;
+        export var outside: PortLabelLayoutFunction;
+        export var insideOriented: PortLabelLayoutFunction;
+        export var inside: PortLabelLayoutFunction;
+        export var radial: PortLabelLayoutFunction;
+        export var radialOriented: PortLabelLayoutFunction;
+    }
 }
 
 // mvc
