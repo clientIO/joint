@@ -2153,18 +2153,32 @@ export const Paper = View.extend({
 
         evt = normalizeEvent(evt);
 
-        var view = this.findView(evt.target);
+        const {
+            target, // The EventTarget the pointing device exited from
+            relatedTarget // The EventTarget the pointing device entered to
+        } = evt;
+        const view = this.findView(target);
         if (this.guard(evt, view)) return;
-        var relatedView = this.findView(evt.relatedTarget);
+        const relatedView = this.findView(relatedTarget);
         if (view) {
-            // mouse moved from view over tool?
+            // Mouse moved from a view over the tool?
             if (relatedView === view) return;
+            // prevent double `mouseleave` event if the `relatedTarget` is outside the paper
+            // (mouseleave method would be fired twice)
+            evt.stopPropagation();
             view.mouseleave(evt);
-        } else {
-            if (relatedView) return;
-            // `paper` (more descriptive), not `blank`
-            this.trigger('paper:mouseleave', evt);
+            if (this.el.contains(relatedTarget)) {
+                // The pointer has exited a cellView. The pointer is still inside of the paper.
+                return;
+            }
         }
+        if (relatedView) {
+            // The pointer has entered a new cellView
+            return;
+        }
+        // There is no cellView under the pointer, nor the blank are of the paper
+        // `paper` (more descriptive), not `blank`
+        this.trigger('paper:mouseleave', evt);
     },
 
     mousewheel: function(evt) {
