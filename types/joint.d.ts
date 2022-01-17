@@ -692,6 +692,12 @@ export namespace dia {
             ELEMENT_AVAILABILITY = 'elementAvailability'
         }
 
+        interface EventHighlightOptions {
+            partial: boolean;
+            type: Highlighting;
+            [key: string]: any;
+        }
+
         interface Options<T extends Cell> extends mvc.ViewOptions<T, SVGElement> {
             id?: string;
         }
@@ -1286,6 +1292,81 @@ export namespace dia {
             useModelGeometry?: boolean;
             contentArea?: BBox;
         }
+
+        interface EventMap {
+            // pointerclick
+            'cell:pointerclick': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerclick': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerclick': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerclick': (evt: dia.Event, x: number, y: number) => void;
+            // pointerdblclick
+            'cell:pointerdblclick': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerdblclick': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerdblclick': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerdblclick': (evt: dia.Event, x: number, y: number) => void;
+            // contextmenu
+            'cell:contextmenu': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:contextmenu': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:contextmenu': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:contextmenu': (evt: dia.Event, x: number, y: number) => void;
+            // pointerdown
+            'cell:pointerdown': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerdown': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerdown': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerdown': (evt: dia.Event, x: number, y: number) => void;
+            // pointerdown
+            'cell:pointermove': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointermove': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointermove': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointermove': (evt: dia.Event, x: number, y: number) => void;
+            // pointerup
+            'cell:pointerup': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerup': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerup': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerup': (evt: dia.Event, x: number, y: number) => void;
+            // mouseover
+            'cell:mouseover': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseover': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseover': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseover': (evt: dia.Event) => void;
+            // mouseout
+            'cell:mouseout': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseout': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseout': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseout': (evt: dia.Event) => void;
+            // mouseenter
+            'cell:mouseenter': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseenter': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseenter': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseenter': (evt: dia.Event) => void;
+            // mouseleave
+            'cell:mouseleave': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseleave': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseleave': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseleave': (evt: dia.Event) => void;
+            // mousewheel
+            'cell:mousewheel': (cellView: dia.CellView, evt: dia.Event, x: number, y: number, delta: number) => void;
+            'element:mousewheel': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number, delta: number) => void;
+            'link:mousewheel': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number, delta: number) => void;
+            'blank:mousewheel': (evt: dia.Event, x: number, y: number, delta: number) => void;
+            // magnet
+            'element:magnet:pointerclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
+            'element:magnet:pointerdblclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
+            'element:magnet:contextmenu': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
+            // highlighting
+            'cell:highlight': (cellView: dia.CellView, node: SVGElement, options: dia.CellView.EventHighlightOptions) => void;
+            'cell:unhighlight': (cellView: dia.CellView, node: SVGElement, options: dia.CellView.EventHighlightOptions) => void;
+            'cell:highlight:invalid': (cellView: dia.CellView, highlighterId: string, highlighter: dia.HighlighterView) => void;
+            // connect
+            'link:connect': (linkView: dia.LinkView, evt: dia.Event, newCellView: dia.CellView, newCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            'link:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            'link:snap:connect': (linkView: dia.LinkView, evt: dia.Event, newCellView: dia.CellView, newCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            'link:snap:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            // render
+            'render:done': (stats: UpdateStats, opt: any) => void;
+            // custom
+            [eventName: string]: ((cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void) | Backbone.EventHandler;
+        }
     }
 
     class Paper extends mvc.View<Graph> {
@@ -1480,6 +1561,12 @@ export namespace dia {
         };
 
         hasScheduledUpdates(): boolean;
+
+        // events
+
+        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
+
+        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[T]; }, context?: any): this;
 
         // protected
 
