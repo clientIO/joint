@@ -3146,15 +3146,15 @@ export namespace layout {
 
         type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
 
-        export var absolute: PortLayoutFunction;
-        export var fn: PortLayoutFunction;
-        export var line: PortLayoutFunction;
-        export var left: PortLayoutFunction;
-        export var right: PortLayoutFunction;
-        export var top: PortLayoutFunction;
-        export var bottom: PortLayoutFunction;
-        export var ellipseSpread: PortLayoutFunction;
-        export var ellipse: PortLayoutFunction;
+        export var absolute: LayoutFunction;
+        export var fn: LayoutFunction;
+        export var line: LayoutFunction;
+        export var left: LayoutFunction;
+        export var right: LayoutFunction;
+        export var top: LayoutFunction;
+        export var bottom: LayoutFunction;
+        export var ellipseSpread: LayoutFunction;
+        export var ellipse: LayoutFunction;
     }
 
     export namespace PortLabel {
@@ -3176,17 +3176,17 @@ export namespace layout {
 
         type LayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;
 
-        export var manual: PortLabelLayoutFunction;
-        export var left: PortLabelLayoutFunction;
-        export var right: PortLabelLayoutFunction;
-        export var top: PortLabelLayoutFunction;
-        export var bottom: PortLabelLayoutFunction;
-        export var outsideOriented: PortLabelLayoutFunction;
-        export var outside: PortLabelLayoutFunction;
-        export var insideOriented: PortLabelLayoutFunction;
-        export var inside: PortLabelLayoutFunction;
-        export var radial: PortLabelLayoutFunction;
-        export var radialOriented: PortLabelLayoutFunction;
+        export var manual: LayoutFunction;
+        export var left: LayoutFunction;
+        export var right: LayoutFunction;
+        export var top: LayoutFunction;
+        export var bottom: LayoutFunction;
+        export var outsideOriented: LayoutFunction;
+        export var outside: LayoutFunction;
+        export var insideOriented: LayoutFunction;
+        export var inside: LayoutFunction;
+        export var radial: LayoutFunction;
+        export var radialOriented: LayoutFunction;
     }
 }
 
