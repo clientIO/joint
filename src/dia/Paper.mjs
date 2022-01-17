@@ -2161,8 +2161,10 @@ export const Paper = View.extend({
         if (this.guard(evt, view)) return;
         const relatedView = this.findView(relatedTarget);
         if (view) {
-            // Mouse moved from a view over the tool?
-            if (relatedView === view) return;
+            if (relatedView === view) {
+                // Mouse entered a cell tool
+                return;
+            }
             // prevent double `mouseleave` event if the `relatedTarget` is outside the paper
             // (mouseleave method would be fired twice)
             evt.stopPropagation();
@@ -2176,8 +2178,7 @@ export const Paper = View.extend({
             // The pointer has entered a new cellView
             return;
         }
-        // There is no cellView under the pointer, nor the blank are of the paper
-        // `paper` (more descriptive), not `blank`
+        // There is no cellView under the pointer, nor the blank area of the paper
         this.trigger('paper:mouseleave', evt);
     },
 
