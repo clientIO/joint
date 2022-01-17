@@ -3128,6 +3128,66 @@ export namespace layout {
 
         export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
     }
+
+    export namespace Port {
+
+        interface Options {
+            x?: number;
+            y?: number;
+            dx?: number;
+            dy?: number;
+            angle?: number;
+            start?: g.Point;
+            end?: g.Point;
+            startAngle?: number;
+            step?: number;
+            compensateRotation?: boolean;
+        }
+
+        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
+
+        export var absolute: LayoutFunction;
+        export var fn: LayoutFunction;
+        export var line: LayoutFunction;
+        export var left: LayoutFunction;
+        export var right: LayoutFunction;
+        export var top: LayoutFunction;
+        export var bottom: LayoutFunction;
+        export var ellipseSpread: LayoutFunction;
+        export var ellipse: LayoutFunction;
+    }
+
+    export namespace PortLabel {
+
+        interface Options {
+            x?: number;
+            y?: number;
+            angle?: number;
+            offset?: number;
+            attrs?: dia.Cell.Selectors;
+        }
+
+        interface LabelAttributes {
+            x: number;
+            y: number;
+            angle: number;
+            attrs: dia.Cell.Selectors;
+        }
+
+        type LayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;
+
+        export var manual: LayoutFunction;
+        export var left: LayoutFunction;
+        export var right: LayoutFunction;
+        export var top: LayoutFunction;
+        export var bottom: LayoutFunction;
+        export var outsideOriented: LayoutFunction;
+        export var outside: LayoutFunction;
+        export var insideOriented: LayoutFunction;
+        export var inside: LayoutFunction;
+        export var radial: LayoutFunction;
+        export var radialOriented: LayoutFunction;
+    }
 }
 
 // mvc
