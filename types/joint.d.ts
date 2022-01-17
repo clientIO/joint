@@ -3144,7 +3144,7 @@ export namespace layout {
             compensateRotation?: boolean;
         }
 
-        type PortLayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
+        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
 
         export var absolute: PortLayoutFunction;
         export var fn: PortLayoutFunction;
@@ -3174,7 +3174,7 @@ export namespace layout {
             attrs: dia.Cell.Selectors;
         }
 
-        type PortLabelLayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;
+        type LayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;
 
         export var manual: PortLabelLayoutFunction;
         export var left: PortLabelLayoutFunction;
