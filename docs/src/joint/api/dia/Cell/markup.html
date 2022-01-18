@@ -67,6 +67,61 @@ markup: [{
     }]
 }]</code></pre>
 
+<h5>JSON Markup attributes</h5>
+
+<p>
+    Anything you define in <code>markup</code> is evaluated once at CellView creation (the DOM elements and their attributes).
+    That means it's important to think about the runtime of your application. If you have SVG attributes that don't change 
+    throughout the runtime, you can add them to the <code>markup</code>.
+</p>
+
+<p>
+    As <code>markup</code> is something all instances of the element type are expected to have in common, inheriting from 
+    the subtype prototype is more efficient. Nevertheless, it is still possible to provide custom markup to individual instances 
+    of your class by providing markup later.
+</p>
+
+<p>
+    Anything in the <code>attrs</code> attribute is evaluated on every change of the model (e.g. a <code>resize</code> or 
+    an <code>attrs</code> change). As JointJS <a target="_blank" href="https://resources.jointjs.com/tutorial/special-attributes">
+    special attributes</a> mostly depend on the current state of the model (<code>size</code>, <code>attrs</code>, <code>angle</code>), 
+    they should always be defined inside <code>attrs</code>.
+</p>
+
+<p>
+    SVG attributes that are modified at some point in the application should also be added to <code>attrs</code> (e.g. user 
+    changes the color of the element).
+</p>
+
+<pre><code>joint.dia.Element.define('standard.Rectangle', {
+    attrs: {
+        body: {
+            width: 'calc(w)',
+            height: 'calc(h)',
+            stroke: 'red',
+            fill: '#333333' // We wan't to modify the fill color of our instances
+        },
+        label: {
+            // attributes
+        }
+    }
+}, {
+    markup: [{
+        tagName: 'rect',
+        selector: 'body',
+        attributes: {
+            'stroke-width': 2 // Use native SVG kebab-case for attributes in markup
+        }
+    }, {
+        tagName: 'text',
+        selector: 'label',
+        attributes: {
+            'stroke': 'none' // We don't need any instances to have a stroke value for text
+        }
+    }]
+});
+</code></pre>
+
 <h5>Setting attributes with selectors</h5>
 
 Here are simple rules how SVG attributes are set on the nodes when one uses combination of <code>selector</code> and <code>groupSelector</code>.
