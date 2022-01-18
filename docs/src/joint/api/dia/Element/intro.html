@@ -56,6 +56,15 @@
 
 <p>Notice that the object makes use of special JointJS attributes (e.g. <a href="#dia.attributes.refWidth"><code>refWidth</code></a>, <a href="#dia.attributes.textVerticalAnchor"><code>textVerticalAnchor</code></a>) on top of standard SVG attributes (e.g. <code>stroke</code>, <code>fill</code>). All of these <q>special attributes</q> are listed in the <a href="#dia.attributes">attributes</a> section of this documentation. You should also refer to our <a href="http://resources.jointjs.com/tutorial/special-attributes">tutorial on special attributes</a>.</p>
 
+<h4 id="dia.Element.intro.attributes">Attributes</h4>
+
+<p>
+    Attributes defined in <a href="#dia.Cell.markup.attributes"><code>markup</code></a> are evaluated once at CellView creation, 
+    while attributes defined in <code>attrs</code> are evaluated on every model change. As JointJS special attributes usually depend on the 
+    current state of the model, we should define them in <code>attrs</code>, along with any other SVG attributes that will be modified 
+    in the runtime of your application.
+</p>
+
 <h4 id="dia.Element.intro.z">Z</h4>
 
 <p>The <code>z</code> property specifies the stack order of the element in the SVG DOM. An element with a higher <code>z</code> value will be rendered in front of an element with a lower <code>z</code> value. (<a href="#dia.Link.intro.z">This also applies to Links.</a>)</p>
