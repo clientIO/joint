@@ -693,13 +693,14 @@ export const elementViewPortPrototype = {
      */
     _createPortElement: function(port) {
 
-        var portElement;
-        var labelElement;
+        let portElement;
+        let labelElement;
+        let labelSelectors;
+        let portSelectors;
 
         var portContainerElement = V(this.portContainerMarkup).addClass('joint-port');
 
         var portMarkup = this._getPortMarkup(port);
-        var portSelectors;
         if (Array.isArray(portMarkup)) {
             var portDoc = this.parseDOMJSON(portMarkup, portContainerElement.node);
             var portFragment = portDoc.fragment;
@@ -725,26 +726,21 @@ export const elementViewPortPrototype = {
             'port-group': port.group
         });
 
-        var labelMarkup = this._getPortLabelMarkup(port.label);
-        var labelSelectors;
-        if (Array.isArray(labelMarkup)) {
-            var labelDoc = this.parseDOMJSON(labelMarkup, portContainerElement.node);
-            var labelFragment = labelDoc.fragment;
-            if (labelFragment.childNodes.length > 1) {
-                labelElement = V('g').append(labelFragment);
-            } else {
-                labelElement = V(labelFragment.firstChild);
+        const labelMarkupDef = this._getPortLabelMarkup(port.label);
+        if (Array.isArray(labelMarkupDef)) {
+            // JSON Markup
+            const { fragment, selectors } = this.parseDOMJSON(labelMarkupDef, portContainerElement.node);
+            const childCount = fragment.childNodes.length;
+            if (childCount > 0) {
+                labelSelectors = selectors;
+                labelElement = (childCount === 1) ? V(fragment.firstChild) : V('g').append(fragment);
             }
-            labelSelectors = labelDoc.selectors;
         } else {
-            labelElement = V(labelMarkup);
+            // String Markup
+            labelElement = V(labelMarkupDef);
             if (Array.isArray(labelElement)) {
                 labelElement = V('g').append(labelElement);
             }
-        }
-
-        if (!labelElement) {
-            throw new Error('ElementView: Invalid port label markup.');
         }
 
         var portContainerSelectors;
@@ -757,10 +753,10 @@ export const elementViewPortPrototype = {
             portContainerSelectors = portSelectors || labelSelectors;
         }
 
-        portContainerElement.append([
-            portElement.addClass('joint-port-body'),
-            labelElement.addClass('joint-port-label')
-        ]);
+        portContainerElement.append(portElement.addClass('joint-port-body'));
+        if (labelElement) {
+            portContainerElement.append(labelElement.addClass('joint-port-label'));
+        }
 
         this._portElementsCache[port.id] = {
             portElement: portContainerElement,
@@ -795,7 +791,7 @@ export const elementViewPortPrototype = {
             });
 
             var labelTransformation = metrics.labelTransformation;
-            if (labelTransformation) {
+            if (labelTransformation && cached.portLabelElement) {
                 this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
                 this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
                     rootBBox: new Rect(metrics.labelSize),

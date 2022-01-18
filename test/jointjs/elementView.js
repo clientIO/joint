@@ -28,6 +28,45 @@ QUnit.module('elementView', function(hooks) {
         paper = null;
     });
 
+    QUnit.module('ports', function() {
+
+        QUnit.test('no label markup', function(assert) {
+            var el1 = new joint.shapes.standard.Rectangle({
+                portMarkup: [{ tagName: 'polygon' }],
+                portLabelMarkup: [],
+                ports: {
+                    items: [{
+                        id: 1
+                    }, {
+                        id: 2
+                    }]
+                }
+            });
+            var el2 = new joint.shapes.standard.Rectangle({
+                portMarkup: [{ tagName: 'polygon' }],
+                ports: {
+                    items: [{
+                        id: 1,
+                        label: { markup: [] }
+                    }, {
+                        id: 2
+                    }]
+                }
+            });
+            paper.model.addCells([el1, el2]);
+            var el1view = el1.findView(paper);
+            var el2view = el2.findView(paper);
+            assert.equal(el1view.findPortNode(1, 'root').childNodes.length, 1);
+            assert.equal(el1view.findPortNode(2, 'root').childNodes.length, 1);
+            assert.equal(el1view.findPortNode(2, 'root').firstChild.tagName.toUpperCase(), 'POLYGON');
+            assert.equal(el2view.findPortNode(1, 'root').childNodes.length, 1);
+            assert.equal(el2view.findPortNode(2, 'root').childNodes.length, 2);
+            assert.equal(el2view.findPortNode(2, 'root').firstChild.tagName.toUpperCase(), 'POLYGON');
+            assert.equal(el2view.findPortNode(2, 'root').lastChild.tagName.toUpperCase(), 'TEXT');
+        });
+
+    });
+
     QUnit.module('custom view ', function() {
 
         QUnit.test('getBBox should not fail for custom view', function(assert) {
