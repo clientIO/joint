@@ -330,16 +330,45 @@ var rect = new joint.shapes.basic.Rect({
     // ...
 });
 
-rect.addPort({ markup: '<rect width="10" height="10" fill="blue"/>' });
-rect.addPort({ markup: '<rect width="15" height="15" fill="red"/>', label: { markup: '<text fill="#000000"/>' }});
+rect.addPort({ 
+    markup: [{ 
+        tagName: 'rect', selector: 'body', attributes: { 'width': 20, 'height': 20, 'fill': 'blue' }
+    }]
+});
+
+rect.addPort({
+    markup: [{ 
+        tagName: 'rect', selector: 'body', attributes: { 'width': 16, 'height': 16, 'fill': 'red' }
+    }],
+    label: { 
+        markup: [{ tagName: 'text', selector: 'label', attributes: { 'fill': '#000000' }}] 
+    },
+    attrs: { label: { text: 'port' }}
+});
 ```
 
 ...or, it can be set as an default port markup/port label markup on an element model:
 
 ```javascript
 var rect = new joint.shapes.basic.Rect({
-    portMarkup: '<rect width="20" height="20" fill="black"/>',
-    portLabelMarkup: '<text fill="yellow"/>',
+    portMarkup: [{
+        tagName: 'rect',
+        selector: 'body',
+        attributes: {
+            'width': 20,
+            'height': 20,
+            'fill': 'blue',
+            'stroke': 'black',
+            'stroke-width': 5 // Use native SVG kebab-case for attributes in markup
+        }
+    }],
+    portLabelMarkup: [{
+        tagName: 'text',
+        selector: 'label',
+        attributes: {
+            'fill': 'yellow'
+        }
+    }]
     // ...
 });
 ```
