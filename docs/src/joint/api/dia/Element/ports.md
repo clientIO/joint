@@ -294,7 +294,7 @@ groupA = {
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
-        Additional arguments for the layout method. Available properties depends on the layout type. More information could be found in <a href="#layot.PortLabel"><code>layout.PortLabel</code></a> section.
+        Additional arguments for the layout method. Available properties depends on the layout type. More information could be found in <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
     </td>
 </tr>
 <tr>
