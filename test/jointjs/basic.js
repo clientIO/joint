@@ -1090,6 +1090,7 @@ QUnit.module('basic', function(hooks) {
                 'change:embeds',
                 'batch:stop'
             ]);
+            assert.deepEqual(p1.get('embeds'), [c1.id, c2.id]);
             assert.equal(options[0].batchName, 'embed');
             assert.equal(options[1].testOption, true);
             assert.equal(options[2].testOption, true);
@@ -1113,6 +1114,7 @@ QUnit.module('basic', function(hooks) {
                 'change:embeds',
                 'batch:stop'
             ]);
+            assert.deepEqual(p1.get('embeds'), []);
             assert.equal(options[0].batchName, 'unembed');
             assert.equal(options[1].testOption, true);
             assert.equal(options[2].testOption, true);
