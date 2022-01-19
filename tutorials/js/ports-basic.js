@@ -19,6 +19,9 @@
     });
 
     var port = {
+        position: {
+            name: 'left'
+        },
         label: {
             position: {
                 name: 'left'
@@ -28,8 +31,9 @@
                 selector: 'label'
             }]
         },
+        group: 'a',
         attrs: { 
-            portBody: { 
+            body: { 
                 magnet: true,
                 width: 16,
                 height: 16,
@@ -43,7 +47,7 @@
         },
         markup: [{
             tagName: 'rect',
-            selector: 'portBody'
+            selector: 'body'
         }]
     };
 
@@ -56,11 +60,41 @@
             }
         },
         ports: {
-            items: [ port ] // add a port in constructor
+            groups: {
+                'a': {
+                    position: {
+                        name: 'right'
+                    }, 
+                    attrs: { 
+                        body: { 
+                            fill: 'green',
+                            width: 16,
+                            height: 16,
+                            x: -8,
+                            y: -8, 
+                        }},
+                    markup: [{
+                        tagName: 'rect',
+                        selector: 'body'
+                    }]
+                }
+            },
+            items: [port]
         }
     });
 
     model.addPort(port); // add a port using Port API
+    model.addPort({ group: 'a' }); // add a port using Port API
 
+
+    // model.addPorts([
+    //     { 
+    //         group: 'a',
+    //         attrs: { label: { text: 'in1' }}
+    //     }
+    // ]);
+
+    // console.log(model);
+    console.log(model.getGroupPorts('a'));
     graph.addCell(model);
 }());
