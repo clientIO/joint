@@ -362,9 +362,11 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        embed(cell: Cell, opt?: Graph.Options): this;
+        embed(cell: Cell | Cell[], opt?: Graph.Options): this;
 
-        unembed(cell: Cell, opt?: Graph.Options): this;
+        unembed(cell: Cell | Cell[], opt?: Graph.Options): this;
+
+        canEmbed(cell: Cell | Cell[]): boolean;
 
         addTo(graph: Graph, opt?: Graph.Options): this;
 
