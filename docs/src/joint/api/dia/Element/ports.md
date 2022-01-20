@@ -19,7 +19,7 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 
 ```javascript
 // Single port definition
-var port = {
+const port = {
     // id: 'abc', // generated if `id` value is not present
     group: 'a',
     args: {}, // extra arguments for the port layout function, see `layout.Port` section
@@ -44,7 +44,7 @@ var port = {
 };
 
 // a.) add a port in constructor.
-var rect = new joint.shapes.standard.Rectangle({
+const rect = new joint.shapes.standard.Rectangle({
     position: { x: 50, y: 50 },
     size: { width: 90, height: 90 },
     ports: {
@@ -215,13 +215,38 @@ All properties described above are optional, and everything has its own default.
 The `group` attribute comes into play when you're not happy with the default port alignment. It's also handy when you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group. Any `group` property can be overwritten by a port in this group except the type of layout - `position`. `group` defines the layout, and port `args` are the only way how a port can affect it.
 
 ```javascript
-// Define ports and port groups in element constructor.
-var groupA;
-var rect = new joint.shapes.basic.Rect({
+// Port definition for input ports group 
+const portsIn = {
+    position: {
+        name: 'left', // layout name
+        args: {}, // arguments for port layout function, properties depend on type of layout
+    },
+    label: {
+        position: {
+            name: 'left',
+            args: { y: 6 } 
+        },
+        markup: [{
+            tagName: 'text',
+            selector: 'label',
+        }]
+    },
+    attrs: {
+        body: { magnet: 'passive', width: 15, height: 15, stroke: 'red', x: -8, y: -8 },
+        label: { text: 'in1', fill: 'black' }
+    },
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }]
+};
+
+// Define port groups in element constructor
+const rect = new joint.shapes.basic.Rect({
     // ...
     ports: {
         groups: {
-            'group1': groupA,
+            'group1': portsIn,
             // 'group2': ...,
             // 'group3': ...,
         },
@@ -229,23 +254,11 @@ var rect = new joint.shapes.basic.Rect({
     }
 });
 
-groupA = {
-    position: {
-        name: 'string', // layout name
-        args: {}, // arguments for port layout function, properties depend on type of layout
-    },
-    label: {
-        // ....
-    },
-    attrs: {
-        body: { width: 10, height: 10, stroke: 'red'},
-        label: { text: 'portA', fill: 'blue' }
-    },
-    markup: [{
-        tagName: 'rect',
-        selector: 'body'
-    }]
-};
+// Add ports using Port API
+rect.addPorts([
+    { group: 'group1' }, 
+    { group: 'group1', attrs: { label: { text: 'in2' }}}
+]);
 ```
 
 <table>
