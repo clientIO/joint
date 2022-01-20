@@ -224,10 +224,9 @@ All properties described above are optional, and everything has its own default.
 
 #### Port groups configuration <a name="dia.Element.ports.groupssection"></a>
 
-<!-- While single port definitions are useful, what if we wanted more control over our ports? Groups can provide more structure, allow us 
-to separate ports into the catagories we want, and influence the layout of our ports.  -->
-
-<!-- The `group` attribute comes into play when you're not happy with the default port alignment. It's also handy when you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group. Any `group` property can be overwritten by a port in this group except the type of layout - `position`. `group` defines the layout, and port `args` are the only way how a port can affect it. -->
+While single port definitions are useful, what if we want more control over our ports? This is where a port group can come into play. A group allows us to define
+multiple ports with similar properties, and influence the default port alignment. Any individual port can override a property in a port group definition except the 
+type of layout(E.g. `position: 'left'`). The group definition defines the layout, and the individual port `args` are the only way a port can affect it.
 
 ```javascript
 // Port definition for input ports group 
@@ -276,9 +275,9 @@ const rect = new joint.shapes.basic.Rect({
 });
 
 // Add another port using Port API
-rect.addPort([
+rect.addPort(
     { group: 'group1', attrs: { label: { text: 'in2' }}}
-]);
+);
 ```
 
 <table>
