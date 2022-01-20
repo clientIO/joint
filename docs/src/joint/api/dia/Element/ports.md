@@ -20,13 +20,13 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 ```javascript
 // Single port definition
 const port = {
-    // id: 'abc', // generated if `id` value is not present
+    // id: 'abc', // Generated if `id` value is not present
     group: 'a',
-    args: {}, // extra arguments for the port layout function, see `layout.Port` section
+    args: {}, // Extra arguments for the port layout function, see `layout.Port` section
     label: {
         position: {
-            name: 'right',
-            args: { y: 6 } // extra arguments for the label layout function, see `layout.PortLabel` section
+            name: 'left',
+            args: { y: 6 } // Extra arguments for the label layout function, see `layout.PortLabel` section
         },
         markup: [{
             tagName: 'text',
@@ -34,8 +34,8 @@ const port = {
         }]
     },
     attrs: { 
-        body: { width: 16, height: 16, x: -8, stroke: 'red', fill: 'gray'},
-        label: { text: 'port1', fill: 'blue' }
+        body: { magnet: true, width: 16, height: 16, x: -8, y: -4, stroke: 'red', fill: 'gray'},
+        label: { text: 'port', fill: 'blue' }
     },
     markup: [{
         tagName: 'rect',
@@ -43,7 +43,7 @@ const port = {
     }]
 };
 
-// a.) add a port in constructor.
+// a.) Add ports in constructor.
 const rect = new joint.shapes.standard.Rectangle({
     position: { x: 50, y: 50 },
     size: { width: 90, height: 90 },
@@ -51,12 +51,24 @@ const rect = new joint.shapes.standard.Rectangle({
         groups: {
             'a': {}
         },
-        items: [port]
+        items: [
+            { group: 'a' },
+            port
+        ]
     }
 });
 
-// b.) or add a single port using API
+// b.) Or add a single port using API
 rect.addPort(port);
+
+rect.getGroupPorts('a');  
+/*
+   [
+       { * Default port settings * }, 
+       { * Follows port definition * }, 
+       { * Follows port definition * }
+    ]
+*/
 ```
 
 <table>
@@ -212,14 +224,17 @@ All properties described above are optional, and everything has its own default.
 
 #### Port groups configuration <a name="dia.Element.ports.groupssection"></a>
 
-The `group` attribute comes into play when you're not happy with the default port alignment. It's also handy when you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group. Any `group` property can be overwritten by a port in this group except the type of layout - `position`. `group` defines the layout, and port `args` are the only way how a port can affect it.
+<!-- While single port definitions are useful, what if we wanted more control over our ports? Groups can provide more structure, allow us 
+to separate ports into the catagories we want, and influence the layout of our ports.  -->
+
+<!-- The `group` attribute comes into play when you're not happy with the default port alignment. It's also handy when you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group. Any `group` property can be overwritten by a port in this group except the type of layout - `position`. `group` defines the layout, and port `args` are the only way how a port can affect it. -->
 
 ```javascript
 // Port definition for input ports group 
 const portsIn = {
     position: {
-        name: 'left', // layout name
-        args: {}, // arguments for port layout function, properties depend on type of layout
+        name: 'left', // Layout name
+        args: {}, // Arguments for port layout function, properties depend on type of layout
     },
     label: {
         position: {
@@ -250,13 +265,18 @@ const rect = new joint.shapes.basic.Rect({
             // 'group2': ...,
             // 'group3': ...,
         },
-        items: []
+        items: [
+             // Initialize 'rect' with port in group 'group1'
+            {
+                group: 'group1',
+                args: { y: 40 } // Overrides `args` from the group level definition for first port 
+            }
+        ]
     }
 });
 
-// Add ports using Port API
-rect.addPorts([
-    { group: 'group1' }, 
+// Add another port using Port API
+rect.addPort([
     { group: 'group1', attrs: { label: { text: 'in2' }}}
 ]);
 ```
