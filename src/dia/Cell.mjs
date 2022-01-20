@@ -313,39 +313,44 @@ export const Cell = Backbone.Model.extend({
     },
 
     embed: function(cell, opt) {
-
-        if (this === cell || this.isEmbeddedIn(cell)) {
-
+        const cells = Array.isArray(cell) ? cell : [cell];
+        if (!this.canEmbed(cells)) {
             throw new Error('Recursive embedding not allowed.');
-
-        } else {
-
-            this.startBatch('embed');
-
-            var embeds = assign([], this.get('embeds'));
-
-            // We keep all element ids after link ids.
-            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
-
-            cell.parent(this.id, opt);
-            this.set('embeds', uniq(embeds), opt);
-
-            this.stopBatch('embed');
         }
-
+        this._embedCells(cells, opt);
         return this;
     },
 
     unembed: function(cell, opt) {
-
-        this.startBatch('unembed');
-
-        cell.unset('parent', opt);
-        this.set('embeds', without(this.get('embeds'), cell.id), opt);
-
-        this.stopBatch('unembed');
-
+        const cells = Array.isArray(cell) ? cell : [cell];
+        this._unembedCells(cells, opt);
         return this;
+    },
+
+    canEmbed: function(cell) {
+        const cells = Array.isArray(cell) ? cell : [cell];
+        return cells.every(c => this !== c && !this.isEmbeddedIn(c));
+    },
+
+    _embedCells: function(cells, opt) {
+        const batchName = 'embed';
+        this.startBatch(batchName);
+        const embeds = assign([], this.get('embeds'));
+        cells.forEach(cell => {
+            // We keep all element ids after link ids.
+            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
+            cell.parent(this.id, opt);
+        });
+        this.set('embeds', uniq(embeds), opt);
+        this.stopBatch(batchName);
+    },
+
+    _unembedCells: function(cells, opt) {
+        const batchName = 'unembed';
+        this.startBatch(batchName);
+        cells.forEach(cell => cell.unset('parent', opt));
+        this.set('embeds', without(this.get('embeds'), ...cells.map(cell => cell.id)), opt);
+        this.stopBatch(batchName);
     },
 
     getParentCell: function() {

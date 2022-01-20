@@ -1022,55 +1022,124 @@ QUnit.module('basic', function(hooks) {
         }), ['a', 'aa', 'c', 'l2', 'aaa'], 'clone({ deep: true }) returns clones including all embedded cells');
     });
 
-    QUnit.test('embed(), unembed()', function(assert) {
+    QUnit.module('embed(), unembed()', function() {
 
-        var r1 = new joint.shapes.basic.Rect({
-            position: { x: 20, y: 30 },
-            size: { width: 120, height: 80 },
-            attrs: { text: { text: 'my rectangle' }}
+        QUnit.test('single cell', function(assert) {
+
+            var r1 = new joint.shapes.basic.Rect({
+                position: { x: 20, y: 30 },
+                size: { width: 120, height: 80 },
+                attrs: { text: { text: 'my rectangle' }}
+            });
+
+            this.graph.addCell(r1);
+
+            var r2 = r1.clone();
+            this.graph.addCell(r2);
+
+            r1.embed(r2);
+
+            r1.translate(50);
+
+            assert.checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
+            assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
+            assert.equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
+
+            r1.unembed(r2);
+
+            r1.translate(-50);
+            assert.checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
+            assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
+            assert.equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
+
+            r1.embed(r2);
+            r2.remove();
+            assert.deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
         });
 
-        this.graph.addCell(r1);
 
-        var r2 = r1.clone();
-        this.graph.addCell(r2);
+        QUnit.test('multiple cells', function(assert) {
 
-        r1.embed(r2);
+            var p1 = new joint.shapes.standard.Rectangle();
+            var c1 = p1.clone();
+            var c2 = p1.clone();
 
-        r1.translate(50);
+            this.graph.addCells([p1, c1, c2]);
 
-        assert.checkBbox(this.paper, r1, 70, 30, 120, 80, 'translate(50) should translate the parent element by 50px');
-        assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'embedded element should translate the same as the parent element');
-        assert.equal(r2.get('parent'), r1.id, 'embedded element gains the parent attribute pointing to its parent cell');
+            var events;
+            var options;
+            this.graph.on('all', function() {
+                var args = Array.from(arguments);
+                var eventName = args[0];
+                var opt = args[args.length - 1];
+                if (eventName === 'change') return;
+                events.push(eventName);
+                options.push(opt);
+            });
 
-        r1.unembed(r2);
+            events = [];
+            options = [];
+            p1.embed([c1, c2], { testOption: true });
 
-        r1.translate(-50);
-        assert.checkBbox(this.paper, r1, 20, 30, 120, 80, 'translate(-50) should translate the parent element by -50px');
-        assert.checkBbox(this.paper, r2, 70, 30, 120, 80, 'unembedded element should stay at the same position when its old parent got translated');
-        assert.equal(r2.get('parent'), undefined, 'embedded element gets its parent attribute pointing to its parent cell removed');
+            assert.ok(c1.isEmbeddedIn(p1));
+            assert.ok(c2.isEmbeddedIn(p1));
+            assert.deepEqual(events, [
+                'batch:start',
+                'change:parent',
+                'change:parent',
+                'change:embeds',
+                'batch:stop'
+            ]);
+            assert.deepEqual(p1.get('embeds'), [c1.id, c2.id]);
+            assert.equal(options[0].batchName, 'embed');
+            assert.equal(options[1].testOption, true);
+            assert.equal(options[2].testOption, true);
+            assert.equal(options[3].testOption, true);
+            assert.equal(options[4].batchName, 'embed');
 
-        r1.embed(r2);
-        r2.remove();
-        assert.deepEqual(r1.get('embeds'), [], 'embedded element got removed from the embeds array of its parent when the embedded element remove() was called.');
-    });
+            assert.throws(function() {
+                c1.embed([p1, c2]);
+            }, /Recursive embedding not allowed/);
 
-    QUnit.test('isEmbeddedIn()', function(assert) {
+            events = [];
+            options = [];
+            p1.unembed([c1, c2], { testOption: true });
 
-        var r1 = new joint.shapes.basic.Rect;
-        var r2 = r1.clone();
-        var r3 = r1.clone();
+            assert.notOk(c1.isEmbeddedIn(p1));
+            assert.notOk(c2.isEmbeddedIn(p1));
+            assert.deepEqual(events, [
+                'batch:start',
+                'change:parent',
+                'change:parent',
+                'change:embeds',
+                'batch:stop'
+            ]);
+            assert.deepEqual(p1.get('embeds'), []);
+            assert.equal(options[0].batchName, 'unembed');
+            assert.equal(options[1].testOption, true);
+            assert.equal(options[2].testOption, true);
+            assert.equal(options[3].testOption, true);
+            assert.equal(options[4].batchName, 'unembed');
+        });
 
-        r1.embed(r2);
-        r2.embed(r3);
+        QUnit.test('isEmbeddedIn()', function(assert) {
 
-        this.graph.addCells([r1, r2, r3]);
+            var r1 = new joint.shapes.basic.Rect;
+            var r2 = r1.clone();
+            var r3 = r1.clone();
 
-        assert.ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
-        assert.ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
-        assert.ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
-        assert.ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
-        assert.ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
+            r1.embed(r2);
+            r2.embed(r3);
+
+            this.graph.addCells([r1, r2, r3]);
+
+            assert.ok(!r1.isEmbeddedIn(r1), 'We have 3 elements. r3 is embedded in r2, r2 is embedded in r1. | r1 is not child of r1. ');
+            assert.ok(r2.isEmbeddedIn(r1), 'r2 is descendent of r1');
+            assert.ok(r3.isEmbeddedIn(r1), 'r3 is descendent of r1');
+            assert.ok(r3.isEmbeddedIn(r1, { deep: false }), 'r3 is not direct child of r1 (option { deep: false })');
+            assert.ok(!r1.isEmbeddedIn(r3), 'r1 is not descendent of r3');
+        });
+
     });
 
     QUnit.test('findMagnet()', function(assert) {

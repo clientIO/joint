@@ -102,12 +102,8 @@
         link_1_2, link_1_3, link_4_5, link_1_b
     ]);
 
-    container_a.embed(child_1);
-    container_a.embed(child_2);
-    container_a.embed(child_3);
-    container_a.embed(container_b);
-    container_b.embed(child_4);
-    container_b.embed(child_5);
+    container_a.embed([child_1, child_2, child_3, container_b]);
+    container_b.embed([child_4, child_5]);
 
     link_1_2.reparent();
     link_1_3.reparent();

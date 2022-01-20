@@ -52,9 +52,9 @@
     var lbg = makeLink(eb, eg);
     var lhg = makeLink(eh, eg);
 
-    group.embed(topGroup).embed(bottomGroup);
-    topGroup.embed(eb).embed(eh);
-    bottomGroup.embed(ec).embed(ed).embed(ee).embed(ef);
+    group.embed([topGroup, bottomGroup]);
+    topGroup.embed([eb, eh]);
+    bottomGroup.embed([ec, ed, ee, ef]);
 
     graph.addCell([group, topGroup, bottomGroup, ea, eb, ec, ed, ed, ee, ef, eg, eh, lab, lbc, lbd, lbe, lbf, lbg, lhg]);
 
