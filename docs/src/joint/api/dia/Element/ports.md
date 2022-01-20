@@ -91,14 +91,34 @@ rect.addPort(port);
 </tr>
 <tr>
     <td><b>markup</b></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
         <p>Custom port markup. Multiple roots are not allowed. Valid notation would be:</p>
-<pre><code>&lt;g&gt;
-    &lt;rect class="outer" width="15" height="15" fill="red"/&gt;
-    &lt;rect class="inner" width="15" height="15" fill="blue" x="10"/&gt;
-&lt;/g&gt;</code></pre>
-        <p>It defaults to <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
+<pre><code>markup: [{
+    tagName: 'g',
+    children: [{
+        tagName: 'rect',
+        selector: 'bodyInner',
+        className: 'outer',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'red'
+        }
+    }, {
+        tagName: 'rect',
+        selector: 'bodyOuter',
+        className: 'inner',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'blue',
+            'x': 10
+        }
+    }]
+}]
+</code></pre>
+        <p>The default port looks like the following: <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
     </td>
 </tr>
 <tr>
@@ -144,9 +164,9 @@ rect.addPort(port);
 </tr>
 <tr>
     <td><ul><li><b>label.markup</b></li></ul></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
+        Custom port label markup. Multiple roots are not allowed. The default port label looks like the following: <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
     </td>
 </tr>
 <tr>
@@ -260,14 +280,34 @@ groupA = {
 </tr>
 <tr>
     <td><b>markup</b></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
         <p>Custom port markup. Multiple roots are not allowed. Valid notation would be:</p>
-        <pre><code>&lt;g&gt;
-    &lt;rect class="outer" width="15" height="15" fill="red"/&gt;
-    &lt;rect class="inner" width="15" height="15" fill="red" x="10"/&gt;
-&lt;/g&gt;</code></pre>
-        <p>It defaults to <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
+        <pre><code>markup: [{
+    tagName: 'g',
+    children: [{
+        tagName: 'rect',
+        selector: 'bodyInner',
+        className: 'outer',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'red'
+        }
+    }, {
+        tagName: 'rect',
+        selector: 'bodyOuter',
+        className: 'inner',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'blue',
+            'x': 10
+        }
+    }]
+}]
+</code></pre>
+        <p>The default port looks like the following: <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
     </td>
 </tr>
 <tr>
@@ -314,9 +354,9 @@ groupA = {
 </tr>
 <tr>
     <td><ul><li><b>label.markup</b></li></ul></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
+        Custom port label markup. Multiple roots are not allowed. The default port label looks like the following: <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
     </td>
 </tr>
 </table>
