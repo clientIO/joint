@@ -1,4 +1,5 @@
 import { Path, Point, Curve } from '../g/index.mjs';
+import { toRad } from '../g/geometry.helpers.mjs';
 
 export const Directions = {
     AUTO: 'auto',
@@ -37,30 +38,30 @@ function autoDirectionTangents(linkView, sourcePoint, targetPoint, route, minTan
     let tangentTarget;
     switch (sourceSide) {
         case 'top':
-            tangentStart = new Point(0, -offsetStart)
+            tangentStart = new Point(0, -offsetStart);
             break;
         case 'bottom':
-            tangentStart = new Point(0, offsetStart)
+            tangentStart = new Point(0, offsetStart);
             break;
         case 'right':
-            tangentStart = new Point(offsetStart, 0)
+            tangentStart = new Point(offsetStart, 0);
             break;
         case 'left':
-            tangentStart = new Point(-offsetStart, 0)
+            tangentStart = new Point(-offsetStart, 0);
             break;
     }
     switch (targetSide) {
         case 'top':
-            tangentTarget = new Point(0, offsetTarget)
+            tangentTarget = new Point(0, offsetTarget);
             break;
         case 'bottom':
-            tangentTarget = new Point(0, -offsetTarget)
+            tangentTarget = new Point(0, -offsetTarget);
             break;
         case 'right':
-            tangentTarget = new Point(-offsetTarget, 0)
+            tangentTarget = new Point(-offsetTarget, 0);
             break;
         case 'left':
-            tangentTarget = new Point(offsetTarget, 0)
+            tangentTarget = new Point(offsetTarget, 0);
             break;
     }
 
@@ -184,9 +185,10 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
             break;
     }
 
-    const curves = createBezierSpline([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1]);
-    path = new Path(curves)
-        /*if (true) {
+    const curves = catmullRomSpline([sourcePoint, ...route.map(p => new Point(p)), targetPoint]);
+    //const curves = createBezierSpline([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1]);
+    path = new Path(curves);
+    /*if (true) {
             if (true) {
                 //let curves = Curve.throughPoints([sourcePoint, ...route, targetPoint]);
                 //let curves = throughPointsExtended([sourcePoint, ...route, targetPoint], points[0], points[1]);
@@ -257,8 +259,8 @@ function createBezierSpline(points, tangentStart, tangentEnd) {
     for (let i = 0; i < eqCount; i++) {
         const cN = (i + 1) / 2 >> 0;
         if (i === 0) {
-            cx[i] = tangentStart.x + 3 * points[0].x
-            cy[i] = tangentStart.y + 3 * points[0].y
+            cx[i] = tangentStart.x + 3 * points[0].x;
+            cy[i] = tangentStart.y + 3 * points[0].y;
         } else if (i === eqCount - 1) {
             cx[i] = 3 * points[n].x - tangentEnd.x;
             cy[i] = 3 * points[n].y - tangentEnd.y;
@@ -277,9 +279,9 @@ function createBezierSpline(points, tangentStart, tangentEnd) {
     for (let i = 0; i < eqCount; i++) {
         const row = new Array(eqCount).fill(0);
         if (i === 0) {
-            row[i] = 3
+            row[i] = 3;
         } else if (i === eqCount - 1) {
-            row[i] = 3
+            row[i] = 3;
         } else {
             const cN = (i + 1) / 2 >> 0;
             if (i % 2) {
@@ -292,7 +294,7 @@ function createBezierSpline(points, tangentStart, tangentEnd) {
                 row[i] = a[cN];
             }
         }
-        rows.push(row)
+        rows.push(row);
     }
 
     const rowsx = rows.map((row, i) => {
@@ -366,4 +368,108 @@ function reducedRowEchelonForm(matrix) {
     });
 
     return matrix;
+}
+
+function rotateVector(vector, angle) {
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    vector.x = cos * vector.x - sin * vector.y;
+    vector.y = sin * vector.x + cos * vector.y;
+}
+
+function angleBetweenVectors(v1, v2) {
+    let cos = v1.dot(v2) / (v1.magnitude() * v2.magnitude());
+    if (cos < -1) cos = -1;
+    if (cos > 1) cos = 1;
+    return Math.acos(cos);
+}
+
+function determinant(v1, v2) {
+    return v1.x * v2.y - v1.y * v2.x;
+}
+
+function catmullRomSpline(points) {
+    const tau = 0.5;
+
+    const p1 = points[0];
+    const p2 = points[1];
+    const p3 = points[2];
+    const dist1 = p1.distance(p2);
+    const dist2 = p2.distance(p3);
+    const ts1 = new Point(0, dist1 * 0.6);
+    const ps1 = p2.difference(ts1.x / tau, ts1.y / tau);
+
+    const te2 = new Point(0, -dist2 * 0.6);
+    const pe2 = p2.clone().offset(te2.x / tau, te2.y / tau);
+
+    const tp1 = p1.clone().offset(ts1.x, ts1.y);
+    const tp2 = p3.clone().offset(te2.x, te2.y);
+
+    const v1 = tp1.difference(p2).normalize();
+    const v2 = tp2.difference(p2).normalize();
+    console.log('##################');
+
+
+
+    console.log(v1, v2);
+    
+    const vAngle = angleBetweenVectors(v1, v2); 
+    console.log(vAngle);
+    let rot;
+    let t;
+    if (determinant(v1, v2) < 0) {
+        rot = -((Math.PI - vAngle) / 2.5);
+        console.log(rot);
+        t = v2.clone();
+        rotateVector(t, rot);
+    } else {
+        rot = (Math.PI - vAngle) / 2;
+        console.log(rot);
+        t = v2.clone();
+        rotateVector(t, rot);
+    }    
+    console.log(t);
+    //const t = new Point();
+    //const diff = p1.difference(p3);
+    //const angle = Math.cos(toRad(Point(0,0).theta(p3.clone().offset(te2.x, te2.y).difference(p1.clone().offset(ts1.x, ts1.y)).normalize())));
+    //console.log(angle);
+    //const angle = 180 - p2.angleBetween(p1, p3);
+    //new Point(1, 0); //p2.difference(p1);
+    //let coeff = dist1 > dist2 ? dist2 / dist1 : dist1 / dist2;
+    //rotateVector(t, /*coeff * */angle/*Math.PI / 5*/);
+    //t.normalize();
+    let scaleFactor = Math.min(dist1, dist2) / 1.5;
+    scaleFactor = Math.max(scaleFactor, 20);
+    t.scale(scaleFactor, scaleFactor);
+
+    const pe1 = new Point();
+    pe1.x = p1.x - t.x / tau;
+    pe1.y = p1.y - t.y / tau;
+    const ps2 = new Point();
+    ps2.x = pe1.x - p1.x + p3.x;
+    ps2.y = pe1.y - p1.y + p3.y;
+    const b1 = catmullRomToBezier([ps1, p1, p2, pe1]);
+    const b2 = catmullRomToBezier([ps2, p2, p3, pe2]);
+    return [
+        new Curve(b1[0], b1[1], b1[2], b1[3]),
+        new Curve(b2[0], b2[1], b2[2], b2[3])
+    ];
+}
+
+function catmullRomToBezier(points) {
+    const tau = 0.5;
+
+    const bcp1 = new Point();
+    bcp1.x = points[1].x + (points[2].x - points[0].x) / (6 * tau);
+    bcp1.y = points[1].y + (points[2].y - points[0].y) / (6 * tau);
+
+    const bcp2 = new Point();
+    bcp2.x = points[2].x + (points[3].x - points[1].x) / (6 * tau);
+    bcp2.y = points[2].y + (points[3].y - points[1].y) / (6 * tau);
+    return [
+        points[1],
+        bcp1,
+        bcp2,
+        points[2]
+    ];
 }
