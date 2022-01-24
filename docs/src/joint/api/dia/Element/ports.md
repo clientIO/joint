@@ -195,7 +195,7 @@ rect.getGroupPorts('a');
             Ports are placed into the main group element <code>elementView.el</code>, so it will act as the port container. 
             Ports with <code>z: 'auto'</code> are located right after the last element in the main group. Ports with <code>z</code> 
             defined as a number are placed before a DOM element at the position (index within the children of the container, where only
-            the original markup elements, and ports with <code>z:'auto'</code> are taken into account) equal to <code>z</code>.
+            the original markup elements, and ports with <code>z: 'auto'</code> are taken into account) equal to <code>z</code>.
         </p>
         <p>For instance, the first shape from the demo above with the following markup...</p>
 <pre><code>markup: [{
