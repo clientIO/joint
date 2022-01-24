@@ -1,6 +1,6 @@
 ### Ports
 
-Many diagramming applications deal with elements with ports. Ports are usually displayed as circles inside diagram elements and are used not only as "sticky" points for connected links but they also further structure the linking information. It is common that certain elements have lists of input and output ports. A link might not then point to the element as a whole, but to a certain port instead.
+Many diagramming applications deal with elements with ports. Ports are usually displayed as circles inside diagram elements and are used not only as "sticky" points for connected links, but they also further structure the linking information. It is common that certain elements have lists of input and output ports. A link might not then point to the element as a whole, but to a certain port instead.
 
 It's easy to add ports to arbitrary shapes in JointJS. This can be done either by passing a ports definition as an `option` in the constructor, or using the ports API to get/add/remove single or multiple ports. For more information on how to define ports please see the [Port configuration](#dia.Element.ports.interface) section.
 
@@ -164,7 +164,7 @@ rect.getGroupPorts('a');
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Stands for the layout type, match the layout method name defined in the <code>joint.layout.PortLabel</code> namespace: <code>name:'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
+        It states the layout type. It matches the layout method name defined in the <code>joint.layout.PortLabel</code> namespace: <code>name: 'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
     </td>
 </tr>
 <tr>
@@ -225,7 +225,7 @@ rect.getGroupPorts('a');
 </code></pre>
         <p>
             Ports will be placed in the <code>rotatable</code> group if it's defined in the shape's markup.
-            Ports with <code>z:'auto'</code> are located right after the last element in the <code>rotatable</code> group.
+            Ports with <code>z: 'auto'</code> are located right after the last element in the <code>rotatable</code> group.
             In the demo above, the second shape is defined with a <code>rotatable</code> group and the following markup:
         </p>
 <pre><code>markup: [{
@@ -423,7 +423,7 @@ rect.addPort(
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        It states the layout type. Match the layout method name defined in the <code>joint.layout.PortLabel</code> namespace: <code>name: 'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
+        It states the layout type. It matches the layout method name defined in the <code>joint.layout.PortLabel</code> namespace: <code>name: 'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
     </td>
 </tr>
 <tr>
