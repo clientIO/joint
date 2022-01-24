@@ -1,69 +1,146 @@
-var paper4 = createPaper();
-paper4.options.validateMagnet = function() {
-    return false;
-};
+document.addEventListener('DOMContentLoaded', function() {
 
-$('<b/>').text('Left click on any port to increment, right click to decrement \'z\'').appendTo('body');
+    var graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes });
 
-var g4 = new joint.shapes.basic.Rect({
-    markup: '<g class="rotatable"><g class="scalable"><rect class="main"/></g><rect class="inner"/></g>',
+    var paper = new joint.dia.Paper({
+        el: document.getElementById('paper'),
+        width: 550,
+        height: 250,
+        gridSize: 1,
+        model: graph,
+        sorting: joint.dia.Paper.sorting.APPROX,
+        interactive: false,
+        cellViewNamespace: joint.shapes
+    });
 
-    position: { x: 130, y: 30 },
-    size: { width: 80, height: 150 },
-    attrs: {
-        '.main': {
-            width: 80, height: 150,
-            stroke: '#31d0c6', 'stroke-width': 2
-        },
-        '.inner': {
-            width: 60, height: 130, 'ref-x': 10, 'ref-y': 10,
-            stroke: '#31d0c6', 'stroke-width': 2, fill: '#7c68fc'
-        }
-    }
-});
-
-var portIndex = 0;
-var addPort = function(z) {
-    var color = '#' + Number(0xe00eee + (portIndex++ * 1000)).toString(16);
-
-    g4.addPort({
-        z: z,
-        id: portIndex + '',
+    var rect = new joint.shapes.standard.Rectangle({
+        position: { x: 125, y: 60 },
+        size: { width: 80, height: 150 },
         attrs: {
-            circle: {
-                r: 20,
-                magnet: false,
-                fill: color,
-                stroke: '#31d0c6',
-                'stroke-width': 2
+            bodyMain: {
+                width: 80, 
+                height: 150,
+                stroke: '#000000', 
+                strokeWidth: 2, 
+                fill: '#FFFFFF'
             },
-            text: { text: ' z:' + z + '   ', fill: '#6a6c8a' }
+            bodyInner: {
+                width: 60, 
+                height: 130, 
+                x: 10, 
+                y: 10,
+                stroke: '#000000', 
+                strokeWidth: 2, 
+                fill: '#8ECAE6'
+            }
+        },
+        markup: [{
+            tagName: 'rect',
+            selector: 'bodyMain',
+            className: 'main'
+                
+        }, {
+            tagName: 'rect',
+            selector: 'bodyInner',
+            className: 'inner'
+        }]
+    });
+
+    var rect2 = new joint.shapes.standard.Rectangle({
+        position: { x: 365, y: 60 },
+        size: { width: 80, height: 150 },
+        attrs: {
+            bodyMain: {
+                width: 80, 
+                height: 150,
+                stroke: '#000000', 
+                strokeWidth: 2, 
+                fill: '#FFFFFF'
+            },
+            bodyInner: {
+                width: 60, 
+                height: 130, 
+                x: 10, 
+                y: 10,
+                stroke: '#000000',
+                strokeWidth: 2,
+                fill: '#7EB3CC'
+            },
+            label: {
+                text: 'Rotatable Group',
+                y: -90,
+                fontSize: 16
+            }
+        },
+        markup: [{
+            tagName: 'g',
+            selector: 'rotatable',
+            children: [{
+                tagName: 'g',
+                selector: 'scalable',
+                children: [{
+                    tagName: 'rect',
+                    selector: 'bodyMain',
+                    className: 'main'
+                }]
+            }, {
+                tagName: 'rect',
+                selector: 'bodyInner',
+                className: 'inner'
+            }, {
+                tagName: 'text',
+                selector: 'label'
+            }]
+        }]
+    });
+
+    var portIndex = 0;
+
+    var addPort = function(z) {
+        var color = '#' + Number(0x90caf9 + (portIndex++ * 1000)).toString(16);
+
+        var port = {
+            z: z,
+            id: portIndex + '',
+            attrs: {
+                circle: {
+                    r: 20,
+                    magnet: 'passive',
+                    fill: color,
+                    stroke: '#47637A',
+                    strokeWidth: 2
+                },
+                text: { text: ' z:' + z + '   ', fill: '#6a6c8a' }
+            }
+        };
+
+        rect.addPort(port);
+        rect2.addPort(port);
+    };
+
+    addPort('auto');
+    addPort(0);
+    addPort(1);
+    addPort(3);
+
+    rect.addTo(graph);
+    rect2.addTo(graph);
+
+    paper.on('cell:pointerclick cell:contextmenu', function(cellView, e) {
+
+        if (cellView.model.isLink() || !cellView.model.hasPorts()) {
+            return;
+        }
+
+        var portId = e.target.getAttribute('port');
+
+        if (portId) {
+            var portIndex = cellView.model.getPortIndex(portId);
+            var z = parseInt(cellView.model.prop('ports/items/' + portIndex + '/z'), 10) || 0;
+
+            z = e.type === 'contextmenu' ? Math.max(0, --z) : ++z;
+            cellView.model.prop('ports/items/' + portIndex + '/z', z);
+            cellView.model.prop('ports/items/' + portIndex + '/attrs/text/text', 'z:' + z + '   ');
         }
     });
-};
-
-addPort('auto');
-addPort(0);
-addPort(1);
-addPort(3);
-
-paper4.model.addCell(g4);
-
-paper4.on('cell:pointerclick cell:contextmenu', function(cellView, e) {
-
-    if (cellView.model.isLink() || !cellView.model.hasPorts()) {
-        return;
-    }
-
-    var portId = $(e.target).attr('port');
-
-    if (portId) {
-        var portIndex = cellView.model.getPortIndex(portId);
-        var z = parseInt(cellView.model.prop('ports/items/' + portIndex + '/z'), 10) || 0;
-
-
-        z = e.type === 'contextmenu' ? Math.max(0, --z) : ++z;
-        cellView.model.prop('ports/items/' + portIndex + '/z', z);
-        cellView.model.prop('ports/items/' + portIndex + '/attrs/text/text', 'z:' + z + '   ');
-    }
 });

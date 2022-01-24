@@ -189,10 +189,26 @@ rect.getGroupPorts('a');
         <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html" style="height: 224px; width: 803px;"></iframe>
         <p>Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc. Ports are placed into the element <code>rotatable</code> group (if there is no <code>rotatable</code> group in the shape's markup, then the main group element <code>elementView.el</code> is used for the port container). Ports with <code>z:'auto'</code> are located right after the last element in the <code>rotatable</code> group. Ports with <code>z</code> defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with <code>z:'auto'</code> are taken into account) equal to <code>z</code>.</p>
         <p>For instance an element with the following markup...</p>
-        <pre><code>&lt;g class="rotatable"&gt;
+        <pre><code>markup: [{
+    tagName: 'g',
+    selector: 'rotatable',
+    className: 'rotatable',
+    children: [{
+        tagName: 'g',
+        selector: 'scalable',
+        className: 'scalable',
+        children: [{
+            tagName: 'rect'
+        }]
+    }, {
+        tagName: 'text'
+    }]
+}]
+</pre></code>
+        <!-- <pre><code>&lt;g class="rotatable"&gt;
     &lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;
     &lt;text/&gt;
-&lt;/g&gt;</code></pre>
+&lt;/g&gt;</code></pre> -->
         <p>...will be rendered like this:</p>
         <pre><code>&lt;g model-id="element1"&gt;
     &lt;g class="rotatable"&gt;
@@ -224,9 +240,7 @@ All properties described above are optional, and everything has its own default.
 
 #### Port groups configuration <a name="dia.Element.ports.groupssection"></a>
 
-While single port definitions are useful, what if we want more control over our ports? This is where a port group can come into play. A group allows us to define
-multiple ports with similar properties, and influence the default port alignment. Any individual port can override a property in a port group definition except the 
-type of layout(E.g. `position: 'left'`). The group definition defines the layout, and the individual port `args` are the only way a port can affect it.
+While single port definitions are useful, what if we want more control over our ports? This is where a port group can come into play. A group allows us to define multiple ports with similar properties, and influence the default port alignment. Any individual port can override a property in a port group definition except the type of layout(E.g. `position: 'left'`). The group definition defines the layout, and the individual port `args` are the only way a port can affect it.
 
 ```javascript
 // Port definition for input ports group 

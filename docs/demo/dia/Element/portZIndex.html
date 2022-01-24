@@ -9,51 +9,35 @@
     <link rel="stylesheet" type="text/css" href="../../../css/lib/joint.min.css"/>
 
     <style>
-        .joint-paper {
-            border: 1px solid gray;
-            width: 800px
+         html, body, #paper {
+            position: relative;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
         }
         body {
-            margin: 0;
+            box-sizing: border-box;
+            padding: 5px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        #paper {
+            box-shadow: 0 0 3px hsla(0, 0%, 0%, 0.2);
         }
     </style>
 </head>
 <body>
 
+    <p>Left click on any port to increment, right click to decrement 'z'</p> 
+    <p>(<a href="./js/portZIndex.js" target="_blank">Source Code</a>)</p>
+    <div id="paper"></div>
 
-<!-- Dependencies: -->
-<script src="../../../js/lib/jquery.min.js"></script>
-<script src="../../../js/lib/lodash.min.js"></script>
-<script src="../../../js/lib/backbone.min.js"></script>
+    <!-- Dependencies: -->
+    <script src="../../../js/lib/jquery.min.js"></script>
+    <script src="../../../js/lib/lodash.min.js"></script>
+    <script src="../../../js/lib/backbone.min.js"></script>
 
-<script src="../../../js/lib/joint.min.js"></script>
-
-<script>
-    /**
-     * HELPERS
-     */
-    function createPaper() {
-        var graph = new joint.dia.Graph;
-
-        return new joint.dia.Paper({
-            el: $('<div/>').appendTo(document.body),
-            width: 800,
-            height: 200,
-            gridSize: 1,
-            perpendicularLinks: false,
-            model: graph,
-            linkView: joint.dia.LinkView.extend({
-                options: _.extend({}, joint.dia.LinkView.prototype.options, {
-                    doubleLinkTools: true,
-                    linkToolsOffset: 40,
-                    doubleLinkToolsOffset: 60
-                })
-            })
-        });
-    }
-</script>
-
-<script src="./js/portZIndex.js"></script>
+    <script src="../../../js/lib/joint.min.js"></script>
+    <script src="./js/portZIndex.js"></script>
 
 </body>
 </html>
