@@ -1,8 +1,8 @@
 ### Ports
 
-Many diagramming applications deal with elements with ports. Ports are usually displayed as circles inside diagram elements and are used not only as "sticky" points for connected links but they also further structure the linking information. It is common that certain elements have lists of input and output ports. A link might then point not to the element as a whole but to a certain port instead.
+Many diagramming applications deal with elements with ports. Ports are usually displayed as circles inside diagram elements and are used not only as "sticky" points for connected links, but they also further structure the linking information. It is common that certain elements have lists of input and output ports. A link might not then point to the element as a whole, but to a certain port instead.
 
-It's easy to add ports to arbitrary shapes in JointJS. This can be done either by passing a ports definition as an `option` in the constructor or using the ports API to get/add/remove single or multiple ports. For more information on how to define ports please see [Port configuration](#dia.Element.ports.interface) section.
+It's easy to add ports to arbitrary shapes in JointJS. This can be done either by passing a ports definition as an `option` in the constructor, or using the ports API to get/add/remove single or multiple ports. For more information on how to define ports please see the [Port configuration](#dia.Element.ports.interface) section.
 
 
 ##### Port API on `joint.dia.Element`
@@ -19,35 +19,56 @@ It's easy to add ports to arbitrary shapes in JointJS. This can be done either b
 
 ```javascript
 // Single port definition
-var port = {
-    // id: 'abc', // generated if `id` value is not present
+const port = {
+    // id: 'abc', // Generated if `id` value is not present
     group: 'a',
-    args: {}, // extra arguments for the port layout function, see `layout.Port` section
+    args: {}, // Extra arguments for the port layout function, see `layout.Port` section
     label: {
         position: {
-            name: 'right',
-            args: { y: 6 } // extra arguments for the label layout function, see `layout.PortLabel` section
+            name: 'left',
+            args: { y: 6 } // Extra arguments for the label layout function, see `layout.PortLabel` section
         },
-        markup: '<text class="label-text" fill="blue"/>'
+        markup: [{
+            tagName: 'text',
+            selector: 'label'
+        }]
     },
-    attrs: { text: { text: 'port1' } },
-    markup: '<rect width="16" height="16" x="-8" strokegit ="red" fill="gray"/>'
+    attrs: { 
+        body: { magnet: true, width: 16, height: 16, x: -8, y: -4, stroke: 'red', fill: 'gray'},
+        label: { text: 'port', fill: 'blue' }
+    },
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }]
 };
 
-// a.) add a port in constructor.
-var rect = new joint.shapes.standard.Rectangle({
+// a.) Add ports in constructor.
+const rect = new joint.shapes.standard.Rectangle({
     position: { x: 50, y: 50 },
     size: { width: 90, height: 90 },
     ports: {
         groups: {
             'a': {}
         },
-        items: [port]
+        items: [
+            { group: 'a' },
+            port
+        ]
     }
 });
 
-// b.) or add a single port using API
+// b.) Or add a single port using API
 rect.addPort(port);
+
+rect.getGroupPorts('a');  
+/*
+   [
+       { * Default port settings * }, 
+       { * Follows port definition * }, 
+       { * Follows port definition * }
+    ]
+*/
 ```
 
 <table>
@@ -55,7 +76,7 @@ rect.addPort(port);
     <td><b>id</b></td>
     <td><i>string</i></td>
     <td>
-        It is automatically generated if no <code>id</code> provided. IDs must be unique in the context of a single shape - two ports with the same port id are therefore not allowed (<code>Element: found id duplicities in ports.</code> error is thrown).
+        It is automatically generated if no <code>id</code> is provided. IDs must be unique in the context of a single shape - two ports with the same port id are therefore not allowed (<code>Element: found id duplicities in ports.</code> error is thrown).
     </td>
 </tr>
 
@@ -63,14 +84,14 @@ rect.addPort(port);
     <td><b>group</b></td>
     <td><i>string</i></td>
     <td>
-        Group name, more info in <a href="#dia.Element.ports.groupssection">groups</a> section.
+        Group name, more info in the <a href="#dia.Element.ports.groupssection">groups</a> section.
     </td>
 </tr>
 <tr>
     <td><b>args</b></td>
     <td><i>object</i></td>
     <td>
-        Arguments for the port layout function. Available properties depends on the type of layout. More information could be found in <a href="#layout.Port"><code>layout.Port</code></a>.
+        Arguments for the port layout function. Available properties depend on the type of layout. More information can be found in <a href="#layout.Port"><code>layout.Port</code></a>.
     </td>
 </tr>
 <tr>
@@ -82,21 +103,41 @@ rect.addPort(port);
 </tr>
 <tr>
     <td><b>markup</b></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
         <p>Custom port markup. Multiple roots are not allowed. Valid notation would be:</p>
-<pre><code>&lt;g&gt;
-    &lt;rect class="outer" width="15" height="15" fill="red"/&gt;
-    &lt;rect class="inner" width="15" height="15" fill="blue" x="10"/&gt;
-&lt;/g&gt;</code></pre>
-        <p>It defaults to <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
+<pre><code>markup: [{
+    tagName: 'g',
+    children: [{
+        tagName: 'rect',
+        selector: 'bodyInner',
+        className: 'outer',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'red'
+        }
+    }, {
+        tagName: 'rect',
+        selector: 'bodyOuter',
+        className: 'inner',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'blue',
+            'x': 10
+        }
+    }]
+}]
+</code></pre>
+        <p>The default port looks like the following: <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
     </td>
 </tr>
 <tr>
     <td><b>label</b></td>
     <td><i>object</i></td>
     <td>
-        Port label layout configuration. E.g. label position, label markup. More information about port label layouts could be found in <a href="#layout.PortLabel"><code>layout.PortLabel</code></a>.
+        Port label layout configuration. E.g. label position, label markup. More information about port label layouts can be found in <a href="#layout.PortLabel"><code>layout.PortLabel</code></a>.
     </td>
 </tr>
 
@@ -104,7 +145,7 @@ rect.addPort(port);
     <td><ul><li><b>label.position</b></li></ul></td>
     <td><i>string&nbsp;|&nbsp;object</i></td>
     <td>
-        <p>Port label position configuration. It could be a <code>string</code> for setting the port layout type directly with default settings or an <code>object</code> where it's possible to set the layout type and options.</p>
+        <p>Port label position configuration. It can be a <code>string</code> for setting the port layout type directly with default settings, or an <code>object</code> where it's possible to set the layout type and options.</p>
         <pre><code>{ position: 'left'}
 
 // or ...
@@ -123,94 +164,169 @@ rect.addPort(port);
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Stands for the layout type, match the layout method name defined in <code>joint.layout.PortLabel</code> namespace: <code>name:'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
+        It states the layout type. It matches the layout method name defined in the <code>joint.layout.PortLabel</code> namespace: <code>name: 'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
     </td>
 </tr>
 <tr>
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
-        Additional arguments for the layout method. Available properties depends on the layout type. More information could be found in <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
+        Additional arguments for the layout method. Available properties depend on the layout type. More information can be found in the <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
     </td>
 </tr>
 <tr>
     <td><ul><li><b>label.markup</b></li></ul></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
+        Custom port label markup. Multiple roots are not allowed. The default port label looks like the following: <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
     </td>
 </tr>
 <tr>
     <td><b>z</b></td>
     <td><i>number&nbsp;|&nbsp;string</i></td>
     <td>
-        <p>Alternative to HTML <code>z-index</code>. <code>z</code> sets the position of a port in the list of DOM elements within an <code>ElementView</code>.</p>
+        <p>
+            An alternative to HTML <code>z-index</code>. <code>z</code> sets the position of a port in the list of DOM elements
+            within an <code>ElementView</code>.
+        </p>
         <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html" style="height: 224px; width: 803px;"></iframe>
-        <p>Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc. Ports are placed into the element <code>rotatable</code> group (if there is no <code>rotatable</code> group in the shape's markup, then the main group element <code>elementView.el</code> is used for the port container). Ports with <code>z:'auto'</code> are located right after the last element in the <code>rotatable</code> group. Ports with <code>z</code> defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with <code>z:'auto'</code> are taken into account) equals to <code>z</code>.</p>
-        <p>For instance an element with the following markup...</p>
-        <pre><code>&lt;g class="rotatable"&gt;
-    &lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;
-    &lt;text/&gt;
-&lt;/g&gt;</code></pre>
+        <p>
+            Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc. 
+            Ports are placed into the main group element <code>elementView.el</code>, so it will act as the port container. 
+            Ports with <code>z: 'auto'</code> are located right after the last element in the main group. Ports with <code>z</code> 
+            defined as a number are placed before a DOM element at the position (index within the children of the container, where only
+            the original markup elements, and ports with <code>z: 'auto'</code> are taken into account) equal to <code>z</code>.
+        </p>
+        <p>For instance, the first shape from the demo above with the following markup...</p>
+<pre><code>markup: [{
+    tagName: 'rect',
+    selector: 'bodyMain',
+    className: 'bodyMain'      
+}, {
+    tagName: 'rect',
+    selector: 'bodyInner',
+    className: 'bodyInner'
+}, {
+    tagName: 'text',
+    selector: 'label',
+    className: 'label'
+}]
+</pre></code>
         <p>...will be rendered like this:</p>
-        <pre><code>&lt;g model-id="element1"&gt;
+<pre><code>&lt;g model-id="..."&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
+    &lt;rect class="bodyMain"&gt;&lt;/rect&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
+    &lt;rect class="bodyInner"&gt;&lt;/rect&gt;
+    &lt;text class="label"&gt;&lt;/text&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: auto --&gt;
+&lt;/g&gt;
+</code></pre>
+        <p>
+            Ports will be placed in the <code>rotatable</code> group if it's defined in the shape's markup.
+            Ports with <code>z: 'auto'</code> are located right after the last element in the <code>rotatable</code> group.
+            In the demo above, the second shape is defined with a <code>rotatable</code> group and the following markup:
+        </p>
+<pre><code>markup: [{
+    tagName: 'g',
+    selector: 'rotatable',
+    className: 'rotatable',
+    children: [{
+        tagName: 'g',
+        selector: 'scalable',
+        className: 'scalable',
+        children: [{
+            tagName: 'rect',
+            selector: 'bodyMain',
+            className: 'bodyMain'
+        }]
+    }, {
+        tagName: 'rect',
+        selector: 'bodyInner',
+        className: 'bodyInner'
+    }, {
+        tagName: 'text',
+        selector: 'label',
+        className: 'label'
+    }]
+}]
+</pre></code>
+        <p>
+            It will be rendered like this:
+        </p>
+<pre><code>&lt;g model-id="..."&gt;
     &lt;g class="rotatable"&gt;
-        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
-        &lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;
-        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
-        &lt;text/&gt;
-        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 2 --&gt;
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
+        &lt;g class="scalable"&gt;&lt;rect class="bodyMain"&gt;&lt;/rect&gt;&lt;/g&gt;         
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
+        &lt;rect class="bodyInner"&gt;&lt;/rect&gt;
+        &lt;text class="label"&gt;&lt;/text&gt;
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: auto --&gt;
     &lt;/g&gt;
-&lt;/g&gt;</code></pre>
-        <p>Another example with simplified markup <code>&lt;circle/&gt;&lt;text/&gt;</code> can look as follows:</p>
-        <pre><code>&lt;g model-id="element2"&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
-    &lt;circle/&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- another z: 1 --&gt;
-    &lt;text/&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 2 --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 'auto' --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 'auto' --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 10 --&gt;
-&lt;/g&gt;</code></pre>
+&lt;/g&gt;
+</code></pre>
     </td>
 </tr>
 </table>
 
-All properties described above are optional and everything has own default. E.g. `element.addPorts([{}, {}])` will add 2 ports with default settings.
+All properties described above are optional, and everything has its own default. E.g. `element.addPorts([{}, {}])` will add 2 ports with default settings.
 
 #### Port groups configuration <a name="dia.Element.ports.groupssection"></a>
 
-`group` attribute comes to play when you're not happy with the default port alignment. It's also handy when you need to define multiple ports with similar properties. `group` defines defaults for ports belonging to the group. Any `group` property can be overwritten by a port in this group except the type of layout - `position`. `group` defines the layout and port `args` are the only way how a port can affect it.
+While single port definitions are useful, what if we want more control over our ports? This is where a port group can come into play. A group allows us to define multiple ports with similar properties, and influence the default port alignment. Any individual port can override a property in a port group definition except the type of layout(E.g. `position: 'left'`). The group definition defines the layout, and the individual port `args` are the only way a port can affect it.
 
 ```javascript
-// Define ports and port groups in element constructor.
-var groupA;
-var rect = new joint.shapes.basic.Rect({
+// Port definition for input ports group 
+const portsIn = {
+    position: {
+        name: 'left', // Layout name
+        args: {}, // Arguments for port layout function, properties depend on type of layout
+    },
+    label: {
+        position: {
+            name: 'left',
+            args: { y: 6 } 
+        },
+        markup: [{
+            tagName: 'text',
+            selector: 'label',
+        }]
+    },
+    attrs: {
+        body: { magnet: 'passive', width: 15, height: 15, stroke: 'red', x: -8, y: -8 },
+        label: { text: 'in1', fill: 'black' }
+    },
+    markup: [{
+        tagName: 'rect',
+        selector: 'body'
+    }]
+};
+
+// Define port groups in element constructor
+const rect = new joint.shapes.basic.Rect({
     // ...
     ports: {
         groups: {
-            'group1': groupA,
+            'group1': portsIn,
             // 'group2': ...,
             // 'group3': ...,
         },
-        items: []
+        items: [
+             // Initialize 'rect' with port in group 'group1'
+            {
+                group: 'group1',
+                args: { y: 40 } // Overrides `args` from the group level definition for first port 
+            }
+        ]
     }
 });
 
-groupA = {
-    position: {
-        name: 'string', // layout name
-        args: {}, // arguments for port layout function, properties depends on type of layout
-    },
-    label: {
-        // ....
-    },
-    attrs: {},
-    markup: '<rect width="10" height="10" stroke="red"/>'
-};
+// Add another port using Port API
+rect.addPort(
+    { group: 'group1', attrs: { label: { text: 'in2' }}}
+);
 ```
 
 <table>
@@ -218,22 +334,22 @@ groupA = {
     <td><b>position</b></td>
     <td><i>string | object</i></td>
     <td>
-        Port position configuration. Could be <code>string</code> to set port layout type directly with default
-        settings or <code>object</code> where is possible to set layout type and options.
+        Port position configuration. It can be a <code>string</code> to set the port layout type directly with default
+        settings, or an <code>object</code> where it's possible to set the layout type and options.
     </td>
 </tr>
 <tr>
     <td><ul><li><b>position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Stands for the layout type, match the layout method name defined in <code>joint.layout.Port</code> namespace: <code>name:'left'</code> is implemented as <code>joint.layout.Port.left</code>.
+        It states the layout type. Match the layout method name defined in the <code>joint.layout.Port</code> namespace: <code>name: 'left'</code> is implemented as <code>joint.layout.Port.left</code>.
     </td>
 </tr>
 <tr>
     <td><ul><li><b>position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
-        Arguments for the port layout function. Available properties depends on the type of layout. More information could be found in <a href="#layout.Port"><code>layout.Port</code></a>.
+        Arguments for the port layout function. Available properties depend on the type of layout. More information can be found in <a href="#layout.Port"><code>layout.Port</code></a>.
     </td>
 </tr>
 <tr>
@@ -245,21 +361,41 @@ groupA = {
 </tr>
 <tr>
     <td><b>markup</b></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
         <p>Custom port markup. Multiple roots are not allowed. Valid notation would be:</p>
-        <pre><code>&lt;g&gt;
-    &lt;rect class="outer" width="15" height="15" fill="red"/&gt;
-    &lt;rect class="inner" width="15" height="15" fill="red" x="10"/&gt;
-&lt;/g&gt;</code></pre>
-        <p>It defaults to <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
+        <pre><code>markup: [{
+    tagName: 'g',
+    children: [{
+        tagName: 'rect',
+        selector: 'bodyInner',
+        className: 'outer',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'red'
+        }
+    }, {
+        tagName: 'rect',
+        selector: 'bodyOuter',
+        className: 'inner',
+        attributes: {
+            'width': 15,
+            'height': 15,
+            'fill': 'blue',
+            'x': 10
+        }
+    }]
+}]
+</code></pre>
+        <p>The default port looks like the following: <code>&lt;circle class="joint-port-body" r="10" fill="#FFFFFF" stroke="#000000"/&gt;</code>.</p>
     </td>
 </tr>
 <tr>
     <td><b>label</b></td>
     <td><i>object</i></td>
     <td>
-        Port label layout configuration. E.g. label position, label markup. More information about port label layouts could be found in <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
+        Port label layout configuration. E.g. label position, label markup. More information about port label layouts can be found in the <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
     </td>
 </tr>
 
@@ -267,7 +403,7 @@ groupA = {
     <td><ul><li><b>label.position</b></li></ul></td>
     <td><i>string&nbsp;|&nbsp;object</i></td>
     <td>
-        <p>Port label position configuration. It could be a <code>string</code> for setting the port layout type directly with default settings or an <code>object</code> where it's possible to set the layout type and options.</p>
+        <p>Port label position configuration. It can be a <code>string</code> for setting the port layout type directly with default settings, or an <code>object</code> where it's possible to set the layout type and options.</p>
         <pre><code>{ position: 'left'}
 
 // or ...
@@ -287,21 +423,21 @@ groupA = {
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.name</b></li></ul></td>
     <td><i>string</i></td>
     <td>
-        Stands for the layout type, match the layout method name defined in <code>joint.layout.PortLabel</code> namespace: <code>name:'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
+        It states the layout type. It matches the layout method name defined in the <code>joint.layout.PortLabel</code> namespace: <code>name: 'left'</code> is implemented as <code>joint.layout.PortLabel.left</code>.
     </td>
 </tr>
 <tr>
     <td><ul style="margin-left: 20px;list-style: circle"><li><b>label.position.args</b></li></ul></td>
     <td><i>object</i></td>
     <td>
-        Additional arguments for the layout method. Available properties depends on the layout type. More information could be found in <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
+        Additional arguments for the layout method. Available properties depend on the layout type. More information can be found in the <a href="#layout.PortLabel"><code>layout.PortLabel</code></a> section.
     </td>
 </tr>
 <tr>
     <td><ul><li><b>label.markup</b></li></ul></td>
-    <td><i>string</i></td>
+    <td><i>MarkupJSON&nbsp;|&nbsp;string</i></td>
     <td>
-        Custom port label markup. Multiple roots are not allowed. It defaults to <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
+        Custom port label markup. Multiple roots are not allowed. The default port label looks like the following: <code>&lt;text class="joint-port-label" fill="#000000"/&gt;</code>.
     </td>
 </tr>
 </table>
@@ -315,16 +451,45 @@ var rect = new joint.shapes.basic.Rect({
     // ...
 });
 
-rect.addPort({ markup: '<rect width="10" height="10" fill="blue"/>' });
-rect.addPort({ markup: '<rect width="15" height="15" fill="red"/>', label: { markup: '<text fill="#000000"/>' }});
+rect.addPort({ 
+    markup: [{ 
+        tagName: 'rect', selector: 'body', attributes: { 'width': 20, 'height': 20, 'fill': 'blue' }
+    }]
+});
+
+rect.addPort({
+    markup: [{ 
+        tagName: 'rect', selector: 'body', attributes: { 'width': 16, 'height': 16, 'fill': 'red' }
+    }],
+    label: { 
+        markup: [{ tagName: 'text', selector: 'label', attributes: { 'fill': '#000000' }}] 
+    },
+    attrs: { label: { text: 'port' }}
+});
 ```
 
 ...or, it can be set as an default port markup/port label markup on an element model:
 
 ```javascript
 var rect = new joint.shapes.basic.Rect({
-    portMarkup: '<rect width="20" height="20" fill="black"/>',
-    portLabelMarkup: '<text fill="yellow"/>',
+    portMarkup: [{
+        tagName: 'rect',
+        selector: 'body',
+        attributes: {
+            'width': 20,
+            'height': 20,
+            'fill': 'blue',
+            'stroke': 'black',
+            'stroke-width': 5 // Use native SVG kebab-case for attributes in markup
+        }
+    }],
+    portLabelMarkup: [{
+        tagName: 'text',
+        selector: 'label',
+        attributes: {
+            'fill': 'yellow'
+        }
+    }]
     // ...
 });
 ```
