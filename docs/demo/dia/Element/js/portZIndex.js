@@ -32,17 +32,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 stroke: '#000000', 
                 strokeWidth: 2, 
                 fill: '#8ECAE6'
+            },
+            label: {
+                text: 'Shape',
+                y: -90,
+                fontSize: 16
             }
         },
         markup: [{
             tagName: 'rect',
             selector: 'bodyMain',
-            className: 'main'
+            className: 'bodyMain'
                 
         }, {
             tagName: 'rect',
             selector: 'bodyInner',
-            className: 'inner'
+            className: 'bodyInner'
+        }, {
+            tagName: 'text',
+            selector: 'label',
+            className: 'label'
         }]
     });
 
@@ -67,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 fill: '#7EB3CC'
             },
             label: {
-                text: 'Rotatable Group',
+                text: ' Shape with rotatable group',
                 y: -90,
                 fontSize: 16
             }
@@ -75,21 +84,24 @@ document.addEventListener('DOMContentLoaded', function() {
         markup: [{
             tagName: 'g',
             selector: 'rotatable',
+            className: 'rotatable',
             children: [{
                 tagName: 'g',
                 selector: 'scalable',
+                className: 'scalable',
                 children: [{
                     tagName: 'rect',
                     selector: 'bodyMain',
-                    className: 'main'
+                    className: 'bodyMain'
                 }]
             }, {
                 tagName: 'rect',
                 selector: 'bodyInner',
-                className: 'inner'
+                className: 'bodyInner'
             }, {
                 tagName: 'text',
-                selector: 'label'
+                selector: 'label',
+                className: 'label'
             }]
         }]
     });

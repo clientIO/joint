@@ -185,11 +185,50 @@ rect.getGroupPorts('a');
     <td><b>z</b></td>
     <td><i>number&nbsp;|&nbsp;string</i></td>
     <td>
-        <p>Alternative to HTML <code>z-index</code>. <code>z</code> sets the position of a port in the list of DOM elements within an <code>ElementView</code>.</p>
+        <p>
+            An alternative to HTML <code>z-index</code>. <code>z</code> sets the position of a port in the list of DOM elements
+            within an <code>ElementView</code>.
+        </p>
         <iframe src="about:blank" data-src="./demo/dia/Element/portZIndex.html" style="height: 224px; width: 803px;"></iframe>
-        <p>Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc. Ports are placed into the element <code>rotatable</code> group (if there is no <code>rotatable</code> group in the shape's markup, then the main group element <code>elementView.el</code> is used for the port container). Ports with <code>z:'auto'</code> are located right after the last element in the <code>rotatable</code> group. Ports with <code>z</code> defined as a number are placed before a DOM element at the position (index within the children of the container, where only the original markup elements and ports with <code>z:'auto'</code> are taken into account) equal to <code>z</code>.</p>
-        <p>For instance an element with the following markup...</p>
-        <pre><code>markup: [{
+        <p>
+            Shapes most likely consist of 1 or more DOM elements, <code>&lt;rect/&gt;</code>, <code>&lt;rect/&gt;&lt;text/&gt;&lt;circle/&gt;</code> etc. 
+            Ports are placed into the main group element <code>elementView.el</code>, so it will act as the port container. 
+            Ports with <code>z: 'auto'</code> are located right after the last element in the main group. Ports with <code>z</code> 
+            defined as a number are placed before a DOM element at the position (index within the children of the container, where only
+            the original markup elements, and ports with <code>z:'auto'</code> are taken into account) equal to <code>z</code>.
+        </p>
+        <p>For instance, the first shape from the demo above with the following markup...</p>
+<pre><code>markup: [{
+    tagName: 'rect',
+    selector: 'bodyMain',
+    className: 'bodyMain'      
+}, {
+    tagName: 'rect',
+    selector: 'bodyInner',
+    className: 'bodyInner'
+}, {
+    tagName: 'text',
+    selector: 'label',
+    className: 'label'
+}]
+</pre></code>
+        <p>...will be rendered like this:</p>
+<pre><code>&lt;g model-id="..."&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
+    &lt;rect class="bodyMain"&gt;&lt;/rect&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
+    &lt;rect class="bodyInner"&gt;&lt;/rect&gt;
+    &lt;text class="label"&gt;&lt;/text&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
+    &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: auto --&gt;
+&lt;/g&gt;
+</code></pre>
+        <p>
+            Ports will be placed in the <code>rotatable</code> group if it's defined in the shape's markup.
+            Ports with <code>z:'auto'</code> are located right after the last element in the <code>rotatable</code> group.
+            In the demo above, the second shape is defined with a <code>rotatable</code> group and the following markup:
+        </p>
+<pre><code>markup: [{
     tagName: 'g',
     selector: 'rotatable',
     className: 'rotatable',
@@ -198,40 +237,36 @@ rect.getGroupPorts('a');
         selector: 'scalable',
         className: 'scalable',
         children: [{
-            tagName: 'rect'
+            tagName: 'rect',
+            selector: 'bodyMain',
+            className: 'bodyMain'
         }]
     }, {
-        tagName: 'text'
+        tagName: 'rect',
+        selector: 'bodyInner',
+        className: 'bodyInner'
+    }, {
+        tagName: 'text',
+        selector: 'label',
+        className: 'label'
     }]
 }]
 </pre></code>
-        <!-- <pre><code>&lt;g class="rotatable"&gt;
-    &lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;
-    &lt;text/&gt;
-&lt;/g&gt;</code></pre> -->
-        <p>...will be rendered like this:</p>
-        <pre><code>&lt;g model-id="element1"&gt;
+        <p>
+            It will be rendered like this:
+        </p>
+<pre><code>&lt;g model-id="..."&gt;
     &lt;g class="rotatable"&gt;
-        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
-        &lt;g class="scalable"&gt;&lt;rect/&gt;&lt;/g&gt;
-        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
-        &lt;text/&gt;
-        &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 2 --&gt;
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
+        &lt;g class="scalable"&gt;&lt;rect class="bodyMain"&gt;&lt;/rect&gt;&lt;/g&gt;         
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
+        &lt;rect class="bodyInner"&gt;&lt;/rect&gt;
+        &lt;text class="label"&gt;&lt;/text&gt;
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
+        &lt;g class="joint-port"&gt;&lt;/g&gt;         &lt;!-- z: auto --&gt;
     &lt;/g&gt;
-&lt;/g&gt;</code></pre>
-        <p>Another example with simplified markup <code>&lt;circle/&gt;&lt;text/&gt;</code> could look like the following:</p>
-        <pre><code>&lt;g model-id="element2"&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 0 --&gt;
-    &lt;circle/&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 1 --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- another z: 1 --&gt;
-    &lt;text/&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 2 --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 'auto' --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 3 --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 'auto' --&gt;
-    &lt;g class="port"&gt;&lt;/g&gt;         &lt;!-- z: 10 --&gt;
-&lt;/g&gt;</code></pre>
+&lt;/g&gt;
+</code></pre>
     </td>
 </tr>
 </table>
