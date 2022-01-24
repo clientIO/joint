@@ -1,5 +1,4 @@
 import { Path, Point, Curve } from '../g/index.mjs';
-import { toRad } from '../g/geometry.helpers.mjs';
 
 export const Directions = {
     AUTO: 'auto',
@@ -373,8 +372,10 @@ function reducedRowEchelonForm(matrix) {
 function rotateVector(vector, angle) {
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
-    vector.x = cos * vector.x - sin * vector.y;
-    vector.y = sin * vector.x + cos * vector.y;
+    const x = cos * vector.x - sin * vector.y;
+    const y = sin * vector.x + cos * vector.y;
+    vector.x = x;
+    vector.y = y;
 }
 
 function angleBetweenVectors(v1, v2) {
@@ -388,68 +389,72 @@ function determinant(v1, v2) {
     return v1.x * v2.y - v1.y * v2.x;
 }
 
+function calculateTangentPoint(t, p) {
+    const ts1Length = t.magnitude();
+    let tp;
+    if (ts1Length > 50) {
+        if (ts1Length < 200) {
+            const k = (ts1Length - 50) / 150;
+            tp = p.clone().offset(t.x - t.x * k, t.y - t.y * k);
+        } else {
+            tp = p.clone();    
+        }
+    } else {
+        tp = p.clone().offset(t.x, t.y);
+    }
+    return tp;
+}
+
 function catmullRomSpline(points) {
     const tau = 0.5;
 
-    const p1 = points[0];
-    const p2 = points[1];
-    const p3 = points[2];
-    const dist1 = p1.distance(p2);
-    const dist2 = p2.distance(p3);
-    const ts1 = new Point(0, dist1 * 0.6);
-    const ps1 = p2.difference(ts1.x / tau, ts1.y / tau);
+    const n = points.length - 1;
 
-    const te2 = new Point(0, -dist2 * 0.6);
-    const pe2 = p2.clone().offset(te2.x / tau, te2.y / tau);
+    const d1 = points[0].distance(points[1]);
+    const dn = points[n - 1].distance(points[n]);
 
-    const tp1 = p1.clone().offset(ts1.x, ts1.y);
-    const tp2 = p3.clone().offset(te2.x, te2.y);
+    const t11 = new Point(0, d1 * 0.6);
+    const p10 = points[1].difference(t11.x / tau, t11.y / tau);
 
-    const v1 = tp1.difference(p2).normalize();
-    const v2 = tp2.difference(p2).normalize();
+    const tn2 = new Point(0, -dn * 0.6);
+    const pn3 = points[n - 1].clone().offset(tn2.x / tau, tn2.y / tau);
+
+    const tp1 = calculateTangentPoint(t11, points[0]);
+    const tpn = calculateTangentPoint(tn2, points[n]);
+
+    const v1 = tp1.difference(points[1]).normalize();
+    const v2 = tpn.difference(points[n - 1]).normalize();
+
     console.log('##################');
-
-
-
     console.log(v1, v2);
     
     const vAngle = angleBetweenVectors(v1, v2); 
     console.log(vAngle);
-    let rot;
+    let rot = (Math.PI - vAngle) / 2;
     let t;
     if (determinant(v1, v2) < 0) {
-        rot = -((Math.PI - vAngle) / 2.5);
-        console.log(rot);
-        t = v2.clone();
-        rotateVector(t, rot);
-    } else {
-        rot = (Math.PI - vAngle) / 2;
-        console.log(rot);
-        t = v2.clone();
-        rotateVector(t, rot);
-    }    
+        rot = -rot;
+    }
+    console.log(rot);
+    t = v2.clone();
+    rotateVector(t, rot);
     console.log(t);
-    //const t = new Point();
-    //const diff = p1.difference(p3);
-    //const angle = Math.cos(toRad(Point(0,0).theta(p3.clone().offset(te2.x, te2.y).difference(p1.clone().offset(ts1.x, ts1.y)).normalize())));
-    //console.log(angle);
-    //const angle = 180 - p2.angleBetween(p1, p3);
-    //new Point(1, 0); //p2.difference(p1);
-    //let coeff = dist1 > dist2 ? dist2 / dist1 : dist1 / dist2;
-    //rotateVector(t, /*coeff * */angle/*Math.PI / 5*/);
-    //t.normalize();
-    let scaleFactor = Math.min(dist1, dist2) / 1.5;
-    scaleFactor = Math.max(scaleFactor, 20);
-    t.scale(scaleFactor, scaleFactor);
+    const t1 = t.clone();
+    const scaleFactor1 = Math.max(d1 / 1.5, 20);
+    t1.scale(scaleFactor1, scaleFactor1);
 
-    const pe1 = new Point();
-    pe1.x = p1.x - t.x / tau;
-    pe1.y = p1.y - t.y / tau;
-    const ps2 = new Point();
-    ps2.x = pe1.x - p1.x + p3.x;
-    ps2.y = pe1.y - p1.y + p3.y;
-    const b1 = catmullRomToBezier([ps1, p1, p2, pe1]);
-    const b2 = catmullRomToBezier([ps2, p2, p3, pe2]);
+    const t2 = t.clone();
+    const scaleFactor2 = Math.max(dn / 1.5, 20);
+    t2.scale(scaleFactor2, scaleFactor2);
+
+    const p13 = new Point();
+    p13.x = points[0].x - t1.x / tau;
+    p13.y = points[0].y - t1.y / tau;
+    const pn0 = new Point();
+    pn0.x = points[n].x - t2.x / tau;
+    pn0.y = points[n].y - t2.y / tau;
+    const b1 = catmullRomToBezier([p10, points[0], points[1], p13]);
+    const b2 = catmullRomToBezier([pn0, points[n - 1], points[n], pn3]);
     return [
         new Curve(b1[0], b1[1], b1[2], b1[3]),
         new Curve(b2[0], b2[1], b2[2], b2[3])
