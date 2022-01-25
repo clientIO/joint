@@ -1994,7 +1994,7 @@ export namespace shapes {
 
         interface EllipseSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
-            body?: attributes.SVGCircleAttributes;
+            body?: attributes.SVGEllipseAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
