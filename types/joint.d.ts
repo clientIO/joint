@@ -468,6 +468,7 @@ export namespace dia {
 
         interface PositionOptions extends TranslateOptions {
             parentRelative?: boolean;
+            deep?: boolean;
         }
 
         interface BBoxOptions extends Cell.EmbeddableOptions {
