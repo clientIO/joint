@@ -461,9 +461,14 @@ export namespace dia {
             angle: number;
         }
 
-        interface TranslateOptions {
-            restrictedArea?: BBox;
+        interface TranslateOptions extends Cell.Options{
+            restrictedArea?: BBox | Paper.PointConstraintCallback;
             transition?: Cell.TransitionOptions;
+        }
+
+        interface PositionOptions extends TranslateOptions {
+            parentRelative?: boolean;
+            deep?: boolean;
         }
 
         interface BBoxOptions extends Cell.EmbeddableOptions {
@@ -479,8 +484,8 @@ export namespace dia {
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
-        position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
-        position(x: number, y: number, opt?: { parentRelative?: boolean, deep?: boolean, [key: string]: any }): this;
+        position(opt?: Element.PositionOptions): g.Point;
+        position(x: number, y: number, opt?: Element.PositionOptions): this;
 
         size(): Size;
         size(width: number, height?: number, opt?: { direction?: Direction, [key: string]: any }): this;
