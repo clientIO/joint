@@ -1,3 +1,28 @@
+DD-MM-2022 (v3.5.0)
+  * dia.Paper - add `labelsLayer` option
+  * dia.Paper - add `getFitToContentArea()`
+  * dia.Paper - fix embedding mode with rotated elements
+  * dia.Paper - fix adding a new cell with an id of previously removed cell in the async mode
+  * dia.Paper - cancel previous background image load
+  * dia.Paper - improve markers, gradients and patterns
+  * dia.Paper - migrate mousewheel/DOMMouseScroll to wheel
+  * dia.Paper - fix update priority stats
+  * elementTools.Connect - a new tool to create links from an element
+  * elementTools.Control - a new tool to modify a arbitrary attribute
+  * linkTools.Connect -  a new tool to create links from a link
+  * linkTools.Vertices - allow vertex removal on touch devices
+  * linkTools.Anchor - allow anchor reset on touch devices
+  * linkTools.Vertices - fix creation and immediate dragging of a vertex on touch devices
+  * dia.Cell - `embed()` and `umbed()` to accept an array of cells
+  * dia.Cell - fix stopTransitions() without path argument
+  * dia.Cell - stopping the transition does not require waiting for the transition to start
+  * dia.attributes - add `x` and `y` properties to `calc()` expression
+  * dia.attributes - support negative number addition/subtraction in `calc()` expression
+  * dia.attributes - support nested `calc()` functions
+  * mvc.View - support double tap event on touch devices
+  * Vectorizer - allow whitespace and line terminator characters in the co…
+  * Geometry - implement intersection between all objects
+
 27-09-2021 (v3.4.4)
   * dia.Graph - prevent attribute type inference from the constructor
 
