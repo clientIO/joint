@@ -38,44 +38,45 @@ export const Element = Cell.extend({
 
     position: function(x, y, opt) {
 
-        var isSetter = isNumber(y);
-
+        const isSetter = isNumber(y);
         opt = (isSetter ? opt : x) || {};
+        const { parentRelative, deep, restrictedArea } = opt;
+
 
         // option `parentRelative` for setting the position relative to the element's parent.
-        if (opt.parentRelative) {
+        let parentPosition;
+        if (parentRelative) {
 
             // Getting the parent's position requires the collection.
             // Cell.parent() holds cell id only.
             if (!this.graph) throw new Error('Element must be part of a graph.');
 
-            var parent = this.getParentCell();
-            var parentPosition = parent && !parent.isLink()
-                ? parent.get('position')
-                : { x: 0, y: 0 };
+            const parent = this.getParentCell();
+            if (parent && !parent.isLink()) {
+                parentPosition = parent.get('position');
+            }
         }
 
         if (isSetter) {
 
-            if (opt.parentRelative) {
+            if (parentPosition) {
                 x += parentPosition.x;
                 y += parentPosition.y;
             }
 
-            if (opt.deep) {
-                var currentPosition = this.get('position');
-                this.translate(x - currentPosition.x, y - currentPosition.y, opt);
+            if (deep || restrictedArea) {
+                const { x: x0, y: y0 } = this.get('position');
+                this.translate(x - x0, y - y0, opt);
             } else {
-                this.set('position', { x: x, y: y }, opt);
+                this.set('position', { x, y }, opt);
             }
 
             return this;
 
         } else { // Getter returns a geometry point.
 
-            var elementPosition = Point(this.get('position'));
-
-            return opt.parentRelative
+            const elementPosition = Point(this.get('position'));
+            return parentRelative
                 ? elementPosition.difference(parentPosition)
                 : elementPosition;
         }

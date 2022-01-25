@@ -267,6 +267,28 @@ QUnit.module('basic', function(hooks) {
             '40@40',
             'and moves the child to keep the original distance from the element origin'
         );
+
+        var size = r1.size();
+        r1.position(400, 400, {
+            restrictedArea: { x: 0, y: 0, width: 80 + size.width, height: 220 + size.height }
+        });
+        assert.equal(
+            r1.position().toString(),
+            '80@220',
+            'setter respects the restrictedArea option rect'
+        );
+
+        var raSpy = sinon.spy(function() { return { x: 11, y: 13 }; });
+        var raOpt = { restrictedArea: raSpy };
+        r1.position(17, 19, raOpt);
+        assert.equal(
+            r1.position().toString(),
+            '11@13',
+            'setter respects the restrictedArea option function'
+        );
+        assert.ok(raSpy.calledOnce);
+        assert.ok(raSpy.calledOn(r1));
+        assert.ok(raSpy.calledWithExactly(17, 19, raOpt));
     });
 
     QUnit.test('translate()', function(assert) {
