@@ -168,7 +168,7 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
 
     const raw = Boolean(opt.raw);
     // minOffset - minimal proximal control point offset.
-    const { minTangentMagnitude = 20, direction = Directions.NONE } = opt;
+    const { minTangentMagnitude = 20, direction = Directions.LEGACY } = opt;
 
     const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
 
