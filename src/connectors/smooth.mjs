@@ -4,6 +4,7 @@ export const Directions = {
     AUTO: 'auto',
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
+    NONE: 'none',
     LEGACY: 'legacy'
 };
 
@@ -53,6 +54,22 @@ function autoDirectionTangents(linkView, route, minTangentMagnitude) {
     }
 
     return [tangentStart, tangentTarget];
+}
+
+function noneDirectionTangents(linkView, route, minTangentMagnitude) {
+    const last = route.length - 1;
+
+    const routeStartPoint = route[1];
+    const routeTargetPoint = route[last - 1];
+
+    const startDistance = route[0].distance(routeStartPoint);
+    const endDistance = route[last].distance(routeTargetPoint);
+    const coeff = 0.6;
+
+    const tangentStart = routeStartPoint.difference(route[0]).normalize().scale(startDistance * coeff, startDistance * coeff);
+    const tangentEnd = routeTargetPoint.difference(route[last]).normalize().scale(endDistance * coeff, endDistance * coeff);
+
+    return [tangentStart, tangentEnd];
 }
 
 function horizontalDirectionTangents(linkView, route, minOffset) {
@@ -151,7 +168,7 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
 
     const raw = Boolean(opt.raw);
     // minOffset - minimal proximal control point offset.
-    const { minTangentMagnitude = 20, direction = Directions.LEGACY } = opt;
+    const { minTangentMagnitude = 20, direction = Directions.NONE } = opt;
 
     const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
 
@@ -162,6 +179,9 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
             break;
         case Directions.VERTICAL:
             tangents = verticalDirectionTangents(linkView, completeRoute, minTangentMagnitude);
+            break;
+        case Directions.NONE:
+            tangents = noneDirectionTangents(linkView, completeRoute, minTangentMagnitude);
             break;
         case Directions.AUTO:
             tangents = autoDirectionTangents(linkView, completeRoute, minTangentMagnitude);
