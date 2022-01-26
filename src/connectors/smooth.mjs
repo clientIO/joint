@@ -7,18 +7,6 @@ export const Directions = {
     LEGACY: 'legacy'
 };
 
-function legacyPoints(sourcePoint, targetPoint) {
-    if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
-        const controlPointX = (sourcePoint.x + targetPoint.x) / 2;
-
-        return [new Point(controlPointX, sourcePoint.y), new Point(controlPointX, targetPoint.y)];
-    } else {
-        const controlPointY = (sourcePoint.y + targetPoint.y) / 2;
-
-        return [new Point(sourcePoint.x, controlPointY), new Point(targetPoint.x, controlPointY)];
-    }
-}
-
 function autoDirectionTangents(linkView, route, minTangentMagnitude) {
     const { sourceBBox, targetBBox } = linkView;
     const last = route.length - 1;
@@ -137,23 +125,38 @@ function verticalDirectionTangents(linkView, route, minOffset) {
     return [new Point(0, sourceY), new Point(0, targetY)];
 }
 
+function noneDirectionPathWithoutRoute(sourcePoint, targetPoint) {
+    const path = new Path();
+
+    let segment = Path.createSegment('M', sourcePoint);
+    path.appendSegment(segment);
+
+    if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
+        const controlPointX = (sourcePoint.x + targetPoint.x) / 2;
+
+        segment = Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
+        path.appendSegment(segment);
+    } else {
+        const controlPointY = (sourcePoint.y + targetPoint.y) / 2;
+
+        segment = Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
+        path.appendSegment(segment);
+    }    
+
+    return path;
+}
+
 export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
     const linkView = this;
 
     const raw = Boolean(opt.raw);
     // minOffset - minimal proximal control point offset.
-    const { minTangentMagnitude = 20, direction = Directions.AUTO } = opt;
-
-    let path = new Path();
-    path.appendSegment(Path.createSegment('M', sourcePoint));
+    const { minTangentMagnitude = 20, direction = Directions.LEGACY } = opt;
 
     const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
 
     let tangents = [];
     switch (direction) {
-        case Directions.LEGACY:
-            tangents = legacyPoints(sourcePoint, targetPoint);
-            break;
         case Directions.HORIZONTAL:
             tangents = horizontalDirectionTangents(linkView, completeRoute, minTangentMagnitude);
             break;
@@ -161,14 +164,26 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
             tangents = verticalDirectionTangents(linkView, completeRoute, minTangentMagnitude);
             break;
         case Directions.AUTO:
-        default:
             tangents = autoDirectionTangents(linkView, completeRoute, minTangentMagnitude);
             break;
+        case Directions.LEGACY:
+        default: {
+            let path;
+            if (route && route.length !== 0) {
+                const points = [sourcePoint].concat(route).concat([targetPoint]);
+                const curves = Curve.throughPoints(points);
+        
+                path = new Path(curves);
+            } else {
+                path = noneDirectionPathWithoutRoute(sourcePoint, targetPoint);
+            }
+            return (raw) ? path : path.serialize();
+        }
     }
 
     const catmullRomCurves = createCatmullRomCurves([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1], 0.5);
     const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, 0.5));
-    path = new Path(bezierCurves);
+    const path = new Path(bezierCurves);
 
     return (raw) ? path : path.serialize();
 };
@@ -227,22 +242,20 @@ function createCatmullRomCurves(points, startTangent, endTangent, tension) {
         let rot = (Math.PI - vAngle) / 2;
         let t;
         const vectorDeterminant = determinant(v1, v2);
-        if (vectorDeterminant < 0) {
-            rot = -rot;
-        }
-        t = v2.clone();
-        rotateVector(t, rot);
-
         let pointsDeterminant;
         if (n > 2) {
             pointsDeterminant = determinant(points[i].difference(tpNext), points[i].difference(tpPrev));
         } else {
             pointsDeterminant = determinant(points[i].difference(points[i + 1]), points[i].difference(points[i - 1]));
         }
-        if ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0)) {
-            t.x = -t.x;
-            t.y = -t.y;
+        if (vectorDeterminant < 0) {
+            rot = -rot;
         }
+        if ((vAngle < Math.PI / 2) && ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0))) {
+            rot = rot - Math.PI;
+        }
+        t = v2.clone();
+        rotateVector(t, rot);
         
         const t1 = t.clone();
         const scaleFactor1 = Math.max(distances[i - 1] / 1.5, 20);
