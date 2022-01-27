@@ -4,11 +4,11 @@ export const Directions = {
     AUTO: 'auto',
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
-    NONE: 'none',
+    CENTRAL: 'central',
     LEGACY: 'legacy'
 };
 
-function autoDirectionTangents(linkView, route, minTangentMagnitude) {
+function autoDirectionTangents(linkView, route, options) {
     const { sourceBBox, targetBBox } = linkView;
     const last = route.length - 1;
 
@@ -20,7 +20,7 @@ function autoDirectionTangents(linkView, route, minTangentMagnitude) {
 
     const startDistance = route[0].distance(routeStartPoint);
     const endDistance = route[last].distance(routeTargetPoint);
-    const coeff = 0.6;
+    const { coeff } = options;
 
     let tangentStart;
     let tangentTarget;
@@ -56,7 +56,7 @@ function autoDirectionTangents(linkView, route, minTangentMagnitude) {
     return [tangentStart, tangentTarget];
 }
 
-function noneDirectionTangents(linkView, route, minTangentMagnitude) {
+function centralDirectionTangents(linkView, route, options) {
     const last = route.length - 1;
 
     const routeStartPoint = route[1];
@@ -64,7 +64,7 @@ function noneDirectionTangents(linkView, route, minTangentMagnitude) {
 
     const startDistance = route[0].distance(routeStartPoint);
     const endDistance = route[last].distance(routeTargetPoint);
-    const coeff = 0.6;
+    const { coeff } = options;
 
     const tangentStart = routeStartPoint.difference(route[0]).normalize().scale(startDistance * coeff, startDistance * coeff);
     const tangentEnd = routeTargetPoint.difference(route[last]).normalize().scale(endDistance * coeff, endDistance * coeff);
@@ -72,7 +72,7 @@ function noneDirectionTangents(linkView, route, minTangentMagnitude) {
     return [tangentStart, tangentEnd];
 }
 
-function horizontalDirectionTangents(linkView, route, minOffset) {
+function horizontalDirectionTangents(linkView, route, options) {
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -83,31 +83,61 @@ function horizontalDirectionTangents(linkView, route, minOffset) {
     const last = route.length - 1;
     const startDistance = route[0].distance(route[1]);
     const endDistance = route[last].distance(route[last - 1]);
-    const coeff = 0.6;
+    const { coeff, angleTangentCoefficient } = options;
+
+    const startTangent = startDistance * coeff;
+    const endTangent = endDistance * coeff;
+    const vStart = route[1].difference(route[0]).normalize();
+    const vEnd = route[last - 1].difference(route[last]).normalize();
+
     switch (sourceSide) {
-        case 'left':
-            sourceX = -startDistance * coeff;
+        case 'left': {
+            const angle = angleBetweenVectors(new Point(-1, 0), vStart);
+            if (angle > Math.PI / 4) {
+                sourceX = -startTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                sourceX = -startTangent;
+            }
             break;
+        }   
         case 'right':
-        default:
-            sourceX = startDistance * coeff;
+        default: {
+            const angle = angleBetweenVectors(new Point(1, 0), vStart);
+            if (angle > Math.PI / 4) {
+                sourceX = startTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                sourceX = startTangent;
+            }
             break;
+        }
     }
 
     switch (targetSide) {
-        case 'left':
-            targetX = -endDistance * coeff;
+        case 'left': {
+            const angle = angleBetweenVectors(new Point(-1, 0), vEnd);
+            if (angle > Math.PI / 4) {
+                targetX = -endTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                targetX = -endTangent;
+            }
             break;
+        }   
         case 'right':
-        default:
-            targetX = endDistance * coeff;
+        default: {
+            const angle = angleBetweenVectors(new Point(1, 0), vEnd);
+            if (angle > Math.PI / 4) {
+                targetX = endTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                targetX = endTangent;
+            }
             break;
+        }
     }
 
     return [new Point(sourceX, 0), new Point(targetX, 0)];
 }
 
-function verticalDirectionTangents(linkView, route, minOffset) {
+function verticalDirectionTangents(linkView, route, options) {
     const { sourceBBox, targetBBox } = linkView;
     const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
     const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
@@ -118,31 +148,61 @@ function verticalDirectionTangents(linkView, route, minOffset) {
     const last = route.length - 1;
     const startDistance = route[0].distance(route[1]);
     const endDistance = route[last].distance(route[last - 1]);
-    const coeff = 0.6;
+
+    const { coeff, angleTangentCoefficient } = options;
+    const startTangent = startDistance * coeff;
+    const endTangent = endDistance * coeff;
+    const vStart = route[1].difference(route[0]).normalize();
+    const vEnd = route[last - 1].difference(route[last]).normalize();
+
     switch (sourceSide) {
-        case 'top':
-            sourceY = -startDistance * coeff;
+        case 'top': {
+            const angle = angleBetweenVectors(new Point(0, -1), vStart);
+            if (angle > Math.PI / 4) {
+                sourceY = -startTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                sourceY = -startTangent;
+            }
             break;
+        }   
         case 'bottom':
-        default:
-            sourceY = startDistance * coeff;
+        default: {
+            const angle = angleBetweenVectors(new Point(0, 1), vStart);
+            if (angle > Math.PI / 4) {
+                sourceY = startTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                sourceY = startTangent;
+            }
             break;
+        }
     }
 
     switch (targetSide) {
-        case 'top':
-            targetY = -endDistance * coeff;
+        case 'top': {
+            const angle = angleBetweenVectors(new Point(0, -1), vEnd);
+            if (angle > Math.PI / 4) {
+                targetY = -endTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                targetY = -endTangent;
+            }
             break;
+        }
         case 'bottom':
-        default:
-            targetY = endDistance * coeff;
+        default: {
+            const angle = angleBetweenVectors(new Point(0, 1), vEnd);
+            if (angle > Math.PI / 4) {
+                targetY = endTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
+            } else {
+                targetY = endTangent;
+            }
             break;
+        }
     }
 
     return [new Point(0, sourceY), new Point(0, targetY)];
 }
 
-function noneDirectionPathWithoutRoute(sourcePoint, targetPoint) {
+function legacyPathWithoutRoute(sourcePoint, targetPoint) {
     const path = new Path();
 
     let segment = Path.createSegment('M', sourcePoint);
@@ -167,24 +227,31 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
     const linkView = this;
 
     const raw = Boolean(opt.raw);
-    // minOffset - minimal proximal control point offset.
-    const { minTangentMagnitude = 20, direction = Directions.LEGACY } = opt;
+    // distanceCoefficient - coefficient of a relation between the points distance and tangents length.
+    // angleTangentCoefficient - coefficient of an increasing of the end tangents depending on the angle between the tangent and a vector towards the next point.
+    // tension - Catmull-Rom curve tension parameter.
+    const { direction = Directions.LEGACY } = opt;
+    const options = {
+        coeff: opt.distanceCoefficient || 10,
+        angleTangentCoefficient: opt.angleTangentCoefficient || 80,
+        tau: opt.tension || 0.5
+    };
 
     const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
 
     let tangents = [];
     switch (direction) {
         case Directions.HORIZONTAL:
-            tangents = horizontalDirectionTangents(linkView, completeRoute, minTangentMagnitude);
+            tangents = horizontalDirectionTangents(linkView, completeRoute, options);
             break;
         case Directions.VERTICAL:
-            tangents = verticalDirectionTangents(linkView, completeRoute, minTangentMagnitude);
+            tangents = verticalDirectionTangents(linkView, completeRoute, options);
             break;
-        case Directions.NONE:
-            tangents = noneDirectionTangents(linkView, completeRoute, minTangentMagnitude);
+        case Directions.CENTRAL:
+            tangents = centralDirectionTangents(linkView, completeRoute, options);
             break;
         case Directions.AUTO:
-            tangents = autoDirectionTangents(linkView, completeRoute, minTangentMagnitude);
+            tangents = autoDirectionTangents(linkView, completeRoute, options);
             break;
         case Directions.LEGACY:
         default: {
@@ -195,14 +262,14 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
         
                 path = new Path(curves);
             } else {
-                path = noneDirectionPathWithoutRoute(sourcePoint, targetPoint);
+                path = legacyPathWithoutRoute(sourcePoint, targetPoint);
             }
             return (raw) ? path : path.serialize();
         }
     }
 
-    const catmullRomCurves = createCatmullRomCurves([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1], 0.5);
-    const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, 0.5));
+    const catmullRomCurves = createCatmullRomCurves([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1], options);
+    const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, options));
     const path = new Path(bezierCurves);
 
     return (raw) ? path : path.serialize();
@@ -228,8 +295,8 @@ function determinant(v1, v2) {
     return v1.x * v2.y - v1.y * v2.x;
 }
 
-function createCatmullRomCurves(points, startTangent, endTangent, tension) {
-    const tau = tension;
+function createCatmullRomCurves(points, startTangent, endTangent, options) {
+    const { tau, coeff } = options;
     const distances = [];
     const tangents = [];
     const catmullRomCurves = [];    
@@ -278,11 +345,12 @@ function createCatmullRomCurves(points, startTangent, endTangent, tension) {
         rotateVector(t, rot);
         
         const t1 = t.clone();
-        const scaleFactor1 = Math.max(distances[i - 1] / 1.5, 20);
-        t1.scale(scaleFactor1, scaleFactor1);
-
         const t2 = t.clone();
-        const scaleFactor2 = Math.max(distances[i] / 1.5, 20);
+
+        const scaleFactor1 = distances[i - 1] * coeff;
+        const scaleFactor2 = distances[i] * coeff;
+
+        t1.scale(scaleFactor1, scaleFactor1);
         t2.scale(scaleFactor2, scaleFactor2);
 
         tangents[i] = [t1, t2];
@@ -307,8 +375,8 @@ function createCatmullRomCurves(points, startTangent, endTangent, tension) {
     return catmullRomCurves;
 }
 
-function catmullRomToBezier(points, tension) {
-    const tau = tension;
+function catmullRomToBezier(points, options) {
+    const { tau } = options;
 
     const bcp1 = new Point();
     bcp1.x = points[1].x + (points[2].x - points[0].x) / (6 * tau);
