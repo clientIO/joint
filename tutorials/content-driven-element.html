@@ -56,6 +56,188 @@
                 element sizing instead.
             </p>
 
+            <h3>Shape definition</h3>
+
+            <p>
+                To get started, we create our shape by extending the <code>joint.dia.Element</code> class. As we aren't using 
+                <code>markup</code> or <code>attrs</code>, we provide just a few custom presentation attributes that we want to work with.
+            </p>
+
+<pre><code>class Shape extends joint.dia.Element {
+    defaults() {
+        return {
+            ...super.defaults,
+            type: 'custom.Shape',
+            fillColor: 'red',
+            outlineColor: 'blue',
+            label: '',
+            image: ''
+        };
+    }
+}
+</code></pre>
+
+            <p>
+                The main magic of our shape happens in a layout function. As we want our layout function to have access to certain
+                model properties during calculation, we should <code>preinitialize()</code> our model with those properties.
+            </p>
+
+<pre><code>preinitialize() {
+    this.spacing = 10;
+    this.labelAttributes = {
+      'font-size': 14,
+      'font-family': 'sans-serif',
+    };
+    this.imageAttributes = {
+      'width': 50,
+      'height': 50,
+      'preserveAspectRatio': 'none'
+    };
+    this.cache = {};
+}
+</code></pre>
+
+            <p>
+                When we <code>initialize()</code> our shape instance, we add an event listener to detect changes in labels and 
+                images as those are the types of content that affect our layout.
+            </p>
+
+            <p>
+                We also set the size of our element based on the width and height derived from our layout function.
+            </p>
+
+<pre><code>initialize() {
+    super.initialize();
+    this.on('change', this.onAttributeChange);
+    this.setSizeFromContent();
+}
+
+/* Attributes that affects the size of the model. */
+onAttributeChange() {
+    const {
+      changed,
+      cache
+    } = this;
+    if ('label' in changed) {
+      // invalidate the cache only if the text of the `label` has changed
+      delete cache.label;
+    }
+    if ('label' in changed || 'image' in changed) {
+      this.setSizeFromContent();
+    }
+}
+
+setSizeFromContent() {
+    delete this.cache.layout;
+    const {
+      width,
+      height
+    } = this.layout();
+    this.resize(width, height);
+}
+</code></pre>
+
+                <p>
+                    Next we will highlight the layout of our element, and how it's created. As you can see, our <code>calcLayout()</code> method utilizes the properties we created
+                    earlier.
+                </p>
+
+                <p>
+                    The function focuses on returning metrics for the <code>width</code> and <code>height</code> of our element, and also the dimensions for our label and image.
+                </p>
+
+<pre><code>layout() {
+    const {
+        cache
+    } = this;
+    let {
+        layout
+    } = cache;
+    if (layout) {
+        return layout;
+    } else {
+        const layout = this.calcLayout();
+        cache.layout = layout;
+        return layout;
+    }
+}
+    
+calcLayout() {
+    const {
+        attributes,
+        labelAttributes,
+        imageAttributes,
+        spacing,
+        cache
+    } = this;
+    let width = spacing * 2;
+    let height = spacing * 2;
+    let x = spacing;
+    let y = spacing;
+    // image metrics
+    let $image;
+    if (attributes.image) {
+        const {
+            width: w,
+            height: h
+        } = imageAttributes;
+        $image = {
+            x,
+            y,
+            width: w,
+            height: h
+        };
+        height += spacing + h;
+        y += spacing + h;
+        width += w;
+    } else {
+        $image = null;
+    }
+    // label metrics
+    let $label; {
+        let w, h;
+        if ('label' in cache) {
+            w = cache.label.width;
+            h = cache.label.height;
+        } else {
+        const {
+            width,
+            height
+        } = measureText(svg, attributes.label, labelAttributes);
+        w = width;
+        h = height;
+        cache.label = {
+            width,
+            height
+        };
+        }
+        width = Math.max(width, spacing + w + spacing);
+        height += h;
+        if (!h) {
+            // no text
+            height -= spacing;
+        }
+        $label = {
+            x,
+            y,
+            width: w,
+            height: h
+        };
+    }
+    // root metrics
+    return {
+        x: 0,
+        y: 0,
+        width,
+        height,
+        $image,
+        $label
+    };
+}
+</code></pre>
+
+            <h3>Custom Shape View</h3>
+
         </div><!--end tutorial-->
 
         <script src="../node_modules/prismjs/prism.js"></script>
