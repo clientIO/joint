@@ -56,6 +56,10 @@
                 element sizing instead.
             </p>
 
+            <div id="paper-content-driven-element"></div>
+            <script type="text/javascript" src="js/content-driven-element.js"></script>
+            <p>JointJS source code: <a href="js/content-driven-element.js" target="_blank">content-driven-element.js</a></p>
+
             <h3>Shape definition</h3>
 
             <p>
@@ -137,14 +141,15 @@ setSizeFromContent() {
 }
 </code></pre>
 
-                <p>
-                    Next we will highlight the layout of our element, and how it's created. As you can see, our <code>calcLayout()</code> method utilizes the properties we created
-                    earlier.
-                </p>
+            <p>
+                Next we will highlight the layout of our element, and how it's created. As you can see, our <code>calcLayout()</code> 
+                method utilizes the properties we createdearlier.
+            </p>
 
-                <p>
-                    The function focuses on returning metrics for the <code>width</code> and <code>height</code> of our element, and also the dimensions for our label and image.
-                </p>
+            <p>
+                The function focuses on returning metrics for the <code>width</code> and <code>height</code> of our element, and also 
+                the dimensions for our label and image.
+            </p>
 
 <pre><code>layout() {
     const {
@@ -200,16 +205,16 @@ calcLayout() {
             w = cache.label.width;
             h = cache.label.height;
         } else {
-        const {
-            width,
-            height
-        } = measureText(svg, attributes.label, labelAttributes);
-        w = width;
-        h = height;
-        cache.label = {
-            width,
-            height
-        };
+            const {
+                width,
+                height
+            } = measureText(svg, attributes.label, labelAttributes);
+            w = width;
+            h = height;
+            cache.label = {
+                width,
+                height
+            };
         }
         width = Math.max(width, spacing + w + spacing);
         height += h;
@@ -236,7 +241,166 @@ calcLayout() {
 }
 </code></pre>
 
-            <h3>Custom Shape View</h3>
+        <h3>Custom Shape View</h3>
+
+        <p>
+            Another important aspect of our content driven element is our custom element view. The view is responsible for rendering
+            our shape, and also working with our element visually. Our custom view will listen to the underlying model changes, and
+            update itself.
+        </p>
+
+        <p>
+            <code>addPresentationAttributes()</code> extends the <code>CellView</code> presentation attributes, with more attributes,
+            and makes sure the original CellView attributes are preserved.
+        </p>
+
+        <p>
+            An important note about the view is that, when it needs an update, it first requests that update from the <code>paper</code>.
+            Update requests are sent to the paper via flags. To sum up <code>presentationAttributes</code>, it is an object that maps 
+            attributes to these flag labels. <code>confirmUpdate()</code> receives all scheduled flags, and based on them updates the view.
+            In our example, <code>confirmUpdate</code> doesn't resize DOM elements if the received flag is <code>'@color'</code>.
+        </p>
+
+<pre><code>const ElementView = joint.dia.ElementView;
+
+const ShapeView = ElementView.extend({
+
+    presentationAttributes: ElementView.addPresentationAttributes({
+        // attributes that changes the position and size of the DOM elements
+        label: [ElementView.Flags.UPDATE],
+        image: [ElementView.Flags.UPDATE],
+        // attributes that do not affect the size
+        outlineColor: ['@color'],
+        fillColor: ['@color'],
+    }),
+
+    confirmUpdate: function(...args) {
+        let flags = ElementView.prototype.confirmUpdate.call(this, ...args);
+        if (this.hasFlag(flags, '@color')) {
+            // if only a color is changed, no need to resize the DOM elements
+            this.updateColors();
+            flags = this.removeFlag(flags, '@color');
+        }
+        // must return 0
+        return flags;
+    }
+
+});
+    
+joint.shapes.custom = {
+    Shape,
+    ShapeView
+};
+</code></pre>
+
+        <p>
+            The <code>render()</code> function runs once during initialization, and calls the relevant functions
+            for updating our element. 
+        </p>
+
+<pre><code>/* Runs only once while initializing */
+render: function() {
+    const {
+        vel,
+        model
+    } = this;
+    const body = this.vBody = V('rect').addClass('body');
+    const label = this.vLabel = V('text').addClass('label').attr(model.labelAttributes);
+    this.vImage = V('image').addClass('image').attr(model.imageAttributes);
+    vel.empty().append([
+        body,
+        label
+    ]);
+    this.update();
+    this.updateColors();
+    this.translate(); // default element translate method
+},
+
+update: function() {
+    const layout = this.model.layout();
+    this.updateBody(layout);
+    this.updateImage(layout.$image);
+    this.updateLabel(layout.$label);
+},
+
+updateColors: function() {
+    const {
+        model,
+        vBody
+    } = this;
+    vBody.attr({
+        fill: model.get('fillColor'),
+        stroke: model.get('outlineColor')
+    });
+},
+
+updateBody: function() {
+    const {
+        model,
+        vBody
+    } = this;
+    const {
+        width,
+        height
+    } = model.size();
+    const bodyAttributes = {
+        width,
+        height
+    };
+    vBody.attr(bodyAttributes);
+},
+
+updateImage: function($image) {
+    const {
+        model,
+        vImage,
+        vel
+    } = this;
+    const image = model.get('image');
+    if (image) {
+        if (!vImage.parent()) {
+            vel.append(vImage);
+        }
+        vImage.attr({
+            'xlink:href': image,
+            x: $image.x,
+            y: $image.y
+        });
+
+    } else {
+        vImage.remove();
+    }
+},
+
+updateLabel: function($label) {
+    const {
+        model,
+        vLabel
+    } = this;
+    vLabel.attr({
+        'text-anchor': 'middle',
+        x: $label.x + $label.width / 2,
+        y: $label.y + $label.height / 2
+    });
+    vLabel.text(model.get('label'), {
+        textVerticalAnchor: 'middle'
+    });
+}
+</code></pre>
+
+            <p>
+                Lastly, we make an instance of our shape with the techniques you are familiar with.
+            </p>
+
+<pre><code>const customShape4 = new Shape();
+customShape4
+    .set('image', 'https://via.placeholder.com/150/FF0000')
+    .set('label', 'Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nInteger vehicula.')
+    .set('outlineColor', 'red')
+    .position(200, 50)
+    .prop('fillColor', 'lightgray')
+    .addTo(graph);
+</code></pre>
 
         </div><!--end tutorial-->
 

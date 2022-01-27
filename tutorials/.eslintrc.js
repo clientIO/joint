@@ -17,5 +17,9 @@ module.exports = {
             // Exceptions currently used in tutorial directory
             'no-unused-vars': ['off']
         }
-    }]
+    }],
+    'parserOptions': {
+        'ecmaVersion': 9,
+        'sourceType': 'module'
+    }
 };
