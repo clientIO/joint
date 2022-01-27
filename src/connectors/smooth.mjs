@@ -330,11 +330,7 @@ function createCatmullRomCurves(points, startTangent, endTangent, options) {
         let t;
         const vectorDeterminant = determinant(v1, v2);
         let pointsDeterminant;
-        if (n > 2) {
-            pointsDeterminant = determinant(points[i].difference(tpNext), points[i].difference(tpPrev));
-        } else {
-            pointsDeterminant = determinant(points[i].difference(points[i + 1]), points[i].difference(points[i - 1]));
-        }
+        pointsDeterminant = determinant(points[i].difference(points[i + 1]), points[i].difference(points[i - 1]));
         if (vectorDeterminant < 0) {
             rot = -rot;
         }
@@ -343,13 +339,11 @@ function createCatmullRomCurves(points, startTangent, endTangent, options) {
         }
         t = v2.clone();
         rotateVector(t, rot);
-        
+    
         const t1 = t.clone();
         const t2 = t.clone();
-
         const scaleFactor1 = distances[i - 1] * coeff;
         const scaleFactor2 = distances[i] * coeff;
-
         t1.scale(scaleFactor1, scaleFactor1);
         t2.scale(scaleFactor2, scaleFactor2);
 
