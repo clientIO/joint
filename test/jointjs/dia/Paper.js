@@ -942,6 +942,22 @@ QUnit.module('joint.dia.Paper', function(hooks) {
                             onViewUpdateSpy.restore();
                             confirmUpdateSpy.restore();
                         });
+
+                        QUnit.test('graph.clear() on link to link', function(assert) {
+                            var link1 = new joint.shapes.standard.Link();
+                            var link2 = new joint.shapes.standard.Link();
+                            link1.addTo(graph);
+                            link2.addTo(graph);
+                            link2.source(link1);
+                            var linkView1 = link1.findView(paper);
+                            var linkView2 = link2.findView(paper);
+                            var onViewUpdateSpy = sinon.spy(paper.options, 'onViewUpdate');
+                            graph.clear({ test: true });
+                            assert.equal(onViewUpdateSpy.callCount, 2);
+                            assert.ok(onViewUpdateSpy.calledWithExactly(linkView1, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            assert.ok(onViewUpdateSpy.calledWithExactly(linkView2, sinon.match.number, sinon.match.number, sinon.match({ test: true }), paper));
+                            onViewUpdateSpy.restore();
+                        });
                     });
 
                     QUnit.module('onViewPostponed', function() {
