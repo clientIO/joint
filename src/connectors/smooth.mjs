@@ -4,202 +4,263 @@ export const Directions = {
     AUTO: 'auto',
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
-    CENTRAL: 'central',
-    LEGACY: 'legacy'
+    CENTRAL: 'central'
+};
+
+export const Algorithms = {
+    LEGACY: 'legacy',
+    NEW: 'new'
 };
 
 function autoDirectionTangents(linkView, route, options) {
     const { sourceBBox, targetBBox } = linkView;
-    const last = route.length - 1;
-
-    const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
-    const targetSide = targetBBox.sideNearestToPoint(route[last]);
-
-    const routeStartPoint = route[1];
-    const routeTargetPoint = route[last - 1];
-
-    const startDistance = route[0].distance(routeStartPoint);
-    const endDistance = route[last].distance(routeTargetPoint);
     const { coeff } = options;
 
-    let tangentStart;
-    let tangentTarget;
-    switch (sourceSide) {
-        case 'top':
-            tangentStart = new Point(0, -startDistance * coeff);
-            break;
-        case 'bottom':
-            tangentStart = new Point(0, startDistance * coeff);
-            break;
-        case 'right':
-            tangentStart = new Point(startDistance * coeff, 0);
-            break;
-        case 'left':
-            tangentStart = new Point(-startDistance * coeff, 0);
-            break;
+    let sourceTangent;
+    if (options.sourceTangent) {
+        sourceTangent = options.sourceTangent;
+    } else {
+        const routeSourcePoint = route[1];
+        const tangentLength = route[0].distance(routeSourcePoint) * coeff;
+        if (options.sourceDirection) {
+            sourceTangent = options.sourceDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+            switch (sourceSide) {
+                case 'top':
+                    sourceTangent = new Point(0, -tangentLength);
+                    break;
+                case 'bottom':
+                    sourceTangent = new Point(0, tangentLength);
+                    break;
+                case 'right':
+                    sourceTangent = new Point(tangentLength, 0);
+                    break;
+                case 'left':
+                    sourceTangent = new Point(-tangentLength, 0);
+                    break;
+            }
+        }
     }
-    switch (targetSide) {
-        case 'top':
-            tangentTarget = new Point(0, -endDistance * coeff);
-            break;
-        case 'bottom':
-            tangentTarget = new Point(0, endDistance * coeff);
-            break;
-        case 'right':
-            tangentTarget = new Point(endDistance * coeff, 0);
-            break;
-        case 'left':
-            tangentTarget = new Point(-endDistance * coeff, 0);
-            break;
+    
+    let targetTangent;
+    if (options.targetTangent) {
+        targetTangent = options.targetTangent;
+    } else {
+        const last = route.length - 1;
+        const routeTargetPoint = route[last - 1];
+        const tangentLength = route[last].distance(routeTargetPoint) * coeff;
+        if (options.targetDirection) {
+            targetTangent = options.targetDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            const targetSide = targetBBox.sideNearestToPoint(route[last]);
+            switch (targetSide) {
+                case 'top':
+                    targetTangent = new Point(0, -tangentLength);
+                    break;
+                case 'bottom':
+                    targetTangent = new Point(0, tangentLength);
+                    break;
+                case 'right':
+                    targetTangent = new Point(tangentLength, 0);
+                    break;
+                case 'left':
+                    targetTangent = new Point(-tangentLength, 0);
+                    break;
+            }
+        }
     }
 
-    return [tangentStart, tangentTarget];
+    return [sourceTangent, targetTangent];
 }
 
 function centralDirectionTangents(linkView, route, options) {
-    const last = route.length - 1;
-
-    const routeStartPoint = route[1];
-    const routeTargetPoint = route[last - 1];
-
-    const startDistance = route[0].distance(routeStartPoint);
-    const endDistance = route[last].distance(routeTargetPoint);
     const { coeff } = options;
 
-    const tangentStart = routeStartPoint.difference(route[0]).normalize().scale(startDistance * coeff, startDistance * coeff);
-    const tangentEnd = routeTargetPoint.difference(route[last]).normalize().scale(endDistance * coeff, endDistance * coeff);
+    let sourceTangent;
+    if (options.sorceTangent) {
+        sourceTangent = options.sourceTangent;
+    } else {
+        const routeSourcePoint = route[1];
+        const tangentLength = route[0].distance(routeSourcePoint) * coeff;
+        if (options.sourceDirection) {
+            sourceTangent = options.sourceDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            sourceTangent = routeSourcePoint.difference(route[0]).normalize().scale(tangentLength, tangentLength);
+        }
+    }
 
-    return [tangentStart, tangentEnd];
+    let targetTangent;
+    if (options.targetTangent) {
+        targetTangent = options.targetTangent;
+    } else {
+        const last = route.length - 1;
+        const routeTargetPoint = route[last - 1];
+        const tangentLength = route[last].distance(routeTargetPoint) * coeff;
+        if (options.targetDirection) {
+            targetTangent = options.targetDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            targetTangent = routeTargetPoint.difference(route[last]).normalize().scale(tangentLength, tangentLength);
+        }
+    }
+
+    return [sourceTangent, targetTangent];
 }
 
 function horizontalDirectionTangents(linkView, route, options) {
     const { sourceBBox, targetBBox } = linkView;
-    const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
-    const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
-
-    let sourceX;
-    let targetX;
-
-    const last = route.length - 1;
-    const startDistance = route[0].distance(route[1]);
-    const endDistance = route[last].distance(route[last - 1]);
     const { coeff, angleTangentCoefficient } = options;
 
-    const startTangent = startDistance * coeff;
-    const endTangent = endDistance * coeff;
-    const vStart = route[1].difference(route[0]).normalize();
-    const vEnd = route[last - 1].difference(route[last]).normalize();
-
-    switch (sourceSide) {
-        case 'left': {
-            const angle = angleBetweenVectors(new Point(-1, 0), vStart);
-            if (angle > Math.PI / 4) {
-                sourceX = -startTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                sourceX = -startTangent;
+    let sourceTangent;
+    if (options.sourceTangent) {
+        sourceTangent = options.sorceTangent;
+    } else {
+        const routeSourcePoint = route[1];
+        const tangentLength = route[0].distance(routeSourcePoint) * coeff;
+        if (options.sourceDirection) {
+            sourceTangent = options.sourceDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            const pointsVector = route[1].difference(route[0]).normalize();
+            const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+            switch (sourceSide) {
+                case 'left': {
+                    const angle = angleBetweenVectors(new Point(-1, 0), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        sourceTangent = new Point(-tangentLength - (angle - Math.PI / 4) * angleTangentCoefficient, 0);
+                    } else {
+                        sourceTangent = new Point(-tangentLength, 0);
+                    }
+                    break;
+                }   
+                case 'right':
+                default: {
+                    const angle = angleBetweenVectors(new Point(1, 0), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        sourceTangent = new Point(tangentLength + (angle - Math.PI / 4) * angleTangentCoefficient, 0);
+                    } else {
+                        sourceTangent = new Point(tangentLength, 0);
+                    }
+                    break;
+                }
             }
-            break;
-        }   
-        case 'right':
-        default: {
-            const angle = angleBetweenVectors(new Point(1, 0), vStart);
-            if (angle > Math.PI / 4) {
-                sourceX = startTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                sourceX = startTangent;
+        }
+    }
+    
+    let targetTangent;
+    if (options.targetTangent) {
+        targetTangent = options.targetTangent;
+    } else {
+        const last = route.length - 1;
+        const routeTargetPoint = route[last - 1];
+        const tangentLength = route[last].distance(routeTargetPoint) * coeff;
+        if (options.targetDirection) {
+            targetTangent = options.targetDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            const pointsVector = route[last - 1].difference(route[last]).normalize();
+            const targetSide = targetBBox.sideNearestToPoint(route[last]);
+            switch (targetSide) {
+                case 'left': {
+                    const angle = angleBetweenVectors(new Point(-1, 0), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        targetTangent = new Point(-tangentLength - (angle - Math.PI / 4) * angleTangentCoefficient, 0);
+                    } else {
+                        targetTangent = new Point(-tangentLength, 0);
+                    }
+                    break;
+                }   
+                case 'right':
+                default: {
+                    const angle = angleBetweenVectors(new Point(1, 0), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        targetTangent = new Point(tangentLength + (angle - Math.PI / 4) * angleTangentCoefficient, 0);
+                    } else {
+                        targetTangent = new Point(tangentLength, 0);
+                    }
+                    break;
+                }
             }
-            break;
         }
     }
 
-    switch (targetSide) {
-        case 'left': {
-            const angle = angleBetweenVectors(new Point(-1, 0), vEnd);
-            if (angle > Math.PI / 4) {
-                targetX = -endTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                targetX = -endTangent;
-            }
-            break;
-        }   
-        case 'right':
-        default: {
-            const angle = angleBetweenVectors(new Point(1, 0), vEnd);
-            if (angle > Math.PI / 4) {
-                targetX = endTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                targetX = endTangent;
-            }
-            break;
-        }
-    }
-
-    return [new Point(sourceX, 0), new Point(targetX, 0)];
+    return [sourceTangent, targetTangent];
 }
 
 function verticalDirectionTangents(linkView, route, options) {
     const { sourceBBox, targetBBox } = linkView;
-    const sourceSide = sourceBBox.sideNearestToPoint(linkView.getEndConnectionPoint('source'));
-    const targetSide = targetBBox.sideNearestToPoint(linkView.getEndConnectionPoint('target'));
-
-    let sourceY;
-    let targetY;
-
-    const last = route.length - 1;
-    const startDistance = route[0].distance(route[1]);
-    const endDistance = route[last].distance(route[last - 1]);
-
     const { coeff, angleTangentCoefficient } = options;
-    const startTangent = startDistance * coeff;
-    const endTangent = endDistance * coeff;
-    const vStart = route[1].difference(route[0]).normalize();
-    const vEnd = route[last - 1].difference(route[last]).normalize();
 
-    switch (sourceSide) {
-        case 'top': {
-            const angle = angleBetweenVectors(new Point(0, -1), vStart);
-            if (angle > Math.PI / 4) {
-                sourceY = -startTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                sourceY = -startTangent;
+    let sourceTangent;
+    if (options.sourceTangent) {
+        sourceTangent = options.sourceTangent;
+    } else {
+        const routeSourcePoint = route[1];
+        const tangentLength = route[0].distance(routeSourcePoint) * coeff;
+        if (options.sourceDirection) {
+            sourceTangent = options.sourceDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            const pointsVector = route[1].difference(route[0]).normalize();
+            const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+            switch (sourceSide) {
+                case 'top': {
+                    const angle = angleBetweenVectors(new Point(0, -1), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        sourceTangent = new Point(0, -tangentLength - (angle - Math.PI / 4) * angleTangentCoefficient);
+                    } else {
+                        sourceTangent = new Point(0, -tangentLength);
+                    }
+                    break;
+                }   
+                case 'bottom':
+                default: {
+                    const angle = angleBetweenVectors(new Point(0, 1), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        sourceTangent = new Point(0, tangentLength + (angle - Math.PI / 4) * angleTangentCoefficient);
+                    } else {
+                        sourceTangent = new Point(0, tangentLength);
+                    }
+                    break;
+                }
             }
-            break;
-        }   
-        case 'bottom':
-        default: {
-            const angle = angleBetweenVectors(new Point(0, 1), vStart);
-            if (angle > Math.PI / 4) {
-                sourceY = startTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                sourceY = startTangent;
+        }
+    }
+    
+    let targetTangent;
+    if (options.targetTangent) {
+        targetTangent = options.targetTangent;
+    } else {
+        const last = route.length - 1;
+        const routeTargetPoint = route[last - 1];
+        const tangentLength = route[last].distance(routeTargetPoint) * coeff;
+        if (options.targetDirection) {
+            targetTangent = options.targetDirection.clone().scale(tangentLength, tangentLength);
+        } else {
+            const pointsVector = route[last - 1].difference(route[last]).normalize();
+            const targetSide = targetBBox.sideNearestToPoint(route[last]);
+            switch (targetSide) {
+                case 'top': {
+                    const angle = angleBetweenVectors(new Point(0, -1), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        targetTangent = new Point(0, -tangentLength - (angle - Math.PI / 4) * angleTangentCoefficient);
+                    } else {
+                        targetTangent = new Point(0, -tangentLength);
+                    }
+                    break;
+                }
+                case 'bottom':
+                default: {
+                    const angle = angleBetweenVectors(new Point(0, 1), pointsVector);
+                    if (angle > Math.PI / 4) {
+                        targetTangent = new Point(0, tangentLength + (angle - Math.PI / 4) * angleTangentCoefficient);
+                    } else {
+                        targetTangent = new Point(0, tangentLength);
+                    }
+                    break;
+                }
             }
-            break;
         }
     }
 
-    switch (targetSide) {
-        case 'top': {
-            const angle = angleBetweenVectors(new Point(0, -1), vEnd);
-            if (angle > Math.PI / 4) {
-                targetY = -endTangent - (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                targetY = -endTangent;
-            }
-            break;
-        }
-        case 'bottom':
-        default: {
-            const angle = angleBetweenVectors(new Point(0, 1), vEnd);
-            if (angle > Math.PI / 4) {
-                targetY = endTangent + (angle - Math.PI / 4) * angleTangentCoefficient;
-            } else {
-                targetY = endTangent;
-            }
-            break;
-        }
-    }
-
-    return [new Point(0, sourceY), new Point(0, targetY)];
+    return [sourceTangent, targetTangent];
 }
 
 function legacyPathWithoutRoute(sourcePoint, targetPoint) {
@@ -230,30 +291,43 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
     // distanceCoefficient - coefficient of a relation between the points distance and tangents length.
     // angleTangentCoefficient - coefficient of an increasing of the end tangents depending on the angle between the tangent and a vector towards the next point.
     // tension - Catmull-Rom curve tension parameter.
-    const { direction = Directions.LEGACY } = opt;
+    const { direction = Directions.AUTO, algorithm = Algorithms.LEGACY } = opt;
     const options = {
         coeff: opt.distanceCoefficient || 0.6,
         angleTangentCoefficient: opt.angleTangentCoefficient || 80,
-        tau: opt.tension || 0.5
+        tau: opt.tension || 0.5,
+        sourceTangent: opt.sourceTangent, 
+        targetTangent: opt.targetTangent,
+        sourceDirection: opt.sourceDirection,
+        targetDirection: opt.targetDirection
     };
 
-    const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
-
-    let tangents = [];
-    switch (direction) {
-        case Directions.HORIZONTAL:
-            tangents = horizontalDirectionTangents(linkView, completeRoute, options);
-            break;
-        case Directions.VERTICAL:
-            tangents = verticalDirectionTangents(linkView, completeRoute, options);
-            break;
-        case Directions.CENTRAL:
-            tangents = centralDirectionTangents(linkView, completeRoute, options);
-            break;
-        case Directions.AUTO:
-            tangents = autoDirectionTangents(linkView, completeRoute, options);
-            break;
-        case Directions.LEGACY:
+    switch (algorithm) {
+        case Algorithms.NEW: {
+            const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
+            let tangents = [];            
+            switch (direction) {
+                case Directions.HORIZONTAL:
+                    tangents = horizontalDirectionTangents(linkView, completeRoute, options);
+                    break;
+                case Directions.VERTICAL:
+                    tangents = verticalDirectionTangents(linkView, completeRoute, options);
+                    break;
+                case Directions.CENTRAL:
+                    tangents = centralDirectionTangents(linkView, completeRoute, options);
+                    break;
+                case Directions.AUTO:
+                default:
+                    tangents = autoDirectionTangents(linkView, completeRoute, options);
+                    break;
+            }           
+            const catmullRomCurves = createCatmullRomCurves([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1], options);
+            const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, options));
+            const path = new Path(bezierCurves);
+        
+            return (raw) ? path : path.serialize();
+        }
+        case Algorithms.LEGACY:
         default: {
             let path;
             if (route && route.length !== 0) {
@@ -267,12 +341,6 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
             return (raw) ? path : path.serialize();
         }
     }
-
-    const catmullRomCurves = createCatmullRomCurves([sourcePoint, ...route.map(p => new Point(p)), targetPoint], tangents[0], tangents[1], options);
-    const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, options));
-    const path = new Path(bezierCurves);
-
-    return (raw) ? path : path.serialize();
 };
 
 function rotateVector(vector, angle) {
@@ -295,7 +363,7 @@ function determinant(v1, v2) {
     return v1.x * v2.y - v1.y * v2.x;
 }
 
-function createCatmullRomCurves(points, startTangent, endTangent, options) {
+function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
     const { tau, coeff } = options;
     const distances = [];
     const tangents = [];
@@ -306,8 +374,8 @@ function createCatmullRomCurves(points, startTangent, endTangent, options) {
         distances[i] = points[i].distance(points[i + 1]);
     }
 
-    tangents[0] = startTangent;
-    tangents[n] = endTangent;      
+    tangents[0] = sourceTangent;
+    tangents[n] = targetTangent;      
 
     for (let i = 1; i < n; i++) {
         let tpPrev;
