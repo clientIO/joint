@@ -232,7 +232,7 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}) {
     // tension - Catmull-Rom curve tension parameter.
     const { direction = Directions.LEGACY } = opt;
     const options = {
-        coeff: opt.distanceCoefficient || 10,
+        coeff: opt.distanceCoefficient || 0.6,
         angleTangentCoefficient: opt.angleTangentCoefficient || 80,
         tau: opt.tension || 0.5
     };
