@@ -18,6 +18,7 @@ export const TangentDirections = {
     DOWN: 'down',
     LEFT: 'left',
     RIGHT: 'right',
+    AUTO: 'auto',
     CLOSEST_POINT: 'closestPoint',
     OUTWARDS: 'outwards'
 };
@@ -125,8 +126,8 @@ function getClosestPointTargetDirection(linkView, route, options) {
 
 function getOutwardsSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
-    const courceCenter = sourceBBox.center();
-    return route[0].difference(courceCenter).normalize();
+    const sourceCenter = sourceBBox.center();
+    return route[0].difference(sourceCenter).normalize();
 }
 
 function getOutwardsTargetDirection(linkView, route, options) {
@@ -146,6 +147,8 @@ function getSourceTangentDirection(linkView, route, direction, options) {
                 return new Point(-1, 0);
             case TangentDirections.RIGHT:
                 return new Point(0, 1);
+            case TangentDirections.AUTO:
+                return getAutoSourceDirection(linkView, route, options);    
             case TangentDirections.CLOSEST_POINT:
                 return getClosestPointSourceDirection(linkView, route, options);
             case TangentDirections.OUTWARDS: {
@@ -182,6 +185,8 @@ function getTargetTangentDirection(linkView, route, direction, options) {
                 return new Point(-1, 0);
             case TangentDirections.RIGHT:
                 return new Point(0, 1);
+            case TangentDirections.AUTO:
+                return getAutoTargetDirection(linkView, route, options);    
             case TangentDirections.CLOSEST_POINT:
                 return getClosestPointTargetDirection(linkView, route, options);
             case TangentDirections.OUTWARDS: {
@@ -218,19 +223,29 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}, l
     const options = {
         coeff: opt.distanceCoefficient || 0.6,
         angleTangentCoefficient: opt.angleTangentCoefficient || 80,
-        tau: opt.tension || 0.5,
-        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null, 
-        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null, 
-        sourceDirection: opt.sourceDirection ? new Point(opt.sourceDirection) : null, 
-        targetDirection: opt.targetDirection ? new Point(opt.targetDirection) : null, 
+        tau: opt.tension || 0.5
     };
+    if (typeof opt.sourceTangent === 'string') 
+        options.sourceTangent = opt.sourceTangent;
+    else 
+        options.sourceTangent = opt.sourceTangent ? new Point(opt.sourceTangent) : null;
+    if (typeof opt.targetTangent === 'string') 
+        options.targetTangent = opt.targetTangent;
+    else 
+        options.targetTangent = opt.targetTangent ? new Point(opt.targetTangent) : null;
+    if (typeof opt.sourceDirection === 'string') 
+        options.sourceDirection = opt.sourceDirection;
+    else 
+        options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection) : null;
+    if (typeof opt.targetDirection === 'string') 
+        options.targetDirection = opt.targetDirection;
+    else 
+        options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection) : null;
 
     if ((!sourceBBox.width || !sourceBBox.height) && !options.sourceDirection) 
         options.sourceDirection = TangentDirections.CLOSEST_POINT;
-
     if ((!targetBBox.width || !targetBBox.height) && !options.targetDirection) 
         options.targetDirection = TangentDirections.CLOSEST_POINT;
-
 
     switch (algorithm) {
         case Algorithms.NEW: {
