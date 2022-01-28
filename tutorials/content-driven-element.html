@@ -35,25 +35,32 @@
             <h2>Content Driven Elements</h2>
 
             <p>
-                JointJS provides a lot of flexibility when it comes to creating custom elements. In the following tutorial, we won't
-                focus on traditional JointJS mechanisms such as markup and attributes, but on elements driven by the content itself. 
-            <p>
-            
-            <p>
-                There is no limit to what type of content can drive element dimensions, but in our example we will focus on some of 
-                the more common ones such as text and images.
+                JointJS provides its users flexibility when it comes to creating custom shapes. You may have already taken
+                advantage of this flexibility by using traditional JointJS mechanisms such as markup and attributes. That is 
+                a well-established method of creating custom elements, but it's not the only approach that you could utilize.
             </p>
 
             <p>
-                Depending on your use case, you may not need a content driven element, so a valid question might be, why use one when 
-                we already have well established methods for creating custom elements?
+                Another way to create custom elements is to allow the content to drive the appearance of the element itself.
+                This means we don't set the element sizing explicitly, but allow the element dimensions to be derived from the 
+                content.
             </p>
 
             <p>
-                Imagine working with a dataset with many data points. What if each data point has a a label of different length, and 
-                you want to make sure the label doesn't extend beyond its element bounds? In this instance, it might not be desirable 
-                to set the element's size in retrospect, and it might be a more efficient workflow to allow the label content to drive 
-                element sizing instead.
+                Depending on your use case, a content driven element may not be essential for your workflow, so you may ask why
+                would I need to use one?
+            </p>
+
+            <p>
+                Imagine you are working with a lot of data points, what if each one has a label of different length, and you
+                want to make sure the label doesn't extend beyond its element bounds? In this instance, it might not be desirable
+                to set the element's size in retrospect. It is possible a more efficient workflow would be to allow the label
+                content to drive element sizing instead.
+            </p>
+
+            <p>
+                With content driven elements, you are not limited to what content drives the element appearance, but as the most common
+                types of content are probably text and images, we will focus on those in this tutorial.
             </p>
 
             <div id="paper-content-driven-element"></div>

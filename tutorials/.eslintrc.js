@@ -19,7 +19,7 @@ module.exports = {
         }
     }],
     'parserOptions': {
-        'ecmaVersion': 9,
+        'ecmaVersion': 'latest',
         'sourceType': 'module'
     }
 };
