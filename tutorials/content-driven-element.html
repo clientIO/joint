@@ -70,8 +70,15 @@
             <h3>Shape definition</h3>
 
             <p>
-                To get started, we create our shape by extending the <code>joint.dia.Element</code> class. As we aren't using 
-                <code>markup</code> or <code>attrs</code>, we provide just a few custom presentation attributes that we want to work with.
+                The first step towards content driven elements is to define our shape. We start by creating a <code>Shape</code>
+                class which inherits from <code>joint.dia.Element</code>. Since we aren't using traditional <code>markup</code>, 
+                or presentation <code>attrs</code>, we simply provide just a few default properties we want to work with.
+            </p>
+
+            <p>
+                <code>type</code> defines the namespace where JointJS looks for our shape. As <code>joint.shapes</code> is implied,
+                the full path will be <code>joint.shapes.custom.Shape</code>. The remaining default attributes on our model are related to 
+                the visual aspects of our shape. As these attributes are updated on our model, we would like the view to update too.
             </p>
 
 <pre><code>class Shape extends joint.dia.Element {
@@ -89,8 +96,8 @@
 </code></pre>
 
             <p>
-                The main magic of our shape happens in a layout function. As we want our layout function to have access to certain
-                model properties during calculation, we should <code>preinitialize()</code> our model with those properties.
+               The main magic of our content driven element happens in a layout function. As we want our layout to have access to
+               certain model properties during calculation, we should <code>preinitialize()</code> our instances with those properties.
             </p>
 
 <pre><code>preinitialize() {
@@ -408,6 +415,12 @@ customShape4
     .prop('fillColor', 'lightgray')
     .addTo(graph);
 </code></pre>
+
+        <p>
+            Thanks for reading. I hope you consider content driven elements if it's suitable for your application.
+            If you would like to explore any of the features mentioned here in more detail, you can find extra information in our 
+            <a href="/docs/jointjs" target="_blank">JointJS documentation</a>. 
+        </p>
 
         </div><!--end tutorial-->
 

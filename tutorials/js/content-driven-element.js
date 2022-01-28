@@ -313,14 +313,14 @@
     
     const customShape3 = new Shape();
     customShape3
-        .set('image', 'https://via.placeholder.com/50/0000FF')
+        .set('image', 'https://via.placeholder.com/50/0000FF/FFFFFF')
         .position(50, 50)
         .prop('fillColor', 'lightblue')
         .addTo(graph);
     
     const customShape4 = new Shape();
     customShape4
-        .set('image', 'https://via.placeholder.com/150/FF0000')
+        .set('image', 'https://via.placeholder.com/150/FF0000/FFFFFF')
         .set('label', 'Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nInteger vehicula.')
         .set('outlineColor', 'red')
         .position(200, 50)
