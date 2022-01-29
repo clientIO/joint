@@ -1,4 +1,5 @@
 const { dia, shapes, linkTools, connectors } = joint;
+const { Point, Polygon, Ellipse, Rect, toDeg } = g;
 
 // Theme
 
@@ -118,7 +119,7 @@ graph.on({
     }
 });
 
-const Base = dia.Element.define(ShapeTypes.BASE, {
+const BaseShape = dia.Element.define(ShapeTypes.BASE, {
     z: 1
 }, {
     getConnectToolMarkup() {
@@ -140,7 +141,7 @@ const Base = dia.Element.define(ShapeTypes.BASE, {
         const angle = this.angle();
         // Relative to the element's position
         const relPoint = point.clone().rotate(bbox.center(), angle).difference(bbox.topLeft());
-        const relBBox = new g.Rect(0, 0, bbox.width, bbox.height);
+        const relBBox = new Rect(0, 0, bbox.width, bbox.height);
         if (!relBBox.containsPoint(relPoint)) {
             const relCenter = relBBox.center();
             const relTop = relBBox.topMiddle();
@@ -187,7 +188,7 @@ const Link = shapes.standard.Link.define(ShapeTypes.LINK, {
     }
 });
 
-const Rhombus = Base.define(ShapeTypes.RHOMBUS, {
+const RhombusShape = BaseShape.define(ShapeTypes.RHOMBUS, {
     size: { width: 140, height: 70 },
     attrs: {
         root: {
@@ -232,23 +233,22 @@ const Rhombus = Base.define(ShapeTypes.RHOMBUS, {
         if ((angle % 180) < 90) {
             ratio = 1 / ratio;
         }
-        const directionAngle = 360 - Math.floor(angle / 90) * 90 + g.toDeg(Math.atan(ratio));
-        return g.Point(1,0).rotate(g.Point(0,0), directionAngle);
+        const directionAngle = 360 - Math.floor(angle / 90) * 90 + toDeg(Math.atan(ratio));
+        return Point(1,0).rotate(Point(0,0), directionAngle);
     },
 
     getClosestBoundaryPoint(bbox, point) {
-        const rhombus = new g.Polyline([
+        const rhombus = new Polygon([
             bbox.topMiddle(),
             bbox.rightMiddle(),
             bbox.bottomMiddle(),
             bbox.leftMiddle(),
-            bbox.topMiddle()
         ]);
         return rhombus.closestPoint(point);
     }
 });
 
-const Rectangle = Base.define(ShapeTypes.RECTANGLE, {
+const RectangleShape = BaseShape.define(ShapeTypes.RECTANGLE, {
     size: { width: 140, height: 70 },
     attrs: {
         root: {
@@ -274,7 +274,7 @@ const Rectangle = Base.define(ShapeTypes.RECTANGLE, {
     }]
 });
 
-const Ellipse = Base.define(ShapeTypes.ELLIPSE, {
+const EllipseShape = BaseShape.define(ShapeTypes.ELLIPSE, {
     size: { width: 140, height: 70 },
     attrs: {
         root: {
@@ -320,21 +320,21 @@ const Ellipse = Base.define(ShapeTypes.ELLIPSE, {
     },
 
     getClosestBoundaryPoint(bbox, point) {
-        const ellipse = g.Ellipse.fromRect(bbox);
+        const ellipse = Ellipse.fromRect(bbox);
         return ellipse.intersectionWithLineFromCenterToPoint(point);
     }
 
 });
 
-const rhombus = new Rhombus({
+const rhombus = new RhombusShape({
     position: { x: 250, y: 250 }
 });
 
-const rectangle = new Rectangle({
+const rectangle = new RectangleShape({
     position: { x: 650, y: 50 }
 });
 
-const ellipse = new Ellipse({
+const ellipse = new EllipseShape({
     position: { x: 650, y: 450 }
 });
 
