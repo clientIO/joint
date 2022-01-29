@@ -1,0 +1,15 @@
+#paper {
+    margin: 0 auto;
+}
+
+.joint-tool[data-tool-name="button"] circle {
+    fill: #333;
+}
+
+.joint-tool[data-tool-name="connect"]:not(:hover) {
+    opacity: 0;
+}
+
+.active [joint-selector="line"] {
+    stroke: #4666E5;
+}

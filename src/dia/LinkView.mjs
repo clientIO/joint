@@ -1,7 +1,7 @@
 import { CellView } from './CellView.mjs';
 import { Link } from './Link.mjs';
 import V from '../V/index.mjs';
-import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result } from '../util/index.mjs';
+import { addClassNamePrefix, removeClassNamePrefix, merge, template, assign, toArray, isObject, isFunction, clone, isPercentage, result, isEqual } from '../util/index.mjs';
 import { Point, Line, Path, normalizeAngle, Rect, Polyline } from '../g/index.mjs';
 import * as routers from '../routers/index.mjs';
 import * as connectors from '../connectors/index.mjs';
@@ -2075,11 +2075,13 @@ export const LinkView = CellView.extend({
 
     _snapArrowhead: function(evt, x, y) {
 
+        const { paper } = this;
+        const { snapLinks, connectionStrategy } = paper.options;
         const data = this.eventData(evt);
         // checking view in close area of the pointer
 
-        var r = this.paper.options.snapLinks.radius || 50;
-        var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+        var r = snapLinks.radius || 50;
+        var viewsInArea = paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
         var prevClosestView = data.closestView || null;
         var prevClosestMagnet = data.closestMagnet || null;
@@ -2089,7 +2091,6 @@ export const LinkView = CellView.extend({
 
         var minDistance = Number.MAX_VALUE;
         var pointer = new Point(x, y);
-        var paper = this.paper;
 
         viewsInArea.forEach(function(view) {
             const candidates = [];
@@ -2144,14 +2145,31 @@ export const LinkView = CellView.extend({
         }
 
         if (closestView) {
+            const { prevEnd, prevX, prevY } = data;
 
-            if (!newClosestMagnet) return;
+            if (!newClosestMagnet)  {
+                if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
+                    // the magnet has not changed and the link's end does not depend on the x and y
+                    return;
+                }
+            }
 
-            closestView.highlight(magnetProxy, {
-                connecting: true,
-                snapping: true
-            });
             end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+            if (!newClosestMagnet && isEqual(prevEnd, end)) {
+                // the source/target json has not changed
+                return;
+            }
+
+            data.prevEnd = end;
+            data.prevX = x;
+            data.prevY = y;
+
+            if (newClosestMagnet) {
+                closestView.highlight(magnetProxy, {
+                    connecting: true,
+                    snapping: true
+                });
+            }
 
         } else {
 
