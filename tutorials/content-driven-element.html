@@ -116,12 +116,21 @@
 </code></pre>
 
             <p>
-                When we <code>initialize()</code> our shape instance, we add an event listener to detect changes in labels and 
-                images as those are the types of content that affect our layout.
+                When we <code>initialize()</code> our shape instance, we accomplish a number of things. We add an event
+                listener to detect any attribute changes in our model, and we also set the size of our element based on 
+                the layout calculation.
             </p>
 
             <p>
-                We also set the size of our element based on the width and height derived from our layout function.
+                The <code>onAttributeChange()</code> method checks if attributes that affect the size of our model have
+                changed. If there is no label present in the changes, that means we don't need to recalculate the label 
+                size, and can use the dimensions stored in the <code>cache</code>.
+            </p>
+
+            <p>
+                If either the image or label are present in the changes, we then need to recalculate the size of our model.
+                We achieve this in the <code>setSizeFromContent()</code> method which derives the <code>width</code> and 
+                <code>height</code> from our layout.
             </p>
 
 <pre><code>initialize() {
