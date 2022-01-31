@@ -261,12 +261,14 @@ function getTargetTangentDirection(linkView, route, direction, options) {
 }
 
 export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}, linkView) {
-    const { sourceBBox, targetBBox } = linkView;
-
     const raw = Boolean(opt.raw);
-    // distanceCoefficient - coefficient of a relation between the points distance and tangents length.
-    // angleTangentCoefficient - coefficient of an increasing of the end tangents depending on the angle between the tangent and a vector towards the next point.
+    // distanceCoefficient - ratio of a distance between points to tangents length.
+    // angleTangentCoefficient - coefficient of the end tangents length in case of angles larger than 45 degrees.
     // tension - Catmull-Rom curve tension parameter.
+    // sourceTangent - tangent vector alongside the curve at sourcePoint.
+    // sourceDirection - unit direction vector alongside the curve at sourcePoint.
+    // targetTangent - tangent vector alongside the curve at targetPoint.
+    // targetDirection - unit direction vector alongside the curve at targetPoint.
     const { direction = Directions.AUTO, algorithm = Algorithms.LEGACY } = opt;
     const options = {
         coeff: opt.distanceCoefficient || 0.6,
