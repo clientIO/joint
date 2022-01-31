@@ -216,7 +216,7 @@
         
         update: function() {
             const layout = this.model.layout();
-            this.updateBody(layout);
+            this.updateBody();
             this.updateImage(layout.$image);
             this.updateLabel(layout.$label);
         },

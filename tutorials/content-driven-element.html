@@ -325,8 +325,13 @@ joint.shapes.custom = {
 </code></pre>
 
         <p>
-            The <code>render()</code> function runs once during initialization, and calls the relevant functions
-            for updating our element. 
+            The <code>render()</code> function runs once during initialization. It is responsible for creating the DOM elements, 
+            and updates during the initial render.
+        </p>
+
+        <p>
+            <code>update()</code> and <code>updateColors()</code> are methods responsible for updating our view, and will run
+            when the appropriate flags have been received by <code>confirmUpdate()</code>.
         </p>
 
 <pre><code>/* Runs only once while initializing */
@@ -349,7 +354,7 @@ render: function() {
 
 update: function() {
     const layout = this.model.layout();
-    this.updateBody(layout);
+    this.updateBody();
     this.updateImage(layout.$image);
     this.updateLabel(layout.$label);
 },
@@ -420,7 +425,16 @@ updateLabel: function($label) {
 </code></pre>
 
             <p>
-                Lastly, we make an instance of our shape with the techniques you are familiar with.
+                That's it for configuration, and finally it's time to see our content driven element on screen.
+                We do this by creating an instance of our shape, and setting some property values with techniques
+                you are already familiar with.
+            </p>
+
+            <p>
+                Once we add our element to the <code>graph</code>, you'll notice that our content, including some
+                rather long labels, doesn't extend beyond the bounds of our element. A content driven approach
+                may not be required for your use case, but I'm sure you'll agree it has its advantages after seeing
+                it in action.
             </p>
 
 <pre><code>const customShape4 = new Shape();
