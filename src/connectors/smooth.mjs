@@ -4,7 +4,7 @@ export const Directions = {
     AUTO: 'auto',
     HORIZONTAL: 'horizontal',
     VERTICAL: 'vertical',
-    CLOSEST_POINT: 'closestPoint',
+    CLOSEST_POINT: 'closest-point',
     OUTWARDS: 'outwards'
 };
 
@@ -19,14 +19,23 @@ export const TangentDirections = {
     LEFT: 'left',
     RIGHT: 'right',
     AUTO: 'auto',
-    CLOSEST_POINT: 'closestPoint',
+    CLOSEST_POINT: 'closest-point',
     OUTWARDS: 'outwards'
 };
 
 function getHorizontalSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
 
-    const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+    let sourceSide;
+    if (!sourceBBox.width || !sourceBBox.height) {
+        if (sourceBBox.x > route[1].x)
+            sourceSide = 'right';
+        else    
+            sourceSide = 'left';
+    } else {
+        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+    }
+
     switch (sourceSide) {
         case 'left': {
             return new Point(-1, 0);
@@ -41,7 +50,16 @@ function getHorizontalSourceDirection(linkView, route, options) {
 function getHorizontalTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
 
-    const targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+    let targetSide;
+    if (!targetBBox.width || !targetBBox.height) {
+        if (targetBBox.x > route[route.length - 2].x)
+            targetSide = 'left';
+        else    
+            targetSide = 'right';
+    } else {
+        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+    }
+
     switch (targetSide) {
         case 'left': {
             return new Point(-1, 0);
@@ -56,7 +74,16 @@ function getHorizontalTargetDirection(linkView, route, options) {
 function getVerticalSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
 
-    const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+    let sourceSide;
+    if (!sourceBBox.width || !sourceBBox.height) {
+        if (sourceBBox.y > route[1].y)
+            sourceSide = 'bottom';
+        else    
+            sourceSide = 'top';
+    } else {
+        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+    }
+
     switch (sourceSide) {
         case 'top': {
             return new Point(0, -1);
@@ -71,7 +98,16 @@ function getVerticalSourceDirection(linkView, route, options) {
 function getVerticalTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
 
-    const targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+    let targetSide;
+    if (!targetBBox.width || !targetBBox.height) {
+        if (targetBBox.y > route[route.length - 2].y)
+            targetSide = 'top';
+        else    
+            targetSide = 'bottom';
+    } else {
+        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+    }
+
     switch (targetSide) {
         case 'top': {
             return new Point(0, -1);
@@ -86,7 +122,13 @@ function getVerticalTargetDirection(linkView, route, options) {
 function getAutoSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
 
-    const sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+    let sourceSide;
+    if (!sourceBBox.width || !sourceBBox.height) {
+        sourceSide = sourceBBox.sideNearestToPoint(route[1]);
+    } else {
+        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+    }
+
     switch (sourceSide) {
         case 'top':
             return new Point(0, -1);
@@ -101,8 +143,14 @@ function getAutoSourceDirection(linkView, route, options) {
 
 function getAutoTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
+    
+    let targetSide;
+    if (!targetBBox.width || !targetBBox.height) {
+        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
+    } else {
+        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+    }
 
-    const targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
     switch (targetSide) {
         case 'top':
             return new Point(0, -1);
@@ -241,11 +289,6 @@ export const smooth = function(sourcePoint, targetPoint, route = [], opt = {}, l
         options.targetDirection = opt.targetDirection;
     else 
         options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection) : null;
-
-    if ((!sourceBBox.width || !sourceBBox.height) && !options.sourceDirection) 
-        options.sourceDirection = TangentDirections.CLOSEST_POINT;
-    if ((!targetBBox.width || !targetBBox.height) && !options.targetDirection) 
-        options.targetDirection = TangentDirections.CLOSEST_POINT;
 
     switch (algorithm) {
         case Algorithms.NEW: {
