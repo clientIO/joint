@@ -14,7 +14,7 @@ DD-MM-2022 (v3.5.0)
   * dia.Cell - fix stopTransitions() without path argument
   * dia.Cell - stopping the transition does not require waiting for the transition to start
   * elementTools.Connect - a new tool to create links from an element
-  * elementTools.Control - a new tool to modify a arbitrary attribute
+  * elementTools.Control - a new tool to modify an arbitrary attribute
   * linkTools.Connect -  a new tool to create links from a link
   * linkTools.Vertices - allow vertex removal on touch devices
   * linkTools.Anchor - allow anchor reset on touch devices
