@@ -1148,6 +1148,93 @@ QUnit.module('linkView', function(hooks) {
             assert.ok(strategySpy.alwaysCalledOn(paper));
             assert.equal(linkView.model.attributes.target.test, true);
         });
+
+        QUnit.test('with snapLinks=true', function(assert) {
+
+            var data;
+            var strategySpy = paper.options.connectionStrategy = sinon.spy();
+            paper.options.snapLinks = { radius: 1000 };
+            r1.translate(10,0);
+            // Source
+            data = {};
+            linkView.pointerdown({
+                target: linkView.el.querySelector('.marker-arrowhead[end=source]'),
+                type: 'mousedown',
+                data: data
+            }, 0, 0);
+            // the first move
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 50, 50);
+            assert.equal(strategySpy.callCount, 1);
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 50, 50);
+            assert.equal(strategySpy.callCount, 1);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: r1.id }),
+                rv1,
+                rv1.el,
+                sinon.match(function(coords) { return coords.equals(new g.Point(50, 50)); }),
+                linkView.model,
+                'source',
+                paper
+            ));
+            // change coordinates
+            strategySpy.resetHistory();
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 51, 51);
+            assert.equal(strategySpy.callCount, 1);
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 51, 51);
+            assert.equal(strategySpy.callCount, 1);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: r1.id }),
+                rv1,
+                rv1.el,
+                sinon.match(function(coords) { return coords.equals(new g.Point(51, 51)); }),
+                linkView.model,
+                'source',
+                paper
+            ));
+            // change magnet
+            strategySpy.resetHistory();
+            r1.attr('label', {
+                magnet: true,
+                refX: 10 // move the label closer to the pointer at 51,51
+            });
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 51, 51);
+            assert.equal(strategySpy.callCount, 1);
+            linkView.pointermove({
+                target: rv1.el,
+                type: 'mousemove',
+                data: data
+            }, 51, 51);
+            assert.equal(strategySpy.callCount, 1);
+            assert.ok(strategySpy.calledWithExactly(
+                sinon.match({ id: r1.id }),
+                rv1,
+                rv1.el.querySelector('text'),
+                sinon.match(function(coords) { return coords.equals(new g.Point(51, 51)); }),
+                linkView.model,
+                'source',
+                paper
+            ));
+        });
     });
 
     QUnit.module('linkTools', function(hooks) {

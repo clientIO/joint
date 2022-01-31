@@ -2146,6 +2146,8 @@ export const LinkView = CellView.extend({
 
         if (closestView) {
             const { prevEnd, prevX, prevY } = data;
+            data.prevX = x;
+            data.prevY = y;
 
             if (!newClosestMagnet)  {
                 if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
@@ -2161,8 +2163,6 @@ export const LinkView = CellView.extend({
             }
 
             data.prevEnd = end;
-            data.prevX = x;
-            data.prevY = y;
 
             if (newClosestMagnet) {
                 closestView.highlight(magnetProxy, {
