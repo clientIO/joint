@@ -1,4 +1,5 @@
 DD-MM-2022 (v3.5.0)
+  * Add Curves Demo
   * dia.Paper - add `labelsLayer` option
   * dia.Paper - add `getFitToContentArea()`
   * dia.Paper - fix embedding mode with rotated elements
@@ -7,6 +8,7 @@ DD-MM-2022 (v3.5.0)
   * dia.Paper - improve markers, gradients and patterns
   * dia.Paper - migrate mousewheel/DOMMouseScroll to wheel
   * dia.Paper - fix update priority stats
+  * dia.Paper - improve `connectionStrategy` with `snapLinks` enabled
   * dia.Element - `position()` allows `restrictedArea` to be used without `deep` option
   * dia.Cell - `embed()` and `umbed()` to accept an array of cells
   * dia.Cell - fix stopTransitions() without path argument
@@ -17,12 +19,14 @@ DD-MM-2022 (v3.5.0)
   * linkTools.Vertices - allow vertex removal on touch devices
   * linkTools.Anchor - allow anchor reset on touch devices
   * linkTools.Vertices - fix creation and immediate dragging of a vertex on touch devices
+  * connectors.curve - add new smooth connector
   * dia.attributes - add `x` and `y` properties to `calc()` expression
   * dia.attributes - support negative number addition/subtraction in `calc()` expression
   * dia.attributes - support nested `calc()` functions
   * mvc.View - support double tap event on touch devices
-  * Vectorizer - allow whitespace and line terminator characters in the co…
+  * Vectorizer - allow whitespace and line terminator characters in the constructor
   * Geometry - implement intersection between all objects
+  * Geometry - add Polygon
 
 27-09-2021 (v3.4.4)
   * dia.Graph - prevent attribute type inference from the constructor
