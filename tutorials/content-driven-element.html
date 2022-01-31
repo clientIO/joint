@@ -67,7 +67,7 @@
             <script type="text/javascript" src="js/content-driven-element.js"></script>
             <p>JointJS source code: <a href="js/content-driven-element.js" target="_blank">content-driven-element.js</a></p>
 
-            <h3>Shape definition</h3>
+            <h3>Shape Definition</h3>
 
             <p>
                 The first step towards content driven elements is to define our shape. We start by creating a <code>Shape</code>
@@ -165,13 +165,14 @@ setSizeFromContent() {
 </code></pre>
 
             <p>
-                Next we will highlight the layout of our element, and how it's created. As you can see, our <code>calcLayout()</code> 
-                method utilizes the properties we createdearlier.
+                As we mentioned earlier, most of the action relating to the dimensions of our content driven element happens 
+                in the layout. In the following code, you will see how we utilize properties created in the <code>preinitialize()</code>
+                method to create our layout.
             </p>
 
             <p>
-                The function focuses on returning metrics for the <code>width</code> and <code>height</code> of our element, and also 
-                the dimensions for our label and image.
+                The <code>layout()</code> method checks if there are layout metrics already present in the <code>cache</code>, and if not,
+                calls the <code>calcLayout()</code> method to create them.
             </p>
 
 <pre><code>layout() {
@@ -267,22 +268,28 @@ calcLayout() {
         <h3>Custom Shape View</h3>
 
         <p>
-            Another important aspect of our content driven element is our custom element view. The view is responsible for rendering
-            our shape, and also working with our element visually. Our custom view will listen to the underlying model changes, and
-            update itself.
+            The other important aspect of our content driven element is a custom element view. The view is responsible for rendering
+            our shape, and working with our element visually. Our custom view also listens to underlying model changes, and updates 
+            itself.
         </p>
 
         <p>
-            <code>addPresentationAttributes()</code> extends the <code>CellView</code> presentation attributes, with more attributes,
-            and makes sure the original CellView attributes are preserved.
+            The first thing you notice in our view is <code>presentationAttributes</code>. The <code>attributes</code> property of
+            our model contains the presentationAttributes. You can see we are extending the existing presentation attributes, while
+            making sure the original cellView attributes are preserved.
         </p>
 
         <p>
             An important note about the view is that, when it needs an update, it first requests that update from the <code>paper</code>.
-            Update requests are sent to the paper via flags. To sum up <code>presentationAttributes</code>, it is an object that maps 
-            attributes to these flag labels. <code>confirmUpdate()</code> receives all scheduled flags, and based on them updates the view.
-            In our example, <code>confirmUpdate</code> doesn't resize DOM elements if the received flag is <code>'@color'</code>.
+            Update requests are sent to the paper via flags. <code>presentationAttributes</code> is simply an object that maps attributes
+            to flag labels.
         </p>
+
+        <p>
+            <code>confirmUpdate()</code> receives all scheduled flags, and based on them updates the view. In our example, 
+            it isn't necessary to perform updates for resizing DOM elements if the received flag is <code>'@color'</code>.
+        </p>
+
 
 <pre><code>const ElementView = joint.dia.ElementView;
 
@@ -308,6 +315,7 @@ const ShapeView = ElementView.extend({
         return flags;
     }
 
+    // Other Methods
 });
     
 joint.shapes.custom = {
