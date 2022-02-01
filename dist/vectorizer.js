@@ -1,4 +1,4 @@
-/*! JointJS v3.4.4 (2021-09-27) - JavaScript diagramming library
+/*! JointJS v3.5.0 (2022-02-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -109,6 +109,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         return Math.sqrt(squaredLength(start, end));
     };
 
+    var types = {
+        Point: 1,
+        Line: 2,
+        Ellipse: 3,
+        Rect: 4,
+        Polyline: 5,
+        Polygon: 6,
+        Curve: 7,
+        Path: 8
+    };
+
     /*
         Point is the most basic object consisting of x/y coordinate.
 
@@ -182,6 +193,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     };
 
     Point.prototype = {
+
+        type: types.Point,
 
         chooseClosest: function(points) {
 
@@ -494,6 +507,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     };
 
     Line.prototype = {
+
+        type: types.Line,
 
         // @returns the angle of incline of the line.
         angle: function() {
@@ -852,6 +867,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     Ellipse.prototype = {
 
+        type: types.Ellipse,
+
         bbox: function() {
 
             return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
@@ -1150,18 +1167,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     Rect.prototype = {
 
+        type: types.Rect,
+
         // Find my bounding box when I'm rotated with the center of rotation in the center of me.
         // @return r {rectangle} representing a bounding box
         bbox: function(angle) {
+            return this.clone().rotateAroundCenter(angle);
+        },
 
-            if (!angle) { return this.clone(); }
-
+        rotateAroundCenter: function(angle) {
+            if (!angle) { return this; }
+            var ref = this;
+            var width = ref.width;
+            var height = ref.height;
             var theta = toRad(angle);
             var st = abs$1(sin$2(theta));
             var ct = abs$1(cos$2(theta));
-            var w = this.width * ct + this.height * st;
-            var h = this.width * st + this.height * ct;
-            return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+            var w = width * ct + height * st;
+            var h = width * st + height * ct;
+            this.x += (width - w) / 2;
+            this.y += (height - h) / 2;
+            this.width = w;
+            this.height = h;
+            return this;
         },
 
         bottomLeft: function() {
@@ -1191,7 +1219,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         // @return {bool} true if point p is inside me.
         containsPoint: function(p) {
-
             p = new Point(p);
             return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
         },
@@ -1605,7 +1632,240 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     // For backwards compatibility:
     var rect = Rect;
 
-    var abs$2 = Math.abs;
+    function parsePoints(svgString) {
+        svgString = svgString.trim();
+        if (svgString === '') { return []; }
+        var points = [];
+        var coords = svgString.split(/\s*,\s*|\s+/);
+        var n = coords.length;
+        for (var i = 0; i < n; i += 2) {
+            points.push({ x: +coords[i], y: +coords[i + 1] });
+        }
+        return points;
+    }
+
+    function clonePoints(points) {
+        var numPoints = points.length;
+        if (numPoints === 0) { return []; }
+        var newPoints = [];
+        for (var i = 0; i < numPoints; i++) {
+            var point = points[i].clone();
+            newPoints.push(point);
+        }
+        return newPoints;
+    }
+
+    // Returns a convex-hull polyline from this polyline.
+    // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
+    // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
+    // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+    function convexHull(points) {
+
+        var abs = Math.abs;
+
+        var i;
+        var n;
+
+        var numPoints = points.length;
+        if (numPoints === 0) { return []; } // if points array is empty
+
+        // step 1: find the starting point - point with the lowest y (if equality, highest x)
+        var startPoint;
+        for (i = 0; i < numPoints; i++) {
+            if (startPoint === undefined) {
+                // if this is the first point we see, set it as start point
+                startPoint = points[i];
+
+            } else if (points[i].y < startPoint.y) {
+                // start point should have lowest y from all points
+                startPoint = points[i];
+
+            } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
+                // if two points have the lowest y, choose the one that has highest x
+                // there are no points to the right of startPoint - no ambiguity about theta 0
+                // if there are several coincident start point candidates, first one is reported
+                startPoint = points[i];
+            }
+        }
+
+        // step 2: sort the list of points
+        // sorting by angle between line from startPoint to point and the x-axis (theta)
+
+        // step 2a: create the point records = [point, originalIndex, angle]
+        var sortedPointRecords = [];
+        for (i = 0; i < numPoints; i++) {
+
+            var angle = startPoint.theta(points[i]);
+            if (angle === 0) {
+                angle = 360; // give highest angle to start point
+                // the start point will end up at end of sorted list
+                // the start point will end up at beginning of hull points list
+            }
+
+            var entry = [points[i], i, angle];
+            sortedPointRecords.push(entry);
+        }
+
+        // step 2b: sort the list in place
+        sortedPointRecords.sort(function(record1, record2) {
+            // returning a negative number here sorts record1 before record2
+            // if first angle is smaller than second, first angle should come before second
+
+            var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
+            if (sortOutput === 0) {
+                // if the two angles are equal, sort by originalIndex
+                sortOutput = record2[1] - record1[1]; // negative if first index larger
+                // coincident points will be sorted in reverse-numerical order
+                // so the coincident points with lower original index will be considered first
+            }
+
+            return sortOutput;
+        });
+
+        // step 2c: duplicate start record from the top of the stack to the bottom of the stack
+        if (sortedPointRecords.length > 2) {
+            var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
+            sortedPointRecords.unshift(startPointRecord);
+        }
+
+        // step 3a: go through sorted points in order and find those with right turns
+        // we want to get our results in clockwise order
+        var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
+        var hullPointRecords = []; // stack of records with right turns - hull point candidates
+
+        var currentPointRecord;
+        var currentPoint;
+        var lastHullPointRecord;
+        var lastHullPoint;
+        var secondLastHullPointRecord;
+        var secondLastHullPoint;
+        while (sortedPointRecords.length !== 0) {
+
+            currentPointRecord = sortedPointRecords.pop();
+            currentPoint = currentPointRecord[0];
+
+            // check if point has already been discarded
+            // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
+            if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
+                // this point had an incorrect turn at some previous iteration of this loop
+                // this disqualifies it from possibly being on the hull
+                continue;
+            }
+
+            var correctTurnFound = false;
+            while (!correctTurnFound) {
+
+                if (hullPointRecords.length < 2) {
+                    // not enough points for comparison, just add current point
+                    hullPointRecords.push(currentPointRecord);
+                    correctTurnFound = true;
+
+                } else {
+                    lastHullPointRecord = hullPointRecords.pop();
+                    lastHullPoint = lastHullPointRecord[0];
+                    secondLastHullPointRecord = hullPointRecords.pop();
+                    secondLastHullPoint = secondLastHullPointRecord[0];
+
+                    var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
+
+                    if (crossProduct < 0) {
+                        // found a right turn
+                        hullPointRecords.push(secondLastHullPointRecord);
+                        hullPointRecords.push(lastHullPointRecord);
+                        hullPointRecords.push(currentPointRecord);
+                        correctTurnFound = true;
+
+                    } else if (crossProduct === 0) {
+                        // the three points are collinear
+                        // three options:
+                        // there may be a 180 or 0 degree angle at lastHullPoint
+                        // or two of the three points are coincident
+                        var THRESHOLD = 1e-10; // we have to take rounding errors into account
+                        var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+                        if (abs(angleBetween - 180) < THRESHOLD) { // rounding around 180 to 180
+                            // if the cross product is 0 because the angle is 180 degrees
+                            // discard last hull point (add to insidePoints)
+                            //insidePoints.unshift(lastHullPoint);
+                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                            // reenter second-to-last hull point (will be last at next iter)
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            // do not do anything with current point
+                            // correct turn not found
+
+                        } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
+                            // if the cross product is 0 because two points are the same
+                            // discard last hull point (add to insidePoints)
+                            //insidePoints.unshift(lastHullPoint);
+                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                            // reenter second-to-last hull point (will be last at next iter)
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            // do not do anything with current point
+                            // correct turn not found
+
+                        } else if (abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
+                            // if the cross product is 0 because the angle is 0 degrees
+                            // remove last hull point from hull BUT do not discard it
+                            // reenter second-to-last hull point (will be last at next iter)
+                            hullPointRecords.push(secondLastHullPointRecord);
+                            // put last hull point back into the sorted point records list
+                            sortedPointRecords.push(lastHullPointRecord);
+                            // we are switching the order of the 0deg and 180deg points
+                            // correct turn not found
+                        }
+
+                    } else {
+                        // found a left turn
+                        // discard last hull point (add to insidePoints)
+                        //insidePoints.unshift(lastHullPoint);
+                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+                        // reenter second-to-last hull point (will be last at next iter of loop)
+                        hullPointRecords.push(secondLastHullPointRecord);
+                        // do not do anything with current point
+                        // correct turn not found
+                    }
+                }
+            }
+        }
+        // at this point, hullPointRecords contains the output points in clockwise order
+        // the points start with lowest-y,highest-x startPoint, and end at the same point
+
+        // step 3b: remove duplicated startPointRecord from the end of the array
+        if (hullPointRecords.length > 2) {
+            hullPointRecords.pop();
+        }
+
+        // step 4: find the lowest originalIndex record and put it at the beginning of hull
+        var lowestHullIndex; // the lowest originalIndex on the hull
+        var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
+        n = hullPointRecords.length;
+        for (i = 0; i < n; i++) {
+
+            var currentHullIndex = hullPointRecords[i][1];
+
+            if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
+                lowestHullIndex = currentHullIndex;
+                indexOfLowestHullIndexRecord = i;
+            }
+        }
+
+        var hullPointRecordsReordered = [];
+        if (indexOfLowestHullIndexRecord > 0) {
+            var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
+            var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
+            hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+
+        } else {
+            hullPointRecordsReordered = hullPointRecords;
+        }
+
+        var hullPoints = [];
+        n = hullPointRecordsReordered.length;
+        for (i = 0; i < n; i++) {
+            hullPoints.push(hullPointRecordsReordered[i][0]);
+        }
+
+        return hullPoints;
+    }
 
     var Polyline = function(points) {
 
@@ -1621,21 +1881,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     };
 
     Polyline.parse = function(svgString) {
-        svgString = svgString.trim();
-        if (svgString === '') { return new Polyline(); }
+        return new Polyline(parsePoints(svgString));
+    };
 
-        var points = [];
-
-        var coords = svgString.split(/\s*,\s*|\s+/);
-        var n = coords.length;
-        for (var i = 0; i < n; i += 2) {
-            points.push({ x: +coords[i], y: +coords[i + 1] });
-        }
-
-        return new Polyline(points);
+    Polyline.fromRect = function(rect) {
+        return new Polyline([
+            rect.topLeft(),
+            rect.topRight(),
+            rect.bottomRight(),
+            rect.bottomLeft(),
+            rect.topLeft() ]);
     };
 
     Polyline.prototype = {
+
+        type: types.Polyline,
 
         bbox: function() {
 
@@ -1664,19 +1924,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         },
 
         clone: function() {
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-            var newPoints = [];
-            for (var i = 0; i < numPoints; i++) {
-
-                var point = points[i].clone();
-                newPoints.push(point);
-            }
-
-            return new Polyline(newPoints);
+            return new Polyline(clonePoints(this.points));
         },
 
         closestPoint: function(p) {
@@ -1688,7 +1936,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         closestPointLength: function(p) {
 
-            var points = this.points;
+            var points = this.lengthPoints();
             var numPoints = points.length;
             if (numPoints === 0) { return 0; } // if points array is empty
             if (numPoints === 1) { return 0; } // if there is only one point
@@ -1752,12 +2000,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var startIndex = numPoints - 1; // start of current polyline segment
             var endIndex = 0; // end of current polyline segment
             var numIntersections = 0;
+            var segment = new Line();
+            var ray = new Line();
+            var rayEnd = new Point();
             for (; endIndex < numPoints; endIndex++) {
                 var start = points[startIndex];
                 var end = points[endIndex];
                 if (p.equals(start)) { return true; } // shortcut (`p` is a point on polyline)
-
-                var segment = new Line(start, end); // current polyline segment
+                // current polyline segment
+                segment.start = start;
+                segment.end = end;
                 if (segment.containsPoint(p)) { return true; } // shortcut (`p` lies on a polyline segment)
 
                 // do we have an intersection?
@@ -1771,9 +2023,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
                     if (xDifference >= 0) {
                         // segment lies at least partially to the right of `p`
-                        var rayEnd = new Point((x + xDifference), y); // right
-                        var ray = new Line(p, rayEnd);
-
+                        rayEnd.x = x + xDifference;
+                        rayEnd.y = y; // right
+                        ray.start = p;
+                        ray.end = rayEnd;
                         if (segment.intersect(ray)) {
                             // an intersection was detected to the right of `p`
                             numIntersections++;
@@ -1789,215 +2042,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             return ((numIntersections % 2) === 1);
         },
 
-        // Returns a convex-hull polyline from this polyline.
-        // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
-        // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
-        // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+        close: function() {
+            var ref = this;
+            var start = ref.start;
+            var end = ref.end;
+            var points = ref.points;
+            if (start && end && !start.equals(end)) {
+                points.push(start.clone());
+            }
+            return this;
+        },
+
+        lengthPoints: function() {
+            return this.points;
+        },
+
         convexHull: function() {
-
-            var i;
-            var n;
-
-            var points = this.points;
-            var numPoints = points.length;
-            if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-            // step 1: find the starting point - point with the lowest y (if equality, highest x)
-            var startPoint;
-            for (i = 0; i < numPoints; i++) {
-                if (startPoint === undefined) {
-                    // if this is the first point we see, set it as start point
-                    startPoint = points[i];
-
-                } else if (points[i].y < startPoint.y) {
-                    // start point should have lowest y from all points
-                    startPoint = points[i];
-
-                } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
-                    // if two points have the lowest y, choose the one that has highest x
-                    // there are no points to the right of startPoint - no ambiguity about theta 0
-                    // if there are several coincident start point candidates, first one is reported
-                    startPoint = points[i];
-                }
-            }
-
-            // step 2: sort the list of points
-            // sorting by angle between line from startPoint to point and the x-axis (theta)
-
-            // step 2a: create the point records = [point, originalIndex, angle]
-            var sortedPointRecords = [];
-            for (i = 0; i < numPoints; i++) {
-
-                var angle = startPoint.theta(points[i]);
-                if (angle === 0) {
-                    angle = 360; // give highest angle to start point
-                    // the start point will end up at end of sorted list
-                    // the start point will end up at beginning of hull points list
-                }
-
-                var entry = [points[i], i, angle];
-                sortedPointRecords.push(entry);
-            }
-
-            // step 2b: sort the list in place
-            sortedPointRecords.sort(function(record1, record2) {
-                // returning a negative number here sorts record1 before record2
-                // if first angle is smaller than second, first angle should come before second
-
-                var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
-                if (sortOutput === 0) {
-                    // if the two angles are equal, sort by originalIndex
-                    sortOutput = record2[1] - record1[1]; // negative if first index larger
-                    // coincident points will be sorted in reverse-numerical order
-                    // so the coincident points with lower original index will be considered first
-                }
-
-                return sortOutput;
-            });
-
-            // step 2c: duplicate start record from the top of the stack to the bottom of the stack
-            if (sortedPointRecords.length > 2) {
-                var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
-                sortedPointRecords.unshift(startPointRecord);
-            }
-
-            // step 3a: go through sorted points in order and find those with right turns
-            // we want to get our results in clockwise order
-            var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
-            var hullPointRecords = []; // stack of records with right turns - hull point candidates
-
-            var currentPointRecord;
-            var currentPoint;
-            var lastHullPointRecord;
-            var lastHullPoint;
-            var secondLastHullPointRecord;
-            var secondLastHullPoint;
-            while (sortedPointRecords.length !== 0) {
-
-                currentPointRecord = sortedPointRecords.pop();
-                currentPoint = currentPointRecord[0];
-
-                // check if point has already been discarded
-                // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
-                if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
-                    // this point had an incorrect turn at some previous iteration of this loop
-                    // this disqualifies it from possibly being on the hull
-                    continue;
-                }
-
-                var correctTurnFound = false;
-                while (!correctTurnFound) {
-
-                    if (hullPointRecords.length < 2) {
-                        // not enough points for comparison, just add current point
-                        hullPointRecords.push(currentPointRecord);
-                        correctTurnFound = true;
-
-                    } else {
-                        lastHullPointRecord = hullPointRecords.pop();
-                        lastHullPoint = lastHullPointRecord[0];
-                        secondLastHullPointRecord = hullPointRecords.pop();
-                        secondLastHullPoint = secondLastHullPointRecord[0];
-
-                        var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
-
-                        if (crossProduct < 0) {
-                            // found a right turn
-                            hullPointRecords.push(secondLastHullPointRecord);
-                            hullPointRecords.push(lastHullPointRecord);
-                            hullPointRecords.push(currentPointRecord);
-                            correctTurnFound = true;
-
-                        } else if (crossProduct === 0) {
-                            // the three points are collinear
-                            // three options:
-                            // there may be a 180 or 0 degree angle at lastHullPoint
-                            // or two of the three points are coincident
-                            var THRESHOLD = 1e-10; // we have to take rounding errors into account
-                            var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
-                            if (abs$2(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
-                                // if the cross product is 0 because the angle is 180 degrees
-                                // discard last hull point (add to insidePoints)
-                                //insidePoints.unshift(lastHullPoint);
-                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-                                // reenter second-to-last hull point (will be last at next iter)
-                                hullPointRecords.push(secondLastHullPointRecord);
-                                // do not do anything with current point
-                                // correct turn not found
-
-                            } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
-                                // if the cross product is 0 because two points are the same
-                                // discard last hull point (add to insidePoints)
-                                //insidePoints.unshift(lastHullPoint);
-                                insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-                                // reenter second-to-last hull point (will be last at next iter)
-                                hullPointRecords.push(secondLastHullPointRecord);
-                                // do not do anything with current point
-                                // correct turn not found
-
-                            } else if (abs$2(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
-                                // if the cross product is 0 because the angle is 0 degrees
-                                // remove last hull point from hull BUT do not discard it
-                                // reenter second-to-last hull point (will be last at next iter)
-                                hullPointRecords.push(secondLastHullPointRecord);
-                                // put last hull point back into the sorted point records list
-                                sortedPointRecords.push(lastHullPointRecord);
-                                // we are switching the order of the 0deg and 180deg points
-                                // correct turn not found
-                            }
-
-                        } else {
-                            // found a left turn
-                            // discard last hull point (add to insidePoints)
-                            //insidePoints.unshift(lastHullPoint);
-                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-                            // reenter second-to-last hull point (will be last at next iter of loop)
-                            hullPointRecords.push(secondLastHullPointRecord);
-                            // do not do anything with current point
-                            // correct turn not found
-                        }
-                    }
-                }
-            }
-            // at this point, hullPointRecords contains the output points in clockwise order
-            // the points start with lowest-y,highest-x startPoint, and end at the same point
-
-            // step 3b: remove duplicated startPointRecord from the end of the array
-            if (hullPointRecords.length > 2) {
-                hullPointRecords.pop();
-            }
-
-            // step 4: find the lowest originalIndex record and put it at the beginning of hull
-            var lowestHullIndex; // the lowest originalIndex on the hull
-            var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
-            n = hullPointRecords.length;
-            for (i = 0; i < n; i++) {
-
-                var currentHullIndex = hullPointRecords[i][1];
-
-                if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
-                    lowestHullIndex = currentHullIndex;
-                    indexOfLowestHullIndexRecord = i;
-                }
-            }
-
-            var hullPointRecordsReordered = [];
-            if (indexOfLowestHullIndexRecord > 0) {
-                var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
-                var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
-                hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
-
-            } else {
-                hullPointRecordsReordered = hullPointRecords;
-            }
-
-            var hullPoints = [];
-            n = hullPointRecordsReordered.length;
-            for (i = 0; i < n; i++) {
-                hullPoints.push(hullPointRecordsReordered[i][0]);
-            }
-
-            return new Polyline(hullPoints);
+            return new Polyline(convexHull(this.points));
         },
 
         // Checks whether two polylines are exactly the same.
@@ -2028,11 +2089,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         intersectionWithLine: function(l) {
             var line = new Line(l);
             var intersections = [];
-            var points = this.points;
+            var points = this.lengthPoints();
+            var l2 = new Line();
             for (var i = 0, n = points.length - 1; i < n; i++) {
-                var a = points[i];
-                var b = points[i + 1];
-                var l2 = new Line(a, b);
+                l2.start = points[i];
+                l2.end = points[i + 1];
                 var int = line.intersectionWithLine(l2);
                 if (int) { intersections.push(int[0]); }
             }
@@ -2045,13 +2106,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             var numPoints = points.length;
             if (numPoints === 0) { return false; }
 
+            var line = new Line();
             var n = numPoints - 1;
             for (var i = 0; i < n; i++) {
-
-                var a = points[i];
-                var b = points[i + 1];
-                var line = new Line(a, b);
-
+                line.start = points[i];
+                line.end = points[i + 1];
                 // as soon as a differentiable line is found between two points, return true
                 if (line.isDifferentiable()) { return true; }
             }
@@ -2062,7 +2121,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         length: function() {
 
-            var points = this.points;
+            var points = this.lengthPoints();
             var numPoints = points.length;
             if (numPoints === 0) { return 0; } // if points array is empty
 
@@ -2077,7 +2136,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         pointAt: function(ratio) {
 
-            var points = this.points;
+            var points = this.lengthPoints();
             var numPoints = points.length;
             if (numPoints === 0) { return null; } // if points array is empty
             if (numPoints === 1) { return points[0].clone(); } // if there is only one point
@@ -2093,7 +2152,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         pointAtLength: function(length) {
 
-            var points = this.points;
+            var points = this.lengthPoints();
             var numPoints = points.length;
             if (numPoints === 0) { return null; } // if points array is empty
             if (numPoints === 1) { return points[0].clone(); } // if there is only one point
@@ -2198,7 +2257,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         tangentAt: function(ratio) {
 
-            var points = this.points;
+            var points = this.lengthPoints();
             var numPoints = points.length;
             if (numPoints === 0) { return null; } // if points array is empty
             if (numPoints === 1) { return null; } // if there is only one point
@@ -2214,7 +2273,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
         tangentAtLength: function(length) {
 
-            var points = this.points;
+            var points = this.lengthPoints();
             var numPoints = points.length;
             if (numPoints === 0) { return null; } // if points array is empty
             if (numPoints === 1) { return null; } // if there is only one point
@@ -2326,7 +2385,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         },
     });
 
-    var abs$3 = Math.abs;
+    var abs$2 = Math.abs;
     var sqrt$2 = Math.sqrt;
     var min$3 = Math.min;
     var max$3 = Math.max;
@@ -2483,6 +2542,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     Curve.prototype = {
 
+        type: types.Curve,
+
         // Returns a bbox that tightly envelops the curve.
         bbox: function() {
 
@@ -2521,8 +2582,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                     c = 3 * y1 - 3 * y0;
                 }
 
-                if (abs$3(a) < 1e-12) { // Numerical robustness
-                    if (abs$3(b) < 1e-12) { // Numerical robustness
+                if (abs$2(a) < 1e-12) { // Numerical robustness
+                    if (abs$2(b) < 1e-12) { // Numerical robustness
                         continue;
                     }
 
@@ -2678,8 +2739,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
                 // - note that this function is not monotonic = it doesn't converge stably but has "teeth"
                 // - the function decreases while one of the endpoints is fixed but "jumps" whenever we switch
                 // - this criterion works well for points lying far away from the curve
-                var startPrecisionRatio = (distFromStart ? (abs$3(distFromStart - distFromEnd) / distFromStart) : 0);
-                var endPrecisionRatio = (distFromEnd ? (abs$3(distFromStart - distFromEnd) / distFromEnd) : 0);
+                var startPrecisionRatio = (distFromStart ? (abs$2(distFromStart - distFromEnd) / distFromStart) : 0);
+                var endPrecisionRatio = (distFromEnd ? (abs$2(distFromStart - distFromEnd) / distFromEnd) : 0);
                 var hasRequiredPrecision = ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio < precisionRatio));
 
                 // check if we have reached at least one required minimal distance
@@ -3248,8 +3309,74 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
     Curve.prototype.divide = Curve.prototype.divideAtT;
 
-    // Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+    // Local helper function.
+    // Add properties from arguments on top of properties from `obj`.
+    // This allows for rudimentary inheritance.
+    // - The `obj` argument acts as parent.
+    // - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
+    // - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
+    function extend(obj) {
+        var arguments$1 = arguments;
 
+        // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
+        // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
+        // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
+        // - First, realize that both of those quasiclasses would still have their own separate constructor function.
+        // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
+        // - This method provides a way to do exactly that.
+        // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
+        // - Therefore, to continue with the example above:
+        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
+        //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
+        //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
+        //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
+        // - Multiple inheritance is also possible, if multiple arguments are provided.
+        // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
+        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
+        //   - The ancestors are applied in order of appearance.
+        //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
+        //   - Any number of ancestors may be provided.
+        // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
+        // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
+        //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
+        //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
+        // - Therefore, both of the following are valid:
+        //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
+        //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
+
+        var i;
+        var n;
+
+        var args = [];
+        n = arguments.length;
+        for (i = 1; i < n; i++) { // skip over obj
+            args.push(arguments$1[i]);
+        }
+
+        if (!obj) { throw new Error('Missing a parent object.'); }
+        var child = Object.create(obj);
+
+        n = args.length;
+        for (i = 0; i < n; i++) {
+
+            var src = args[i];
+
+            var inheritedProperty;
+            var key;
+            for (key in src) {
+
+                if (src.hasOwnProperty(key)) {
+                    delete child[key]; // delete property inherited from parent
+                    inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
+                    Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
+                }
+            }
+        }
+
+        return child;
+    }
+
+    // Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
     var Path = function(arg) {
 
         if (!(this instanceof Path)) {
@@ -3385,6 +3512,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     };
 
     Path.prototype = {
+
+        type: types.Path,
 
         // Accepts one segment or an array of segments as argument.
         // Throws an error if argument is not a segment or an array of segments.
@@ -4588,73 +4717,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         return new (Function.prototype.bind.apply(constructor, argsArray));
     }
 
-    // Local helper function.
-    // Add properties from arguments on top of properties from `obj`.
-    // This allows for rudimentary inheritance.
-    // - The `obj` argument acts as parent.
-    // - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
-    // - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
-    function extend(obj) {
-        var arguments$1 = arguments;
-
-        // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
-        // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
-        // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
-        // - First, realize that both of those quasiclasses would still have their own separate constructor function.
-        // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
-        // - This method provides a way to do exactly that.
-        // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
-        // - Therefore, to continue with the example above:
-        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
-        //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
-        //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
-        //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
-        // - Multiple inheritance is also possible, if multiple arguments are provided.
-        // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
-        //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
-        //   - The ancestors are applied in order of appearance.
-        //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
-        //   - Any number of ancestors may be provided.
-        // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
-        // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
-        //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
-        //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
-        // - Therefore, both of the following are valid:
-        //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
-        //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
-
-        var i;
-        var n;
-
-        var args = [];
-        n = arguments.length;
-        for (i = 1; i < n; i++) { // skip over obj
-            args.push(arguments$1[i]);
-        }
-
-        if (!obj) { throw new Error('Missing a parent object.'); }
-        var child = Object.create(obj);
-
-        n = args.length;
-        for (i = 0; i < n; i++) {
-
-            var src = args[i];
-
-            var inheritedProperty;
-            var key;
-            for (key in src) {
-
-                if (src.hasOwnProperty(key)) {
-                    delete child[key]; // delete property inherited from parent
-                    inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
-                    Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
-                }
-            }
-        }
-
-        return child;
-    }
-
     // Path segment interface:
     var segmentPrototype = {
 
@@ -5746,9 +5808,615 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         }
     };
 
+    var Polygon = function(points) {
+
+        if (!(this instanceof Polygon)) {
+            return new Polygon(points);
+        }
+
+        if (typeof points === 'string') {
+            return new Polygon.parse(points);
+        }
+
+        this.points = (Array.isArray(points) ? points.map(Point) : []);
+    };
+
+    Polygon.parse = function(svgString) {
+        return new Polygon(parsePoints(svgString));
+    };
+
+    Polygon.fromRect = function(rect) {
+        return new Polygon([
+            rect.topLeft(),
+            rect.topRight(),
+            rect.bottomRight(),
+            rect.bottomLeft()
+        ]);
+    };
+
+    Polygon.prototype = extend(Polyline.prototype, {
+
+        type: types.Polygon,
+
+        clone: function() {
+            return new Polygon(clonePoints(this.points));
+        },
+
+        convexHull: function() {
+            return new Polygon(convexHull(this.points));
+        },
+
+        lengthPoints: function() {
+            var ref = this;
+            var start = ref.start;
+            var end = ref.end;
+            var points = ref.points;
+            if (points.length <= 1 || start.equals(end)) { return points; }
+            return points.concat( [start.clone()]);
+        }
+
+    });
+
+    function exists(shape1, shape2, shape1opt, shape2opt) {
+        switch (shape1.type) {
+            case types.Line: {
+                switch (shape2.type) {
+                    case types.Line: {
+                        return lineWithLine(shape1, shape2);
+                    }
+                }
+                break;
+            }
+            case types.Ellipse: {
+                switch (shape2.type) {
+                    case types.Line: {
+                        return ellipseWithLine(shape1, shape2);
+                    }
+                    case types.Ellipse: {
+                        return ellipseWithEllipse(shape1, shape2);
+                    }
+                }
+                break;
+            }
+            case types.Rect: {
+                switch (shape2.type) {
+                    case types.Line: {
+                        return rectWithLine(shape1, shape2);
+                    }
+                    case types.Ellipse: {
+                        return rectWithEllipse(shape1, shape2);
+                    }
+                    case types.Rect: {
+                        return rectWithRect(shape1, shape2);
+                    }
+                }
+                break;
+            }
+            case types.Polyline: {
+                switch (shape2.type) {
+                    case types.Line: {
+                        return polylineWithLine(shape1, shape2);
+                    }
+                    case types.Ellipse: {
+                        return polylineWithEllipse(shape1, shape2);
+                    }
+                    case types.Rect: {
+                        return polylineWithRect(shape1, shape2);
+                    }
+                    case types.Polyline: {
+                        return polylineWithPolyline(shape1, shape2);
+                    }
+                }
+                break;
+            }
+            case types.Polygon: {
+                switch (shape2.type) {
+                    case types.Line: {
+                        return polygonWithLine(shape1, shape2);
+                    }
+                    case types.Ellipse: {
+                        return polygonWithEllipse(shape1, shape2);
+                    }
+                    case types.Rect: {
+                        return polygonWithRect(shape1, shape2);
+                    }
+                    case types.Polyline: {
+                        return polygonWithPolyline(shape1, shape2);
+                    }
+                    case types.Polygon: {
+                        return polygonWithPolygon(shape1, shape2);
+                    }
+                }
+                break;
+            }
+            case types.Path: {
+                switch (shape2.type) {
+                    case types.Line: {
+                        return pathWithLine(shape1, shape2, shape1opt);
+                    }
+                    case types.Ellipse: {
+                        return pathWithEllipse(shape1, shape2, shape1opt);
+                    }
+                    case types.Rect: {
+                        return pathWithRect(shape1, shape2, shape1opt);
+                    }
+                    case types.Polyline: {
+                        return pathWithPolyline(shape1, shape2, shape1opt);
+                    }
+                    case types.Polygon: {
+                        return pathWithPolygon(shape1, shape2, shape1opt);
+                    }
+                    case types.Path: {
+                        return pathWithPath(shape1, shape2, shape1opt, shape2opt);
+                    }
+                }
+                break;
+            }
+        }
+        // None of the cases above
+        switch (shape2.type) {
+            case types.Ellipse:
+            case types.Rect:
+            case types.Polyline:
+            case types.Polygon:
+            case types.Path: {
+                return exists(shape2, shape1, shape2opt, shape1opt);
+            }
+            default: {
+                throw Error(("The intersection for " + shape1 + " and " + shape2 + " could not be found."));
+            }
+        }
+    }
+
+    /* Line */
+
+    function lineWithLine(line1, line2) {
+        var x1 = line1.start.x;
+        var y1 = line1.start.y;
+        var x2 = line1.end.x;
+        var y2 = line1.end.y;
+        var x3 = line2.start.x;
+        var y3 = line2.start.y;
+        var x4 = line2.end.x;
+        var y4 = line2.end.y;
+        var s1x = x2 - x1;
+        var s1y = y2 - y1;
+        var s2x = x4 - x3;
+        var s2y = y4 - y3;
+        var s3x = x1 - x3;
+        var s3y = y1 - y3;
+        var p = s1x * s2y - s2x * s1y;
+        var s = (s1x * s3y - s1y * s3x) / p;
+        var t = (s2x * s3y - s2y * s3x) / p;
+        return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+    }
+
+    /* Ellipse */
+
+    function ellipseWithLine(ellipse, line) {
+        var rex = ellipse.a;
+        var rey = ellipse.b;
+        var xe = ellipse.x;
+        var ye = ellipse.y;
+        var x1 = line.start.x - xe;
+        var x2 = line.end.x - xe;
+        var y1 = line.start.y - ye;
+        var y2 = line.end.y - ye;
+        var rex_2 = rex * rex;
+        var rey_2 = rey * rey;
+        var dx = x2 - x1;
+        var dy = y2 - y1;
+        var A = dx * dx / rex_2 + dy * dy / rey_2;
+        var B = 2 * x1 * dx / rex_2 + 2 * y1 * dy / rey_2;
+        var C = x1 * x1 / rex_2 + y1 * y1 / rey_2 - 1;
+        var D = B * B - 4 * A * C;
+        if (D === 0) {
+            var t = -B / 2 / A;
+            return t >= 0 && t <= 1;
+        } else if (D > 0) {
+            var sqrt = Math.sqrt(D);
+            var t1 = (-B + sqrt) / 2 / A;
+            var t2 = (-B - sqrt) / 2 / A;
+            return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+        }
+        return false;
+    }
+
+    function ellipseWithEllipse(ellipse1, ellipse2) {
+        return _ellipsesIntersection(ellipse1, 0, ellipse2, 0);
+    }
+
+    /* Rect */
+
+    function rectWithLine(rect, line) {
+        var start = line.start;
+        var end = line.end;
+        var x = rect.x;
+        var y = rect.y;
+        var width = rect.width;
+        var height = rect.height;
+        if (
+            (start.x > x + width && end.x > x + width)
+            || (start.x < x && end.x < x)
+            || (start.y > y + height && end.y > y + height)
+            || (start.y < y && end.y < y)
+        ) {
+            return false;
+        }
+        if (rect.containsPoint(line.start) || rect.containsPoint(line.end)) {
+            return true;
+        }
+        return lineWithLine(rect.topLine(), line)
+            || lineWithLine(rect.rightLine(), line)
+            || lineWithLine(rect.bottomLine(), line)
+            || lineWithLine(rect.leftLine(), line);
+    }
+
+    function rectWithEllipse(rect, ellipse) {
+        if (!rectWithRect(rect, Rect.fromEllipse(ellipse))) { return false; }
+        return polygonWithEllipse(Polygon.fromRect(rect), ellipse);
+    }
+
+    function rectWithRect(rect1, rect2) {
+        return rect1.x < rect2.x + rect2.width
+            && rect1.x + rect1.width > rect2.x
+            && rect1.y < rect2.y + rect2.height
+            && rect1.y + rect1.height > rect2.y;
+    }
+
+    /* Polyline */
+
+    function polylineWithLine(polyline, line) {
+        return _polylineWithLine(polyline, line, { interior: false });
+    }
+
+    function polylineWithEllipse(polyline, ellipse) {
+        return _polylineWithEllipse(polyline, ellipse, { interior: false });
+    }
+
+    function polylineWithRect(polyline, rect) {
+        return _polylineWithRect(polyline, rect, { interior: false });
+    }
+
+    function polylineWithPolyline(polyline1, polyline2) {
+        return _polylineWithPolyline(polyline1, polyline2, { interior: false });
+    }
+
+    /* Polygon */
+
+    function polygonWithLine(polygon, line) {
+        return _polylineWithLine(polygon, line, { interior: true });
+    }
+
+    function polygonWithEllipse(polygon, ellipse) {
+        return _polylineWithEllipse(polygon, ellipse, { interior: true });
+    }
+
+    function polygonWithRect(polygon, rect) {
+        return _polylineWithRect(polygon, rect, { interior: true });
+    }
+
+    function polygonWithPolyline(polygon, polyline) {
+        return _polylineWithPolyline(polygon, polyline, { interior: true });
+    }
+
+    function polygonWithPolygon(polygon1, polygon2) {
+        return _polylineWithPolygon(polygon1, polygon2, { interior: true });
+    }
+
+    /* Path */
+
+    function pathWithLine(path, line, pathOpt) {
+        return path.getSubpaths().some(function (subpath) {
+            var ref = subpath.toPolylines(pathOpt);
+            var polyline = ref[0];
+            var ref$1 = subpath.getSegment(-1);
+            var type = ref$1.type;
+            if (type === 'Z') {
+                return polygonWithLine(polyline, line);
+            } else {
+                return polylineWithLine(polyline, line);
+            }
+        });
+    }
+
+    function pathWithEllipse(path, ellipse, pathOpt) {
+        return path.getSubpaths().some(function (subpath) {
+            var ref = subpath.toPolylines(pathOpt);
+            var polyline = ref[0];
+            var ref$1 = subpath.getSegment(-1);
+            var type = ref$1.type;
+            if (type === 'Z') {
+                return polygonWithEllipse(polyline, ellipse);
+            } else {
+                return polylineWithEllipse(polyline, ellipse);
+            }
+        });
+    }
+
+    function pathWithRect(path, rect, pathOpt) {
+        return pathWithPolygon(path, Polygon.fromRect(rect), pathOpt);
+    }
+
+    function pathWithPolyline(path, polyline, pathOpt) {
+        return _pathWithPolyline(path, polyline, pathOpt, { interior: false });
+    }
+
+    function pathWithPolygon(path, polygon, pathOpt) {
+        return _pathWithPolyline(path, polygon, pathOpt, { interior: true });
+    }
+
+    function pathWithPath(path1, path2, pathOpt1, pathOpt2) {
+        return path1.getSubpaths().some(function (subpath) {
+            var ref = subpath.toPolylines(pathOpt1);
+            var polyline1 = ref[0];
+            var ref$1 = subpath.getSegment(-1);
+            var type = ref$1.type;
+            if (type === 'Z') {
+                return pathWithPolygon(path2, polyline1, pathOpt2);
+            } else {
+                return pathWithPolyline(path2, polyline1, pathOpt2);
+            }
+        });
+    }
+
+    function _polylineWithLine(polyline, line, opt) {
+        if ( opt === void 0 ) opt = {};
+
+        var interior = opt.interior; if ( interior === void 0 ) interior = false;
+        var thisPoints;
+        if (interior) {
+            if (polyline.containsPoint(line.start)) {
+                // If any point of the polyline lies inside this polygon (interior = true)
+                // there is an intersection (we've chosen the start point)
+                return true;
+            }
+            var start = polyline.start;
+            var end = polyline.end;
+            var points = polyline.points;
+            thisPoints = end.equals(start) ? points : points.concat( [start]);
+        } else {
+            thisPoints = polyline.points;
+        }
+        var length = thisPoints.length;
+        var segment = new Line();
+        for (var i = 0; i < length - 1; i++) {
+            segment.start = thisPoints[i];
+            segment.end = thisPoints[i + 1];
+            if (lineWithLine(line, segment)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function _polylineWithEllipse(polyline, ellipse, opt) {
+        if ( opt === void 0 ) opt = {};
+
+        var start = polyline.start;
+        var end = polyline.end;
+        var points = polyline.points;
+        if (ellipse.containsPoint(start)) {
+            return true;
+        }
+        var thisPoints;
+        var interior = opt.interior; if ( interior === void 0 ) interior = false;
+        if (interior) {
+            if (polyline.containsPoint(ellipse.center())) {
+                // If any point of the ellipse lies inside this polygon (interior = true)
+                // there is an intersection (we've chosen the center point)
+                return true;
+            }
+            thisPoints = end.equals(start) ? points : points.concat( [start]);
+        } else {
+            thisPoints = points;
+        }
+
+        var length = thisPoints.length;
+        var segment = new Line();
+        for (var i = 0; i < length - 1; i++) {
+            segment.start = thisPoints[i];
+            segment.end = thisPoints[i + 1];
+            if (ellipseWithLine(ellipse, segment)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function _polylineWithRect(polyline, rect, opt) {
+        var polygon = Polygon.fromRect(rect);
+        return _polylineWithPolygon(polyline, polygon, opt);
+    }
+
+    function _pathWithPolyline(path, polyline1, pathOpt, opt) {
+        return path.getSubpaths().some(function (subpath) {
+            var ref = subpath.toPolylines(pathOpt);
+            var polyline2 = ref[0];
+            var ref$1 = subpath.getSegment(-1);
+            var type = ref$1.type;
+            if (type === 'Z') {
+                return _polylineWithPolygon(polyline1, polyline2, opt);
+            } else {
+                return _polylineWithPolyline(polyline1, polyline2, opt);
+            }
+        });
+    }
+
+    function _polylineWithPolyline(polyline1, polyline2, opt) {
+        if ( opt === void 0 ) opt = {};
+
+        var interior = opt.interior; if ( interior === void 0 ) interior = false;
+        var thisPolyline;
+        if (interior) {
+            var start = polyline2.start;
+            if (polyline1.containsPoint(start)) {
+                // If any point of the polyline lies inside this polygon (interior = true)
+                // there is an intersection (we've chosen the start point)
+                return true;
+            }
+            thisPolyline = polyline1.clone().close();
+        } else {
+            thisPolyline = polyline1;
+        }
+        var otherPoints = polyline2.points;
+        var length = otherPoints.length;
+        var segment = new Line();
+        for (var i = 0; i < length - 1; i++) {
+            segment.start = otherPoints[i];
+            segment.end = otherPoints[i + 1];
+            if (polylineWithLine(thisPolyline, segment)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function _polylineWithPolygon(polyline, polygon, opt) {
+        return polygon.containsPoint(polyline.start) || _polylineWithPolyline(polyline, polygon.clone().close(), opt);
+    }
+
+    function _ellipsesIntersection(e1, w1, e2, w2) {
+        var cos = Math.cos;
+        var sin = Math.sin;
+        var sinW1 = sin(w1);
+        var cosW1 = cos(w1);
+        var sinW2 = sin(w2);
+        var cosW2 = cos(w2);
+        var sinW1s = sinW1 * sinW1;
+        var cosW1s = cosW1 * cosW1;
+        var sinCos1 = sinW1 * cosW1;
+        var sinW2s = sinW2 * sinW2;
+        var cosW2s = cosW2 * cosW2;
+        var sinCos2 = sinW2 * cosW2;
+        var a1s = e1.a * e1.a;
+        var b1s = e1.b * e1.b;
+        var a2s = e2.a * e2.a;
+        var b2s = e2.b * e2.b;
+        var A1 = a1s * sinW1s + b1s * cosW1s;
+        var A2 = a2s * sinW2s + b2s * cosW2s;
+        var B1 = a1s * cosW1s + b1s * sinW1s;
+        var B2 = a2s * cosW2s + b2s * sinW2s;
+        var C1 = 2 * (b1s - a1s) * sinCos1;
+        var C2 = 2 * (b2s - a2s) * sinCos2;
+        var D1 = (-2 * A1 * e1.x - C1 * e1.y);
+        var D2 = (-2 * A2 * e2.x - C2 * e2.y);
+        var E1 = (-C1 * e1.x - 2 * B1 * e1.y);
+        var E2 = (-C2 * e2.x - 2 * B2 * e2.y);
+        var F1 = A1 * e1.x * e1.x + B1 * e1.y * e1.y + C1 * e1.x * e1.y - a1s * b1s;
+        var F2 = A2 * e2.x * e2.x + B2 * e2.y * e2.y + C2 * e2.x * e2.y - a2s * b2s;
+
+        C1 = C1 / 2;
+        C2 = C2 / 2;
+        D1 = D1 / 2;
+        D2 = D2 / 2;
+        E1 = E1 / 2;
+        E2 = E2 / 2;
+
+        var l3 = det3([
+            [A1, C1, D1],
+            [C1, B1, E1],
+            [D1, E1, F1]
+        ]);
+        var l0 = det3([
+            [A2, C2, D2],
+            [C2, B2, E2],
+            [D2, E2, F2]
+        ]);
+        var l2 = 0.33333333 * (det3([
+            [A2, C1, D1],
+            [C2, B1, E1],
+            [D2, E1, F1]
+        ]) + det3([
+            [A1, C2, D1],
+            [C1, B2, E1],
+            [D1, E2, F1]
+        ]) + det3([
+            [A1, C1, D2],
+            [C1, B1, E2],
+            [D1, E1, F2]
+        ]));
+        var l1 = 0.33333333 * (det3([
+            [A1, C2, D2],
+            [C1, B2, E2],
+            [D1, E2, F2]
+        ]) + det3([
+            [A2, C1, D2],
+            [C2, B1, E2],
+            [D2, E1, F2]
+        ]) + det3([
+            [A2, C2, D1],
+            [C2, B2, E1],
+            [D2, E2, F1]
+        ]));
+
+        var delta1 = det2([
+            [l3, l2],
+            [l2, l1]
+        ]);
+        var delta2 = det2([
+            [l3, l1],
+            [l2, l0]
+        ]);
+        var delta3 = det2([
+            [l2, l1],
+            [l1, l0]
+        ]);
+
+        var dP = det2([
+            [2 * delta1, delta2],
+            [delta2, 2 * delta3]
+        ]);
+
+        if (dP > 0 && (l1 > 0 || l2 > 0)) {
+            return false;
+        }
+        return true;
+    }
+
+    function det2(m) {
+        return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+    }
+
+    function det3(m) {
+        return m[0][0] * m[1][1] * m[2][2] -
+            m[0][0] * m[1][2] * m[2][1] -
+            m[0][1] * m[1][0] * m[2][2] +
+            m[0][1] * m[1][2] * m[2][0] +
+            m[0][2] * m[1][0] * m[2][1] -
+            m[0][2] * m[1][1] * m[2][0];
+    }
+
+    var _intersection = ({
+        exists: exists,
+        lineWithLine: lineWithLine,
+        ellipseWithLine: ellipseWithLine,
+        ellipseWithEllipse: ellipseWithEllipse,
+        rectWithLine: rectWithLine,
+        rectWithEllipse: rectWithEllipse,
+        rectWithRect: rectWithRect,
+        polylineWithLine: polylineWithLine,
+        polylineWithEllipse: polylineWithEllipse,
+        polylineWithRect: polylineWithRect,
+        polylineWithPolyline: polylineWithPolyline,
+        polygonWithLine: polygonWithLine,
+        polygonWithEllipse: polygonWithEllipse,
+        polygonWithRect: polygonWithRect,
+        polygonWithPolyline: polygonWithPolyline,
+        polygonWithPolygon: polygonWithPolygon,
+        pathWithLine: pathWithLine,
+        pathWithEllipse: pathWithEllipse,
+        pathWithRect: pathWithRect,
+        pathWithPolyline: pathWithPolyline,
+        pathWithPolygon: pathWithPolygon,
+        pathWithPath: pathWithPath
+    });
+
     // Geometry library.
+    var intersection = _intersection;
 
     var g = ({
+        intersection: intersection,
         scale: scale,
         normalizeAngle: normalizeAngle,
         snapToGrid: snapToGrid,
@@ -5765,8 +6433,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         Point: Point,
         point: point,
         Polyline: Polyline,
+        Polygon: Polygon,
         Rect: Rect,
-        rect: rect
+        rect: rect,
+        types: types
     });
 
     // Vectorizer.
@@ -5825,6 +6495,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             attrs = attrs || {};
 
             if (V.isString(el)) {
+
+                el = el.trim();
 
                 if (el.toLowerCase() === 'svg') {
 
