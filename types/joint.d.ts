@@ -3409,7 +3409,7 @@ export namespace connectors {
         'jumpover': JumpOverConnectorArguments;
         'curve': CurveConnectorArguments;
         [key: string]: { [key: string]: any };
-    }    
+    }
 
     type ConnectorType = keyof ConnectorArgumentsMap;
 
