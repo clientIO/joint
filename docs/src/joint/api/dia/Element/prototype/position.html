@@ -48,7 +48,7 @@
             This is useful, e.g. if you want to restrict the translation of an embedded element within its parent. The only thing
             you have to do in this case is to pass the bounding box of the parent element to the <code>restrictedArea</code> option:</p>
 
-            <pre><code>myElement.translate(x, y, { restrictedArea: myElement.getParentCell().getBBox() })</code></pre>
+            <pre><code>myElement.position(x, y, { restrictedArea: myElement.getParentCell().getBBox() })</code></pre>
 
             <p>The code above makes sure that the element <code>myElement</code> never crosses the bounding box of its parent element.
             Note that this also works if the element <code>myElement</code> has other embedded elements. In other words, the
