@@ -88,7 +88,7 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
     
     const catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
     const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, options));
-    const path = new Path(bezierCurves);
+    const path = new Path(bezierCurves).round(3);
 
     return (raw) ? path : path.serialize();
 };

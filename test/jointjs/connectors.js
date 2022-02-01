@@ -77,10 +77,10 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector direction auto', function(assert) {
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
             connector: { name: 'curve' }
@@ -89,55 +89,55 @@ QUnit.module('connectors', function(hooks) {
         this.graph.addCells([r1, r2, link]);
 
         var linkView = this.paper.findViewByModel(link);
-        var pathData = linkView.$('.connection').attr('d');
+        var pathData = linkView.metrics.data;
 
-        assert.checkDataPath(pathData, 'M 305 270 C 305 343.53910524340097 435 326.46089475659903 435 400', 'curve auto link was correctly rendered'); 
+        assert.checkDataPath(pathData, 'M 305 270 C 305 343.539 435 326.461 435 400', 'curve auto link was correctly rendered'); 
     });
 
     QUnit.test('curve connector direction auto with vertex', function(assert) {
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
-        var r2 = new joint.shapes.basic.Rect({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
-        var link = new joint.dia.Link({
+        var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
             target: { id: r2.id },
             connector: { name: 'curve' }
         });
 
-        link.set('vertices', [new g.Point(400,200)]);
+        link.set('vertices', [{ x: 400, y: 200 }]);
 
         this.graph.addCells([r1, r2, link]);
 
         var linkView = this.paper.findViewByModel(link);
-        var pathData = linkView.$('.connection').attr('d');
+        var pathData = linkView.metrics.data;
 
-        assert.checkDataPath(pathData, 'M 340 216 C 364.83867951401606 216 375.40626108556097 196.52034395257132 400 200 C 482.69881571505465 211.70067858405756 460 316.4775479287156 460 400', 'curve auto with vertex was correctly rendered'); 
+        assert.checkDataPath(pathData, 'M 340 216.15 C 364.854 216.15 375.389 196.529 400 200 C 482.655 211.657 459.57 316.527 459.57 400', 'curve auto with vertex was correctly rendered'); 
     });
 
     QUnit.test('curve connector direction auto no element', function(assert) {
-        var link = new joint.dia.Link({
-            source: new g.Point(200, 200),
-            target: new g.Point(100, 300),
+        var link = new joint.shapes.standard.Link({
+            source: { x: 200, y: 200 },
+            target: { x: 100, y: 300 },
             connector: { name: 'curve' }
         });
 
         this.graph.addCells([link]);
 
         var linkView = this.paper.findViewByModel(link);
-        var pathData = linkView.$('.connection').attr('d');
+        var pathData = linkView.metrics.data;
 
-        assert.checkDataPath(pathData, 'M 200 200 C 143.4314575050762 200 156.5685424949238 300 100 300', 'curve auto with no elements was correctly rendered'); 
+        assert.checkDataPath(pathData, 'M 200 200 C 143.431 200 156.569 300 100 300', 'curve auto with no elements was correctly rendered'); 
     });
 
     QUnit.test('curve connector with custom directions', function(assert) {
-        var link = new joint.dia.Link({
-            source: new g.Point(200, 200),
-            target: new g.Point(400, 400),
+        var link = new joint.shapes.standard.Link({
+            source: { x: 200, y: 200 },
+            target: { x: 400, y: 400 },
             connector: { 
                 name: 'curve',
                 args: {
-                    sourceDirection: new g.Point(0.5, -0.5),
-                    targetDirection: new g.Point(-0.5, 0.5)
+                    sourceDirection: { x: 0.5, y: -0.5 },
+                    targetDirection: { x: -0.5, y: 0.5 }
                 }
             }
         });
@@ -145,20 +145,20 @@ QUnit.module('connectors', function(hooks) {
         this.graph.addCells([link]);
 
         var linkView = this.paper.findViewByModel(link);
-        var pathData = linkView.$('.connection').attr('d');
+        var pathData = linkView.metrics.data;
 
-        assert.checkDataPath(pathData, 'M 200 200 C 309.61921958772245 90.38078041227755 290.38078041227755 509.61921958772245 400 400', 'curve auto with custom directions was correctly rendered'); 
+        assert.checkDataPath(pathData, 'M 200 200 C 309.619 90.381 290.381 509.619 400 400', 'curve auto with custom directions was correctly rendered'); 
     });
 
     QUnit.test('curve connector with custom tangents', function(assert) {
-        var link = new joint.dia.Link({
-            source: new g.Point(200, 200),
-            target: new g.Point(400, 400),
+        var link = new joint.shapes.standard.Link({
+            source: { x: 200, y: 200 },
+            target: { x: 400, y: 400 },
             connector: { 
                 name: 'curve',
                 args: {
-                    sourceTangent: new g.Point(100, -50),
-                    targetTangent: new g.Point(100, 100)
+                    sourceTangent: { x: 100, y: -50 },
+                    targetTangent: { x: 100, y: 100 }
                 }
             }
         });
@@ -166,8 +166,8 @@ QUnit.module('connectors', function(hooks) {
         this.graph.addCells([link]);
 
         var linkView = this.paper.findViewByModel(link);
-        var pathData = linkView.$('.connection').attr('d');
+        var pathData = linkView.metrics.data;
 
-        assert.checkDataPath(pathData, 'M 200 200 C 266.6666666666667 166.66666666666666 466.6666666666667 466.6666666666667 400 400', 'curve auto with custom tangents was correctly rendered'); 
+        assert.checkDataPath(pathData, 'M 200 200 C 266.667 166.667 466.667 466.667 400 400', 'curve auto with custom tangents was correctly rendered'); 
     });
 });

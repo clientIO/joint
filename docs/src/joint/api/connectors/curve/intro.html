@@ -9,27 +9,27 @@
     </tr>
     <tr>
         <th>sourceDirection</th>
-        <td><a href="#connectors.curve.TargentDirections">curve.TangentDirections</a>|g.Point|object|number</td>
+        <td><a href="#connectors.curve.TargentDirections">curve.TangentDirections</a>|object|number</td>
         <td>The unit vector direction of the tangent at the source point. If the option is an object it must have x and y properties. 
-            If the option is a number, it represents an angle relative to the x-axis (counterclockwise).
+            If the option is a number, it represents an angle relative to the x-axis in the positive direction (counterclockwise).
         </td>
     </tr>
     <tr>
         <th>targetDirection</th>
-        <td><a href="#connectors.curve.TargentDirections">curve.TangentDirections</a>|g.Point|object|number</td>
+        <td><a href="#connectors.curve.TargentDirections">curve.TangentDirections</a>|object|number</td>
         <td>The unit vector direction of the tangent at the target point. If the option is an object it must have x and y properties. 
-            If the option is a number, it represents an angle relative to the x-axis (counterclockwise).
+            If the option is a number, it represents an angle relative to the x-axis in the positive direction (counterclockwise).
         </td>
     </tr>
     <tr>
         <th>sourceTangent</th>
-        <td>g.Point|object</td>
-        <td>Vector of the tangent to the curve at the source point. Has priority over the <code>sourceDirection</code> and <code>direction</code>. If the option is an object it must have x and y properties.</td>
+        <td>object</td>
+        <td>Vector of the tangent to the curve at the source point. Has priority over the <code>sourceDirection</code> and <code>direction</code>. Object must have x and y properties.</td>
     </tr>
     <tr>
         <th>targetTangent</th>
-        <td>g.Point|object</td>
-        <td>Vector of the tangent to the curve at the target point. Has priority over the <code>targetDirection</code> and <code>direction</code>. If the option is an object it must have x and y properties.</td>
+        <td>object</td>
+        <td>Vector of the tangent to the curve at the target point. Has priority over the <code>targetDirection</code> and <code>direction</code>. Object must have x and y properties.</td>
     </tr>
     <tr>
         <th>distanceCoefficient</th>
