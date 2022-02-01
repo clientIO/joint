@@ -8,6 +8,7 @@ var paper = new joint.dia.Paper({
     defaultConnectionPoint: { name: 'boundary' },
     defaultConnector: { name: 'smooth' },
     interactive: { linkMove: false },
+    labelsLayer: true,
     frozen: true
 });
 
