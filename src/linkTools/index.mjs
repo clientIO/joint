@@ -817,6 +817,7 @@ var Remove = Button.extend({
 });
 
 const Connect = Button.extend({
+    name: 'connect',
     documentEvents: {
         mousemove: 'drag',
         touchmove: 'drag',
@@ -894,6 +895,7 @@ const Connect = Button.extend({
         this.undelegateDocumentEvents();
         paper.delegateEvents();
         this.blur();
+        relatedView.checkMouseleave(normalizedEvent);
     }
 });
 
