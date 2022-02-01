@@ -27,7 +27,8 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
     // sourceDirection - a unit direction vector along the curve at the sourcePoint.
     // targetTangent - a tangent vector along the curve at the targetPoint.
     // targetDirection - a unit direction vector along the curve at the targetPoint.
-    const { direction = Directions.AUTO } = opt;
+    // precision - a rounding precision for path values.
+    const { direction = Directions.AUTO, precision = 3 } = opt;
     const options = {
         coeff: opt.distanceCoefficient || 0.6,
         angleTangentCoefficient: opt.angleTangentCoefficient || 80,
@@ -88,7 +89,7 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
     
     const catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
     const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, options));
-    const path = new Path(bezierCurves).round(3);
+    const path = new Path(bezierCurves).round(precision);
 
     return (raw) ? path : path.serialize();
 };
