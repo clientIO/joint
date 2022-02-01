@@ -1,5 +1,6 @@
 const { dia, shapes, linkTools, connectors } = joint;
 const { Polygon, Ellipse, Rect, toDeg } = g;
+const { TangentDirections } = connectors.curve;
 
 // Theme
 
@@ -93,8 +94,8 @@ const paper = new dia.Paper({
         const targetElement = link.getTargetElement();
         const sourceElement = link.getSourceElement();
         const options = {
-            targetDirection: targetElement ? targetElement.getCurveDirection(targetPoint) : 'auto',
-            sourceDirection:  sourceElement ? sourceElement.getCurveDirection(sourcePoint) : 'auto',
+            targetDirection: targetElement ? targetElement.getCurveDirection(targetPoint) : TangentDirections.AUTO,
+            sourceDirection:  sourceElement ? sourceElement.getCurveDirection(sourcePoint) : TangentDirections.AUTO,
         };
         return connectors.curve(sourcePoint, targetPoint, route, options, linkView);
     },
@@ -132,7 +133,7 @@ const BaseShape = dia.Element.define(ShapeTypes.BASE, {
     },
 
     getCurveDirection() {
-        return 'auto';
+        return TangentDirections.AUTO;
     },
 
     getBoundaryPoint(point, snapRadius = 20) {
@@ -314,7 +315,7 @@ const EllipseShape = BaseShape.define(ShapeTypes.ELLIPSE, {
     },
 
     getCurveDirection() {
-        return 'outwards';
+        return TangentDirections.OUTWARDS;
     },
 
     getClosestBoundaryPoint(bbox, point) {
