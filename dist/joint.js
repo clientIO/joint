@@ -1,4 +1,4 @@
-/*! JointJS v3.4.4 (2021-09-27) - JavaScript diagramming library
+/*! JointJS v3.5.0 (2022-02-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1748,6 +1748,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return Math.sqrt(squaredLength(start, end));
 	};
 
+	var types = {
+	    Point: 1,
+	    Line: 2,
+	    Ellipse: 3,
+	    Rect: 4,
+	    Polyline: 5,
+	    Polygon: 6,
+	    Curve: 7,
+	    Path: 8
+	};
+
 	/*
 	    Point is the most basic object consisting of x/y coordinate.
 
@@ -1821,6 +1832,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Point.prototype = {
+
+	    type: types.Point,
 
 	    chooseClosest: function(points) {
 
@@ -2133,6 +2146,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Line.prototype = {
+
+	    type: types.Line,
 
 	    // @returns the angle of incline of the line.
 	    angle: function() {
@@ -2491,6 +2506,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Ellipse.prototype = {
 
+	    type: types.Ellipse,
+
 	    bbox: function() {
 
 	        return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
@@ -2789,18 +2806,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Rect.prototype = {
 
+	    type: types.Rect,
+
 	    // Find my bounding box when I'm rotated with the center of rotation in the center of me.
 	    // @return r {rectangle} representing a bounding box
 	    bbox: function(angle) {
+	        return this.clone().rotateAroundCenter(angle);
+	    },
 
-	        if (!angle) { return this.clone(); }
-
+	    rotateAroundCenter: function(angle) {
+	        if (!angle) { return this; }
+	        var ref = this;
+	        var width = ref.width;
+	        var height = ref.height;
 	        var theta = toRad(angle);
 	        var st = abs$1(sin$2(theta));
 	        var ct = abs$1(cos$2(theta));
-	        var w = this.width * ct + this.height * st;
-	        var h = this.width * st + this.height * ct;
-	        return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+	        var w = width * ct + height * st;
+	        var h = width * st + height * ct;
+	        this.x += (width - w) / 2;
+	        this.y += (height - h) / 2;
+	        this.width = w;
+	        this.height = h;
+	        return this;
 	    },
 
 	    bottomLeft: function() {
@@ -2830,7 +2858,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // @return {bool} true if point p is inside me.
 	    containsPoint: function(p) {
-
 	        p = new Point(p);
 	        return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
 	    },
@@ -3244,7 +3271,240 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	// For backwards compatibility:
 	var rect = Rect;
 
-	var abs$2 = Math.abs;
+	function parsePoints(svgString) {
+	    svgString = svgString.trim();
+	    if (svgString === '') { return []; }
+	    var points = [];
+	    var coords = svgString.split(/\s*,\s*|\s+/);
+	    var n = coords.length;
+	    for (var i = 0; i < n; i += 2) {
+	        points.push({ x: +coords[i], y: +coords[i + 1] });
+	    }
+	    return points;
+	}
+
+	function clonePoints(points) {
+	    var numPoints = points.length;
+	    if (numPoints === 0) { return []; }
+	    var newPoints = [];
+	    for (var i = 0; i < numPoints; i++) {
+	        var point = points[i].clone();
+	        newPoints.push(point);
+	    }
+	    return newPoints;
+	}
+
+	// Returns a convex-hull polyline from this polyline.
+	// Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
+	// Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
+	// Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+	function convexHull(points) {
+
+	    var abs = Math.abs;
+
+	    var i;
+	    var n;
+
+	    var numPoints = points.length;
+	    if (numPoints === 0) { return []; } // if points array is empty
+
+	    // step 1: find the starting point - point with the lowest y (if equality, highest x)
+	    var startPoint;
+	    for (i = 0; i < numPoints; i++) {
+	        if (startPoint === undefined) {
+	            // if this is the first point we see, set it as start point
+	            startPoint = points[i];
+
+	        } else if (points[i].y < startPoint.y) {
+	            // start point should have lowest y from all points
+	            startPoint = points[i];
+
+	        } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
+	            // if two points have the lowest y, choose the one that has highest x
+	            // there are no points to the right of startPoint - no ambiguity about theta 0
+	            // if there are several coincident start point candidates, first one is reported
+	            startPoint = points[i];
+	        }
+	    }
+
+	    // step 2: sort the list of points
+	    // sorting by angle between line from startPoint to point and the x-axis (theta)
+
+	    // step 2a: create the point records = [point, originalIndex, angle]
+	    var sortedPointRecords = [];
+	    for (i = 0; i < numPoints; i++) {
+
+	        var angle = startPoint.theta(points[i]);
+	        if (angle === 0) {
+	            angle = 360; // give highest angle to start point
+	            // the start point will end up at end of sorted list
+	            // the start point will end up at beginning of hull points list
+	        }
+
+	        var entry = [points[i], i, angle];
+	        sortedPointRecords.push(entry);
+	    }
+
+	    // step 2b: sort the list in place
+	    sortedPointRecords.sort(function(record1, record2) {
+	        // returning a negative number here sorts record1 before record2
+	        // if first angle is smaller than second, first angle should come before second
+
+	        var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
+	        if (sortOutput === 0) {
+	            // if the two angles are equal, sort by originalIndex
+	            sortOutput = record2[1] - record1[1]; // negative if first index larger
+	            // coincident points will be sorted in reverse-numerical order
+	            // so the coincident points with lower original index will be considered first
+	        }
+
+	        return sortOutput;
+	    });
+
+	    // step 2c: duplicate start record from the top of the stack to the bottom of the stack
+	    if (sortedPointRecords.length > 2) {
+	        var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
+	        sortedPointRecords.unshift(startPointRecord);
+	    }
+
+	    // step 3a: go through sorted points in order and find those with right turns
+	    // we want to get our results in clockwise order
+	    var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
+	    var hullPointRecords = []; // stack of records with right turns - hull point candidates
+
+	    var currentPointRecord;
+	    var currentPoint;
+	    var lastHullPointRecord;
+	    var lastHullPoint;
+	    var secondLastHullPointRecord;
+	    var secondLastHullPoint;
+	    while (sortedPointRecords.length !== 0) {
+
+	        currentPointRecord = sortedPointRecords.pop();
+	        currentPoint = currentPointRecord[0];
+
+	        // check if point has already been discarded
+	        // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
+	        if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
+	            // this point had an incorrect turn at some previous iteration of this loop
+	            // this disqualifies it from possibly being on the hull
+	            continue;
+	        }
+
+	        var correctTurnFound = false;
+	        while (!correctTurnFound) {
+
+	            if (hullPointRecords.length < 2) {
+	                // not enough points for comparison, just add current point
+	                hullPointRecords.push(currentPointRecord);
+	                correctTurnFound = true;
+
+	            } else {
+	                lastHullPointRecord = hullPointRecords.pop();
+	                lastHullPoint = lastHullPointRecord[0];
+	                secondLastHullPointRecord = hullPointRecords.pop();
+	                secondLastHullPoint = secondLastHullPointRecord[0];
+
+	                var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
+
+	                if (crossProduct < 0) {
+	                    // found a right turn
+	                    hullPointRecords.push(secondLastHullPointRecord);
+	                    hullPointRecords.push(lastHullPointRecord);
+	                    hullPointRecords.push(currentPointRecord);
+	                    correctTurnFound = true;
+
+	                } else if (crossProduct === 0) {
+	                    // the three points are collinear
+	                    // three options:
+	                    // there may be a 180 or 0 degree angle at lastHullPoint
+	                    // or two of the three points are coincident
+	                    var THRESHOLD = 1e-10; // we have to take rounding errors into account
+	                    var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+	                    if (abs(angleBetween - 180) < THRESHOLD) { // rounding around 180 to 180
+	                        // if the cross product is 0 because the angle is 180 degrees
+	                        // discard last hull point (add to insidePoints)
+	                        //insidePoints.unshift(lastHullPoint);
+	                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+	                        // reenter second-to-last hull point (will be last at next iter)
+	                        hullPointRecords.push(secondLastHullPointRecord);
+	                        // do not do anything with current point
+	                        // correct turn not found
+
+	                    } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
+	                        // if the cross product is 0 because two points are the same
+	                        // discard last hull point (add to insidePoints)
+	                        //insidePoints.unshift(lastHullPoint);
+	                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+	                        // reenter second-to-last hull point (will be last at next iter)
+	                        hullPointRecords.push(secondLastHullPointRecord);
+	                        // do not do anything with current point
+	                        // correct turn not found
+
+	                    } else if (abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
+	                        // if the cross product is 0 because the angle is 0 degrees
+	                        // remove last hull point from hull BUT do not discard it
+	                        // reenter second-to-last hull point (will be last at next iter)
+	                        hullPointRecords.push(secondLastHullPointRecord);
+	                        // put last hull point back into the sorted point records list
+	                        sortedPointRecords.push(lastHullPointRecord);
+	                        // we are switching the order of the 0deg and 180deg points
+	                        // correct turn not found
+	                    }
+
+	                } else {
+	                    // found a left turn
+	                    // discard last hull point (add to insidePoints)
+	                    //insidePoints.unshift(lastHullPoint);
+	                    insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+	                    // reenter second-to-last hull point (will be last at next iter of loop)
+	                    hullPointRecords.push(secondLastHullPointRecord);
+	                    // do not do anything with current point
+	                    // correct turn not found
+	                }
+	            }
+	        }
+	    }
+	    // at this point, hullPointRecords contains the output points in clockwise order
+	    // the points start with lowest-y,highest-x startPoint, and end at the same point
+
+	    // step 3b: remove duplicated startPointRecord from the end of the array
+	    if (hullPointRecords.length > 2) {
+	        hullPointRecords.pop();
+	    }
+
+	    // step 4: find the lowest originalIndex record and put it at the beginning of hull
+	    var lowestHullIndex; // the lowest originalIndex on the hull
+	    var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
+	    n = hullPointRecords.length;
+	    for (i = 0; i < n; i++) {
+
+	        var currentHullIndex = hullPointRecords[i][1];
+
+	        if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
+	            lowestHullIndex = currentHullIndex;
+	            indexOfLowestHullIndexRecord = i;
+	        }
+	    }
+
+	    var hullPointRecordsReordered = [];
+	    if (indexOfLowestHullIndexRecord > 0) {
+	        var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
+	        var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
+	        hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+
+	    } else {
+	        hullPointRecordsReordered = hullPointRecords;
+	    }
+
+	    var hullPoints = [];
+	    n = hullPointRecordsReordered.length;
+	    for (i = 0; i < n; i++) {
+	        hullPoints.push(hullPointRecordsReordered[i][0]);
+	    }
+
+	    return hullPoints;
+	}
 
 	var Polyline = function(points) {
 
@@ -3260,21 +3520,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Polyline.parse = function(svgString) {
-	    svgString = svgString.trim();
-	    if (svgString === '') { return new Polyline(); }
+	    return new Polyline(parsePoints(svgString));
+	};
 
-	    var points = [];
-
-	    var coords = svgString.split(/\s*,\s*|\s+/);
-	    var n = coords.length;
-	    for (var i = 0; i < n; i += 2) {
-	        points.push({ x: +coords[i], y: +coords[i + 1] });
-	    }
-
-	    return new Polyline(points);
+	Polyline.fromRect = function(rect) {
+	    return new Polyline([
+	        rect.topLeft(),
+	        rect.topRight(),
+	        rect.bottomRight(),
+	        rect.bottomLeft(),
+	        rect.topLeft() ]);
 	};
 
 	Polyline.prototype = {
+
+	    type: types.Polyline,
 
 	    bbox: function() {
 
@@ -3303,19 +3563,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    clone: function() {
-
-	        var points = this.points;
-	        var numPoints = points.length;
-	        if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-	        var newPoints = [];
-	        for (var i = 0; i < numPoints; i++) {
-
-	            var point = points[i].clone();
-	            newPoints.push(point);
-	        }
-
-	        return new Polyline(newPoints);
+	        return new Polyline(clonePoints(this.points));
 	    },
 
 	    closestPoint: function(p) {
@@ -3327,7 +3575,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    closestPointLength: function(p) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return 0; } // if points array is empty
 	        if (numPoints === 1) { return 0; } // if there is only one point
@@ -3391,12 +3639,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var startIndex = numPoints - 1; // start of current polyline segment
 	        var endIndex = 0; // end of current polyline segment
 	        var numIntersections = 0;
+	        var segment = new Line();
+	        var ray = new Line();
+	        var rayEnd = new Point();
 	        for (; endIndex < numPoints; endIndex++) {
 	            var start = points[startIndex];
 	            var end = points[endIndex];
 	            if (p.equals(start)) { return true; } // shortcut (`p` is a point on polyline)
-
-	            var segment = new Line(start, end); // current polyline segment
+	            // current polyline segment
+	            segment.start = start;
+	            segment.end = end;
 	            if (segment.containsPoint(p)) { return true; } // shortcut (`p` lies on a polyline segment)
 
 	            // do we have an intersection?
@@ -3410,9 +3662,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
 	                if (xDifference >= 0) {
 	                    // segment lies at least partially to the right of `p`
-	                    var rayEnd = new Point((x + xDifference), y); // right
-	                    var ray = new Line(p, rayEnd);
-
+	                    rayEnd.x = x + xDifference;
+	                    rayEnd.y = y; // right
+	                    ray.start = p;
+	                    ray.end = rayEnd;
 	                    if (segment.intersect(ray)) {
 	                        // an intersection was detected to the right of `p`
 	                        numIntersections++;
@@ -3428,215 +3681,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return ((numIntersections % 2) === 1);
 	    },
 
-	    // Returns a convex-hull polyline from this polyline.
-	    // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
-	    // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
-	    // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+	    close: function() {
+	        var ref = this;
+	        var start = ref.start;
+	        var end = ref.end;
+	        var points = ref.points;
+	        if (start && end && !start.equals(end)) {
+	            points.push(start.clone());
+	        }
+	        return this;
+	    },
+
+	    lengthPoints: function() {
+	        return this.points;
+	    },
+
 	    convexHull: function() {
-
-	        var i;
-	        var n;
-
-	        var points = this.points;
-	        var numPoints = points.length;
-	        if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-	        // step 1: find the starting point - point with the lowest y (if equality, highest x)
-	        var startPoint;
-	        for (i = 0; i < numPoints; i++) {
-	            if (startPoint === undefined) {
-	                // if this is the first point we see, set it as start point
-	                startPoint = points[i];
-
-	            } else if (points[i].y < startPoint.y) {
-	                // start point should have lowest y from all points
-	                startPoint = points[i];
-
-	            } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
-	                // if two points have the lowest y, choose the one that has highest x
-	                // there are no points to the right of startPoint - no ambiguity about theta 0
-	                // if there are several coincident start point candidates, first one is reported
-	                startPoint = points[i];
-	            }
-	        }
-
-	        // step 2: sort the list of points
-	        // sorting by angle between line from startPoint to point and the x-axis (theta)
-
-	        // step 2a: create the point records = [point, originalIndex, angle]
-	        var sortedPointRecords = [];
-	        for (i = 0; i < numPoints; i++) {
-
-	            var angle = startPoint.theta(points[i]);
-	            if (angle === 0) {
-	                angle = 360; // give highest angle to start point
-	                // the start point will end up at end of sorted list
-	                // the start point will end up at beginning of hull points list
-	            }
-
-	            var entry = [points[i], i, angle];
-	            sortedPointRecords.push(entry);
-	        }
-
-	        // step 2b: sort the list in place
-	        sortedPointRecords.sort(function(record1, record2) {
-	            // returning a negative number here sorts record1 before record2
-	            // if first angle is smaller than second, first angle should come before second
-
-	            var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
-	            if (sortOutput === 0) {
-	                // if the two angles are equal, sort by originalIndex
-	                sortOutput = record2[1] - record1[1]; // negative if first index larger
-	                // coincident points will be sorted in reverse-numerical order
-	                // so the coincident points with lower original index will be considered first
-	            }
-
-	            return sortOutput;
-	        });
-
-	        // step 2c: duplicate start record from the top of the stack to the bottom of the stack
-	        if (sortedPointRecords.length > 2) {
-	            var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
-	            sortedPointRecords.unshift(startPointRecord);
-	        }
-
-	        // step 3a: go through sorted points in order and find those with right turns
-	        // we want to get our results in clockwise order
-	        var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
-	        var hullPointRecords = []; // stack of records with right turns - hull point candidates
-
-	        var currentPointRecord;
-	        var currentPoint;
-	        var lastHullPointRecord;
-	        var lastHullPoint;
-	        var secondLastHullPointRecord;
-	        var secondLastHullPoint;
-	        while (sortedPointRecords.length !== 0) {
-
-	            currentPointRecord = sortedPointRecords.pop();
-	            currentPoint = currentPointRecord[0];
-
-	            // check if point has already been discarded
-	            // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
-	            if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
-	                // this point had an incorrect turn at some previous iteration of this loop
-	                // this disqualifies it from possibly being on the hull
-	                continue;
-	            }
-
-	            var correctTurnFound = false;
-	            while (!correctTurnFound) {
-
-	                if (hullPointRecords.length < 2) {
-	                    // not enough points for comparison, just add current point
-	                    hullPointRecords.push(currentPointRecord);
-	                    correctTurnFound = true;
-
-	                } else {
-	                    lastHullPointRecord = hullPointRecords.pop();
-	                    lastHullPoint = lastHullPointRecord[0];
-	                    secondLastHullPointRecord = hullPointRecords.pop();
-	                    secondLastHullPoint = secondLastHullPointRecord[0];
-
-	                    var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
-
-	                    if (crossProduct < 0) {
-	                        // found a right turn
-	                        hullPointRecords.push(secondLastHullPointRecord);
-	                        hullPointRecords.push(lastHullPointRecord);
-	                        hullPointRecords.push(currentPointRecord);
-	                        correctTurnFound = true;
-
-	                    } else if (crossProduct === 0) {
-	                        // the three points are collinear
-	                        // three options:
-	                        // there may be a 180 or 0 degree angle at lastHullPoint
-	                        // or two of the three points are coincident
-	                        var THRESHOLD = 1e-10; // we have to take rounding errors into account
-	                        var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
-	                        if (abs$2(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
-	                            // if the cross product is 0 because the angle is 180 degrees
-	                            // discard last hull point (add to insidePoints)
-	                            //insidePoints.unshift(lastHullPoint);
-	                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-	                            // reenter second-to-last hull point (will be last at next iter)
-	                            hullPointRecords.push(secondLastHullPointRecord);
-	                            // do not do anything with current point
-	                            // correct turn not found
-
-	                        } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
-	                            // if the cross product is 0 because two points are the same
-	                            // discard last hull point (add to insidePoints)
-	                            //insidePoints.unshift(lastHullPoint);
-	                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-	                            // reenter second-to-last hull point (will be last at next iter)
-	                            hullPointRecords.push(secondLastHullPointRecord);
-	                            // do not do anything with current point
-	                            // correct turn not found
-
-	                        } else if (abs$2(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
-	                            // if the cross product is 0 because the angle is 0 degrees
-	                            // remove last hull point from hull BUT do not discard it
-	                            // reenter second-to-last hull point (will be last at next iter)
-	                            hullPointRecords.push(secondLastHullPointRecord);
-	                            // put last hull point back into the sorted point records list
-	                            sortedPointRecords.push(lastHullPointRecord);
-	                            // we are switching the order of the 0deg and 180deg points
-	                            // correct turn not found
-	                        }
-
-	                    } else {
-	                        // found a left turn
-	                        // discard last hull point (add to insidePoints)
-	                        //insidePoints.unshift(lastHullPoint);
-	                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-	                        // reenter second-to-last hull point (will be last at next iter of loop)
-	                        hullPointRecords.push(secondLastHullPointRecord);
-	                        // do not do anything with current point
-	                        // correct turn not found
-	                    }
-	                }
-	            }
-	        }
-	        // at this point, hullPointRecords contains the output points in clockwise order
-	        // the points start with lowest-y,highest-x startPoint, and end at the same point
-
-	        // step 3b: remove duplicated startPointRecord from the end of the array
-	        if (hullPointRecords.length > 2) {
-	            hullPointRecords.pop();
-	        }
-
-	        // step 4: find the lowest originalIndex record and put it at the beginning of hull
-	        var lowestHullIndex; // the lowest originalIndex on the hull
-	        var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
-	        n = hullPointRecords.length;
-	        for (i = 0; i < n; i++) {
-
-	            var currentHullIndex = hullPointRecords[i][1];
-
-	            if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
-	                lowestHullIndex = currentHullIndex;
-	                indexOfLowestHullIndexRecord = i;
-	            }
-	        }
-
-	        var hullPointRecordsReordered = [];
-	        if (indexOfLowestHullIndexRecord > 0) {
-	            var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
-	            var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
-	            hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
-
-	        } else {
-	            hullPointRecordsReordered = hullPointRecords;
-	        }
-
-	        var hullPoints = [];
-	        n = hullPointRecordsReordered.length;
-	        for (i = 0; i < n; i++) {
-	            hullPoints.push(hullPointRecordsReordered[i][0]);
-	        }
-
-	        return new Polyline(hullPoints);
+	        return new Polyline(convexHull(this.points));
 	    },
 
 	    // Checks whether two polylines are exactly the same.
@@ -3667,11 +3728,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    intersectionWithLine: function(l) {
 	        var line = new Line(l);
 	        var intersections = [];
-	        var points = this.points;
+	        var points = this.lengthPoints();
+	        var l2 = new Line();
 	        for (var i = 0, n = points.length - 1; i < n; i++) {
-	            var a = points[i];
-	            var b = points[i + 1];
-	            var l2 = new Line(a, b);
+	            l2.start = points[i];
+	            l2.end = points[i + 1];
 	            var int = line.intersectionWithLine(l2);
 	            if (int) { intersections.push(int[0]); }
 	        }
@@ -3684,13 +3745,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return false; }
 
+	        var line = new Line();
 	        var n = numPoints - 1;
 	        for (var i = 0; i < n; i++) {
-
-	            var a = points[i];
-	            var b = points[i + 1];
-	            var line = new Line(a, b);
-
+	            line.start = points[i];
+	            line.end = points[i + 1];
 	            // as soon as a differentiable line is found between two points, return true
 	            if (line.isDifferentiable()) { return true; }
 	        }
@@ -3701,7 +3760,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    length: function() {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return 0; } // if points array is empty
 
@@ -3716,7 +3775,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointAt: function(ratio) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return points[0].clone(); } // if there is only one point
@@ -3732,7 +3791,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointAtLength: function(length) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return points[0].clone(); } // if there is only one point
@@ -3837,7 +3896,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    tangentAt: function(ratio) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return null; } // if there is only one point
@@ -3853,7 +3912,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    tangentAtLength: function(length) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return null; } // if there is only one point
@@ -3965,7 +4024,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 	});
 
-	var abs$3 = Math.abs;
+	var abs$2 = Math.abs;
 	var sqrt$2 = Math.sqrt;
 	var min$6 = Math.min;
 	var max$4 = Math.max;
@@ -4122,6 +4181,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Curve.prototype = {
 
+	    type: types.Curve,
+
 	    // Returns a bbox that tightly envelops the curve.
 	    bbox: function() {
 
@@ -4160,8 +4221,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                c = 3 * y1 - 3 * y0;
 	            }
 
-	            if (abs$3(a) < 1e-12) { // Numerical robustness
-	                if (abs$3(b) < 1e-12) { // Numerical robustness
+	            if (abs$2(a) < 1e-12) { // Numerical robustness
+	                if (abs$2(b) < 1e-12) { // Numerical robustness
 	                    continue;
 	                }
 
@@ -4317,8 +4378,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // - note that this function is not monotonic = it doesn't converge stably but has "teeth"
 	            // - the function decreases while one of the endpoints is fixed but "jumps" whenever we switch
 	            // - this criterion works well for points lying far away from the curve
-	            var startPrecisionRatio = (distFromStart ? (abs$3(distFromStart - distFromEnd) / distFromStart) : 0);
-	            var endPrecisionRatio = (distFromEnd ? (abs$3(distFromStart - distFromEnd) / distFromEnd) : 0);
+	            var startPrecisionRatio = (distFromStart ? (abs$2(distFromStart - distFromEnd) / distFromStart) : 0);
+	            var endPrecisionRatio = (distFromEnd ? (abs$2(distFromStart - distFromEnd) / distFromEnd) : 0);
 	            var hasRequiredPrecision = ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio < precisionRatio));
 
 	            // check if we have reached at least one required minimal distance
@@ -4887,8 +4948,74 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Curve.prototype.divide = Curve.prototype.divideAtT;
 
-	// Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+	// Local helper function.
+	// Add properties from arguments on top of properties from `obj`.
+	// This allows for rudimentary inheritance.
+	// - The `obj` argument acts as parent.
+	// - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
+	// - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
+	function extend(obj) {
+	    var arguments$1 = arguments;
 
+	    // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
+	    // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
+	    // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
+	    // - First, realize that both of those quasiclasses would still have their own separate constructor function.
+	    // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
+	    // - This method provides a way to do exactly that.
+	    // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
+	    // - Therefore, to continue with the example above:
+	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
+	    //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
+	    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
+	    //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
+	    // - Multiple inheritance is also possible, if multiple arguments are provided.
+	    // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
+	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
+	    //   - The ancestors are applied in order of appearance.
+	    //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
+	    //   - Any number of ancestors may be provided.
+	    // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
+	    // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
+	    //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
+	    //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
+	    // - Therefore, both of the following are valid:
+	    //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
+	    //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
+
+	    var i;
+	    var n;
+
+	    var args = [];
+	    n = arguments.length;
+	    for (i = 1; i < n; i++) { // skip over obj
+	        args.push(arguments$1[i]);
+	    }
+
+	    if (!obj) { throw new Error('Missing a parent object.'); }
+	    var child = Object.create(obj);
+
+	    n = args.length;
+	    for (i = 0; i < n; i++) {
+
+	        var src = args[i];
+
+	        var inheritedProperty;
+	        var key;
+	        for (key in src) {
+
+	            if (src.hasOwnProperty(key)) {
+	                delete child[key]; // delete property inherited from parent
+	                inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
+	                Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
+	            }
+	        }
+	    }
+
+	    return child;
+	}
+
+	// Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
 	var Path = function(arg) {
 
 	    if (!(this instanceof Path)) {
@@ -5027,6 +5154,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Path.prototype = {
+
+	    type: types.Path,
 
 	    // Accepts one segment or an array of segments as argument.
 	    // Throws an error if argument is not a segment or an array of segments.
@@ -6230,73 +6359,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return new (Function.prototype.bind.apply(constructor, argsArray));
 	}
 
-	// Local helper function.
-	// Add properties from arguments on top of properties from `obj`.
-	// This allows for rudimentary inheritance.
-	// - The `obj` argument acts as parent.
-	// - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
-	// - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
-	function extend(obj) {
-	    var arguments$1 = arguments;
-
-	    // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
-	    // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
-	    // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
-	    // - First, realize that both of those quasiclasses would still have their own separate constructor function.
-	    // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
-	    // - This method provides a way to do exactly that.
-	    // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
-	    // - Therefore, to continue with the example above:
-	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
-	    //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
-	    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
-	    //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
-	    // - Multiple inheritance is also possible, if multiple arguments are provided.
-	    // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
-	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
-	    //   - The ancestors are applied in order of appearance.
-	    //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
-	    //   - Any number of ancestors may be provided.
-	    // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
-	    // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
-	    //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
-	    //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
-	    // - Therefore, both of the following are valid:
-	    //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
-	    //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
-
-	    var i;
-	    var n;
-
-	    var args = [];
-	    n = arguments.length;
-	    for (i = 1; i < n; i++) { // skip over obj
-	        args.push(arguments$1[i]);
-	    }
-
-	    if (!obj) { throw new Error('Missing a parent object.'); }
-	    var child = Object.create(obj);
-
-	    n = args.length;
-	    for (i = 0; i < n; i++) {
-
-	        var src = args[i];
-
-	        var inheritedProperty;
-	        var key;
-	        for (key in src) {
-
-	            if (src.hasOwnProperty(key)) {
-	                delete child[key]; // delete property inherited from parent
-	                inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
-	                Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
-	            }
-	        }
-	    }
-
-	    return child;
-	}
-
 	// Path segment interface:
 	var segmentPrototype = {
 
@@ -7388,9 +7450,615 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	};
 
+	var Polygon = function(points) {
+
+	    if (!(this instanceof Polygon)) {
+	        return new Polygon(points);
+	    }
+
+	    if (typeof points === 'string') {
+	        return new Polygon.parse(points);
+	    }
+
+	    this.points = (Array.isArray(points) ? points.map(Point) : []);
+	};
+
+	Polygon.parse = function(svgString) {
+	    return new Polygon(parsePoints(svgString));
+	};
+
+	Polygon.fromRect = function(rect) {
+	    return new Polygon([
+	        rect.topLeft(),
+	        rect.topRight(),
+	        rect.bottomRight(),
+	        rect.bottomLeft()
+	    ]);
+	};
+
+	Polygon.prototype = extend(Polyline.prototype, {
+
+	    type: types.Polygon,
+
+	    clone: function() {
+	        return new Polygon(clonePoints(this.points));
+	    },
+
+	    convexHull: function() {
+	        return new Polygon(convexHull(this.points));
+	    },
+
+	    lengthPoints: function() {
+	        var ref = this;
+	        var start = ref.start;
+	        var end = ref.end;
+	        var points = ref.points;
+	        if (points.length <= 1 || start.equals(end)) { return points; }
+	        return points.concat( [start.clone()]);
+	    }
+
+	});
+
+	function exists(shape1, shape2, shape1opt, shape2opt) {
+	    switch (shape1.type) {
+	        case types.Line: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return lineWithLine(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Ellipse: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return ellipseWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return ellipseWithEllipse(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Rect: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return rectWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return rectWithEllipse(shape1, shape2);
+	                }
+	                case types.Rect: {
+	                    return rectWithRect(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Polyline: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return polylineWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return polylineWithEllipse(shape1, shape2);
+	                }
+	                case types.Rect: {
+	                    return polylineWithRect(shape1, shape2);
+	                }
+	                case types.Polyline: {
+	                    return polylineWithPolyline(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Polygon: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return polygonWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return polygonWithEllipse(shape1, shape2);
+	                }
+	                case types.Rect: {
+	                    return polygonWithRect(shape1, shape2);
+	                }
+	                case types.Polyline: {
+	                    return polygonWithPolyline(shape1, shape2);
+	                }
+	                case types.Polygon: {
+	                    return polygonWithPolygon(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Path: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return pathWithLine(shape1, shape2, shape1opt);
+	                }
+	                case types.Ellipse: {
+	                    return pathWithEllipse(shape1, shape2, shape1opt);
+	                }
+	                case types.Rect: {
+	                    return pathWithRect(shape1, shape2, shape1opt);
+	                }
+	                case types.Polyline: {
+	                    return pathWithPolyline(shape1, shape2, shape1opt);
+	                }
+	                case types.Polygon: {
+	                    return pathWithPolygon(shape1, shape2, shape1opt);
+	                }
+	                case types.Path: {
+	                    return pathWithPath(shape1, shape2, shape1opt, shape2opt);
+	                }
+	            }
+	            break;
+	        }
+	    }
+	    // None of the cases above
+	    switch (shape2.type) {
+	        case types.Ellipse:
+	        case types.Rect:
+	        case types.Polyline:
+	        case types.Polygon:
+	        case types.Path: {
+	            return exists(shape2, shape1, shape2opt, shape1opt);
+	        }
+	        default: {
+	            throw Error(("The intersection for " + shape1 + " and " + shape2 + " could not be found."));
+	        }
+	    }
+	}
+
+	/* Line */
+
+	function lineWithLine(line1, line2) {
+	    var x1 = line1.start.x;
+	    var y1 = line1.start.y;
+	    var x2 = line1.end.x;
+	    var y2 = line1.end.y;
+	    var x3 = line2.start.x;
+	    var y3 = line2.start.y;
+	    var x4 = line2.end.x;
+	    var y4 = line2.end.y;
+	    var s1x = x2 - x1;
+	    var s1y = y2 - y1;
+	    var s2x = x4 - x3;
+	    var s2y = y4 - y3;
+	    var s3x = x1 - x3;
+	    var s3y = y1 - y3;
+	    var p = s1x * s2y - s2x * s1y;
+	    var s = (s1x * s3y - s1y * s3x) / p;
+	    var t = (s2x * s3y - s2y * s3x) / p;
+	    return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+	}
+
+	/* Ellipse */
+
+	function ellipseWithLine(ellipse, line) {
+	    var rex = ellipse.a;
+	    var rey = ellipse.b;
+	    var xe = ellipse.x;
+	    var ye = ellipse.y;
+	    var x1 = line.start.x - xe;
+	    var x2 = line.end.x - xe;
+	    var y1 = line.start.y - ye;
+	    var y2 = line.end.y - ye;
+	    var rex_2 = rex * rex;
+	    var rey_2 = rey * rey;
+	    var dx = x2 - x1;
+	    var dy = y2 - y1;
+	    var A = dx * dx / rex_2 + dy * dy / rey_2;
+	    var B = 2 * x1 * dx / rex_2 + 2 * y1 * dy / rey_2;
+	    var C = x1 * x1 / rex_2 + y1 * y1 / rey_2 - 1;
+	    var D = B * B - 4 * A * C;
+	    if (D === 0) {
+	        var t = -B / 2 / A;
+	        return t >= 0 && t <= 1;
+	    } else if (D > 0) {
+	        var sqrt = Math.sqrt(D);
+	        var t1 = (-B + sqrt) / 2 / A;
+	        var t2 = (-B - sqrt) / 2 / A;
+	        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+	    }
+	    return false;
+	}
+
+	function ellipseWithEllipse(ellipse1, ellipse2) {
+	    return _ellipsesIntersection(ellipse1, 0, ellipse2, 0);
+	}
+
+	/* Rect */
+
+	function rectWithLine(rect, line) {
+	    var start = line.start;
+	    var end = line.end;
+	    var x = rect.x;
+	    var y = rect.y;
+	    var width = rect.width;
+	    var height = rect.height;
+	    if (
+	        (start.x > x + width && end.x > x + width)
+	        || (start.x < x && end.x < x)
+	        || (start.y > y + height && end.y > y + height)
+	        || (start.y < y && end.y < y)
+	    ) {
+	        return false;
+	    }
+	    if (rect.containsPoint(line.start) || rect.containsPoint(line.end)) {
+	        return true;
+	    }
+	    return lineWithLine(rect.topLine(), line)
+	        || lineWithLine(rect.rightLine(), line)
+	        || lineWithLine(rect.bottomLine(), line)
+	        || lineWithLine(rect.leftLine(), line);
+	}
+
+	function rectWithEllipse(rect, ellipse) {
+	    if (!rectWithRect(rect, Rect.fromEllipse(ellipse))) { return false; }
+	    return polygonWithEllipse(Polygon.fromRect(rect), ellipse);
+	}
+
+	function rectWithRect(rect1, rect2) {
+	    return rect1.x < rect2.x + rect2.width
+	        && rect1.x + rect1.width > rect2.x
+	        && rect1.y < rect2.y + rect2.height
+	        && rect1.y + rect1.height > rect2.y;
+	}
+
+	/* Polyline */
+
+	function polylineWithLine(polyline, line) {
+	    return _polylineWithLine(polyline, line, { interior: false });
+	}
+
+	function polylineWithEllipse(polyline, ellipse) {
+	    return _polylineWithEllipse(polyline, ellipse, { interior: false });
+	}
+
+	function polylineWithRect(polyline, rect) {
+	    return _polylineWithRect(polyline, rect, { interior: false });
+	}
+
+	function polylineWithPolyline(polyline1, polyline2) {
+	    return _polylineWithPolyline(polyline1, polyline2, { interior: false });
+	}
+
+	/* Polygon */
+
+	function polygonWithLine(polygon, line) {
+	    return _polylineWithLine(polygon, line, { interior: true });
+	}
+
+	function polygonWithEllipse(polygon, ellipse) {
+	    return _polylineWithEllipse(polygon, ellipse, { interior: true });
+	}
+
+	function polygonWithRect(polygon, rect) {
+	    return _polylineWithRect(polygon, rect, { interior: true });
+	}
+
+	function polygonWithPolyline(polygon, polyline) {
+	    return _polylineWithPolyline(polygon, polyline, { interior: true });
+	}
+
+	function polygonWithPolygon(polygon1, polygon2) {
+	    return _polylineWithPolygon(polygon1, polygon2, { interior: true });
+	}
+
+	/* Path */
+
+	function pathWithLine(path, line, pathOpt) {
+	    return path.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt);
+	        var polyline = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return polygonWithLine(polyline, line);
+	        } else {
+	            return polylineWithLine(polyline, line);
+	        }
+	    });
+	}
+
+	function pathWithEllipse(path, ellipse, pathOpt) {
+	    return path.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt);
+	        var polyline = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return polygonWithEllipse(polyline, ellipse);
+	        } else {
+	            return polylineWithEllipse(polyline, ellipse);
+	        }
+	    });
+	}
+
+	function pathWithRect(path, rect, pathOpt) {
+	    return pathWithPolygon(path, Polygon.fromRect(rect), pathOpt);
+	}
+
+	function pathWithPolyline(path, polyline, pathOpt) {
+	    return _pathWithPolyline(path, polyline, pathOpt, { interior: false });
+	}
+
+	function pathWithPolygon(path, polygon, pathOpt) {
+	    return _pathWithPolyline(path, polygon, pathOpt, { interior: true });
+	}
+
+	function pathWithPath(path1, path2, pathOpt1, pathOpt2) {
+	    return path1.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt1);
+	        var polyline1 = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return pathWithPolygon(path2, polyline1, pathOpt2);
+	        } else {
+	            return pathWithPolyline(path2, polyline1, pathOpt2);
+	        }
+	    });
+	}
+
+	function _polylineWithLine(polyline, line, opt) {
+	    if ( opt === void 0 ) opt = {};
+
+	    var interior = opt.interior; if ( interior === void 0 ) interior = false;
+	    var thisPoints;
+	    if (interior) {
+	        if (polyline.containsPoint(line.start)) {
+	            // If any point of the polyline lies inside this polygon (interior = true)
+	            // there is an intersection (we've chosen the start point)
+	            return true;
+	        }
+	        var start = polyline.start;
+	        var end = polyline.end;
+	        var points = polyline.points;
+	        thisPoints = end.equals(start) ? points : points.concat( [start]);
+	    } else {
+	        thisPoints = polyline.points;
+	    }
+	    var length = thisPoints.length;
+	    var segment = new Line();
+	    for (var i = 0; i < length - 1; i++) {
+	        segment.start = thisPoints[i];
+	        segment.end = thisPoints[i + 1];
+	        if (lineWithLine(line, segment)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	function _polylineWithEllipse(polyline, ellipse, opt) {
+	    if ( opt === void 0 ) opt = {};
+
+	    var start = polyline.start;
+	    var end = polyline.end;
+	    var points = polyline.points;
+	    if (ellipse.containsPoint(start)) {
+	        return true;
+	    }
+	    var thisPoints;
+	    var interior = opt.interior; if ( interior === void 0 ) interior = false;
+	    if (interior) {
+	        if (polyline.containsPoint(ellipse.center())) {
+	            // If any point of the ellipse lies inside this polygon (interior = true)
+	            // there is an intersection (we've chosen the center point)
+	            return true;
+	        }
+	        thisPoints = end.equals(start) ? points : points.concat( [start]);
+	    } else {
+	        thisPoints = points;
+	    }
+
+	    var length = thisPoints.length;
+	    var segment = new Line();
+	    for (var i = 0; i < length - 1; i++) {
+	        segment.start = thisPoints[i];
+	        segment.end = thisPoints[i + 1];
+	        if (ellipseWithLine(ellipse, segment)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	function _polylineWithRect(polyline, rect, opt) {
+	    var polygon = Polygon.fromRect(rect);
+	    return _polylineWithPolygon(polyline, polygon, opt);
+	}
+
+	function _pathWithPolyline(path, polyline1, pathOpt, opt) {
+	    return path.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt);
+	        var polyline2 = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return _polylineWithPolygon(polyline1, polyline2, opt);
+	        } else {
+	            return _polylineWithPolyline(polyline1, polyline2, opt);
+	        }
+	    });
+	}
+
+	function _polylineWithPolyline(polyline1, polyline2, opt) {
+	    if ( opt === void 0 ) opt = {};
+
+	    var interior = opt.interior; if ( interior === void 0 ) interior = false;
+	    var thisPolyline;
+	    if (interior) {
+	        var start = polyline2.start;
+	        if (polyline1.containsPoint(start)) {
+	            // If any point of the polyline lies inside this polygon (interior = true)
+	            // there is an intersection (we've chosen the start point)
+	            return true;
+	        }
+	        thisPolyline = polyline1.clone().close();
+	    } else {
+	        thisPolyline = polyline1;
+	    }
+	    var otherPoints = polyline2.points;
+	    var length = otherPoints.length;
+	    var segment = new Line();
+	    for (var i = 0; i < length - 1; i++) {
+	        segment.start = otherPoints[i];
+	        segment.end = otherPoints[i + 1];
+	        if (polylineWithLine(thisPolyline, segment)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	function _polylineWithPolygon(polyline, polygon, opt) {
+	    return polygon.containsPoint(polyline.start) || _polylineWithPolyline(polyline, polygon.clone().close(), opt);
+	}
+
+	function _ellipsesIntersection(e1, w1, e2, w2) {
+	    var cos = Math.cos;
+	    var sin = Math.sin;
+	    var sinW1 = sin(w1);
+	    var cosW1 = cos(w1);
+	    var sinW2 = sin(w2);
+	    var cosW2 = cos(w2);
+	    var sinW1s = sinW1 * sinW1;
+	    var cosW1s = cosW1 * cosW1;
+	    var sinCos1 = sinW1 * cosW1;
+	    var sinW2s = sinW2 * sinW2;
+	    var cosW2s = cosW2 * cosW2;
+	    var sinCos2 = sinW2 * cosW2;
+	    var a1s = e1.a * e1.a;
+	    var b1s = e1.b * e1.b;
+	    var a2s = e2.a * e2.a;
+	    var b2s = e2.b * e2.b;
+	    var A1 = a1s * sinW1s + b1s * cosW1s;
+	    var A2 = a2s * sinW2s + b2s * cosW2s;
+	    var B1 = a1s * cosW1s + b1s * sinW1s;
+	    var B2 = a2s * cosW2s + b2s * sinW2s;
+	    var C1 = 2 * (b1s - a1s) * sinCos1;
+	    var C2 = 2 * (b2s - a2s) * sinCos2;
+	    var D1 = (-2 * A1 * e1.x - C1 * e1.y);
+	    var D2 = (-2 * A2 * e2.x - C2 * e2.y);
+	    var E1 = (-C1 * e1.x - 2 * B1 * e1.y);
+	    var E2 = (-C2 * e2.x - 2 * B2 * e2.y);
+	    var F1 = A1 * e1.x * e1.x + B1 * e1.y * e1.y + C1 * e1.x * e1.y - a1s * b1s;
+	    var F2 = A2 * e2.x * e2.x + B2 * e2.y * e2.y + C2 * e2.x * e2.y - a2s * b2s;
+
+	    C1 = C1 / 2;
+	    C2 = C2 / 2;
+	    D1 = D1 / 2;
+	    D2 = D2 / 2;
+	    E1 = E1 / 2;
+	    E2 = E2 / 2;
+
+	    var l3 = det3([
+	        [A1, C1, D1],
+	        [C1, B1, E1],
+	        [D1, E1, F1]
+	    ]);
+	    var l0 = det3([
+	        [A2, C2, D2],
+	        [C2, B2, E2],
+	        [D2, E2, F2]
+	    ]);
+	    var l2 = 0.33333333 * (det3([
+	        [A2, C1, D1],
+	        [C2, B1, E1],
+	        [D2, E1, F1]
+	    ]) + det3([
+	        [A1, C2, D1],
+	        [C1, B2, E1],
+	        [D1, E2, F1]
+	    ]) + det3([
+	        [A1, C1, D2],
+	        [C1, B1, E2],
+	        [D1, E1, F2]
+	    ]));
+	    var l1 = 0.33333333 * (det3([
+	        [A1, C2, D2],
+	        [C1, B2, E2],
+	        [D1, E2, F2]
+	    ]) + det3([
+	        [A2, C1, D2],
+	        [C2, B1, E2],
+	        [D2, E1, F2]
+	    ]) + det3([
+	        [A2, C2, D1],
+	        [C2, B2, E1],
+	        [D2, E2, F1]
+	    ]));
+
+	    var delta1 = det2([
+	        [l3, l2],
+	        [l2, l1]
+	    ]);
+	    var delta2 = det2([
+	        [l3, l1],
+	        [l2, l0]
+	    ]);
+	    var delta3 = det2([
+	        [l2, l1],
+	        [l1, l0]
+	    ]);
+
+	    var dP = det2([
+	        [2 * delta1, delta2],
+	        [delta2, 2 * delta3]
+	    ]);
+
+	    if (dP > 0 && (l1 > 0 || l2 > 0)) {
+	        return false;
+	    }
+	    return true;
+	}
+
+	function det2(m) {
+	    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+	}
+
+	function det3(m) {
+	    return m[0][0] * m[1][1] * m[2][2] -
+	        m[0][0] * m[1][2] * m[2][1] -
+	        m[0][1] * m[1][0] * m[2][2] +
+	        m[0][1] * m[1][2] * m[2][0] +
+	        m[0][2] * m[1][0] * m[2][1] -
+	        m[0][2] * m[1][1] * m[2][0];
+	}
+
+	var _intersection = ({
+		exists: exists,
+		lineWithLine: lineWithLine,
+		ellipseWithLine: ellipseWithLine,
+		ellipseWithEllipse: ellipseWithEllipse,
+		rectWithLine: rectWithLine,
+		rectWithEllipse: rectWithEllipse,
+		rectWithRect: rectWithRect,
+		polylineWithLine: polylineWithLine,
+		polylineWithEllipse: polylineWithEllipse,
+		polylineWithRect: polylineWithRect,
+		polylineWithPolyline: polylineWithPolyline,
+		polygonWithLine: polygonWithLine,
+		polygonWithEllipse: polygonWithEllipse,
+		polygonWithRect: polygonWithRect,
+		polygonWithPolyline: polygonWithPolyline,
+		polygonWithPolygon: polygonWithPolygon,
+		pathWithLine: pathWithLine,
+		pathWithEllipse: pathWithEllipse,
+		pathWithRect: pathWithRect,
+		pathWithPolyline: pathWithPolyline,
+		pathWithPolygon: pathWithPolygon,
+		pathWithPath: pathWithPath
+	});
+
 	// Geometry library.
+	var intersection = _intersection;
 
 	var g = ({
+		intersection: intersection,
 		scale: scale,
 		normalizeAngle: normalizeAngle,
 		snapToGrid: snapToGrid,
@@ -7407,8 +8075,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Point: Point,
 		point: point,
 		Polyline: Polyline,
+		Polygon: Polygon,
 		Rect: Rect,
-		rect: rect
+		rect: rect,
+		types: types
 	});
 
 	// Vectorizer.
@@ -7467,6 +8137,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        attrs = attrs || {};
 
 	        if (V.isString(el)) {
+
+	            el = el.trim();
 
 	            if (el.toLowerCase() === 'svg') {
 
@@ -9901,7 +10573,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // export let classNamePrefix = 'joint-';
 	    // export let defaultTheme = 'default';
 	    classNamePrefix: 'joint-',
-	    defaultTheme: 'default'
+	    defaultTheme: 'default',
+	    // The maximum delay required for two consecutive touchend events to be interpreted
+	    // as a double-tap.
+	    doubleTapInterval: 300
 	};
 
 	var addClassNamePrefix = function(className) {
@@ -11553,7 +12228,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var flattenDeep = _.flattenDeep;
 	var without = _.without;
 	var difference = _.difference;
-	var intersection = _.intersection;
+	var intersection$1 = _.intersection;
 	var union = _.union;
 	var has$2 = _.has;
 	var result = _.result;
@@ -11674,6 +12349,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	}
 
 	var props = {
+	    x: 'x',
+	    y: 'y',
 	    width: 'w',
 	    height: 'h',
 	    minimum: 's',
@@ -11683,53 +12360,115 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var propsList = Object.keys(props).map(function (key) { return props[key]; }).join('');
 	var numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
 	var findSpacesRegex = /\s/g;
-	var findExpressionsRegExp = /calc\(([^)]*)\)/g;
-	var parseExpressionRegExp = new RegExp(("^(" + numberPattern + "\\*)?([" + propsList + "])([-+]" + numberPattern + ")?$"), 'g');
+	var parseExpressionRegExp = new RegExp(("^(" + numberPattern + "\\*)?([" + propsList + "])([-+]{1,2}" + numberPattern + ")?$"), 'g');
+
+	function throwInvalid(expression) {
+	    throw new Error(("Invalid calc() expression: " + expression));
+	}
 
 	function evalCalcExpression(expression, bbox) {
 	    var match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
-	    if (!match) { throw new Error(("Invalid calc() expression: " + expression)); }
+	    if (!match) { throwInvalid(expression); }
 	    parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
 	    var multiply = match[1]; if ( multiply === void 0 ) multiply = 1;
 	    var property = match[2];
 	    var add = match[3]; if ( add === void 0 ) add = 0;
-	    // Note: currently, we do not take x and y into account
+	    var x = bbox.x;
+	    var y = bbox.y;
 	    var width = bbox.width;
 	    var height = bbox.height;
-	    var dimension = 0;
+	    var value = 0;
 	    switch (property) {
 	        case props.width: {
-	            dimension = width;
+	            value = width;
 	            break;
 	        }
 	        case props.height: {
-	            dimension = height;
+	            value = height;
+	            break;
+	        }
+	        case props.x: {
+	            value = x;
+	            break;
+	        }
+	        case props.y: {
+	            value = y;
 	            break;
 	        }
 	        case props.minimum: {
-	            dimension = Math.min(height, width);
+	            value = Math.min(height, width);
 	            break;
 	        }
 	        case props.maximum: {
-	            dimension = Math.max(height, width);
+	            value = Math.max(height, width);
 	            break;
 	        }
 	        case props.diagonal: {
-	            dimension = Math.sqrt((height * height) + (width * width));
+	            value = Math.sqrt((height * height) + (width * width));
 	            break;
 	        }
 	    }
-	    return parseFloat(multiply) * dimension + parseFloat(add);
+	    return parseFloat(multiply) * value + evalAddExpression(add);
+	}
+
+	function evalAddExpression(addExpression) {
+	    if (!addExpression) { return 0; }
+	    var sign = addExpression[0];
+	    switch (sign) {
+	        case '+': {
+	            return parseFloat(addExpression.substr(1));
+	        }
+	        case '-': {
+	            return -parseFloat(addExpression.substr(1));
+	        }
+	    }
+	    return parseFloat(addExpression);
 	}
 
 	function isCalcAttribute(value) {
 	    return typeof value === 'string' && value.includes('calc');
 	}
 
-	function evalCalcAttribute(value, refBBox) {
-	    return value.replace(findExpressionsRegExp, function(_, expression) {
-	        return evalCalcExpression(expression, refBBox);
-	    });
+	var calcStart = 'calc(';
+	var calcStartOffset = calcStart.length;
+
+	function evalCalcAttribute(attributeValue, refBBox) {
+	    var value = attributeValue;
+	    var startSearchIndex = 0;
+	    do {
+	        var calcIndex = value.indexOf(calcStart, startSearchIndex);
+	        if (calcIndex === -1) { return value; }
+	        var calcEndIndex = calcIndex + calcStartOffset;
+	        var brackets = 1;
+	        findClosingBracket: do {
+	            switch (value[calcEndIndex]) {
+	                case '(': {
+	                    brackets++;
+	                    break;
+	                }
+	                case ')': {
+	                    brackets--;
+	                    if (brackets === 0) { break findClosingBracket; }
+	                    break;
+	                }
+	                case undefined: {
+	                    // Could not find the closing bracket.
+	                    throwInvalid(value);
+	                }
+	            }
+	            calcEndIndex++;
+	        } while (true);
+	        // Get the calc() expression without nested calcs (recursion)
+	        var expression = value.slice(calcIndex + calcStartOffset, calcEndIndex);
+	        if (isCalcAttribute(expression)) {
+	            expression = evalCalcAttribute(expression, refBBox);
+	        }
+	        // Eval the calc() expression without nested calcs.
+	        var calcValue = String(evalCalcExpression(expression, refBBox));
+	        // Replace the calc() expression and continue search
+	        value = value.slice(0, calcIndex) + calcValue + value.slice(calcEndIndex + 1);
+	        startSearchIndex = calcIndex + calcValue.length;
+	    } while (true);
 	}
 
 	function setWrapper(attrName, dimension) {
@@ -11910,6 +12649,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return marker;
 	}
 
+	function setPaintURL(def) {
+	    var ref = this;
+	    var paper = ref.paper;
+	    var url = (def.type === 'pattern')
+	        ? paper.definePattern(def)
+	        : paper.defineGradient(def);
+	    return ("url(#" + url + ")");
+	}
+
 	var attributesNS = {
 
 	    xlinkHref: {
@@ -11981,16 +12729,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    fill: {
 	        qualify: isPlainObject,
-	        set: function(fill) {
-	            return 'url(#' + this.paper.defineGradient(fill) + ')';
-	        }
+	        set: setPaintURL
 	    },
 
 	    stroke: {
 	        qualify: isPlainObject,
-	        set: function(stroke) {
-	            return 'url(#' + this.paper.defineGradient(stroke) + ')';
-	        }
+	        set: setPaintURL
 	    },
 
 	    sourceMarker: {
@@ -12685,39 +13429,48 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    embed: function(cell, opt) {
-
-	        if (this === cell || this.isEmbeddedIn(cell)) {
-
+	        var cells = Array.isArray(cell) ? cell : [cell];
+	        if (!this.canEmbed(cells)) {
 	            throw new Error('Recursive embedding not allowed.');
-
-	        } else {
-
-	            this.startBatch('embed');
-
-	            var embeds = assign([], this.get('embeds'));
-
-	            // We keep all element ids after link ids.
-	            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
-
-	            cell.parent(this.id, opt);
-	            this.set('embeds', uniq(embeds), opt);
-
-	            this.stopBatch('embed');
 	        }
-
+	        this._embedCells(cells, opt);
 	        return this;
 	    },
 
 	    unembed: function(cell, opt) {
-
-	        this.startBatch('unembed');
-
-	        cell.unset('parent', opt);
-	        this.set('embeds', without(this.get('embeds'), cell.id), opt);
-
-	        this.stopBatch('unembed');
-
+	        var cells = Array.isArray(cell) ? cell : [cell];
+	        this._unembedCells(cells, opt);
 	        return this;
+	    },
+
+	    canEmbed: function(cell) {
+	        var this$1 = this;
+
+	        var cells = Array.isArray(cell) ? cell : [cell];
+	        return cells.every(function (c) { return this$1 !== c && !this$1.isEmbeddedIn(c); });
+	    },
+
+	    _embedCells: function(cells, opt) {
+	        var this$1 = this;
+
+	        var batchName = 'embed';
+	        this.startBatch(batchName);
+	        var embeds = assign([], this.get('embeds'));
+	        cells.forEach(function (cell) {
+	            // We keep all element ids after link ids.
+	            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
+	            cell.parent(this$1.id, opt);
+	        });
+	        this.set('embeds', uniq(embeds), opt);
+	        this.stopBatch(batchName);
+	    },
+
+	    _unembedCells: function(cells, opt) {
+	        var batchName = 'unembed';
+	        this.startBatch(batchName);
+	        cells.forEach(function (cell) { return cell.unset('parent', opt); });
+	        this.set('embeds', without.apply(void 0, [ this.get('embeds') ].concat( cells.map(function (cell) { return cell.id; }) )), opt);
+	        this.stopBatch(batchName);
 	    },
 
 	    getParentCell: function() {
@@ -13054,7 +13807,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        }.bind(this);
 
-	        return setTimeout(initiator, opt.delay, setter);
+	        var initialId = setTimeout(initiator, opt.delay, setter);
+	        this._transitionIds[path] = initialId;
+	        return initialId;
 	    },
 
 	    getTransitions: function() {
@@ -13063,24 +13818,30 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    stopTransitions: function(path, delim) {
+	        var this$1 = this;
+	        if ( delim === void 0 ) delim = '/';
 
-	        delim = delim || '/';
 
-	        var pathArray = path && path.split(delim);
+	        var ref = this;
+	        var _transitionIds = ref._transitionIds;
+	        var transitions = Object.keys(_transitionIds);
 
-	        Object.keys(this._transitionIds).filter(pathArray && function(key) {
+	        if (path) {
+	            var pathArray = path.split(delim);
+	            transitions = transitions.filter(function (key) {
+	                return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+	            });
+	        }
 
-	            return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
-
-	        }).forEach(function(key) {
-
-	            cancelFrame(this._transitionIds[key]);
-
-	            delete this._transitionIds[key];
-
-	            this.trigger('transition:end', this, key);
-
-	        }, this);
+	        transitions.forEach(function (key) {
+	            var transitionId = _transitionIds[key];
+	            // stop the setter
+	            cancelFrame(transitionId);
+	            // or stop the initiator if the id belongs to it
+	            clearTimeout(transitionId);
+	            delete _transitionIds[key];
+	            this$1.trigger('transition:end', this$1, transitionId);
+	        });
 
 	        return this;
 	    },
@@ -13156,6 +13917,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // To be overridden
 	        return new Rect(0, 0, 0, 0);
+	    },
+
+	    getPointRotatedAroundCenter: function getPointRotatedAroundCenter(angle, x, y) {
+	        var point = new Point(x, y);
+	        if (angle) { point.rotate(this.getBBox().center(), angle); }
+	        return point;
+	    },
+
+	    getAbsolutePointFromRelative: function getAbsolutePointFromRelative(x, y) {
+	        // Rotate the position to take the model angle into account
+	        return this.getPointRotatedAroundCenter(
+	            -this.angle(),
+	            // Transform the relative position to absolute
+	            this.position().offset(x, y)
+	        );
+	    },
+
+	    getRelativePointFromAbsolute: function getRelativePointFromAbsolute(x, y) {
+	        return this
+	            // Rotate the coordinates to mitigate the element's rotation.
+	            .getPointRotatedAroundCenter(this.angle(), x, y)
+	            // Transform the absolute position into relative
+	            .difference(this.position());
 	    }
 
 	}, {
@@ -13175,11 +13959,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var Cell = this.extend(protoProps, staticProps);
 	        // es5 backward compatibility
-	        /* global joint: true */
+	        /* eslint-disable no-undef */
 	        if (typeof joint !== 'undefined' && has$2(joint, 'shapes')) {
 	            setByPath(joint.shapes, type, Cell, '.');
 	        }
-	        /* global joint: false */
+	        /* eslint-enable no-undef */
 	        return Cell;
 	    }
 	});
@@ -13298,7 +14082,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		flattenDeep: flattenDeep,
 		without: without,
 		difference: difference,
-		intersection: intersection,
+		intersection: intersection$1,
 		union: union,
 		has: has$2,
 		result: result,
@@ -14020,6 +14804,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // setter
 	        if (!Array.isArray(labels)) { labels = []; }
 	        return this.set('labels', labels, opt);
+	    },
+
+	    hasLabels: function() {
+	        var ref = this.attributes;
+	        var labels = ref.labels;
+	        return Array.isArray(labels) && labels.length > 0;
 	    },
 
 	    insertLabel: function(idx, label, opt) {
@@ -15050,11 +15840,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var portElement;
 	        var labelElement;
+	        var labelSelectors;
+	        var portSelectors;
 
 	        var portContainerElement = V(this.portContainerMarkup).addClass('joint-port');
 
 	        var portMarkup = this._getPortMarkup(port);
-	        var portSelectors;
 	        if (Array.isArray(portMarkup)) {
 	            var portDoc = this.parseDOMJSON(portMarkup, portContainerElement.node);
 	            var portFragment = portDoc.fragment;
@@ -15080,26 +15871,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            'port-group': port.group
 	        });
 
-	        var labelMarkup = this._getPortLabelMarkup(port.label);
-	        var labelSelectors;
-	        if (Array.isArray(labelMarkup)) {
-	            var labelDoc = this.parseDOMJSON(labelMarkup, portContainerElement.node);
-	            var labelFragment = labelDoc.fragment;
-	            if (labelFragment.childNodes.length > 1) {
-	                labelElement = V('g').append(labelFragment);
-	            } else {
-	                labelElement = V(labelFragment.firstChild);
+	        var labelMarkupDef = this._getPortLabelMarkup(port.label);
+	        if (Array.isArray(labelMarkupDef)) {
+	            // JSON Markup
+	            var ref = this.parseDOMJSON(labelMarkupDef, portContainerElement.node);
+	            var fragment = ref.fragment;
+	            var selectors = ref.selectors;
+	            var childCount = fragment.childNodes.length;
+	            if (childCount > 0) {
+	                labelSelectors = selectors;
+	                labelElement = (childCount === 1) ? V(fragment.firstChild) : V('g').append(fragment);
 	            }
-	            labelSelectors = labelDoc.selectors;
 	        } else {
-	            labelElement = V(labelMarkup);
+	            // String Markup
+	            labelElement = V(labelMarkupDef);
 	            if (Array.isArray(labelElement)) {
 	                labelElement = V('g').append(labelElement);
 	            }
-	        }
-
-	        if (!labelElement) {
-	            throw new Error('ElementView: Invalid port label markup.');
 	        }
 
 	        var portContainerSelectors;
@@ -15112,10 +15900,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            portContainerSelectors = portSelectors || labelSelectors;
 	        }
 
-	        portContainerElement.append([
-	            portElement.addClass('joint-port-body'),
-	            labelElement.addClass('joint-port-label')
-	        ]);
+	        portContainerElement.append(portElement.addClass('joint-port-body'));
+	        if (labelElement) {
+	            portContainerElement.append(labelElement.addClass('joint-port-label'));
+	        }
 
 	        this._portElementsCache[port.id] = {
 	            portElement: portContainerElement,
@@ -15150,7 +15938,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            });
 
 	            var labelTransformation = metrics.labelTransformation;
-	            if (labelTransformation) {
+	            if (labelTransformation && cached.portLabelElement) {
 	                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
 	                this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
 	                    rootBBox: new Rect(metrics.labelSize),
@@ -15233,32 +16021,38 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    position: function(x, y, opt) {
 
 	        var isSetter = isNumber(y);
-
 	        opt = (isSetter ? opt : x) || {};
+	        var parentRelative = opt.parentRelative;
+	        var deep = opt.deep;
+	        var restrictedArea = opt.restrictedArea;
+
 
 	        // option `parentRelative` for setting the position relative to the element's parent.
-	        if (opt.parentRelative) {
+	        var parentPosition;
+	        if (parentRelative) {
 
 	            // Getting the parent's position requires the collection.
 	            // Cell.parent() holds cell id only.
 	            if (!this.graph) { throw new Error('Element must be part of a graph.'); }
 
 	            var parent = this.getParentCell();
-	            var parentPosition = parent && !parent.isLink()
-	                ? parent.get('position')
-	                : { x: 0, y: 0 };
+	            if (parent && !parent.isLink()) {
+	                parentPosition = parent.get('position');
+	            }
 	        }
 
 	        if (isSetter) {
 
-	            if (opt.parentRelative) {
+	            if (parentPosition) {
 	                x += parentPosition.x;
 	                y += parentPosition.y;
 	            }
 
-	            if (opt.deep) {
-	                var currentPosition = this.get('position');
-	                this.translate(x - currentPosition.x, y - currentPosition.y, opt);
+	            if (deep || restrictedArea) {
+	                var ref = this.get('position');
+	                var x0 = ref.x;
+	                var y0 = ref.y;
+	                this.translate(x - x0, y - y0, opt);
 	            } else {
 	                this.set('position', { x: x, y: y }, opt);
 	            }
@@ -15268,8 +16062,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else { // Getter returns a geometry point.
 
 	            var elementPosition = Point(this.get('position'));
-
-	            return opt.parentRelative
+	            return parentRelative
 	                ? elementPosition.difference(parentPosition)
 	                : elementPosition;
 	        }
@@ -15606,24 +16399,37 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    getBBox: function(opt) {
+	        if ( opt === void 0 ) opt = {};
 
-	        opt = opt || {};
 
-	        if (opt.deep && this.graph) {
+	        var ref = this;
+	        var graph = ref.graph;
+	        var attributes = ref.attributes;
+	        var deep = opt.deep;
+	        var rotate = opt.rotate;
 
-	            // Get all the embedded elements using breadth first algorithm,
-	            // that doesn't use recursion.
+	        if (deep && graph) {
+	            // Get all the embedded elements using breadth first algorithm.
 	            var elements = this.getEmbeddedCells({ deep: true, breadthFirst: true });
 	            // Add the model itself.
 	            elements.push(this);
-
-	            return this.graph.getCellsBBox(elements);
+	            // Note: the default of getCellsBBox() is rotate=true and can't be
+	            // changed without a breaking change
+	            return graph.getCellsBBox(elements, opt);
 	        }
 
-	        var position = this.get('position');
-	        var size = this.get('size');
-
-	        return new Rect(position.x, position.y, size.width, size.height);
+	        var angle = attributes.angle; if ( angle === void 0 ) angle = 0;
+	        var attributes_position = attributes.position;
+	        var x = attributes_position.x;
+	        var y = attributes_position.y;
+	        var attributes_size = attributes.size;
+	        var width = attributes_size.width;
+	        var height = attributes_size.height;
+	        var bbox = new Rect(x, y, width, height);
+	        if (rotate) {
+	            bbox.rotateAroundCenter(angle);
+	        }
+	        return bbox;
 	    },
 
 	    getPointFromConnectedLink: function(link, endType) {
@@ -15654,9 +16460,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (opt.cellNamespace) {
 	            this.cellNamespace = opt.cellNamespace;
 	        } else {
-	            /* global joint: true */
+	            /* eslint-disable no-undef */
 	            this.cellNamespace = typeof joint !== 'undefined' && has$2(joint, 'shapes') ? joint.shapes : null;
-	            /* global joint: false */
+	            /* eslint-enable no-undef */
 	        }
 
 
@@ -16621,41 +17427,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // Find all elements at given point
 	    findModelsFromPoint: function(p) {
-
-	        return this.getElements().filter(function(el) {
-	            return el.getBBox().containsPoint(p);
-	        });
+	        return this.getElements().filter(function (el) { return el.getBBox({ rotate: true }).containsPoint(p); });
 	    },
 
 	    // Find all elements in given area
-	    findModelsInArea: function(rect$1, opt) {
+	    findModelsInArea: function(rect, opt) {
+	        if ( opt === void 0 ) opt = {};
 
-	        rect$1 = rect(rect$1);
-	        opt = defaults(opt || {}, { strict: false });
-
-	        var method = opt.strict ? 'containsRect' : 'intersect';
-
-	        return this.getElements().filter(function(el) {
-	            return rect$1[method](el.getBBox());
-	        });
+	        var r = new Rect(rect);
+	        var strict = opt.strict; if ( strict === void 0 ) strict = false;
+	        var method = strict ? 'containsRect' : 'intersect';
+	        return this.getElements().filter(function (el) { return r[method](el.getBBox({ rotate: true })); });
 	    },
 
 	    // Find all elements under the given element.
 	    findModelsUnderElement: function(element, opt) {
+	        if ( opt === void 0 ) opt = {};
 
-	        opt = defaults(opt || {}, { searchBy: 'bbox' });
-
-	        var bbox = element.getBBox();
-	        var elements = (opt.searchBy === 'bbox')
+	        var searchBy = opt.searchBy; if ( searchBy === void 0 ) searchBy = 'bbox';
+	        var bbox = element.getBBox().rotateAroundCenter(element.angle());
+	        var elements = (searchBy === 'bbox')
 	            ? this.findModelsInArea(bbox)
-	            : this.findModelsFromPoint(bbox[opt.searchBy]());
-
+	            : this.findModelsFromPoint(bbox[searchBy]());
 	        // don't account element itself or any of its descendants
-	        return elements.filter(function(el) {
-	            return element.id !== el.id && !el.isEmbeddedIn(element);
-	        });
+	        return elements.filter(function (el) { return element.id !== el.id && !el.isEmbeddedIn(element); });
 	    },
-
 
 	    // Return bounding box of all elements.
 	    getBBox: function() {
@@ -16665,12 +17461,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // Return the bounding box of all cells in array provided.
 	    getCellsBBox: function(cells, opt) {
-	        opt || (opt = {});
+	        if ( opt === void 0 ) opt = {};
+
+	        var rotate = opt.rotate; if ( rotate === void 0 ) rotate = true;
 	        return toArray(cells).reduce(function(memo, cell) {
-	            var rect = cell.getBBox(opt);
+	            var rect = cell.getBBox({ rotate: rotate });
 	            if (!rect) { return memo; }
-	            var angle = cell.angle();
-	            if (angle) { rect = rect.bbox(angle); }
 	            if (memo) {
 	                return memo.union(rect);
 	            }
@@ -16790,6 +17586,980 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	});
 
 	wrapWith(Graph.prototype, ['resetCells', 'addCells', 'removeCells'], wrappers.cells);
+
+	// default size of jump if not specified in options
+	var JUMP_SIZE = 5;
+
+	// available jump types
+	// first one taken as default
+	var JUMP_TYPES = ['arc', 'gap', 'cubic'];
+
+	// default radius
+	var RADIUS = 0;
+
+	// takes care of math. error for case when jump is too close to end of line
+	var CLOSE_PROXIMITY_PADDING = 1;
+
+	// list of connector types not to jump over.
+	var IGNORED_CONNECTORS = ['smooth'];
+
+	// internal constants for round segment
+	var _13 = 1 / 3;
+	var _23 = 2 / 3;
+
+	/**
+	 * Transform start/end and route into series of lines
+	 * @param {g.point} sourcePoint start point
+	 * @param {g.point} targetPoint end point
+	 * @param {g.point[]} route optional list of route
+	 * @return {g.line[]} [description]
+	 */
+	function createLines(sourcePoint, targetPoint, route) {
+	    // make a flattened array of all points
+	    var points = [].concat(sourcePoint, route, targetPoint);
+	    return points.reduce(function(resultLines, point, idx) {
+	        // if there is a next point, make a line with it
+	        var nextPoint = points[idx + 1];
+	        if (nextPoint != null) {
+	            resultLines[idx] = line(point, nextPoint);
+	        }
+	        return resultLines;
+	    }, []);
+	}
+
+	function setupUpdating(jumpOverLinkView) {
+	    var paper = jumpOverLinkView.paper;
+	    var updateList = paper._jumpOverUpdateList;
+
+	    // first time setup for this paper
+	    if (updateList == null) {
+	        updateList = paper._jumpOverUpdateList = [];
+	        var graph = paper.model;
+	        graph.on('batch:stop', function() {
+	            if (this.hasActiveBatch()) { return; }
+	            updateJumpOver(paper);
+	        });
+	        graph.on('reset', function() {
+	            updateList = paper._jumpOverUpdateList = [];
+	        });
+	    }
+
+	    // add this link to a list so it can be updated when some other link is updated
+	    if (updateList.indexOf(jumpOverLinkView) < 0) {
+	        updateList.push(jumpOverLinkView);
+
+	        // watch for change of connector type or removal of link itself
+	        // to remove the link from a list of jump over connectors
+	        jumpOverLinkView.listenToOnce(jumpOverLinkView.model, 'change:connector remove', function() {
+	            updateList.splice(updateList.indexOf(jumpOverLinkView), 1);
+	        });
+	    }
+	}
+
+	/**
+	 * Handler for a batch:stop event to force
+	 * update of all registered links with jump over connector
+	 * @param {object} batchEvent optional object with info about batch
+	 */
+	function updateJumpOver(paper) {
+	    var updateList = paper._jumpOverUpdateList;
+	    for (var i = 0; i < updateList.length; i++) {
+	        var linkView = updateList[i];
+	        var updateFlag = linkView.getFlag(linkView.constructor.Flags.CONNECTOR);
+	        linkView.requestUpdate(updateFlag);
+	    }
+	}
+
+	/**
+	 * Utility function to collect all intersection points of a single
+	 * line against group of other lines.
+	 * @param {g.line} line where to find points
+	 * @param {g.line[]} crossCheckLines lines to cross
+	 * @return {g.point[]} list of intersection points
+	 */
+	function findLineIntersections(line, crossCheckLines) {
+	    return toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
+	        var intersection = line.intersection(crossCheckLine);
+	        if (intersection) {
+	            res.push(intersection);
+	        }
+	        return res;
+	    }, []);
+	}
+
+	/**
+	 * Sorting function for list of points by their distance.
+	 * @param {g.point} p1 first point
+	 * @param {g.point} p2 second point
+	 * @return {number} squared distance between points
+	 */
+	function sortPoints(p1, p2) {
+	    return line(p1, p2).squaredLength();
+	}
+
+	/**
+	 * Split input line into multiple based on intersection points.
+	 * @param {g.line} line input line to split
+	 * @param {g.point[]} intersections points where to split the line
+	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
+	 * @return {g.line[]} list of lines being split
+	 */
+	function createJumps(line$1, intersections, jumpSize) {
+	    return intersections.reduce(function(resultLines, point$1, idx) {
+	        // skipping points that were merged with the previous line
+	        // to make bigger arc over multiple lines that are close to each other
+	        if (point$1.skip === true) {
+	            return resultLines;
+	        }
+
+	        // always grab the last line from buffer and modify it
+	        var lastLine = resultLines.pop() || line$1;
+
+	        // calculate start and end of jump by moving by a given size of jump
+	        var jumpStart = point(point$1).move(lastLine.start, -(jumpSize));
+	        var jumpEnd = point(point$1).move(lastLine.start, +(jumpSize));
+
+	        // now try to look at the next intersection point
+	        var nextPoint = intersections[idx + 1];
+	        if (nextPoint != null) {
+	            var distance = jumpEnd.distance(nextPoint);
+	            if (distance <= jumpSize) {
+	                // next point is close enough, move the jump end by this
+	                // difference and mark the next point to be skipped
+	                jumpEnd = nextPoint.move(lastLine.start, distance);
+	                nextPoint.skip = true;
+	            }
+	        } else {
+	            // this block is inside of `else` as an optimization so the distance is
+	            // not calculated when we know there are no other intersection points
+	            var endDistance = jumpStart.distance(lastLine.end);
+	            // if the end is too close to possible jump, draw remaining line instead of a jump
+	            if (endDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
+	                resultLines.push(lastLine);
+	                return resultLines;
+	            }
+	        }
+
+	        var startDistance = jumpEnd.distance(lastLine.start);
+	        if (startDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
+	            // if the start of line is too close to jump, draw that line instead of a jump
+	            resultLines.push(lastLine);
+	            return resultLines;
+	        }
+
+	        // finally create a jump line
+	        var jumpLine = line(jumpStart, jumpEnd);
+	        // it's just simple line but with a `isJump` property
+	        jumpLine.isJump = true;
+
+	        resultLines.push(
+	            line(lastLine.start, jumpStart),
+	            jumpLine,
+	            line(jumpEnd, lastLine.end)
+	        );
+	        return resultLines;
+	    }, []);
+	}
+
+	/**
+	 * Assemble `D` attribute of a SVG path by iterating given lines.
+	 * @param {g.line[]} lines source lines to use
+	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
+	 * @param {number} radius the radius
+	 * @return {string}
+	 */
+	function buildPath(lines, jumpSize, jumpType, radius) {
+
+	    var path = new Path();
+	    var segment;
+
+	    // first move to the start of a first line
+	    segment = Path.createSegment('M', lines[0].start);
+	    path.appendSegment(segment);
+
+	    // make a paths from lines
+	    toArray(lines).forEach(function(line, index) {
+
+	        if (line.isJump) {
+	            var angle, diff;
+
+	            var control1, control2;
+
+	            if (jumpType === 'arc') { // approximates semicircle with 2 curves
+	                angle = -90;
+	                // determine rotation of arc based on difference between points
+	                diff = line.start.difference(line.end);
+	                // make sure the arc always points up (or right)
+	                var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+	                if (xAxisRotate) { angle += 180; }
+
+	                var midpoint = line.midpoint();
+	                var centerLine = new Line(midpoint, line.end).rotate(midpoint, angle);
+
+	                var halfLine;
+
+	                // first half
+	                halfLine = new Line(line.start, midpoint);
+
+	                control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
+	                control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
+
+	                segment = Path.createSegment('C', control1, control2, centerLine.end);
+	                path.appendSegment(segment);
+
+	                // second half
+	                halfLine = new Line(midpoint, line.end);
+
+	                control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
+	                control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
+
+	                segment = Path.createSegment('C', control1, control2, line.end);
+	                path.appendSegment(segment);
+
+	            } else if (jumpType === 'gap') {
+	                segment = Path.createSegment('M', line.end);
+	                path.appendSegment(segment);
+
+	            } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
+	                angle = line.start.theta(line.end);
+
+	                var xOffset = jumpSize * 0.6;
+	                var yOffset = jumpSize * 1.35;
+
+	                // determine rotation of arc based on difference between points
+	                diff = line.start.difference(line.end);
+	                // make sure the arc always points up (or right)
+	                xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
+	                if (xAxisRotate) { yOffset *= -1; }
+
+	                control1 = Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
+	                control2 = Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
+
+	                segment = Path.createSegment('C', control1, control2, line.end);
+	                path.appendSegment(segment);
+	            }
+
+	        } else {
+	            var nextLine = lines[index + 1];
+	            if (radius == 0 || !nextLine || nextLine.isJump) {
+	                segment = Path.createSegment('L', line.end);
+	                path.appendSegment(segment);
+	            } else {
+	                buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
+	            }
+	        }
+	    });
+
+	    return path;
+	}
+
+	function buildRoundedSegment(offset, path, curr, prev, next) {
+	    var prevDistance = curr.distance(prev) / 2;
+	    var nextDistance = curr.distance(next) / 2;
+
+	    var startMove = -Math.min(offset, prevDistance);
+	    var endMove = -Math.min(offset, nextDistance);
+
+	    var roundedStart = curr.clone().move(prev, startMove).round();
+	    var roundedEnd = curr.clone().move(next, endMove).round();
+
+	    var control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+	    var control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+
+	    var segment;
+	    segment = Path.createSegment('L', roundedStart);
+	    path.appendSegment(segment);
+
+	    segment = Path.createSegment('C', control1, control2, roundedEnd);
+	    path.appendSegment(segment);
+	}
+
+	/**
+	 * Actual connector function that will be run on every update.
+	 * @param {g.point} sourcePoint start point of this link
+	 * @param {g.point} targetPoint end point of this link
+	 * @param {g.point[]} route of this link
+	 * @param {object} opt options
+	 * @property {number} size optional size of a jump arc
+	 * @return {string} created `D` attribute of SVG path
+	 */
+	var jumpover = function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
+
+	    setupUpdating(this);
+
+	    var raw = opt.raw;
+	    var jumpSize = opt.size || JUMP_SIZE;
+	    var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
+	    var radius = opt.radius || RADIUS;
+	    var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
+
+	    // grab the first jump type as a default if specified one is invalid
+	    if (JUMP_TYPES.indexOf(jumpType) === -1) {
+	        jumpType = JUMP_TYPES[0];
+	    }
+
+	    var paper = this.paper;
+	    var graph = paper.model;
+	    var allLinks = graph.getLinks();
+
+	    // there is just one link, draw it directly
+	    if (allLinks.length === 1) {
+	        return buildPath(
+	            createLines(sourcePoint, targetPoint, route),
+	            jumpSize, jumpType, radius
+	        );
+	    }
+
+	    var thisModel = this.model;
+	    var thisIndex = allLinks.indexOf(thisModel);
+	    var defaultConnector = paper.options.defaultConnector || {};
+
+	    // not all links are meant to be jumped over.
+	    var links = allLinks.filter(function(link, idx) {
+
+	        var connector = link.get('connector') || defaultConnector;
+
+	        // avoid jumping over links with connector type listed in `ignored connectors`.
+	        if (toArray(ignoreConnectors).includes(connector.name)) {
+	            return false;
+	        }
+	        // filter out links that are above this one and  have the same connector type
+	        // otherwise there would double hoops for each intersection
+	        if (idx > thisIndex) {
+	            return connector.name !== 'jumpover';
+	        }
+	        return true;
+	    });
+
+	    // find views for all links
+	    var linkViews = links.map(function(link) {
+	        return paper.findViewByModel(link);
+	    });
+
+	    // create lines for this link
+	    var thisLines = createLines(
+	        sourcePoint,
+	        targetPoint,
+	        route
+	    );
+
+	    // create lines for all other links
+	    var linkLines = linkViews.map(function(linkView) {
+	        if (linkView == null) {
+	            return [];
+	        }
+	        if (linkView === this) {
+	            return thisLines;
+	        }
+	        return createLines(
+	            linkView.sourcePoint,
+	            linkView.targetPoint,
+	            linkView.route
+	        );
+	    }, this);
+
+	    // transform lines for this link by splitting with jump lines at
+	    // points of intersection with other links
+	    var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
+	        // iterate all links and grab the intersections with this line
+	        // these are then sorted by distance so the line can be split more easily
+
+	        var intersections = links.reduce(function(res, link, i) {
+	            // don't intersection with itself
+	            if (link !== thisModel) {
+
+	                var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
+	                res.push.apply(res, lineIntersections);
+	            }
+	            return res;
+	        }, []).sort(function(a, b) {
+	            return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
+	        });
+
+	        if (intersections.length > 0) {
+	            // split the line based on found intersection points
+	            resultLines.push.apply(resultLines, createJumps(thisLine, intersections, jumpSize));
+	        } else {
+	            // without any intersection the line goes uninterrupted
+	            resultLines.push(thisLine);
+	        }
+	        return resultLines;
+	    }, []);
+
+	    var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
+	    return (raw) ? path : path.serialize();
+	};
+
+	var normal = function(sourcePoint, targetPoint, route, opt) {
+
+	    var raw = opt && opt.raw;
+	    var points = [sourcePoint].concat(route).concat([targetPoint]);
+
+	    var polyline = new Polyline(points);
+	    var path = new Path(polyline);
+
+	    return (raw) ? path : path.serialize();
+	};
+
+	var rounded = function(sourcePoint, targetPoint, route, opt) {
+
+	    opt || (opt = {});
+
+	    var offset = opt.radius || 10;
+	    var raw = opt.raw;
+	    var path = new Path();
+	    var segment;
+
+	    segment = Path.createSegment('M', sourcePoint);
+	    path.appendSegment(segment);
+
+	    var _13 = 1 / 3;
+	    var _23 = 2 / 3;
+
+	    var curr;
+	    var prev, next;
+	    var prevDistance, nextDistance;
+	    var startMove, endMove;
+	    var roundedStart, roundedEnd;
+	    var control1, control2;
+
+	    for (var index = 0, n = route.length; index < n; index++) {
+
+	        curr = new Point(route[index]);
+
+	        prev = route[index - 1] || sourcePoint;
+	        next = route[index + 1] || targetPoint;
+
+	        prevDistance = nextDistance || (curr.distance(prev) / 2);
+	        nextDistance = curr.distance(next) / 2;
+
+	        startMove = -Math.min(offset, prevDistance);
+	        endMove = -Math.min(offset, nextDistance);
+
+	        roundedStart = curr.clone().move(prev, startMove).round();
+	        roundedEnd = curr.clone().move(next, endMove).round();
+
+	        control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
+	        control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
+
+	        segment = Path.createSegment('L', roundedStart);
+	        path.appendSegment(segment);
+
+	        segment = Path.createSegment('C', control1, control2, roundedEnd);
+	        path.appendSegment(segment);
+	    }
+
+	    segment = Path.createSegment('L', targetPoint);
+	    path.appendSegment(segment);
+
+	    return (raw) ? path : path.serialize();
+	};
+
+	var smooth = function(sourcePoint, targetPoint, route, opt) {
+
+	    var raw = opt && opt.raw;
+	    var path;
+
+	    if (route && route.length !== 0) {
+
+	        var points = [sourcePoint].concat(route).concat([targetPoint]);
+	        var curves = Curve.throughPoints(points);
+
+	        path = new Path(curves);
+
+	    } else {
+	        // if we have no route, use a default cubic bezier curve
+	        // cubic bezier requires two control points
+	        // the control points have `x` midway between source and target
+	        // this produces an S-like curve
+
+	        path = new Path();
+
+	        var segment;
+
+	        segment = Path.createSegment('M', sourcePoint);
+	        path.appendSegment(segment);
+
+	        if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
+	            var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
+
+	            segment = Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
+	            path.appendSegment(segment);
+
+	        } else {
+	            var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
+
+	            segment = Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
+	            path.appendSegment(segment);
+
+	        }
+	    }
+
+	    return (raw) ? path : path.serialize();
+	};
+
+	var Directions = {
+	    AUTO: 'auto',
+	    HORIZONTAL: 'horizontal',
+	    VERTICAL: 'vertical',
+	    CLOSEST_POINT: 'closest-point',
+	    OUTWARDS: 'outwards'
+	};
+
+	var TangentDirections = {
+	    UP: 'up',
+	    DOWN: 'down',
+	    LEFT: 'left',
+	    RIGHT: 'right',
+	    AUTO: 'auto',
+	    CLOSEST_POINT: 'closest-point',
+	    OUTWARDS: 'outwards'
+	};
+
+	var curve = function(sourcePoint, targetPoint, route, opt, linkView) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
+
+	    var raw = Boolean(opt.raw);
+	    // distanceCoefficient - a coefficient of the tangent vector length relative to the distance between points.
+	    // angleTangentCoefficient - a coefficient of the end tangents length in the case of angles larger than 45 degrees.
+	    // tension - a Catmull-Rom curve tension parameter.
+	    // sourceTangent - a tangent vector along the curve at the sourcePoint.
+	    // sourceDirection - a unit direction vector along the curve at the sourcePoint.
+	    // targetTangent - a tangent vector along the curve at the targetPoint.
+	    // targetDirection - a unit direction vector along the curve at the targetPoint.
+	    // precision - a rounding precision for path values.
+	    var direction = opt.direction; if ( direction === void 0 ) direction = Directions.AUTO;
+	    var precision = opt.precision; if ( precision === void 0 ) precision = 3;
+	    var options = {
+	        coeff: opt.distanceCoefficient || 0.6,
+	        angleTangentCoefficient: opt.angleTangentCoefficient || 80,
+	        tau: opt.tension || 0.5,
+	        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
+	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null
+	    };
+	    if (typeof opt.sourceDirection === 'string') 
+	        { options.sourceDirection = opt.sourceDirection; }
+	    else if (typeof opt.sourceDirection === 'number')
+	        { options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection); }
+	    else
+	        { options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null; }
+
+	    if (typeof opt.targetDirection === 'string') 
+	        { options.targetDirection = opt.targetDirection; }
+	    else if (typeof opt.targetDirection === 'number')
+	        { options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection); }
+	    else 
+	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
+
+	    var completeRoute = [sourcePoint ].concat( route.map(function (p) { return new Point(p); }), [targetPoint]);
+
+	    // The calculation of a sourceTangent
+	    var sourceTangent;
+	    if (options.sourceTangent) {
+	        sourceTangent = options.sourceTangent;
+	    } else {
+	        var sourceDirection = getSourceTangentDirection(linkView, completeRoute, direction, options);
+	        var tangentLength = completeRoute[0].distance(completeRoute[1]) * options.coeff;
+	        var pointsVector = completeRoute[1].difference(completeRoute[0]).normalize();
+	        var angle = angleBetweenVectors(sourceDirection, pointsVector);
+	        if (angle > Math.PI / 4) {
+	            var updatedLength = tangentLength + (angle - Math.PI / 4) * options.angleTangentCoefficient;
+	            sourceTangent = sourceDirection.clone().scale(updatedLength, updatedLength);
+	        } else {
+	            sourceTangent = sourceDirection.clone().scale(tangentLength, tangentLength);
+	        }
+	    }
+
+	    // The calculation of a targetTangent
+	    var targetTangent;
+	    if (options.targetTangent) {
+	        targetTangent = options.targetTangent;
+	    } else {
+	        var targetDirection = getTargetTangentDirection(linkView, completeRoute, direction, options);
+	        var last = completeRoute.length - 1;
+	        var tangentLength$1 = completeRoute[last - 1].distance(completeRoute[last]) * options.coeff;
+	        var pointsVector$1 = completeRoute[last - 1].difference(completeRoute[last]).normalize();
+	        var angle$1 = angleBetweenVectors(targetDirection, pointsVector$1);
+	        if (angle$1 > Math.PI / 4) {
+	            var updatedLength$1 = tangentLength$1 + (angle$1 - Math.PI / 4) * options.angleTangentCoefficient;
+	            targetTangent = targetDirection.clone().scale(updatedLength$1, updatedLength$1);
+	        } else {
+	            targetTangent = targetDirection.clone().scale(tangentLength$1, tangentLength$1);
+	        }
+	    }
+	    
+	    var catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
+	    var bezierCurves = catmullRomCurves.map(function (curve) { return catmullRomToBezier(curve, options); });
+	    var path = new Path(bezierCurves).round(precision);
+
+	    return (raw) ? path : path.serialize();
+	};
+	curve.Directions = Directions;
+	curve.TangentDirections = TangentDirections;
+
+	function getHorizontalSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    if (!sourceBBox.width || !sourceBBox.height) {
+	        if (sourceBBox.x > route[1].x)
+	            { sourceSide = 'right'; }
+	        else    
+	            { sourceSide = 'left'; }
+	    } else {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	    }
+
+	    switch (sourceSide) {
+	        case 'left': {
+	            return new Point(-1, 0);
+	        }   
+	        case 'right':
+	        default: {
+	            return new Point(1, 0);
+	        }
+	    }
+	}
+
+	function getHorizontalTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    if (!targetBBox.width || !targetBBox.height) {
+	        if (targetBBox.x > route[route.length - 2].x)
+	            { targetSide = 'left'; }
+	        else    
+	            { targetSide = 'right'; }
+	    } else {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	    }
+
+	    switch (targetSide) {
+	        case 'left': {
+	            return new Point(-1, 0);
+	        }   
+	        case 'right':
+	        default: {
+	            return new Point(1, 0);
+	        }
+	    }
+	}
+
+	function getVerticalSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    if (!sourceBBox.width || !sourceBBox.height) {
+	        if (sourceBBox.y > route[1].y)
+	            { sourceSide = 'bottom'; }
+	        else    
+	            { sourceSide = 'top'; }
+	    } else {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	    }
+
+	    switch (sourceSide) {
+	        case 'top': {
+	            return new Point(0, -1);
+	        }   
+	        case 'bottom':
+	        default: {
+	            return new Point(0, 1);
+	        }
+	    }
+	}
+
+	function getVerticalTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    if (!targetBBox.width || !targetBBox.height) {
+	        if (targetBBox.y > route[route.length - 2].y)
+	            { targetSide = 'top'; }
+	        else    
+	            { targetSide = 'bottom'; }
+	    } else {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	    }
+
+	    switch (targetSide) {
+	        case 'top': {
+	            return new Point(0, -1);
+	        }   
+	        case 'bottom':
+	        default: {
+	            return new Point(0, 1);
+	        }
+	    }
+	}
+
+	function getAutoSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    if (!sourceBBox.width || !sourceBBox.height) {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[1]);
+	    } else {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	    }
+
+	    switch (sourceSide) {
+	        case 'top':
+	            return new Point(0, -1);
+	        case 'bottom':
+	            return new Point(0, 1);
+	        case 'right':
+	            return new Point(1, 0);
+	        case 'left':
+	            return new Point(-1, 0);
+	    }
+	}
+
+	function getAutoTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+	    
+	    var targetSide;
+	    if (!targetBBox.width || !targetBBox.height) {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
+	    } else {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	    }
+
+	    switch (targetSide) {
+	        case 'top':
+	            return new Point(0, -1);
+	        case 'bottom':
+	            return new Point(0, 1);
+	        case 'right':
+	            return new Point(1, 0);
+	        case 'left':
+	            return new Point(-1, 0);
+	    }
+	}
+
+	function getClosestPointSourceDirection(linkView, route, options) {
+	    return route[1].difference(route[0]).normalize();
+	}
+
+	function getClosestPointTargetDirection(linkView, route, options) {
+	    var last = route.length - 1;
+	    return route[last - 1].difference(route[last]).normalize();
+	}
+
+	function getOutwardsSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+	    var sourceCenter = sourceBBox.center();
+	    return route[0].difference(sourceCenter).normalize();
+	}
+
+	function getOutwardsTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+	    var targetCenter = targetBBox.center();
+	    return route[route.length - 1].difference(targetCenter).normalize();
+	}
+
+	function getSourceTangentDirection(linkView, route, direction, options) {
+	    if (options.sourceDirection) {
+	        switch(options.sourceDirection) {
+	            case TangentDirections.UP:
+	                return new Point(0, -1);
+	            case TangentDirections.DOWN:
+	                return new Point(0, 1);
+	            case TangentDirections.LEFT:
+	                return new Point(-1, 0);
+	            case TangentDirections.RIGHT:
+	                return new Point(0, 1);
+	            case TangentDirections.AUTO:
+	                return getAutoSourceDirection(linkView, route, options);    
+	            case TangentDirections.CLOSEST_POINT:
+	                return getClosestPointSourceDirection(linkView, route, options);
+	            case TangentDirections.OUTWARDS: {
+	                return getOutwardsSourceDirection(linkView, route, options);
+	            }
+	            default:
+	                return options.sourceDirection;
+	        }
+	    }
+	    
+	    switch (direction) {
+	        case Directions.HORIZONTAL:
+	            return getHorizontalSourceDirection(linkView, route, options);
+	        case Directions.VERTICAL:
+	            return getVerticalSourceDirection(linkView, route, options);
+	        case Directions.CLOSEST_POINT:
+	            return getClosestPointSourceDirection(linkView, route, options);
+	        case Directions.OUTWARDS:
+	            return getOutwardsSourceDirection(linkView, route, options);            
+	        case Directions.AUTO:
+	        default:
+	            return getAutoSourceDirection(linkView, route, options);            
+	    }   
+	}
+
+	function getTargetTangentDirection(linkView, route, direction, options) {
+	    if (options.targetDirection) {
+	        switch(options.targetDirection) {
+	            case TangentDirections.UP:
+	                return new Point(0, -1);
+	            case TangentDirections.DOWN:
+	                return new Point(0, 1);
+	            case TangentDirections.LEFT:
+	                return new Point(-1, 0);
+	            case TangentDirections.RIGHT:
+	                return new Point(0, 1);
+	            case TangentDirections.AUTO:
+	                return getAutoTargetDirection(linkView, route, options);    
+	            case TangentDirections.CLOSEST_POINT:
+	                return getClosestPointTargetDirection(linkView, route, options);
+	            case TangentDirections.OUTWARDS: {
+	                return getOutwardsTargetDirection(linkView, route, options);
+	            }
+	            default:
+	                return options.targetDirection;
+	        }
+	    }
+	    
+	    switch (direction) {
+	        case Directions.HORIZONTAL:
+	            return getHorizontalTargetDirection(linkView, route, options);            
+	        case Directions.VERTICAL:
+	            return getVerticalTargetDirection(linkView, route, options);
+	        case Directions.CLOSEST_POINT:
+	            return getClosestPointTargetDirection(linkView, route, options);
+	        case Directions.OUTWARDS:
+	            return getOutwardsTargetDirection(linkView, route, options);            
+	        case Directions.AUTO:
+	        default:
+	            return getAutoTargetDirection(linkView, route, options);            
+	    }   
+	}
+
+	function rotateVector(vector, angle) {
+	    var cos = Math.cos(angle);
+	    var sin = Math.sin(angle);
+	    var x = cos * vector.x - sin * vector.y;
+	    var y = sin * vector.x + cos * vector.y;
+	    vector.x = x;
+	    vector.y = y;
+	}
+
+	function angleBetweenVectors(v1, v2) {
+	    var cos = v1.dot(v2) / (v1.magnitude() * v2.magnitude());
+	    if (cos < -1) { cos = -1; }
+	    if (cos > 1) { cos = 1; }
+	    return Math.acos(cos);
+	}
+
+	function determinant(v1, v2) {
+	    return v1.x * v2.y - v1.y * v2.x;
+	}
+
+	function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
+	    var tau = options.tau;
+	    var coeff = options.coeff;
+	    var distances = [];
+	    var tangents = [];
+	    var catmullRomCurves = [];    
+	    var n = points.length - 1;
+
+	    for (var i = 0; i < n; i++) {
+	        distances[i] = points[i].distance(points[i + 1]);
+	    }
+
+	    tangents[0] = sourceTangent;
+	    tangents[n] = targetTangent;      
+
+	    // The calculation of tangents of vertices
+	    for (var i$1 = 1; i$1 < n; i$1++) {
+	        var tpPrev = (void 0);
+	        var tpNext = (void 0);
+	        if (i$1 === 1) {
+	            tpPrev = points[i$1 - 1].clone().offset(tangents[i$1 - 1].x, tangents[i$1 - 1].y);
+	        } else {
+	            tpPrev = points[i$1 - 1].clone();
+	        }
+	        if (i$1 === n - 1) {
+	            tpNext = points[i$1 + 1].clone().offset(tangents[i$1 + 1].x, tangents[i$1 + 1].y); 
+	        } else {
+	            tpNext = points[i$1 + 1].clone();
+	        }
+	        var v1 = tpPrev.difference(points[i$1]).normalize();
+	        var v2 = tpNext.difference(points[i$1]).normalize();
+	        var vAngle = angleBetweenVectors(v1, v2); 
+
+	        var rot = (Math.PI - vAngle) / 2;
+	        var t = (void 0);
+	        var vectorDeterminant = determinant(v1, v2);
+	        var pointsDeterminant = (void 0);
+	        pointsDeterminant = determinant(points[i$1].difference(points[i$1 + 1]), points[i$1].difference(points[i$1 - 1]));
+	        if (vectorDeterminant < 0) {
+	            rot = -rot;
+	        }
+	        if ((vAngle < Math.PI / 2) && ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0))) {
+	            rot = rot - Math.PI;
+	        }
+	        t = v2.clone();
+	        rotateVector(t, rot);
+	    
+	        var t1 = t.clone();
+	        var t2 = t.clone();
+	        var scaleFactor1 = distances[i$1 - 1] * coeff;
+	        var scaleFactor2 = distances[i$1] * coeff;
+	        t1.scale(scaleFactor1, scaleFactor1);
+	        t2.scale(scaleFactor2, scaleFactor2);
+
+	        tangents[i$1] = [t1, t2];
+	    }
+
+	    // The building of a Catmull-Rom curve based of tangents of points
+	    for (var i$2 = 0; i$2 < n; i$2++) {
+	        var p0 = (void 0);
+	        var p3 = (void 0);
+	        if (i$2 === 0) {
+	            p0 = points[i$2 + 1].difference(tangents[i$2].x / tau, tangents[i$2].y / tau); 
+	        } else {
+	            p0 = points[i$2 + 1].difference(tangents[i$2][1].x / tau, tangents[i$2][1].y / tau);
+	        }
+	        if (i$2 === n - 1) {
+	            p3 = points[i$2].clone().offset(tangents[i$2 + 1].x / tau, tangents[i$2 + 1].y / tau);
+	        } else {
+	            p3 = points[i$2].difference(tangents[i$2 + 1][0].x / tau, tangents[i$2 + 1][0].y / tau);
+	        }
+
+	        catmullRomCurves[i$2] = [p0, points[i$2], points[i$2 + 1], p3];
+	    }
+	    return catmullRomCurves;
+	}
+
+	// The function to convert Catmull-Rom curve to Bezier curve using the tension (tau)
+	function catmullRomToBezier(points, options) {
+	    var tau = options.tau;
+
+	    var bcp1 = new Point();
+	    bcp1.x = points[1].x + (points[2].x - points[0].x) / (6 * tau);
+	    bcp1.y = points[1].y + (points[2].y - points[0].y) / (6 * tau);
+
+	    var bcp2 = new Point();
+	    bcp2.x = points[2].x + (points[3].x - points[1].x) / (6 * tau);
+	    bcp2.y = points[2].y + (points[3].y - points[1].y) / (6 * tau);
+	    return new Curve(
+	        points[1],
+	        bcp1,
+	        bcp2,
+	        points[2]
+	    );
+	}
+
+
+
+	var connectors = ({
+		jumpover: jumpover,
+		normal: normal,
+		rounded: rounded,
+		smooth: smooth,
+		curve: curve
+	});
 
 	var views = {};
 
@@ -16956,6 +18726,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    addThemeClassName: function(theme) {
 
 	        theme = theme || this.theme;
+	        if (!theme) { return this; }
 
 	        var className = this.themeClassNamePrefix + theme;
 
@@ -17102,6 +18873,35 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
+	var DoubleTapEventName = 'dbltap';
+	if ($.event && !(DoubleTapEventName in $.event.special)) {
+	    var maxDelay = config.doubleTapInterval;
+	    var minDelay = 30;
+	    $.event.special[DoubleTapEventName] = {
+	        bindType: 'touchend',
+	        delegateType: 'touchend',
+	        handle: function(event) {
+	            var ref;
+
+	            var args = [], len = arguments.length - 1;
+	            while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+	            var handleObj = event.handleObj;
+	            var target = event.target;
+	            var targetData  = $.data(target);
+	            var now = new Date().getTime();
+	            var delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
+	            if (delta < maxDelay && delta > minDelay) {
+	                targetData.lastTouch = null;
+	                event.type = handleObj.origType;
+	                // let jQuery handle the triggering of "dbltap" event handlers
+	                (ref = handleObj.handler).call.apply(ref, [ this, event ].concat( args ));
+	            } else {
+	                targetData.lastTouch = now;
+	            }
+	        }
+	    };
+	}
+
 	var index$1 = ({
 		views: views,
 		View: View
@@ -17194,10 +18994,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var paper = cellView.paper;
 	        var layerName = options.layer;
 	        if (layerName) {
-	            this.transformGroup = V('g')
-	                .addClass('highlight-transform')
-	                .append(el)
-	                .appendTo(paper.getLayerNode(layerName));
+	            var vGroup = this.transformGroup = V('g').addClass('highlight-transform').append(el);
+	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
 	        } else {
 	            // TODO: prepend vs append
 	            if (!el.parentNode || el.nextSibling) {
@@ -17387,6 +19185,3833 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	});
 
+	var stroke = HighlighterView.extend({
+
+	    tagName: 'path',
+	    className: 'highlight-stroke',
+	    attributes: {
+	        'pointer-events': 'none',
+	        'vector-effect': 'non-scaling-stroke',
+	        'fill': 'none'
+	    },
+
+	    options: {
+	        padding: 3,
+	        rx: 0,
+	        ry: 0,
+	        useFirstSubpath: false,
+	        attrs: {
+	            'stroke-width': 3,
+	            'stroke': '#FEB663'
+	        }
+	    },
+
+	    getPathData: function getPathData(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var useFirstSubpath = options.useFirstSubpath;
+	        var d;
+	        try {
+	            var vNode = V(node);
+	            d = vNode.convertToPathData().trim();
+	            if (vNode.tagName() === 'PATH' && useFirstSubpath) {
+	                var secondSubpathIndex = d.search(/.M/i) + 1;
+	                if (secondSubpathIndex > 0) {
+	                    d = d.substr(0, secondSubpathIndex);
+	                }
+	            }
+	        } catch (error) {
+	            // Failed to get path data from magnet element.
+	            // Draw a rectangle around the node instead.
+	            var nodeBBox = cellView.getNodeBoundingRect(node);
+	            d = V.rectToPath(assign({}, options, nodeBBox.toJSON()));
+	        }
+	        return d;
+	    },
+
+	    highlightConnection: function highlightConnection(cellView) {
+	        this.vel.attr('d', cellView.getSerializedConnection());
+	    },
+
+	    highlightNode: function highlightNode(cellView, node) {
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        var padding = options.padding;
+	        var layer = options.layer;
+	        var highlightMatrix = cellView.getNodeMatrix(node);
+	        // Add padding to the highlight element.
+	        if (padding) {
+	            if (!layer && node === cellView.el) {
+	                // If the highlighter is appended to the cellView
+	                // and we measure the size of the cellView wrapping group
+	                // it's necessary to remove the highlighter first
+	                vel.remove();
+	            }
+	            var nodeBBox = cellView.getNodeBoundingRect(node);
+	            var cx = nodeBBox.x + (nodeBBox.width / 2);
+	            var cy = nodeBBox.y + (nodeBBox.height / 2);
+	            nodeBBox = V.transformRect(nodeBBox, highlightMatrix);
+	            var width = Math.max(nodeBBox.width, 1);
+	            var height = Math.max(nodeBBox.height, 1);
+	            var sx = (width + padding) / width;
+	            var sy = (height + padding) / height;
+	            var paddingMatrix = V.createSVGMatrix({
+	                a: sx,
+	                b: 0,
+	                c: 0,
+	                d: sy,
+	                e: cx - sx * cx,
+	                f: cy - sy * cy
+	            });
+	            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
+	        }
+	        vel.attr({
+	            'd': this.getPathData(cellView, node),
+	            'transform': V.matrixToTransformString(highlightMatrix)
+	        });
+	    },
+
+	    highlight: function highlight(cellView, node) {
+	        var ref = this;
+	        var vel = ref.vel;
+	        var options = ref.options;
+	        vel.attr(options.attrs);
+	        if (cellView.isNodeConnection(node)) {
+	            this.highlightConnection(cellView);
+	        } else {
+	            this.highlightNode(cellView, node);
+	        }
+	    }
+
+	});
+
+	var MASK_CLIP = 20;
+
+	function forEachDescendant(vel, fn) {
+	    var descendants = vel.children();
+	    while (descendants.length > 0) {
+	        var descendant = descendants.shift();
+	        if (fn(descendant)) {
+	            descendants.push.apply(descendants, descendant.children());
+	        }
+	    }
+	}
+
+	var mask = HighlighterView.extend({
+
+	    tagName: 'rect',
+	    className: 'highlight-mask',
+	    attributes: {
+	        'pointer-events': 'none'
+	    },
+
+	    options: {
+	        padding: 3,
+	        maskClip: MASK_CLIP,
+	        deep: false,
+	        attrs: {
+	            'stroke': '#FEB663',
+	            'stroke-width': 3,
+	            'stroke-linecap': 'butt',
+	            'stroke-linejoin': 'miter',
+	        }
+	    },
+
+	    VISIBLE: 'white',
+	    INVISIBLE: 'black',
+
+	    MASK_ROOT_ATTRIBUTE_BLACKLIST: [
+	        'marker-start',
+	        'marker-end',
+	        'marker-mid',
+	        'transform',
+	        'stroke-dasharray'
+	    ],
+
+	    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
+	        'stroke',
+	        'fill',
+	        'stroke-width',
+	        'stroke-opacity',
+	        'stroke-dasharray',
+	        'fill-opacity',
+	        'marker-start',
+	        'marker-end',
+	        'marker-mid'
+	    ],
+
+	    // TODO: change the list to a function callback
+	    MASK_REPLACE_TAGS: [
+	        'FOREIGNOBJECT',
+	        'IMAGE',
+	        'USE',
+	        'TEXT',
+	        'TSPAN',
+	        'TEXTPATH'
+	    ],
+
+	    // TODO: change the list to a function callback
+	    MASK_REMOVE_TAGS: [
+	        'TEXT',
+	        'TSPAN',
+	        'TEXTPATH'
+	    ],
+
+	    transformMaskChild: function transformMaskChild(cellView, childEl) {
+	        var ref = this;
+	        var MASK_CHILD_ATTRIBUTE_BLACKLIST = ref.MASK_CHILD_ATTRIBUTE_BLACKLIST;
+	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
+	        var MASK_REMOVE_TAGS = ref.MASK_REMOVE_TAGS;
+	        var childTagName = childEl.tagName();
+	        // Do not include the element in the mask's image
+	        if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
+	            childEl.remove();
+	            return false;
+	        }
+	        // Replace the element with a rectangle
+	        if (MASK_REPLACE_TAGS.includes(childTagName)) {
+	            // Note: clone() method does not change the children ids
+	            var originalChild = cellView.vel.findOne(("#" + (childEl.id)));
+	            if (originalChild) {
+	                var originalNode = originalChild.node;
+	                var childBBox = cellView.getNodeBoundingRect(originalNode);
+	                if (cellView.model.isElement()) {
+	                    childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
+	                }
+	                var replacement = V('rect', childBBox.toJSON());
+	                var ref$1 = childBBox.center();
+	                var ox = ref$1.x;
+	                var oy = ref$1.y;
+	                var ref$2 = originalChild.rotate();
+	                var angle = ref$2.angle;
+	                var cx = ref$2.cx; if ( cx === void 0 ) cx = ox;
+	                var cy = ref$2.cy; if ( cy === void 0 ) cy = oy;
+	                if (angle) { replacement.rotate(angle, cx, cy); }
+	                // Note: it's not important to keep the same sibling index since all subnodes are filled
+	                childEl.parent().append(replacement);
+	            }
+	            childEl.remove();
+	            return false;
+	        }
+	        // Keep the element, but clean it from certain attributes
+	        MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
+	            if (attrName === 'fill' && childEl.attr('fill') === 'none') { return; }
+	            childEl.removeAttr(attrName);
+	        });
+	        return true;
+	    },
+
+	    transformMaskRoot: function transformMaskRoot(_cellView, rootEl) {
+	        var ref = this;
+	        var MASK_ROOT_ATTRIBUTE_BLACKLIST = ref.MASK_ROOT_ATTRIBUTE_BLACKLIST;
+	        MASK_ROOT_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
+	            rootEl.removeAttr(attrName);
+	        });
+	    },
+
+	    getMaskShape: function getMaskShape(cellView, vel) {
+	        var this$1 = this;
+
+	        var ref = this;
+	        var options = ref.options;
+	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
+	        var deep = options.deep;
+	        var tagName = vel.tagName();
+	        var maskRoot;
+	        if (tagName === 'G') {
+	            if (!deep) { return null; }
+	            maskRoot = vel.clone();
+	            forEachDescendant(maskRoot, function (maskChild) { return this$1.transformMaskChild(cellView, maskChild); });
+	        } else {
+	            if (MASK_REPLACE_TAGS.includes(tagName)) { return null; }
+	            maskRoot = vel.clone();
+	        }
+	        this.transformMaskRoot(cellView, maskRoot);
+	        return maskRoot;
+	    },
+
+	    getMaskId: function getMaskId() {
+	        return ("highlight-mask-" + (this.cid));
+	    },
+
+	    getMask: function getMask(cellView, vNode) {
+
+	        var ref = this;
+	        var VISIBLE = ref.VISIBLE;
+	        var INVISIBLE = ref.INVISIBLE;
+	        var options = ref.options;
+	        var padding = options.padding;
+	        var attrs = options.attrs;
+
+	        var strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
+	        var hasNodeFill = vNode.attr('fill') !== 'none';
+	        var magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
+	        if (isNaN(magnetStrokeWidth)) { magnetStrokeWidth = 1; }
+	        // stroke of the invisible shape
+	        var minStrokeWidth = magnetStrokeWidth + padding * 2;
+	        // stroke of the visible shape
+	        var maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
+	        var maskEl = this.getMaskShape(cellView, vNode);
+	        if (!maskEl) {
+	            var nodeBBox = cellView.getNodeBoundingRect(vNode.node);
+	            // Make sure the rect is visible
+	            nodeBBox.inflate(nodeBBox.width ? 0 : 0.5, nodeBBox.height ? 0 : 0.5);
+	            maskEl =  V('rect', nodeBBox.toJSON());
+	        }
+	        maskEl.attr(attrs);
+	        return V('mask', {
+	            'id': this.getMaskId()
+	        }).append([
+	            maskEl.clone().attr({
+	                'fill': hasNodeFill ? VISIBLE : 'none',
+	                'stroke': VISIBLE,
+	                'stroke-width': maxStrokeWidth
+	            }),
+	            maskEl.clone().attr({
+	                'fill': hasNodeFill ? INVISIBLE : 'none',
+	                'stroke': INVISIBLE,
+	                'stroke-width': minStrokeWidth
+	            })
+	        ]);
+	    },
+
+	    removeMask: function removeMask(paper) {
+	        var maskNode = paper.svg.getElementById(this.getMaskId());
+	        if (maskNode) {
+	            paper.defs.removeChild(maskNode);
+	        }
+	    },
+
+	    addMask: function addMask(paper, maskEl) {
+	        paper.defs.appendChild(maskEl.node);
+	    },
+
+	    highlight: function highlight(cellView, node) {
+	        var ref = this;
+	        var options = ref.options;
+	        var vel = ref.vel;
+	        var padding = options.padding;
+	        var attrs = options.attrs;
+	        var maskClip = options.maskClip; if ( maskClip === void 0 ) maskClip = MASK_CLIP;
+	        var layer = options.layer;
+	        var color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
+	        if (!layer && node === cellView.el) {
+	            // If the highlighter is appended to the cellView
+	            // and we measure the size of the cellView wrapping group
+	            // it's necessary to remove the highlighter first
+	            vel.remove();
+	        }
+	        var highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
+	        var maskEl = this.getMask(cellView, V(node));
+	        this.addMask(cellView.paper, maskEl);
+	        vel.attr(highlighterBBox.toJSON());
+	        vel.attr({
+	            'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
+	            'mask': ("url(#" + (maskEl.id) + ")"),
+	            'fill': color
+	        });
+	    },
+
+	    unhighlight: function unhighlight(cellView) {
+	        this.removeMask(cellView.paper);
+	    }
+
+	});
+
+	var opacity = HighlighterView.extend({
+
+	    UPDATABLE: false,
+	    MOUNTABLE: false,
+
+	    opacityClassName: addClassNamePrefix('highlight-opacity'),
+
+	    highlight: function(_cellView, node) {
+	        V(node).addClass(this.opacityClassName);
+	    },
+
+	    unhighlight: function(_cellView, node) {
+	        V(node).removeClass(this.opacityClassName);
+	    }
+
+	});
+
+	var className = addClassNamePrefix('highlighted');
+
+	var addClass = HighlighterView.extend({
+
+	    UPDATABLE: false,
+	    MOUNTABLE: false,
+
+	    options: {
+	        className: className
+	    },
+
+	    highlight: function(_cellView, node) {
+	        V(node).addClass(this.options.className);
+	    },
+
+	    unhighlight: function(_cellView, node) {
+	        V(node).removeClass(this.options.className);
+	    }
+
+	}, {
+	    // Backwards Compatibility
+	    className: className
+	});
+
+
+
+	var highlighters = ({
+		stroke: stroke,
+		mask: mask,
+		opacity: opacity,
+		addClass: addClass
+	});
+
+	function offsetPoint(p1, p2, offset) {
+	    if (isPlainObject(offset)) {
+	        var x = offset.x;
+	        var y = offset.y;
+	        if (isFinite(y)) {
+	            var line =  new Line(p2, p1);
+	            var ref = line.parallel(y);
+	            var start = ref.start;
+	            var end = ref.end;
+	            p2 = start;
+	            p1 = end;
+	        }
+	        offset = x;
+	    }
+	    if (!isFinite(offset)) { return p1; }
+	    var length = p1.distance(p2);
+	    if (offset === 0 && length > 0) { return p1; }
+	    return p1.move(p2, -Math.min(offset, length - 1));
+	}
+
+	function stroke$1(magnet) {
+
+	    var stroke = magnet.getAttribute('stroke-width');
+	    if (stroke === null) { return 0; }
+	    return parseFloat(stroke) || 0;
+	}
+
+	function alignLine(line, type, offset) {
+	    if ( offset === void 0 ) offset = 0;
+
+	    var coordinate, a, b, direction;
+	    var start = line.start;
+	    var end = line.end;
+	    switch (type) {
+	        case 'left':
+	            coordinate = 'x';
+	            a = end;
+	            b = start;
+	            direction = -1;
+	            break;
+	        case 'right':
+	            coordinate = 'x';
+	            a = start;
+	            b = end;
+	            direction = 1;
+	            break;
+	        case 'top':
+	            coordinate = 'y';
+	            a = end;
+	            b = start;
+	            direction = -1;
+	            break;
+	        case 'bottom':
+	            coordinate = 'y';
+	            a = start;
+	            b = end;
+	            direction = 1;
+	            break;
+	        default:
+	            return;
+	    }
+	    if (start[coordinate] < end[coordinate]) {
+	        a[coordinate] = b[coordinate];
+	    } else {
+	        b[coordinate] = a[coordinate];
+	    }
+	    if (isFinite(offset)) {
+	        a[coordinate] += direction * offset;
+	        b[coordinate] += direction * offset;
+	    }
+	}
+
+	// Connection Points
+
+	function anchorConnectionPoint(line, _view, _magnet, opt) {
+	    var offset = opt.offset;
+	    var alignOffset = opt.alignOffset;
+	    var align = opt.align;
+	    if (align) { alignLine(line, align, alignOffset); }
+	    return offsetPoint(line.end, line.start, offset);
+	}
+
+	function bboxIntersection(line, view, magnet, opt) {
+
+	    var bbox = view.getNodeBBox(magnet);
+	    if (opt.stroke) { bbox.inflate(stroke$1(magnet) / 2); }
+	    var intersections = line.intersect(bbox);
+	    var cp = (intersections)
+	        ? line.start.chooseClosest(intersections)
+	        : line.end;
+	    return offsetPoint(cp, line.start, opt.offset);
+	}
+
+	function rectangleIntersection(line, view, magnet, opt) {
+
+	    var angle = view.model.angle();
+	    if (angle === 0) {
+	        return bboxIntersection(line, view, magnet, opt);
+	    }
+
+	    var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
+	    if (opt.stroke) { bboxWORotation.inflate(stroke$1(magnet) / 2); }
+	    var center = bboxWORotation.center();
+	    var lineWORotation = line.clone().rotate(center, angle);
+	    var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
+	    var cp = (intersections)
+	        ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
+	        : line.end;
+	    return offsetPoint(cp, line.start, opt.offset);
+	}
+
+	function findShapeNode(magnet) {
+	    if (!magnet) { return null; }
+	    var node = magnet;
+	    do {
+	        var tagName = node.tagName;
+	        if (typeof tagName !== 'string') { return null; }
+	        tagName = tagName.toUpperCase();
+	        if (tagName === 'G') {
+	            node = node.firstElementChild;
+	        } else if (tagName === 'TITLE') {
+	            node = node.nextElementSibling;
+	        } else { break; }
+	    } while (node);
+	    return node;
+	}
+
+	var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
+	var BNDR_SHAPE_BBOX = 'shapeBBox';
+
+	function boundaryIntersection(line, view, magnet, opt) {
+
+	    var node, intersection;
+	    var selector = opt.selector;
+	    var anchor = line.end;
+
+	    if (typeof selector === 'string') {
+	        node = view.findBySelector(selector)[0];
+	    } else if (Array.isArray(selector)) {
+	        node = getByPath(magnet, selector);
+	    } else {
+	        node = findShapeNode(magnet);
+	    }
+
+	    if (!V.isSVGGraphicsElement(node)) {
+	        if (node === magnet || !V.isSVGGraphicsElement(magnet)) { return anchor; }
+	        node = magnet;
+	    }
+
+	    var localShape = view.getNodeShape(node);
+	    var magnetMatrix = view.getNodeMatrix(node);
+	    var translateMatrix = view.getRootTranslateMatrix();
+	    var rotateMatrix = view.getRootRotateMatrix();
+	    var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
+	    var localMatrix = targetMatrix.inverse();
+	    var localLine = V.transformLine(line, localMatrix);
+	    var localRef = localLine.start.clone();
+	    var data = view.getNodeData(node);
+
+	    if (opt.insideout === false) {
+	        if (!data[BNDR_SHAPE_BBOX]) { data[BNDR_SHAPE_BBOX] = localShape.bbox(); }
+	        var localBBox = data[BNDR_SHAPE_BBOX];
+	        if (localBBox.containsPoint(localRef)) { return anchor; }
+	    }
+
+	    // Caching segment subdivisions for paths
+	    var pathOpt;
+	    if (localShape instanceof Path) {
+	        var precision = opt.precision || 2;
+	        if (!data[BNDR_SUBDIVISIONS]) { data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision }); }
+	        pathOpt = {
+	            precision: precision,
+	            segmentSubdivisions: data[BNDR_SUBDIVISIONS]
+	        };
+	    }
+
+	    if (opt.extrapolate === true) { localLine.setLength(1e6); }
+
+	    intersection = localLine.intersect(localShape, pathOpt);
+	    if (intersection) {
+	        // More than one intersection
+	        if (V.isArray(intersection)) { intersection = localRef.chooseClosest(intersection); }
+	    } else if (opt.sticky === true) {
+	        // No intersection, find the closest point instead
+	        if (localShape instanceof Rect) {
+	            intersection = localShape.pointNearestToPoint(localRef);
+	        } else if (localShape instanceof Ellipse) {
+	            intersection = localShape.intersectionWithLineFromCenterToPoint(localRef);
+	        } else {
+	            intersection = localShape.closestPoint(localRef, pathOpt);
+	        }
+	    }
+
+	    var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
+	    var cpOffset = opt.offset || 0;
+	    if (opt.stroke) { cpOffset += stroke$1(node) / 2; }
+
+	    return offsetPoint(cp, line.start, cpOffset);
+	}
+
+	var anchor = anchorConnectionPoint;
+	var bbox = bboxIntersection;
+	var rectangle = rectangleIntersection;
+	var boundary = boundaryIntersection;
+
+	var connectionPoints = ({
+		anchor: anchor,
+		bbox: bbox,
+		rectangle: rectangle,
+		boundary: boundary
+	});
+
+	function abs2rel(value, max) {
+
+	    if (max === 0) { return '0%'; }
+	    return Math.round(value / max * 100) + '%';
+	}
+
+	function pin(relative) {
+
+	    return function(end, view, magnet, coords) {
+	        var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
+	        return fn(relative, end, view, magnet, coords);
+	    };
+	}
+
+	function pinnedElementEnd(relative, end, view, magnet, coords) {
+
+	    var angle = view.model.angle();
+	    var bbox = view.getNodeUnrotatedBBox(magnet);
+	    var origin = view.model.getBBox().center();
+	    coords.rotate(origin, angle);
+	    var dx = coords.x - bbox.x;
+	    var dy = coords.y - bbox.y;
+
+	    if (relative) {
+	        dx = abs2rel(dx, bbox.width);
+	        dy = abs2rel(dy, bbox.height);
+	    }
+
+	    end.anchor = {
+	        name: 'topLeft',
+	        args: {
+	            dx: dx,
+	            dy: dy,
+	            rotate: true
+	        }
+	    };
+
+	    return end;
+	}
+
+	function pinnedLinkEnd(relative, end, view, _magnet, coords) {
+
+	    var connection = view.getConnection();
+	    if (!connection) { return end; }
+	    var length = connection.closestPointLength(coords);
+	    if (relative) {
+	        var totalLength = connection.length();
+	        end.anchor = {
+	            name: 'connectionRatio',
+	            args: {
+	                ratio: length / totalLength
+	            }
+	        };
+	    } else {
+	        end.anchor = {
+	            name: 'connectionLength',
+	            args: {
+	                length: length
+	            }
+	        };
+	    }
+	    return end;
+	}
+
+	var useDefaults = noop;
+	var pinAbsolute = pin(false);
+	var pinRelative = pin(true);
+
+	var index$2 = ({
+		useDefaults: useDefaults,
+		pinAbsolute: pinAbsolute,
+		pinRelative: pinRelative
+	});
+
+	// Does not make any changes to vertices.
+	// Returns the arguments that are passed to it, unchanged.
+	var normal$1 = function(vertices, opt, linkView) {
+
+	    return vertices;
+	};
+
+	// Routes the link always to/from a certain side
+	//
+	// Arguments:
+	//   padding ... gap between the element and the first vertex. :: Default 40.
+	//   side ... 'left' | 'right' | 'top' | 'bottom' :: Default 'bottom'.
+	//
+	var oneSide = function(vertices, opt, linkView) {
+
+	    var side = opt.side || 'bottom';
+	    var padding = normalizeSides(opt.padding || 40);
+
+	    // LinkView contains cached source an target bboxes.
+	    // Note that those are Geometry rectangle objects.
+	    var sourceBBox = linkView.sourceBBox;
+	    var targetBBox = linkView.targetBBox;
+	    var sourcePoint = sourceBBox.center();
+	    var targetPoint = targetBBox.center();
+
+	    var coordinate, dimension, direction;
+
+	    switch (side) {
+	        case 'bottom':
+	            direction = 1;
+	            coordinate = 'y';
+	            dimension = 'height';
+	            break;
+	        case 'top':
+	            direction = -1;
+	            coordinate = 'y';
+	            dimension = 'height';
+	            break;
+	        case 'left':
+	            direction = -1;
+	            coordinate = 'x';
+	            dimension = 'width';
+	            break;
+	        case 'right':
+	            direction = 1;
+	            coordinate = 'x';
+	            dimension = 'width';
+	            break;
+	        default:
+	            throw new Error('Router: invalid side');
+	    }
+
+	    // move the points from the center of the element to outside of it.
+	    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding[side]);
+	    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding[side]);
+
+	    // make link orthogonal (at least the first and last vertex).
+	    if ((direction * (sourcePoint[coordinate] - targetPoint[coordinate])) > 0) {
+	        targetPoint[coordinate] = sourcePoint[coordinate];
+	    } else {
+	        sourcePoint[coordinate] = targetPoint[coordinate];
+	    }
+
+	    return [sourcePoint].concat(vertices, targetPoint);
+	};
+
+	// bearing -> opposite bearing
+	var opposites = {
+	    N: 'S',
+	    S: 'N',
+	    E: 'W',
+	    W: 'E'
+	};
+
+	// bearing -> radians
+	var radians = {
+	    N: -Math.PI / 2 * 3,
+	    S: -Math.PI / 2,
+	    E: 0,
+	    W: Math.PI
+	};
+
+	// HELPERS //
+
+	// returns a point `p` where lines p,p1 and p,p2 are perpendicular and p is not contained
+	// in the given box
+	function freeJoin(p1, p2, bbox) {
+
+	    var p = new Point(p1.x, p2.y);
+	    if (bbox.containsPoint(p)) { p = new Point(p2.x, p1.y); }
+	    // kept for reference
+	    // if (bbox.containsPoint(p)) p = null;
+
+	    return p;
+	}
+
+	// returns either width or height of a bbox based on the given bearing
+	function getBBoxSize(bbox, bearing) {
+
+	    return bbox[(bearing === 'W' || bearing === 'E') ? 'width' : 'height'];
+	}
+
+	// simple bearing method (calculates only orthogonal cardinals)
+	function getBearing(from, to) {
+
+	    if (from.x === to.x) { return (from.y > to.y) ? 'N' : 'S'; }
+	    if (from.y === to.y) { return (from.x > to.x) ? 'W' : 'E'; }
+	    return null;
+	}
+
+	// transform point to a rect
+	function getPointBox(p) {
+
+	    return new Rect(p.x, p.y, 0, 0);
+	}
+
+	function getPaddingBox(opt) {
+
+	    // if both provided, opt.padding wins over opt.elementPadding
+	    var sides = normalizeSides(opt.padding || opt.elementPadding || 20);
+
+	    return {
+	        x: -sides.left,
+	        y: -sides.top,
+	        width: sides.left + sides.right,
+	        height: sides.top + sides.bottom
+	    };
+	}
+
+	// return source bbox
+	function getSourceBBox(linkView, opt) {
+
+	    return linkView.sourceBBox.clone().moveAndExpand(getPaddingBox(opt));
+	}
+
+	// return target bbox
+	function getTargetBBox(linkView, opt) {
+
+	    return linkView.targetBBox.clone().moveAndExpand(getPaddingBox(opt));
+	}
+
+	// return source anchor
+	function getSourceAnchor(linkView, opt) {
+
+	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
+
+	    // fallback: center of bbox
+	    var sourceBBox = getSourceBBox(linkView, opt);
+	    return sourceBBox.center();
+	}
+
+	// return target anchor
+	function getTargetAnchor(linkView, opt) {
+
+	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
+
+	    // fallback: center of bbox
+	    var targetBBox = getTargetBBox(linkView, opt);
+	    return targetBBox.center(); // default
+	}
+
+	// PARTIAL ROUTERS //
+
+	function vertexVertex(from, to, bearing) {
+
+	    var p1 = new Point(from.x, to.y);
+	    var p2 = new Point(to.x, from.y);
+	    var d1 = getBearing(from, p1);
+	    var d2 = getBearing(from, p2);
+	    var opposite = opposites[bearing];
+
+	    var p = (d1 === bearing || (d1 !== opposite && (d2 === opposite || d2 !== bearing))) ? p1 : p2;
+
+	    return { points: [p], direction: getBearing(p, to) };
+	}
+
+	function elementVertex(from, to, fromBBox) {
+
+	    var p = freeJoin(from, to, fromBBox);
+
+	    return { points: [p], direction: getBearing(p, to) };
+	}
+
+	function vertexElement(from, to, toBBox, bearing) {
+
+	    var route = {};
+
+	    var points = [new Point(from.x, to.y), new Point(to.x, from.y)];
+	    var freePoints = points.filter(function(pt) {
+	        return !toBBox.containsPoint(pt);
+	    });
+	    var freeBearingPoints = freePoints.filter(function(pt) {
+	        return getBearing(pt, from) !== bearing;
+	    });
+
+	    var p;
+
+	    if (freeBearingPoints.length > 0) {
+	        // Try to pick a point which bears the same direction as the previous segment.
+
+	        p = freeBearingPoints.filter(function(pt) {
+	            return getBearing(from, pt) === bearing;
+	        }).pop();
+	        p = p || freeBearingPoints[0];
+
+	        route.points = [p];
+	        route.direction = getBearing(p, to);
+
+	    } else {
+	        // Here we found only points which are either contained in the element or they would create
+	        // a link segment going in opposite direction from the previous one.
+	        // We take the point inside element and move it outside the element in the direction the
+	        // route is going. Now we can join this point with the current end (using freeJoin).
+
+	        p = difference(points, freePoints)[0];
+
+	        var p2 = (new Point(to)).move(p, -getBBoxSize(toBBox, bearing) / 2);
+	        var p1 = freeJoin(p2, from, toBBox);
+
+	        route.points = [p1, p2];
+	        route.direction = getBearing(p2, to);
+	    }
+
+	    return route;
+	}
+
+	function elementElement(from, to, fromBBox, toBBox) {
+
+	    var route = elementVertex(to, from, toBBox);
+	    var p1 = route.points[0];
+
+	    if (fromBBox.containsPoint(p1)) {
+
+	        route = elementVertex(from, to, fromBBox);
+	        var p2 = route.points[0];
+
+	        if (toBBox.containsPoint(p2)) {
+
+	            var fromBorder = (new Point(from)).move(p2, -getBBoxSize(fromBBox, getBearing(from, p2)) / 2);
+	            var toBorder = (new Point(to)).move(p1, -getBBoxSize(toBBox, getBearing(to, p1)) / 2);
+	            var mid = (new Line(fromBorder, toBorder)).midpoint();
+
+	            var startRoute = elementVertex(from, mid, fromBBox);
+	            var endRoute = vertexVertex(mid, to, startRoute.direction);
+
+	            route.points = [startRoute.points[0], endRoute.points[0]];
+	            route.direction = endRoute.direction;
+	        }
+	    }
+
+	    return route;
+	}
+
+	// Finds route for situations where one element is inside the other.
+	// Typically the route is directed outside the outer element first and
+	// then back towards the inner element.
+	function insideElement(from, to, fromBBox, toBBox, bearing) {
+
+	    var route = {};
+	    var boundary = fromBBox.union(toBBox).inflate(1);
+
+	    // start from the point which is closer to the boundary
+	    var reversed = boundary.center().distance(to) > boundary.center().distance(from);
+	    var start = reversed ? to : from;
+	    var end = reversed ? from : to;
+
+	    var p1, p2, p3;
+
+	    if (bearing) {
+	        // Points on circle with radius equals 'W + H` are always outside the rectangle
+	        // with width W and height H if the center of that circle is the center of that rectangle.
+	        p1 = Point.fromPolar(boundary.width + boundary.height, radians[bearing], start);
+	        p1 = boundary.pointNearestToPoint(p1).move(p1, -1);
+
+	    } else {
+	        p1 = boundary.pointNearestToPoint(start).move(start, 1);
+	    }
+
+	    p2 = freeJoin(p1, end, boundary);
+
+	    if (p1.round().equals(p2.round())) {
+	        p2 = Point.fromPolar(boundary.width + boundary.height, toRad(p1.theta(start)) + Math.PI / 2, end);
+	        p2 = boundary.pointNearestToPoint(p2).move(end, 1).round();
+	        p3 = freeJoin(p1, p2, boundary);
+	        route.points = reversed ? [p2, p3, p1] : [p1, p3, p2];
+
+	    } else {
+	        route.points = reversed ? [p2, p1] : [p1, p2];
+	    }
+
+	    route.direction = reversed ? getBearing(p1, to) : getBearing(p2, to);
+
+	    return route;
+	}
+
+	// MAIN ROUTER //
+
+	// Return points through which a connection needs to be drawn in order to obtain an orthogonal link
+	// routing from source to target going through `vertices`.
+	function orthogonal(vertices, opt, linkView) {
+
+	    var sourceBBox = getSourceBBox(linkView, opt);
+	    var targetBBox = getTargetBBox(linkView, opt);
+
+	    var sourceAnchor = getSourceAnchor(linkView, opt);
+	    var targetAnchor = getTargetAnchor(linkView, opt);
+
+	    // if anchor lies outside of bbox, the bbox expands to include it
+	    sourceBBox = sourceBBox.union(getPointBox(sourceAnchor));
+	    targetBBox = targetBBox.union(getPointBox(targetAnchor));
+
+	    vertices = toArray(vertices).map(Point);
+	    vertices.unshift(sourceAnchor);
+	    vertices.push(targetAnchor);
+
+	    var bearing; // bearing of previous route segment
+
+	    var orthogonalVertices = []; // the array of found orthogonal vertices to be returned
+	    for (var i = 0, max = vertices.length - 1; i < max; i++) {
+
+	        var route = null;
+
+	        var from = vertices[i];
+	        var to = vertices[i + 1];
+
+	        var isOrthogonal = !!getBearing(from, to);
+
+	        if (i === 0) { // source
+
+	            if (i + 1 === max) { // route source -> target
+
+	                // Expand one of the elements by 1px to detect situations when the two
+	                // elements are positioned next to each other with no gap in between.
+	                if (sourceBBox.intersect(targetBBox.clone().inflate(1))) {
+	                    route = insideElement(from, to, sourceBBox, targetBBox);
+
+	                } else if (!isOrthogonal) {
+	                    route = elementElement(from, to, sourceBBox, targetBBox);
+	                }
+
+	            } else { // route source -> vertex
+
+	                if (sourceBBox.containsPoint(to)) {
+	                    route = insideElement(from, to, sourceBBox, getPointBox(to).moveAndExpand(getPaddingBox(opt)));
+
+	                } else if (!isOrthogonal) {
+	                    route = elementVertex(from, to, sourceBBox);
+	                }
+	            }
+
+	        } else if (i + 1 === max) { // route vertex -> target
+
+	            // prevent overlaps with previous line segment
+	            var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
+
+	            if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
+	                route = insideElement(from, to, getPointBox(from).moveAndExpand(getPaddingBox(opt)), targetBBox, bearing);
+
+	            } else if (!isOrthogonal) {
+	                route = vertexElement(from, to, targetBBox, bearing);
+	            }
+
+	        } else if (!isOrthogonal) { // route vertex -> vertex
+	            route = vertexVertex(from, to, bearing);
+	        }
+
+	        // applicable to all routes:
+
+	        // set bearing for next iteration
+	        if (route) {
+	            Array.prototype.push.apply(orthogonalVertices, route.points);
+	            bearing = route.direction;
+
+	        } else {
+	            // orthogonal route and not looped
+	            bearing = getBearing(from, to);
+	        }
+
+	        // push `to` point to identified orthogonal vertices array
+	        if (i + 1 < max) {
+	            orthogonalVertices.push(to);
+	        }
+	    }
+
+	    return orthogonalVertices;
+	}
+
+	var config$1 = {
+
+	    // size of the step to find a route (the grid of the manhattan pathfinder)
+	    step: 10,
+
+	    // the number of route finding loops that cause the router to abort
+	    // returns fallback route instead
+	    maximumLoops: 2000,
+
+	    // the number of decimal places to round floating point coordinates
+	    precision: 1,
+
+	    // maximum change of direction
+	    maxAllowedDirectionChange: 90,
+
+	    // should the router use perpendicular linkView option?
+	    // does not connect anchor of element but rather a point close-by that is orthogonal
+	    // this looks much better
+	    perpendicular: true,
+
+	    // should the source and/or target not be considered as obstacles?
+	    excludeEnds: [], // 'source', 'target'
+
+	    // should certain types of elements not be considered as obstacles?
+	    excludeTypes: ['basic.Text'],
+
+	    // possible starting directions from an element
+	    startDirections: ['top', 'right', 'bottom', 'left'],
+
+	    // possible ending directions to an element
+	    endDirections: ['top', 'right', 'bottom', 'left'],
+
+	    // specify the directions used above and what they mean
+	    directionMap: {
+	        top: { x: 0, y: -1 },
+	        right: { x: 1, y: 0 },
+	        bottom: { x: 0, y: 1 },
+	        left: { x: -1, y: 0 }
+	    },
+
+	    // cost of an orthogonal step
+	    cost: function() {
+
+	        return this.step;
+	    },
+
+	    // an array of directions to find next points on the route
+	    // different from start/end directions
+	    directions: function() {
+
+	        var step = this.step;
+	        var cost = this.cost();
+
+	        return [
+	            { offsetX: step, offsetY: 0, cost: cost },
+	            { offsetX: -step, offsetY: 0, cost: cost },
+	            { offsetX: 0, offsetY: step, cost: cost },
+	            { offsetX: 0, offsetY: -step, cost: cost }
+	        ];
+	    },
+
+	    // a penalty received for direction change
+	    penalties: function() {
+
+	        return {
+	            0: 0,
+	            45: this.step / 2,
+	            90: this.step / 2
+	        };
+	    },
+
+	    // padding applied on the element bounding boxes
+	    paddingBox: function() {
+
+	        var step = this.step;
+
+	        return {
+	            x: -step,
+	            y: -step,
+	            width: 2 * step,
+	            height: 2 * step
+	        };
+	    },
+
+	    // A function that determines whether a given point is an obstacle or not.
+	    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
+	    // (point: dia.Point) => boolean;
+	    isPointObstacle: null,
+
+	    // a router to use when the manhattan router fails
+	    // (one of the partial routes returns null)
+	    fallbackRouter: function(vertices, opt, linkView) {
+
+	        if (!isFunction(orthogonal)) {
+	            throw new Error('Manhattan requires the orthogonal router as default fallback.');
+	        }
+
+	        return orthogonal(vertices, assign({}, config$1, opt), linkView);
+	    },
+
+	    /* Deprecated */
+	    // a simple route used in situations when main routing method fails
+	    // (exceed max number of loop iterations, inaccessible)
+	    fallbackRoute: function(from, to, opt) {
+
+	        return null; // null result will trigger the fallbackRouter
+
+	        // left for reference:
+	        /*// Find an orthogonal route ignoring obstacles.
+
+	        var point = ((opt.previousDirAngle || 0) % 180 === 0)
+	                ? new g.Point(from.x, to.y)
+	                : new g.Point(to.x, from.y);
+
+	        return [point];*/
+	    },
+
+	    // if a function is provided, it's used to route the link while dragging an end
+	    // i.e. function(from, to, opt) { return []; }
+	    draggingRoute: null
+	};
+
+	// HELPER CLASSES //
+
+	// Map of obstacles
+	// Helper structure to identify whether a point lies inside an obstacle.
+	function ObstacleMap(opt) {
+
+	    this.map = {};
+	    this.options = opt;
+	    // tells how to divide the paper when creating the elements map
+	    this.mapGridSize = 100;
+	}
+
+	ObstacleMap.prototype.build = function(graph, link) {
+
+	    var opt = this.options;
+
+	    // source or target element could be excluded from set of obstacles
+	    var excludedEnds = toArray(opt.excludeEnds).reduce(function(res, item) {
+
+	        var end = link.get(item);
+	        if (end) {
+	            var cell = graph.getCell(end.id);
+	            if (cell) {
+	                res.push(cell);
+	            }
+	        }
+
+	        return res;
+	    }, []);
+
+	    // Exclude any embedded elements from the source and the target element.
+	    var excludedAncestors = [];
+
+	    var source = graph.getCell(link.get('source').id);
+	    if (source) {
+	        excludedAncestors = union(excludedAncestors, source.getAncestors().map(function(cell) {
+	            return cell.id;
+	        }));
+	    }
+
+	    var target = graph.getCell(link.get('target').id);
+	    if (target) {
+	        excludedAncestors = union(excludedAncestors, target.getAncestors().map(function(cell) {
+	            return cell.id;
+	        }));
+	    }
+
+	    // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
+	    // in any obstacle?) (a simplified grid search).
+	    // The paper is divided into smaller cells, where each holds information about which
+	    // elements belong to it. When we query whether a point lies inside an obstacle we
+	    // don't need to go through all obstacles, we check only those in a particular cell.
+	    var mapGridSize = this.mapGridSize;
+
+	    graph.getElements().reduce(function(map, element) {
+
+	        var isExcludedType = toArray(opt.excludeTypes).includes(element.get('type'));
+	        var isExcludedEnd = excludedEnds.find(function(excluded) {
+	            return excluded.id === element.id;
+	        });
+	        var isExcludedAncestor = excludedAncestors.includes(element.id);
+
+	        var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
+	        if (!isExcluded) {
+	            var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
+
+	            var origin = bbox.origin().snapToGrid(mapGridSize);
+	            var corner = bbox.corner().snapToGrid(mapGridSize);
+
+	            for (var x = origin.x; x <= corner.x; x += mapGridSize) {
+	                for (var y = origin.y; y <= corner.y; y += mapGridSize) {
+	                    var gridKey = x + '@' + y;
+	                    map[gridKey] = map[gridKey] || [];
+	                    map[gridKey].push(bbox);
+	                }
+	            }
+	        }
+
+	        return map;
+	    }, this.map);
+
+	    return this;
+	};
+
+	ObstacleMap.prototype.isPointAccessible = function(point) {
+
+	    var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
+
+	    return toArray(this.map[mapKey]).every(function(obstacle) {
+	        return !obstacle.containsPoint(point);
+	    });
+	};
+
+	// Sorted Set
+	// Set of items sorted by given value.
+	function SortedSet() {
+	    this.items = [];
+	    this.hash = {};
+	    this.values = {};
+	    this.OPEN = 1;
+	    this.CLOSE = 2;
+	}
+
+	SortedSet.prototype.add = function(item, value) {
+
+	    if (this.hash[item]) {
+	        // item removal
+	        this.items.splice(this.items.indexOf(item), 1);
+	    } else {
+	        this.hash[item] = this.OPEN;
+	    }
+
+	    this.values[item] = value;
+
+	    var index$1 = sortedIndex(this.items, item, function(i) {
+	        return this.values[i];
+	    }.bind(this));
+
+	    this.items.splice(index$1, 0, item);
+	};
+
+	SortedSet.prototype.remove = function(item) {
+
+	    this.hash[item] = this.CLOSE;
+	};
+
+	SortedSet.prototype.isOpen = function(item) {
+
+	    return this.hash[item] === this.OPEN;
+	};
+
+	SortedSet.prototype.isClose = function(item) {
+
+	    return this.hash[item] === this.CLOSE;
+	};
+
+	SortedSet.prototype.isEmpty = function() {
+
+	    return this.items.length === 0;
+	};
+
+	SortedSet.prototype.pop = function() {
+
+	    var item = this.items.shift();
+	    this.remove(item);
+	    return item;
+	};
+
+	// HELPERS //
+
+	// return source bbox
+	function getSourceBBox$1(linkView, opt) {
+
+	    // expand by padding box
+	    if (opt && opt.paddingBox) { return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox); }
+
+	    return linkView.sourceBBox.clone();
+	}
+
+	// return target bbox
+	function getTargetBBox$1(linkView, opt) {
+
+	    // expand by padding box
+	    if (opt && opt.paddingBox) { return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox); }
+
+	    return linkView.targetBBox.clone();
+	}
+
+	// return source anchor
+	function getSourceAnchor$1(linkView, opt) {
+
+	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
+
+	    // fallback: center of bbox
+	    var sourceBBox = getSourceBBox$1(linkView, opt);
+	    return sourceBBox.center();
+	}
+
+	// return target anchor
+	function getTargetAnchor$1(linkView, opt) {
+
+	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
+
+	    // fallback: center of bbox
+	    var targetBBox = getTargetBBox$1(linkView, opt);
+	    return targetBBox.center(); // default
+	}
+
+	// returns a direction index from start point to end point
+	// corrects for grid deformation between start and end
+	function getDirectionAngle(start, end, numDirections, grid, opt) {
+
+	    var quadrant = 360 / numDirections;
+	    var angleTheta = start.theta(fixAngleEnd(start, end, grid, opt));
+	    var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
+	    return quadrant * Math.floor(normalizedAngle / quadrant);
+	}
+
+	// helper function for getDirectionAngle()
+	// corrects for grid deformation
+	// (if a point is one grid steps away from another in both dimensions,
+	// it is considered to be 45 degrees away, even if the real angle is different)
+	// this causes visible angle discrepancies if `opt.step` is much larger than `paper.gridSize`
+	function fixAngleEnd(start, end, grid, opt) {
+
+	    var step = opt.step;
+
+	    var diffX = end.x - start.x;
+	    var diffY = end.y - start.y;
+
+	    var gridStepsX = diffX / grid.x;
+	    var gridStepsY = diffY / grid.y;
+
+	    var distanceX = gridStepsX * step;
+	    var distanceY = gridStepsY * step;
+
+	    return new Point(start.x + distanceX, start.y + distanceY);
+	}
+
+	// return the change in direction between two direction angles
+	function getDirectionChange(angle1, angle2) {
+
+	    var directionChange = Math.abs(angle1 - angle2);
+	    return (directionChange > 180) ? (360 - directionChange) : directionChange;
+	}
+
+	// fix direction offsets according to current grid
+	function getGridOffsets(directions, grid, opt) {
+
+	    var step = opt.step;
+
+	    toArray(opt.directions).forEach(function(direction) {
+
+	        direction.gridOffsetX = (direction.offsetX / step) * grid.x;
+	        direction.gridOffsetY = (direction.offsetY / step) * grid.y;
+	    });
+	}
+
+	// get grid size in x and y dimensions, adapted to source and target positions
+	function getGrid(step, source, target) {
+
+	    return {
+	        source: source.clone(),
+	        x: getGridDimension(target.x - source.x, step),
+	        y: getGridDimension(target.y - source.y, step)
+	    };
+	}
+
+	// helper function for getGrid()
+	function getGridDimension(diff, step) {
+
+	    // return step if diff = 0
+	    if (!diff) { return step; }
+
+	    var absDiff = Math.abs(diff);
+	    var numSteps = Math.round(absDiff / step);
+
+	    // return absDiff if less than one step apart
+	    if (!numSteps) { return absDiff; }
+
+	    // otherwise, return corrected step
+	    var roundedDiff = numSteps * step;
+	    var remainder = absDiff - roundedDiff;
+	    var stepCorrection = remainder / numSteps;
+
+	    return step + stepCorrection;
+	}
+
+	// return a clone of point snapped to grid
+	function snapToGrid$1(point, grid) {
+
+	    var source = grid.source;
+
+	    var snappedX = snapToGrid(point.x - source.x, grid.x) + source.x;
+	    var snappedY = snapToGrid(point.y - source.y, grid.y) + source.y;
+
+	    return new Point(snappedX, snappedY);
+	}
+
+	// round the point to opt.precision
+	function round$4(point, precision) {
+
+	    return point.round(precision);
+	}
+
+	// snap to grid and then round the point
+	function align(point, grid, precision) {
+
+	    return round$4(snapToGrid$1(point.clone(), grid), precision);
+	}
+
+	// return a string representing the point
+	// string is rounded in both dimensions
+	function getKey(point) {
+
+	    return point.clone().toString();
+	}
+
+	// return a normalized vector from given point
+	// used to determine the direction of a difference of two points
+	function normalizePoint(point) {
+
+	    return new Point(
+	        point.x === 0 ? 0 : Math.abs(point.x) / point.x,
+	        point.y === 0 ? 0 : Math.abs(point.y) / point.y
+	    );
+	}
+
+	// PATHFINDING //
+
+	// reconstructs a route by concatenating points with their parents
+	function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
+
+	    var route = [];
+
+	    var prevDiff = normalizePoint(to.difference(tailPoint));
+
+	    // tailPoint is assumed to be aligned already
+	    var currentKey = getKey(tailPoint);
+	    var parent = parents[currentKey];
+
+	    var point;
+	    while (parent) {
+
+	        // point is assumed to be aligned already
+	        point = points[currentKey];
+
+	        var diff = normalizePoint(point.difference(parent));
+	        if (!diff.equals(prevDiff)) {
+	            route.unshift(point);
+	            prevDiff = diff;
+	        }
+
+	        // parent is assumed to be aligned already
+	        currentKey = getKey(parent);
+	        parent = parents[currentKey];
+	    }
+
+	    // leadPoint is assumed to be aligned already
+	    var leadPoint = points[currentKey];
+
+	    var fromDiff = normalizePoint(leadPoint.difference(from));
+	    if (!fromDiff.equals(prevDiff)) {
+	        route.unshift(leadPoint);
+	    }
+
+	    return route;
+	}
+
+	// heuristic method to determine the distance between two points
+	function estimateCost(from, endPoints) {
+
+	    var min = Infinity;
+
+	    for (var i = 0, len = endPoints.length; i < len; i++) {
+	        var cost = from.manhattanDistance(endPoints[i]);
+	        if (cost < min) { min = cost; }
+	    }
+
+	    return min;
+	}
+
+	// find points around the bbox taking given directions into account
+	// lines are drawn from anchor in given directions, intersections recorded
+	// if anchor is outside bbox, only those directions that intersect get a rect point
+	// the anchor itself is returned as rect point (representing some directions)
+	// (since those directions are unobstructed by the bbox)
+	function getRectPoints(anchor, bbox, directionList, grid, opt) {
+
+	    var precision = opt.precision;
+	    var directionMap = opt.directionMap;
+
+	    var anchorCenterVector = anchor.difference(bbox.center());
+
+	    var keys = isObject$1(directionMap) ? Object.keys(directionMap) : [];
+	    var dirList = toArray(directionList);
+	    var rectPoints = keys.reduce(function(res, key) {
+
+	        if (dirList.includes(key)) {
+	            var direction = directionMap[key];
+
+	            // create a line that is guaranteed to intersect the bbox if bbox is in the direction
+	            // even if anchor lies outside of bbox
+	            var endpoint = new Point(
+	                anchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
+	                anchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
+	            );
+	            var intersectionLine = new Line(anchor, endpoint);
+
+	            // get the farther intersection, in case there are two
+	            // (that happens if anchor lies next to bbox)
+	            var intersections = intersectionLine.intersect(bbox) || [];
+	            var numIntersections = intersections.length;
+	            var farthestIntersectionDistance;
+	            var farthestIntersection = null;
+	            for (var i = 0; i < numIntersections; i++) {
+	                var currentIntersection = intersections[i];
+	                var distance = anchor.squaredDistance(currentIntersection);
+	                if ((farthestIntersectionDistance === undefined) || (distance > farthestIntersectionDistance)) {
+	                    farthestIntersectionDistance = distance;
+	                    farthestIntersection = currentIntersection;
+	                }
+	            }
+
+	            // if an intersection was found in this direction, it is our rectPoint
+	            if (farthestIntersection) {
+	                var point = align(farthestIntersection, grid, precision);
+
+	                // if the rectPoint lies inside the bbox, offset it by one more step
+	                if (bbox.containsPoint(point)) {
+	                    point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
+	                }
+
+	                // then add the point to the result array
+	                // aligned
+	                res.push(point);
+	            }
+	        }
+
+	        return res;
+	    }, []);
+
+	    // if anchor lies outside of bbox, add it to the array of points
+	    if (!bbox.containsPoint(anchor)) {
+	        // aligned
+	        rectPoints.push(align(anchor, grid, precision));
+	    }
+
+	    return rectPoints;
+	}
+
+	// finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
+	// rectangles get rect points assigned by getRectPoints()
+	function findRoute(from, to, isPointObstacle, opt) {
+
+	    var precision = opt.precision;
+
+	    // Get grid for this route.
+
+	    var sourceAnchor, targetAnchor;
+
+	    if (from instanceof Rect) { // `from` is sourceBBox
+	        sourceAnchor = round$4(getSourceAnchor$1(this, opt).clone(), precision);
+	    } else {
+	        sourceAnchor = round$4(from.clone(), precision);
+	    }
+
+	    if (to instanceof Rect) { // `to` is targetBBox
+	        targetAnchor = round$4(getTargetAnchor$1(this, opt).clone(), precision);
+	    } else {
+	        targetAnchor = round$4(to.clone(), precision);
+	    }
+
+	    var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
+
+	    // Get pathfinding points.
+
+	    var start, end; // aligned with grid by definition
+	    var startPoints, endPoints; // assumed to be aligned with grid already
+
+	    // set of points we start pathfinding from
+	    if (from instanceof Rect) { // `from` is sourceBBox
+	        start = sourceAnchor;
+	        startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
+
+	    } else {
+	        start = sourceAnchor;
+	        startPoints = [start];
+	    }
+
+	    // set of points we want the pathfinding to finish at
+	    if (to instanceof Rect) { // `to` is targetBBox
+	        end = targetAnchor;
+	        endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
+
+	    } else {
+	        end = targetAnchor;
+	        endPoints = [end];
+	    }
+
+	    // take into account only accessible rect points (those not under obstacles)
+	    startPoints = startPoints.filter(function (p) { return !isPointObstacle(p); });
+	    endPoints = endPoints.filter(function (p) { return !isPointObstacle(p); });
+
+	    // Check that there is an accessible route point on both sides.
+	    // Otherwise, use fallbackRoute().
+	    if (startPoints.length > 0 && endPoints.length > 0) {
+
+	        // The set of tentative points to be evaluated, initially containing the start points.
+	        // Rounded to nearest integer for simplicity.
+	        var openSet = new SortedSet();
+	        // Keeps reference to actual points for given elements of the open set.
+	        var points = {};
+	        // Keeps reference to a point that is immediate predecessor of given element.
+	        var parents = {};
+	        // Cost from start to a point along best known path.
+	        var costs = {};
+
+	        for (var i = 0, n = startPoints.length; i < n; i++) {
+	            // startPoint is assumed to be aligned already
+	            var startPoint = startPoints[i];
+
+	            var key = getKey(startPoint);
+
+	            openSet.add(key, estimateCost(startPoint, endPoints));
+	            points[key] = startPoint;
+	            costs[key] = 0;
+	        }
+
+	        var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
+	        var isPathBeginning = (previousRouteDirectionAngle === undefined);
+
+	        // directions
+	        var direction, directionChange;
+	        var directions = opt.directions;
+	        getGridOffsets(directions, grid, opt);
+
+	        var numDirections = directions.length;
+
+	        var endPointsKeys = toArray(endPoints).reduce(function(res, endPoint) {
+	            // endPoint is assumed to be aligned already
+
+	            var key = getKey(endPoint);
+	            res.push(key);
+	            return res;
+	        }, []);
+
+	        // main route finding loop
+	        var loopsRemaining = opt.maximumLoops;
+	        while (!openSet.isEmpty() && loopsRemaining > 0) {
+
+	            // remove current from the open list
+	            var currentKey = openSet.pop();
+	            var currentPoint = points[currentKey];
+	            var currentParent = parents[currentKey];
+	            var currentCost = costs[currentKey];
+
+	            var isRouteBeginning = (currentParent === undefined); // undefined for route starts
+	            var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
+
+	            var previousDirectionAngle;
+	            if (!isRouteBeginning) { previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections, grid, opt); } // a vertex on the route
+	            else if (!isPathBeginning) { previousDirectionAngle = previousRouteDirectionAngle; } // beginning of route on the path
+	            else if (!isStart) { previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections, grid, opt); } // beginning of path, start rect point
+	            else { previousDirectionAngle = null; } // beginning of path, source anchor or `from` point
+
+	            // check if we reached any endpoint
+	            var samePoints = startPoints.length === endPoints.length;
+	            if (samePoints) {
+	                for (var j = 0; j < startPoints.length; j++) {
+	                    if (!startPoints[j].equals(endPoints[j])) {
+	                        samePoints = false;
+	                        break;
+	                    }
+	                }
+	            }
+	            var skipEndCheck = (isRouteBeginning && samePoints);
+	            if (!skipEndCheck && (endPointsKeys.indexOf(currentKey) >= 0)) {
+	                opt.previousDirectionAngle = previousDirectionAngle;
+	                return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
+	            }
+
+	            // go over all possible directions and find neighbors
+	            for (i = 0; i < numDirections; i++) {
+	                direction = directions[i];
+
+	                var directionAngle = direction.angle;
+	                directionChange = getDirectionChange(previousDirectionAngle, directionAngle);
+
+	                // if the direction changed rapidly, don't use this point
+	                // any direction is allowed for starting points
+	                if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) { continue; }
+
+	                var neighborPoint = align(currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY), grid, precision);
+	                var neighborKey = getKey(neighborPoint);
+
+	                // Closed points from the openSet were already evaluated.
+	                if (openSet.isClose(neighborKey) || isPointObstacle(neighborPoint)) { continue; }
+
+	                // We can only enter end points at an acceptable angle.
+	                if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
+
+	                    var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
+
+	                    if (!isNeighborEnd) {
+	                        var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections, grid, opt);
+	                        var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
+
+	                        if (endDirectionChange > opt.maxAllowedDirectionChange) { continue; }
+	                    }
+	                }
+
+	                // The current direction is ok.
+
+	                var neighborCost = direction.cost;
+	                var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
+	                var costFromStart = currentCost + neighborCost + neighborPenalty;
+
+	                if (!openSet.isOpen(neighborKey) || (costFromStart < costs[neighborKey])) {
+	                    // neighbor point has not been processed yet
+	                    // or the cost of the path from start is lower than previously calculated
+
+	                    points[neighborKey] = neighborPoint;
+	                    parents[neighborKey] = currentPoint;
+	                    costs[neighborKey] = costFromStart;
+	                    openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
+	                }
+	            }
+
+	            loopsRemaining--;
+	        }
+	    }
+
+	    // no route found (`to` point either wasn't accessible or finding route took
+	    // way too much calculation)
+	    return opt.fallbackRoute.call(this, start, end, opt);
+	}
+
+	// resolve some of the options
+	function resolveOptions(opt) {
+
+	    opt.directions = result(opt, 'directions');
+	    opt.penalties = result(opt, 'penalties');
+	    opt.paddingBox = result(opt, 'paddingBox');
+	    opt.padding = result(opt, 'padding');
+
+	    if (opt.padding) {
+	        // if both provided, opt.padding wins over opt.paddingBox
+	        var sides = normalizeSides(opt.padding);
+	        opt.paddingBox = {
+	            x: -sides.left,
+	            y: -sides.top,
+	            width: sides.left + sides.right,
+	            height: sides.top + sides.bottom
+	        };
+	    }
+
+	    toArray(opt.directions).forEach(function(direction) {
+
+	        var point1 = new Point(0, 0);
+	        var point2 = new Point(direction.offsetX, direction.offsetY);
+
+	        direction.angle = normalizeAngle(point1.theta(point2));
+	    });
+	}
+
+	// initialization of the route finding
+	function router(vertices, opt, linkView) {
+
+	    resolveOptions(opt);
+
+	    // enable/disable linkView perpendicular option
+	    linkView.options.perpendicular = !!opt.perpendicular;
+
+	    var sourceBBox = getSourceBBox$1(linkView, opt);
+	    var targetBBox = getTargetBBox$1(linkView, opt);
+
+	    var sourceAnchor = getSourceAnchor$1(linkView, opt);
+	    //var targetAnchor = getTargetAnchor(linkView, opt);
+
+	    // pathfinding
+	    var isPointObstacle;
+	    if (typeof opt.isPointObstacle === 'function') {
+	        isPointObstacle = opt.isPointObstacle;
+	    } else {
+	        var map = new ObstacleMap(opt);
+	        map.build(linkView.paper.model, linkView.model);
+	        isPointObstacle = function (point) { return !map.isPointAccessible(point); };
+	    }
+
+	    var oldVertices = toArray(vertices).map(Point);
+	    var newVertices = [];
+	    var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
+
+	    // find a route by concatenating all partial routes (routes need to pass through vertices)
+	    // source -> vertex[1] -> ... -> vertex[n] -> target
+	    var to, from;
+
+	    for (var i = 0, len = oldVertices.length; i <= len; i++) {
+
+	        var partialRoute = null;
+
+	        from = to || sourceBBox;
+	        to = oldVertices[i];
+
+	        if (!to) {
+	            // this is the last iteration
+	            // we ran through all vertices in oldVertices
+	            // 'to' is not a vertex.
+
+	            to = targetBBox;
+
+	            // If the target is a point (i.e. it's not an element), we
+	            // should use dragging route instead of main routing method if it has been provided.
+	            var isEndingAtPoint = !linkView.model.get('source').id || !linkView.model.get('target').id;
+
+	            if (isEndingAtPoint && isFunction(opt.draggingRoute)) {
+	                // Make sure we are passing points only (not rects).
+	                var dragFrom = (from === sourceBBox) ? sourceAnchor : from;
+	                var dragTo = to.origin();
+
+	                partialRoute = opt.draggingRoute.call(linkView, dragFrom, dragTo, opt);
+	            }
+	        }
+
+	        // if partial route has not been calculated yet use the main routing method to find one
+	        partialRoute = partialRoute || findRoute.call(linkView, from, to, isPointObstacle, opt);
+
+	        if (partialRoute === null) { // the partial route cannot be found
+	            return opt.fallbackRouter(vertices, opt, linkView);
+	        }
+
+	        var leadPoint = partialRoute[0];
+
+	        // remove the first point if the previous partial route had the same point as last
+	        if (leadPoint && leadPoint.equals(tailPoint)) { partialRoute.shift(); }
+
+	        // save tailPoint for next iteration
+	        tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
+
+	        Array.prototype.push.apply(newVertices, partialRoute);
+	    }
+
+	    return newVertices;
+	}
+
+	// public function
+	var manhattan = function(vertices, opt, linkView) {
+	    return router(vertices, assign({}, config$1, opt), linkView);
+	};
+
+	var config$2 = {
+
+	    maxAllowedDirectionChange: 45,
+
+	    // cost of a diagonal step
+	    diagonalCost: function() {
+
+	        var step = this.step;
+	        return Math.ceil(Math.sqrt(step * step << 1));
+	    },
+
+	    // an array of directions to find next points on the route
+	    // different from start/end directions
+	    directions: function() {
+
+	        var step = this.step;
+	        var cost = this.cost();
+	        var diagonalCost = this.diagonalCost();
+
+	        return [
+	            { offsetX: step, offsetY: 0, cost: cost },
+	            { offsetX: step, offsetY: step, cost: diagonalCost },
+	            { offsetX: 0, offsetY: step, cost: cost },
+	            { offsetX: -step, offsetY: step, cost: diagonalCost },
+	            { offsetX: -step, offsetY: 0, cost: cost },
+	            { offsetX: -step, offsetY: -step, cost: diagonalCost },
+	            { offsetX: 0, offsetY: -step, cost: cost },
+	            { offsetX: step, offsetY: -step, cost: diagonalCost }
+	        ];
+	    },
+
+	    // a simple route used in situations when main routing method fails
+	    // (exceed max number of loop iterations, inaccessible)
+	    fallbackRoute: function(from, to, opt) {
+
+	        // Find a route which breaks by 45 degrees ignoring all obstacles.
+
+	        var theta = from.theta(to);
+
+	        var route = [];
+
+	        var a = { x: to.x, y: from.y };
+	        var b = { x: from.x, y: to.y };
+
+	        if (theta % 180 > 90) {
+	            var t = a;
+	            a = b;
+	            b = t;
+	        }
+
+	        var p1 = (theta % 90) < 45 ? a : b;
+	        var l1 = new Line(from, p1);
+
+	        var alpha = 90 * Math.ceil(theta / 90);
+
+	        var p2 = Point.fromPolar(l1.squaredLength(), toRad(alpha + 135), p1);
+	        var l2 = new Line(to, p2);
+
+	        var intersectionPoint = l1.intersection(l2);
+	        var point = intersectionPoint ? intersectionPoint : to;
+
+	        var directionFrom = intersectionPoint ? point : from;
+
+	        var quadrant = 360 / opt.directions.length;
+	        var angleTheta = directionFrom.theta(to);
+	        var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
+	        var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
+
+	        opt.previousDirectionAngle = directionAngle;
+
+	        if (point) { route.push(point.round()); }
+	        route.push(to);
+
+	        return route;
+	    }
+	};
+
+	// public function
+	var metro = function(vertices, opt, linkView) {
+
+	    if (!isFunction(manhattan)) {
+	        throw new Error('Metro requires the manhattan router.');
+	    }
+
+	    return manhattan(vertices, assign({}, config$2, opt), linkView);
+	};
+
+
+
+	var routers = ({
+		normal: normal$1,
+		oneSide: oneSide,
+		orthogonal: orthogonal,
+		manhattan: manhattan,
+		metro: metro
+	});
+
+	function connectionRatio(view, _magnet, _refPoint, opt) {
+
+	    var ratio = ('ratio' in opt) ? opt.ratio : 0.5;
+	    return view.getPointAtRatio(ratio);
+	}
+
+	function connectionLength(view, _magnet, _refPoint, opt) {
+
+	    var length = ('length' in opt) ? opt.length : 20;
+	    return view.getPointAtLength(length);
+	}
+
+	function _connectionPerpendicular(view, _magnet, refPoint, opt) {
+
+	    var OFFSET = 1e6;
+	    var path = view.getConnection();
+	    var segmentSubdivisions = view.getConnectionSubdivisions();
+	    var verticalLine = new Line(refPoint.clone().offset(0, OFFSET), refPoint.clone().offset(0, -OFFSET));
+	    var horizontalLine = new Line(refPoint.clone().offset(OFFSET, 0), refPoint.clone().offset(-OFFSET, 0));
+	    var verticalIntersections = verticalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
+	    var horizontalIntersections = horizontalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
+	    var intersections = [];
+	    if (verticalIntersections) { Array.prototype.push.apply(intersections, verticalIntersections); }
+	    if (horizontalIntersections) { Array.prototype.push.apply(intersections, horizontalIntersections); }
+	    if (intersections.length > 0) { return refPoint.chooseClosest(intersections); }
+	    if ('fallbackAt' in opt) {
+	        return getPointAtLink(view, opt.fallbackAt);
+	    }
+	    return connectionClosest(view, _magnet, refPoint, opt);
+	}
+
+	function _connectionClosest(view, _magnet, refPoint, _opt) {
+
+	    var closestPoint = view.getClosestPoint(refPoint);
+	    if (!closestPoint) { return new Point(); }
+	    return closestPoint;
+	}
+
+	function resolveRef(fn) {
+	    return function(view, magnet, ref, opt) {
+	        if (ref instanceof Element) {
+	            var refView = this.paper.findView(ref);
+	            var refPoint;
+	            if (refView) {
+	                if (refView.isNodeConnection(ref)) {
+	                    var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
+	                    refPoint = getPointAtLink(refView, distance);
+	                } else {
+	                    refPoint = refView.getNodeBBox(ref).center();
+	                }
+	            } else {
+	                // Something went wrong
+	                refPoint = new Point();
+	            }
+	            return fn.call(this, view, magnet, refPoint, opt);
+	        }
+	        return fn.apply(this, arguments);
+	    };
+	}
+
+	function getPointAtLink(view, value) {
+	    var parsedValue = parseFloat(value);
+	    if (isPercentage(value)) {
+	        return view.getPointAtRatio(parsedValue / 100);
+	    } else {
+	        return view.getPointAtLength(parsedValue);
+	    }
+	}
+	var connectionPerpendicular = resolveRef(_connectionPerpendicular);
+	var connectionClosest = resolveRef(_connectionClosest);
+
+	var linkAnchors = ({
+		resolveRef: resolveRef,
+		connectionRatio: connectionRatio,
+		connectionLength: connectionLength,
+		connectionPerpendicular: connectionPerpendicular,
+		connectionClosest: connectionClosest
+	});
+
+	function bboxWrapper(method) {
+
+	    return function(view, magnet, ref, opt) {
+
+	        var rotate = !!opt.rotate;
+	        var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
+	        var anchor = bbox[method]();
+
+	        var dx = opt.dx;
+	        if (dx) {
+	            var dxPercentage = isPercentage(dx);
+	            dx = parseFloat(dx);
+	            if (isFinite(dx)) {
+	                if (dxPercentage) {
+	                    dx /= 100;
+	                    dx *= bbox.width;
+	                }
+	                anchor.x += dx;
+	            }
+	        }
+
+	        var dy = opt.dy;
+	        if (dy) {
+	            var dyPercentage = isPercentage(dy);
+	            dy = parseFloat(dy);
+	            if (isFinite(dy)) {
+	                if (dyPercentage) {
+	                    dy /= 100;
+	                    dy *= bbox.height;
+	                }
+	                anchor.y += dy;
+	            }
+	        }
+
+	        return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
+	    };
+	}
+
+	function _perpendicular(view, magnet, refPoint, opt) {
+
+	    var angle = view.model.angle();
+	    var bbox = view.getNodeBBox(magnet);
+	    var anchor = bbox.center();
+	    var topLeft = bbox.origin();
+	    var bottomRight = bbox.corner();
+
+	    var padding = opt.padding;
+	    if (!isFinite(padding)) { padding = 0; }
+
+	    if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
+	        var dy = (refPoint.y - anchor.y);
+	        anchor.x += (angle === 0 || angle === 180) ? 0 : dy * 1 / Math.tan(toRad(angle));
+	        anchor.y += dy;
+	    } else if ((topLeft.x + padding) <= refPoint.x && refPoint.x <= (bottomRight.x - padding)) {
+	        var dx = (refPoint.x - anchor.x);
+	        anchor.y += (angle === 90 || angle === 270) ? 0 : dx * Math.tan(toRad(angle));
+	        anchor.x += dx;
+	    }
+
+	    return anchor;
+	}
+
+	function _midSide(view, magnet, refPoint, opt) {
+
+	    var rotate = !!opt.rotate;
+	    var bbox, angle, center;
+	    if (rotate) {
+	        bbox = view.getNodeUnrotatedBBox(magnet);
+	        center = view.model.getBBox().center();
+	        angle = view.model.angle();
+	    } else {
+	        bbox = view.getNodeBBox(magnet);
+	    }
+
+	    var padding = opt.padding;
+	    if (isFinite(padding)) { bbox.inflate(padding); }
+
+	    if (rotate) { refPoint.rotate(center, angle); }
+
+	    var side = bbox.sideNearestToPoint(refPoint);
+	    var anchor;
+	    switch (side) {
+	        case 'left':
+	            anchor = bbox.leftMiddle();
+	            break;
+	        case 'right':
+	            anchor = bbox.rightMiddle();
+	            break;
+	        case 'top':
+	            anchor = bbox.topMiddle();
+	            break;
+	        case 'bottom':
+	            anchor = bbox.bottomMiddle();
+	            break;
+	    }
+
+	    return (rotate) ? anchor.rotate(center, -angle) : anchor;
+	}
+
+	// Can find anchor from model, when there is no selector or the link end
+	// is connected to a port
+	function _modelCenter(view, _magnet, _refPoint, opt, endType) {
+	    return view.model.getPointFromConnectedLink(this.model, endType).offset(opt.dx, opt.dy);
+	}
+
+	//joint.anchors
+	var center = bboxWrapper('center');
+	var top$2 = bboxWrapper('topMiddle');
+	var bottom$2 = bboxWrapper('bottomMiddle');
+	var left$2 = bboxWrapper('leftMiddle');
+	var right$2 = bboxWrapper('rightMiddle');
+	var topLeft = bboxWrapper('origin');
+	var topRight = bboxWrapper('topRight');
+	var bottomLeft = bboxWrapper('bottomLeft');
+	var bottomRight = bboxWrapper('corner');
+	var perpendicular = resolveRef(_perpendicular);
+	var midSide = resolveRef(_midSide);
+	var modelCenter = _modelCenter;
+
+	var anchors = ({
+		center: center,
+		top: top$2,
+		bottom: bottom$2,
+		left: left$2,
+		right: right$2,
+		topLeft: topLeft,
+		topRight: topRight,
+		bottomLeft: bottomLeft,
+		bottomRight: bottomRight,
+		perpendicular: perpendicular,
+		midSide: midSide,
+		modelCenter: modelCenter
+	});
+
+	var ToolView = View.extend({
+	    name: null,
+	    tagName: 'g',
+	    className: 'tool',
+	    svgElement: true,
+	    _visible: true,
+
+	    init: function() {
+	        var name = this.name;
+	        if (name) { this.vel.attr('data-tool-name', name); }
+	    },
+
+	    configure: function(view, toolsView) {
+	        this.relatedView = view;
+	        this.paper = view.paper;
+	        this.parentView = toolsView;
+	        this.simulateRelatedView(this.el);
+	        // Delegate events in case the ToolView was removed from the DOM and reused.
+	        this.delegateEvents();
+	        return this;
+	    },
+
+	    simulateRelatedView: function(el) {
+	        if (el) { el.setAttribute('model-id', this.relatedView.model.id); }
+	    },
+
+	    getName: function() {
+	        return this.name;
+	    },
+
+	    show: function() {
+	        this.el.style.display = '';
+	        this._visible = true;
+	    },
+
+	    hide: function() {
+	        this.el.style.display = 'none';
+	        this._visible = false;
+	    },
+
+	    isVisible: function() {
+	        return !!this._visible;
+	    },
+
+	    focus: function() {
+	        var opacity = this.options.focusOpacity;
+	        if (isFinite(opacity)) { this.el.style.opacity = opacity; }
+	        this.parentView.focusTool(this);
+	    },
+
+	    blur: function() {
+	        this.el.style.opacity = '';
+	        this.parentView.blurTool(this);
+	    },
+
+	    update: function() {
+	        // to be overridden
+	    },
+
+	    guard: function(evt) {
+	        // Let the context-menu event bubble up to the relatedView
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        if (!paper || !relatedView) { return true; }
+	        return paper.guard(evt, relatedView);
+	    }
+	});
+
+	function getAnchor(coords, view, magnet) {
+	    // take advantage of an existing logic inside of the
+	    // pin relative connection strategy
+	    var end = pinRelative.call(
+	        this.paper,
+	        {},
+	        view,
+	        magnet,
+	        coords,
+	        this.model
+	    );
+	    return end.anchor;
+	}
+
+	function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
+	    var snapRadius = toolView.options.snapRadius;
+	    var isSource = (type === 'source');
+	    var refIndex = (isSource ? 0 : -1);
+	    var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
+	    if (ref) {
+	        if (Math.abs(ref.x - coords.x) < snapRadius) { coords.x = ref.x; }
+	        if (Math.abs(ref.y - coords.y) < snapRadius) { coords.y = ref.y; }
+	    }
+	    return coords;
+	}
+
+	function getViewBBox(view, useModelGeometry) {
+	    var model = view.model;
+	    if (useModelGeometry) { return model.getBBox(); }
+	    return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
+	}
+
+	// Vertex Handles
+	var VertexHandle = View.extend({
+	    tagName: 'circle',
+	    svgElement: true,
+	    className: 'marker-vertex',
+	    events: {
+	        mousedown: 'onPointerDown',
+	        touchstart: 'onPointerDown',
+	        dblclick: 'onDoubleClick',
+	        dbltap: 'onDoubleClick'
+	    },
+	    documentEvents: {
+	        mousemove: 'onPointerMove',
+	        touchmove: 'onPointerMove',
+	        mouseup: 'onPointerUp',
+	        touchend: 'onPointerUp',
+	        touchcancel: 'onPointerUp'
+	    },
+	    attributes: {
+	        'r': 6,
+	        'fill': '#33334F',
+	        'stroke': '#FFFFFF',
+	        'stroke-width': 2,
+	        'cursor': 'move'
+	    },
+	    position: function(x, y) {
+	        this.vel.attr({ cx: x, cy: y });
+	    },
+	    onPointerDown: function(evt) {
+	        if (this.options.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        this.options.paper.undelegateEvents();
+	        this.delegateDocumentEvents(null, evt.data);
+	        this.trigger('will-change', this, evt);
+	    },
+	    onPointerMove: function(evt) {
+	        this.trigger('changing', this, evt);
+	    },
+	    onDoubleClick: function(evt) {
+	        this.trigger('remove', this, evt);
+	    },
+	    onPointerUp: function(evt) {
+	        this.trigger('changed', this, evt);
+	        this.undelegateDocumentEvents();
+	        this.options.paper.delegateEvents();
+	    }
+	});
+
+	var Vertices = ToolView.extend({
+	    name: 'vertices',
+	    options: {
+	        handleClass: VertexHandle,
+	        snapRadius: 20,
+	        redundancyRemoval: true,
+	        vertexAdding: true,
+	        stopPropagation: true
+	    },
+	    children: [{
+	        tagName: 'path',
+	        selector: 'connection',
+	        className: 'joint-vertices-path',
+	        attributes: {
+	            'fill': 'none',
+	            'stroke': 'transparent',
+	            'stroke-width': 10,
+	            'cursor': 'cell'
+	        }
+	    }],
+	    handles: null,
+	    events: {
+	        'mousedown .joint-vertices-path': 'onPathPointerDown',
+	        'touchstart .joint-vertices-path': 'onPathPointerDown'
+	    },
+	    onRender: function() {
+	        if (this.options.vertexAdding) {
+	            this.renderChildren();
+	            this.updatePath();
+	        }
+	        this.resetHandles();
+	        this.renderHandles();
+	        return this;
+	    },
+	    update: function() {
+	        var relatedView = this.relatedView;
+	        var vertices = relatedView.model.vertices();
+	        if (vertices.length === this.handles.length) {
+	            this.updateHandles();
+	        } else {
+	            this.resetHandles();
+	            this.renderHandles();
+	        }
+	        if (this.options.vertexAdding) {
+	            this.updatePath();
+	        }
+	        return this;
+	    },
+	    resetHandles: function() {
+	        var handles = this.handles;
+	        this.handles = [];
+	        this.stopListening();
+	        if (!Array.isArray(handles)) { return; }
+	        for (var i = 0, n = handles.length; i < n; i++) {
+	            handles[i].remove();
+	        }
+	    },
+	    renderHandles: function() {
+	        var this$1 = this;
+
+	        var relatedView = this.relatedView;
+	        var vertices = relatedView.model.vertices();
+	        for (var i = 0, n = vertices.length; i < n; i++) {
+	            var vertex = vertices[i];
+	            var handle = new (this.options.handleClass)({
+	                index: i,
+	                paper: this.paper,
+	                guard: function (evt) { return this$1.guard(evt); }
+	            });
+	            handle.render();
+	            handle.position(vertex.x, vertex.y);
+	            this.simulateRelatedView(handle.el);
+	            handle.vel.appendTo(this.el);
+	            this.handles.push(handle);
+	            this.startHandleListening(handle);
+	        }
+	    },
+	    updateHandles: function() {
+	        var relatedView = this.relatedView;
+	        var vertices = relatedView.model.vertices();
+	        for (var i = 0, n = vertices.length; i < n; i++) {
+	            var vertex = vertices[i];
+	            var handle = this.handles[i];
+	            if (!handle) { return; }
+	            handle.position(vertex.x, vertex.y);
+	        }
+	    },
+	    updatePath: function() {
+	        var connection = this.childNodes.connection;
+	        if (connection) { connection.setAttribute('d', this.relatedView.getSerializedConnection()); }
+	    },
+	    startHandleListening: function(handle) {
+	        var relatedView = this.relatedView;
+	        if (relatedView.can('vertexMove')) {
+	            this.listenTo(handle, 'will-change', this.onHandleWillChange);
+	            this.listenTo(handle, 'changing', this.onHandleChanging);
+	            this.listenTo(handle, 'changed', this.onHandleChanged);
+	        }
+	        if (relatedView.can('vertexRemove')) {
+	            this.listenTo(handle, 'remove', this.onHandleRemove);
+	        }
+	    },
+	    getNeighborPoints: function(index) {
+	        var linkView = this.relatedView;
+	        var vertices = linkView.model.vertices();
+	        var prev = (index > 0) ? vertices[index - 1] : linkView.sourceAnchor;
+	        var next = (index < vertices.length - 1) ? vertices[index + 1] : linkView.targetAnchor;
+	        return {
+	            prev: new Point(prev),
+	            next: new Point(next)
+	        };
+	    },
+	    onHandleWillChange: function(_handle, evt) {
+	        this.focus();
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var options = ref.options;
+	        relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
+	        if (!options.stopPropagation) { relatedView.notifyPointerdown.apply(relatedView, relatedView.paper.getPointerArgs(evt)); }
+	    },
+	    onHandleChanging: function(handle, evt) {
+	        var ref = this;
+	        var options = ref.options;
+	        var linkView = ref.relatedView;
+	        var index = handle.options.index;
+	        var ref$1 = linkView.paper.getPointerArgs(evt);
+	        var normalizedEvent = ref$1[0];
+	        var x = ref$1[1];
+	        var y = ref$1[2];
+	        var vertex = { x: x, y: y };
+	        this.snapVertex(vertex, index);
+	        linkView.model.vertex(index, vertex, { ui: true, tool: this.cid });
+	        handle.position(vertex.x, vertex.y);
+	        if (!options.stopPropagation) { linkView.notifyPointermove(normalizedEvent, x, y); }
+	    },
+	    onHandleChanged: function(_handle, evt) {
+	        var ref = this;
+	        var options = ref.options;
+	        var linkView = ref.relatedView;
+	        if (options.vertexAdding) { this.updatePath(); }
+	        if (!options.redundancyRemoval) { return; }
+	        var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+	        if (verticesRemoved) { this.render(); }
+	        this.blur();
+	        linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
+	        if (this.eventData(evt).vertexAdded) {
+	            linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
+	        }
+	        var ref$1 = linkView.paper.getPointerArgs(evt);
+	        var normalizedEvt = ref$1[0];
+	        var x = ref$1[1];
+	        var y = ref$1[2];
+	        if (!options.stopPropagation) { linkView.notifyPointerup(normalizedEvt, x, y); }
+	        linkView.checkMouseleave(normalizedEvt);
+	    },
+	    snapVertex: function(vertex, index) {
+	        var snapRadius = this.options.snapRadius;
+	        if (snapRadius > 0) {
+	            var neighbors = this.getNeighborPoints(index);
+	            var prev = neighbors.prev;
+	            var next = neighbors.next;
+	            if (Math.abs(vertex.x - prev.x) < snapRadius) {
+	                vertex.x = prev.x;
+	            } else if (Math.abs(vertex.x - next.x) < snapRadius) {
+	                vertex.x = next.x;
+	            }
+	            if (Math.abs(vertex.y - prev.y) < snapRadius) {
+	                vertex.y = neighbors.prev.y;
+	            } else if (Math.abs(vertex.y - next.y) < snapRadius) {
+	                vertex.y = next.y;
+	            }
+	        }
+	    },
+	    onHandleRemove: function(handle, evt) {
+	        var index$1 = handle.options.index;
+	        var linkView = this.relatedView;
+	        linkView.model.removeVertex(index$1, { ui: true });
+	        if (this.options.vertexAdding) { this.updatePath(); }
+	        linkView.checkMouseleave(normalizeEvent(evt));
+	    },
+	    onPathPointerDown: function(evt) {
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        var normalizedEvent = normalizeEvent(evt);
+	        var vertex = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
+	        var relatedView = this.relatedView;
+	        relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
+	        var index$1 = relatedView.getVertexIndex(vertex.x, vertex.y);
+	        this.snapVertex(vertex, index$1);
+	        relatedView.model.insertVertex(index$1, vertex, { ui: true, tool: this.cid });
+	        this.update();
+	        var handle = this.handles[index$1];
+	        this.eventData(normalizedEvent, { vertexAdded: true });
+	        handle.onPointerDown(normalizedEvent);
+	    },
+	    onRemove: function() {
+	        this.resetHandles();
+	    }
+	}, {
+	    VertexHandle: VertexHandle // keep as class property
+	});
+
+	var SegmentHandle = View.extend({
+	    tagName: 'g',
+	    svgElement: true,
+	    className: 'marker-segment',
+	    events: {
+	        mousedown: 'onPointerDown',
+	        touchstart: 'onPointerDown'
+	    },
+	    documentEvents: {
+	        mousemove: 'onPointerMove',
+	        touchmove: 'onPointerMove',
+	        mouseup: 'onPointerUp',
+	        touchend: 'onPointerUp',
+	        touchcancel: 'onPointerUp'
+	    },
+	    children: [{
+	        tagName: 'line',
+	        selector: 'line',
+	        attributes: {
+	            'stroke': '#33334F',
+	            'stroke-width': 2,
+	            'fill': 'none',
+	            'pointer-events': 'none'
+	        }
+	    }, {
+	        tagName: 'rect',
+	        selector: 'handle',
+	        attributes: {
+	            'width': 20,
+	            'height': 8,
+	            'x': -10,
+	            'y': -4,
+	            'rx': 4,
+	            'ry': 4,
+	            'fill': '#33334F',
+	            'stroke': '#FFFFFF',
+	            'stroke-width': 2
+	        }
+	    }],
+	    onRender: function() {
+	        this.renderChildren();
+	    },
+	    position: function(x, y, angle, view) {
+
+	        var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
+	        var handle = this.childNodes.handle;
+	        handle.setAttribute('transform', V.matrixToTransformString(matrix));
+	        handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
+
+	        var viewPoint = view.getClosestPoint(new Point(x, y));
+	        var line = this.childNodes.line;
+	        line.setAttribute('x1', x);
+	        line.setAttribute('y1', y);
+	        line.setAttribute('x2', viewPoint.x);
+	        line.setAttribute('y2', viewPoint.y);
+	    },
+	    onPointerDown: function(evt) {
+	        if (this.options.guard(evt)) { return; }
+	        this.trigger('change:start', this, evt);
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        this.options.paper.undelegateEvents();
+	        this.delegateDocumentEvents(null, evt.data);
+	    },
+	    onPointerMove: function(evt) {
+	        this.trigger('changing', this, evt);
+	    },
+	    onPointerUp: function(evt) {
+	        this.undelegateDocumentEvents();
+	        this.options.paper.delegateEvents();
+	        this.trigger('change:end', this, evt);
+	    },
+	    show: function() {
+	        this.el.style.display = '';
+	    },
+	    hide: function() {
+	        this.el.style.display = 'none';
+	    }
+	});
+
+	var Segments = ToolView.extend({
+	    name: 'segments',
+	    precision: .5,
+	    options: {
+	        handleClass: SegmentHandle,
+	        segmentLengthThreshold: 40,
+	        redundancyRemoval: true,
+	        anchor: getAnchor,
+	        snapRadius: 10,
+	        snapHandle: true,
+	        stopPropagation: true
+	    },
+	    handles: null,
+	    onRender: function() {
+	        this.resetHandles();
+	        var relatedView = this.relatedView;
+	        var vertices = relatedView.model.vertices();
+	        vertices.unshift(relatedView.sourcePoint);
+	        vertices.push(relatedView.targetPoint);
+	        for (var i = 0, n = vertices.length; i < n - 1; i++) {
+	            var vertex = vertices[i];
+	            var nextVertex = vertices[i + 1];
+	            var handle = this.renderHandle(vertex, nextVertex);
+	            this.simulateRelatedView(handle.el);
+	            this.handles.push(handle);
+	            handle.options.index = i;
+	        }
+	        return this;
+	    },
+	    renderHandle: function(vertex, nextVertex) {
+	        var this$1 = this;
+
+	        var handle = new (this.options.handleClass)({
+	            paper: this.paper,
+	            guard: function (evt) { return this$1.guard(evt); }
+	        });
+	        handle.render();
+	        this.updateHandle(handle, vertex, nextVertex);
+	        handle.vel.appendTo(this.el);
+	        this.startHandleListening(handle);
+	        return handle;
+	    },
+	    update: function() {
+	        this.render();
+	        return this;
+	    },
+	    startHandleListening: function(handle) {
+	        this.listenTo(handle, 'change:start', this.onHandleChangeStart);
+	        this.listenTo(handle, 'changing', this.onHandleChanging);
+	        this.listenTo(handle, 'change:end', this.onHandleChangeEnd);
+	    },
+	    resetHandles: function() {
+	        var handles = this.handles;
+	        this.handles = [];
+	        this.stopListening();
+	        if (!Array.isArray(handles)) { return; }
+	        for (var i = 0, n = handles.length; i < n; i++) {
+	            handles[i].remove();
+	        }
+	    },
+	    shiftHandleIndexes: function(value) {
+	        var handles = this.handles;
+	        for (var i = 0, n = handles.length; i < n; i++) { handles[i].options.index += value; }
+	    },
+	    resetAnchor: function(type, anchor) {
+	        var relatedModel = this.relatedView.model;
+	        if (anchor) {
+	            relatedModel.prop([type, 'anchor'], anchor, {
+	                rewrite: true,
+	                ui: true,
+	                tool: this.cid
+	            });
+	        } else {
+	            relatedModel.removeProp([type, 'anchor'], {
+	                ui: true,
+	                tool: this.cid
+	            });
+	        }
+	    },
+	    snapHandle: function(handle, position, data) {
+
+	        var index = handle.options.index;
+	        var linkView = this.relatedView;
+	        var link = linkView.model;
+	        var vertices = link.vertices();
+	        var axis = handle.options.axis;
+	        var prev = vertices[index - 2] || data.sourceAnchor;
+	        var next = vertices[index + 1] || data.targetAnchor;
+	        var snapRadius = this.options.snapRadius;
+	        if (Math.abs(position[axis] - prev[axis]) < snapRadius) {
+	            position[axis] = prev[axis];
+	        } else if (Math.abs(position[axis] - next[axis]) < snapRadius) {
+	            position[axis] = next[axis];
+	        }
+	        return position;
+	    },
+
+	    onHandleChanging: function(handle, evt) {
+
+	        var ref = this;
+	        var options = ref.options;
+	        var data = this.eventData(evt);
+	        var relatedView = this.relatedView;
+	        var paper = relatedView.paper;
+	        var index$1 = handle.options.index - 1;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var position = this.snapHandle(handle, coords.clone(), data);
+	        var axis = handle.options.axis;
+	        var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
+	        var link = relatedView.model;
+	        var vertices = cloneDeep(link.vertices());
+	        var vertex = vertices[index$1];
+	        var nextVertex = vertices[index$1 + 1];
+	        var anchorFn = this.options.anchor;
+	        if (typeof anchorFn !== 'function') { anchorFn = null; }
+
+	        // First Segment
+	        var sourceView = relatedView.sourceView;
+	        var sourceBBox = relatedView.sourceBBox;
+	        var changeSourceAnchor = false;
+	        var deleteSourceAnchor = false;
+	        if (!vertex) {
+	            vertex = relatedView.sourceAnchor.toJSON();
+	            vertex[axis] = position[axis];
+	            if (sourceBBox.containsPoint(vertex)) {
+	                vertex[axis] = position[axis];
+	                changeSourceAnchor = true;
+	            } else {
+	                // we left the area of the source magnet for the first time
+	                vertices.unshift(vertex);
+	                this.shiftHandleIndexes(1);
+	                deleteSourceAnchor = true;
+	            }
+	        } else if (index$1 === 0) {
+	            if (sourceBBox.containsPoint(vertex)) {
+	                vertices.shift();
+	                this.shiftHandleIndexes(-1);
+	                changeSourceAnchor = true;
+	            } else {
+	                vertex[axis] = position[axis];
+	                deleteSourceAnchor = true;
+	            }
+	        } else {
+	            vertex[axis] = position[axis];
+	        }
+
+	        if (anchorFn && sourceView) {
+	            if (changeSourceAnchor) {
+	                var sourceAnchorPosition = data.sourceAnchor.clone();
+	                sourceAnchorPosition[axis] = position[axis];
+	                var sourceAnchor = anchorFn.call(relatedView, sourceAnchorPosition, sourceView, relatedView.sourceMagnet || sourceView.el, 'source', relatedView);
+	                this.resetAnchor('source', sourceAnchor);
+	            }
+	            if (deleteSourceAnchor) {
+	                this.resetAnchor('source', data.sourceAnchorDef);
+	            }
+	        }
+
+	        // Last segment
+	        var targetView = relatedView.targetView;
+	        var targetBBox = relatedView.targetBBox;
+	        var changeTargetAnchor = false;
+	        var deleteTargetAnchor = false;
+	        if (!nextVertex) {
+	            nextVertex = relatedView.targetAnchor.toJSON();
+	            nextVertex[axis] = position[axis];
+	            if (targetBBox.containsPoint(nextVertex)) {
+	                changeTargetAnchor = true;
+	            } else {
+	                // we left the area of the target magnet for the first time
+	                vertices.push(nextVertex);
+	                deleteTargetAnchor = true;
+	            }
+	        } else if (index$1 === vertices.length - 2) {
+	            if (targetBBox.containsPoint(nextVertex)) {
+	                vertices.pop();
+	                changeTargetAnchor = true;
+	            } else {
+	                nextVertex[axis] = position[axis];
+	                deleteTargetAnchor = true;
+	            }
+	        } else {
+	            nextVertex[axis] = position[axis];
+	        }
+
+	        if (anchorFn && targetView) {
+	            if (changeTargetAnchor) {
+	                var targetAnchorPosition = data.targetAnchor.clone();
+	                targetAnchorPosition[axis] = position[axis];
+	                var targetAnchor = anchorFn.call(relatedView, targetAnchorPosition, targetView, relatedView.targetMagnet || targetView.el, 'target', relatedView);
+	                this.resetAnchor('target', targetAnchor);
+	            }
+	            if (deleteTargetAnchor) {
+	                this.resetAnchor('target', data.targetAnchorDef);
+	            }
+	        }
+
+	        link.vertices(vertices, { ui: true, tool: this.cid });
+	        this.updateHandle(handle, vertex, nextVertex, offset);
+	        if (!options.stopPropagation) { relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y); }
+	    },
+	    onHandleChangeStart: function(handle, evt) {
+	        var ref = this;
+	        var options = ref.options;
+	        var handles = ref.handles;
+	        var linkView = ref.relatedView;
+	        var model = linkView.model;
+	        var paper = linkView.paper;
+	        var index$1 = handle.options.index;
+	        if (!Array.isArray(handles)) { return; }
+	        for (var i = 0, n = handles.length; i < n; i++) {
+	            if (i !== index$1) { handles[i].hide(); }
+	        }
+	        this.focus();
+	        this.eventData(evt, {
+	            sourceAnchor: linkView.sourceAnchor.clone(),
+	            targetAnchor: linkView.targetAnchor.clone(),
+	            sourceAnchorDef: clone(model.prop(['source', 'anchor'])),
+	            targetAnchorDef: clone(model.prop(['target', 'anchor']))
+	        });
+	        model.startBatch('segment-move', { ui: true, tool: this.cid });
+	        if (!options.stopPropagation) { linkView.notifyPointerdown.apply(linkView, paper.getPointerArgs(evt)); }
+	    },
+	    onHandleChangeEnd: function(_handle, evt) {
+	        var ref= this;
+	        var options = ref.options;
+	        var linkView = ref.relatedView;
+	        var paper = linkView.paper;
+	        var model = linkView.model;
+	        if (options.redundancyRemoval) {
+	            linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
+	        }
+	        var normalizedEvent = normalizeEvent(evt);
+	        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        this.render();
+	        this.blur();
+	        model.stopBatch('segment-move', { ui: true, tool: this.cid });
+	        if (!options.stopPropagation) { linkView.notifyPointerup(normalizedEvent, coords.x, coords.y); }
+	        linkView.checkMouseleave(normalizedEvent);
+	    },
+	    updateHandle: function(handle, vertex, nextVertex, offset) {
+	        var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
+	        var horizontal = Math.abs(vertex.y - nextVertex.y) < this.precision;
+	        if (vertical || horizontal) {
+	            var segmentLine = new Line(vertex, nextVertex);
+	            var length = segmentLine.length();
+	            if (length < this.options.segmentLengthThreshold) {
+	                handle.hide();
+	            } else {
+	                var position = segmentLine.midpoint();
+	                var axis = (vertical) ? 'x' : 'y';
+	                position[axis] += offset || 0;
+	                var angle = segmentLine.vector().vectorAngle(new Point(1, 0));
+	                handle.position(position.x, position.y, angle, this.relatedView);
+	                handle.show();
+	                handle.options.axis = axis;
+	            }
+	        } else {
+	            handle.hide();
+	        }
+	    },
+	    onRemove: function() {
+	        this.resetHandles();
+	    }
+	}, {
+	    SegmentHandle: SegmentHandle // keep as class property
+	});
+
+	// End Markers
+	var Arrowhead = ToolView.extend({
+	    tagName: 'path',
+	    xAxisVector: new Point(1, 0),
+	    events: {
+	        mousedown: 'onPointerDown',
+	        touchstart: 'onPointerDown'
+	    },
+	    documentEvents: {
+	        mousemove: 'onPointerMove',
+	        touchmove: 'onPointerMove',
+	        mouseup: 'onPointerUp',
+	        touchend: 'onPointerUp',
+	        touchcancel: 'onPointerUp'
+	    },
+	    onRender: function() {
+	        this.update();
+	    },
+	    update: function() {
+	        var ratio = this.ratio;
+	        var view = this.relatedView;
+	        var tangent = view.getTangentAtRatio(ratio);
+	        var position, angle;
+	        if (tangent) {
+	            position = tangent.start;
+	            angle = tangent.vector().vectorAngle(this.xAxisVector) || 0;
+	        } else {
+	            position = view.getPointAtRatio(ratio);
+	            angle = 0;
+	        }
+	        if (!position) { return this; }
+	        var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
+	        this.vel.transform(matrix, { absolute: true });
+	        return this;
+	    },
+	    onPointerDown: function(evt) {
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        var relatedView = this.relatedView;
+	        relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
+	        if (relatedView.can('arrowheadMove')) {
+	            relatedView.startArrowheadMove(this.arrowheadType);
+	            this.delegateDocumentEvents();
+	            relatedView.paper.undelegateEvents();
+	        }
+	        this.focus();
+	        this.el.style.pointerEvents = 'none';
+	    },
+	    onPointerMove: function(evt) {
+	        var normalizedEvent = normalizeEvent(evt);
+	        var coords = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        this.relatedView.pointermove(normalizedEvent, coords.x, coords.y);
+	    },
+	    onPointerUp: function(evt) {
+	        this.undelegateDocumentEvents();
+	        var relatedView = this.relatedView;
+	        var paper = relatedView.paper;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        relatedView.pointerup(normalizedEvent, coords.x, coords.y);
+	        paper.delegateEvents();
+	        this.blur();
+	        this.el.style.pointerEvents = '';
+	        relatedView.model.stopBatch('arrowhead-move', { ui: true, tool: this.cid });
+	    }
+	});
+
+	var TargetArrowhead = Arrowhead.extend({
+	    name: 'target-arrowhead',
+	    ratio: 1,
+	    arrowheadType: 'target',
+	    attributes: {
+	        'd': 'M -10 -8 10 0 -10 8 Z',
+	        'fill': '#33334F',
+	        'stroke': '#FFFFFF',
+	        'stroke-width': 2,
+	        'cursor': 'move',
+	        'class': 'target-arrowhead'
+	    }
+	});
+
+	var SourceArrowhead = Arrowhead.extend({
+	    name: 'source-arrowhead',
+	    ratio: 0,
+	    arrowheadType: 'source',
+	    attributes: {
+	        'd': 'M 10 -8 -10 0 10 8 Z',
+	        'fill': '#33334F',
+	        'stroke': '#FFFFFF',
+	        'stroke-width': 2,
+	        'cursor': 'move',
+	        'class': 'source-arrowhead'
+	    }
+	});
+
+	var Button = ToolView.extend({
+	    name: 'button',
+	    events: {
+	        'mousedown': 'onPointerDown',
+	        'touchstart': 'onPointerDown'
+	    },
+	    options: {
+	        distance: 0,
+	        offset: 0,
+	        rotate: false
+	    },
+	    onRender: function() {
+	        this.renderChildren(this.options.markup);
+	        this.update();
+	    },
+	    update: function() {
+	        this.position();
+	        return this;
+	    },
+	    position: function() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var vel = ref.vel;
+	        var matrix = view.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
+	        vel.transform(matrix, { absolute: true });
+	    },
+	    getElementMatrix: function getElementMatrix() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var x = options.x; if ( x === void 0 ) x = 0;
+	        var y = options.y; if ( y === void 0 ) y = 0;
+	        var offset = options.offset; if ( offset === void 0 ) offset = {};
+	        var useModelGeometry = options.useModelGeometry;
+	        var rotate = options.rotate;
+	        var bbox = getViewBBox(view, useModelGeometry);
+	        var angle = view.model.angle();
+	        if (!rotate) { bbox = bbox.bbox(angle); }
+	        var offsetX = offset.x; if ( offsetX === void 0 ) offsetX = 0;
+	        var offsetY = offset.y; if ( offsetY === void 0 ) offsetY = 0;
+	        if (isPercentage(x)) {
+	            x = parseFloat(x) / 100 * bbox.width;
+	        }
+	        if (isPercentage(y)) {
+	            y = parseFloat(y) / 100 * bbox.height;
+	        }
+	        var matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
+	        if (rotate) { matrix = matrix.rotate(angle); }
+	        matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
+	        return matrix;
+	    },
+	    getLinkMatrix: function getLinkMatrix() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var offset = options.offset; if ( offset === void 0 ) offset = 0;
+	        var distance = options.distance; if ( distance === void 0 ) distance = 0;
+	        var rotate = options.rotate;
+	        var tangent, position, angle;
+	        if (isPercentage(distance)) {
+	            tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
+	        } else {
+	            tangent = view.getTangentAtLength(distance);
+	        }
+	        if (tangent) {
+	            position = tangent.start;
+	            angle = tangent.vector().vectorAngle(new Point(1, 0)) || 0;
+	        } else {
+	            position = view.getConnection().start;
+	            angle = 0;
+	        }
+	        var matrix = V.createSVGMatrix()
+	            .translate(position.x, position.y)
+	            .rotate(angle)
+	            .translate(0, offset);
+	        if (!rotate) { matrix = matrix.rotate(-angle); }
+	        return matrix;
+	    },
+	    onPointerDown: function(evt) {
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        var actionFn = this.options.action;
+	        if (typeof actionFn === 'function') {
+	            actionFn.call(this.relatedView, evt, this.relatedView, this);
+	        }
+	    }
+	});
+
+
+	var Remove = Button.extend({
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'button',
+	        attributes: {
+	            'r': 7,
+	            'fill': '#FF1D00',
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'icon',
+	        attributes: {
+	            'd': 'M -3 -3 3 3 M -3 3 3 -3',
+	            'fill': 'none',
+	            'stroke': '#FFFFFF',
+	            'stroke-width': 2,
+	            'pointer-events': 'none'
+	        }
+	    }],
+	    options: {
+	        distance: 60,
+	        offset: 0,
+	        action: function(evt, view, tool) {
+	            view.model.remove({ ui: true, tool: tool.cid });
+	        }
+	    }
+	});
+
+	var Connect = Button.extend({
+	    name: 'connect',
+	    documentEvents: {
+	        mousemove: 'drag',
+	        touchmove: 'drag',
+	        mouseup: 'dragend',
+	        touchend: 'dragend',
+	        touchcancel: 'dragend'
+	    },
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'button',
+	        attributes: {
+	            'r': 7,
+	            'fill': '#333333',
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'icon',
+	        attributes: {
+	            'd': 'M -4 -1 L 0 -1 L 0 -4 L 4 0 L 0 4 0 1 -4 1 z',
+	            'fill': '#FFFFFF',
+	            'stroke': 'none',
+	            'stroke-width': 2,
+	            'pointer-events': 'none'
+	        }
+	    }],
+	    options: {
+	        distance: 80,
+	        offset: 0,
+	        magnet: function (view) { return view.el; },
+	        action: function (evt, _view, tool) { return tool.dragstart(evt); },
+	    },
+	    getMagnetNode: function() {
+	        var assign;
+
+	        var ref = this;
+	        var options = ref.options;
+	        var relatedView = ref.relatedView;
+	        var magnet = options.magnet;
+	        var magnetNode;
+	        switch (typeof magnet) {
+	            case 'function': {
+	                magnetNode = magnet.call(this, relatedView, this);
+	                break;
+	            }
+	            case 'string': {
+	                (assign = relatedView.findBySelector(magnet), magnetNode = assign[0]);
+	                break;
+	            }
+	            default: {
+	                magnetNode = magnet;
+	                break;
+	            }
+	        }
+	        if (!magnetNode) { magnetNode = relatedView.el; }
+	        if (magnetNode instanceof SVGElement) { return magnetNode; }
+	        throw new Error('Connect: magnet must be an SVGElement');
+	    },
+	    dragstart: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
+	        paper.undelegateEvents();
+	        this.delegateDocumentEvents(null, evt.data);
+	        this.focus();
+	    },
+	    drag: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLink(normalizedEvent, x, y);
+	    },
+	    dragend: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLinkEnd(normalizedEvent, x, y);
+	        this.undelegateDocumentEvents();
+	        paper.delegateEvents();
+	        this.blur();
+	        relatedView.checkMouseleave(normalizedEvent);
+	    }
+	});
+
+
+	var Boundary = ToolView.extend({
+	    name: 'boundary',
+	    tagName: 'rect',
+	    options: {
+	        padding: 10,
+	        useModelGeometry: false,
+	    },
+	    attributes: {
+	        'fill': 'none',
+	        'stroke': '#33334F',
+	        'stroke-width': .5,
+	        'stroke-dasharray': '5, 5',
+	        'pointer-events': 'none'
+	    },
+	    onRender: function() {
+	        this.update();
+	    },
+	    update: function() {
+	        var ref = this;
+	        var view = ref.relatedView;
+	        var options = ref.options;
+	        var vel = ref.vel;
+	        var useModelGeometry = options.useModelGeometry;
+	        var rotate = options.rotate;
+	        var padding = normalizeSides(options.padding);
+	        var bbox = getViewBBox(view, useModelGeometry).moveAndExpand({
+	            x: -padding.left,
+	            y: -padding.top,
+	            width: padding.left + padding.right,
+	            height: padding.top + padding.bottom
+	        });
+	        var model = view.model;
+	        if (model.isElement()) {
+	            var angle = model.angle();
+	            if (angle) {
+	                if (rotate) {
+	                    var origin = model.getBBox().center();
+	                    vel.rotate(angle, origin.x, origin.y, { absolute: true });
+	                } else {
+	                    bbox = bbox.bbox(angle);
+	                }
+	            }
+	        }
+	        vel.attr(bbox.toJSON());
+	        return this;
+	    }
+	});
+
+	var Anchor = ToolView.extend({
+	    tagName: 'g',
+	    type: null,
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'anchor',
+	        attributes: {
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'rect',
+	        selector: 'area',
+	        attributes: {
+	            'pointer-events': 'none',
+	            'fill': 'none',
+	            'stroke': '#33334F',
+	            'stroke-dasharray': '2,4',
+	            'rx': 5,
+	            'ry': 5
+	        }
+	    }],
+	    events: {
+	        mousedown: 'onPointerDown',
+	        touchstart: 'onPointerDown',
+	        dblclick: 'onPointerDblClick',
+	        dbltap: 'onPointerDblClick'
+	    },
+	    documentEvents: {
+	        mousemove: 'onPointerMove',
+	        touchmove: 'onPointerMove',
+	        mouseup: 'onPointerUp',
+	        touchend: 'onPointerUp',
+	        touchcancel: 'onPointerUp'
+	    },
+	    options: {
+	        snap: snapAnchor,
+	        anchor: getAnchor,
+	        resetAnchor: true,
+	        customAnchorAttributes: {
+	            'stroke-width': 4,
+	            'stroke': '#33334F',
+	            'fill': '#FFFFFF',
+	            'r': 5
+	        },
+	        defaultAnchorAttributes: {
+	            'stroke-width': 2,
+	            'stroke': '#FFFFFF',
+	            'fill': '#33334F',
+	            'r': 6
+	        },
+	        areaPadding: 6,
+	        snapRadius: 10,
+	        restrictArea: true,
+	        redundancyRemoval: true
+	    },
+	    onRender: function() {
+	        this.renderChildren();
+	        this.toggleArea(false);
+	        this.update();
+	    },
+	    update: function() {
+	        var type = this.type;
+	        var relatedView = this.relatedView;
+	        var view = relatedView.getEndView(type);
+	        if (view) {
+	            this.updateAnchor();
+	            this.updateArea();
+	            this.el.style.display = '';
+	        } else {
+	            this.el.style.display = 'none';
+	        }
+	        return this;
+	    },
+	    updateAnchor: function() {
+	        var childNodes = this.childNodes;
+	        if (!childNodes) { return; }
+	        var anchorNode = childNodes.anchor;
+	        if (!anchorNode) { return; }
+	        var relatedView = this.relatedView;
+	        var type = this.type;
+	        var position = relatedView.getEndAnchor(type);
+	        var options = this.options;
+	        var customAnchor = relatedView.model.prop([type, 'anchor']);
+	        anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
+	        var anchorAttributes = (customAnchor) ? options.customAnchorAttributes : options.defaultAnchorAttributes;
+	        for (var attrName in anchorAttributes) {
+	            anchorNode.setAttribute(attrName, anchorAttributes[attrName]);
+	        }
+	    },
+	    updateArea: function() {
+	        var childNodes = this.childNodes;
+	        if (!childNodes) { return; }
+	        var areaNode = childNodes.area;
+	        if (!areaNode) { return; }
+	        var relatedView = this.relatedView;
+	        var type = this.type;
+	        var view = relatedView.getEndView(type);
+	        var model = view.model;
+	        var magnet = relatedView.getEndMagnet(type);
+	        var padding = this.options.areaPadding;
+	        if (!isFinite(padding)) { padding = 0; }
+	        var bbox, angle, center;
+	        if (view.isNodeConnection(magnet)) {
+	            bbox = view.getBBox();
+	            angle = 0;
+	            center = bbox.center();
+	        } else {
+	            bbox = view.getNodeUnrotatedBBox(magnet);
+	            angle = model.angle();
+	            center = bbox.center();
+	            if (angle) { center.rotate(model.getBBox().center(), -angle); }
+	            // TODO: get the link's magnet rotation into account
+	        }
+	        bbox.inflate(padding);
+	        areaNode.setAttribute('x', -bbox.width / 2);
+	        areaNode.setAttribute('y', -bbox.height / 2);
+	        areaNode.setAttribute('width', bbox.width);
+	        areaNode.setAttribute('height', bbox.height);
+	        areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle + ')');
+	    },
+	    toggleArea: function(visible) {
+	        this.childNodes.area.style.display = (visible) ? '' : 'none';
+	    },
+	    onPointerDown: function(evt) {
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        this.paper.undelegateEvents();
+	        this.delegateDocumentEvents();
+	        this.focus();
+	        this.toggleArea(this.options.restrictArea);
+	        this.relatedView.model.startBatch('anchor-move', { ui: true, tool: this.cid });
+	    },
+	    resetAnchor: function(anchor) {
+	        var type = this.type;
+	        var relatedModel = this.relatedView.model;
+	        if (anchor) {
+	            relatedModel.prop([type, 'anchor'], anchor, {
+	                rewrite: true,
+	                ui: true,
+	                tool: this.cid
+	            });
+	        } else {
+	            relatedModel.removeProp([type, 'anchor'], {
+	                ui: true,
+	                tool: this.cid
+	            });
+	        }
+	    },
+	    onPointerMove: function(evt) {
+
+	        var relatedView = this.relatedView;
+	        var type = this.type;
+	        var view = relatedView.getEndView(type);
+	        var model = view.model;
+	        var magnet = relatedView.getEndMagnet(type);
+	        var normalizedEvent = normalizeEvent(evt);
+	        var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var snapFn = this.options.snap;
+	        if (typeof snapFn === 'function') {
+	            coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView, this);
+	            coords = new Point(coords);
+	        }
+
+	        if (this.options.restrictArea) {
+	            if (view.isNodeConnection(magnet)) {
+	                // snap coords to the link's connection
+	                var pointAtConnection = view.getClosestPoint(coords);
+	                if (pointAtConnection) { coords = pointAtConnection; }
+	            } else {
+	                // snap coords within node bbox
+	                var bbox = view.getNodeUnrotatedBBox(magnet);
+	                var angle = model.angle();
+	                var origin = model.getBBox().center();
+	                var rotatedCoords = coords.clone().rotate(origin, angle);
+	                if (!bbox.containsPoint(rotatedCoords)) {
+	                    coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
+	                }
+	            }
+	        }
+
+	        var anchor;
+	        var anchorFn = this.options.anchor;
+	        if (typeof anchorFn === 'function') {
+	            anchor = anchorFn.call(relatedView, coords, view, magnet, type, relatedView);
+	        }
+
+	        this.resetAnchor(anchor);
+	        this.update();
+	    },
+
+	    onPointerUp: function(evt) {
+	        this.paper.delegateEvents();
+	        this.undelegateDocumentEvents();
+	        this.blur();
+	        this.toggleArea(false);
+	        var linkView = this.relatedView;
+	        if (this.options.redundancyRemoval) { linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid }); }
+	        linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
+	    },
+
+	    onPointerDblClick: function() {
+	        var anchor = this.options.resetAnchor;
+	        if (anchor === false) { return; } // reset anchor disabled
+	        if (anchor === true) { anchor = null; } // remove the current anchor
+	        this.resetAnchor(cloneDeep(anchor));
+	        this.update();
+	    }
+	});
+
+	var SourceAnchor = Anchor.extend({
+	    name: 'source-anchor',
+	    type: 'source'
+	});
+
+	var TargetAnchor = Anchor.extend({
+	    name: 'target-anchor',
+	    type: 'target'
+	});
+
+	var index$3 = ({
+		Vertices: Vertices,
+		Segments: Segments,
+		SourceArrowhead: SourceArrowhead,
+		TargetArrowhead: TargetArrowhead,
+		SourceAnchor: SourceAnchor,
+		TargetAnchor: TargetAnchor,
+		Button: Button,
+		Remove: Remove,
+		Connect: Connect,
+		Boundary: Boundary
+	});
+
+	var Control = ToolView.extend({
+	    tagName: 'g',
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'handle',
+	        attributes: {
+	            'cursor': 'pointer',
+	            'stroke-width': 2,
+	            'stroke': '#FFFFFF',
+	            'fill': '#33334F',
+	            'r': 6
+	        }
+	    }, {
+	        tagName: 'rect',
+	        selector: 'extras',
+	        attributes: {
+	            'pointer-events': 'none',
+	            'fill': 'none',
+	            'stroke': '#33334F',
+	            'stroke-dasharray': '2,4',
+	            'rx': 5,
+	            'ry': 5
+	        }
+	    }],
+	    events: {
+	        mousedown: 'onPointerDown',
+	        touchstart: 'onPointerDown',
+	        dblclick: 'onPointerDblClick',
+	        dbltap: 'onPointerDblClick'
+	    },
+	    documentEvents: {
+	        mousemove: 'onPointerMove',
+	        touchmove: 'onPointerMove',
+	        mouseup: 'onPointerUp',
+	        touchend: 'onPointerUp',
+	        touchcancel: 'onPointerUp'
+	    },
+	    options: {
+	        handleAttributes: null,
+	        selector: 'root',
+	        padding: 6,
+	    },
+
+	    getPosition: function() {
+	        // To be overridden
+	    },
+	    setPosition: function() {
+	        // To be overridden
+	    },
+	    resetPosition: function() {
+	        // To be overridden
+	    },
+	    onRender: function() {
+	        this.renderChildren();
+	        this.toggleExtras(false);
+	        this.update();
+	    },
+	    update: function() {
+	        var ref = this.childNodes;
+	        var handle = ref.handle;
+	        var extras = ref.extras;
+	        if (handle) {
+	            this.updateHandle(handle);
+	        } else {
+	            throw new Error('Control: markup selector `handle` is required');
+	        }
+	        if (extras) {
+	            this.updateExtras(extras);
+	        }
+	        return this;
+	    },
+	    updateHandle: function(handleNode) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var options = ref.options;
+	        var model = relatedView.model;
+	        var relativePos = this.getPosition(relatedView, this);
+	        var absolutePos = model.getAbsolutePointFromRelative(relativePos);
+	        handleNode.setAttribute('transform', ("translate(" + (absolutePos.x) + "," + (absolutePos.y) + ")"));
+	        var handleAttributes = options.handleAttributes;
+	        if (handleAttributes) {
+	            for (var attrName in handleAttributes) {
+	                handleNode.setAttribute(attrName, handleAttributes[attrName]);
+	            }
+	        }
+	    },
+	    updateExtras: function(extrasNode) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var options = ref.options;
+	        var ref$1 = this.options;
+	        var selector = ref$1.selector;
+	        if (!selector) {
+	            this.toggleExtras(false);
+	            return;
+	        }
+	        var ref$2 = relatedView.findBySelector(selector);
+	        var magnet = ref$2[0];
+	        if (!magnet) { throw new Error('Control: invalid selector.'); }
+	        var padding = options.padding;
+	        if (!isFinite(padding)) { padding = 0; }
+	        var bbox = relatedView.getNodeUnrotatedBBox(magnet);
+	        var model = relatedView.model;
+	        var angle = model.angle();
+	        var center = bbox.center();
+	        if (angle) { center.rotate(model.getBBox().center(), -angle); }
+	        bbox.inflate(padding);
+	        extrasNode.setAttribute('x', -bbox.width / 2);
+	        extrasNode.setAttribute('y', -bbox.height / 2);
+	        extrasNode.setAttribute('width', bbox.width);
+	        extrasNode.setAttribute('height', bbox.height);
+	        extrasNode.setAttribute('transform', ("translate(" + (center.x) + "," + (center.y) + ") rotate(" + angle + ")"));
+	    },
+	    toggleExtras: function(visible) {
+	        var ref = this.childNodes;
+	        var extras = ref.extras;
+	        if (!extras) { return; }
+	        extras.style.display = (visible) ? '' : 'none';
+	    },
+	    onPointerDown: function(evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var paper = ref.paper;
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        paper.undelegateEvents();
+	        this.delegateDocumentEvents();
+	        this.focus();
+	        this.toggleExtras(true);
+	        relatedView.model.startBatch('control-move', { ui: true, tool: this.cid });
+	    },
+	    onPointerMove: function(evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var paper = ref.paper;
+	        var model = relatedView.model;
+	        var ref$1 = normalizeEvent(evt);
+	        var clientX = ref$1.clientX;
+	        var clientY = ref$1.clientY;
+	        var coords = paper.clientToLocalPoint(clientX, clientY);
+	        var relativeCoords = model.getRelativePointFromAbsolute(coords);
+	        this.setPosition(relatedView, relativeCoords, this);
+	        this.update();
+	    },
+	    onPointerUp: function(_evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var paper = ref.paper;
+	        paper.delegateEvents();
+	        this.undelegateDocumentEvents();
+	        this.blur();
+	        this.toggleExtras(false);
+	        relatedView.model.stopBatch('control-move', { ui: true, tool: this.cid });
+	    },
+	    onPointerDblClick: function() {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        this.resetPosition(relatedView, this);
+	        this.update();
+	    }
+
+	});
+
+
+
+	var index$4 = ({
+		Button: Button,
+		Remove: Remove,
+		Connect: Connect,
+		Boundary: Boundary,
+		Control: Control
+	});
+
+	var version = "3.5.0";
+
+	var env = {
+
+	    _results: {},
+
+	    _tests: {
+
+	        svgforeignobject: function() {
+	            return !!document.createElementNS &&
+	                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
+	        }
+	    },
+
+	    addTest: function(name, fn) {
+
+	        return this._tests[name] = fn;
+	    },
+
+	    test: function(name) {
+
+	        var fn = this._tests[name];
+
+	        if (!fn) {
+	            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
+	        }
+
+	        var result = this._results[name];
+
+	        if (typeof result !== 'undefined') {
+	            return result;
+	        }
+
+	        try {
+	            result = fn();
+	        } catch (error) {
+	            result = false;
+	        }
+
+	        // Cache the test result.
+	        this._results[name] = result;
+
+	        return result;
+	    }
+	};
+
+	var Vectorizer = V;
+	var layout = { PortLabel: PortLabel, Port: Port };
+	var setTheme = function(theme, opt) {
+
+	    opt = opt || {};
+
+	    invoke(views, 'setTheme', theme, opt);
+
+	    // Update the default theme on the view prototype.
+	    View.prototype.defaultTheme = theme;
+	};
+
+	var LayersNames = {
+	    CELLS: 'cells',
+	    BACK: 'back',
+	    FRONT: 'front',
+	    TOOLS: 'tools',
+	    LABELS: 'labels'
+	};
+
+	var PaperLayer = View.extend({
+
+	    tagName: 'g',
+	    svgElement: true,
+	    pivotNodes: null,
+	    defaultTheme: null,
+
+	    options: {
+	        name: ''
+	    },
+
+	    className: function() {
+	        return addClassNamePrefix(((this.options.name) + "-layer"));
+	    },
+
+	    init: function() {
+	        this.pivotNodes = {};
+	    },
+
+	    insertSortedNode: function(node, z) {
+	        this.el.insertBefore(node, this.insertPivot(z));
+	    },
+
+	    insertNode: function(node) {
+	        var ref = this;
+	        var el = ref.el;
+	        if (node.parentNode !== el) {
+	            el.appendChild(node);
+	        }
+	    },
+
+	    insertPivot: function(z) {
+	        var ref = this;
+	        var el = ref.el;
+	        var pivotNodes = ref.pivotNodes;
+	        z = +z;
+	        z || (z = 0);
+	        var pivotNode = pivotNodes[z];
+	        if (pivotNode) { return pivotNode; }
+	        pivotNode = pivotNodes[z] = document.createComment('z-index:' + (z + 1));
+	        var neighborZ = -Infinity;
+	        for (var currentZ in pivotNodes) {
+	            currentZ = +currentZ;
+	            if (currentZ < z && currentZ > neighborZ) {
+	                neighborZ = currentZ;
+	                if (neighborZ === z - 1) { continue; }
+	            }
+	        }
+	        if (neighborZ !== -Infinity) {
+	            var neighborPivot = pivotNodes[neighborZ];
+	            // Insert After
+	            el.insertBefore(pivotNode, neighborPivot.nextSibling);
+	        } else {
+	            // First Child
+	            el.insertBefore(pivotNode, el.firstChild);
+	        }
+	        return pivotNode;
+	    },
+
+	    removePivots: function() {
+	        var ref = this;
+	        var el = ref.el;
+	        var pivotNodes = ref.pivotNodes;
+	        for (var z in pivotNodes) { el.removeChild(pivotNodes[z]); }
+	        this.pivotNodes = {};
+	    }
+
+	});
+
 	var HighlightingTypes = {
 	    DEFAULT: 'default',
 	    EMBEDDING: 'embedding',
@@ -17512,6 +23137,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.$el.data('view', this);
 
 	        this.startListening();
+	    },
+
+	    onMount: function onMount() {
+	        // To be overridden
 	    },
 
 	    startListening: function() {
@@ -18947,25 +24576,32 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
-	    processEmbedding: function(data) {
+	    processEmbedding: function(data, evt, x, y) {
+	        if ( data === void 0 ) data = {};
 
-	        data || (data = {});
 
 	        var model = data.model || this.model;
 	        var paper = data.paper || this.paper;
-	        var paperOptions = paper.options;
+	        var graph = paper.model;
+	        var ref = paper.options;
+	        var findParentBy = ref.findParentBy;
+	        var frontParentOnly = ref.frontParentOnly;
+	        var validateEmbedding = ref.validateEmbedding;
 
-	        var candidates = [];
-	        if (isFunction(paperOptions.findParentBy)) {
-	            var parents = toArray(paperOptions.findParentBy.call(paper.model, this));
-	            candidates = parents.filter(function(el) {
-	                return el instanceof Cell && this.model.id !== el.id && !el.isEmbeddedIn(this.model);
-	            }.bind(this));
+	        var candidates;
+	        if (isFunction(findParentBy)) {
+	            candidates = toArray(findParentBy.call(graph, this, evt, x, y));
+	        } else if (findParentBy === 'pointer') {
+	            candidates = toArray(graph.findModelsFromPoint({ x: x, y: y }));
 	        } else {
-	            candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+	            candidates = graph.findModelsUnderElement(model, { searchBy: findParentBy });
 	        }
 
-	        if (paperOptions.frontParentOnly) {
+	        candidates = candidates.filter(function (el) {
+	            return (el instanceof Cell) && (model.id !== el.id) && !el.isEmbeddedIn(model);
+	        });
+
+	        if (frontParentOnly) {
 	            // pick the element with the highest `z` index
 	            candidates = candidates.slice(-1);
 	        }
@@ -18975,20 +24611,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // iterate over all candidates starting from the last one (has the highest z-index).
 	        for (var i = candidates.length - 1; i >= 0; i--) {
-
 	            var candidate = candidates[i];
-
 	            if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
-
 	                // candidate remains the same
 	                newCandidateView = prevCandidateView;
 	                break;
-
 	            } else {
-
 	                var view = candidate.findView(paper);
-	                if (paperOptions.validateEmbedding.call(paper, this, view)) {
-
+	                if (!isFunction(validateEmbedding) || validateEmbedding.call(paper, this, view)) {
 	                    // flip to the new candidate
 	                    newCandidateView = view;
 	                    break;
@@ -19340,7 +24970,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                this.prepareEmbedding(data);
 	                embedding = true;
 	            }
-	            this.processEmbedding(data);
+	            this.processEmbedding(data, evt, x, y);
 	        }
 
 	        this.eventData(evt, {
@@ -19376,1863 +25006,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	});
 
 	assign(ElementView.prototype, elementViewPortPrototype);
-
-	// Does not make any changes to vertices.
-	// Returns the arguments that are passed to it, unchanged.
-	var normal = function(vertices, opt, linkView) {
-
-	    return vertices;
-	};
-
-	// Routes the link always to/from a certain side
-	//
-	// Arguments:
-	//   padding ... gap between the element and the first vertex. :: Default 40.
-	//   side ... 'left' | 'right' | 'top' | 'bottom' :: Default 'bottom'.
-	//
-	var oneSide = function(vertices, opt, linkView) {
-
-	    var side = opt.side || 'bottom';
-	    var padding = normalizeSides(opt.padding || 40);
-
-	    // LinkView contains cached source an target bboxes.
-	    // Note that those are Geometry rectangle objects.
-	    var sourceBBox = linkView.sourceBBox;
-	    var targetBBox = linkView.targetBBox;
-	    var sourcePoint = sourceBBox.center();
-	    var targetPoint = targetBBox.center();
-
-	    var coordinate, dimension, direction;
-
-	    switch (side) {
-	        case 'bottom':
-	            direction = 1;
-	            coordinate = 'y';
-	            dimension = 'height';
-	            break;
-	        case 'top':
-	            direction = -1;
-	            coordinate = 'y';
-	            dimension = 'height';
-	            break;
-	        case 'left':
-	            direction = -1;
-	            coordinate = 'x';
-	            dimension = 'width';
-	            break;
-	        case 'right':
-	            direction = 1;
-	            coordinate = 'x';
-	            dimension = 'width';
-	            break;
-	        default:
-	            throw new Error('Router: invalid side');
-	    }
-
-	    // move the points from the center of the element to outside of it.
-	    sourcePoint[coordinate] += direction * (sourceBBox[dimension] / 2 + padding[side]);
-	    targetPoint[coordinate] += direction * (targetBBox[dimension] / 2 + padding[side]);
-
-	    // make link orthogonal (at least the first and last vertex).
-	    if ((direction * (sourcePoint[coordinate] - targetPoint[coordinate])) > 0) {
-	        targetPoint[coordinate] = sourcePoint[coordinate];
-	    } else {
-	        sourcePoint[coordinate] = targetPoint[coordinate];
-	    }
-
-	    return [sourcePoint].concat(vertices, targetPoint);
-	};
-
-	// bearing -> opposite bearing
-	var opposites = {
-	    N: 'S',
-	    S: 'N',
-	    E: 'W',
-	    W: 'E'
-	};
-
-	// bearing -> radians
-	var radians = {
-	    N: -Math.PI / 2 * 3,
-	    S: -Math.PI / 2,
-	    E: 0,
-	    W: Math.PI
-	};
-
-	// HELPERS //
-
-	// returns a point `p` where lines p,p1 and p,p2 are perpendicular and p is not contained
-	// in the given box
-	function freeJoin(p1, p2, bbox) {
-
-	    var p = new Point(p1.x, p2.y);
-	    if (bbox.containsPoint(p)) { p = new Point(p2.x, p1.y); }
-	    // kept for reference
-	    // if (bbox.containsPoint(p)) p = null;
-
-	    return p;
-	}
-
-	// returns either width or height of a bbox based on the given bearing
-	function getBBoxSize(bbox, bearing) {
-
-	    return bbox[(bearing === 'W' || bearing === 'E') ? 'width' : 'height'];
-	}
-
-	// simple bearing method (calculates only orthogonal cardinals)
-	function getBearing(from, to) {
-
-	    if (from.x === to.x) { return (from.y > to.y) ? 'N' : 'S'; }
-	    if (from.y === to.y) { return (from.x > to.x) ? 'W' : 'E'; }
-	    return null;
-	}
-
-	// transform point to a rect
-	function getPointBox(p) {
-
-	    return new Rect(p.x, p.y, 0, 0);
-	}
-
-	function getPaddingBox(opt) {
-
-	    // if both provided, opt.padding wins over opt.elementPadding
-	    var sides = normalizeSides(opt.padding || opt.elementPadding || 20);
-
-	    return {
-	        x: -sides.left,
-	        y: -sides.top,
-	        width: sides.left + sides.right,
-	        height: sides.top + sides.bottom
-	    };
-	}
-
-	// return source bbox
-	function getSourceBBox(linkView, opt) {
-
-	    return linkView.sourceBBox.clone().moveAndExpand(getPaddingBox(opt));
-	}
-
-	// return target bbox
-	function getTargetBBox(linkView, opt) {
-
-	    return linkView.targetBBox.clone().moveAndExpand(getPaddingBox(opt));
-	}
-
-	// return source anchor
-	function getSourceAnchor(linkView, opt) {
-
-	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
-
-	    // fallback: center of bbox
-	    var sourceBBox = getSourceBBox(linkView, opt);
-	    return sourceBBox.center();
-	}
-
-	// return target anchor
-	function getTargetAnchor(linkView, opt) {
-
-	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
-
-	    // fallback: center of bbox
-	    var targetBBox = getTargetBBox(linkView, opt);
-	    return targetBBox.center(); // default
-	}
-
-	// PARTIAL ROUTERS //
-
-	function vertexVertex(from, to, bearing) {
-
-	    var p1 = new Point(from.x, to.y);
-	    var p2 = new Point(to.x, from.y);
-	    var d1 = getBearing(from, p1);
-	    var d2 = getBearing(from, p2);
-	    var opposite = opposites[bearing];
-
-	    var p = (d1 === bearing || (d1 !== opposite && (d2 === opposite || d2 !== bearing))) ? p1 : p2;
-
-	    return { points: [p], direction: getBearing(p, to) };
-	}
-
-	function elementVertex(from, to, fromBBox) {
-
-	    var p = freeJoin(from, to, fromBBox);
-
-	    return { points: [p], direction: getBearing(p, to) };
-	}
-
-	function vertexElement(from, to, toBBox, bearing) {
-
-	    var route = {};
-
-	    var points = [new Point(from.x, to.y), new Point(to.x, from.y)];
-	    var freePoints = points.filter(function(pt) {
-	        return !toBBox.containsPoint(pt);
-	    });
-	    var freeBearingPoints = freePoints.filter(function(pt) {
-	        return getBearing(pt, from) !== bearing;
-	    });
-
-	    var p;
-
-	    if (freeBearingPoints.length > 0) {
-	        // Try to pick a point which bears the same direction as the previous segment.
-
-	        p = freeBearingPoints.filter(function(pt) {
-	            return getBearing(from, pt) === bearing;
-	        }).pop();
-	        p = p || freeBearingPoints[0];
-
-	        route.points = [p];
-	        route.direction = getBearing(p, to);
-
-	    } else {
-	        // Here we found only points which are either contained in the element or they would create
-	        // a link segment going in opposite direction from the previous one.
-	        // We take the point inside element and move it outside the element in the direction the
-	        // route is going. Now we can join this point with the current end (using freeJoin).
-
-	        p = difference(points, freePoints)[0];
-
-	        var p2 = (new Point(to)).move(p, -getBBoxSize(toBBox, bearing) / 2);
-	        var p1 = freeJoin(p2, from, toBBox);
-
-	        route.points = [p1, p2];
-	        route.direction = getBearing(p2, to);
-	    }
-
-	    return route;
-	}
-
-	function elementElement(from, to, fromBBox, toBBox) {
-
-	    var route = elementVertex(to, from, toBBox);
-	    var p1 = route.points[0];
-
-	    if (fromBBox.containsPoint(p1)) {
-
-	        route = elementVertex(from, to, fromBBox);
-	        var p2 = route.points[0];
-
-	        if (toBBox.containsPoint(p2)) {
-
-	            var fromBorder = (new Point(from)).move(p2, -getBBoxSize(fromBBox, getBearing(from, p2)) / 2);
-	            var toBorder = (new Point(to)).move(p1, -getBBoxSize(toBBox, getBearing(to, p1)) / 2);
-	            var mid = (new Line(fromBorder, toBorder)).midpoint();
-
-	            var startRoute = elementVertex(from, mid, fromBBox);
-	            var endRoute = vertexVertex(mid, to, startRoute.direction);
-
-	            route.points = [startRoute.points[0], endRoute.points[0]];
-	            route.direction = endRoute.direction;
-	        }
-	    }
-
-	    return route;
-	}
-
-	// Finds route for situations where one element is inside the other.
-	// Typically the route is directed outside the outer element first and
-	// then back towards the inner element.
-	function insideElement(from, to, fromBBox, toBBox, bearing) {
-
-	    var route = {};
-	    var boundary = fromBBox.union(toBBox).inflate(1);
-
-	    // start from the point which is closer to the boundary
-	    var reversed = boundary.center().distance(to) > boundary.center().distance(from);
-	    var start = reversed ? to : from;
-	    var end = reversed ? from : to;
-
-	    var p1, p2, p3;
-
-	    if (bearing) {
-	        // Points on circle with radius equals 'W + H` are always outside the rectangle
-	        // with width W and height H if the center of that circle is the center of that rectangle.
-	        p1 = Point.fromPolar(boundary.width + boundary.height, radians[bearing], start);
-	        p1 = boundary.pointNearestToPoint(p1).move(p1, -1);
-
-	    } else {
-	        p1 = boundary.pointNearestToPoint(start).move(start, 1);
-	    }
-
-	    p2 = freeJoin(p1, end, boundary);
-
-	    if (p1.round().equals(p2.round())) {
-	        p2 = Point.fromPolar(boundary.width + boundary.height, toRad(p1.theta(start)) + Math.PI / 2, end);
-	        p2 = boundary.pointNearestToPoint(p2).move(end, 1).round();
-	        p3 = freeJoin(p1, p2, boundary);
-	        route.points = reversed ? [p2, p3, p1] : [p1, p3, p2];
-
-	    } else {
-	        route.points = reversed ? [p2, p1] : [p1, p2];
-	    }
-
-	    route.direction = reversed ? getBearing(p1, to) : getBearing(p2, to);
-
-	    return route;
-	}
-
-	// MAIN ROUTER //
-
-	// Return points through which a connection needs to be drawn in order to obtain an orthogonal link
-	// routing from source to target going through `vertices`.
-	function orthogonal(vertices, opt, linkView) {
-
-	    var sourceBBox = getSourceBBox(linkView, opt);
-	    var targetBBox = getTargetBBox(linkView, opt);
-
-	    var sourceAnchor = getSourceAnchor(linkView, opt);
-	    var targetAnchor = getTargetAnchor(linkView, opt);
-
-	    // if anchor lies outside of bbox, the bbox expands to include it
-	    sourceBBox = sourceBBox.union(getPointBox(sourceAnchor));
-	    targetBBox = targetBBox.union(getPointBox(targetAnchor));
-
-	    vertices = toArray(vertices).map(Point);
-	    vertices.unshift(sourceAnchor);
-	    vertices.push(targetAnchor);
-
-	    var bearing; // bearing of previous route segment
-
-	    var orthogonalVertices = []; // the array of found orthogonal vertices to be returned
-	    for (var i = 0, max = vertices.length - 1; i < max; i++) {
-
-	        var route = null;
-
-	        var from = vertices[i];
-	        var to = vertices[i + 1];
-
-	        var isOrthogonal = !!getBearing(from, to);
-
-	        if (i === 0) { // source
-
-	            if (i + 1 === max) { // route source -> target
-
-	                // Expand one of the elements by 1px to detect situations when the two
-	                // elements are positioned next to each other with no gap in between.
-	                if (sourceBBox.intersect(targetBBox.clone().inflate(1))) {
-	                    route = insideElement(from, to, sourceBBox, targetBBox);
-
-	                } else if (!isOrthogonal) {
-	                    route = elementElement(from, to, sourceBBox, targetBBox);
-	                }
-
-	            } else { // route source -> vertex
-
-	                if (sourceBBox.containsPoint(to)) {
-	                    route = insideElement(from, to, sourceBBox, getPointBox(to).moveAndExpand(getPaddingBox(opt)));
-
-	                } else if (!isOrthogonal) {
-	                    route = elementVertex(from, to, sourceBBox);
-	                }
-	            }
-
-	        } else if (i + 1 === max) { // route vertex -> target
-
-	            // prevent overlaps with previous line segment
-	            var isOrthogonalLoop = isOrthogonal && getBearing(to, from) === bearing;
-
-	            if (targetBBox.containsPoint(from) || isOrthogonalLoop) {
-	                route = insideElement(from, to, getPointBox(from).moveAndExpand(getPaddingBox(opt)), targetBBox, bearing);
-
-	            } else if (!isOrthogonal) {
-	                route = vertexElement(from, to, targetBBox, bearing);
-	            }
-
-	        } else if (!isOrthogonal) { // route vertex -> vertex
-	            route = vertexVertex(from, to, bearing);
-	        }
-
-	        // applicable to all routes:
-
-	        // set bearing for next iteration
-	        if (route) {
-	            Array.prototype.push.apply(orthogonalVertices, route.points);
-	            bearing = route.direction;
-
-	        } else {
-	            // orthogonal route and not looped
-	            bearing = getBearing(from, to);
-	        }
-
-	        // push `to` point to identified orthogonal vertices array
-	        if (i + 1 < max) {
-	            orthogonalVertices.push(to);
-	        }
-	    }
-
-	    return orthogonalVertices;
-	}
-
-	var config$1 = {
-
-	    // size of the step to find a route (the grid of the manhattan pathfinder)
-	    step: 10,
-
-	    // the number of route finding loops that cause the router to abort
-	    // returns fallback route instead
-	    maximumLoops: 2000,
-
-	    // the number of decimal places to round floating point coordinates
-	    precision: 1,
-
-	    // maximum change of direction
-	    maxAllowedDirectionChange: 90,
-
-	    // should the router use perpendicular linkView option?
-	    // does not connect anchor of element but rather a point close-by that is orthogonal
-	    // this looks much better
-	    perpendicular: true,
-
-	    // should the source and/or target not be considered as obstacles?
-	    excludeEnds: [], // 'source', 'target'
-
-	    // should certain types of elements not be considered as obstacles?
-	    excludeTypes: ['basic.Text'],
-
-	    // possible starting directions from an element
-	    startDirections: ['top', 'right', 'bottom', 'left'],
-
-	    // possible ending directions to an element
-	    endDirections: ['top', 'right', 'bottom', 'left'],
-
-	    // specify the directions used above and what they mean
-	    directionMap: {
-	        top: { x: 0, y: -1 },
-	        right: { x: 1, y: 0 },
-	        bottom: { x: 0, y: 1 },
-	        left: { x: -1, y: 0 }
-	    },
-
-	    // cost of an orthogonal step
-	    cost: function() {
-
-	        return this.step;
-	    },
-
-	    // an array of directions to find next points on the route
-	    // different from start/end directions
-	    directions: function() {
-
-	        var step = this.step;
-	        var cost = this.cost();
-
-	        return [
-	            { offsetX: step, offsetY: 0, cost: cost },
-	            { offsetX: -step, offsetY: 0, cost: cost },
-	            { offsetX: 0, offsetY: step, cost: cost },
-	            { offsetX: 0, offsetY: -step, cost: cost }
-	        ];
-	    },
-
-	    // a penalty received for direction change
-	    penalties: function() {
-
-	        return {
-	            0: 0,
-	            45: this.step / 2,
-	            90: this.step / 2
-	        };
-	    },
-
-	    // padding applied on the element bounding boxes
-	    paddingBox: function() {
-
-	        var step = this.step;
-
-	        return {
-	            x: -step,
-	            y: -step,
-	            width: 2 * step,
-	            height: 2 * step
-	        };
-	    },
-
-	    // A function that determines whether a given point is an obstacle or not.
-	    // If used, the `padding`, `excludeEnds`and `excludeTypes` options are ignored.
-	    // (point: dia.Point) => boolean;
-	    isPointObstacle: null,
-
-	    // a router to use when the manhattan router fails
-	    // (one of the partial routes returns null)
-	    fallbackRouter: function(vertices, opt, linkView) {
-
-	        if (!isFunction(orthogonal)) {
-	            throw new Error('Manhattan requires the orthogonal router as default fallback.');
-	        }
-
-	        return orthogonal(vertices, assign({}, config$1, opt), linkView);
-	    },
-
-	    /* Deprecated */
-	    // a simple route used in situations when main routing method fails
-	    // (exceed max number of loop iterations, inaccessible)
-	    fallbackRoute: function(from, to, opt) {
-
-	        return null; // null result will trigger the fallbackRouter
-
-	        // left for reference:
-	        /*// Find an orthogonal route ignoring obstacles.
-
-	        var point = ((opt.previousDirAngle || 0) % 180 === 0)
-	                ? new g.Point(from.x, to.y)
-	                : new g.Point(to.x, from.y);
-
-	        return [point];*/
-	    },
-
-	    // if a function is provided, it's used to route the link while dragging an end
-	    // i.e. function(from, to, opt) { return []; }
-	    draggingRoute: null
-	};
-
-	// HELPER CLASSES //
-
-	// Map of obstacles
-	// Helper structure to identify whether a point lies inside an obstacle.
-	function ObstacleMap(opt) {
-
-	    this.map = {};
-	    this.options = opt;
-	    // tells how to divide the paper when creating the elements map
-	    this.mapGridSize = 100;
-	}
-
-	ObstacleMap.prototype.build = function(graph, link) {
-
-	    var opt = this.options;
-
-	    // source or target element could be excluded from set of obstacles
-	    var excludedEnds = toArray(opt.excludeEnds).reduce(function(res, item) {
-
-	        var end = link.get(item);
-	        if (end) {
-	            var cell = graph.getCell(end.id);
-	            if (cell) {
-	                res.push(cell);
-	            }
-	        }
-
-	        return res;
-	    }, []);
-
-	    // Exclude any embedded elements from the source and the target element.
-	    var excludedAncestors = [];
-
-	    var source = graph.getCell(link.get('source').id);
-	    if (source) {
-	        excludedAncestors = union(excludedAncestors, source.getAncestors().map(function(cell) {
-	            return cell.id;
-	        }));
-	    }
-
-	    var target = graph.getCell(link.get('target').id);
-	    if (target) {
-	        excludedAncestors = union(excludedAncestors, target.getAncestors().map(function(cell) {
-	            return cell.id;
-	        }));
-	    }
-
-	    // Builds a map of all elements for quicker obstacle queries (i.e. is a point contained
-	    // in any obstacle?) (a simplified grid search).
-	    // The paper is divided into smaller cells, where each holds information about which
-	    // elements belong to it. When we query whether a point lies inside an obstacle we
-	    // don't need to go through all obstacles, we check only those in a particular cell.
-	    var mapGridSize = this.mapGridSize;
-
-	    graph.getElements().reduce(function(map, element) {
-
-	        var isExcludedType = toArray(opt.excludeTypes).includes(element.get('type'));
-	        var isExcludedEnd = excludedEnds.find(function(excluded) {
-	            return excluded.id === element.id;
-	        });
-	        var isExcludedAncestor = excludedAncestors.includes(element.id);
-
-	        var isExcluded = isExcludedType || isExcludedEnd || isExcludedAncestor;
-	        if (!isExcluded) {
-	            var bbox = element.getBBox().moveAndExpand(opt.paddingBox);
-
-	            var origin = bbox.origin().snapToGrid(mapGridSize);
-	            var corner = bbox.corner().snapToGrid(mapGridSize);
-
-	            for (var x = origin.x; x <= corner.x; x += mapGridSize) {
-	                for (var y = origin.y; y <= corner.y; y += mapGridSize) {
-	                    var gridKey = x + '@' + y;
-	                    map[gridKey] = map[gridKey] || [];
-	                    map[gridKey].push(bbox);
-	                }
-	            }
-	        }
-
-	        return map;
-	    }, this.map);
-
-	    return this;
-	};
-
-	ObstacleMap.prototype.isPointAccessible = function(point) {
-
-	    var mapKey = point.clone().snapToGrid(this.mapGridSize).toString();
-
-	    return toArray(this.map[mapKey]).every(function(obstacle) {
-	        return !obstacle.containsPoint(point);
-	    });
-	};
-
-	// Sorted Set
-	// Set of items sorted by given value.
-	function SortedSet() {
-	    this.items = [];
-	    this.hash = {};
-	    this.values = {};
-	    this.OPEN = 1;
-	    this.CLOSE = 2;
-	}
-
-	SortedSet.prototype.add = function(item, value) {
-
-	    if (this.hash[item]) {
-	        // item removal
-	        this.items.splice(this.items.indexOf(item), 1);
-	    } else {
-	        this.hash[item] = this.OPEN;
-	    }
-
-	    this.values[item] = value;
-
-	    var index$1 = sortedIndex(this.items, item, function(i) {
-	        return this.values[i];
-	    }.bind(this));
-
-	    this.items.splice(index$1, 0, item);
-	};
-
-	SortedSet.prototype.remove = function(item) {
-
-	    this.hash[item] = this.CLOSE;
-	};
-
-	SortedSet.prototype.isOpen = function(item) {
-
-	    return this.hash[item] === this.OPEN;
-	};
-
-	SortedSet.prototype.isClose = function(item) {
-
-	    return this.hash[item] === this.CLOSE;
-	};
-
-	SortedSet.prototype.isEmpty = function() {
-
-	    return this.items.length === 0;
-	};
-
-	SortedSet.prototype.pop = function() {
-
-	    var item = this.items.shift();
-	    this.remove(item);
-	    return item;
-	};
-
-	// HELPERS //
-
-	// return source bbox
-	function getSourceBBox$1(linkView, opt) {
-
-	    // expand by padding box
-	    if (opt && opt.paddingBox) { return linkView.sourceBBox.clone().moveAndExpand(opt.paddingBox); }
-
-	    return linkView.sourceBBox.clone();
-	}
-
-	// return target bbox
-	function getTargetBBox$1(linkView, opt) {
-
-	    // expand by padding box
-	    if (opt && opt.paddingBox) { return linkView.targetBBox.clone().moveAndExpand(opt.paddingBox); }
-
-	    return linkView.targetBBox.clone();
-	}
-
-	// return source anchor
-	function getSourceAnchor$1(linkView, opt) {
-
-	    if (linkView.sourceAnchor) { return linkView.sourceAnchor; }
-
-	    // fallback: center of bbox
-	    var sourceBBox = getSourceBBox$1(linkView, opt);
-	    return sourceBBox.center();
-	}
-
-	// return target anchor
-	function getTargetAnchor$1(linkView, opt) {
-
-	    if (linkView.targetAnchor) { return linkView.targetAnchor; }
-
-	    // fallback: center of bbox
-	    var targetBBox = getTargetBBox$1(linkView, opt);
-	    return targetBBox.center(); // default
-	}
-
-	// returns a direction index from start point to end point
-	// corrects for grid deformation between start and end
-	function getDirectionAngle(start, end, numDirections, grid, opt) {
-
-	    var quadrant = 360 / numDirections;
-	    var angleTheta = start.theta(fixAngleEnd(start, end, grid, opt));
-	    var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
-	    return quadrant * Math.floor(normalizedAngle / quadrant);
-	}
-
-	// helper function for getDirectionAngle()
-	// corrects for grid deformation
-	// (if a point is one grid steps away from another in both dimensions,
-	// it is considered to be 45 degrees away, even if the real angle is different)
-	// this causes visible angle discrepancies if `opt.step` is much larger than `paper.gridSize`
-	function fixAngleEnd(start, end, grid, opt) {
-
-	    var step = opt.step;
-
-	    var diffX = end.x - start.x;
-	    var diffY = end.y - start.y;
-
-	    var gridStepsX = diffX / grid.x;
-	    var gridStepsY = diffY / grid.y;
-
-	    var distanceX = gridStepsX * step;
-	    var distanceY = gridStepsY * step;
-
-	    return new Point(start.x + distanceX, start.y + distanceY);
-	}
-
-	// return the change in direction between two direction angles
-	function getDirectionChange(angle1, angle2) {
-
-	    var directionChange = Math.abs(angle1 - angle2);
-	    return (directionChange > 180) ? (360 - directionChange) : directionChange;
-	}
-
-	// fix direction offsets according to current grid
-	function getGridOffsets(directions, grid, opt) {
-
-	    var step = opt.step;
-
-	    toArray(opt.directions).forEach(function(direction) {
-
-	        direction.gridOffsetX = (direction.offsetX / step) * grid.x;
-	        direction.gridOffsetY = (direction.offsetY / step) * grid.y;
-	    });
-	}
-
-	// get grid size in x and y dimensions, adapted to source and target positions
-	function getGrid(step, source, target) {
-
-	    return {
-	        source: source.clone(),
-	        x: getGridDimension(target.x - source.x, step),
-	        y: getGridDimension(target.y - source.y, step)
-	    };
-	}
-
-	// helper function for getGrid()
-	function getGridDimension(diff, step) {
-
-	    // return step if diff = 0
-	    if (!diff) { return step; }
-
-	    var absDiff = Math.abs(diff);
-	    var numSteps = Math.round(absDiff / step);
-
-	    // return absDiff if less than one step apart
-	    if (!numSteps) { return absDiff; }
-
-	    // otherwise, return corrected step
-	    var roundedDiff = numSteps * step;
-	    var remainder = absDiff - roundedDiff;
-	    var stepCorrection = remainder / numSteps;
-
-	    return step + stepCorrection;
-	}
-
-	// return a clone of point snapped to grid
-	function snapToGrid$1(point, grid) {
-
-	    var source = grid.source;
-
-	    var snappedX = snapToGrid(point.x - source.x, grid.x) + source.x;
-	    var snappedY = snapToGrid(point.y - source.y, grid.y) + source.y;
-
-	    return new Point(snappedX, snappedY);
-	}
-
-	// round the point to opt.precision
-	function round$4(point, precision) {
-
-	    return point.round(precision);
-	}
-
-	// snap to grid and then round the point
-	function align(point, grid, precision) {
-
-	    return round$4(snapToGrid$1(point.clone(), grid), precision);
-	}
-
-	// return a string representing the point
-	// string is rounded in both dimensions
-	function getKey(point) {
-
-	    return point.clone().toString();
-	}
-
-	// return a normalized vector from given point
-	// used to determine the direction of a difference of two points
-	function normalizePoint(point) {
-
-	    return new Point(
-	        point.x === 0 ? 0 : Math.abs(point.x) / point.x,
-	        point.y === 0 ? 0 : Math.abs(point.y) / point.y
-	    );
-	}
-
-	// PATHFINDING //
-
-	// reconstructs a route by concatenating points with their parents
-	function reconstructRoute(parents, points, tailPoint, from, to, grid, opt) {
-
-	    var route = [];
-
-	    var prevDiff = normalizePoint(to.difference(tailPoint));
-
-	    // tailPoint is assumed to be aligned already
-	    var currentKey = getKey(tailPoint);
-	    var parent = parents[currentKey];
-
-	    var point;
-	    while (parent) {
-
-	        // point is assumed to be aligned already
-	        point = points[currentKey];
-
-	        var diff = normalizePoint(point.difference(parent));
-	        if (!diff.equals(prevDiff)) {
-	            route.unshift(point);
-	            prevDiff = diff;
-	        }
-
-	        // parent is assumed to be aligned already
-	        currentKey = getKey(parent);
-	        parent = parents[currentKey];
-	    }
-
-	    // leadPoint is assumed to be aligned already
-	    var leadPoint = points[currentKey];
-
-	    var fromDiff = normalizePoint(leadPoint.difference(from));
-	    if (!fromDiff.equals(prevDiff)) {
-	        route.unshift(leadPoint);
-	    }
-
-	    return route;
-	}
-
-	// heuristic method to determine the distance between two points
-	function estimateCost(from, endPoints) {
-
-	    var min = Infinity;
-
-	    for (var i = 0, len = endPoints.length; i < len; i++) {
-	        var cost = from.manhattanDistance(endPoints[i]);
-	        if (cost < min) { min = cost; }
-	    }
-
-	    return min;
-	}
-
-	// find points around the bbox taking given directions into account
-	// lines are drawn from anchor in given directions, intersections recorded
-	// if anchor is outside bbox, only those directions that intersect get a rect point
-	// the anchor itself is returned as rect point (representing some directions)
-	// (since those directions are unobstructed by the bbox)
-	function getRectPoints(anchor, bbox, directionList, grid, opt) {
-
-	    var precision = opt.precision;
-	    var directionMap = opt.directionMap;
-
-	    var anchorCenterVector = anchor.difference(bbox.center());
-
-	    var keys = isObject$1(directionMap) ? Object.keys(directionMap) : [];
-	    var dirList = toArray(directionList);
-	    var rectPoints = keys.reduce(function(res, key) {
-
-	        if (dirList.includes(key)) {
-	            var direction = directionMap[key];
-
-	            // create a line that is guaranteed to intersect the bbox if bbox is in the direction
-	            // even if anchor lies outside of bbox
-	            var endpoint = new Point(
-	                anchor.x + direction.x * (Math.abs(anchorCenterVector.x) + bbox.width),
-	                anchor.y + direction.y * (Math.abs(anchorCenterVector.y) + bbox.height)
-	            );
-	            var intersectionLine = new Line(anchor, endpoint);
-
-	            // get the farther intersection, in case there are two
-	            // (that happens if anchor lies next to bbox)
-	            var intersections = intersectionLine.intersect(bbox) || [];
-	            var numIntersections = intersections.length;
-	            var farthestIntersectionDistance;
-	            var farthestIntersection = null;
-	            for (var i = 0; i < numIntersections; i++) {
-	                var currentIntersection = intersections[i];
-	                var distance = anchor.squaredDistance(currentIntersection);
-	                if ((farthestIntersectionDistance === undefined) || (distance > farthestIntersectionDistance)) {
-	                    farthestIntersectionDistance = distance;
-	                    farthestIntersection = currentIntersection;
-	                }
-	            }
-
-	            // if an intersection was found in this direction, it is our rectPoint
-	            if (farthestIntersection) {
-	                var point = align(farthestIntersection, grid, precision);
-
-	                // if the rectPoint lies inside the bbox, offset it by one more step
-	                if (bbox.containsPoint(point)) {
-	                    point = align(point.offset(direction.x * grid.x, direction.y * grid.y), grid, precision);
-	                }
-
-	                // then add the point to the result array
-	                // aligned
-	                res.push(point);
-	            }
-	        }
-
-	        return res;
-	    }, []);
-
-	    // if anchor lies outside of bbox, add it to the array of points
-	    if (!bbox.containsPoint(anchor)) {
-	        // aligned
-	        rectPoints.push(align(anchor, grid, precision));
-	    }
-
-	    return rectPoints;
-	}
-
-	// finds the route between two points/rectangles (`from`, `to`) implementing A* algorithm
-	// rectangles get rect points assigned by getRectPoints()
-	function findRoute(from, to, isPointObstacle, opt) {
-
-	    var precision = opt.precision;
-
-	    // Get grid for this route.
-
-	    var sourceAnchor, targetAnchor;
-
-	    if (from instanceof Rect) { // `from` is sourceBBox
-	        sourceAnchor = round$4(getSourceAnchor$1(this, opt).clone(), precision);
-	    } else {
-	        sourceAnchor = round$4(from.clone(), precision);
-	    }
-
-	    if (to instanceof Rect) { // `to` is targetBBox
-	        targetAnchor = round$4(getTargetAnchor$1(this, opt).clone(), precision);
-	    } else {
-	        targetAnchor = round$4(to.clone(), precision);
-	    }
-
-	    var grid = getGrid(opt.step, sourceAnchor, targetAnchor);
-
-	    // Get pathfinding points.
-
-	    var start, end; // aligned with grid by definition
-	    var startPoints, endPoints; // assumed to be aligned with grid already
-
-	    // set of points we start pathfinding from
-	    if (from instanceof Rect) { // `from` is sourceBBox
-	        start = sourceAnchor;
-	        startPoints = getRectPoints(start, from, opt.startDirections, grid, opt);
-
-	    } else {
-	        start = sourceAnchor;
-	        startPoints = [start];
-	    }
-
-	    // set of points we want the pathfinding to finish at
-	    if (to instanceof Rect) { // `to` is targetBBox
-	        end = targetAnchor;
-	        endPoints = getRectPoints(targetAnchor, to, opt.endDirections, grid, opt);
-
-	    } else {
-	        end = targetAnchor;
-	        endPoints = [end];
-	    }
-
-	    // take into account only accessible rect points (those not under obstacles)
-	    startPoints = startPoints.filter(function (p) { return !isPointObstacle(p); });
-	    endPoints = endPoints.filter(function (p) { return !isPointObstacle(p); });
-
-	    // Check that there is an accessible route point on both sides.
-	    // Otherwise, use fallbackRoute().
-	    if (startPoints.length > 0 && endPoints.length > 0) {
-
-	        // The set of tentative points to be evaluated, initially containing the start points.
-	        // Rounded to nearest integer for simplicity.
-	        var openSet = new SortedSet();
-	        // Keeps reference to actual points for given elements of the open set.
-	        var points = {};
-	        // Keeps reference to a point that is immediate predecessor of given element.
-	        var parents = {};
-	        // Cost from start to a point along best known path.
-	        var costs = {};
-
-	        for (var i = 0, n = startPoints.length; i < n; i++) {
-	            // startPoint is assumed to be aligned already
-	            var startPoint = startPoints[i];
-
-	            var key = getKey(startPoint);
-
-	            openSet.add(key, estimateCost(startPoint, endPoints));
-	            points[key] = startPoint;
-	            costs[key] = 0;
-	        }
-
-	        var previousRouteDirectionAngle = opt.previousDirectionAngle; // undefined for first route
-	        var isPathBeginning = (previousRouteDirectionAngle === undefined);
-
-	        // directions
-	        var direction, directionChange;
-	        var directions = opt.directions;
-	        getGridOffsets(directions, grid, opt);
-
-	        var numDirections = directions.length;
-
-	        var endPointsKeys = toArray(endPoints).reduce(function(res, endPoint) {
-	            // endPoint is assumed to be aligned already
-
-	            var key = getKey(endPoint);
-	            res.push(key);
-	            return res;
-	        }, []);
-
-	        // main route finding loop
-	        var loopsRemaining = opt.maximumLoops;
-	        while (!openSet.isEmpty() && loopsRemaining > 0) {
-
-	            // remove current from the open list
-	            var currentKey = openSet.pop();
-	            var currentPoint = points[currentKey];
-	            var currentParent = parents[currentKey];
-	            var currentCost = costs[currentKey];
-
-	            var isRouteBeginning = (currentParent === undefined); // undefined for route starts
-	            var isStart = currentPoint.equals(start); // (is source anchor or `from` point) = can leave in any direction
-
-	            var previousDirectionAngle;
-	            if (!isRouteBeginning) { previousDirectionAngle = getDirectionAngle(currentParent, currentPoint, numDirections, grid, opt); } // a vertex on the route
-	            else if (!isPathBeginning) { previousDirectionAngle = previousRouteDirectionAngle; } // beginning of route on the path
-	            else if (!isStart) { previousDirectionAngle = getDirectionAngle(start, currentPoint, numDirections, grid, opt); } // beginning of path, start rect point
-	            else { previousDirectionAngle = null; } // beginning of path, source anchor or `from` point
-
-	            // check if we reached any endpoint
-	            var samePoints = startPoints.length === endPoints.length;
-	            if (samePoints) {
-	                for (var j = 0; j < startPoints.length; j++) {
-	                    if (!startPoints[j].equals(endPoints[j])) {
-	                        samePoints = false;
-	                        break;
-	                    }
-	                }
-	            }
-	            var skipEndCheck = (isRouteBeginning && samePoints);
-	            if (!skipEndCheck && (endPointsKeys.indexOf(currentKey) >= 0)) {
-	                opt.previousDirectionAngle = previousDirectionAngle;
-	                return reconstructRoute(parents, points, currentPoint, start, end, grid, opt);
-	            }
-
-	            // go over all possible directions and find neighbors
-	            for (i = 0; i < numDirections; i++) {
-	                direction = directions[i];
-
-	                var directionAngle = direction.angle;
-	                directionChange = getDirectionChange(previousDirectionAngle, directionAngle);
-
-	                // if the direction changed rapidly, don't use this point
-	                // any direction is allowed for starting points
-	                if (!(isPathBeginning && isStart) && directionChange > opt.maxAllowedDirectionChange) { continue; }
-
-	                var neighborPoint = align(currentPoint.clone().offset(direction.gridOffsetX, direction.gridOffsetY), grid, precision);
-	                var neighborKey = getKey(neighborPoint);
-
-	                // Closed points from the openSet were already evaluated.
-	                if (openSet.isClose(neighborKey) || isPointObstacle(neighborPoint)) { continue; }
-
-	                // We can only enter end points at an acceptable angle.
-	                if (endPointsKeys.indexOf(neighborKey) >= 0) { // neighbor is an end point
-
-	                    var isNeighborEnd = neighborPoint.equals(end); // (is target anchor or `to` point) = can be entered in any direction
-
-	                    if (!isNeighborEnd) {
-	                        var endDirectionAngle = getDirectionAngle(neighborPoint, end, numDirections, grid, opt);
-	                        var endDirectionChange = getDirectionChange(directionAngle, endDirectionAngle);
-
-	                        if (endDirectionChange > opt.maxAllowedDirectionChange) { continue; }
-	                    }
-	                }
-
-	                // The current direction is ok.
-
-	                var neighborCost = direction.cost;
-	                var neighborPenalty = isStart ? 0 : opt.penalties[directionChange]; // no penalties for start point
-	                var costFromStart = currentCost + neighborCost + neighborPenalty;
-
-	                if (!openSet.isOpen(neighborKey) || (costFromStart < costs[neighborKey])) {
-	                    // neighbor point has not been processed yet
-	                    // or the cost of the path from start is lower than previously calculated
-
-	                    points[neighborKey] = neighborPoint;
-	                    parents[neighborKey] = currentPoint;
-	                    costs[neighborKey] = costFromStart;
-	                    openSet.add(neighborKey, costFromStart + estimateCost(neighborPoint, endPoints));
-	                }
-	            }
-
-	            loopsRemaining--;
-	        }
-	    }
-
-	    // no route found (`to` point either wasn't accessible or finding route took
-	    // way too much calculation)
-	    return opt.fallbackRoute.call(this, start, end, opt);
-	}
-
-	// resolve some of the options
-	function resolveOptions(opt) {
-
-	    opt.directions = result(opt, 'directions');
-	    opt.penalties = result(opt, 'penalties');
-	    opt.paddingBox = result(opt, 'paddingBox');
-	    opt.padding = result(opt, 'padding');
-
-	    if (opt.padding) {
-	        // if both provided, opt.padding wins over opt.paddingBox
-	        var sides = normalizeSides(opt.padding);
-	        opt.paddingBox = {
-	            x: -sides.left,
-	            y: -sides.top,
-	            width: sides.left + sides.right,
-	            height: sides.top + sides.bottom
-	        };
-	    }
-
-	    toArray(opt.directions).forEach(function(direction) {
-
-	        var point1 = new Point(0, 0);
-	        var point2 = new Point(direction.offsetX, direction.offsetY);
-
-	        direction.angle = normalizeAngle(point1.theta(point2));
-	    });
-	}
-
-	// initialization of the route finding
-	function router(vertices, opt, linkView) {
-
-	    resolveOptions(opt);
-
-	    // enable/disable linkView perpendicular option
-	    linkView.options.perpendicular = !!opt.perpendicular;
-
-	    var sourceBBox = getSourceBBox$1(linkView, opt);
-	    var targetBBox = getTargetBBox$1(linkView, opt);
-
-	    var sourceAnchor = getSourceAnchor$1(linkView, opt);
-	    //var targetAnchor = getTargetAnchor(linkView, opt);
-
-	    // pathfinding
-	    var isPointObstacle;
-	    if (typeof opt.isPointObstacle === 'function') {
-	        isPointObstacle = opt.isPointObstacle;
-	    } else {
-	        var map = new ObstacleMap(opt);
-	        map.build(linkView.paper.model, linkView.model);
-	        isPointObstacle = function (point) { return !map.isPointAccessible(point); };
-	    }
-
-	    var oldVertices = toArray(vertices).map(Point);
-	    var newVertices = [];
-	    var tailPoint = sourceAnchor; // the origin of first route's grid, does not need snapping
-
-	    // find a route by concatenating all partial routes (routes need to pass through vertices)
-	    // source -> vertex[1] -> ... -> vertex[n] -> target
-	    var to, from;
-
-	    for (var i = 0, len = oldVertices.length; i <= len; i++) {
-
-	        var partialRoute = null;
-
-	        from = to || sourceBBox;
-	        to = oldVertices[i];
-
-	        if (!to) {
-	            // this is the last iteration
-	            // we ran through all vertices in oldVertices
-	            // 'to' is not a vertex.
-
-	            to = targetBBox;
-
-	            // If the target is a point (i.e. it's not an element), we
-	            // should use dragging route instead of main routing method if it has been provided.
-	            var isEndingAtPoint = !linkView.model.get('source').id || !linkView.model.get('target').id;
-
-	            if (isEndingAtPoint && isFunction(opt.draggingRoute)) {
-	                // Make sure we are passing points only (not rects).
-	                var dragFrom = (from === sourceBBox) ? sourceAnchor : from;
-	                var dragTo = to.origin();
-
-	                partialRoute = opt.draggingRoute.call(linkView, dragFrom, dragTo, opt);
-	            }
-	        }
-
-	        // if partial route has not been calculated yet use the main routing method to find one
-	        partialRoute = partialRoute || findRoute.call(linkView, from, to, isPointObstacle, opt);
-
-	        if (partialRoute === null) { // the partial route cannot be found
-	            return opt.fallbackRouter(vertices, opt, linkView);
-	        }
-
-	        var leadPoint = partialRoute[0];
-
-	        // remove the first point if the previous partial route had the same point as last
-	        if (leadPoint && leadPoint.equals(tailPoint)) { partialRoute.shift(); }
-
-	        // save tailPoint for next iteration
-	        tailPoint = partialRoute[partialRoute.length - 1] || tailPoint;
-
-	        Array.prototype.push.apply(newVertices, partialRoute);
-	    }
-
-	    return newVertices;
-	}
-
-	// public function
-	var manhattan = function(vertices, opt, linkView) {
-	    return router(vertices, assign({}, config$1, opt), linkView);
-	};
-
-	var config$2 = {
-
-	    maxAllowedDirectionChange: 45,
-
-	    // cost of a diagonal step
-	    diagonalCost: function() {
-
-	        var step = this.step;
-	        return Math.ceil(Math.sqrt(step * step << 1));
-	    },
-
-	    // an array of directions to find next points on the route
-	    // different from start/end directions
-	    directions: function() {
-
-	        var step = this.step;
-	        var cost = this.cost();
-	        var diagonalCost = this.diagonalCost();
-
-	        return [
-	            { offsetX: step, offsetY: 0, cost: cost },
-	            { offsetX: step, offsetY: step, cost: diagonalCost },
-	            { offsetX: 0, offsetY: step, cost: cost },
-	            { offsetX: -step, offsetY: step, cost: diagonalCost },
-	            { offsetX: -step, offsetY: 0, cost: cost },
-	            { offsetX: -step, offsetY: -step, cost: diagonalCost },
-	            { offsetX: 0, offsetY: -step, cost: cost },
-	            { offsetX: step, offsetY: -step, cost: diagonalCost }
-	        ];
-	    },
-
-	    // a simple route used in situations when main routing method fails
-	    // (exceed max number of loop iterations, inaccessible)
-	    fallbackRoute: function(from, to, opt) {
-
-	        // Find a route which breaks by 45 degrees ignoring all obstacles.
-
-	        var theta = from.theta(to);
-
-	        var route = [];
-
-	        var a = { x: to.x, y: from.y };
-	        var b = { x: from.x, y: to.y };
-
-	        if (theta % 180 > 90) {
-	            var t = a;
-	            a = b;
-	            b = t;
-	        }
-
-	        var p1 = (theta % 90) < 45 ? a : b;
-	        var l1 = new Line(from, p1);
-
-	        var alpha = 90 * Math.ceil(theta / 90);
-
-	        var p2 = Point.fromPolar(l1.squaredLength(), toRad(alpha + 135), p1);
-	        var l2 = new Line(to, p2);
-
-	        var intersectionPoint = l1.intersection(l2);
-	        var point = intersectionPoint ? intersectionPoint : to;
-
-	        var directionFrom = intersectionPoint ? point : from;
-
-	        var quadrant = 360 / opt.directions.length;
-	        var angleTheta = directionFrom.theta(to);
-	        var normalizedAngle = normalizeAngle(angleTheta + (quadrant / 2));
-	        var directionAngle = quadrant * Math.floor(normalizedAngle / quadrant);
-
-	        opt.previousDirectionAngle = directionAngle;
-
-	        if (point) { route.push(point.round()); }
-	        route.push(to);
-
-	        return route;
-	    }
-	};
-
-	// public function
-	var metro = function(vertices, opt, linkView) {
-
-	    if (!isFunction(manhattan)) {
-	        throw new Error('Metro requires the manhattan router.');
-	    }
-
-	    return manhattan(vertices, assign({}, config$2, opt), linkView);
-	};
-
-
-
-	var routers = ({
-		normal: normal,
-		oneSide: oneSide,
-		orthogonal: orthogonal,
-		manhattan: manhattan,
-		metro: metro
-	});
-
-	// default size of jump if not specified in options
-	var JUMP_SIZE = 5;
-
-	// available jump types
-	// first one taken as default
-	var JUMP_TYPES = ['arc', 'gap', 'cubic'];
-
-	// default radius
-	var RADIUS = 0;
-
-	// takes care of math. error for case when jump is too close to end of line
-	var CLOSE_PROXIMITY_PADDING = 1;
-
-	// list of connector types not to jump over.
-	var IGNORED_CONNECTORS = ['smooth'];
-
-	// internal constants for round segment
-	var _13 = 1 / 3;
-	var _23 = 2 / 3;
-
-	/**
-	 * Transform start/end and route into series of lines
-	 * @param {g.point} sourcePoint start point
-	 * @param {g.point} targetPoint end point
-	 * @param {g.point[]} route optional list of route
-	 * @return {g.line[]} [description]
-	 */
-	function createLines(sourcePoint, targetPoint, route) {
-	    // make a flattened array of all points
-	    var points = [].concat(sourcePoint, route, targetPoint);
-	    return points.reduce(function(resultLines, point, idx) {
-	        // if there is a next point, make a line with it
-	        var nextPoint = points[idx + 1];
-	        if (nextPoint != null) {
-	            resultLines[idx] = line(point, nextPoint);
-	        }
-	        return resultLines;
-	    }, []);
-	}
-
-	function setupUpdating(jumpOverLinkView) {
-	    var paper = jumpOverLinkView.paper;
-	    var updateList = paper._jumpOverUpdateList;
-
-	    // first time setup for this paper
-	    if (updateList == null) {
-	        updateList = paper._jumpOverUpdateList = [];
-	        var graph = paper.model;
-	        graph.on('batch:stop', function() {
-	            if (this.hasActiveBatch()) { return; }
-	            updateJumpOver(paper);
-	        });
-	        graph.on('reset', function() {
-	            updateList = paper._jumpOverUpdateList = [];
-	        });
-	    }
-
-	    // add this link to a list so it can be updated when some other link is updated
-	    if (updateList.indexOf(jumpOverLinkView) < 0) {
-	        updateList.push(jumpOverLinkView);
-
-	        // watch for change of connector type or removal of link itself
-	        // to remove the link from a list of jump over connectors
-	        jumpOverLinkView.listenToOnce(jumpOverLinkView.model, 'change:connector remove', function() {
-	            updateList.splice(updateList.indexOf(jumpOverLinkView), 1);
-	        });
-	    }
-	}
-
-	/**
-	 * Handler for a batch:stop event to force
-	 * update of all registered links with jump over connector
-	 * @param {object} batchEvent optional object with info about batch
-	 */
-	function updateJumpOver(paper) {
-	    var updateList = paper._jumpOverUpdateList;
-	    for (var i = 0; i < updateList.length; i++) {
-	        var linkView = updateList[i];
-	        var updateFlag = linkView.getFlag(linkView.constructor.Flags.CONNECTOR);
-	        linkView.requestUpdate(updateFlag);
-	    }
-	}
-
-	/**
-	 * Utility function to collect all intersection points of a single
-	 * line against group of other lines.
-	 * @param {g.line} line where to find points
-	 * @param {g.line[]} crossCheckLines lines to cross
-	 * @return {g.point[]} list of intersection points
-	 */
-	function findLineIntersections(line, crossCheckLines) {
-	    return toArray(crossCheckLines).reduce(function(res, crossCheckLine) {
-	        var intersection = line.intersection(crossCheckLine);
-	        if (intersection) {
-	            res.push(intersection);
-	        }
-	        return res;
-	    }, []);
-	}
-
-	/**
-	 * Sorting function for list of points by their distance.
-	 * @param {g.point} p1 first point
-	 * @param {g.point} p2 second point
-	 * @return {number} squared distance between points
-	 */
-	function sortPoints(p1, p2) {
-	    return line(p1, p2).squaredLength();
-	}
-
-	/**
-	 * Split input line into multiple based on intersection points.
-	 * @param {g.line} line input line to split
-	 * @param {g.point[]} intersections points where to split the line
-	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
-	 * @return {g.line[]} list of lines being split
-	 */
-	function createJumps(line$1, intersections, jumpSize) {
-	    return intersections.reduce(function(resultLines, point$1, idx) {
-	        // skipping points that were merged with the previous line
-	        // to make bigger arc over multiple lines that are close to each other
-	        if (point$1.skip === true) {
-	            return resultLines;
-	        }
-
-	        // always grab the last line from buffer and modify it
-	        var lastLine = resultLines.pop() || line$1;
-
-	        // calculate start and end of jump by moving by a given size of jump
-	        var jumpStart = point(point$1).move(lastLine.start, -(jumpSize));
-	        var jumpEnd = point(point$1).move(lastLine.start, +(jumpSize));
-
-	        // now try to look at the next intersection point
-	        var nextPoint = intersections[idx + 1];
-	        if (nextPoint != null) {
-	            var distance = jumpEnd.distance(nextPoint);
-	            if (distance <= jumpSize) {
-	                // next point is close enough, move the jump end by this
-	                // difference and mark the next point to be skipped
-	                jumpEnd = nextPoint.move(lastLine.start, distance);
-	                nextPoint.skip = true;
-	            }
-	        } else {
-	            // this block is inside of `else` as an optimization so the distance is
-	            // not calculated when we know there are no other intersection points
-	            var endDistance = jumpStart.distance(lastLine.end);
-	            // if the end is too close to possible jump, draw remaining line instead of a jump
-	            if (endDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
-	                resultLines.push(lastLine);
-	                return resultLines;
-	            }
-	        }
-
-	        var startDistance = jumpEnd.distance(lastLine.start);
-	        if (startDistance < jumpSize * 2 + CLOSE_PROXIMITY_PADDING) {
-	            // if the start of line is too close to jump, draw that line instead of a jump
-	            resultLines.push(lastLine);
-	            return resultLines;
-	        }
-
-	        // finally create a jump line
-	        var jumpLine = line(jumpStart, jumpEnd);
-	        // it's just simple line but with a `isJump` property
-	        jumpLine.isJump = true;
-
-	        resultLines.push(
-	            line(lastLine.start, jumpStart),
-	            jumpLine,
-	            line(jumpEnd, lastLine.end)
-	        );
-	        return resultLines;
-	    }, []);
-	}
-
-	/**
-	 * Assemble `D` attribute of a SVG path by iterating given lines.
-	 * @param {g.line[]} lines source lines to use
-	 * @param {number} jumpSize the size of jump arc (length empty spot on a line)
-	 * @param {number} radius the radius
-	 * @return {string}
-	 */
-	function buildPath(lines, jumpSize, jumpType, radius) {
-
-	    var path = new Path();
-	    var segment;
-
-	    // first move to the start of a first line
-	    segment = Path.createSegment('M', lines[0].start);
-	    path.appendSegment(segment);
-
-	    // make a paths from lines
-	    toArray(lines).forEach(function(line, index) {
-
-	        if (line.isJump) {
-	            var angle, diff;
-
-	            var control1, control2;
-
-	            if (jumpType === 'arc') { // approximates semicircle with 2 curves
-	                angle = -90;
-	                // determine rotation of arc based on difference between points
-	                diff = line.start.difference(line.end);
-	                // make sure the arc always points up (or right)
-	                var xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
-	                if (xAxisRotate) { angle += 180; }
-
-	                var midpoint = line.midpoint();
-	                var centerLine = new Line(midpoint, line.end).rotate(midpoint, angle);
-
-	                var halfLine;
-
-	                // first half
-	                halfLine = new Line(line.start, midpoint);
-
-	                control1 = halfLine.pointAt(2 / 3).rotate(line.start, angle);
-	                control2 = centerLine.pointAt(1 / 3).rotate(centerLine.end, -angle);
-
-	                segment = Path.createSegment('C', control1, control2, centerLine.end);
-	                path.appendSegment(segment);
-
-	                // second half
-	                halfLine = new Line(midpoint, line.end);
-
-	                control1 = centerLine.pointAt(1 / 3).rotate(centerLine.end, angle);
-	                control2 = halfLine.pointAt(1 / 3).rotate(line.end, -angle);
-
-	                segment = Path.createSegment('C', control1, control2, line.end);
-	                path.appendSegment(segment);
-
-	            } else if (jumpType === 'gap') {
-	                segment = Path.createSegment('M', line.end);
-	                path.appendSegment(segment);
-
-	            } else if (jumpType === 'cubic') { // approximates semicircle with 1 curve
-	                angle = line.start.theta(line.end);
-
-	                var xOffset = jumpSize * 0.6;
-	                var yOffset = jumpSize * 1.35;
-
-	                // determine rotation of arc based on difference between points
-	                diff = line.start.difference(line.end);
-	                // make sure the arc always points up (or right)
-	                xAxisRotate = Number((diff.x < 0) || (diff.x === 0 && diff.y < 0));
-	                if (xAxisRotate) { yOffset *= -1; }
-
-	                control1 = Point(line.start.x + xOffset, line.start.y + yOffset).rotate(line.start, angle);
-	                control2 = Point(line.end.x - xOffset, line.end.y + yOffset).rotate(line.end, angle);
-
-	                segment = Path.createSegment('C', control1, control2, line.end);
-	                path.appendSegment(segment);
-	            }
-
-	        } else {
-	            var nextLine = lines[index + 1];
-	            if (radius == 0 || !nextLine || nextLine.isJump) {
-	                segment = Path.createSegment('L', line.end);
-	                path.appendSegment(segment);
-	            } else {
-	                buildRoundedSegment(radius, path, line.end, line.start, nextLine.end);
-	            }
-	        }
-	    });
-
-	    return path;
-	}
-
-	function buildRoundedSegment(offset, path, curr, prev, next) {
-	    var prevDistance = curr.distance(prev) / 2;
-	    var nextDistance = curr.distance(next) / 2;
-
-	    var startMove = -Math.min(offset, prevDistance);
-	    var endMove = -Math.min(offset, nextDistance);
-
-	    var roundedStart = curr.clone().move(prev, startMove).round();
-	    var roundedEnd = curr.clone().move(next, endMove).round();
-
-	    var control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
-	    var control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
-
-	    var segment;
-	    segment = Path.createSegment('L', roundedStart);
-	    path.appendSegment(segment);
-
-	    segment = Path.createSegment('C', control1, control2, roundedEnd);
-	    path.appendSegment(segment);
-	}
-
-	/**
-	 * Actual connector function that will be run on every update.
-	 * @param {g.point} sourcePoint start point of this link
-	 * @param {g.point} targetPoint end point of this link
-	 * @param {g.point[]} route of this link
-	 * @param {object} opt options
-	 * @property {number} size optional size of a jump arc
-	 * @return {string} created `D` attribute of SVG path
-	 */
-	var jumpover = function(sourcePoint, targetPoint, route, opt) { // eslint-disable-line max-params
-
-	    setupUpdating(this);
-
-	    var raw = opt.raw;
-	    var jumpSize = opt.size || JUMP_SIZE;
-	    var jumpType = opt.jump && ('' + opt.jump).toLowerCase();
-	    var radius = opt.radius || RADIUS;
-	    var ignoreConnectors = opt.ignoreConnectors || IGNORED_CONNECTORS;
-
-	    // grab the first jump type as a default if specified one is invalid
-	    if (JUMP_TYPES.indexOf(jumpType) === -1) {
-	        jumpType = JUMP_TYPES[0];
-	    }
-
-	    var paper = this.paper;
-	    var graph = paper.model;
-	    var allLinks = graph.getLinks();
-
-	    // there is just one link, draw it directly
-	    if (allLinks.length === 1) {
-	        return buildPath(
-	            createLines(sourcePoint, targetPoint, route),
-	            jumpSize, jumpType, radius
-	        );
-	    }
-
-	    var thisModel = this.model;
-	    var thisIndex = allLinks.indexOf(thisModel);
-	    var defaultConnector = paper.options.defaultConnector || {};
-
-	    // not all links are meant to be jumped over.
-	    var links = allLinks.filter(function(link, idx) {
-
-	        var connector = link.get('connector') || defaultConnector;
-
-	        // avoid jumping over links with connector type listed in `ignored connectors`.
-	        if (toArray(ignoreConnectors).includes(connector.name)) {
-	            return false;
-	        }
-	        // filter out links that are above this one and  have the same connector type
-	        // otherwise there would double hoops for each intersection
-	        if (idx > thisIndex) {
-	            return connector.name !== 'jumpover';
-	        }
-	        return true;
-	    });
-
-	    // find views for all links
-	    var linkViews = links.map(function(link) {
-	        return paper.findViewByModel(link);
-	    });
-
-	    // create lines for this link
-	    var thisLines = createLines(
-	        sourcePoint,
-	        targetPoint,
-	        route
-	    );
-
-	    // create lines for all other links
-	    var linkLines = linkViews.map(function(linkView) {
-	        if (linkView == null) {
-	            return [];
-	        }
-	        if (linkView === this) {
-	            return thisLines;
-	        }
-	        return createLines(
-	            linkView.sourcePoint,
-	            linkView.targetPoint,
-	            linkView.route
-	        );
-	    }, this);
-
-	    // transform lines for this link by splitting with jump lines at
-	    // points of intersection with other links
-	    var jumpingLines = thisLines.reduce(function(resultLines, thisLine) {
-	        // iterate all links and grab the intersections with this line
-	        // these are then sorted by distance so the line can be split more easily
-
-	        var intersections = links.reduce(function(res, link, i) {
-	            // don't intersection with itself
-	            if (link !== thisModel) {
-
-	                var lineIntersections = findLineIntersections(thisLine, linkLines[i]);
-	                res.push.apply(res, lineIntersections);
-	            }
-	            return res;
-	        }, []).sort(function(a, b) {
-	            return sortPoints(thisLine.start, a) - sortPoints(thisLine.start, b);
-	        });
-
-	        if (intersections.length > 0) {
-	            // split the line based on found intersection points
-	            resultLines.push.apply(resultLines, createJumps(thisLine, intersections, jumpSize));
-	        } else {
-	            // without any intersection the line goes uninterrupted
-	            resultLines.push(thisLine);
-	        }
-	        return resultLines;
-	    }, []);
-
-	    var path = buildPath(jumpingLines, jumpSize, jumpType, radius);
-	    return (raw) ? path : path.serialize();
-	};
-
-	var normal$1 = function(sourcePoint, targetPoint, route, opt) {
-
-	    var raw = opt && opt.raw;
-	    var points = [sourcePoint].concat(route).concat([targetPoint]);
-
-	    var polyline = new Polyline(points);
-	    var path = new Path(polyline);
-
-	    return (raw) ? path : path.serialize();
-	};
-
-	var rounded = function(sourcePoint, targetPoint, route, opt) {
-
-	    opt || (opt = {});
-
-	    var offset = opt.radius || 10;
-	    var raw = opt.raw;
-	    var path = new Path();
-	    var segment;
-
-	    segment = Path.createSegment('M', sourcePoint);
-	    path.appendSegment(segment);
-
-	    var _13 = 1 / 3;
-	    var _23 = 2 / 3;
-
-	    var curr;
-	    var prev, next;
-	    var prevDistance, nextDistance;
-	    var startMove, endMove;
-	    var roundedStart, roundedEnd;
-	    var control1, control2;
-
-	    for (var index = 0, n = route.length; index < n; index++) {
-
-	        curr = new Point(route[index]);
-
-	        prev = route[index - 1] || sourcePoint;
-	        next = route[index + 1] || targetPoint;
-
-	        prevDistance = nextDistance || (curr.distance(prev) / 2);
-	        nextDistance = curr.distance(next) / 2;
-
-	        startMove = -Math.min(offset, prevDistance);
-	        endMove = -Math.min(offset, nextDistance);
-
-	        roundedStart = curr.clone().move(prev, startMove).round();
-	        roundedEnd = curr.clone().move(next, endMove).round();
-
-	        control1 = new Point((_13 * roundedStart.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedStart.y));
-	        control2 = new Point((_13 * roundedEnd.x) + (_23 * curr.x), (_23 * curr.y) + (_13 * roundedEnd.y));
-
-	        segment = Path.createSegment('L', roundedStart);
-	        path.appendSegment(segment);
-
-	        segment = Path.createSegment('C', control1, control2, roundedEnd);
-	        path.appendSegment(segment);
-	    }
-
-	    segment = Path.createSegment('L', targetPoint);
-	    path.appendSegment(segment);
-
-	    return (raw) ? path : path.serialize();
-	};
-
-	var smooth = function(sourcePoint, targetPoint, route, opt) {
-
-	    var raw = opt && opt.raw;
-	    var path;
-
-	    if (route && route.length !== 0) {
-
-	        var points = [sourcePoint].concat(route).concat([targetPoint]);
-	        var curves = Curve.throughPoints(points);
-
-	        path = new Path(curves);
-
-	    } else {
-	        // if we have no route, use a default cubic bezier curve
-	        // cubic bezier requires two control points
-	        // the control points have `x` midway between source and target
-	        // this produces an S-like curve
-
-	        path = new Path();
-
-	        var segment;
-
-	        segment = Path.createSegment('M', sourcePoint);
-	        path.appendSegment(segment);
-
-	        if ((Math.abs(sourcePoint.x - targetPoint.x)) >= (Math.abs(sourcePoint.y - targetPoint.y))) {
-	            var controlPointX = (sourcePoint.x + targetPoint.x) / 2;
-
-	            segment = Path.createSegment('C', controlPointX, sourcePoint.y, controlPointX, targetPoint.y, targetPoint.x, targetPoint.y);
-	            path.appendSegment(segment);
-
-	        } else {
-	            var controlPointY = (sourcePoint.y + targetPoint.y) / 2;
-
-	            segment = Path.createSegment('C', sourcePoint.x, controlPointY, targetPoint.x, controlPointY, targetPoint.x, targetPoint.y);
-	            path.appendSegment(segment);
-
-	        }
-	    }
-
-	    return (raw) ? path : path.serialize();
-	};
-
-
-
-	var connectors = ({
-		jumpover: jumpover,
-		normal: normal$1,
-		rounded: rounded,
-		smooth: smooth
-	});
 
 	var Flags$1 = {
 	    RENDER: 'RENDER',
@@ -21470,6 +25243,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    render: function() {
 
 	        this.vel.empty();
+	        this.unmountLabels();
 	        this._V = {};
 	        this.renderMarkup();
 	        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
@@ -21600,9 +25374,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // there is no label container in the markup but some labels are defined
 	            // add a <g class="labels" /> container
 	            vLabels = cache.labels = V('g').addClass('labels');
+	            if (this.options.labelsLayer) {
+	                vLabels.addClass(addClassNamePrefix(result(this, 'className')));
+	                vLabels.attr('model-id', model.id);
+	            }
 	        }
-
-	        var container = vLabels.node;
 
 	        for (var i = 0; i < labelsCount; i++) {
 
@@ -21628,7 +25404,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 
 	            labelNode.setAttribute('label-idx', i); // assign label-idx
-	            container.appendChild(labelNode);
+	            vLabels.append(labelNode);
 	            labelCache[i] = labelNode; // cache node for `updateLabels()` so it can just update label node positions
 
 	            var rootSelector = this.selector;
@@ -21637,14 +25413,51 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
 	        }
-
-	        if (!container.parentNode) {
-	            this.el.appendChild(container);
+	        if (!vLabels.parent()) {
+	            this.mountLabels();
 	        }
 
 	        this.updateLabels();
 
 	        return this;
+	    },
+
+	    mountLabels: function() {
+	        var ref = this;
+	        var el = ref.el;
+	        var paper = ref.paper;
+	        var model = ref.model;
+	        var _V = ref._V;
+	        var options = ref.options;
+	        var vLabels = _V.labels;
+	        if (!vLabels || !model.hasLabels()) { return; }
+	        var node = vLabels.node;
+	        if (options.labelsLayer) {
+	            paper.getLayerView(options.labelsLayer).insertSortedNode(node, model.get('z'));
+	        } else {
+	            if (node.parentNode !== el) {
+	                el.appendChild(node);
+	            }
+	        }
+	    },
+
+	    unmountLabels: function() {
+	        var ref = this;
+	        var options = ref.options;
+	        var _V = ref._V;
+	        var vLabels = _V.labels;
+	        if (vLabels && options.labelsLayer) {
+	            vLabels.remove();
+	        }
+	    },
+
+	    onMount: function() {
+	        this.mountLabels();
+	    },
+
+	    unmount: function() {
+	        CellView.prototype.unmount.apply(this, arguments);
+	        this.unmountLabels();
 	    },
 
 	    findLabelNode: function(labelIndex, selector) {
@@ -23293,11 +27106,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    _snapArrowhead: function(evt, x, y) {
 
+	        var ref = this;
+	        var paper = ref.paper;
+	        var ref$1 = paper.options;
+	        var snapLinks = ref$1.snapLinks;
+	        var connectionStrategy = ref$1.connectionStrategy;
 	        var data = this.eventData(evt);
 	        // checking view in close area of the pointer
 
-	        var r = this.paper.options.snapLinks.radius || 50;
-	        var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+	        var r = snapLinks.radius || 50;
+	        var viewsInArea = paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
 	        var prevClosestView = data.closestView || null;
 	        var prevClosestMagnet = data.closestMagnet || null;
@@ -23307,7 +27125,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var minDistance = Number.MAX_VALUE;
 	        var pointer = new Point(x, y);
-	        var paper = this.paper;
 
 	        viewsInArea.forEach(function(view) {
 	            var candidates = [];
@@ -23363,14 +27180,33 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (closestView) {
+	            var prevEnd = data.prevEnd;
+	            var prevX = data.prevX;
+	            var prevY = data.prevY;
+	            data.prevX = x;
+	            data.prevY = y;
 
-	            if (!newClosestMagnet) { return; }
+	            if (!newClosestMagnet)  {
+	                if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
+	                    // the magnet has not changed and the link's end does not depend on the x and y
+	                    return;
+	                }
+	            }
 
-	            closestView.highlight(magnetProxy, {
-	                connecting: true,
-	                snapping: true
-	            });
 	            end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+	            if (!newClosestMagnet && isEqual(prevEnd, end)) {
+	                // the source/target json has not changed
+	                return;
+	            }
+
+	            data.prevEnd = end;
+
+	            if (newClosestMagnet) {
+	                closestView.highlight(magnetProxy, {
+	                    connecting: true,
+	                    snapping: true
+	                });
+	            }
 
 	        } else {
 
@@ -23626,7 +27462,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        return data;
+	    },
+
+	    onRemove: function() {
+	        CellView.prototype.onRemove.apply(this, arguments);
+	        this.unmountLabels();
 	    }
+
 	}, {
 
 	    Flags: Flags$1,
@@ -23669,826 +27511,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
-	var stroke = HighlighterView.extend({
-
-	    tagName: 'path',
-	    className: 'highlight-stroke',
-	    attributes: {
-	        'pointer-events': 'none',
-	        'vector-effect': 'non-scaling-stroke',
-	        'fill': 'none'
-	    },
-
-	    options: {
-	        padding: 3,
-	        rx: 0,
-	        ry: 0,
-	        useFirstSubpath: false,
-	        attrs: {
-	            'stroke-width': 3,
-	            'stroke': '#FEB663'
-	        }
-	    },
-
-	    getPathData: function getPathData(cellView, node) {
-	        var ref = this;
-	        var options = ref.options;
-	        var useFirstSubpath = options.useFirstSubpath;
-	        var d;
-	        try {
-	            var vNode = V(node);
-	            d = vNode.convertToPathData().trim();
-	            if (vNode.tagName() === 'PATH' && useFirstSubpath) {
-	                var secondSubpathIndex = d.search(/.M/i) + 1;
-	                if (secondSubpathIndex > 0) {
-	                    d = d.substr(0, secondSubpathIndex);
-	                }
-	            }
-	        } catch (error) {
-	            // Failed to get path data from magnet element.
-	            // Draw a rectangle around the node instead.
-	            var nodeBBox = cellView.getNodeBoundingRect(node);
-	            d = V.rectToPath(assign({}, options, nodeBBox.toJSON()));
-	        }
-	        return d;
-	    },
-
-	    highlightConnection: function highlightConnection(cellView) {
-	        this.vel.attr('d', cellView.getSerializedConnection());
-	    },
-
-	    highlightNode: function highlightNode(cellView, node) {
-	        var ref = this;
-	        var vel = ref.vel;
-	        var options = ref.options;
-	        var padding = options.padding;
-	        var layer = options.layer;
-	        var highlightMatrix = cellView.getNodeMatrix(node);
-	        // Add padding to the highlight element.
-	        if (padding) {
-	            if (!layer && node === cellView.el) {
-	                // If the highlighter is appended to the cellView
-	                // and we measure the size of the cellView wrapping group
-	                // it's necessary to remove the highlighter first
-	                vel.remove();
-	            }
-	            var nodeBBox = cellView.getNodeBoundingRect(node);
-	            var cx = nodeBBox.x + (nodeBBox.width / 2);
-	            var cy = nodeBBox.y + (nodeBBox.height / 2);
-	            nodeBBox = V.transformRect(nodeBBox, highlightMatrix);
-	            var width = Math.max(nodeBBox.width, 1);
-	            var height = Math.max(nodeBBox.height, 1);
-	            var sx = (width + padding) / width;
-	            var sy = (height + padding) / height;
-	            var paddingMatrix = V.createSVGMatrix({
-	                a: sx,
-	                b: 0,
-	                c: 0,
-	                d: sy,
-	                e: cx - sx * cx,
-	                f: cy - sy * cy
-	            });
-	            highlightMatrix = highlightMatrix.multiply(paddingMatrix);
-	        }
-	        vel.attr({
-	            'd': this.getPathData(cellView, node),
-	            'transform': V.matrixToTransformString(highlightMatrix)
-	        });
-	    },
-
-	    highlight: function highlight(cellView, node) {
-	        var ref = this;
-	        var vel = ref.vel;
-	        var options = ref.options;
-	        vel.attr(options.attrs);
-	        if (cellView.isNodeConnection(node)) {
-	            this.highlightConnection(cellView);
-	        } else {
-	            this.highlightNode(cellView, node);
-	        }
-	    }
-
-	});
-
-	var MASK_CLIP = 20;
-
-	function forEachDescendant(vel, fn) {
-	    var descendants = vel.children();
-	    while (descendants.length > 0) {
-	        var descendant = descendants.shift();
-	        if (fn(descendant)) {
-	            descendants.push.apply(descendants, descendant.children());
-	        }
-	    }
-	}
-
-	var mask = HighlighterView.extend({
-
-	    tagName: 'rect',
-	    className: 'highlight-mask',
-	    attributes: {
-	        'pointer-events': 'none'
-	    },
-
-	    options: {
-	        padding: 3,
-	        maskClip: MASK_CLIP,
-	        deep: false,
-	        attrs: {
-	            'stroke': '#FEB663',
-	            'stroke-width': 3,
-	            'stroke-linecap': 'butt',
-	            'stroke-linejoin': 'miter',
-	        }
-	    },
-
-	    VISIBLE: 'white',
-	    INVISIBLE: 'black',
-
-	    MASK_ROOT_ATTRIBUTE_BLACKLIST: [
-	        'marker-start',
-	        'marker-end',
-	        'marker-mid',
-	        'transform',
-	        'stroke-dasharray'
-	    ],
-
-	    MASK_CHILD_ATTRIBUTE_BLACKLIST: [
-	        'stroke',
-	        'fill',
-	        'stroke-width',
-	        'stroke-opacity',
-	        'stroke-dasharray',
-	        'fill-opacity',
-	        'marker-start',
-	        'marker-end',
-	        'marker-mid'
-	    ],
-
-	    // TODO: change the list to a function callback
-	    MASK_REPLACE_TAGS: [
-	        'FOREIGNOBJECT',
-	        'IMAGE',
-	        'USE',
-	        'TEXT',
-	        'TSPAN',
-	        'TEXTPATH'
-	    ],
-
-	    // TODO: change the list to a function callback
-	    MASK_REMOVE_TAGS: [
-	        'TEXT',
-	        'TSPAN',
-	        'TEXTPATH'
-	    ],
-
-	    transformMaskChild: function transformMaskChild(cellView, childEl) {
-	        var ref = this;
-	        var MASK_CHILD_ATTRIBUTE_BLACKLIST = ref.MASK_CHILD_ATTRIBUTE_BLACKLIST;
-	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
-	        var MASK_REMOVE_TAGS = ref.MASK_REMOVE_TAGS;
-	        var childTagName = childEl.tagName();
-	        // Do not include the element in the mask's image
-	        if (!V.isSVGGraphicsElement(childEl) || MASK_REMOVE_TAGS.includes(childTagName)) {
-	            childEl.remove();
-	            return false;
-	        }
-	        // Replace the element with a rectangle
-	        if (MASK_REPLACE_TAGS.includes(childTagName)) {
-	            // Note: clone() method does not change the children ids
-	            var originalChild = cellView.vel.findOne(("#" + (childEl.id)));
-	            if (originalChild) {
-	                var originalNode = originalChild.node;
-	                var childBBox = cellView.getNodeBoundingRect(originalNode);
-	                if (cellView.model.isElement()) {
-	                    childBBox = V.transformRect(childBBox, cellView.getNodeMatrix(originalNode));
-	                }
-	                var replacement = V('rect', childBBox.toJSON());
-	                var ref$1 = childBBox.center();
-	                var ox = ref$1.x;
-	                var oy = ref$1.y;
-	                var ref$2 = originalChild.rotate();
-	                var angle = ref$2.angle;
-	                var cx = ref$2.cx; if ( cx === void 0 ) cx = ox;
-	                var cy = ref$2.cy; if ( cy === void 0 ) cy = oy;
-	                if (angle) { replacement.rotate(angle, cx, cy); }
-	                // Note: it's not important to keep the same sibling index since all subnodes are filled
-	                childEl.parent().append(replacement);
-	            }
-	            childEl.remove();
-	            return false;
-	        }
-	        // Keep the element, but clean it from certain attributes
-	        MASK_CHILD_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
-	            if (attrName === 'fill' && childEl.attr('fill') === 'none') { return; }
-	            childEl.removeAttr(attrName);
-	        });
-	        return true;
-	    },
-
-	    transformMaskRoot: function transformMaskRoot(_cellView, rootEl) {
-	        var ref = this;
-	        var MASK_ROOT_ATTRIBUTE_BLACKLIST = ref.MASK_ROOT_ATTRIBUTE_BLACKLIST;
-	        MASK_ROOT_ATTRIBUTE_BLACKLIST.forEach(function (attrName) {
-	            rootEl.removeAttr(attrName);
-	        });
-	    },
-
-	    getMaskShape: function getMaskShape(cellView, vel) {
-	        var this$1 = this;
-
-	        var ref = this;
-	        var options = ref.options;
-	        var MASK_REPLACE_TAGS = ref.MASK_REPLACE_TAGS;
-	        var deep = options.deep;
-	        var tagName = vel.tagName();
-	        var maskRoot;
-	        if (tagName === 'G') {
-	            if (!deep) { return null; }
-	            maskRoot = vel.clone();
-	            forEachDescendant(maskRoot, function (maskChild) { return this$1.transformMaskChild(cellView, maskChild); });
-	        } else {
-	            if (MASK_REPLACE_TAGS.includes(tagName)) { return null; }
-	            maskRoot = vel.clone();
-	        }
-	        this.transformMaskRoot(cellView, maskRoot);
-	        return maskRoot;
-	    },
-
-	    getMaskId: function getMaskId() {
-	        return ("highlight-mask-" + (this.cid));
-	    },
-
-	    getMask: function getMask(cellView, vNode) {
-
-	        var ref = this;
-	        var VISIBLE = ref.VISIBLE;
-	        var INVISIBLE = ref.INVISIBLE;
-	        var options = ref.options;
-	        var padding = options.padding;
-	        var attrs = options.attrs;
-
-	        var strokeWidth = ('stroke-width' in attrs) ? attrs['stroke-width'] : 1;
-	        var hasNodeFill = vNode.attr('fill') !== 'none';
-	        var magnetStrokeWidth = parseFloat(vNode.attr('stroke-width'));
-	        if (isNaN(magnetStrokeWidth)) { magnetStrokeWidth = 1; }
-	        // stroke of the invisible shape
-	        var minStrokeWidth = magnetStrokeWidth + padding * 2;
-	        // stroke of the visible shape
-	        var maxStrokeWidth = minStrokeWidth + strokeWidth * 2;
-	        var maskEl = this.getMaskShape(cellView, vNode);
-	        if (!maskEl) {
-	            var nodeBBox = cellView.getNodeBoundingRect(vNode.node);
-	            // Make sure the rect is visible
-	            nodeBBox.inflate(nodeBBox.width ? 0 : 0.5, nodeBBox.height ? 0 : 0.5);
-	            maskEl =  V('rect', nodeBBox.toJSON());
-	        }
-	        maskEl.attr(attrs);
-	        return V('mask', {
-	            'id': this.getMaskId()
-	        }).append([
-	            maskEl.clone().attr({
-	                'fill': hasNodeFill ? VISIBLE : 'none',
-	                'stroke': VISIBLE,
-	                'stroke-width': maxStrokeWidth
-	            }),
-	            maskEl.clone().attr({
-	                'fill': hasNodeFill ? INVISIBLE : 'none',
-	                'stroke': INVISIBLE,
-	                'stroke-width': minStrokeWidth
-	            })
-	        ]);
-	    },
-
-	    removeMask: function removeMask(paper) {
-	        var maskNode = paper.svg.getElementById(this.getMaskId());
-	        if (maskNode) {
-	            paper.defs.removeChild(maskNode);
-	        }
-	    },
-
-	    addMask: function addMask(paper, maskEl) {
-	        paper.defs.appendChild(maskEl.node);
-	    },
-
-	    highlight: function highlight(cellView, node) {
-	        var ref = this;
-	        var options = ref.options;
-	        var vel = ref.vel;
-	        var padding = options.padding;
-	        var attrs = options.attrs;
-	        var maskClip = options.maskClip; if ( maskClip === void 0 ) maskClip = MASK_CLIP;
-	        var layer = options.layer;
-	        var color = ('stroke' in attrs) ? attrs['stroke'] : '#000000';
-	        if (!layer && node === cellView.el) {
-	            // If the highlighter is appended to the cellView
-	            // and we measure the size of the cellView wrapping group
-	            // it's necessary to remove the highlighter first
-	            vel.remove();
-	        }
-	        var highlighterBBox = cellView.getNodeBoundingRect(node).inflate(padding + maskClip);
-	        var maskEl = this.getMask(cellView, V(node));
-	        this.addMask(cellView.paper, maskEl);
-	        vel.attr(highlighterBBox.toJSON());
-	        vel.attr({
-	            'transform': V.matrixToTransformString(cellView.getNodeMatrix(node)),
-	            'mask': ("url(#" + (maskEl.id) + ")"),
-	            'fill': color
-	        });
-	    },
-
-	    unhighlight: function unhighlight(cellView) {
-	        this.removeMask(cellView.paper);
-	    }
-
-	});
-
-	var opacity = HighlighterView.extend({
-
-	    UPDATABLE: false,
-	    MOUNTABLE: false,
-
-	    opacityClassName: addClassNamePrefix('highlight-opacity'),
-
-	    highlight: function(_cellView, node) {
-	        V(node).addClass(this.opacityClassName);
-	    },
-
-	    unhighlight: function(_cellView, node) {
-	        V(node).removeClass(this.opacityClassName);
-	    }
-
-	});
-
-	var className = addClassNamePrefix('highlighted');
-
-	var addClass = HighlighterView.extend({
-
-	    UPDATABLE: false,
-	    MOUNTABLE: false,
-
-	    options: {
-	        className: className
-	    },
-
-	    highlight: function(_cellView, node) {
-	        V(node).addClass(this.options.className);
-	    },
-
-	    unhighlight: function(_cellView, node) {
-	        V(node).removeClass(this.options.className);
-	    }
-
-	}, {
-	    // Backwards Compatibility
-	    className: className
-	});
-
-
-
-	var highlighters = ({
-		stroke: stroke,
-		mask: mask,
-		opacity: opacity,
-		addClass: addClass
-	});
-
-	function connectionRatio(view, _magnet, _refPoint, opt) {
-
-	    var ratio = ('ratio' in opt) ? opt.ratio : 0.5;
-	    return view.getPointAtRatio(ratio);
-	}
-
-	function connectionLength(view, _magnet, _refPoint, opt) {
-
-	    var length = ('length' in opt) ? opt.length : 20;
-	    return view.getPointAtLength(length);
-	}
-
-	function _connectionPerpendicular(view, _magnet, refPoint, opt) {
-
-	    var OFFSET = 1e6;
-	    var path = view.getConnection();
-	    var segmentSubdivisions = view.getConnectionSubdivisions();
-	    var verticalLine = new Line(refPoint.clone().offset(0, OFFSET), refPoint.clone().offset(0, -OFFSET));
-	    var horizontalLine = new Line(refPoint.clone().offset(OFFSET, 0), refPoint.clone().offset(-OFFSET, 0));
-	    var verticalIntersections = verticalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
-	    var horizontalIntersections = horizontalLine.intersect(path, { segmentSubdivisions: segmentSubdivisions });
-	    var intersections = [];
-	    if (verticalIntersections) { Array.prototype.push.apply(intersections, verticalIntersections); }
-	    if (horizontalIntersections) { Array.prototype.push.apply(intersections, horizontalIntersections); }
-	    if (intersections.length > 0) { return refPoint.chooseClosest(intersections); }
-	    if ('fallbackAt' in opt) {
-	        return getPointAtLink(view, opt.fallbackAt);
-	    }
-	    return connectionClosest(view, _magnet, refPoint, opt);
-	}
-
-	function _connectionClosest(view, _magnet, refPoint, _opt) {
-
-	    var closestPoint = view.getClosestPoint(refPoint);
-	    if (!closestPoint) { return new Point(); }
-	    return closestPoint;
-	}
-
-	function resolveRef(fn) {
-	    return function(view, magnet, ref, opt) {
-	        if (ref instanceof Element) {
-	            var refView = this.paper.findView(ref);
-	            var refPoint;
-	            if (refView) {
-	                if (refView.isNodeConnection(ref)) {
-	                    var distance = ('fixedAt' in opt) ? opt.fixedAt : '50%';
-	                    refPoint = getPointAtLink(refView, distance);
-	                } else {
-	                    refPoint = refView.getNodeBBox(ref).center();
-	                }
-	            } else {
-	                // Something went wrong
-	                refPoint = new Point();
-	            }
-	            return fn.call(this, view, magnet, refPoint, opt);
-	        }
-	        return fn.apply(this, arguments);
-	    };
-	}
-
-	function getPointAtLink(view, value) {
-	    var parsedValue = parseFloat(value);
-	    if (isPercentage(value)) {
-	        return view.getPointAtRatio(parsedValue / 100);
-	    } else {
-	        return view.getPointAtLength(parsedValue);
-	    }
-	}
-	var connectionPerpendicular = resolveRef(_connectionPerpendicular);
-	var connectionClosest = resolveRef(_connectionClosest);
-
-	var linkAnchors = ({
-		resolveRef: resolveRef,
-		connectionRatio: connectionRatio,
-		connectionLength: connectionLength,
-		connectionPerpendicular: connectionPerpendicular,
-		connectionClosest: connectionClosest
-	});
-
-	function offsetPoint(p1, p2, offset) {
-	    if (isPlainObject(offset)) {
-	        var x = offset.x;
-	        var y = offset.y;
-	        if (isFinite(y)) {
-	            var line =  new Line(p2, p1);
-	            var ref = line.parallel(y);
-	            var start = ref.start;
-	            var end = ref.end;
-	            p2 = start;
-	            p1 = end;
-	        }
-	        offset = x;
-	    }
-	    if (!isFinite(offset)) { return p1; }
-	    var length = p1.distance(p2);
-	    if (offset === 0 && length > 0) { return p1; }
-	    return p1.move(p2, -Math.min(offset, length - 1));
-	}
-
-	function stroke$1(magnet) {
-
-	    var stroke = magnet.getAttribute('stroke-width');
-	    if (stroke === null) { return 0; }
-	    return parseFloat(stroke) || 0;
-	}
-
-	function alignLine(line, type, offset) {
-	    if ( offset === void 0 ) offset = 0;
-
-	    var coordinate, a, b, direction;
-	    var start = line.start;
-	    var end = line.end;
-	    switch (type) {
-	        case 'left':
-	            coordinate = 'x';
-	            a = end;
-	            b = start;
-	            direction = -1;
-	            break;
-	        case 'right':
-	            coordinate = 'x';
-	            a = start;
-	            b = end;
-	            direction = 1;
-	            break;
-	        case 'top':
-	            coordinate = 'y';
-	            a = end;
-	            b = start;
-	            direction = -1;
-	            break;
-	        case 'bottom':
-	            coordinate = 'y';
-	            a = start;
-	            b = end;
-	            direction = 1;
-	            break;
-	        default:
-	            return;
-	    }
-	    if (start[coordinate] < end[coordinate]) {
-	        a[coordinate] = b[coordinate];
-	    } else {
-	        b[coordinate] = a[coordinate];
-	    }
-	    if (isFinite(offset)) {
-	        a[coordinate] += direction * offset;
-	        b[coordinate] += direction * offset;
-	    }
-	}
-
-	// Connection Points
-
-	function anchorConnectionPoint(line, _view, _magnet, opt) {
-	    var offset = opt.offset;
-	    var alignOffset = opt.alignOffset;
-	    var align = opt.align;
-	    if (align) { alignLine(line, align, alignOffset); }
-	    return offsetPoint(line.end, line.start, offset);
-	}
-
-	function bboxIntersection(line, view, magnet, opt) {
-
-	    var bbox = view.getNodeBBox(magnet);
-	    if (opt.stroke) { bbox.inflate(stroke$1(magnet) / 2); }
-	    var intersections = line.intersect(bbox);
-	    var cp = (intersections)
-	        ? line.start.chooseClosest(intersections)
-	        : line.end;
-	    return offsetPoint(cp, line.start, opt.offset);
-	}
-
-	function rectangleIntersection(line, view, magnet, opt) {
-
-	    var angle = view.model.angle();
-	    if (angle === 0) {
-	        return bboxIntersection(line, view, magnet, opt);
-	    }
-
-	    var bboxWORotation = view.getNodeUnrotatedBBox(magnet);
-	    if (opt.stroke) { bboxWORotation.inflate(stroke$1(magnet) / 2); }
-	    var center = bboxWORotation.center();
-	    var lineWORotation = line.clone().rotate(center, angle);
-	    var intersections = lineWORotation.setLength(1e6).intersect(bboxWORotation);
-	    var cp = (intersections)
-	        ? lineWORotation.start.chooseClosest(intersections).rotate(center, -angle)
-	        : line.end;
-	    return offsetPoint(cp, line.start, opt.offset);
-	}
-
-	function findShapeNode(magnet) {
-	    if (!magnet) { return null; }
-	    var node = magnet;
-	    do {
-	        var tagName = node.tagName;
-	        if (typeof tagName !== 'string') { return null; }
-	        tagName = tagName.toUpperCase();
-	        if (tagName === 'G') {
-	            node = node.firstElementChild;
-	        } else if (tagName === 'TITLE') {
-	            node = node.nextElementSibling;
-	        } else { break; }
-	    } while (node);
-	    return node;
-	}
-
-	var BNDR_SUBDIVISIONS = 'segmentSubdivisons';
-	var BNDR_SHAPE_BBOX = 'shapeBBox';
-
-	function boundaryIntersection(line, view, magnet, opt) {
-
-	    var node, intersection;
-	    var selector = opt.selector;
-	    var anchor = line.end;
-
-	    if (typeof selector === 'string') {
-	        node = view.findBySelector(selector)[0];
-	    } else if (Array.isArray(selector)) {
-	        node = getByPath(magnet, selector);
-	    } else {
-	        node = findShapeNode(magnet);
-	    }
-
-	    if (!V.isSVGGraphicsElement(node)) {
-	        if (node === magnet || !V.isSVGGraphicsElement(magnet)) { return anchor; }
-	        node = magnet;
-	    }
-
-	    var localShape = view.getNodeShape(node);
-	    var magnetMatrix = view.getNodeMatrix(node);
-	    var translateMatrix = view.getRootTranslateMatrix();
-	    var rotateMatrix = view.getRootRotateMatrix();
-	    var targetMatrix = translateMatrix.multiply(rotateMatrix).multiply(magnetMatrix);
-	    var localMatrix = targetMatrix.inverse();
-	    var localLine = V.transformLine(line, localMatrix);
-	    var localRef = localLine.start.clone();
-	    var data = view.getNodeData(node);
-
-	    if (opt.insideout === false) {
-	        if (!data[BNDR_SHAPE_BBOX]) { data[BNDR_SHAPE_BBOX] = localShape.bbox(); }
-	        var localBBox = data[BNDR_SHAPE_BBOX];
-	        if (localBBox.containsPoint(localRef)) { return anchor; }
-	    }
-
-	    // Caching segment subdivisions for paths
-	    var pathOpt;
-	    if (localShape instanceof Path) {
-	        var precision = opt.precision || 2;
-	        if (!data[BNDR_SUBDIVISIONS]) { data[BNDR_SUBDIVISIONS] = localShape.getSegmentSubdivisions({ precision: precision }); }
-	        pathOpt = {
-	            precision: precision,
-	            segmentSubdivisions: data[BNDR_SUBDIVISIONS]
-	        };
-	    }
-
-	    if (opt.extrapolate === true) { localLine.setLength(1e6); }
-
-	    intersection = localLine.intersect(localShape, pathOpt);
-	    if (intersection) {
-	        // More than one intersection
-	        if (V.isArray(intersection)) { intersection = localRef.chooseClosest(intersection); }
-	    } else if (opt.sticky === true) {
-	        // No intersection, find the closest point instead
-	        if (localShape instanceof Rect) {
-	            intersection = localShape.pointNearestToPoint(localRef);
-	        } else if (localShape instanceof Ellipse) {
-	            intersection = localShape.intersectionWithLineFromCenterToPoint(localRef);
-	        } else {
-	            intersection = localShape.closestPoint(localRef, pathOpt);
-	        }
-	    }
-
-	    var cp = (intersection) ? V.transformPoint(intersection, targetMatrix) : anchor;
-	    var cpOffset = opt.offset || 0;
-	    if (opt.stroke) { cpOffset += stroke$1(node) / 2; }
-
-	    return offsetPoint(cp, line.start, cpOffset);
-	}
-
-	var anchor = anchorConnectionPoint;
-	var bbox = bboxIntersection;
-	var rectangle = rectangleIntersection;
-	var boundary = boundaryIntersection;
-
-	var connectionPoints = ({
-		anchor: anchor,
-		bbox: bbox,
-		rectangle: rectangle,
-		boundary: boundary
-	});
-
-	function bboxWrapper(method) {
-
-	    return function(view, magnet, ref, opt) {
-
-	        var rotate = !!opt.rotate;
-	        var bbox = (rotate) ? view.getNodeUnrotatedBBox(magnet) : view.getNodeBBox(magnet);
-	        var anchor = bbox[method]();
-
-	        var dx = opt.dx;
-	        if (dx) {
-	            var dxPercentage = isPercentage(dx);
-	            dx = parseFloat(dx);
-	            if (isFinite(dx)) {
-	                if (dxPercentage) {
-	                    dx /= 100;
-	                    dx *= bbox.width;
-	                }
-	                anchor.x += dx;
-	            }
-	        }
-
-	        var dy = opt.dy;
-	        if (dy) {
-	            var dyPercentage = isPercentage(dy);
-	            dy = parseFloat(dy);
-	            if (isFinite(dy)) {
-	                if (dyPercentage) {
-	                    dy /= 100;
-	                    dy *= bbox.height;
-	                }
-	                anchor.y += dy;
-	            }
-	        }
-
-	        return (rotate) ? anchor.rotate(view.model.getBBox().center(), -view.model.angle()) : anchor;
-	    };
-	}
-
-	function _perpendicular(view, magnet, refPoint, opt) {
-
-	    var angle = view.model.angle();
-	    var bbox = view.getNodeBBox(magnet);
-	    var anchor = bbox.center();
-	    var topLeft = bbox.origin();
-	    var bottomRight = bbox.corner();
-
-	    var padding = opt.padding;
-	    if (!isFinite(padding)) { padding = 0; }
-
-	    if ((topLeft.y + padding) <= refPoint.y && refPoint.y <= (bottomRight.y - padding)) {
-	        var dy = (refPoint.y - anchor.y);
-	        anchor.x += (angle === 0 || angle === 180) ? 0 : dy * 1 / Math.tan(toRad(angle));
-	        anchor.y += dy;
-	    } else if ((topLeft.x + padding) <= refPoint.x && refPoint.x <= (bottomRight.x - padding)) {
-	        var dx = (refPoint.x - anchor.x);
-	        anchor.y += (angle === 90 || angle === 270) ? 0 : dx * Math.tan(toRad(angle));
-	        anchor.x += dx;
-	    }
-
-	    return anchor;
-	}
-
-	function _midSide(view, magnet, refPoint, opt) {
-
-	    var rotate = !!opt.rotate;
-	    var bbox, angle, center;
-	    if (rotate) {
-	        bbox = view.getNodeUnrotatedBBox(magnet);
-	        center = view.model.getBBox().center();
-	        angle = view.model.angle();
-	    } else {
-	        bbox = view.getNodeBBox(magnet);
-	    }
-
-	    var padding = opt.padding;
-	    if (isFinite(padding)) { bbox.inflate(padding); }
-
-	    if (rotate) { refPoint.rotate(center, angle); }
-
-	    var side = bbox.sideNearestToPoint(refPoint);
-	    var anchor;
-	    switch (side) {
-	        case 'left':
-	            anchor = bbox.leftMiddle();
-	            break;
-	        case 'right':
-	            anchor = bbox.rightMiddle();
-	            break;
-	        case 'top':
-	            anchor = bbox.topMiddle();
-	            break;
-	        case 'bottom':
-	            anchor = bbox.bottomMiddle();
-	            break;
-	    }
-
-	    return (rotate) ? anchor.rotate(center, -angle) : anchor;
-	}
-
-	// Can find anchor from model, when there is no selector or the link end
-	// is connected to a port
-	function _modelCenter(view, _magnet, _refPoint, opt, endType) {
-	    return view.model.getPointFromConnectedLink(this.model, endType).offset(opt.dx, opt.dy);
-	}
-
-	//joint.anchors
-	var center = bboxWrapper('center');
-	var top$2 = bboxWrapper('topMiddle');
-	var bottom$2 = bboxWrapper('bottomMiddle');
-	var left$2 = bboxWrapper('leftMiddle');
-	var right$2 = bboxWrapper('rightMiddle');
-	var topLeft = bboxWrapper('origin');
-	var topRight = bboxWrapper('topRight');
-	var bottomLeft = bboxWrapper('bottomLeft');
-	var bottomRight = bboxWrapper('corner');
-	var perpendicular = resolveRef(_perpendicular);
-	var midSide = resolveRef(_midSide);
-	var modelCenter = _modelCenter;
-
-	var anchors = ({
-		center: center,
-		top: top$2,
-		bottom: bottom$2,
-		left: left$2,
-		right: right$2,
-		topLeft: topLeft,
-		topRight: topRight,
-		bottomLeft: bottomLeft,
-		bottomRight: bottomRight,
-		perpendicular: perpendicular,
-		midSide: midSide,
-		modelCenter: modelCenter
-	});
-
 	var sortingTypes = {
 	    NONE: 'sorting-none',
 	    APPROX: 'sorting-approximate',
 	    EXACT: 'sorting-exact'
-	};
-
-	var LayersNames = {
-	    CELLS: 'cells',
-	    BACK: 'back',
-	    FRONT: 'front',
-	    TOOLS: 'tools'
 	};
 
 	var MOUNT_BATCH_SIZE = 1000;
@@ -24517,6 +27543,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    };
 
+	var defaultLayers = [{
+	    name: LayersNames.BACK,
+	}, {
+	    name: LayersNames.CELLS,
+	}, {
+	    name: LayersNames.LABELS,
+	}, {
+	    name: LayersNames.FRONT
+	}, {
+	    name: LayersNames.TOOLS
+	}];
+
 	var Paper = View.extend({
 
 	    className: 'paper',
@@ -24541,6 +27579,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        linkView: LinkView,
 	        snapLabels: false, // false, true
 	        snapLinks: false, // false, true, { radius: value }
+
+	        // Should the link labels be rendered into its own layer?
+	        // `false` - the labels are part of the links
+	        // `true` - the labels are appended to LayersName.LABELS
+	        // [LayersName] - the labels are appended to the layer specified
+	        labelsLayer: false,
 
 	        // When set to FALSE, an element may not have more than 1 link with the same source and target element.
 	        multiLinks: true,
@@ -24675,7 +27719,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // 1. the view was just inserted (added to the graph and rendered)
 	            // 2. the view was just mounted (added back to the paper by viewport function)
 	            // 3. the change was marked as `isolate`.
-	            if ((flag & view.FLAG_INSERT) || opt.mounting || opt.isolate) { return; }
+	            // 4. the view model was just removed from the graph
+	            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || opt.mounting || opt.isolate) { return; }
 	            paper.requestConnectedLinksUpdate(view, priority, opt);
 	        },
 
@@ -24716,8 +27761,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'mouseout': 'mouseout',
 	        'mouseenter': 'mouseenter',
 	        'mouseleave': 'mouseleave',
-	        'mousewheel': 'mousewheel',
-	        'DOMMouseScroll': 'mousewheel',
+	        'wheel': 'mousewheel',
 	        'mouseenter .joint-cell': 'mouseenter',
 	        'mouseleave .joint-cell': 'mouseleave',
 	        'mouseenter .joint-tools': 'mouseenter',
@@ -24750,7 +27794,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    $grid: null,
 	    $document: null,
 
-	    _zPivots: null,
 	    // For storing the current transformation matrix (CTM) of the paper's viewport.
 	    _viewportMatrix: null,
 	    // For verifying whether the CTM is up-to-date. The viewport transform attribute
@@ -24771,27 +27814,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var options = ref.options;
 	        var el = ref.el;
 	        if (!options.cellViewNamespace) {
-	            /* global joint: true */
+	            /* eslint-disable no-undef */
 	            options.cellViewNamespace = typeof joint !== 'undefined' && has$2(joint, 'shapes') ? joint.shapes : null;
-	            /* global joint: false */
+	            /* eslint-enable no-undef */
 	        }
 
 	        var model = this.model = options.model || new Graph;
 
 	        // Layers (SVGGroups)
-	        // TODO: layer classes
 	        this._layers = {};
 
 	        this.setGrid(options.drawGrid);
 	        this.cloneOptions();
 	        this.render();
-	        this.setDimensions();
+	        this._setDimensions();
 	        this.startListening();
 
 	        // Hash of all cell views.
 	        this._views = {};
-	        // z-index pivots
-	        this._zPivots = {};
+
 	        // Reference to the paper owner document
 	        this.$document = $(el.ownerDocument);
 	        // Render existing cells in the graph
@@ -24853,7 +27894,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    onGraphReset: function(collection, opt) {
-	        this.removeZPivots();
+	        this.resetLayers();
 	        this.resetViews(collection.models, opt);
 	    },
 
@@ -24893,11 +27934,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var interactive = options.interactive;
 
 	        // Default cellView namespace for ES5
-	        /* global joint: true */
+	        /* eslint-disable no-undef */
 	        if (!cellViewNamespace && typeof joint !== 'undefined' && has$2(joint, 'shapes')) {
 	            options.cellViewNamespace = joint.shapes;
 	        }
-	        /* global joint: false */
+	        /* eslint-enable no-undef */
 
 	        // Here if a function was provided, we can not clone it, as this would result in loosing the function.
 	        // If the default is used, the cloning is necessary in order to prevent modifying the options on prototype.
@@ -24955,67 +27996,47 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }, {
 	                tagName: 'g',
 	                className: addClassNamePrefix('layers'),
-	                selector: 'layers',
-	                children: [{
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('back-layer'),
-	                    selector: 'back',
-	                }, {
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('cells-layer viewport'),
-	                    selector: 'cells',
-	                }, {
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('front-layer'),
-	                    selector: 'front',
-	                }, {
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('tools-layer'),
-	                    selector: 'tools'
-	                }]
+	                selector: 'layers'
 	            }]
 	        }];
 	    },
 
-	    getLayerNode: function getLayerNode(layerName) {
+	    hasLayerView: function hasLayerView(layerName) {
+	        return  (layerName in this._layers);
+	    },
+
+	    getLayerView: function getLayerView(layerName) {
 	        var ref = this;
 	        var _layers = ref._layers;
 	        if (layerName in _layers) { return _layers[layerName]; }
 	        throw new Error(("dia.Paper: Unknown layer \"" + layerName + "\""));
 	    },
 
-	    render: function() {
-	        var obj;
+	    getLayerNode: function getLayerNode(layerName) {
+	        return this.getLayerView(layerName).el;
+	    },
 
+	    render: function() {
 
 	        this.renderChildren();
 	        var ref = this;
 	        var childNodes = ref.childNodes;
 	        var options = ref.options;
 	        var svg = childNodes.svg;
-	        var cells = childNodes.cells;
 	        var defs = childNodes.defs;
-	        var tools = childNodes.tools;
 	        var layers = childNodes.layers;
-	        var back = childNodes.back;
-	        var front = childNodes.front;
 	        var background = childNodes.background;
 	        var grid = childNodes.grid;
 
 	        this.svg = svg;
 	        this.defs = defs;
-	        this.tools = tools;
-	        this.cells = cells;
 	        this.layers = layers;
 	        this.$background = $(background);
 	        this.$grid = $(grid);
 
-	        assign(this._layers, ( obj = {}, obj[LayersNames.BACK] = back, obj[LayersNames.CELLS] = cells, obj[LayersNames.FRONT] = front, obj[LayersNames.TOOLS] = tools, obj ));
+	        this.renderLayers();
 
 	        V.ensureId(svg);
-
-	        // backwards compatibility
-	        this.viewport = cells;
 
 	        if (options.background) {
 	            this.drawBackground(options.background);
@@ -25026,6 +28047,49 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        return this;
+	    },
+
+	    renderLayers: function(layers) {
+	        var this$1 = this;
+	        if ( layers === void 0 ) layers = defaultLayers;
+
+	        this.removeLayers();
+	        // TODO: Layers to be read from the graph `layers` attribute
+	        layers.forEach(function (ref) {
+	            var name = ref.name;
+	            var sorted = ref.sorted;
+
+	            var layerView = new PaperLayer({ name: name });
+	            this$1.layers.appendChild(layerView.el);
+	            this$1._layers[name] = layerView;
+	        });
+	        // Throws an exception if doesn't exist
+	        var cellsLayerView = this.getLayerView(LayersNames.CELLS);
+	        var toolsLayerView = this.getLayerView(LayersNames.TOOLS);
+	        var labelsLayerView = this.getLayerView(LayersNames.LABELS);
+	        // backwards compatibility
+	        this.tools = toolsLayerView.el;
+	        this.cells = this.viewport = cellsLayerView.el;
+	        // user-select: none;
+	        cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+	        labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+	    },
+
+	    removeLayers: function() {
+	        var ref = this;
+	        var _layers = ref._layers;
+	        Object.keys(_layers, function (name) {
+	            _layers[name].remove();
+	            delete _layers[name];
+	        });
+	    },
+
+	    resetLayers: function() {
+	        var ref = this;
+	        var _layers = ref._layers;
+	        Object.keys(_layers, function (name) {
+	            _layers[name].removePivots();
+	        });
 	    },
 
 	    update: function() {
@@ -25312,6 +28376,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    stats.priority = data.priority;
 	                    this.notifyAfterRender(stats, opt);
 	                    data.processed = 0;
+	                    data.priority = MIN_PRIORITY;
 	                    updates.count = 0;
 	                } else {
 	                    data.processed = processed;
@@ -25370,7 +28435,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (typeof postponeViewFn !== 'function') { postponeViewFn = null; }
 	        var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
 	        main: for (var i = 0, n = priorityIndexes.length; i < n; i++) {
-	            var priority = priorityIndexes[i];
+	            var priority = +priorityIndexes[i];
 	            var priorityUpdates = priorities[priority];
 	            for (var cid in priorityUpdates) {
 	                if (updateCount >= batchSize) {
@@ -25582,6 +28647,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        this.freeze();
 	        //clean up all DOM elements/views to prevent memory leaks
+	        this.removeLayers();
 	        this.removeViews();
 	    },
 
@@ -25596,49 +28662,73 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    setDimensions: function(width, height) {
+	        var ref = this;
+	        var options = ref.options;
+	        var currentWidth = options.width;
+	        var currentHeight = options.height;
+	        var w = (width === undefined) ? currentWidth : width;
+	        var h = (height === undefined) ? currentHeight : height;
+	        if (currentWidth === w && currentHeight === h) { return; }
+	        options.width = w;
+	        options.height = h;
+	        this._setDimensions();
+	        var computedSize = this.getComputedSize();
+	        this.trigger('resize', computedSize.width, computedSize.height);
+	    },
 
-	        var options = this.options;
-	        var w = (width === undefined) ? options.width : width;
-	        var h = (height === undefined) ? options.height : height;
-	        this.options.width = w;
-	        this.options.height = h;
+	    _setDimensions: function() {
+	        var ref = this;
+	        var options = ref.options;
+	        var w = options.width;
+	        var h = options.height;
 	        if (isNumber(w)) { w = Math.round(w); }
 	        if (isNumber(h)) { h = Math.round(h); }
 	        this.$el.css({
 	            width: (w === null) ? '' : w,
 	            height: (h === null) ? '' : h
 	        });
-	        var computedSize = this.getComputedSize();
-	        this.trigger('resize', computedSize.width, computedSize.height);
 	    },
 
 	    setOrigin: function(ox, oy) {
-
-	        return this.translate(ox || 0, oy || 0, { absolute: true });
+	        return this.translate(ox || 0, oy || 0);
 	    },
 
-	    // Expand/shrink the paper to fit the content. Snap the width/height to the grid
-	    // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-	    // When options { fitNegative: true } it also translates the viewport in order to make all
-	    // the content visible.
-	    fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
+	    // Expand/shrink the paper to fit the content.
+	    // Alternatively signature function(opt)
+	    fitToContent: function(gridWidth, gridHeight, padding, opt) {
 
 	        if (isObject$1(gridWidth)) {
 	            // first parameter is an option object
 	            opt = gridWidth;
-	            gridWidth = opt.gridWidth || 1;
-	            gridHeight = opt.gridHeight || 1;
-	            padding = opt.padding || 0;
-
 	        } else {
-
-	            opt || (opt = {});
-	            gridWidth = gridWidth || 1;
-	            gridHeight = gridHeight || 1;
-	            padding = padding || 0;
+	            // Support for a deprecated signature
+	            opt = assign({ gridWidth: gridWidth, gridHeight: gridHeight, padding: padding }, opt);
 	        }
 
+	        var ref = this.getFitToContentArea(opt);
+	        var x = ref.x;
+	        var y = ref.y;
+	        var width = ref.width;
+	        var height = ref.height;
+	        var ref$1 = this.scale();
+	        var sx = ref$1.sx;
+	        var sy = ref$1.sy;
+
+	        this.setOrigin(-x * sx, -y * sy);
+	        this.setDimensions(width * sx, height * sy);
+
+	        return new Rect(x, y, width, height);
+	    },
+
+	    getFitToContentArea: function(opt) {
+	        if ( opt === void 0 ) opt = {};
+
+
 	        // Calculate the paper size to accommodate all the graph's elements.
+
+	        var gridWidth = opt.gridWidth || 1;
+	        var gridHeight = opt.gridHeight || 1;
+	        var padding = normalizeSides(opt.padding || 0);
 
 	        var minWidth = Math.max(opt.minWidth || 0, gridWidth);
 	        var minHeight = Math.max(opt.minHeight || 0, gridHeight);
@@ -25646,15 +28736,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var maxHeight = opt.maxHeight || Number.MAX_VALUE;
 	        var newOrigin = opt.allowNewOrigin;
 
-	        padding = normalizeSides(padding);
-
 	        var area = ('contentArea' in opt) ? new Rect(opt.contentArea) : this.getContentArea(opt);
-
-	        var currentScale = this.scale();
-	        var currentTranslate = this.translate();
-	        var sx = currentScale.sx;
-	        var sy = currentScale.sy;
-
+	        var ref = this.scale();
+	        var sx = ref.sx;
+	        var sy = ref.sy;
 	        area.x *= sx;
 	        area.y *= sy;
 	        area.width *= sx;
@@ -25670,14 +28755,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        calcHeight *= gridHeight;
 
 	        var tx = 0;
-	        var ty = 0;
-
 	        if ((newOrigin === 'negative' && area.x < 0) || (newOrigin === 'positive' && area.x >= 0) || newOrigin === 'any') {
 	            tx = Math.ceil(-area.x / gridWidth) * gridWidth;
 	            tx += padding.left;
 	            calcWidth += tx;
 	        }
 
+	        var ty = 0;
 	        if ((newOrigin === 'negative' && area.y < 0) || (newOrigin === 'positive' && area.y >= 0) || newOrigin === 'any') {
 	            ty = Math.ceil(-area.y / gridHeight) * gridHeight;
 	            ty += padding.top;
@@ -25694,18 +28778,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // Make sure the resulting width and height are lesser than maximum.
 	        calcWidth = Math.min(calcWidth, maxWidth);
 	        calcHeight = Math.min(calcHeight, maxHeight);
-
-	        var computedSize = this.getComputedSize();
-	        var dimensionChange = calcWidth != computedSize.width || calcHeight != computedSize.height;
-	        var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
-
-	        // Change the dimensions only if there is a size discrepancy or an origin change
-	        if (originChange) {
-	            this.translate(tx, ty);
-	        }
-	        if (dimensionChange) {
-	            this.setDimensions(calcWidth, calcHeight);
-	        }
 
 	        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
 	    },
@@ -25849,6 +28921,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    createViewForModel: function(cell) {
 
+	        var ref = this;
+	        var options = ref.options;
 	        // A class taken from the paper options.
 	        var optionalViewClass;
 
@@ -25857,15 +28931,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // A special class defined for this model in the corresponding namespace.
 	        // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
-	        var namespace = this.options.cellViewNamespace;
+	        var namespace = options.cellViewNamespace;
 	        var type = cell.get('type') + 'View';
 	        var namespaceViewClass = getByPath(namespace, type, '.');
 
 	        if (cell.isLink()) {
-	            optionalViewClass = this.options.linkView;
+	            optionalViewClass = options.linkView;
 	            defaultViewClass = LinkView;
 	        } else {
-	            optionalViewClass = this.options.elementView;
+	            optionalViewClass = options.elementView;
 	            defaultViewClass = ElementView;
 	        }
 
@@ -25882,7 +28956,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        return new ViewClass({
 	            model: cell,
-	            interactive: this.options.interactive
+	            interactive: options.interactive,
+	            labelsLayer: options.labelsLayer === true ? LayersNames.LABELS : options.labelsLayer
 	        });
 	    },
 
@@ -25910,11 +28985,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var id = cell.id;
 	        var views = this._views;
 	        var view, flag;
+	        var create = true;
 	        if (id in views) {
 	            view = views[id];
-	            flag = view.FLAG_INSERT;
-	        } else {
-	            view = views[cell.id] = this.createViewForModel(cell);
+	            if (view.model === cell) {
+	                flag = view.FLAG_INSERT;
+	                create = false;
+	            } else {
+	                // The view for this `id` already exist.
+	                // The cell is a new instance of the model with identical id
+	                // We simply remove the existing view and create a new one
+	                this.removeView(cell);
+	            }
+	        }
+	        if (create) {
+	            view = views[id] = this.createViewForModel(cell);
 	            view.paper = this;
 	            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
 	        }
@@ -25981,55 +29066,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
-
 	    insertView: function(view) {
-	        var layer = this.cells;
+	        var layerView = this.getLayerView(LayersNames.CELLS);
+	        var el = view.el;
+	        var model = view.model;
 	        switch (this.options.sorting) {
 	            case sortingTypes.APPROX:
-	                var z = view.model.get('z');
-	                var pivot = this.addZPivot(z);
-	                layer.insertBefore(view.el, pivot);
+	                layerView.insertSortedNode(el, model.get('z'));
 	                break;
 	            case sortingTypes.EXACT:
 	            default:
-	                layer.appendChild(view.el);
+	                layerView.insertNode(el);
 	                break;
 	        }
-	    },
-
-	    addZPivot: function(z) {
-	        z = +z;
-	        z || (z = 0);
-	        var pivots = this._zPivots;
-	        var pivot = pivots[z];
-	        if (pivot) { return pivot; }
-	        pivot = pivots[z] = document.createComment('z-index:' + (z + 1));
-	        var neighborZ = -Infinity;
-	        for (var currentZ in pivots) {
-	            currentZ = +currentZ;
-	            if (currentZ < z && currentZ > neighborZ) {
-	                neighborZ = currentZ;
-	                if (neighborZ === z - 1) { continue; }
-	            }
-	        }
-	        var layer = this.cells;
-	        if (neighborZ !== -Infinity) {
-	            var neighborPivot = pivots[neighborZ];
-	            // Insert After
-	            layer.insertBefore(pivot, neighborPivot.nextSibling);
-	        } else {
-	            // First Child
-	            layer.insertBefore(pivot, layer.firstChild);
-	        }
-	        return pivot;
-	    },
-
-	    removeZPivots: function() {
-	        var ref = this;
-	        var pivots = ref._zPivots;
-	        var viewport = ref.viewport;
-	        for (var z in pivots) { viewport.removeChild(pivots[z]); }
-	        this._zPivots = {};
+	        view.onMount();
 	    },
 
 	    scale: function(sx, sy, ox, oy) {
@@ -26102,22 +29152,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return V.matrixToTranslate(this.matrix());
 	        }
 
+	        var ref = this;
+	        var options = ref.options;
+	        var origin = options.origin;
+	        var drawGrid = options.drawGrid;
+
 	        // setter
+	        tx || (tx = 0);
+	        ty || (ty = 0);
 
 	        var ctm = this.matrix();
-	        ctm.e = tx || 0;
-	        ctm.f = ty || 0;
+	        if (ctm.e === tx && ctm.f === ty) { return this; }
+	        ctm.e = tx;
+	        ctm.f = ty;
 
 	        this.matrix(ctm);
 
-	        var newTranslate = this.translate();
-	        var origin = this.options.origin;
-	        origin.x = newTranslate.tx;
-	        origin.y = newTranslate.ty;
+	        var ref$1 = this.translate();
+	        var ox = ref$1.tx;
+	        var oy = ref$1.ty;
+	        origin.x = ox;
+	        origin.y = oy;
 
-	        this.trigger('translate', newTranslate.tx, newTranslate.ty);
+	        this.trigger('translate', ox, oy);
 
-	        if (this.options.drawGrid) {
+	        if (drawGrid) {
 	            this.drawGrid();
 	        }
 
@@ -26624,18 +29683,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        evt = normalizeEvent(evt);
 
-	        var view = this.findView(evt.target);
+	        var target = evt.target;
+	        var relatedTarget = evt.relatedTarget;
+	        var view = this.findView(target);
 	        if (this.guard(evt, view)) { return; }
-	        var relatedView = this.findView(evt.relatedTarget);
+	        var relatedView = this.findView(relatedTarget);
 	        if (view) {
-	            // mouse moved from view over tool?
-	            if (relatedView === view) { return; }
+	            if (relatedView === view) {
+	                // Mouse entered a cell tool
+	                return;
+	            }
+	            // prevent double `mouseleave` event if the `relatedTarget` is outside the paper
+	            // (mouseleave method would be fired twice)
+	            evt.stopPropagation();
 	            view.mouseleave(evt);
-	        } else {
-	            if (relatedView) { return; }
-	            // `paper` (more descriptive), not `blank`
-	            this.trigger('paper:mouseleave', evt);
+	            if (this.el.contains(relatedTarget)) {
+	                // The pointer has exited a cellView. The pointer is still inside of the paper.
+	                return;
+	            }
 	        }
+	        if (relatedView) {
+	            // The pointer has entered a new cellView
+	            return;
+	        }
+	        // There is no cellView under the pointer, nor the blank area of the paper
+	        this.trigger('paper:mouseleave', evt);
 	    },
 
 	    mousewheel: function(evt) {
@@ -26647,7 +29719,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var originalEvent = evt.originalEvent;
 	        var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-	        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
+	        var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
 
 	        if (view) {
 	            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
@@ -26957,6 +30029,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return;
 	        }
 
+	        if (!this._background || this._background.id !== opt.id) {
+	            // Draw only the last image requested (see drawBackground())
+	            return;
+	        }
+
 	        opt = opt || {};
 
 	        var backgroundImage;
@@ -27023,6 +30100,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        if (opt.image) {
 	            opt = this._background = cloneDeep(opt);
+	            guid(opt);
 	            var img = document.createElement('img');
 	            img.onload = this.drawBackgroundImage.bind(this, img, opt);
 	            img.src = opt.image;
@@ -27092,77 +30170,108 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    defineGradient: function(gradient) {
-
 	        if (!isObject$1(gradient)) {
 	            throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
 	        }
-
-	        var gradientId = gradient.id;
+	        var ref = this;
+	        var svg = ref.svg;
+	        var defs = ref.defs;
 	        var type = gradient.type;
+	        var id = gradient.id; if ( id === void 0 ) id = type + svg.id + hashCode(JSON.stringify(gradient));
 	        var stops = gradient.stops;
-	        // Generate a hash code from the stringified filter definition. This gives us
-	        // a unique filter ID for different definitions.
-	        if (!gradientId) {
-	            gradientId = type + this.svg.id + hashCode(JSON.stringify(gradient));
+	        var attrs = gradient.attrs; if ( attrs === void 0 ) attrs = {};
+	        // If the gradient already exists in the document,
+	        // we're done and we can just use it (reference it using `url()`).
+	        if (this.isDefined(id)) { return id; }
+	        // If not, create one.
+	        var stopVEls = toArray(stops).map(function (ref) {
+	            var offset = ref.offset;
+	            var color = ref.color;
+	            var opacity = ref.opacity;
+
+	            return V('stop').attr({
+	                'offset': offset,
+	                'stop-color': color,
+	                'stop-opacity': Number.isFinite(opacity) ? opacity : 1
+	            });
+	        });
+	        var gradientVEl = V(type, attrs, stopVEls);
+	        gradientVEl.id = id;
+	        gradientVEl.appendTo(defs);
+	        return id;
+	    },
+
+	    definePattern: function(pattern) {
+	        if (!isObject$1(pattern)) {
+	            throw new TypeError('dia.Paper: definePattern() requires 1. argument to be an object.');
+	        }
+	        var ref = this;
+	        var svg = ref.svg;
+	        var defs = ref.defs;
+	        var id = pattern.id; if ( id === void 0 ) id = svg.id + hashCode(JSON.stringify(pattern));
+	        var markup = pattern.markup;
+	        var attrs = pattern.attrs; if ( attrs === void 0 ) attrs = {};
+	        if (!markup) {
+	            throw new TypeError('dia.Paper: definePattern() requires markup.');
 	        }
 	        // If the gradient already exists in the document,
 	        // we're done and we can just use it (reference it using `url()`).
+	        if (this.isDefined(id)) { return id; }
 	        // If not, create one.
-	        if (!this.isDefined(gradientId)) {
-
-	            var stopTemplate = template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-	            var gradientStopsStrings = toArray(stops).map(function(stop) {
-	                return stopTemplate({
-	                    offset: stop.offset,
-	                    color: stop.color,
-	                    opacity: Number.isFinite(stop.opacity) ? stop.opacity : 1
-	                });
-	            });
-
-	            var gradientSVGString = [
-	                '<' + type + '>',
-	                gradientStopsStrings.join(''),
-	                '</' + type + '>'
-	            ].join('');
-
-	            var gradientAttrs = assign({ id: gradientId }, gradient.attrs);
-
-	            V(gradientSVGString, gradientAttrs).appendTo(this.defs);
+	        var patternVEl = V('pattern', {
+	            patternUnits: 'userSpaceOnUse'
+	        });
+	        patternVEl.id = id;
+	        patternVEl.attr(attrs);
+	        if (typeof markup === 'string') {
+	            patternVEl.append(V(markup));
+	        } else {
+	            var ref$1 = parseDOMJSON(markup);
+	            var fragment = ref$1.fragment;
+	            patternVEl.append(fragment);
 	        }
-
-	        return gradientId;
+	        patternVEl.appendTo(defs);
+	        return id;
 	    },
 
 	    defineMarker: function(marker) {
-
 	        if (!isObject$1(marker)) {
 	            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
 	        }
-
-	        var markerId = marker.id;
-
-	        // Generate a hash code from the stringified filter definition. This gives us
-	        // a unique filter ID for different definitions.
-	        if (!markerId) {
-	            markerId = this.svg.id + hashCode(JSON.stringify(marker));
+	        var ref = this;
+	        var svg = ref.svg;
+	        var defs = ref.defs;
+	        var id = marker.id; if ( id === void 0 ) id = svg.id + hashCode(JSON.stringify(marker));
+	        var markup = marker.markup;
+	        var attrs = marker.attrs; if ( attrs === void 0 ) attrs = {};
+	        var markerUnits = marker.markerUnits; if ( markerUnits === void 0 ) markerUnits = 'userSpaceOnUse';
+	        // If the marker already exists in the document,
+	        // we're done and we can just use it (reference it using `url()`).
+	        if (this.isDefined(id)) { return id; }
+	        // If not, create one.
+	        var markerVEl = V('marker', {
+	            orient: 'auto',
+	            overflow: 'visible',
+	            markerUnits: markerUnits
+	        });
+	        markerVEl.id = id;
+	        markerVEl.attr(attrs);
+	        if (markup) {
+	            if (typeof markup === 'string') {
+	                markerVEl.append(V(markup));
+	            } else {
+	                var ref$1 = parseDOMJSON(markup);
+	                var fragment = ref$1.fragment;
+	                markerVEl.append(fragment);
+	            }
+	        } else {
+	            // marker object is a flat structure
+	            var type = marker.type; if ( type === void 0 ) type = 'path';
+	            var markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
+	            markerVEl.append(markerContentVEl);
 	        }
-
-	        if (!this.isDefined(markerId)) {
-
-	            var attrs = omit(marker, 'type', 'userSpaceOnUse');
-	            var pathMarker = V('marker', {
-	                id: markerId,
-	                orient: 'auto',
-	                overflow: 'visible',
-	                markerUnits: marker.markerUnits || 'userSpaceOnUse'
-	            }, [
-	                V(marker.type || 'path', attrs)
-	            ]);
-
-	            pathMarker.appendTo(this.defs);
-	        }
-
-	        return markerId;
+	        markerVEl.appendTo(defs);
+	        return id;
 	    }
 
 	}, {
@@ -27363,75 +30472,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
-	var ToolView = View.extend({
-	    name: null,
-	    tagName: 'g',
-	    className: 'tool',
-	    svgElement: true,
-	    _visible: true,
-
-	    init: function() {
-	        var name = this.name;
-	        if (name) { this.vel.attr('data-tool-name', name); }
-	    },
-
-	    configure: function(view, toolsView) {
-	        this.relatedView = view;
-	        this.paper = view.paper;
-	        this.parentView = toolsView;
-	        this.simulateRelatedView(this.el);
-	        // Delegate events in case the ToolView was removed from the DOM and reused.
-	        this.delegateEvents();
-	        return this;
-	    },
-
-	    simulateRelatedView: function(el) {
-	        if (el) { el.setAttribute('model-id', this.relatedView.model.id); }
-	    },
-
-	    getName: function() {
-	        return this.name;
-	    },
-
-	    show: function() {
-	        this.el.style.display = '';
-	        this._visible = true;
-	    },
-
-	    hide: function() {
-	        this.el.style.display = 'none';
-	        this._visible = false;
-	    },
-
-	    isVisible: function() {
-	        return !!this._visible;
-	    },
-
-	    focus: function() {
-	        var opacity = this.options.focusOpacity;
-	        if (isFinite(opacity)) { this.el.style.opacity = opacity; }
-	        this.parentView.focusTool(this);
-	    },
-
-	    blur: function() {
-	        this.el.style.opacity = '';
-	        this.parentView.blurTool(this);
-	    },
-
-	    update: function() {
-	        // to be overridden
-	    },
-
-	    guard: function(evt) {
-	        // Let the context-menu event bubble up to the relatedView
-	        var ref = this;
-	        var paper = ref.paper;
-	        var relatedView = ref.relatedView;
-	        if (!paper || !relatedView) { return true; }
-	        return paper.guard(evt, relatedView);
-	    }
-	});
-
 	var ToolsView = View.extend({
 	    tagName: 'g',
 	    className: 'tools',
@@ -27442,7 +30482,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        tools: null,
 	        relatedView: null,
 	        name: null,
-	        component: false
+	        // layer?: LayersNames.TOOLS
+	        // z?: number
 	    },
 
 	    configure: function(options) {
@@ -27538,11 +30579,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    mount: function() {
-	        var options = this.options;
+	        var ref = this;
+	        var options = ref.options;
+	        var el = ref.el;
 	        var relatedView = options.relatedView;
+	        var layer = options.layer; if ( layer === void 0 ) layer = LayersNames.TOOLS;
+	        var z = options.z;
 	        if (relatedView) {
-	            var container = (options.component) ? relatedView.el : relatedView.paper.tools;
-	            container.appendChild(this.el);
+	            if (layer) {
+	                relatedView.paper.getLayerView(layer).insertSortedNode(el, z);
+	            } else {
+	                relatedView.el.appendChild(el);
+	            }
 	        }
 	        return this;
 	    }
@@ -27551,9 +30599,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 
-	var index$2 = ({
+	var index$5 = ({
 		Graph: Graph,
 		attributes: attributes,
+		LayersNames: LayersNames,
+		PaperLayer: PaperLayer,
 		Cell: Cell,
 		CellView: CellView,
 		Element: Element$1,
@@ -27680,9 +30730,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            exportLink: this.exportLink
 	        });
 
-	        /* global dagre: true */
+	        /* eslint-disable no-undef */
 	        var dagreUtil = opt.dagre || (typeof dagre !== 'undefined' ? dagre : undefined);
-	        /* global dagre: false */
+	        /* eslint-enable no-undef */
 
 	        if (dagreUtil === undefined) { throw new Error('The the "dagre" utility is a mandatory dependency.'); }
 
@@ -27803,9 +30853,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        opt = opt || {};
 
-	        /* global graphlib: true */
+	        /* eslint-disable no-undef */
 	        var graphlibUtil = opt.graphlib || (typeof graphlib !== 'undefined' ? graphlib : undefined);
-	        /* global graphlib: false */
+	        /* eslint-enable no-undef */
 
 	        if (graphlibUtil === undefined) { throw new Error('The the "graphlib" utility is a mandatory dependency.'); }
 
@@ -27859,50 +30909,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	Graph.prototype.fromGraphLib = function(glGraph, opt) {
 
 	    return DirectedGraph.fromGraphLib.call(this, glGraph, opt);
-	};
-
-	var env = {
-
-	    _results: {},
-
-	    _tests: {
-
-	        svgforeignobject: function() {
-	            return !!document.createElementNS &&
-	                /SVGForeignObject/.test(({}).toString.call(document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject')));
-	        }
-	    },
-
-	    addTest: function(name, fn) {
-
-	        return this._tests[name] = fn;
-	    },
-
-	    test: function(name) {
-
-	        var fn = this._tests[name];
-
-	        if (!fn) {
-	            throw new Error('Test not defined ("' + name + '"). Use `joint.env.addTest(name, fn) to add a new test.`');
-	        }
-
-	        var result = this._results[name];
-
-	        if (typeof result !== 'undefined') {
-	            return result;
-	        }
-
-	        try {
-	            result = fn();
-	        } catch (error) {
-	            result = false;
-	        }
-
-	        // Cache the test result.
-	        this._results[name] = result;
-
-	        return result;
-	    }
 	};
 
 	var Generic = Element$1.define('basic.Generic', {
@@ -28014,7 +31020,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
 	});
 
-	var Polygon = Generic.define('basic.Polygon', {
+	var Polygon$1 = Generic.define('basic.Polygon', {
 	    size: { width: 60, height: 40 },
 	    attrs: {
 	        'polygon': {
@@ -28279,7 +31285,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Text: Text,
 		Circle: Circle,
 		Ellipse: Ellipse$1,
-		Polygon: Polygon,
+		Polygon: Polygon$1,
 		Polyline: Polyline$1,
 		Image: Image,
 		Path: Path$1,
@@ -28404,7 +31410,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Polygon$1 = Element$1.define('standard.Polygon', {
+	var Polygon$2 = Element$1.define('standard.Polygon', {
 	    attrs: {
 	        body: {
 	            refPoints: '0 0 10 0 10 10 0 10',
@@ -29006,7 +32012,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Circle: Circle$1,
 		Ellipse: Ellipse$2,
 		Path: Path$2,
-		Polygon: Polygon$1,
+		Polygon: Polygon$2,
 		Polyline: Polyline$2,
 		Image: Image$1,
 		BorderedImage: BorderedImage,
@@ -30140,7 +33146,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
 
-	var index$3 = ({
+	var index$6 = ({
 		basic: basic,
 		standard: standard,
 		devs: devs,
@@ -30153,1228 +33159,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		uml: uml
 	});
 
-	function abs2rel(value, max) {
-
-	    if (max === 0) { return '0%'; }
-	    return Math.round(value / max * 100) + '%';
-	}
-
-	function pin(relative) {
-
-	    return function(end, view, magnet, coords) {
-	        var fn = (view.isNodeConnection(magnet)) ? pinnedLinkEnd : pinnedElementEnd;
-	        return fn(relative, end, view, magnet, coords);
-	    };
-	}
-
-	function pinnedElementEnd(relative, end, view, magnet, coords) {
-
-	    var angle = view.model.angle();
-	    var bbox = view.getNodeUnrotatedBBox(magnet);
-	    var origin = view.model.getBBox().center();
-	    coords.rotate(origin, angle);
-	    var dx = coords.x - bbox.x;
-	    var dy = coords.y - bbox.y;
-
-	    if (relative) {
-	        dx = abs2rel(dx, bbox.width);
-	        dy = abs2rel(dy, bbox.height);
-	    }
-
-	    end.anchor = {
-	        name: 'topLeft',
-	        args: {
-	            dx: dx,
-	            dy: dy,
-	            rotate: true
-	        }
-	    };
-
-	    return end;
-	}
-
-	function pinnedLinkEnd(relative, end, view, _magnet, coords) {
-
-	    var connection = view.getConnection();
-	    if (!connection) { return end; }
-	    var length = connection.closestPointLength(coords);
-	    if (relative) {
-	        var totalLength = connection.length();
-	        end.anchor = {
-	            name: 'connectionRatio',
-	            args: {
-	                ratio: length / totalLength
-	            }
-	        };
-	    } else {
-	        end.anchor = {
-	            name: 'connectionLength',
-	            args: {
-	                length: length
-	            }
-	        };
-	    }
-	    return end;
-	}
-
-	var useDefaults = noop;
-	var pinAbsolute = pin(false);
-	var pinRelative = pin(true);
-
-	var index$4 = ({
-		useDefaults: useDefaults,
-		pinAbsolute: pinAbsolute,
-		pinRelative: pinRelative
-	});
-
-	function getAnchor(coords, view, magnet) {
-	    // take advantage of an existing logic inside of the
-	    // pin relative connection strategy
-	    var end = pinRelative.call(
-	        this.paper,
-	        {},
-	        view,
-	        magnet,
-	        coords,
-	        this.model
-	    );
-	    return end.anchor;
-	}
-
-	function snapAnchor(coords, view, magnet, type, relatedView, toolView) {
-	    var snapRadius = toolView.options.snapRadius;
-	    var isSource = (type === 'source');
-	    var refIndex = (isSource ? 0 : -1);
-	    var ref = this.model.vertex(refIndex) || this.getEndAnchor(isSource ? 'target' : 'source');
-	    if (ref) {
-	        if (Math.abs(ref.x - coords.x) < snapRadius) { coords.x = ref.x; }
-	        if (Math.abs(ref.y - coords.y) < snapRadius) { coords.y = ref.y; }
-	    }
-	    return coords;
-	}
-
-	function getViewBBox(view, useModelGeometry) {
-	    var model = view.model;
-	    if (useModelGeometry) { return model.getBBox(); }
-	    return (model.isLink()) ? view.getConnection().bbox() : view.getNodeUnrotatedBBox(view.el);
-	}
-
-	// Vertex Handles
-	var VertexHandle = View.extend({
-	    tagName: 'circle',
-	    svgElement: true,
-	    className: 'marker-vertex',
-	    events: {
-	        mousedown: 'onPointerDown',
-	        touchstart: 'onPointerDown',
-	        dblclick: 'onDoubleClick'
-	    },
-	    documentEvents: {
-	        mousemove: 'onPointerMove',
-	        touchmove: 'onPointerMove',
-	        mouseup: 'onPointerUp',
-	        touchend: 'onPointerUp',
-	        touchcancel: 'onPointerUp'
-	    },
-	    attributes: {
-	        'r': 6,
-	        'fill': '#33334F',
-	        'stroke': '#FFFFFF',
-	        'stroke-width': 2,
-	        'cursor': 'move'
-	    },
-	    position: function(x, y) {
-	        this.vel.attr({ cx: x, cy: y });
-	    },
-	    onPointerDown: function(evt) {
-	        if (this.options.guard(evt)) { return; }
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        this.options.paper.undelegateEvents();
-	        this.delegateDocumentEvents(null, evt.data);
-	        this.trigger('will-change', this, evt);
-	    },
-	    onPointerMove: function(evt) {
-	        this.trigger('changing', this, evt);
-	    },
-	    onDoubleClick: function(evt) {
-	        this.trigger('remove', this, evt);
-	    },
-	    onPointerUp: function(evt) {
-	        this.trigger('changed', this, evt);
-	        this.undelegateDocumentEvents();
-	        this.options.paper.delegateEvents();
-	    }
-	});
-
-	var Vertices = ToolView.extend({
-	    name: 'vertices',
-	    options: {
-	        handleClass: VertexHandle,
-	        snapRadius: 20,
-	        redundancyRemoval: true,
-	        vertexAdding: true,
-	        stopPropagation: true
-	    },
-	    children: [{
-	        tagName: 'path',
-	        selector: 'connection',
-	        className: 'joint-vertices-path',
-	        attributes: {
-	            'fill': 'none',
-	            'stroke': 'transparent',
-	            'stroke-width': 10,
-	            'cursor': 'cell'
-	        }
-	    }],
-	    handles: null,
-	    events: {
-	        'mousedown .joint-vertices-path': 'onPathPointerDown',
-	        'touchstart .joint-vertices-path': 'onPathPointerDown'
-	    },
-	    onRender: function() {
-	        if (this.options.vertexAdding) {
-	            this.renderChildren();
-	            this.updatePath();
-	        }
-	        this.resetHandles();
-	        this.renderHandles();
-	        return this;
-	    },
-	    update: function() {
-	        var relatedView = this.relatedView;
-	        var vertices = relatedView.model.vertices();
-	        if (vertices.length === this.handles.length) {
-	            this.updateHandles();
-	        } else {
-	            this.resetHandles();
-	            this.renderHandles();
-	        }
-	        if (this.options.vertexAdding) {
-	            this.updatePath();
-	        }
-	        return this;
-	    },
-	    resetHandles: function() {
-	        var handles = this.handles;
-	        this.handles = [];
-	        this.stopListening();
-	        if (!Array.isArray(handles)) { return; }
-	        for (var i = 0, n = handles.length; i < n; i++) {
-	            handles[i].remove();
-	        }
-	    },
-	    renderHandles: function() {
-	        var this$1 = this;
-
-	        var relatedView = this.relatedView;
-	        var vertices = relatedView.model.vertices();
-	        for (var i = 0, n = vertices.length; i < n; i++) {
-	            var vertex = vertices[i];
-	            var handle = new (this.options.handleClass)({
-	                index: i,
-	                paper: this.paper,
-	                guard: function (evt) { return this$1.guard(evt); }
-	            });
-	            handle.render();
-	            handle.position(vertex.x, vertex.y);
-	            this.simulateRelatedView(handle.el);
-	            handle.vel.appendTo(this.el);
-	            this.handles.push(handle);
-	            this.startHandleListening(handle);
-	        }
-	    },
-	    updateHandles: function() {
-	        var relatedView = this.relatedView;
-	        var vertices = relatedView.model.vertices();
-	        for (var i = 0, n = vertices.length; i < n; i++) {
-	            var vertex = vertices[i];
-	            var handle = this.handles[i];
-	            if (!handle) { return; }
-	            handle.position(vertex.x, vertex.y);
-	        }
-	    },
-	    updatePath: function() {
-	        var connection = this.childNodes.connection;
-	        if (connection) { connection.setAttribute('d', this.relatedView.getSerializedConnection()); }
-	    },
-	    startHandleListening: function(handle) {
-	        var relatedView = this.relatedView;
-	        if (relatedView.can('vertexMove')) {
-	            this.listenTo(handle, 'will-change', this.onHandleWillChange);
-	            this.listenTo(handle, 'changing', this.onHandleChanging);
-	            this.listenTo(handle, 'changed', this.onHandleChanged);
-	        }
-	        if (relatedView.can('vertexRemove')) {
-	            this.listenTo(handle, 'remove', this.onHandleRemove);
-	        }
-	    },
-	    getNeighborPoints: function(index) {
-	        var linkView = this.relatedView;
-	        var vertices = linkView.model.vertices();
-	        var prev = (index > 0) ? vertices[index - 1] : linkView.sourceAnchor;
-	        var next = (index < vertices.length - 1) ? vertices[index + 1] : linkView.targetAnchor;
-	        return {
-	            prev: new Point(prev),
-	            next: new Point(next)
-	        };
-	    },
-	    onHandleWillChange: function(_handle, evt) {
-	        this.focus();
-	        var ref = this;
-	        var relatedView = ref.relatedView;
-	        var options = ref.options;
-	        relatedView.model.startBatch('vertex-move', { ui: true, tool: this.cid });
-	        if (!options.stopPropagation) { relatedView.notifyPointerdown.apply(relatedView, relatedView.paper.getPointerArgs(evt)); }
-	    },
-	    onHandleChanging: function(handle, evt) {
-	        var ref = this;
-	        var options = ref.options;
-	        var linkView = ref.relatedView;
-	        var index = handle.options.index;
-	        var ref$1 = linkView.paper.getPointerArgs(evt);
-	        var normalizedEvent = ref$1[0];
-	        var x = ref$1[1];
-	        var y = ref$1[2];
-	        var vertex = { x: x, y: y };
-	        this.snapVertex(vertex, index);
-	        linkView.model.vertex(index, vertex, { ui: true, tool: this.cid });
-	        handle.position(vertex.x, vertex.y);
-	        if (!options.stopPropagation) { linkView.notifyPointermove(normalizedEvent, x, y); }
-	    },
-	    onHandleChanged: function(_handle, evt) {
-	        var ref = this;
-	        var options = ref.options;
-	        var linkView = ref.relatedView;
-	        if (options.vertexAdding) { this.updatePath(); }
-	        if (!options.redundancyRemoval) { return; }
-	        var verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
-	        if (verticesRemoved) { this.render(); }
-	        this.blur();
-	        linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
-	        if (this.eventData(evt).vertexAdded) {
-	            linkView.model.stopBatch('vertex-add', { ui: true, tool: this.cid });
-	        }
-	        var ref$1 = linkView.paper.getPointerArgs(evt);
-	        var normalizedEvt = ref$1[0];
-	        var x = ref$1[1];
-	        var y = ref$1[2];
-	        if (!options.stopPropagation) { linkView.notifyPointerup(normalizedEvt, x, y); }
-	        linkView.checkMouseleave(normalizedEvt);
-	    },
-	    snapVertex: function(vertex, index) {
-	        var snapRadius = this.options.snapRadius;
-	        if (snapRadius > 0) {
-	            var neighbors = this.getNeighborPoints(index);
-	            var prev = neighbors.prev;
-	            var next = neighbors.next;
-	            if (Math.abs(vertex.x - prev.x) < snapRadius) {
-	                vertex.x = prev.x;
-	            } else if (Math.abs(vertex.x - next.x) < snapRadius) {
-	                vertex.x = next.x;
-	            }
-	            if (Math.abs(vertex.y - prev.y) < snapRadius) {
-	                vertex.y = neighbors.prev.y;
-	            } else if (Math.abs(vertex.y - next.y) < snapRadius) {
-	                vertex.y = next.y;
-	            }
-	        }
-	    },
-	    onHandleRemove: function(handle, evt) {
-	        var index$1 = handle.options.index;
-	        var linkView = this.relatedView;
-	        linkView.model.removeVertex(index$1, { ui: true });
-	        if (this.options.vertexAdding) { this.updatePath(); }
-	        linkView.checkMouseleave(normalizeEvent(evt));
-	    },
-	    onPathPointerDown: function(evt) {
-	        if (this.guard(evt)) { return; }
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        var normalizedEvent = normalizeEvent(evt);
-	        var vertex = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
-	        var relatedView = this.relatedView;
-	        relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
-	        var index$1 = relatedView.getVertexIndex(vertex.x, vertex.y);
-	        this.snapVertex(vertex, index$1);
-	        relatedView.model.insertVertex(index$1, vertex, { ui: true, tool: this.cid });
-	        this.render();
-	        var handle = this.handles[index$1];
-	        this.eventData(normalizedEvent, { vertexAdded: true });
-	        handle.onPointerDown(normalizedEvent);
-	    },
-	    onRemove: function() {
-	        this.resetHandles();
-	    }
-	}, {
-	    VertexHandle: VertexHandle // keep as class property
-	});
-
-	var SegmentHandle = View.extend({
-	    tagName: 'g',
-	    svgElement: true,
-	    className: 'marker-segment',
-	    events: {
-	        mousedown: 'onPointerDown',
-	        touchstart: 'onPointerDown'
-	    },
-	    documentEvents: {
-	        mousemove: 'onPointerMove',
-	        touchmove: 'onPointerMove',
-	        mouseup: 'onPointerUp',
-	        touchend: 'onPointerUp',
-	        touchcancel: 'onPointerUp'
-	    },
-	    children: [{
-	        tagName: 'line',
-	        selector: 'line',
-	        attributes: {
-	            'stroke': '#33334F',
-	            'stroke-width': 2,
-	            'fill': 'none',
-	            'pointer-events': 'none'
-	        }
-	    }, {
-	        tagName: 'rect',
-	        selector: 'handle',
-	        attributes: {
-	            'width': 20,
-	            'height': 8,
-	            'x': -10,
-	            'y': -4,
-	            'rx': 4,
-	            'ry': 4,
-	            'fill': '#33334F',
-	            'stroke': '#FFFFFF',
-	            'stroke-width': 2
-	        }
-	    }],
-	    onRender: function() {
-	        this.renderChildren();
-	    },
-	    position: function(x, y, angle, view) {
-
-	        var matrix = V.createSVGMatrix().translate(x, y).rotate(angle);
-	        var handle = this.childNodes.handle;
-	        handle.setAttribute('transform', V.matrixToTransformString(matrix));
-	        handle.setAttribute('cursor', (angle % 180 === 0) ? 'row-resize' : 'col-resize');
-
-	        var viewPoint = view.getClosestPoint(new Point(x, y));
-	        var line = this.childNodes.line;
-	        line.setAttribute('x1', x);
-	        line.setAttribute('y1', y);
-	        line.setAttribute('x2', viewPoint.x);
-	        line.setAttribute('y2', viewPoint.y);
-	    },
-	    onPointerDown: function(evt) {
-	        if (this.options.guard(evt)) { return; }
-	        this.trigger('change:start', this, evt);
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        this.options.paper.undelegateEvents();
-	        this.delegateDocumentEvents(null, evt.data);
-	    },
-	    onPointerMove: function(evt) {
-	        this.trigger('changing', this, evt);
-	    },
-	    onPointerUp: function(evt) {
-	        this.undelegateDocumentEvents();
-	        this.options.paper.delegateEvents();
-	        this.trigger('change:end', this, evt);
-	    },
-	    show: function() {
-	        this.el.style.display = '';
-	    },
-	    hide: function() {
-	        this.el.style.display = 'none';
-	    }
-	});
-
-	var Segments = ToolView.extend({
-	    name: 'segments',
-	    precision: .5,
-	    options: {
-	        handleClass: SegmentHandle,
-	        segmentLengthThreshold: 40,
-	        redundancyRemoval: true,
-	        anchor: getAnchor,
-	        snapRadius: 10,
-	        snapHandle: true,
-	        stopPropagation: true
-	    },
-	    handles: null,
-	    onRender: function() {
-	        this.resetHandles();
-	        var relatedView = this.relatedView;
-	        var vertices = relatedView.model.vertices();
-	        vertices.unshift(relatedView.sourcePoint);
-	        vertices.push(relatedView.targetPoint);
-	        for (var i = 0, n = vertices.length; i < n - 1; i++) {
-	            var vertex = vertices[i];
-	            var nextVertex = vertices[i + 1];
-	            var handle = this.renderHandle(vertex, nextVertex);
-	            this.simulateRelatedView(handle.el);
-	            this.handles.push(handle);
-	            handle.options.index = i;
-	        }
-	        return this;
-	    },
-	    renderHandle: function(vertex, nextVertex) {
-	        var this$1 = this;
-
-	        var handle = new (this.options.handleClass)({
-	            paper: this.paper,
-	            guard: function (evt) { return this$1.guard(evt); }
-	        });
-	        handle.render();
-	        this.updateHandle(handle, vertex, nextVertex);
-	        handle.vel.appendTo(this.el);
-	        this.startHandleListening(handle);
-	        return handle;
-	    },
-	    update: function() {
-	        this.render();
-	        return this;
-	    },
-	    startHandleListening: function(handle) {
-	        this.listenTo(handle, 'change:start', this.onHandleChangeStart);
-	        this.listenTo(handle, 'changing', this.onHandleChanging);
-	        this.listenTo(handle, 'change:end', this.onHandleChangeEnd);
-	    },
-	    resetHandles: function() {
-	        var handles = this.handles;
-	        this.handles = [];
-	        this.stopListening();
-	        if (!Array.isArray(handles)) { return; }
-	        for (var i = 0, n = handles.length; i < n; i++) {
-	            handles[i].remove();
-	        }
-	    },
-	    shiftHandleIndexes: function(value) {
-	        var handles = this.handles;
-	        for (var i = 0, n = handles.length; i < n; i++) { handles[i].options.index += value; }
-	    },
-	    resetAnchor: function(type, anchor) {
-	        var relatedModel = this.relatedView.model;
-	        if (anchor) {
-	            relatedModel.prop([type, 'anchor'], anchor, {
-	                rewrite: true,
-	                ui: true,
-	                tool: this.cid
-	            });
-	        } else {
-	            relatedModel.removeProp([type, 'anchor'], {
-	                ui: true,
-	                tool: this.cid
-	            });
-	        }
-	    },
-	    snapHandle: function(handle, position, data) {
-
-	        var index = handle.options.index;
-	        var linkView = this.relatedView;
-	        var link = linkView.model;
-	        var vertices = link.vertices();
-	        var axis = handle.options.axis;
-	        var prev = vertices[index - 2] || data.sourceAnchor;
-	        var next = vertices[index + 1] || data.targetAnchor;
-	        var snapRadius = this.options.snapRadius;
-	        if (Math.abs(position[axis] - prev[axis]) < snapRadius) {
-	            position[axis] = prev[axis];
-	        } else if (Math.abs(position[axis] - next[axis]) < snapRadius) {
-	            position[axis] = next[axis];
-	        }
-	        return position;
-	    },
-
-	    onHandleChanging: function(handle, evt) {
-
-	        var ref = this;
-	        var options = ref.options;
-	        var data = this.eventData(evt);
-	        var relatedView = this.relatedView;
-	        var paper = relatedView.paper;
-	        var index$1 = handle.options.index - 1;
-	        var normalizedEvent = normalizeEvent(evt);
-	        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-	        var position = this.snapHandle(handle, coords.clone(), data);
-	        var axis = handle.options.axis;
-	        var offset = (this.options.snapHandle) ? 0 : (coords[axis] - position[axis]);
-	        var link = relatedView.model;
-	        var vertices = cloneDeep(link.vertices());
-	        var vertex = vertices[index$1];
-	        var nextVertex = vertices[index$1 + 1];
-	        var anchorFn = this.options.anchor;
-	        if (typeof anchorFn !== 'function') { anchorFn = null; }
-
-	        // First Segment
-	        var sourceView = relatedView.sourceView;
-	        var sourceBBox = relatedView.sourceBBox;
-	        var changeSourceAnchor = false;
-	        var deleteSourceAnchor = false;
-	        if (!vertex) {
-	            vertex = relatedView.sourceAnchor.toJSON();
-	            vertex[axis] = position[axis];
-	            if (sourceBBox.containsPoint(vertex)) {
-	                vertex[axis] = position[axis];
-	                changeSourceAnchor = true;
-	            } else {
-	                // we left the area of the source magnet for the first time
-	                vertices.unshift(vertex);
-	                this.shiftHandleIndexes(1);
-	                deleteSourceAnchor = true;
-	            }
-	        } else if (index$1 === 0) {
-	            if (sourceBBox.containsPoint(vertex)) {
-	                vertices.shift();
-	                this.shiftHandleIndexes(-1);
-	                changeSourceAnchor = true;
-	            } else {
-	                vertex[axis] = position[axis];
-	                deleteSourceAnchor = true;
-	            }
-	        } else {
-	            vertex[axis] = position[axis];
-	        }
-
-	        if (anchorFn && sourceView) {
-	            if (changeSourceAnchor) {
-	                var sourceAnchorPosition = data.sourceAnchor.clone();
-	                sourceAnchorPosition[axis] = position[axis];
-	                var sourceAnchor = anchorFn.call(relatedView, sourceAnchorPosition, sourceView, relatedView.sourceMagnet || sourceView.el, 'source', relatedView);
-	                this.resetAnchor('source', sourceAnchor);
-	            }
-	            if (deleteSourceAnchor) {
-	                this.resetAnchor('source', data.sourceAnchorDef);
-	            }
-	        }
-
-	        // Last segment
-	        var targetView = relatedView.targetView;
-	        var targetBBox = relatedView.targetBBox;
-	        var changeTargetAnchor = false;
-	        var deleteTargetAnchor = false;
-	        if (!nextVertex) {
-	            nextVertex = relatedView.targetAnchor.toJSON();
-	            nextVertex[axis] = position[axis];
-	            if (targetBBox.containsPoint(nextVertex)) {
-	                changeTargetAnchor = true;
-	            } else {
-	                // we left the area of the target magnet for the first time
-	                vertices.push(nextVertex);
-	                deleteTargetAnchor = true;
-	            }
-	        } else if (index$1 === vertices.length - 2) {
-	            if (targetBBox.containsPoint(nextVertex)) {
-	                vertices.pop();
-	                changeTargetAnchor = true;
-	            } else {
-	                nextVertex[axis] = position[axis];
-	                deleteTargetAnchor = true;
-	            }
-	        } else {
-	            nextVertex[axis] = position[axis];
-	        }
-
-	        if (anchorFn && targetView) {
-	            if (changeTargetAnchor) {
-	                var targetAnchorPosition = data.targetAnchor.clone();
-	                targetAnchorPosition[axis] = position[axis];
-	                var targetAnchor = anchorFn.call(relatedView, targetAnchorPosition, targetView, relatedView.targetMagnet || targetView.el, 'target', relatedView);
-	                this.resetAnchor('target', targetAnchor);
-	            }
-	            if (deleteTargetAnchor) {
-	                this.resetAnchor('target', data.targetAnchorDef);
-	            }
-	        }
-
-	        link.vertices(vertices, { ui: true, tool: this.cid });
-	        this.updateHandle(handle, vertex, nextVertex, offset);
-	        if (!options.stopPropagation) { relatedView.notifyPointermove(normalizedEvent, coords.x, coords.y); }
-	    },
-	    onHandleChangeStart: function(handle, evt) {
-	        var ref = this;
-	        var options = ref.options;
-	        var handles = ref.handles;
-	        var linkView = ref.relatedView;
-	        var model = linkView.model;
-	        var paper = linkView.paper;
-	        var index$1 = handle.options.index;
-	        if (!Array.isArray(handles)) { return; }
-	        for (var i = 0, n = handles.length; i < n; i++) {
-	            if (i !== index$1) { handles[i].hide(); }
-	        }
-	        this.focus();
-	        this.eventData(evt, {
-	            sourceAnchor: linkView.sourceAnchor.clone(),
-	            targetAnchor: linkView.targetAnchor.clone(),
-	            sourceAnchorDef: clone(model.prop(['source', 'anchor'])),
-	            targetAnchorDef: clone(model.prop(['target', 'anchor']))
-	        });
-	        model.startBatch('segment-move', { ui: true, tool: this.cid });
-	        if (!options.stopPropagation) { linkView.notifyPointerdown.apply(linkView, paper.getPointerArgs(evt)); }
-	    },
-	    onHandleChangeEnd: function(_handle, evt) {
-	        var ref= this;
-	        var options = ref.options;
-	        var linkView = ref.relatedView;
-	        var paper = linkView.paper;
-	        var model = linkView.model;
-	        if (options.redundancyRemoval) {
-	            linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
-	        }
-	        var normalizedEvent = normalizeEvent(evt);
-	        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-	        this.render();
-	        this.blur();
-	        model.stopBatch('segment-move', { ui: true, tool: this.cid });
-	        if (!options.stopPropagation) { linkView.notifyPointerup(normalizedEvent, coords.x, coords.y); }
-	        linkView.checkMouseleave(normalizedEvent);
-	    },
-	    updateHandle: function(handle, vertex, nextVertex, offset) {
-	        var vertical = Math.abs(vertex.x - nextVertex.x) < this.precision;
-	        var horizontal = Math.abs(vertex.y - nextVertex.y) < this.precision;
-	        if (vertical || horizontal) {
-	            var segmentLine = new Line(vertex, nextVertex);
-	            var length = segmentLine.length();
-	            if (length < this.options.segmentLengthThreshold) {
-	                handle.hide();
-	            } else {
-	                var position = segmentLine.midpoint();
-	                var axis = (vertical) ? 'x' : 'y';
-	                position[axis] += offset || 0;
-	                var angle = segmentLine.vector().vectorAngle(new Point(1, 0));
-	                handle.position(position.x, position.y, angle, this.relatedView);
-	                handle.show();
-	                handle.options.axis = axis;
-	            }
-	        } else {
-	            handle.hide();
-	        }
-	    },
-	    onRemove: function() {
-	        this.resetHandles();
-	    }
-	}, {
-	    SegmentHandle: SegmentHandle // keep as class property
-	});
-
-	// End Markers
-	var Arrowhead = ToolView.extend({
-	    tagName: 'path',
-	    xAxisVector: new Point(1, 0),
-	    events: {
-	        mousedown: 'onPointerDown',
-	        touchstart: 'onPointerDown'
-	    },
-	    documentEvents: {
-	        mousemove: 'onPointerMove',
-	        touchmove: 'onPointerMove',
-	        mouseup: 'onPointerUp',
-	        touchend: 'onPointerUp',
-	        touchcancel: 'onPointerUp'
-	    },
-	    onRender: function() {
-	        this.update();
-	    },
-	    update: function() {
-	        var ratio = this.ratio;
-	        var view = this.relatedView;
-	        var tangent = view.getTangentAtRatio(ratio);
-	        var position, angle;
-	        if (tangent) {
-	            position = tangent.start;
-	            angle = tangent.vector().vectorAngle(this.xAxisVector) || 0;
-	        } else {
-	            position = view.getPointAtRatio(ratio);
-	            angle = 0;
-	        }
-	        if (!position) { return this; }
-	        var matrix = V.createSVGMatrix().translate(position.x, position.y).rotate(angle);
-	        this.vel.transform(matrix, { absolute: true });
-	        return this;
-	    },
-	    onPointerDown: function(evt) {
-	        if (this.guard(evt)) { return; }
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        var relatedView = this.relatedView;
-	        relatedView.model.startBatch('arrowhead-move', { ui: true, tool: this.cid });
-	        if (relatedView.can('arrowheadMove')) {
-	            relatedView.startArrowheadMove(this.arrowheadType);
-	            this.delegateDocumentEvents();
-	            relatedView.paper.undelegateEvents();
-	        }
-	        this.focus();
-	        this.el.style.pointerEvents = 'none';
-	    },
-	    onPointerMove: function(evt) {
-	        var normalizedEvent = normalizeEvent(evt);
-	        var coords = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-	        this.relatedView.pointermove(normalizedEvent, coords.x, coords.y);
-	    },
-	    onPointerUp: function(evt) {
-	        this.undelegateDocumentEvents();
-	        var relatedView = this.relatedView;
-	        var paper = relatedView.paper;
-	        var normalizedEvent = normalizeEvent(evt);
-	        var coords = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
-	        relatedView.pointerup(normalizedEvent, coords.x, coords.y);
-	        paper.delegateEvents();
-	        this.blur();
-	        this.el.style.pointerEvents = '';
-	        relatedView.model.stopBatch('arrowhead-move', { ui: true, tool: this.cid });
-	    }
-	});
-
-	var TargetArrowhead = Arrowhead.extend({
-	    name: 'target-arrowhead',
-	    ratio: 1,
-	    arrowheadType: 'target',
-	    attributes: {
-	        'd': 'M -10 -8 10 0 -10 8 Z',
-	        'fill': '#33334F',
-	        'stroke': '#FFFFFF',
-	        'stroke-width': 2,
-	        'cursor': 'move',
-	        'class': 'target-arrowhead'
-	    }
-	});
-
-	var SourceArrowhead = Arrowhead.extend({
-	    name: 'source-arrowhead',
-	    ratio: 0,
-	    arrowheadType: 'source',
-	    attributes: {
-	        'd': 'M 10 -8 -10 0 10 8 Z',
-	        'fill': '#33334F',
-	        'stroke': '#FFFFFF',
-	        'stroke-width': 2,
-	        'cursor': 'move',
-	        'class': 'source-arrowhead'
-	    }
-	});
-
-	var Button = ToolView.extend({
-	    name: 'button',
-	    events: {
-	        'mousedown': 'onPointerDown',
-	        'touchstart': 'onPointerDown'
-	    },
-	    options: {
-	        distance: 0,
-	        offset: 0,
-	        rotate: false
-	    },
-	    onRender: function() {
-	        this.renderChildren(this.options.markup);
-	        this.update();
-	    },
-	    update: function() {
-	        this.position();
-	        return this;
-	    },
-	    position: function() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var vel = ref.vel;
-	        var matrix = view.model.isLink() ? this.getLinkMatrix() : this.getElementMatrix();
-	        vel.transform(matrix, { absolute: true });
-	    },
-	    getElementMatrix: function getElementMatrix() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var options = ref.options;
-	        var x = options.x; if ( x === void 0 ) x = 0;
-	        var y = options.y; if ( y === void 0 ) y = 0;
-	        var offset = options.offset; if ( offset === void 0 ) offset = {};
-	        var useModelGeometry = options.useModelGeometry;
-	        var rotate = options.rotate;
-	        var bbox = getViewBBox(view, useModelGeometry);
-	        var angle = view.model.angle();
-	        if (!rotate) { bbox = bbox.bbox(angle); }
-	        var offsetX = offset.x; if ( offsetX === void 0 ) offsetX = 0;
-	        var offsetY = offset.y; if ( offsetY === void 0 ) offsetY = 0;
-	        if (isPercentage(x)) {
-	            x = parseFloat(x) / 100 * bbox.width;
-	        }
-	        if (isPercentage(y)) {
-	            y = parseFloat(y) / 100 * bbox.height;
-	        }
-	        var matrix = V.createSVGMatrix().translate(bbox.x + bbox.width / 2, bbox.y + bbox.height / 2);
-	        if (rotate) { matrix = matrix.rotate(angle); }
-	        matrix = matrix.translate(x + offsetX - bbox.width / 2, y + offsetY - bbox.height / 2);
-	        return matrix;
-	    },
-	    getLinkMatrix: function getLinkMatrix() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var options = ref.options;
-	        var offset = options.offset; if ( offset === void 0 ) offset = 0;
-	        var distance = options.distance; if ( distance === void 0 ) distance = 0;
-	        var rotate = options.rotate;
-	        var tangent, position, angle;
-	        if (isPercentage(distance)) {
-	            tangent = view.getTangentAtRatio(parseFloat(distance) / 100);
-	        } else {
-	            tangent = view.getTangentAtLength(distance);
-	        }
-	        if (tangent) {
-	            position = tangent.start;
-	            angle = tangent.vector().vectorAngle(new Point(1, 0)) || 0;
-	        } else {
-	            position = view.getConnection().start;
-	            angle = 0;
-	        }
-	        var matrix = V.createSVGMatrix()
-	            .translate(position.x, position.y)
-	            .rotate(angle)
-	            .translate(0, offset);
-	        if (!rotate) { matrix = matrix.rotate(-angle); }
-	        return matrix;
-	    },
-	    onPointerDown: function(evt) {
-	        if (this.guard(evt)) { return; }
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        var actionFn = this.options.action;
-	        if (typeof actionFn === 'function') {
-	            actionFn.call(this.relatedView, evt, this.relatedView, this);
-	        }
-	    }
-	});
-
-
-	var Remove = Button.extend({
-	    children: [{
-	        tagName: 'circle',
-	        selector: 'button',
-	        attributes: {
-	            'r': 7,
-	            'fill': '#FF1D00',
-	            'cursor': 'pointer'
-	        }
-	    }, {
-	        tagName: 'path',
-	        selector: 'icon',
-	        attributes: {
-	            'd': 'M -3 -3 3 3 M -3 3 3 -3',
-	            'fill': 'none',
-	            'stroke': '#FFFFFF',
-	            'stroke-width': 2,
-	            'pointer-events': 'none'
-	        }
-	    }],
-	    options: {
-	        distance: 60,
-	        offset: 0,
-	        action: function(evt, view, tool) {
-	            view.model.remove({ ui: true, tool: tool.cid });
-	        }
-	    }
-	});
-
-	var Boundary = ToolView.extend({
-	    name: 'boundary',
-	    tagName: 'rect',
-	    options: {
-	        padding: 10,
-	        useModelGeometry: false,
-	    },
-	    attributes: {
-	        'fill': 'none',
-	        'stroke': '#33334F',
-	        'stroke-width': .5,
-	        'stroke-dasharray': '5, 5',
-	        'pointer-events': 'none'
-	    },
-	    onRender: function() {
-	        this.update();
-	    },
-	    update: function() {
-	        var ref = this;
-	        var view = ref.relatedView;
-	        var options = ref.options;
-	        var vel = ref.vel;
-	        var useModelGeometry = options.useModelGeometry;
-	        var rotate = options.rotate;
-	        var padding = normalizeSides(options.padding);
-	        var bbox = getViewBBox(view, useModelGeometry).moveAndExpand({
-	            x: -padding.left,
-	            y: -padding.top,
-	            width: padding.left + padding.right,
-	            height: padding.top + padding.bottom
-	        });
-	        var model = view.model;
-	        if (model.isElement()) {
-	            var angle = model.angle();
-	            if (angle) {
-	                if (rotate) {
-	                    var origin = model.getBBox().center();
-	                    vel.rotate(angle, origin.x, origin.y, { absolute: true });
-	                } else {
-	                    bbox = bbox.bbox(angle);
-	                }
-	            }
-	        }
-	        vel.attr(bbox.toJSON());
-	        return this;
-	    }
-	});
-
-	var Anchor = ToolView.extend({
-	    tagName: 'g',
-	    type: null,
-	    children: [{
-	        tagName: 'circle',
-	        selector: 'anchor',
-	        attributes: {
-	            'cursor': 'pointer'
-	        }
-	    }, {
-	        tagName: 'rect',
-	        selector: 'area',
-	        attributes: {
-	            'pointer-events': 'none',
-	            'fill': 'none',
-	            'stroke': '#33334F',
-	            'stroke-dasharray': '2,4',
-	            'rx': 5,
-	            'ry': 5
-	        }
-	    }],
-	    events: {
-	        mousedown: 'onPointerDown',
-	        touchstart: 'onPointerDown',
-	        dblclick: 'onPointerDblClick'
-	    },
-	    documentEvents: {
-	        mousemove: 'onPointerMove',
-	        touchmove: 'onPointerMove',
-	        mouseup: 'onPointerUp',
-	        touchend: 'onPointerUp',
-	        touchcancel: 'onPointerUp'
-	    },
-	    options: {
-	        snap: snapAnchor,
-	        anchor: getAnchor,
-	        resetAnchor: true,
-	        customAnchorAttributes: {
-	            'stroke-width': 4,
-	            'stroke': '#33334F',
-	            'fill': '#FFFFFF',
-	            'r': 5
-	        },
-	        defaultAnchorAttributes: {
-	            'stroke-width': 2,
-	            'stroke': '#FFFFFF',
-	            'fill': '#33334F',
-	            'r': 6
-	        },
-	        areaPadding: 6,
-	        snapRadius: 10,
-	        restrictArea: true,
-	        redundancyRemoval: true
-	    },
-	    onRender: function() {
-	        this.renderChildren();
-	        this.toggleArea(false);
-	        this.update();
-	    },
-	    update: function() {
-	        var type = this.type;
-	        var relatedView = this.relatedView;
-	        var view = relatedView.getEndView(type);
-	        if (view) {
-	            this.updateAnchor();
-	            this.updateArea();
-	            this.el.style.display = '';
-	        } else {
-	            this.el.style.display = 'none';
-	        }
-	        return this;
-	    },
-	    updateAnchor: function() {
-	        var childNodes = this.childNodes;
-	        if (!childNodes) { return; }
-	        var anchorNode = childNodes.anchor;
-	        if (!anchorNode) { return; }
-	        var relatedView = this.relatedView;
-	        var type = this.type;
-	        var position = relatedView.getEndAnchor(type);
-	        var options = this.options;
-	        var customAnchor = relatedView.model.prop([type, 'anchor']);
-	        anchorNode.setAttribute('transform', 'translate(' + position.x + ',' + position.y + ')');
-	        var anchorAttributes = (customAnchor) ? options.customAnchorAttributes : options.defaultAnchorAttributes;
-	        for (var attrName in anchorAttributes) {
-	            anchorNode.setAttribute(attrName, anchorAttributes[attrName]);
-	        }
-	    },
-	    updateArea: function() {
-	        var childNodes = this.childNodes;
-	        if (!childNodes) { return; }
-	        var areaNode = childNodes.area;
-	        if (!areaNode) { return; }
-	        var relatedView = this.relatedView;
-	        var type = this.type;
-	        var view = relatedView.getEndView(type);
-	        var model = view.model;
-	        var magnet = relatedView.getEndMagnet(type);
-	        var padding = this.options.areaPadding;
-	        if (!isFinite(padding)) { padding = 0; }
-	        var bbox, angle, center;
-	        if (view.isNodeConnection(magnet)) {
-	            bbox = view.getBBox();
-	            angle = 0;
-	            center = bbox.center();
-	        } else {
-	            bbox = view.getNodeUnrotatedBBox(magnet);
-	            angle = model.angle();
-	            center = bbox.center();
-	            if (angle) { center.rotate(model.getBBox().center(), -angle); }
-	            // TODO: get the link's magnet rotation into account
-	        }
-	        bbox.inflate(padding);
-	        areaNode.setAttribute('x', -bbox.width / 2);
-	        areaNode.setAttribute('y', -bbox.height / 2);
-	        areaNode.setAttribute('width', bbox.width);
-	        areaNode.setAttribute('height', bbox.height);
-	        areaNode.setAttribute('transform', 'translate(' + center.x + ',' + center.y + ') rotate(' + angle + ')');
-	    },
-	    toggleArea: function(visible) {
-	        this.childNodes.area.style.display = (visible) ? '' : 'none';
-	    },
-	    onPointerDown: function(evt) {
-	        if (this.guard(evt)) { return; }
-	        evt.stopPropagation();
-	        evt.preventDefault();
-	        this.paper.undelegateEvents();
-	        this.delegateDocumentEvents();
-	        this.focus();
-	        this.toggleArea(this.options.restrictArea);
-	        this.relatedView.model.startBatch('anchor-move', { ui: true, tool: this.cid });
-	    },
-	    resetAnchor: function(anchor) {
-	        var type = this.type;
-	        var relatedModel = this.relatedView.model;
-	        if (anchor) {
-	            relatedModel.prop([type, 'anchor'], anchor, {
-	                rewrite: true,
-	                ui: true,
-	                tool: this.cid
-	            });
-	        } else {
-	            relatedModel.removeProp([type, 'anchor'], {
-	                ui: true,
-	                tool: this.cid
-	            });
-	        }
-	    },
-	    onPointerMove: function(evt) {
-
-	        var relatedView = this.relatedView;
-	        var type = this.type;
-	        var view = relatedView.getEndView(type);
-	        var model = view.model;
-	        var magnet = relatedView.getEndMagnet(type);
-	        var normalizedEvent = normalizeEvent(evt);
-	        var coords = this.paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
-	        var snapFn = this.options.snap;
-	        if (typeof snapFn === 'function') {
-	            coords = snapFn.call(relatedView, coords, view, magnet, type, relatedView, this);
-	            coords = new Point(coords);
-	        }
-
-	        if (this.options.restrictArea) {
-	            if (view.isNodeConnection(magnet)) {
-	                // snap coords to the link's connection
-	                var pointAtConnection = view.getClosestPoint(coords);
-	                if (pointAtConnection) { coords = pointAtConnection; }
-	            } else {
-	                // snap coords within node bbox
-	                var bbox = view.getNodeUnrotatedBBox(magnet);
-	                var angle = model.angle();
-	                var origin = model.getBBox().center();
-	                var rotatedCoords = coords.clone().rotate(origin, angle);
-	                if (!bbox.containsPoint(rotatedCoords)) {
-	                    coords = bbox.pointNearestToPoint(rotatedCoords).rotate(origin, -angle);
-	                }
-	            }
-	        }
-
-	        var anchor;
-	        var anchorFn = this.options.anchor;
-	        if (typeof anchorFn === 'function') {
-	            anchor = anchorFn.call(relatedView, coords, view, magnet, type, relatedView);
-	        }
-
-	        this.resetAnchor(anchor);
-	        this.update();
-	    },
-
-	    onPointerUp: function(evt) {
-	        this.paper.delegateEvents();
-	        this.undelegateDocumentEvents();
-	        this.blur();
-	        this.toggleArea(false);
-	        var linkView = this.relatedView;
-	        if (this.options.redundancyRemoval) { linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid }); }
-	        linkView.model.stopBatch('anchor-move', { ui: true, tool: this.cid });
-	    },
-
-	    onPointerDblClick: function() {
-	        var anchor = this.options.resetAnchor;
-	        if (anchor === false) { return; } // reset anchor disabled
-	        if (anchor === true) { anchor = null; } // remove the current anchor
-	        this.resetAnchor(cloneDeep(anchor));
-	        this.update();
-	    }
-	});
-
-	var SourceAnchor = Anchor.extend({
-	    name: 'source-anchor',
-	    type: 'source'
-	});
-
-	var TargetAnchor = Anchor.extend({
-	    name: 'target-anchor',
-	    type: 'target'
-	});
-
-	var index$5 = ({
-		Vertices: Vertices,
-		Segments: Segments,
-		SourceArrowhead: SourceArrowhead,
-		TargetArrowhead: TargetArrowhead,
-		SourceAnchor: SourceAnchor,
-		TargetAnchor: TargetAnchor,
-		Button: Button,
-		Remove: Remove,
-		Boundary: Boundary
-	});
-
-
-
-	var index$6 = ({
-		Button: Button,
-		Remove: Remove,
-		Boundary: Boundary
-	});
-
-	var version = "3.4.4";
-
-	var Vectorizer = V;
-	var layout = { PortLabel: PortLabel, Port: Port };
-	var setTheme = function(theme, opt) {
-
-	    opt = opt || {};
-
-	    invoke(views, 'setTheme', theme, opt);
-
-	    // Update the default theme on the view prototype.
-	    View.prototype.defaultTheme = theme;
-	};
-
 	var layout$1 = { DirectedGraph: DirectedGraph, PortLabel: PortLabel, Port: Port };
 
 	// export empty namespaces - backward compatibility
@@ -31386,21 +33170,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	exports.anchors = anchors;
 	exports.config = config;
 	exports.connectionPoints = connectionPoints;
-	exports.connectionStrategies = index$4;
+	exports.connectionStrategies = index$2;
 	exports.connectors = connectors;
-	exports.dia = index$2;
-	exports.elementTools = index$6;
+	exports.dia = index$5;
+	exports.elementTools = index$4;
 	exports.env = env;
 	exports.format = format$1;
 	exports.g = g;
 	exports.highlighters = highlighters;
 	exports.layout = layout$1;
 	exports.linkAnchors = linkAnchors;
-	exports.linkTools = index$5;
+	exports.linkTools = index$3;
 	exports.mvc = index$1;
 	exports.routers = routers;
 	exports.setTheme = setTheme;
-	exports.shapes = index$3;
+	exports.shapes = index$6;
 	exports.ui = ui;
 	exports.util = index;
 	exports.version = version;

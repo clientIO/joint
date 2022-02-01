@@ -14,7 +14,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "sideEffects": false,
-  "version": "3.4.4",
+  "version": "3.5.0",
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "style": "./dist/joint.min.css",
@@ -28,7 +28,8 @@
     "David Durman <david@client.io> (https://github.com/DavidDurman)",
     "Roman Bruckner <roman@client.io> (https://github.com/kumilingus)",
     "Vladimir Talas <lades@client.io> (https://github.com/vtalas)",
-    "James Williams <james@client.io> (https://github.com/jamesgeorgewilliams)"
+    "James Williams <james@client.io> (https://github.com/jamesgeorgewilliams)",
+    "Arthur Khokhlov <arthur@client.io> (https://github.com/Geliogabalus)"
   ],
   "repository": {
     "type": "git",
@@ -54,11 +55,11 @@
     "lodash": "~4.17.21"
   },
   "devDependencies": {
-    "@types/backbone": "~1.4.14",
-    "@types/jquery": "~3.5.5",
-    "@types/lodash": "~4.14.170",
-    "@types/dagre": "~0.7.44",
-    "@types/graphlib": "~2.1.7",
+    "@types/backbone": "~1.4.15",
+    "@types/jquery": "~3.5.13",
+    "@types/lodash": "~4.14.178",
+    "@types/dagre": "~0.7.47",
+    "@types/graphlib": "~2.1.8",
     "@typescript-eslint/eslint-plugin": "5.2.0",
     "@typescript-eslint/parser": "5.2.0",
     "async": "2.6.1",

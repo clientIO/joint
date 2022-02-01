@@ -1,4 +1,4 @@
-/*! JointJS v3.4.4 (2021-09-27) - JavaScript diagramming library
+/*! JointJS v3.5.0 (2022-02-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -18,13 +18,24 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 /// <reference types="backbone" />
 
-import * as Backbone from "backbone";
+import * as Backbone from 'backbone';
 
 export as namespace joint;
 
 export namespace g {
 
-    export type Shape = Path | Point | Line | Polyline | Rect | Ellipse;
+    export enum types {
+        Point = 1,
+        Line = 2,
+        Ellipse = 3,
+        Rect = 4,
+        Polyline = 5,
+        Polygon = 6,
+        Curve = 7,
+        Path = 8,
+    }
+
+    export type Shape = Path | Point | Line | Polyline | Polygon | Rect | Ellipse;
     export interface PlainPoint {
 
         x: number;
@@ -166,6 +177,7 @@ export namespace g {
         controlPoint1: Point;
         controlPoint2: Point;
         end: Point;
+        type: types.Curve;
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string, p3: PlainPoint | string, p4: PlainPoint | string);
         constructor(curve: Curve);
@@ -245,6 +257,7 @@ export namespace g {
         y: number;
         a: number;
         b: number;
+        type: types.Ellipse;
 
         constructor(center: PlainPoint | string, a: number, b: number);
         constructor(ellipse: Ellipse);
@@ -280,6 +293,7 @@ export namespace g {
 
         start: Point;
         end: Point;
+        type: types.Line;
 
         constructor(p1: PlainPoint | string, p2: PlainPoint | string);
         constructor(line: Line);
@@ -358,9 +372,9 @@ export namespace g {
     class Path {
 
         segments: Segment[];
-
         start: Point | null; // getter
         end: Point | null; // getter
+        type: types.Path;
 
         constructor();
         constructor(pathData: string);
@@ -468,6 +482,7 @@ export namespace g {
 
         x: number;
         y: number;
+        type: types.Point;
 
         constructor(x?: number, y?: number);
         constructor(p: PlainPoint | string);
@@ -476,7 +491,7 @@ export namespace g {
 
         adhereToRect(r: Rect): this;
 
-        angleBetween(p1: PlainPoint, p2: PlainPoint) : number;
+        angleBetween(p1: PlainPoint, p2: PlainPoint): number;
 
         bearing(p: Point): CardinalDirection;
 
@@ -484,7 +499,7 @@ export namespace g {
 
         clone(): Point;
 
-        cross(p1: PlainPoint, p2: PlainPoint) : number;
+        cross(p1: PlainPoint, p2: PlainPoint): number;
 
         difference(dx?: number, dy?: number): Point;
         difference(p: PlainPoint): Point;
@@ -536,17 +551,15 @@ export namespace g {
         update(x?: number, y?: number): this;
         update(p: PlainPoint): this;
 
-        vectorAngle(p: PlainPoint) : number;
+        vectorAngle(p: PlainPoint): number;
 
         static fromPolar(distance: number, angle: number, origin?: PlainPoint | string): Point;
 
         static random(x1: number, x2: number, y1: number, y2: number): Point;
     }
-
-    class Polyline {
+    abstract class PolygonalChain {
 
         points: Point[];
-
         start: Point | null; // getter
         end: Point | null; // getter
 
@@ -555,8 +568,6 @@ export namespace g {
         constructor(points: PlainPoint[]);
 
         bbox(): Rect | null;
-
-        clone(): Polyline;
 
         closestPoint(p: PlainPoint | string): Point | null;
 
@@ -568,13 +579,13 @@ export namespace g {
 
         containsPoint(p: PlainPoint): boolean;
 
-        convexHull(): Polyline;
-
         equals(p: Polyline): boolean;
 
         isDifferentiable(): boolean;
 
         intersectionWithLine(l: Line): Point[] | null;
+
+        close(): this;
 
         length(): number;
 
@@ -599,7 +610,27 @@ export namespace g {
 
         toString(): string;
 
+        clone(): this;
+
+        convexHull(): this;
+    }
+
+    class Polyline extends PolygonalChain {
+
+        type: types.Polyline;
+
         static parse(svgString: string): Polyline;
+
+        static fromRect(rect: Rect): Polyline;
+    }
+
+    class Polygon extends PolygonalChain {
+
+        type: types.Polygon;
+
+        static parse(svgString: string): Polygon;
+
+        static fromRect(rect: Rect): Polygon;
     }
 
     class Rect implements PlainRect {
@@ -608,11 +639,14 @@ export namespace g {
         y: number;
         width: number;
         height: number;
+        type: types.Rect;
 
         constructor(x?: number, y?: number, width?: number, height?: number);
         constructor(r: PlainRect);
 
         bbox(angle?: number): Rect;
+
+        rotateAroundCenter(angle: number): this;
 
         bottomLeft(): Point;
 
@@ -734,16 +768,75 @@ export namespace g {
 
         export function linear(domain: [number, number], range: [number, number], value: number): number;
     }
+
+    namespace intersection {
+
+        function exists(shape1: Shape, shape2: Shape, shape1opt?: SegmentSubdivisionsOpt | null, shape2opt?: SegmentSubdivisionsOpt | null): boolean;
+
+        /* Line */
+
+        export function lineWithLine(line1: Line, line2: Line): boolean;
+
+        /* Ellipse */
+
+        export function ellipseWithLine(ellipse: Ellipse, line: Line): boolean;
+
+        export function ellipseWithEllipse(ellipse1: Ellipse, ellipse2: Ellipse): boolean;
+
+        /* Rect */
+
+        export function rectWithLine(rect: Rect, line: Line): boolean;
+
+        export function rectWithEllipse(rect: Rect, ellipse: Ellipse): boolean;
+
+        export function rectWithRect(rect1: Rect, rect2: Rect): boolean;
+
+
+        /* Polyline */
+
+        export function polylineWithLine(polyline: Polyline, line: Line): boolean;
+
+        export function polylineWithEllipse(polyline: Polyline, ellipse: Ellipse): boolean;
+
+        export function polylineWithRect(polyline: Polyline, rect: Rect): boolean;
+
+        export function polylineWithPolyline(polyline1: Polyline, polyline2: Polyline): boolean;
+
+        /* Polygon */
+
+        export function polygonWithLine(polygon: Polygon, line: Line): boolean;
+
+        export function polygonWithEllipse(polygon: Polygon, ellipse: Ellipse): boolean;
+
+        export function polygonWithRect(polygon: Polygon, rect: Rect): boolean;
+
+        export function polygonWithPolyline(polygon: Polygon, polyline: Polyline): boolean;
+
+        export function polygonWithPolygon(polygon1: Polygon, polygon2: Polygon): boolean;
+
+        /* Path */
+
+        export function pathWithLine(path: Path, line: Line, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithEllipse(path: Path, ellipse: Ellipse, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithRect(path: Path, rect: Rect, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPolyline(path: Path, polyline: Polyline, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPolygon(path: Path, polygon: Polygon, pathOpt?: SegmentSubdivisionsOpt): boolean;
+
+        export function pathWithPath(path1: Path, path2: Path, pathOpt1?: SegmentSubdivisionsOpt | null, pathOpt2?: SegmentSubdivisionsOpt | null): boolean;
+    }
 }
 
-export function V(
-    svg: SVGElement | Vectorizer | string,
-    attrs?: { [key: string]: any },
-    children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]
-): Vectorizer;
+export const V: VCallable;
+export type V = VElement;
+
+export const Vectorizer: VCallable;
+export type Vectorizer = VElement;
 
 export namespace Vectorizer {
-
     interface RotateOptions {
         absolute?: boolean;
     }
@@ -767,7 +860,7 @@ export namespace Vectorizer {
     }
 
     interface GetBBoxOptions {
-        target?: SVGElement | Vectorizer;
+        target?: SVGElement | VElement;
         recursive?: boolean;
     }
 
@@ -849,18 +942,21 @@ export namespace Vectorizer {
     }
 }
 
-export class Vectorizer {
+interface VCallable extends VStatic {
+
+    (
+        svg: SVGElement | VElement | string,
+        attrs?: { [key: string]: any },
+        children?: VElement | VElement[] | SVGElement | SVGElement[]
+    ): VElement;
+}
+
+export class VElement {
 
     id: string;
     node: SVGElement;
 
-    constructor(
-        el: string | SVGElement,
-        attrs?: { [key: string]: any },
-        children?: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]
-    );
-
-    getTransformToElement(toElem: SVGGElement | Vectorizer): SVGMatrix;
+    getTransformToElement(toElem: SVGGElement | VElement): SVGMatrix;
 
     transform(): SVGMatrix;
     transform(matrix: SVGMatrix | Vectorizer.Matrix, opt?: Vectorizer.TransformOptions): this;
@@ -874,9 +970,9 @@ export class Vectorizer {
     scale(): Vectorizer.Scale;
     scale(sx: number, sy?: number): this;
 
-    bbox(withoutTransformations?: boolean, target?: SVGElement | Vectorizer): g.Rect;
+    bbox(withoutTransformations?: boolean, target?: SVGElement | VElement): g.Rect;
 
-    getBBox(opt?: Vectorizer.GetBBoxOptions) : g.Rect;
+    getBBox(opt?: Vectorizer.GetBBoxOptions): g.Rect;
 
     text(content: string, opt?: Vectorizer.TextOptions): this;
 
@@ -893,48 +989,48 @@ export class Vectorizer {
 
     empty(): this;
 
-    append(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+    append(els: VElement | VElement[] | SVGElement | SVGElement[]): this;
 
-    prepend(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+    prepend(els: VElement | VElement[] | SVGElement | SVGElement[]): this;
 
-    before(els: Vectorizer | Vectorizer[] | SVGElement | SVGElement[]): this;
+    before(els: VElement | VElement[] | SVGElement | SVGElement[]): this;
 
-    appendTo(el: SVGElement | Vectorizer) : this;
+    appendTo(el: SVGElement | VElement): this;
 
-    parent(): Vectorizer | null;
+    parent(): VElement | null;
 
-    // returns either this or Vectorizer, no point in specifying this.
-    svg(): Vectorizer;
+    // returns either this or VElement, no point in specifying this.
+    svg(): VElement;
 
     tagName(): string;
 
-    defs(): Vectorizer | undefined;
+    defs(): VElement | undefined;
 
-    clone(): Vectorizer;
+    clone(): VElement;
 
-    findOne(selector: string): Vectorizer | undefined;
+    findOne(selector: string): VElement | undefined;
 
-    find(selector: string): Vectorizer[];
+    find(selector: string): VElement[];
 
-    children(): Vectorizer[];
+    children(): VElement[];
 
     index(): number;
 
-    findParentByClass(className: string, terminator?: SVGElement): Vectorizer | null;
+    findParentByClass(className: string, terminator?: SVGElement): VElement | null;
 
-    contains(el: SVGElement | Vectorizer): boolean;
+    contains(el: SVGElement | VElement): boolean;
 
     toLocalPoint(x: number, y: number): SVGPoint;
 
     translateCenterToPoint(p: g.PlainPoint): this;
 
-    translateAndAutoOrient(position: g.PlainPoint, reference: g.PlainPoint, target?: SVGElement | Vectorizer): this;
+    translateAndAutoOrient(position: g.PlainPoint, reference: g.PlainPoint, target?: SVGElement | VElement): this;
 
-    animateAlongPath(attrs: { [key: string]: any }, path: SVGElement | Vectorizer): void;
+    animateAlongPath(attrs: { [key: string]: any }, path: SVGElement | VElement): void;
 
     hasClass(className: string): boolean;
 
-    addClass(className: string): Vectorizer;
+    addClass(className: string): VElement;
 
     removeClass(className: string): this;
 
@@ -942,113 +1038,118 @@ export class Vectorizer {
 
     sample(interval?: number): Vectorizer.Sample[];
 
-    convertToPath(): Vectorizer;
+    convertToPath(): VElement;
 
     convertToPathData(): string;
 
-    findIntersection(ref: g.PlainPoint, target: SVGElement | Vectorizer): g.PlainPoint | undefined;
+    findIntersection(ref: g.PlainPoint, target: SVGElement | VElement): g.PlainPoint | undefined;
 
     toGeometryShape(): g.Shape;
 
     private setAttributes(attrs: { [key: string]: any }): this;
 
     private setAttribute(name: string, value: string): this;
+}
 
-    static createSVGDocument(content: string): Document;
+interface VStatic {
 
-    static createSVGStyle(stylesheet: string): SVGStyleElement;
+    createSVGDocument(content: string): Document;
 
-    static createCDATASection(data: string): CDATASection;
+    createSVGStyle(stylesheet: string): SVGStyleElement;
 
-    static uniqueId(): string;
+    createCDATASection(data: string): CDATASection;
 
-    static ensureId(node: SVGElement | Vectorizer): string;
+    uniqueId(): string;
 
-    static sanitizeText(text: string): string;
+    ensureId(node: SVGElement | VElement): string;
 
-    static isUndefined(value: any): boolean;
+    sanitizeText(text: string): string;
 
-    static isString(value: any): boolean;
+    isUndefined(value: any): boolean;
 
-    static isObject(value: any): boolean;
+    isString(value: any): boolean;
 
-    static isArray(value: any): boolean;
+    isObject(value: any): boolean;
 
-    static parseXML(data: string, opt?: Vectorizer.ParseXMLOptions): XMLDocument;
+    isArray(value: any): boolean;
 
-    static qualifyAttr(name: string): Vectorizer.QualifiedAttribute;
+    parseXML(data: string, opt?: Vectorizer.ParseXMLOptions): XMLDocument;
 
-    static transformStringToMatrix(transform: string): SVGMatrix;
+    qualifyAttr(name: string): Vectorizer.QualifiedAttribute;
 
-    static matrixToTransformString(matrix: SVGMatrix | Vectorizer.Matrix): string;
+    transformStringToMatrix(transform: string): SVGMatrix;
 
-    static parseTransformString(transform: string): Vectorizer.Transform;
+    matrixToTransformString(matrix: SVGMatrix | Vectorizer.Matrix): string;
 
-    static deltaTransformPoint(matrix: SVGMatrix | Vectorizer.Matrix, point: SVGPoint | g.PlainPoint): g.PlainPoint;
+    parseTransformString(transform: string): Vectorizer.Transform;
 
-    static decomposeMatrix(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.DecomposedTransformation;
+    deltaTransformPoint(matrix: SVGMatrix | Vectorizer.Matrix, point: SVGPoint | g.PlainPoint): g.PlainPoint;
 
-    static matrixToScale(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Scale;
+    decomposeMatrix(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.DecomposedTransformation;
 
-    static matrixToRotate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Rotation;
+    matrixToScale(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Scale;
 
-    static matrixToTranslate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Translation;
+    matrixToRotate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Rotation;
 
-    static isV(value: any): boolean;
+    matrixToTranslate(matrix: SVGMatrix | Vectorizer.Matrix): Vectorizer.Translation;
 
-    static isVElement(value: any): boolean;
+    isV(value: any): boolean;
 
-    static isSVGGraphicsElement(value: any): boolean;
+    isVElement(value: any): boolean;
 
-    static createSVGMatrix(matrix: SVGMatrix | Vectorizer.Matrix): SVGMatrix;
+    isSVGGraphicsElement(value: any): boolean;
 
-    static createSVGTransform(matrix?: SVGMatrix | Vectorizer.Matrix): SVGTransform;
+    createSVGMatrix(matrix: SVGMatrix | Partial<Vectorizer.Matrix>): SVGMatrix;
 
-    static createSVGPoint(x: number, y: number): SVGPoint;
+    createSVGTransform(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGTransform;
 
-    static transformRect(r: g.PlainRect, matrix: SVGMatrix): g.Rect;
+    createSVGPoint(x: number, y: number): SVGPoint;
 
-    static transformPoint(p: g.PlainPoint, matrix: SVGMatrix): g.Point;
+    transformRect(r: g.PlainRect, matrix: SVGMatrix): g.Rect;
 
-    static transformLine(p: g.Line, matrix: SVGMatrix): g.Line;
+    transformPoint(p: g.PlainPoint, matrix: SVGMatrix): g.Point;
 
-    static transformPolyline(p: g.Polyline | g.PlainPoint[], matrix: SVGMatrix): g.Polyline;
+    transformLine(p: g.Line, matrix: SVGMatrix): g.Line;
 
-    static styleToObject(styleString: string): { [key: string]: string };
+    transformPolyline(p: g.Polyline | g.PlainPoint[], matrix: SVGMatrix): g.Polyline;
 
-    static createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;
+    styleToObject(styleString: string): { [key: string]: string };
 
-    static mergeAttrs(a: any, b: any): any;
+    createSlicePathData(innerRadius: number, outRadius: number, startAngle: number, endAngle: number): string;
 
-    static annotateString(t: string, annotations: Vectorizer.TextAnnotation[], opt?: Vectorizer.AnnotateStringOptions): Array< string | { [key: string]: any }> ;
+    mergeAttrs(a: any, b: any): any;
 
-    static findAnnotationsAtIndex(annotations: Vectorizer.TextAnnotation[], index: number): Vectorizer.TextAnnotation[];
+    annotateString(t: string, annotations: Vectorizer.TextAnnotation[], opt?: Vectorizer.AnnotateStringOptions): Array< string | { [key: string]: any }> ;
 
-    static findAnnotationsBetweenIndexes(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation[];
+    findAnnotationsAtIndex(annotations: Vectorizer.TextAnnotation[], index: number): Vectorizer.TextAnnotation[];
 
-    static shiftAnnotations(annotations: Vectorizer.TextAnnotation[], index: number, offset: number): Vectorizer.TextAnnotation[];
+    findAnnotationsBetweenIndexes(annotations: Vectorizer.TextAnnotation[], start: number, end: number): Vectorizer.TextAnnotation[];
 
-    static convertLineToPathData(line: string | SVGElement | Vectorizer): string;
+    shiftAnnotations(annotations: Vectorizer.TextAnnotation[], index: number, offset: number): Vectorizer.TextAnnotation[];
 
-    static convertPolygonToPathData(line: string | SVGElement | Vectorizer): string;
+    convertLineToPathData(line: string | SVGElement | VElement): string;
 
-    static convertPolylineToPathData(line: string | SVGElement | Vectorizer): string;
+    convertPolygonToPathData(line: string | SVGElement | VElement): string;
 
-    static svgPointsToPath(points: g.PlainPoint[] | SVGPoint[]): string;
+    convertPolylineToPathData(line: string | SVGElement | VElement): string;
 
-    static getPointsFromSvgNode(node: SVGElement | Vectorizer): SVGPoint[];
+    svgPointsToPath(points: g.PlainPoint[] | SVGPoint[]): string;
 
-    static convertCircleToPathData(circle: string | SVGElement | Vectorizer): string;
+    getPointsFromSvgNode(node: SVGElement | VElement): SVGPoint[];
 
-    static convertEllipseToPathData(ellipse: string | SVGElement | Vectorizer): string;
+    convertCircleToPathData(circle: string | SVGElement | VElement): string;
 
-    static convertRectToPathData(rect: string | SVGElement | Vectorizer): string;
+    convertEllipseToPathData(ellipse: string | SVGElement | VElement): string;
 
-    static rectToPath(r: Vectorizer.RoundedRect): string;
+    convertRectToPathData(rect: string | SVGElement | VElement): string;
 
-    static normalizePathData(path: string): string;
+    rectToPath(r: Vectorizer.RoundedRect): string;
 
-    static toNode(el: SVGElement | Vectorizer | SVGElement[]): SVGElement;
+    normalizePathData(path: string): string;
+
+    toNode(el: SVGElement | VElement | SVGElement[]): SVGElement;
+
+    prototype: VElement;
 }
 
 export const version: string;
@@ -1057,6 +1158,7 @@ export namespace config {
     var useCSSSelectors: boolean;
     var classNamePrefix: string;
     var defaultTheme: string;
+    var doubleTapInterval: number;
 }
 
 export namespace dia {
@@ -1085,7 +1187,7 @@ export namespace dia {
         bottom?: number;
         horizontal?: number;
         vertical?: number;
-    }
+    };
 
     type Sides = number | SidesJSON;
 
@@ -1102,14 +1204,14 @@ export namespace dia {
     type MarkupNodeJSON = {
         tagName: string;
         selector?: string;
-        groupSelector?: string;
+        groupSelector?: string | string[];
         namespaceURI?: string;
         className?: string;
         attributes?: attributes.NativeSVGAttributes;
         style?: { [key: string]: any };
         children?: MarkupJSON;
         textContent?: string;
-    }
+    };
 
     type MarkupJSON = MarkupNodeJSON[];
 
@@ -1125,6 +1227,54 @@ export namespace dia {
         dry?:  boolean;
         [key: string]: any;
     }
+
+    interface SVGPatternJSON {
+        id?: string;
+        type: 'pattern';
+        attrs?: attributes.NativeSVGAttributes;
+        markup: string | MarkupJSON;
+    }
+
+    interface SVGGradientJSON {
+        id?: string;
+        type: 'linearGradient' | 'radialGradient';
+        attrs?: attributes.NativeSVGAttributes;
+        stops: Array<{
+            offset: number | string;
+            color: string;
+            opacity?: number;
+        }>;
+    }
+
+    type SVGMarkerJSON = SVGComplexMarkerJSON | SVGSimpleMarkerJSON;
+
+    interface SVGComplexMarkerJSON {
+        id?: string;
+        markup: string | MarkupJSON;
+        attrs?: attributes.NativeSVGAttributes;
+    }
+
+    interface SVGSimpleMarkerJSON extends attributes.NativeSVGAttributes {
+        id?: string;
+        type?: string;
+        /**
+         * @deprecated use `attrs` instead
+         */
+        markerUnits?: string;
+    }
+
+    type SVGFilterJSON =
+        util.filter.FilterJSON<'outline'> |
+        util.filter.FilterJSON<'highlight'> |
+        util.filter.FilterJSON<'blur'> |
+        util.filter.FilterJSON<'dropShadow'> |
+        util.filter.FilterJSON<'grayscale'> |
+        util.filter.FilterJSON<'sepia'> |
+        util.filter.FilterJSON<'saturate'> |
+        util.filter.FilterJSON<'hueRotate'> |
+        util.filter.FilterJSON<'invert'> |
+        util.filter.FilterJSON<'brightness'> |
+        util.filter.FilterJSON<'contrast'>;
 
     export namespace Graph {
 
@@ -1147,7 +1297,7 @@ export namespace dia {
         }
 
         interface Attributes {
-            cells?: Cells,
+            cells?: Cells;
             [key: string]: any;
         }
     }
@@ -1156,13 +1306,14 @@ export namespace dia {
 
         constructor(attributes?: Graph.Attributes, opt?: { cellNamespace?: any, cellModel?: typeof Cell });
 
-        addCell(cell: Cell | Cell[], opt?: CollectionAddOptions): this;
+        addCell(cell: Cell.JSON | Cell, opt?: CollectionAddOptions): this;
+        addCell(cell: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
-        addCells(cells: Cell[], opt?: CollectionAddOptions): this;
+        addCells(cells: Array<Cell | Cell.JSON>, opt?: CollectionAddOptions): this;
 
-        resetCells(cells: Cell[], opt?: Graph.Options): this;
+        resetCells(cells: Array<Cell | Cell.JSON>, opt?: Graph.Options): this;
 
-        getCell(id: string | number | Cell): Cell;
+        getCell(id: Cell.ID | Cell): Cell;
 
         getElements(): Element[];
 
@@ -1229,7 +1380,7 @@ export namespace dia {
         findModelsUnderElement(element: Element, opt?: {
             searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
                 'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
-                'topMiddle' | 'topRight' | 'bbox'
+                'topMiddle' | 'topRight' | 'bbox';
         }): Element[];
 
         getBBox(): g.Rect | null;
@@ -1261,6 +1412,8 @@ export namespace dia {
 
     export namespace Cell {
 
+        type ID = string | number;
+
         interface GenericAttributes<T> {
             attrs?: T;
             z?: number;
@@ -1274,8 +1427,15 @@ export namespace dia {
         interface Attributes extends GenericAttributes<Selectors> {
         }
 
+        type JSON<K extends Selectors = Selectors, T extends GenericAttributes<K> = GenericAttributes<K>> = T & {
+            [attribute in keyof T]: T[attribute];
+        } & {
+            id: ID;
+            type: string;
+        };
+
         interface Constructor<T extends Backbone.Model> {
-            new (opt?: { id?: string, [key: string]: any }): T;
+            new (opt?: { id?: ID, [key: string]: any }): T;
             define(type: string, defaults?: any, protoProps?: any, staticProps?: any): dia.Cell.Constructor<T>;
         }
 
@@ -1307,13 +1467,13 @@ export namespace dia {
 
         constructor(attributes?: A, opt?: Graph.Options);
 
-        id: string | number;
+        id: Cell.ID;
         graph: Graph;
         markup: string | MarkupJSON;
 
         protected generateId(): string | number;
 
-        toJSON(): any;
+        toJSON(): Cell.JSON<any, A>;
 
         remove(opt?: Cell.DisconnectableOptions): this;
 
@@ -1322,7 +1482,7 @@ export namespace dia {
         toBack(opt?: Cell.GetEmbeddedCellsOptions): this;
 
         parent(): string;
-        parent(parentId: string): this;
+        parent(parentId: Cell.ID): this;
 
         getParentCell(): Cell | null;
 
@@ -1356,9 +1516,11 @@ export namespace dia {
 
         stopTransitions(path?: string, delim?: string): this;
 
-        embed(cell: Cell, opt?: Graph.Options): this;
+        embed(cell: Cell | Cell[], opt?: Graph.Options): this;
 
-        unembed(cell: Cell, opt?: Graph.Options): this;
+        unembed(cell: Cell | Cell[], opt?: Graph.Options): this;
+
+        canEmbed(cell: Cell | Cell[]): boolean;
 
         addTo(graph: Graph, opt?: Graph.Options): this;
 
@@ -1372,11 +1534,22 @@ export namespace dia {
 
         stopBatch(name: string, opt?: Graph.Options): this;
 
+        position(): g.Point;
+
         angle(): number;
 
         getBBox(): g.Rect;
 
         getPointFromConnectedLink(link: dia.Link, endType: dia.LinkEnd): g.Point;
+
+        getPointRotatedAroundCenter(angle: number, x: number, y: number): g.Point;
+        getPointRotatedAroundCenter(angle: number, point: dia.Point): g.Point;
+
+        getRelativePointFromAbsolute(x: number, y: number): g.Point;
+        getRelativePointFromAbsolute(absolutePoint: dia.Point): g.Point;
+
+        getAbsolutePointFromRelative(x: number, y: number): g.Point;
+        getAbsolutePointFromRelative(relativePoint: dia.Point): g.Point;
 
         getChangeFlag(attributes: { [key: string]: number }): number;
 
@@ -1398,9 +1571,9 @@ export namespace dia {
             size?: Size;
             angle?: number;
             ports?: {
-                groups?: { [key: string]: PortGroup},
-                items?: Port[]
-            }
+                groups?: { [key: string]: PortGroup };
+                items?: Port[];
+            };
         }
 
         interface Attributes extends GenericAttributes<Cell.Selectors> {
@@ -1409,20 +1582,20 @@ export namespace dia {
         type PortPositionCallback = (ports: Port[], bbox: g.Rect) => dia.Point[];
 
         interface PortPositionJSON {
-            name?: string,
-            args?: { [key: string]: any }
+            name?: string;
+            args?: { [key: string]: any };
         }
 
         type PositionType = string | PortPositionCallback | PortPositionJSON;
 
         interface PortGroup {
-            position?: PositionType,
+            position?: PositionType;
             markup?: string | MarkupJSON;
             attrs?: Cell.Selectors;
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
-            }
+            };
         }
 
         interface Port {
@@ -1434,7 +1607,7 @@ export namespace dia {
             label?: {
                 markup?: string | MarkupJSON;
                 position?: PositionType;
-            }
+            };
             z?: number | 'auto';
         }
 
@@ -1442,9 +1615,18 @@ export namespace dia {
             angle: number;
         }
 
-        interface TranslateOptions {
-            restrictedArea?: BBox;
+        interface TranslateOptions extends Cell.Options{
+            restrictedArea?: BBox | Paper.PointConstraintCallback;
             transition?: Cell.TransitionOptions;
+        }
+
+        interface PositionOptions extends TranslateOptions {
+            parentRelative?: boolean;
+            deep?: boolean;
+        }
+
+        interface BBoxOptions extends Cell.EmbeddableOptions {
+            rotate?: boolean;
         }
     }
 
@@ -1456,8 +1638,8 @@ export namespace dia {
 
         translate(tx: number, ty?: number, opt?: Element.TranslateOptions): this;
 
-        position(opt?: { parentRelative?: boolean, [key: string]: any }): g.Point;
-        position(x: number, y: number, opt?: { parentRelative?: boolean, deep?: boolean, [key: string]: any }): this;
+        position(opt?: Element.PositionOptions): g.Point;
+        position(x: number, y: number, opt?: Element.PositionOptions): this;
 
         size(): Size;
         size(width: number, height?: number, opt?: { direction?: Direction, [key: string]: any }): this;
@@ -1472,7 +1654,7 @@ export namespace dia {
 
         fitEmbeds(opt?: { deep?: boolean, padding?: Padding }): this;
 
-        getBBox(opt?: Cell.EmbeddableOptions): g.Rect;
+        getBBox(opt?: Element.BBoxOptions): g.Rect;
 
         addPort(port: Element.Port, opt?: S): this;
 
@@ -1522,7 +1704,7 @@ export namespace dia {
         }
 
         interface EndJSON extends EndCellArgs {
-            id?: number | string;
+            id?: Cell.ID;
             x?: number;
             y?: number;
         }
@@ -1554,7 +1736,7 @@ export namespace dia {
 
         interface LabelPosition {
             distance?: number; // optional for default labels
-            offset?: number | { x: number; y: number; };
+            offset?: number | { x: number, y: number };
             angle?: number;
             args?: LinkView.LabelOptions;
         }
@@ -1607,6 +1789,8 @@ export namespace dia {
 
         labels(): Link.Label[];
         labels(labels: Link.Label[]): this;
+
+        hasLabels(): boolean;
 
         insertLabel(index: number, label: Link.Label, opt?: S): Link.Label[];
 
@@ -1669,8 +1853,14 @@ export namespace dia {
             ELEMENT_AVAILABILITY = 'elementAvailability'
         }
 
+        interface EventHighlightOptions {
+            partial: boolean;
+            type: Highlighting;
+            [key: string]: any;
+        }
+
         interface Options<T extends Cell> extends mvc.ViewOptions<T, SVGElement> {
-            id?: string
+            id?: string;
         }
 
         interface InteractivityOptions extends ElementView.InteractivityOptions, LinkView.InteractivityOptions {
@@ -1687,7 +1877,7 @@ export namespace dia {
             boundingRect: g.Rect;
             magnetMatrix: SVGMatrix;
             geometryShape: g.Shape;
-        }
+        };
     }
 
     abstract class CellViewGeneric<T extends Cell> extends mvc.View<T, SVGElement> {
@@ -1878,6 +2068,14 @@ export namespace dia {
         protected dragEnd(evt: dia.Event, x: number, y: number): void;
 
         protected dragMagnetEnd(evt: dia.Event, x: number, y: number): void;
+
+        protected prepareEmbedding(data: any): void;
+
+        protected processEmbedding(data: any, evt: dia.Event, x: number, y: number): void;
+
+        protected clearEmbedding(data: any): void;
+
+        protected finalizeEmbedding(data: any): void;
     }
 
     // dia.LinkView
@@ -1898,8 +2096,8 @@ export namespace dia {
         }
 
         interface InteractivityOptions {
-            vertexAdd?: boolean,
-            vertexMove?: boolean,
+            vertexAdd?: boolean;
+            vertexMove?: boolean;
             vertexRemove?: boolean;
             arrowheadMove?: boolean;
             labelMove?: boolean;
@@ -1930,12 +2128,13 @@ export namespace dia {
         }
 
         interface Options extends mvc.ViewOptions<Link, SVGElement> {
-            shortLinkLength?: number,
-            doubleLinkTools?: boolean,
-            longLinkLength?: number,
-            linkToolsOffset?: number,
-            doubleLinkToolsOffset?: number,
-            sampleInterval?: number
+            shortLinkLength?: number;
+            doubleLinkTools?: boolean;
+            longLinkLength?: number;
+            linkToolsOffset?: number;
+            doubleLinkToolsOffset?: number;
+            sampleInterval?: number;
+            labelsLayer?: Paper.Layers | string | false;
         }
     }
 
@@ -1946,7 +2145,7 @@ export namespace dia {
         targetAnchor: g.Point;
 
         sendToken(token: SVGElement, duration?: number, callback?: () => void): void;
-        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string; connection?: string }, callback?: () => void): void;
+        sendToken(token: SVGElement, opt?: { duration?: number, direction?: string, connection?: string }, callback?: () => void): void;
 
         addLabel(coordinates: Point, opt?: LinkView.LabelOptions): number;
         addLabel(coordinates: Point, angle: number, opt?: LinkView.LabelOptions): number;
@@ -2057,6 +2256,12 @@ export namespace dia {
         protected notifyPointermove(evt: dia.Event, x: number, y: number): void;
 
         protected notifyPointerup(evt: dia.Event, x: number, y: number): void;
+
+        protected onMount(): void;
+
+        protected mountLabels(): void;
+
+        protected unmountLabels(): void;
     }
 
     // dia.Paper
@@ -2071,6 +2276,17 @@ export namespace dia {
                 color: string;
                 opacity?: number;
             }>;
+        }
+        interface FilterOptions {
+            [key: string]: any;
+        }
+
+        interface PatternOptions {
+            [key: string]: any;
+        }
+
+        interface MarkerOptions {
+            [key: string]: any;
         }
 
         interface GridOptions {
@@ -2101,9 +2317,10 @@ export namespace dia {
 
         enum Layers {
             CELLS = 'cells',
+            LABEL = 'labels',
             BACK = 'back',
             FRONT = 'front',
-            TOOLS = 'tools'
+            TOOLS = 'tools',
         }
 
         type UpdateStats = {
@@ -2116,7 +2333,7 @@ export namespace dia {
             batches?: number;
         };
 
-        type ViewportCallback = (view: mvc.View<any>, isMounted: boolean, paper: Paper) => boolean;
+        type ViewportCallback = (view: mvc.View<any, any>, isMounted: boolean, paper: Paper) => boolean;
         type ProgressCallback = (done: boolean, processed: number, total: number, stats: UpdateStats, paper: Paper) => void;
         type BeforeRenderCallback = (opt: { [key: string]: any }, paper: Paper) => void;
         type AfterRenderCallback = (stats: UpdateStats, opt: { [key: string]: any }, paper: Paper) => void;
@@ -2138,6 +2355,8 @@ export namespace dia {
 
         type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
+        type FindParentByType =  'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | 'pointer';
+        type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
 
         interface Options extends mvc.ViewOptions<Graph> {
             // appearance
@@ -2148,10 +2367,11 @@ export namespace dia {
             linkConnectionPoint?: LinkView.GetConnectionPoint;
             drawGrid?: boolean | GridOptions | GridOptions[];
             background?: BackgroundOptions;
+            labelsLayer?: boolean | Paper.Layers | string;
             // interactions
             gridSize?: number;
-            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>
-            interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions
+            highlighting?: boolean | Record<string | dia.CellView.Highlighting, highlighters.HighlighterJSON | boolean>;
+            interactive?: ((cellView: CellView, event: string) => boolean | CellView.InteractivityOptions) | boolean | CellView.InteractivityOptions;
             snapLabels?: boolean;
             snapLinks?: boolean | { radius: number };
             markAvailable?: boolean;
@@ -2175,7 +2395,7 @@ export namespace dia {
             // embedding
             embeddingMode?: boolean;
             frontParentOnly?: boolean;
-            findParentBy?: 'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | ((elementView: ElementView) => Element[]);
+            findParentBy?: FindParentByType | FindParentByCallback;
             validateEmbedding?: (this: Paper, childView: ElementView, parentView: ElementView) => boolean;
             validateUnembedding?: (this: Paper, childView: ElementView) => boolean;
             // default views, models & attributes
@@ -2184,7 +2404,7 @@ export namespace dia {
             connectorNamespace?: any;
             highlighterNamespace?: any;
             anchorNamespace?: any;
-            linkAnchorNamespace?: any,
+            linkAnchorNamespace?: any;
             connectionPointNamespace?: any;
             defaultLink?: ((cellView: CellView, magnet: SVGElement) => Link) | Link;
             defaultRouter?: routers.Router | routers.RouterJSON;
@@ -2199,10 +2419,10 @@ export namespace dia {
             sorting?: sorting;
             frozen?: boolean;
             viewport?: ViewportCallback | null;
-            onViewUpdate?: (view: mvc.View<any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
-            onViewPostponed?: (view: mvc.View<any>, flag: number, paper: Paper) => boolean;
-            beforeRender?: Paper.BeforeRenderCallback
-            afterRender?: Paper.AfterRenderCallback
+            onViewUpdate?: (view: mvc.View<any, any>, flag: number, priority: number, opt: { [key: string]: any }, paper: Paper) => void;
+            onViewPostponed?: (view: mvc.View<any, any>, flag: number, paper: Paper) => boolean;
+            beforeRender?: Paper.BeforeRenderCallback;
+            afterRender?: Paper.AfterRenderCallback;
         }
 
         interface ScaleContentOptions {
@@ -2232,6 +2452,81 @@ export namespace dia {
             maxHeight?: number;
             useModelGeometry?: boolean;
             contentArea?: BBox;
+        }
+
+        interface EventMap {
+            // pointerclick
+            'cell:pointerclick': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerclick': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerclick': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerclick': (evt: dia.Event, x: number, y: number) => void;
+            // pointerdblclick
+            'cell:pointerdblclick': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerdblclick': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerdblclick': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerdblclick': (evt: dia.Event, x: number, y: number) => void;
+            // contextmenu
+            'cell:contextmenu': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:contextmenu': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:contextmenu': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:contextmenu': (evt: dia.Event, x: number, y: number) => void;
+            // pointerdown
+            'cell:pointerdown': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerdown': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerdown': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerdown': (evt: dia.Event, x: number, y: number) => void;
+            // pointerdown
+            'cell:pointermove': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointermove': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointermove': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointermove': (evt: dia.Event, x: number, y: number) => void;
+            // pointerup
+            'cell:pointerup': (cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void;
+            'element:pointerup': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number) => void;
+            'link:pointerup': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number) => void;
+            'blank:pointerup': (evt: dia.Event, x: number, y: number) => void;
+            // mouseover
+            'cell:mouseover': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseover': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseover': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseover': (evt: dia.Event) => void;
+            // mouseout
+            'cell:mouseout': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseout': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseout': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseout': (evt: dia.Event) => void;
+            // mouseenter
+            'cell:mouseenter': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseenter': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseenter': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseenter': (evt: dia.Event) => void;
+            // mouseleave
+            'cell:mouseleave': (cellView: dia.CellView, evt: dia.Event) => void;
+            'element:mouseleave': (elementView: dia.ElementView, evt: dia.Event) => void;
+            'link:mouseleave': (linkView: dia.LinkView, evt: dia.Event) => void;
+            'blank:mouseleave': (evt: dia.Event) => void;
+            // mousewheel
+            'cell:mousewheel': (cellView: dia.CellView, evt: dia.Event, x: number, y: number, delta: number) => void;
+            'element:mousewheel': (elementView: dia.ElementView, evt: dia.Event, x: number, y: number, delta: number) => void;
+            'link:mousewheel': (linkView: dia.LinkView, evt: dia.Event, x: number, y: number, delta: number) => void;
+            'blank:mousewheel': (evt: dia.Event, x: number, y: number, delta: number) => void;
+            // magnet
+            'element:magnet:pointerclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
+            'element:magnet:pointerdblclick': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
+            'element:magnet:contextmenu': (elementView: dia.ElementView, evt: dia.Event, magnetNode: SVGElement, x: number, y: number) => void;
+            // highlighting
+            'cell:highlight': (cellView: dia.CellView, node: SVGElement, options: dia.CellView.EventHighlightOptions) => void;
+            'cell:unhighlight': (cellView: dia.CellView, node: SVGElement, options: dia.CellView.EventHighlightOptions) => void;
+            'cell:highlight:invalid': (cellView: dia.CellView, highlighterId: string, highlighter: dia.HighlighterView) => void;
+            // connect
+            'link:connect': (linkView: dia.LinkView, evt: dia.Event, newCellView: dia.CellView, newCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            'link:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            'link:snap:connect': (linkView: dia.LinkView, evt: dia.Event, newCellView: dia.CellView, newCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            'link:snap:disconnect': (linkView: dia.LinkView, evt: dia.Event, prevCellView: dia.CellView, prevCellViewMagnet: SVGElement, arrowhead: dia.LinkEnd) => void;
+            // render
+            'render:done': (stats: UpdateStats, opt: any) => void;
+            // custom
+            [eventName: string]: ((cellView: dia.CellView, evt: dia.Event, x: number, y: number) => void) | Backbone.EventHandler;
         }
     }
 
@@ -2300,11 +2595,13 @@ export namespace dia {
         snapToGrid(x: number, y: number): g.Point;
         snapToGrid(point: Point): g.Point;
 
-        defineFilter(filter: { [key: string]: any }): string;
+        defineFilter(filter: SVGFilterJSON): string;
 
-        defineGradient(gradient: Paper.GradientOptions): string;
+        defineGradient(gradient: SVGGradientJSON): string;
 
-        defineMarker(marker: { [key: string]: any }): string;
+        defineMarker(marker: SVGMarkerJSON): string;
+
+        definePattern(pattern: Omit<SVGPatternJSON, 'type'>): string;
 
         isDefined(defId: string): boolean;
 
@@ -2321,7 +2618,7 @@ export namespace dia {
 
         findView<T extends ElementView | LinkView>(element: string | JQuery | SVGElement): T;
 
-        findViewByModel<T extends ElementView | LinkView>(model: Cell | string | number): T;
+        findViewByModel<T extends ElementView | LinkView>(model: Cell | Cell.ID): T;
 
         findViewsFromPoint(point: string | Point): ElementView[];
 
@@ -2329,6 +2626,8 @@ export namespace dia {
 
         fitToContent(opt?: Paper.FitToContentOptions): g.Rect;
         fitToContent(gridWidth?: number, gridHeight?: number, padding?: number, opt?: any): g.Rect;
+
+        getFitToContentArea(opt?: Paper.FitToContentOptions): g.Rect;
 
         scaleContentToFit(opt?: Paper.ScaleContentOptions): void;
 
@@ -2340,7 +2639,7 @@ export namespace dia {
 
         getDefaultLink(cellView: CellView, magnet: SVGElement): Link;
 
-        getModelById(id: string | number | Cell): Cell;
+        getModelById(id: Cell.ID | Cell): Cell;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
 
@@ -2374,6 +2673,16 @@ export namespace dia {
 
         getLayerNode(layerName: Paper.Layers | string): SVGGElement;
 
+        getLayerView(layerName: Paper.Layers | string): any;
+
+        hasLayerView(layerName: Paper.Layers | string): boolean;
+
+        renderLayers(layers: Array<{ name: string }>): void;
+
+        protected removeLayers(): void;
+
+        protected resetLayers(): void;
+
         // rendering
 
         freeze(opt?: Paper.FreezeOptions): void;
@@ -2382,9 +2691,9 @@ export namespace dia {
 
         isFrozen(): boolean;
 
-        requestViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+        requestViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        requireView<T extends ElementView | LinkView>(model: Cell | string | number, opt?: dia.Cell.Options): T;
+        requireView<T extends ElementView | LinkView>(model: Cell | Cell.ID, opt?: dia.Cell.Options): T;
 
         dumpViews(opt?: {
             batchSize?: number;
@@ -2414,19 +2723,25 @@ export namespace dia {
 
         hasScheduledUpdates(): boolean;
 
+        // events
+
+        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(eventName: T, callback: Paper.EventMap[T], context?: any): this;
+
+        on<T extends keyof Paper.EventMap = keyof Paper.EventMap>(events: { [eventName in T]: Paper.EventMap[T]; }, context?: any): this;
+
         // protected
 
-        protected scheduleViewUpdate(view: mvc.View<any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
+        protected scheduleViewUpdate(view: mvc.View<any, any>, flag: number, priority: number, opt?: { [key: string]: any }): void;
 
-        protected dumpViewUpdate(view: mvc.View<any>): number;
+        protected dumpViewUpdate(view: mvc.View<any, any>): number;
 
-        protected dumpView(view: mvc.View<any>, opt?: { [key: string]: any }): number;
+        protected dumpView(view: mvc.View<any, any>, opt?: { [key: string]: any }): number;
 
-        protected updateView(view: mvc.View<any>, flag: number, opt?: { [key: string]: any }): number;
+        protected updateView(view: mvc.View<any, any>, flag: number, opt?: { [key: string]: any }): number;
 
-        protected registerUnmountedView(view: mvc.View<any>): number;
+        protected registerUnmountedView(view: mvc.View<any, any>): number;
 
-        protected registerMountedView(view: mvc.View<any>): number;
+        protected registerMountedView(view: mvc.View<any, any>): number;
 
         protected updateViewsAsync(opt?: {
             batchSize?: number;
@@ -2434,7 +2749,7 @@ export namespace dia {
             unmountBatchSize?: number;
             viewport?: Paper.ViewportCallback;
             progress?: Paper.ProgressCallback;
-            before?: Paper.BeforeRenderCallback
+            before?: Paper.BeforeRenderCallback;
         }): void;
 
         protected updateViewsBatch(opt?: {
@@ -2453,12 +2768,6 @@ export namespace dia {
         protected sortViews(): void;
 
         protected sortViewsExact(): void;
-
-        protected insertView(view: dia.CellView): void;
-
-        protected addZPivot(z: number): Comment;
-
-        protected removeZPivots(): void
 
         protected pointerdblclick(evt: dia.Event): void;
 
@@ -2528,6 +2837,29 @@ export namespace dia {
         protected resetViews(cells?: Cell[], opt?: { [key: string]: any }): void;
     }
 
+    namespace PaperLayer {
+
+        interface Options extends mvc.ViewOptions<undefined, SVGElement> {
+            name: string;
+        }
+    }
+    class PaperLayer extends mvc.View<undefined, SVGElement> {
+
+        constructor(opt?: PaperLayer.Options);
+
+        options: PaperLayer.Options;
+
+        pivotNodes: { [z: number]: Comment };
+
+        insertSortedNode(node: SVGElement, z: number): void;
+
+        insertNode(node: SVGElement): void;
+
+        insertPivot(z: number): Comment;
+
+        removePivots(): void;
+    }
+
     namespace ToolsView {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
@@ -2535,6 +2867,8 @@ export namespace dia {
             name?: string | null;
             relatedView?: dia.CellView;
             component?: boolean;
+            layer?: dia.Paper.Layers | string | null;
+            z?: number;
         }
     }
 
@@ -2598,7 +2932,7 @@ export namespace dia {
 
     namespace HighlighterView {
 
-        type Constructor<T> = { new (): T }
+        type Constructor<T> = { new (): T };
 
         type NodeSelectorJSON = {
             selector?: string;
@@ -2610,6 +2944,7 @@ export namespace dia {
 
         interface Options extends mvc.ViewOptions<undefined, SVGElement> {
             layer?: dia.Paper.Layers | string | null;
+            z?: number;
         }
     }
 
@@ -2818,7 +3153,7 @@ export namespace shapes {
 
         interface EllipseSelectors extends dia.Cell.Selectors {
             root?: attributes.SVGAttributes;
-            body?: attributes.SVGCircleAttributes;
+            body?: attributes.SVGEllipseAttributes;
             label?: attributes.SVGTextAttributes;
         }
 
@@ -2946,7 +3281,7 @@ export namespace shapes {
                 text?: string;
                 style?: { [key: string]: any };
                 [key: string]: any;
-            }
+            };
         }
 
         type TextBlockAttributes = dia.Element.GenericAttributes<TextBlockSelectors>;
@@ -3609,9 +3944,9 @@ export namespace util {
 
     export function isPercentage(val: any): boolean;
 
-    export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number; unit?: string } | null;
+    export function parseCssNumeric(val: any, restrictUnits: string | string[]): { value: number, unit?: string } | null;
 
-    export function breakText(text: string, size: { width: number; height?: number; }, attrs?: attributes.NativeSVGAttributes, opt?: {
+    export function breakText(text: string, size: { width: number, height?: number }, attrs?: attributes.NativeSVGAttributes, opt?: {
         svgDocument?: SVGElement;
         separator?: string | any;
         eol?: string;
@@ -3637,7 +3972,7 @@ export namespace util {
         comparator: (a: Element, b: Element) => number
     ): Element[];
 
-    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any } }): void;
+    export function setAttributesBySelector(el: Element, attrs: { [selector: string]: { [attribute: string]: any }}): void;
 
     export function normalizeSides(sides: dia.Sides): dia.PaddingJSON;
 
@@ -3646,9 +3981,9 @@ export namespace util {
     export function toggleFullScreen(el?: Element): void;
 
     interface DOMJSONDocument {
-        fragment: DocumentFragment,
-        selectors: { [key: string]: Element },
-        groupSelectors: { [key: string]: Element[] }
+        fragment: DocumentFragment;
+        selectors: { [key: string]: Element };
+        groupSelectors: { [key: string]: Element[] };
     }
 
     export function parseDOMJSON(json: dia.MarkupJSON): DOMJSONDocument;
@@ -3735,6 +4070,12 @@ export namespace util {
         }
 
         type FilterFunction<K extends keyof FilterArgumentsMap> = (args: FilterArgumentsMap[K]) => string;
+        interface FilterJSON<K extends keyof FilterArgumentsMap> {
+            name: K;
+            id?: string;
+            args?: FilterArgumentsMap[K];
+            attrs?: attributes.NativeSVGAttributes;
+        }
 
         export var outline: FilterFunction<'outline'>;
         export var highlight: FilterFunction<'highlight'>;
@@ -3752,10 +4093,10 @@ export namespace util {
     namespace format {
 
         interface NumberLocale {
-            currency: [string, string],
-            decimal: string,
-            thousands: string,
-            grouping: number[]
+            currency: [string, string];
+            decimal: string;
+            thousands: string;
+            grouping: number[];
         }
 
         export function number(specifier: string, value: number, locale?: NumberLocale): string;
@@ -3764,11 +4105,11 @@ export namespace util {
 
         export function convert(type: string, value: number, precision: number): string;
 
-        export function round(value: number, precision?: number): number
+        export function round(value: number, precision?: number): number;
 
         export function precision(value: number, precision: number): number;
 
-        export function prefix(value: number, precision: number): { scale: (d: number) => number; symbol: string; } | undefined
+        export function prefix(value: number, precision: number): { scale: (d: number) => number, symbol: string } | undefined;
     }
 
     // LODASH FUNCTIONS:
@@ -3938,8 +4279,8 @@ export namespace layout {
         }
 
         interface toGraphLibOptions {
-            graphlib?: any,
-            [key: string]: any
+            graphlib?: any;
+            [key: string]: any;
         }
 
         export function layout(graph: dia.Graph | dia.Cell[], opt?: LayoutOptions): g.Rect;
@@ -3948,13 +4289,73 @@ export namespace layout {
 
         export function fromGraphLib(glGraph: any, opt?: { [key: string]: any }): dia.Graph;
     }
+
+    export namespace Port {
+
+        interface Options {
+            x?: number;
+            y?: number;
+            dx?: number;
+            dy?: number;
+            angle?: number;
+            start?: g.Point;
+            end?: g.Point;
+            startAngle?: number;
+            step?: number;
+            compensateRotation?: boolean;
+        }
+
+        type LayoutFunction = (ports: Array<Object>, elBBox: g.Rect, opt: Options) => Array<g.Point>;
+
+        export var absolute: LayoutFunction;
+        export var fn: LayoutFunction;
+        export var line: LayoutFunction;
+        export var left: LayoutFunction;
+        export var right: LayoutFunction;
+        export var top: LayoutFunction;
+        export var bottom: LayoutFunction;
+        export var ellipseSpread: LayoutFunction;
+        export var ellipse: LayoutFunction;
+    }
+
+    export namespace PortLabel {
+
+        interface Options {
+            x?: number;
+            y?: number;
+            angle?: number;
+            offset?: number;
+            attrs?: dia.Cell.Selectors;
+        }
+
+        interface LabelAttributes {
+            x: number;
+            y: number;
+            angle: number;
+            attrs: dia.Cell.Selectors;
+        }
+
+        type LayoutFunction = (portPosition: g.Point, elBBox: g.Rect, opt: Options) => LabelAttributes;
+
+        export var manual: LayoutFunction;
+        export var left: LayoutFunction;
+        export var right: LayoutFunction;
+        export var top: LayoutFunction;
+        export var bottom: LayoutFunction;
+        export var outsideOriented: LayoutFunction;
+        export var outside: LayoutFunction;
+        export var insideOriented: LayoutFunction;
+        export var inside: LayoutFunction;
+        export var radial: LayoutFunction;
+        export var radialOriented: LayoutFunction;
+    }
 }
 
 // mvc
 
 export namespace mvc {
 
-    interface ViewOptions<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
+    interface ViewOptions<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.ViewOptions<T, E> {
         theme?: string;
     }
 
@@ -3962,7 +4363,7 @@ export namespace mvc {
         [key: string]: any;
     }
 
-    class View<T extends Backbone.Model, E extends Element = HTMLElement> extends Backbone.View<T, E> {
+    class View<T extends (Backbone.Model | undefined), E extends Element = HTMLElement> extends Backbone.View<T, E> {
 
         constructor(opt?: ViewOptions<T, E>);
 
@@ -3979,7 +4380,7 @@ export namespace mvc {
 
         theme: string;
 
-        themeClassNamePrefix: string
+        themeClassNamePrefix: string;
 
         defaultTheme: string;
 
@@ -4121,11 +4522,46 @@ export namespace connectors {
         radius?: number;
     }
 
+    namespace Curve {
+
+        enum Directions {
+            AUTO = 'auto',
+            HORIZONTAL = 'horizontal',
+            VERTICAL = 'vertical',
+            CLOSEST_POINT = 'closest-point',
+            OUTWARDS = 'outwards'
+        }
+
+        enum TangentDirections {
+            UP = 'up',
+            DOWN = 'down',
+            LEFT = 'left',
+            RIGHT = 'right',
+            AUTO = 'auto',
+            CLOSEST_POINT = 'closest-point',
+            OUTWARDS = 'outwards'
+        }
+    }
+
+    interface CurveConnectorArguments {
+        raw?: boolean;
+        direction?: Curve.Directions;
+        sourceDirection?: Curve.TangentDirections | dia.Point | number;
+        targetDirection?: Curve.TangentDirections | dia.Point | number;
+        sourceTangent?: dia.Point;
+        targetTangent?: dia.Point; 
+        distanceCoefficient?: number;
+        angleTangentCoefficient?: number;
+        tension?: number;
+        precision?: number;
+    }
+
     interface ConnectorArgumentsMap {
         'normal': NormalConnectorArguments;
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        'curve': CurveConnectorArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -4158,6 +4594,7 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+    export var curve: GenericConnector<'curve'>;
 }
 
 // anchors
@@ -4187,15 +4624,15 @@ export namespace anchors {
     }
 
     interface AnchorArgumentsMap {
-        'center': BBoxAnchorArguments,
-        'top': BBoxAnchorArguments,
-        'bottom': BBoxAnchorArguments,
-        'left': BBoxAnchorArguments,
-        'right': BBoxAnchorArguments,
-        'topLeft': BBoxAnchorArguments,
-        'topRight': BBoxAnchorArguments,
-        'bottomLeft': BBoxAnchorArguments,
-        'bottomRight': BBoxAnchorArguments,
+        'center': BBoxAnchorArguments;
+        'top': BBoxAnchorArguments;
+        'bottom': BBoxAnchorArguments;
+        'left': BBoxAnchorArguments;
+        'right': BBoxAnchorArguments;
+        'topLeft': BBoxAnchorArguments;
+        'topRight': BBoxAnchorArguments;
+        'bottomLeft': BBoxAnchorArguments;
+        'bottomRight': BBoxAnchorArguments;
         'perpendicular': PaddingAnchorArguments;
         'midSide': MidSideAnchorArguments;
         'modelCenter': ModelCenterAnchorArguments;
@@ -4248,11 +4685,11 @@ export namespace anchors {
 export namespace linkAnchors {
 
     interface ConnectionLengthAnchorArguments {
-        length?: number
+        length?: number;
     }
 
     interface ConnectionRatioAnchorArguments {
-        ratio?: number
+        ratio?: number;
     }
 
     interface ConnectionPerpendicularAnchorArguments {
@@ -4298,10 +4735,10 @@ export namespace connectionPoints {
     }
 
     interface ConnectionPointArgumentsMap {
-        'anchor': DefaultConnectionPointArguments,
-        'bbox': StrokeConnectionPointArguments,
-        'rectangle': StrokeConnectionPointArguments,
-        'boundary': BoundaryConnectionPointArguments,
+        'anchor': DefaultConnectionPointArguments;
+        'bbox': StrokeConnectionPointArguments;
+        'rectangle': StrokeConnectionPointArguments;
+        'boundary': BoundaryConnectionPointArguments;
         [key: string]: { [key: string]: any };
     }
 
@@ -4315,8 +4752,8 @@ export namespace connectionPoints {
             endView: dia.CellView,
             endMagnet: SVGElement,
             opt: ConnectionPointArgumentsMap[K],
-            //endType: string,
-            //linkView: dia.LinkView
+            endType: string,
+            linkView: dia.LinkView
         ): g.Point;
     }
 
@@ -4459,18 +4896,18 @@ export namespace attributes {
         ellipsis?: boolean | string;
         hyphen?: string;
         maxLineCount?: number;
-        [key: string]: any
+        [key: string]: any;
     }
 
     interface SVGAttributes extends NativeSVGAttributes {
         // Special attributes
         eol?: string;
-        filter?: string | { [key: string]: any };
-        fill?: string | { [key: string]: any };
-        stroke?: string | { [key: string]: any };
-        sourceMarker?: { [key: string]: any };
-        targetMarker?: { [key: string]: any };
-        vertexMarker?: { [key: string]: any };
+        filter?: string | dia.SVGFilterJSON;
+        fill?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
+        stroke?: string | dia.SVGPatternJSON | dia.SVGGradientJSON;
+        sourceMarker?: dia.SVGMarkerJSON;
+        targetMarker?: dia.SVGMarkerJSON;
+        vertexMarker?: dia.SVGMarkerJSON;
         text?: string;
         textWrap?: SVGAttributeTextWrap;
         lineHeight?: number | string;
@@ -4645,6 +5082,14 @@ export namespace attributes {
         'path-length'?: number;
     }
 
+    interface SVGLineAttributes extends SVGAttributes {
+        x1?: number | string;
+        x2?: number | string;
+        y1?: number | string;
+        y2?: number | string;
+        pathLength?: number;
+        'path-length'?: number;
+    }
 }
 
 export function setTheme(theme: string): void;
@@ -4677,6 +5122,28 @@ export namespace elementTools {
 
     }
 
+    namespace Connect {
+
+        type MagnetCallback = ((this: Connect, view: dia.ElementView, tool: Connect) => SVGElement);
+
+        interface Options extends Button.Options {
+            magnet?: string | SVGElement | MagnetCallback;
+        }
+    }
+
+    class Connect extends Button {
+
+        constructor(opt?: Connect.Options);
+
+        protected getMagnetNode(): SVGElement;
+
+        protected dragstart(evt: dia.Event): void;
+
+        protected drag(evt: dia.Event): void;
+
+        protected dragend(evt: dia.Event): void;
+    }
+
     namespace Boundary {
         interface Options extends dia.ToolView.Options {
             padding?: number | dia.Sides;
@@ -4688,6 +5155,32 @@ export namespace elementTools {
     class Boundary extends dia.ToolView {
 
         constructor(opt?: Boundary.Options);
+    }
+
+    namespace Control {
+        interface Options extends dia.ToolView.Options {
+            selector?: string | null;
+            padding?: number;
+            handleAttributes?: Partial<attributes.NativeSVGAttributes>;
+        }
+    }
+
+    abstract class Control<T = Control.Options> extends dia.ToolView {
+        options: T;
+        constructor(opt?: T);
+
+        protected getPosition(view: dia.ElementView): dia.Point;
+        protected setPosition(view: dia.ElementView, coordinates: g.Point): void;
+        protected resetPosition(view: dia.ElementView): void;
+
+        protected updateHandle(handleNode: SVGElement): void;
+        protected updateExtras(extrasNode: SVGElement): void;
+        protected toggleExtras(visible: boolean): void;
+
+        protected onPointerDown(evt: dia.Event): void;
+        protected onPointerMove(evt: dia.Event): void;
+        protected onPointerUp(evt: dia.Event): void;
+        protected onPointerDblClick(evt: dia.Event): void;
     }
 }
 
@@ -4703,8 +5196,17 @@ export namespace linkTools {
     ) => T;
 
     namespace Vertices {
+
+        class VertexHandle extends mvc.View<undefined, SVGElement> {
+            position(x: number, y: number): void;
+            protected onPointerDown(evt: dia.Event): void;
+            protected onPointerMove(evt: dia.Event): void;
+            protected onPointerUp(evt: dia.Event): void;
+            protected onPointerClick(evt: dia.Event): void;
+        }
+
         interface Options extends dia.ToolView.Options {
-            handleClass?: any;
+            handleClass?: typeof VertexHandle;
             snapRadius?: number;
             redundancyRemoval?: boolean;
             vertexAdding?: boolean;
@@ -4718,8 +5220,18 @@ export namespace linkTools {
     }
 
     namespace Segments {
+
+        class SegmentHandle extends mvc.View<undefined, SVGElement> {
+            position(x: number, y: number, angle: number, view: dia.LinkView): void;
+            show(): void;
+            hide(): void;
+            protected onPointerDown(evt: dia.Event): void;
+            protected onPointerMove(evt: dia.Event): void;
+            protected onPointerUp(evt: dia.Event): void;
+        }
+
         interface Options extends dia.ToolView.Options {
-            handleClass?: any;
+            handleClass?: typeof SegmentHandle;
             snapRadius?: number;
             snapHandle?: boolean;
             redundancyRemoval?: boolean;
@@ -4758,8 +5270,8 @@ export namespace linkTools {
 
     namespace Anchor {
         interface Options extends dia.ToolView.Options {
-            snap?: AnchorCallback<dia.Point>,
-            anchor?: AnchorCallback<anchors.AnchorJSON>,
+            snap?: AnchorCallback<dia.Point>;
+            anchor?: AnchorCallback<anchors.AnchorJSON>;
             resetAnchor?: boolean | anchors.AnchorJSON;
             customAnchorAttributes?: attributes.NativeSVGAttributes;
             defaultAnchorAttributes?: attributes.NativeSVGAttributes;
@@ -4809,6 +5321,28 @@ export namespace linkTools {
 
     class Remove extends Button {
 
+    }
+
+    namespace Connect {
+
+        type MagnetCallback = ((this: Connect, view: dia.LinkView, tool: Connect) => SVGElement);
+
+        interface Options extends Button.Options {
+            magnet?: string | SVGElement | MagnetCallback;
+        }
+    }
+
+    class Connect extends Button {
+
+        constructor(opt?: Connect.Options);
+
+        protected getMagnetNode(): SVGElement;
+
+        protected dragstart(evt: dia.Event): void;
+
+        protected drag(evt: dia.Event): void;
+
+        protected dragend(evt: dia.Event): void;
     }
 
     namespace Boundary {

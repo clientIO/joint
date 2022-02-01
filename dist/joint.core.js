@@ -1,4 +1,4 @@
-/*! JointJS v3.4.4 (2021-09-27) - JavaScript diagramming library
+/*! JointJS v3.5.0 (2022-02-01) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1610,6 +1610,17 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return Math.sqrt(squaredLength(start, end));
 	};
 
+	var types = {
+	    Point: 1,
+	    Line: 2,
+	    Ellipse: 3,
+	    Rect: 4,
+	    Polyline: 5,
+	    Polygon: 6,
+	    Curve: 7,
+	    Path: 8
+	};
+
 	/*
 	    Point is the most basic object consisting of x/y coordinate.
 
@@ -1683,6 +1694,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Point.prototype = {
+
+	    type: types.Point,
 
 	    chooseClosest: function(points) {
 
@@ -1995,6 +2008,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Line.prototype = {
+
+	    type: types.Line,
 
 	    // @returns the angle of incline of the line.
 	    angle: function() {
@@ -2353,6 +2368,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Ellipse.prototype = {
 
+	    type: types.Ellipse,
+
 	    bbox: function() {
 
 	        return new Rect(this.x - this.a, this.y - this.b, 2 * this.a, 2 * this.b);
@@ -2651,18 +2668,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Rect.prototype = {
 
+	    type: types.Rect,
+
 	    // Find my bounding box when I'm rotated with the center of rotation in the center of me.
 	    // @return r {rectangle} representing a bounding box
 	    bbox: function(angle) {
+	        return this.clone().rotateAroundCenter(angle);
+	    },
 
-	        if (!angle) { return this.clone(); }
-
+	    rotateAroundCenter: function(angle) {
+	        if (!angle) { return this; }
+	        var ref = this;
+	        var width = ref.width;
+	        var height = ref.height;
 	        var theta = toRad(angle);
 	        var st = abs$1(sin$2(theta));
 	        var ct = abs$1(cos$2(theta));
-	        var w = this.width * ct + this.height * st;
-	        var h = this.width * st + this.height * ct;
-	        return new Rect(this.x + (this.width - w) / 2, this.y + (this.height - h) / 2, w, h);
+	        var w = width * ct + height * st;
+	        var h = width * st + height * ct;
+	        this.x += (width - w) / 2;
+	        this.y += (height - h) / 2;
+	        this.width = w;
+	        this.height = h;
+	        return this;
 	    },
 
 	    bottomLeft: function() {
@@ -2692,7 +2720,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // @return {bool} true if point p is inside me.
 	    containsPoint: function(p) {
-
 	        p = new Point(p);
 	        return p.x >= this.x && p.x <= this.x + this.width && p.y >= this.y && p.y <= this.y + this.height;
 	    },
@@ -3106,7 +3133,240 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	// For backwards compatibility:
 	var rect = Rect;
 
-	var abs$2 = Math.abs;
+	function parsePoints(svgString) {
+	    svgString = svgString.trim();
+	    if (svgString === '') { return []; }
+	    var points = [];
+	    var coords = svgString.split(/\s*,\s*|\s+/);
+	    var n = coords.length;
+	    for (var i = 0; i < n; i += 2) {
+	        points.push({ x: +coords[i], y: +coords[i + 1] });
+	    }
+	    return points;
+	}
+
+	function clonePoints(points) {
+	    var numPoints = points.length;
+	    if (numPoints === 0) { return []; }
+	    var newPoints = [];
+	    for (var i = 0; i < numPoints; i++) {
+	        var point = points[i].clone();
+	        newPoints.push(point);
+	    }
+	    return newPoints;
+	}
+
+	// Returns a convex-hull polyline from this polyline.
+	// Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
+	// Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
+	// Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+	function convexHull(points) {
+
+	    var abs = Math.abs;
+
+	    var i;
+	    var n;
+
+	    var numPoints = points.length;
+	    if (numPoints === 0) { return []; } // if points array is empty
+
+	    // step 1: find the starting point - point with the lowest y (if equality, highest x)
+	    var startPoint;
+	    for (i = 0; i < numPoints; i++) {
+	        if (startPoint === undefined) {
+	            // if this is the first point we see, set it as start point
+	            startPoint = points[i];
+
+	        } else if (points[i].y < startPoint.y) {
+	            // start point should have lowest y from all points
+	            startPoint = points[i];
+
+	        } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
+	            // if two points have the lowest y, choose the one that has highest x
+	            // there are no points to the right of startPoint - no ambiguity about theta 0
+	            // if there are several coincident start point candidates, first one is reported
+	            startPoint = points[i];
+	        }
+	    }
+
+	    // step 2: sort the list of points
+	    // sorting by angle between line from startPoint to point and the x-axis (theta)
+
+	    // step 2a: create the point records = [point, originalIndex, angle]
+	    var sortedPointRecords = [];
+	    for (i = 0; i < numPoints; i++) {
+
+	        var angle = startPoint.theta(points[i]);
+	        if (angle === 0) {
+	            angle = 360; // give highest angle to start point
+	            // the start point will end up at end of sorted list
+	            // the start point will end up at beginning of hull points list
+	        }
+
+	        var entry = [points[i], i, angle];
+	        sortedPointRecords.push(entry);
+	    }
+
+	    // step 2b: sort the list in place
+	    sortedPointRecords.sort(function(record1, record2) {
+	        // returning a negative number here sorts record1 before record2
+	        // if first angle is smaller than second, first angle should come before second
+
+	        var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
+	        if (sortOutput === 0) {
+	            // if the two angles are equal, sort by originalIndex
+	            sortOutput = record2[1] - record1[1]; // negative if first index larger
+	            // coincident points will be sorted in reverse-numerical order
+	            // so the coincident points with lower original index will be considered first
+	        }
+
+	        return sortOutput;
+	    });
+
+	    // step 2c: duplicate start record from the top of the stack to the bottom of the stack
+	    if (sortedPointRecords.length > 2) {
+	        var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
+	        sortedPointRecords.unshift(startPointRecord);
+	    }
+
+	    // step 3a: go through sorted points in order and find those with right turns
+	    // we want to get our results in clockwise order
+	    var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
+	    var hullPointRecords = []; // stack of records with right turns - hull point candidates
+
+	    var currentPointRecord;
+	    var currentPoint;
+	    var lastHullPointRecord;
+	    var lastHullPoint;
+	    var secondLastHullPointRecord;
+	    var secondLastHullPoint;
+	    while (sortedPointRecords.length !== 0) {
+
+	        currentPointRecord = sortedPointRecords.pop();
+	        currentPoint = currentPointRecord[0];
+
+	        // check if point has already been discarded
+	        // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
+	        if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
+	            // this point had an incorrect turn at some previous iteration of this loop
+	            // this disqualifies it from possibly being on the hull
+	            continue;
+	        }
+
+	        var correctTurnFound = false;
+	        while (!correctTurnFound) {
+
+	            if (hullPointRecords.length < 2) {
+	                // not enough points for comparison, just add current point
+	                hullPointRecords.push(currentPointRecord);
+	                correctTurnFound = true;
+
+	            } else {
+	                lastHullPointRecord = hullPointRecords.pop();
+	                lastHullPoint = lastHullPointRecord[0];
+	                secondLastHullPointRecord = hullPointRecords.pop();
+	                secondLastHullPoint = secondLastHullPointRecord[0];
+
+	                var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
+
+	                if (crossProduct < 0) {
+	                    // found a right turn
+	                    hullPointRecords.push(secondLastHullPointRecord);
+	                    hullPointRecords.push(lastHullPointRecord);
+	                    hullPointRecords.push(currentPointRecord);
+	                    correctTurnFound = true;
+
+	                } else if (crossProduct === 0) {
+	                    // the three points are collinear
+	                    // three options:
+	                    // there may be a 180 or 0 degree angle at lastHullPoint
+	                    // or two of the three points are coincident
+	                    var THRESHOLD = 1e-10; // we have to take rounding errors into account
+	                    var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
+	                    if (abs(angleBetween - 180) < THRESHOLD) { // rounding around 180 to 180
+	                        // if the cross product is 0 because the angle is 180 degrees
+	                        // discard last hull point (add to insidePoints)
+	                        //insidePoints.unshift(lastHullPoint);
+	                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+	                        // reenter second-to-last hull point (will be last at next iter)
+	                        hullPointRecords.push(secondLastHullPointRecord);
+	                        // do not do anything with current point
+	                        // correct turn not found
+
+	                    } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
+	                        // if the cross product is 0 because two points are the same
+	                        // discard last hull point (add to insidePoints)
+	                        //insidePoints.unshift(lastHullPoint);
+	                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+	                        // reenter second-to-last hull point (will be last at next iter)
+	                        hullPointRecords.push(secondLastHullPointRecord);
+	                        // do not do anything with current point
+	                        // correct turn not found
+
+	                    } else if (abs(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
+	                        // if the cross product is 0 because the angle is 0 degrees
+	                        // remove last hull point from hull BUT do not discard it
+	                        // reenter second-to-last hull point (will be last at next iter)
+	                        hullPointRecords.push(secondLastHullPointRecord);
+	                        // put last hull point back into the sorted point records list
+	                        sortedPointRecords.push(lastHullPointRecord);
+	                        // we are switching the order of the 0deg and 180deg points
+	                        // correct turn not found
+	                    }
+
+	                } else {
+	                    // found a left turn
+	                    // discard last hull point (add to insidePoints)
+	                    //insidePoints.unshift(lastHullPoint);
+	                    insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
+	                    // reenter second-to-last hull point (will be last at next iter of loop)
+	                    hullPointRecords.push(secondLastHullPointRecord);
+	                    // do not do anything with current point
+	                    // correct turn not found
+	                }
+	            }
+	        }
+	    }
+	    // at this point, hullPointRecords contains the output points in clockwise order
+	    // the points start with lowest-y,highest-x startPoint, and end at the same point
+
+	    // step 3b: remove duplicated startPointRecord from the end of the array
+	    if (hullPointRecords.length > 2) {
+	        hullPointRecords.pop();
+	    }
+
+	    // step 4: find the lowest originalIndex record and put it at the beginning of hull
+	    var lowestHullIndex; // the lowest originalIndex on the hull
+	    var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
+	    n = hullPointRecords.length;
+	    for (i = 0; i < n; i++) {
+
+	        var currentHullIndex = hullPointRecords[i][1];
+
+	        if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
+	            lowestHullIndex = currentHullIndex;
+	            indexOfLowestHullIndexRecord = i;
+	        }
+	    }
+
+	    var hullPointRecordsReordered = [];
+	    if (indexOfLowestHullIndexRecord > 0) {
+	        var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
+	        var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
+	        hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
+
+	    } else {
+	        hullPointRecordsReordered = hullPointRecords;
+	    }
+
+	    var hullPoints = [];
+	    n = hullPointRecordsReordered.length;
+	    for (i = 0; i < n; i++) {
+	        hullPoints.push(hullPointRecordsReordered[i][0]);
+	    }
+
+	    return hullPoints;
+	}
 
 	var Polyline = function(points) {
 
@@ -3122,21 +3382,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Polyline.parse = function(svgString) {
-	    svgString = svgString.trim();
-	    if (svgString === '') { return new Polyline(); }
+	    return new Polyline(parsePoints(svgString));
+	};
 
-	    var points = [];
-
-	    var coords = svgString.split(/\s*,\s*|\s+/);
-	    var n = coords.length;
-	    for (var i = 0; i < n; i += 2) {
-	        points.push({ x: +coords[i], y: +coords[i + 1] });
-	    }
-
-	    return new Polyline(points);
+	Polyline.fromRect = function(rect) {
+	    return new Polyline([
+	        rect.topLeft(),
+	        rect.topRight(),
+	        rect.bottomRight(),
+	        rect.bottomLeft(),
+	        rect.topLeft() ]);
 	};
 
 	Polyline.prototype = {
+
+	    type: types.Polyline,
 
 	    bbox: function() {
 
@@ -3165,19 +3425,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    clone: function() {
-
-	        var points = this.points;
-	        var numPoints = points.length;
-	        if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-	        var newPoints = [];
-	        for (var i = 0; i < numPoints; i++) {
-
-	            var point = points[i].clone();
-	            newPoints.push(point);
-	        }
-
-	        return new Polyline(newPoints);
+	        return new Polyline(clonePoints(this.points));
 	    },
 
 	    closestPoint: function(p) {
@@ -3189,7 +3437,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    closestPointLength: function(p) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return 0; } // if points array is empty
 	        if (numPoints === 1) { return 0; } // if there is only one point
@@ -3253,12 +3501,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var startIndex = numPoints - 1; // start of current polyline segment
 	        var endIndex = 0; // end of current polyline segment
 	        var numIntersections = 0;
+	        var segment = new Line();
+	        var ray = new Line();
+	        var rayEnd = new Point();
 	        for (; endIndex < numPoints; endIndex++) {
 	            var start = points[startIndex];
 	            var end = points[endIndex];
 	            if (p.equals(start)) { return true; } // shortcut (`p` is a point on polyline)
-
-	            var segment = new Line(start, end); // current polyline segment
+	            // current polyline segment
+	            segment.start = start;
+	            segment.end = end;
 	            if (segment.containsPoint(p)) { return true; } // shortcut (`p` lies on a polyline segment)
 
 	            // do we have an intersection?
@@ -3272,9 +3524,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                var xDifference = (((start.x - x) > (end.x - x)) ? (start.x - x) : (end.x - x));
 	                if (xDifference >= 0) {
 	                    // segment lies at least partially to the right of `p`
-	                    var rayEnd = new Point((x + xDifference), y); // right
-	                    var ray = new Line(p, rayEnd);
-
+	                    rayEnd.x = x + xDifference;
+	                    rayEnd.y = y; // right
+	                    ray.start = p;
+	                    ray.end = rayEnd;
 	                    if (segment.intersect(ray)) {
 	                        // an intersection was detected to the right of `p`
 	                        numIntersections++;
@@ -3290,215 +3543,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        return ((numIntersections % 2) === 1);
 	    },
 
-	    // Returns a convex-hull polyline from this polyline.
-	    // Implements the Graham scan (https://en.wikipedia.org/wiki/Graham_scan).
-	    // Output polyline starts at the first element of the original polyline that is on the hull, then continues clockwise.
-	    // Minimal polyline is found (only vertices of the hull are reported, no collinear points).
+	    close: function() {
+	        var ref = this;
+	        var start = ref.start;
+	        var end = ref.end;
+	        var points = ref.points;
+	        if (start && end && !start.equals(end)) {
+	            points.push(start.clone());
+	        }
+	        return this;
+	    },
+
+	    lengthPoints: function() {
+	        return this.points;
+	    },
+
 	    convexHull: function() {
-
-	        var i;
-	        var n;
-
-	        var points = this.points;
-	        var numPoints = points.length;
-	        if (numPoints === 0) { return new Polyline(); } // if points array is empty
-
-	        // step 1: find the starting point - point with the lowest y (if equality, highest x)
-	        var startPoint;
-	        for (i = 0; i < numPoints; i++) {
-	            if (startPoint === undefined) {
-	                // if this is the first point we see, set it as start point
-	                startPoint = points[i];
-
-	            } else if (points[i].y < startPoint.y) {
-	                // start point should have lowest y from all points
-	                startPoint = points[i];
-
-	            } else if ((points[i].y === startPoint.y) && (points[i].x > startPoint.x)) {
-	                // if two points have the lowest y, choose the one that has highest x
-	                // there are no points to the right of startPoint - no ambiguity about theta 0
-	                // if there are several coincident start point candidates, first one is reported
-	                startPoint = points[i];
-	            }
-	        }
-
-	        // step 2: sort the list of points
-	        // sorting by angle between line from startPoint to point and the x-axis (theta)
-
-	        // step 2a: create the point records = [point, originalIndex, angle]
-	        var sortedPointRecords = [];
-	        for (i = 0; i < numPoints; i++) {
-
-	            var angle = startPoint.theta(points[i]);
-	            if (angle === 0) {
-	                angle = 360; // give highest angle to start point
-	                // the start point will end up at end of sorted list
-	                // the start point will end up at beginning of hull points list
-	            }
-
-	            var entry = [points[i], i, angle];
-	            sortedPointRecords.push(entry);
-	        }
-
-	        // step 2b: sort the list in place
-	        sortedPointRecords.sort(function(record1, record2) {
-	            // returning a negative number here sorts record1 before record2
-	            // if first angle is smaller than second, first angle should come before second
-
-	            var sortOutput = record1[2] - record2[2];  // negative if first angle smaller
-	            if (sortOutput === 0) {
-	                // if the two angles are equal, sort by originalIndex
-	                sortOutput = record2[1] - record1[1]; // negative if first index larger
-	                // coincident points will be sorted in reverse-numerical order
-	                // so the coincident points with lower original index will be considered first
-	            }
-
-	            return sortOutput;
-	        });
-
-	        // step 2c: duplicate start record from the top of the stack to the bottom of the stack
-	        if (sortedPointRecords.length > 2) {
-	            var startPointRecord = sortedPointRecords[sortedPointRecords.length - 1];
-	            sortedPointRecords.unshift(startPointRecord);
-	        }
-
-	        // step 3a: go through sorted points in order and find those with right turns
-	        // we want to get our results in clockwise order
-	        var insidePoints = {}; // dictionary of points with left turns - cannot be on the hull
-	        var hullPointRecords = []; // stack of records with right turns - hull point candidates
-
-	        var currentPointRecord;
-	        var currentPoint;
-	        var lastHullPointRecord;
-	        var lastHullPoint;
-	        var secondLastHullPointRecord;
-	        var secondLastHullPoint;
-	        while (sortedPointRecords.length !== 0) {
-
-	            currentPointRecord = sortedPointRecords.pop();
-	            currentPoint = currentPointRecord[0];
-
-	            // check if point has already been discarded
-	            // keys for insidePoints are stored in the form 'point.x@point.y@@originalIndex'
-	            if (insidePoints.hasOwnProperty(currentPointRecord[0] + '@@' + currentPointRecord[1])) {
-	                // this point had an incorrect turn at some previous iteration of this loop
-	                // this disqualifies it from possibly being on the hull
-	                continue;
-	            }
-
-	            var correctTurnFound = false;
-	            while (!correctTurnFound) {
-
-	                if (hullPointRecords.length < 2) {
-	                    // not enough points for comparison, just add current point
-	                    hullPointRecords.push(currentPointRecord);
-	                    correctTurnFound = true;
-
-	                } else {
-	                    lastHullPointRecord = hullPointRecords.pop();
-	                    lastHullPoint = lastHullPointRecord[0];
-	                    secondLastHullPointRecord = hullPointRecords.pop();
-	                    secondLastHullPoint = secondLastHullPointRecord[0];
-
-	                    var crossProduct = secondLastHullPoint.cross(lastHullPoint, currentPoint);
-
-	                    if (crossProduct < 0) {
-	                        // found a right turn
-	                        hullPointRecords.push(secondLastHullPointRecord);
-	                        hullPointRecords.push(lastHullPointRecord);
-	                        hullPointRecords.push(currentPointRecord);
-	                        correctTurnFound = true;
-
-	                    } else if (crossProduct === 0) {
-	                        // the three points are collinear
-	                        // three options:
-	                        // there may be a 180 or 0 degree angle at lastHullPoint
-	                        // or two of the three points are coincident
-	                        var THRESHOLD = 1e-10; // we have to take rounding errors into account
-	                        var angleBetween = lastHullPoint.angleBetween(secondLastHullPoint, currentPoint);
-	                        if (abs$2(angleBetween - 180) < THRESHOLD) { // rouding around 180 to 180
-	                            // if the cross product is 0 because the angle is 180 degrees
-	                            // discard last hull point (add to insidePoints)
-	                            //insidePoints.unshift(lastHullPoint);
-	                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-	                            // reenter second-to-last hull point (will be last at next iter)
-	                            hullPointRecords.push(secondLastHullPointRecord);
-	                            // do not do anything with current point
-	                            // correct turn not found
-
-	                        } else if (lastHullPoint.equals(currentPoint) || secondLastHullPoint.equals(lastHullPoint)) {
-	                            // if the cross product is 0 because two points are the same
-	                            // discard last hull point (add to insidePoints)
-	                            //insidePoints.unshift(lastHullPoint);
-	                            insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-	                            // reenter second-to-last hull point (will be last at next iter)
-	                            hullPointRecords.push(secondLastHullPointRecord);
-	                            // do not do anything with current point
-	                            // correct turn not found
-
-	                        } else if (abs$2(((angleBetween + 1) % 360) - 1) < THRESHOLD) { // rounding around 0 and 360 to 0
-	                            // if the cross product is 0 because the angle is 0 degrees
-	                            // remove last hull point from hull BUT do not discard it
-	                            // reenter second-to-last hull point (will be last at next iter)
-	                            hullPointRecords.push(secondLastHullPointRecord);
-	                            // put last hull point back into the sorted point records list
-	                            sortedPointRecords.push(lastHullPointRecord);
-	                            // we are switching the order of the 0deg and 180deg points
-	                            // correct turn not found
-	                        }
-
-	                    } else {
-	                        // found a left turn
-	                        // discard last hull point (add to insidePoints)
-	                        //insidePoints.unshift(lastHullPoint);
-	                        insidePoints[lastHullPointRecord[0] + '@@' + lastHullPointRecord[1]] = lastHullPoint;
-	                        // reenter second-to-last hull point (will be last at next iter of loop)
-	                        hullPointRecords.push(secondLastHullPointRecord);
-	                        // do not do anything with current point
-	                        // correct turn not found
-	                    }
-	                }
-	            }
-	        }
-	        // at this point, hullPointRecords contains the output points in clockwise order
-	        // the points start with lowest-y,highest-x startPoint, and end at the same point
-
-	        // step 3b: remove duplicated startPointRecord from the end of the array
-	        if (hullPointRecords.length > 2) {
-	            hullPointRecords.pop();
-	        }
-
-	        // step 4: find the lowest originalIndex record and put it at the beginning of hull
-	        var lowestHullIndex; // the lowest originalIndex on the hull
-	        var indexOfLowestHullIndexRecord = -1; // the index of the record with lowestHullIndex
-	        n = hullPointRecords.length;
-	        for (i = 0; i < n; i++) {
-
-	            var currentHullIndex = hullPointRecords[i][1];
-
-	            if (lowestHullIndex === undefined || currentHullIndex < lowestHullIndex) {
-	                lowestHullIndex = currentHullIndex;
-	                indexOfLowestHullIndexRecord = i;
-	            }
-	        }
-
-	        var hullPointRecordsReordered = [];
-	        if (indexOfLowestHullIndexRecord > 0) {
-	            var newFirstChunk = hullPointRecords.slice(indexOfLowestHullIndexRecord);
-	            var newSecondChunk = hullPointRecords.slice(0, indexOfLowestHullIndexRecord);
-	            hullPointRecordsReordered = newFirstChunk.concat(newSecondChunk);
-
-	        } else {
-	            hullPointRecordsReordered = hullPointRecords;
-	        }
-
-	        var hullPoints = [];
-	        n = hullPointRecordsReordered.length;
-	        for (i = 0; i < n; i++) {
-	            hullPoints.push(hullPointRecordsReordered[i][0]);
-	        }
-
-	        return new Polyline(hullPoints);
+	        return new Polyline(convexHull(this.points));
 	    },
 
 	    // Checks whether two polylines are exactly the same.
@@ -3529,11 +3590,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    intersectionWithLine: function(l) {
 	        var line = new Line(l);
 	        var intersections = [];
-	        var points = this.points;
+	        var points = this.lengthPoints();
+	        var l2 = new Line();
 	        for (var i = 0, n = points.length - 1; i < n; i++) {
-	            var a = points[i];
-	            var b = points[i + 1];
-	            var l2 = new Line(a, b);
+	            l2.start = points[i];
+	            l2.end = points[i + 1];
 	            var int = line.intersectionWithLine(l2);
 	            if (int) { intersections.push(int[0]); }
 	        }
@@ -3546,13 +3607,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return false; }
 
+	        var line = new Line();
 	        var n = numPoints - 1;
 	        for (var i = 0; i < n; i++) {
-
-	            var a = points[i];
-	            var b = points[i + 1];
-	            var line = new Line(a, b);
-
+	            line.start = points[i];
+	            line.end = points[i + 1];
 	            // as soon as a differentiable line is found between two points, return true
 	            if (line.isDifferentiable()) { return true; }
 	        }
@@ -3563,7 +3622,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    length: function() {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return 0; } // if points array is empty
 
@@ -3578,7 +3637,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointAt: function(ratio) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return points[0].clone(); } // if there is only one point
@@ -3594,7 +3653,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    pointAtLength: function(length) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return points[0].clone(); } // if there is only one point
@@ -3699,7 +3758,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    tangentAt: function(ratio) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return null; } // if there is only one point
@@ -3715,7 +3774,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    tangentAtLength: function(length) {
 
-	        var points = this.points;
+	        var points = this.lengthPoints();
 	        var numPoints = points.length;
 	        if (numPoints === 0) { return null; } // if points array is empty
 	        if (numPoints === 1) { return null; } // if there is only one point
@@ -3827,7 +3886,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 	});
 
-	var abs$3 = Math.abs;
+	var abs$2 = Math.abs;
 	var sqrt$2 = Math.sqrt;
 	var min$6 = Math.min;
 	var max$4 = Math.max;
@@ -3984,6 +4043,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Curve.prototype = {
 
+	    type: types.Curve,
+
 	    // Returns a bbox that tightly envelops the curve.
 	    bbox: function() {
 
@@ -4022,8 +4083,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                c = 3 * y1 - 3 * y0;
 	            }
 
-	            if (abs$3(a) < 1e-12) { // Numerical robustness
-	                if (abs$3(b) < 1e-12) { // Numerical robustness
+	            if (abs$2(a) < 1e-12) { // Numerical robustness
+	                if (abs$2(b) < 1e-12) { // Numerical robustness
 	                    continue;
 	                }
 
@@ -4179,8 +4240,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // - note that this function is not monotonic = it doesn't converge stably but has "teeth"
 	            // - the function decreases while one of the endpoints is fixed but "jumps" whenever we switch
 	            // - this criterion works well for points lying far away from the curve
-	            var startPrecisionRatio = (distFromStart ? (abs$3(distFromStart - distFromEnd) / distFromStart) : 0);
-	            var endPrecisionRatio = (distFromEnd ? (abs$3(distFromStart - distFromEnd) / distFromEnd) : 0);
+	            var startPrecisionRatio = (distFromStart ? (abs$2(distFromStart - distFromEnd) / distFromStart) : 0);
+	            var endPrecisionRatio = (distFromEnd ? (abs$2(distFromStart - distFromEnd) / distFromEnd) : 0);
 	            var hasRequiredPrecision = ((startPrecisionRatio < precisionRatio) || (endPrecisionRatio < precisionRatio));
 
 	            // check if we have reached at least one required minimal distance
@@ -4749,8 +4810,74 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	Curve.prototype.divide = Curve.prototype.divideAtT;
 
-	// Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
+	// Local helper function.
+	// Add properties from arguments on top of properties from `obj`.
+	// This allows for rudimentary inheritance.
+	// - The `obj` argument acts as parent.
+	// - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
+	// - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
+	function extend(obj) {
+	    var arguments$1 = arguments;
 
+	    // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
+	    // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
+	    // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
+	    // - First, realize that both of those quasiclasses would still have their own separate constructor function.
+	    // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
+	    // - This method provides a way to do exactly that.
+	    // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
+	    // - Therefore, to continue with the example above:
+	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
+	    //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
+	    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
+	    //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
+	    // - Multiple inheritance is also possible, if multiple arguments are provided.
+	    // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
+	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
+	    //   - The ancestors are applied in order of appearance.
+	    //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
+	    //   - Any number of ancestors may be provided.
+	    // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
+	    // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
+	    //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
+	    //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
+	    // - Therefore, both of the following are valid:
+	    //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
+	    //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
+
+	    var i;
+	    var n;
+
+	    var args = [];
+	    n = arguments.length;
+	    for (i = 1; i < n; i++) { // skip over obj
+	        args.push(arguments$1[i]);
+	    }
+
+	    if (!obj) { throw new Error('Missing a parent object.'); }
+	    var child = Object.create(obj);
+
+	    n = args.length;
+	    for (i = 0; i < n; i++) {
+
+	        var src = args[i];
+
+	        var inheritedProperty;
+	        var key;
+	        for (key in src) {
+
+	            if (src.hasOwnProperty(key)) {
+	                delete child[key]; // delete property inherited from parent
+	                inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
+	                Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
+	            }
+	        }
+	    }
+
+	    return child;
+	}
+
+	// Accepts path data string, array of segments, array of Curves and/or Lines, or a Polyline.
 	var Path = function(arg) {
 
 	    if (!(this instanceof Path)) {
@@ -4886,6 +5013,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	};
 
 	Path.prototype = {
+
+	    type: types.Path,
 
 	    // Accepts one segment or an array of segments as argument.
 	    // Throws an error if argument is not a segment or an array of segments.
@@ -6089,73 +6218,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return new (Function.prototype.bind.apply(constructor, argsArray));
 	}
 
-	// Local helper function.
-	// Add properties from arguments on top of properties from `obj`.
-	// This allows for rudimentary inheritance.
-	// - The `obj` argument acts as parent.
-	// - This function creates a new object that inherits all `obj` properties and adds/replaces those that are present in arguments.
-	// - A high-level example: calling `extend(Vehicle, Car)` would be akin to declaring `class Car extends Vehicle`.
-	function extend(obj) {
-	    var arguments$1 = arguments;
-
-	    // In JavaScript, the combination of a constructor function (e.g. `g.Line = function(...) {...}`) and prototype (e.g. `g.Line.prototype = {...}) is akin to a C++ class.
-	    // - When inheritance is not necessary, we can leave it at that. (This would be akin to calling extend with only `obj`.)
-	    // - But, what if we wanted the `g.Line` quasiclass to inherit from another quasiclass (let's call it `g.GeometryObject`) in JavaScript?
-	    // - First, realize that both of those quasiclasses would still have their own separate constructor function.
-	    // - So what we are actually saying is that we want the `g.Line` prototype to inherit from `g.GeometryObject` prototype.
-	    // - This method provides a way to do exactly that.
-	    // - It copies parent prototype's properties, then adds extra ones from child prototype/overrides parent prototype properties with child prototype properties.
-	    // - Therefore, to continue with the example above:
-	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, linePrototype)`
-	    //   - Where `linePrototype` is a properties object that looks just like `g.Line.prototype` does right now.
-	    //   - Then, `g.Line` would allow the programmer to access to all methods currently in `g.Line.Prototype`, plus any non-overridden methods from `g.GeometryObject.prototype`.
-	    //   - In that aspect, `g.GeometryObject` would then act like the parent of `g.Line`.
-	    // - Multiple inheritance is also possible, if multiple arguments are provided.
-	    // - What if we wanted to add another level of abstraction between `g.GeometryObject` and `g.Line` (let's call it `g.LinearObject`)?
-	    //   - `g.Line.prototype = extend(g.GeometryObject.prototype, g.LinearObject.prototype, linePrototype)`
-	    //   - The ancestors are applied in order of appearance.
-	    //   - That means that `g.Line` would have inherited from `g.LinearObject` that would have inherited from `g.GeometryObject`.
-	    //   - Any number of ancestors may be provided.
-	    // - Note that neither `obj` nor any of the arguments need to actually be prototypes of any JavaScript quasiclass, that was just a simplified explanation.
-	    // - We can create a new object composed from the properties of any number of other objects (since they do not have a constructor, we can think of those as interfaces).
-	    //   - `extend({ a: 1, b: 2 }, { b: 10, c: 20 }, { c: 100, d: 200 })` gives `{ a: 1, b: 10, c: 100, d: 200 }`.
-	    //   - Basically, with this function, we can emulate the `extends` keyword as well as the `implements` keyword.
-	    // - Therefore, both of the following are valid:
-	    //   - `Lineto.prototype = extend(Line.prototype, segmentPrototype, linetoPrototype)`
-	    //   - `Moveto.prototype = extend(segmentPrototype, movetoPrototype)`
-
-	    var i;
-	    var n;
-
-	    var args = [];
-	    n = arguments.length;
-	    for (i = 1; i < n; i++) { // skip over obj
-	        args.push(arguments$1[i]);
-	    }
-
-	    if (!obj) { throw new Error('Missing a parent object.'); }
-	    var child = Object.create(obj);
-
-	    n = args.length;
-	    for (i = 0; i < n; i++) {
-
-	        var src = args[i];
-
-	        var inheritedProperty;
-	        var key;
-	        for (key in src) {
-
-	            if (src.hasOwnProperty(key)) {
-	                delete child[key]; // delete property inherited from parent
-	                inheritedProperty = Object.getOwnPropertyDescriptor(src, key); // get new definition of property from src
-	                Object.defineProperty(child, key, inheritedProperty); // re-add property with new definition (includes getter/setter methods)
-	            }
-	        }
-	    }
-
-	    return child;
-	}
-
 	// Path segment interface:
 	var segmentPrototype = {
 
@@ -7247,9 +7309,615 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	};
 
+	var Polygon = function(points) {
+
+	    if (!(this instanceof Polygon)) {
+	        return new Polygon(points);
+	    }
+
+	    if (typeof points === 'string') {
+	        return new Polygon.parse(points);
+	    }
+
+	    this.points = (Array.isArray(points) ? points.map(Point) : []);
+	};
+
+	Polygon.parse = function(svgString) {
+	    return new Polygon(parsePoints(svgString));
+	};
+
+	Polygon.fromRect = function(rect) {
+	    return new Polygon([
+	        rect.topLeft(),
+	        rect.topRight(),
+	        rect.bottomRight(),
+	        rect.bottomLeft()
+	    ]);
+	};
+
+	Polygon.prototype = extend(Polyline.prototype, {
+
+	    type: types.Polygon,
+
+	    clone: function() {
+	        return new Polygon(clonePoints(this.points));
+	    },
+
+	    convexHull: function() {
+	        return new Polygon(convexHull(this.points));
+	    },
+
+	    lengthPoints: function() {
+	        var ref = this;
+	        var start = ref.start;
+	        var end = ref.end;
+	        var points = ref.points;
+	        if (points.length <= 1 || start.equals(end)) { return points; }
+	        return points.concat( [start.clone()]);
+	    }
+
+	});
+
+	function exists(shape1, shape2, shape1opt, shape2opt) {
+	    switch (shape1.type) {
+	        case types.Line: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return lineWithLine(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Ellipse: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return ellipseWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return ellipseWithEllipse(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Rect: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return rectWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return rectWithEllipse(shape1, shape2);
+	                }
+	                case types.Rect: {
+	                    return rectWithRect(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Polyline: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return polylineWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return polylineWithEllipse(shape1, shape2);
+	                }
+	                case types.Rect: {
+	                    return polylineWithRect(shape1, shape2);
+	                }
+	                case types.Polyline: {
+	                    return polylineWithPolyline(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Polygon: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return polygonWithLine(shape1, shape2);
+	                }
+	                case types.Ellipse: {
+	                    return polygonWithEllipse(shape1, shape2);
+	                }
+	                case types.Rect: {
+	                    return polygonWithRect(shape1, shape2);
+	                }
+	                case types.Polyline: {
+	                    return polygonWithPolyline(shape1, shape2);
+	                }
+	                case types.Polygon: {
+	                    return polygonWithPolygon(shape1, shape2);
+	                }
+	            }
+	            break;
+	        }
+	        case types.Path: {
+	            switch (shape2.type) {
+	                case types.Line: {
+	                    return pathWithLine(shape1, shape2, shape1opt);
+	                }
+	                case types.Ellipse: {
+	                    return pathWithEllipse(shape1, shape2, shape1opt);
+	                }
+	                case types.Rect: {
+	                    return pathWithRect(shape1, shape2, shape1opt);
+	                }
+	                case types.Polyline: {
+	                    return pathWithPolyline(shape1, shape2, shape1opt);
+	                }
+	                case types.Polygon: {
+	                    return pathWithPolygon(shape1, shape2, shape1opt);
+	                }
+	                case types.Path: {
+	                    return pathWithPath(shape1, shape2, shape1opt, shape2opt);
+	                }
+	            }
+	            break;
+	        }
+	    }
+	    // None of the cases above
+	    switch (shape2.type) {
+	        case types.Ellipse:
+	        case types.Rect:
+	        case types.Polyline:
+	        case types.Polygon:
+	        case types.Path: {
+	            return exists(shape2, shape1, shape2opt, shape1opt);
+	        }
+	        default: {
+	            throw Error(("The intersection for " + shape1 + " and " + shape2 + " could not be found."));
+	        }
+	    }
+	}
+
+	/* Line */
+
+	function lineWithLine(line1, line2) {
+	    var x1 = line1.start.x;
+	    var y1 = line1.start.y;
+	    var x2 = line1.end.x;
+	    var y2 = line1.end.y;
+	    var x3 = line2.start.x;
+	    var y3 = line2.start.y;
+	    var x4 = line2.end.x;
+	    var y4 = line2.end.y;
+	    var s1x = x2 - x1;
+	    var s1y = y2 - y1;
+	    var s2x = x4 - x3;
+	    var s2y = y4 - y3;
+	    var s3x = x1 - x3;
+	    var s3y = y1 - y3;
+	    var p = s1x * s2y - s2x * s1y;
+	    var s = (s1x * s3y - s1y * s3x) / p;
+	    var t = (s2x * s3y - s2y * s3x) / p;
+	    return s >= 0 && s <= 1 && t >= 0 && t <= 1;
+	}
+
+	/* Ellipse */
+
+	function ellipseWithLine(ellipse, line) {
+	    var rex = ellipse.a;
+	    var rey = ellipse.b;
+	    var xe = ellipse.x;
+	    var ye = ellipse.y;
+	    var x1 = line.start.x - xe;
+	    var x2 = line.end.x - xe;
+	    var y1 = line.start.y - ye;
+	    var y2 = line.end.y - ye;
+	    var rex_2 = rex * rex;
+	    var rey_2 = rey * rey;
+	    var dx = x2 - x1;
+	    var dy = y2 - y1;
+	    var A = dx * dx / rex_2 + dy * dy / rey_2;
+	    var B = 2 * x1 * dx / rex_2 + 2 * y1 * dy / rey_2;
+	    var C = x1 * x1 / rex_2 + y1 * y1 / rey_2 - 1;
+	    var D = B * B - 4 * A * C;
+	    if (D === 0) {
+	        var t = -B / 2 / A;
+	        return t >= 0 && t <= 1;
+	    } else if (D > 0) {
+	        var sqrt = Math.sqrt(D);
+	        var t1 = (-B + sqrt) / 2 / A;
+	        var t2 = (-B - sqrt) / 2 / A;
+	        return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
+	    }
+	    return false;
+	}
+
+	function ellipseWithEllipse(ellipse1, ellipse2) {
+	    return _ellipsesIntersection(ellipse1, 0, ellipse2, 0);
+	}
+
+	/* Rect */
+
+	function rectWithLine(rect, line) {
+	    var start = line.start;
+	    var end = line.end;
+	    var x = rect.x;
+	    var y = rect.y;
+	    var width = rect.width;
+	    var height = rect.height;
+	    if (
+	        (start.x > x + width && end.x > x + width)
+	        || (start.x < x && end.x < x)
+	        || (start.y > y + height && end.y > y + height)
+	        || (start.y < y && end.y < y)
+	    ) {
+	        return false;
+	    }
+	    if (rect.containsPoint(line.start) || rect.containsPoint(line.end)) {
+	        return true;
+	    }
+	    return lineWithLine(rect.topLine(), line)
+	        || lineWithLine(rect.rightLine(), line)
+	        || lineWithLine(rect.bottomLine(), line)
+	        || lineWithLine(rect.leftLine(), line);
+	}
+
+	function rectWithEllipse(rect, ellipse) {
+	    if (!rectWithRect(rect, Rect.fromEllipse(ellipse))) { return false; }
+	    return polygonWithEllipse(Polygon.fromRect(rect), ellipse);
+	}
+
+	function rectWithRect(rect1, rect2) {
+	    return rect1.x < rect2.x + rect2.width
+	        && rect1.x + rect1.width > rect2.x
+	        && rect1.y < rect2.y + rect2.height
+	        && rect1.y + rect1.height > rect2.y;
+	}
+
+	/* Polyline */
+
+	function polylineWithLine(polyline, line) {
+	    return _polylineWithLine(polyline, line, { interior: false });
+	}
+
+	function polylineWithEllipse(polyline, ellipse) {
+	    return _polylineWithEllipse(polyline, ellipse, { interior: false });
+	}
+
+	function polylineWithRect(polyline, rect) {
+	    return _polylineWithRect(polyline, rect, { interior: false });
+	}
+
+	function polylineWithPolyline(polyline1, polyline2) {
+	    return _polylineWithPolyline(polyline1, polyline2, { interior: false });
+	}
+
+	/* Polygon */
+
+	function polygonWithLine(polygon, line) {
+	    return _polylineWithLine(polygon, line, { interior: true });
+	}
+
+	function polygonWithEllipse(polygon, ellipse) {
+	    return _polylineWithEllipse(polygon, ellipse, { interior: true });
+	}
+
+	function polygonWithRect(polygon, rect) {
+	    return _polylineWithRect(polygon, rect, { interior: true });
+	}
+
+	function polygonWithPolyline(polygon, polyline) {
+	    return _polylineWithPolyline(polygon, polyline, { interior: true });
+	}
+
+	function polygonWithPolygon(polygon1, polygon2) {
+	    return _polylineWithPolygon(polygon1, polygon2, { interior: true });
+	}
+
+	/* Path */
+
+	function pathWithLine(path, line, pathOpt) {
+	    return path.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt);
+	        var polyline = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return polygonWithLine(polyline, line);
+	        } else {
+	            return polylineWithLine(polyline, line);
+	        }
+	    });
+	}
+
+	function pathWithEllipse(path, ellipse, pathOpt) {
+	    return path.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt);
+	        var polyline = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return polygonWithEllipse(polyline, ellipse);
+	        } else {
+	            return polylineWithEllipse(polyline, ellipse);
+	        }
+	    });
+	}
+
+	function pathWithRect(path, rect, pathOpt) {
+	    return pathWithPolygon(path, Polygon.fromRect(rect), pathOpt);
+	}
+
+	function pathWithPolyline(path, polyline, pathOpt) {
+	    return _pathWithPolyline(path, polyline, pathOpt, { interior: false });
+	}
+
+	function pathWithPolygon(path, polygon, pathOpt) {
+	    return _pathWithPolyline(path, polygon, pathOpt, { interior: true });
+	}
+
+	function pathWithPath(path1, path2, pathOpt1, pathOpt2) {
+	    return path1.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt1);
+	        var polyline1 = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return pathWithPolygon(path2, polyline1, pathOpt2);
+	        } else {
+	            return pathWithPolyline(path2, polyline1, pathOpt2);
+	        }
+	    });
+	}
+
+	function _polylineWithLine(polyline, line, opt) {
+	    if ( opt === void 0 ) opt = {};
+
+	    var interior = opt.interior; if ( interior === void 0 ) interior = false;
+	    var thisPoints;
+	    if (interior) {
+	        if (polyline.containsPoint(line.start)) {
+	            // If any point of the polyline lies inside this polygon (interior = true)
+	            // there is an intersection (we've chosen the start point)
+	            return true;
+	        }
+	        var start = polyline.start;
+	        var end = polyline.end;
+	        var points = polyline.points;
+	        thisPoints = end.equals(start) ? points : points.concat( [start]);
+	    } else {
+	        thisPoints = polyline.points;
+	    }
+	    var length = thisPoints.length;
+	    var segment = new Line();
+	    for (var i = 0; i < length - 1; i++) {
+	        segment.start = thisPoints[i];
+	        segment.end = thisPoints[i + 1];
+	        if (lineWithLine(line, segment)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	function _polylineWithEllipse(polyline, ellipse, opt) {
+	    if ( opt === void 0 ) opt = {};
+
+	    var start = polyline.start;
+	    var end = polyline.end;
+	    var points = polyline.points;
+	    if (ellipse.containsPoint(start)) {
+	        return true;
+	    }
+	    var thisPoints;
+	    var interior = opt.interior; if ( interior === void 0 ) interior = false;
+	    if (interior) {
+	        if (polyline.containsPoint(ellipse.center())) {
+	            // If any point of the ellipse lies inside this polygon (interior = true)
+	            // there is an intersection (we've chosen the center point)
+	            return true;
+	        }
+	        thisPoints = end.equals(start) ? points : points.concat( [start]);
+	    } else {
+	        thisPoints = points;
+	    }
+
+	    var length = thisPoints.length;
+	    var segment = new Line();
+	    for (var i = 0; i < length - 1; i++) {
+	        segment.start = thisPoints[i];
+	        segment.end = thisPoints[i + 1];
+	        if (ellipseWithLine(ellipse, segment)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	function _polylineWithRect(polyline, rect, opt) {
+	    var polygon = Polygon.fromRect(rect);
+	    return _polylineWithPolygon(polyline, polygon, opt);
+	}
+
+	function _pathWithPolyline(path, polyline1, pathOpt, opt) {
+	    return path.getSubpaths().some(function (subpath) {
+	        var ref = subpath.toPolylines(pathOpt);
+	        var polyline2 = ref[0];
+	        var ref$1 = subpath.getSegment(-1);
+	        var type = ref$1.type;
+	        if (type === 'Z') {
+	            return _polylineWithPolygon(polyline1, polyline2, opt);
+	        } else {
+	            return _polylineWithPolyline(polyline1, polyline2, opt);
+	        }
+	    });
+	}
+
+	function _polylineWithPolyline(polyline1, polyline2, opt) {
+	    if ( opt === void 0 ) opt = {};
+
+	    var interior = opt.interior; if ( interior === void 0 ) interior = false;
+	    var thisPolyline;
+	    if (interior) {
+	        var start = polyline2.start;
+	        if (polyline1.containsPoint(start)) {
+	            // If any point of the polyline lies inside this polygon (interior = true)
+	            // there is an intersection (we've chosen the start point)
+	            return true;
+	        }
+	        thisPolyline = polyline1.clone().close();
+	    } else {
+	        thisPolyline = polyline1;
+	    }
+	    var otherPoints = polyline2.points;
+	    var length = otherPoints.length;
+	    var segment = new Line();
+	    for (var i = 0; i < length - 1; i++) {
+	        segment.start = otherPoints[i];
+	        segment.end = otherPoints[i + 1];
+	        if (polylineWithLine(thisPolyline, segment)) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	function _polylineWithPolygon(polyline, polygon, opt) {
+	    return polygon.containsPoint(polyline.start) || _polylineWithPolyline(polyline, polygon.clone().close(), opt);
+	}
+
+	function _ellipsesIntersection(e1, w1, e2, w2) {
+	    var cos = Math.cos;
+	    var sin = Math.sin;
+	    var sinW1 = sin(w1);
+	    var cosW1 = cos(w1);
+	    var sinW2 = sin(w2);
+	    var cosW2 = cos(w2);
+	    var sinW1s = sinW1 * sinW1;
+	    var cosW1s = cosW1 * cosW1;
+	    var sinCos1 = sinW1 * cosW1;
+	    var sinW2s = sinW2 * sinW2;
+	    var cosW2s = cosW2 * cosW2;
+	    var sinCos2 = sinW2 * cosW2;
+	    var a1s = e1.a * e1.a;
+	    var b1s = e1.b * e1.b;
+	    var a2s = e2.a * e2.a;
+	    var b2s = e2.b * e2.b;
+	    var A1 = a1s * sinW1s + b1s * cosW1s;
+	    var A2 = a2s * sinW2s + b2s * cosW2s;
+	    var B1 = a1s * cosW1s + b1s * sinW1s;
+	    var B2 = a2s * cosW2s + b2s * sinW2s;
+	    var C1 = 2 * (b1s - a1s) * sinCos1;
+	    var C2 = 2 * (b2s - a2s) * sinCos2;
+	    var D1 = (-2 * A1 * e1.x - C1 * e1.y);
+	    var D2 = (-2 * A2 * e2.x - C2 * e2.y);
+	    var E1 = (-C1 * e1.x - 2 * B1 * e1.y);
+	    var E2 = (-C2 * e2.x - 2 * B2 * e2.y);
+	    var F1 = A1 * e1.x * e1.x + B1 * e1.y * e1.y + C1 * e1.x * e1.y - a1s * b1s;
+	    var F2 = A2 * e2.x * e2.x + B2 * e2.y * e2.y + C2 * e2.x * e2.y - a2s * b2s;
+
+	    C1 = C1 / 2;
+	    C2 = C2 / 2;
+	    D1 = D1 / 2;
+	    D2 = D2 / 2;
+	    E1 = E1 / 2;
+	    E2 = E2 / 2;
+
+	    var l3 = det3([
+	        [A1, C1, D1],
+	        [C1, B1, E1],
+	        [D1, E1, F1]
+	    ]);
+	    var l0 = det3([
+	        [A2, C2, D2],
+	        [C2, B2, E2],
+	        [D2, E2, F2]
+	    ]);
+	    var l2 = 0.33333333 * (det3([
+	        [A2, C1, D1],
+	        [C2, B1, E1],
+	        [D2, E1, F1]
+	    ]) + det3([
+	        [A1, C2, D1],
+	        [C1, B2, E1],
+	        [D1, E2, F1]
+	    ]) + det3([
+	        [A1, C1, D2],
+	        [C1, B1, E2],
+	        [D1, E1, F2]
+	    ]));
+	    var l1 = 0.33333333 * (det3([
+	        [A1, C2, D2],
+	        [C1, B2, E2],
+	        [D1, E2, F2]
+	    ]) + det3([
+	        [A2, C1, D2],
+	        [C2, B1, E2],
+	        [D2, E1, F2]
+	    ]) + det3([
+	        [A2, C2, D1],
+	        [C2, B2, E1],
+	        [D2, E2, F1]
+	    ]));
+
+	    var delta1 = det2([
+	        [l3, l2],
+	        [l2, l1]
+	    ]);
+	    var delta2 = det2([
+	        [l3, l1],
+	        [l2, l0]
+	    ]);
+	    var delta3 = det2([
+	        [l2, l1],
+	        [l1, l0]
+	    ]);
+
+	    var dP = det2([
+	        [2 * delta1, delta2],
+	        [delta2, 2 * delta3]
+	    ]);
+
+	    if (dP > 0 && (l1 > 0 || l2 > 0)) {
+	        return false;
+	    }
+	    return true;
+	}
+
+	function det2(m) {
+	    return m[0][0] * m[1][1] - m[0][1] * m[1][0];
+	}
+
+	function det3(m) {
+	    return m[0][0] * m[1][1] * m[2][2] -
+	        m[0][0] * m[1][2] * m[2][1] -
+	        m[0][1] * m[1][0] * m[2][2] +
+	        m[0][1] * m[1][2] * m[2][0] +
+	        m[0][2] * m[1][0] * m[2][1] -
+	        m[0][2] * m[1][1] * m[2][0];
+	}
+
+	var _intersection = ({
+		exists: exists,
+		lineWithLine: lineWithLine,
+		ellipseWithLine: ellipseWithLine,
+		ellipseWithEllipse: ellipseWithEllipse,
+		rectWithLine: rectWithLine,
+		rectWithEllipse: rectWithEllipse,
+		rectWithRect: rectWithRect,
+		polylineWithLine: polylineWithLine,
+		polylineWithEllipse: polylineWithEllipse,
+		polylineWithRect: polylineWithRect,
+		polylineWithPolyline: polylineWithPolyline,
+		polygonWithLine: polygonWithLine,
+		polygonWithEllipse: polygonWithEllipse,
+		polygonWithRect: polygonWithRect,
+		polygonWithPolyline: polygonWithPolyline,
+		polygonWithPolygon: polygonWithPolygon,
+		pathWithLine: pathWithLine,
+		pathWithEllipse: pathWithEllipse,
+		pathWithRect: pathWithRect,
+		pathWithPolyline: pathWithPolyline,
+		pathWithPolygon: pathWithPolygon,
+		pathWithPath: pathWithPath
+	});
+
 	// Geometry library.
+	var intersection = _intersection;
 
 	var g = ({
+		intersection: intersection,
 		scale: scale,
 		normalizeAngle: normalizeAngle,
 		snapToGrid: snapToGrid,
@@ -7266,8 +7934,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Point: Point,
 		point: point,
 		Polyline: Polyline,
+		Polygon: Polygon,
 		Rect: Rect,
-		rect: rect
+		rect: rect,
+		types: types
 	});
 
 	// Vectorizer.
@@ -7326,6 +7996,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        attrs = attrs || {};
 
 	        if (V.isString(el)) {
+
+	            el = el.trim();
 
 	            if (el.toLowerCase() === 'svg') {
 
@@ -9760,7 +10432,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    // export let classNamePrefix = 'joint-';
 	    // export let defaultTheme = 'default';
 	    classNamePrefix: 'joint-',
-	    defaultTheme: 'default'
+	    defaultTheme: 'default',
+	    // The maximum delay required for two consecutive touchend events to be interpreted
+	    // as a double-tap.
+	    doubleTapInterval: 300
 	};
 
 	var addClassNamePrefix = function(className) {
@@ -11412,7 +12087,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var flattenDeep = _.flattenDeep;
 	var without = _.without;
 	var difference = _.difference;
-	var intersection = _.intersection;
+	var intersection$1 = _.intersection;
 	var union = _.union;
 	var has$2 = _.has;
 	var result = _.result;
@@ -11533,6 +12208,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	}
 
 	var props = {
+	    x: 'x',
+	    y: 'y',
 	    width: 'w',
 	    height: 'h',
 	    minimum: 's',
@@ -11542,53 +12219,115 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var propsList = Object.keys(props).map(function (key) { return props[key]; }).join('');
 	var numberPattern = '[-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?';
 	var findSpacesRegex = /\s/g;
-	var findExpressionsRegExp = /calc\(([^)]*)\)/g;
-	var parseExpressionRegExp = new RegExp(("^(" + numberPattern + "\\*)?([" + propsList + "])([-+]" + numberPattern + ")?$"), 'g');
+	var parseExpressionRegExp = new RegExp(("^(" + numberPattern + "\\*)?([" + propsList + "])([-+]{1,2}" + numberPattern + ")?$"), 'g');
+
+	function throwInvalid(expression) {
+	    throw new Error(("Invalid calc() expression: " + expression));
+	}
 
 	function evalCalcExpression(expression, bbox) {
 	    var match = parseExpressionRegExp.exec(expression.replace(findSpacesRegex, ''));
-	    if (!match) { throw new Error(("Invalid calc() expression: " + expression)); }
+	    if (!match) { throwInvalid(expression); }
 	    parseExpressionRegExp.lastIndex = 0; // reset regex results for the next run
 	    var multiply = match[1]; if ( multiply === void 0 ) multiply = 1;
 	    var property = match[2];
 	    var add = match[3]; if ( add === void 0 ) add = 0;
-	    // Note: currently, we do not take x and y into account
+	    var x = bbox.x;
+	    var y = bbox.y;
 	    var width = bbox.width;
 	    var height = bbox.height;
-	    var dimension = 0;
+	    var value = 0;
 	    switch (property) {
 	        case props.width: {
-	            dimension = width;
+	            value = width;
 	            break;
 	        }
 	        case props.height: {
-	            dimension = height;
+	            value = height;
+	            break;
+	        }
+	        case props.x: {
+	            value = x;
+	            break;
+	        }
+	        case props.y: {
+	            value = y;
 	            break;
 	        }
 	        case props.minimum: {
-	            dimension = Math.min(height, width);
+	            value = Math.min(height, width);
 	            break;
 	        }
 	        case props.maximum: {
-	            dimension = Math.max(height, width);
+	            value = Math.max(height, width);
 	            break;
 	        }
 	        case props.diagonal: {
-	            dimension = Math.sqrt((height * height) + (width * width));
+	            value = Math.sqrt((height * height) + (width * width));
 	            break;
 	        }
 	    }
-	    return parseFloat(multiply) * dimension + parseFloat(add);
+	    return parseFloat(multiply) * value + evalAddExpression(add);
+	}
+
+	function evalAddExpression(addExpression) {
+	    if (!addExpression) { return 0; }
+	    var sign = addExpression[0];
+	    switch (sign) {
+	        case '+': {
+	            return parseFloat(addExpression.substr(1));
+	        }
+	        case '-': {
+	            return -parseFloat(addExpression.substr(1));
+	        }
+	    }
+	    return parseFloat(addExpression);
 	}
 
 	function isCalcAttribute(value) {
 	    return typeof value === 'string' && value.includes('calc');
 	}
 
-	function evalCalcAttribute(value, refBBox) {
-	    return value.replace(findExpressionsRegExp, function(_, expression) {
-	        return evalCalcExpression(expression, refBBox);
-	    });
+	var calcStart = 'calc(';
+	var calcStartOffset = calcStart.length;
+
+	function evalCalcAttribute(attributeValue, refBBox) {
+	    var value = attributeValue;
+	    var startSearchIndex = 0;
+	    do {
+	        var calcIndex = value.indexOf(calcStart, startSearchIndex);
+	        if (calcIndex === -1) { return value; }
+	        var calcEndIndex = calcIndex + calcStartOffset;
+	        var brackets = 1;
+	        findClosingBracket: do {
+	            switch (value[calcEndIndex]) {
+	                case '(': {
+	                    brackets++;
+	                    break;
+	                }
+	                case ')': {
+	                    brackets--;
+	                    if (brackets === 0) { break findClosingBracket; }
+	                    break;
+	                }
+	                case undefined: {
+	                    // Could not find the closing bracket.
+	                    throwInvalid(value);
+	                }
+	            }
+	            calcEndIndex++;
+	        } while (true);
+	        // Get the calc() expression without nested calcs (recursion)
+	        var expression = value.slice(calcIndex + calcStartOffset, calcEndIndex);
+	        if (isCalcAttribute(expression)) {
+	            expression = evalCalcAttribute(expression, refBBox);
+	        }
+	        // Eval the calc() expression without nested calcs.
+	        var calcValue = String(evalCalcExpression(expression, refBBox));
+	        // Replace the calc() expression and continue search
+	        value = value.slice(0, calcIndex) + calcValue + value.slice(calcEndIndex + 1);
+	        startSearchIndex = calcIndex + calcValue.length;
+	    } while (true);
 	}
 
 	function setWrapper(attrName, dimension) {
@@ -11769,6 +12508,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return marker;
 	}
 
+	function setPaintURL(def) {
+	    var ref = this;
+	    var paper = ref.paper;
+	    var url = (def.type === 'pattern')
+	        ? paper.definePattern(def)
+	        : paper.defineGradient(def);
+	    return ("url(#" + url + ")");
+	}
+
 	var attributesNS = {
 
 	    xlinkHref: {
@@ -11840,16 +12588,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    fill: {
 	        qualify: isPlainObject,
-	        set: function(fill) {
-	            return 'url(#' + this.paper.defineGradient(fill) + ')';
-	        }
+	        set: setPaintURL
 	    },
 
 	    stroke: {
 	        qualify: isPlainObject,
-	        set: function(stroke) {
-	            return 'url(#' + this.paper.defineGradient(stroke) + ')';
-	        }
+	        set: setPaintURL
 	    },
 
 	    sourceMarker: {
@@ -12544,39 +13288,48 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    embed: function(cell, opt) {
-
-	        if (this === cell || this.isEmbeddedIn(cell)) {
-
+	        var cells = Array.isArray(cell) ? cell : [cell];
+	        if (!this.canEmbed(cells)) {
 	            throw new Error('Recursive embedding not allowed.');
-
-	        } else {
-
-	            this.startBatch('embed');
-
-	            var embeds = assign([], this.get('embeds'));
-
-	            // We keep all element ids after link ids.
-	            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
-
-	            cell.parent(this.id, opt);
-	            this.set('embeds', uniq(embeds), opt);
-
-	            this.stopBatch('embed');
 	        }
-
+	        this._embedCells(cells, opt);
 	        return this;
 	    },
 
 	    unembed: function(cell, opt) {
-
-	        this.startBatch('unembed');
-
-	        cell.unset('parent', opt);
-	        this.set('embeds', without(this.get('embeds'), cell.id), opt);
-
-	        this.stopBatch('unembed');
-
+	        var cells = Array.isArray(cell) ? cell : [cell];
+	        this._unembedCells(cells, opt);
 	        return this;
+	    },
+
+	    canEmbed: function(cell) {
+	        var this$1 = this;
+
+	        var cells = Array.isArray(cell) ? cell : [cell];
+	        return cells.every(function (c) { return this$1 !== c && !this$1.isEmbeddedIn(c); });
+	    },
+
+	    _embedCells: function(cells, opt) {
+	        var this$1 = this;
+
+	        var batchName = 'embed';
+	        this.startBatch(batchName);
+	        var embeds = assign([], this.get('embeds'));
+	        cells.forEach(function (cell) {
+	            // We keep all element ids after link ids.
+	            embeds[cell.isLink() ? 'unshift' : 'push'](cell.id);
+	            cell.parent(this$1.id, opt);
+	        });
+	        this.set('embeds', uniq(embeds), opt);
+	        this.stopBatch(batchName);
+	    },
+
+	    _unembedCells: function(cells, opt) {
+	        var batchName = 'unembed';
+	        this.startBatch(batchName);
+	        cells.forEach(function (cell) { return cell.unset('parent', opt); });
+	        this.set('embeds', without.apply(void 0, [ this.get('embeds') ].concat( cells.map(function (cell) { return cell.id; }) )), opt);
+	        this.stopBatch(batchName);
 	    },
 
 	    getParentCell: function() {
@@ -12913,7 +13666,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        }.bind(this);
 
-	        return setTimeout(initiator, opt.delay, setter);
+	        var initialId = setTimeout(initiator, opt.delay, setter);
+	        this._transitionIds[path] = initialId;
+	        return initialId;
 	    },
 
 	    getTransitions: function() {
@@ -12922,24 +13677,30 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    stopTransitions: function(path, delim) {
+	        var this$1 = this;
+	        if ( delim === void 0 ) delim = '/';
 
-	        delim = delim || '/';
 
-	        var pathArray = path && path.split(delim);
+	        var ref = this;
+	        var _transitionIds = ref._transitionIds;
+	        var transitions = Object.keys(_transitionIds);
 
-	        Object.keys(this._transitionIds).filter(pathArray && function(key) {
+	        if (path) {
+	            var pathArray = path.split(delim);
+	            transitions = transitions.filter(function (key) {
+	                return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+	            });
+	        }
 
-	            return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
-
-	        }).forEach(function(key) {
-
-	            cancelFrame(this._transitionIds[key]);
-
-	            delete this._transitionIds[key];
-
-	            this.trigger('transition:end', this, key);
-
-	        }, this);
+	        transitions.forEach(function (key) {
+	            var transitionId = _transitionIds[key];
+	            // stop the setter
+	            cancelFrame(transitionId);
+	            // or stop the initiator if the id belongs to it
+	            clearTimeout(transitionId);
+	            delete _transitionIds[key];
+	            this$1.trigger('transition:end', this$1, transitionId);
+	        });
 
 	        return this;
 	    },
@@ -13015,6 +13776,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // To be overridden
 	        return new Rect(0, 0, 0, 0);
+	    },
+
+	    getPointRotatedAroundCenter: function getPointRotatedAroundCenter(angle, x, y) {
+	        var point = new Point(x, y);
+	        if (angle) { point.rotate(this.getBBox().center(), angle); }
+	        return point;
+	    },
+
+	    getAbsolutePointFromRelative: function getAbsolutePointFromRelative(x, y) {
+	        // Rotate the position to take the model angle into account
+	        return this.getPointRotatedAroundCenter(
+	            -this.angle(),
+	            // Transform the relative position to absolute
+	            this.position().offset(x, y)
+	        );
+	    },
+
+	    getRelativePointFromAbsolute: function getRelativePointFromAbsolute(x, y) {
+	        return this
+	            // Rotate the coordinates to mitigate the element's rotation.
+	            .getPointRotatedAroundCenter(this.angle(), x, y)
+	            // Transform the absolute position into relative
+	            .difference(this.position());
 	    }
 
 	}, {
@@ -13034,11 +13818,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var Cell = this.extend(protoProps, staticProps);
 	        // es5 backward compatibility
-	        /* global joint: true */
+	        /* eslint-disable no-undef */
 	        if (typeof joint !== 'undefined' && has$2(joint, 'shapes')) {
 	            setByPath(joint.shapes, type, Cell, '.');
 	        }
-	        /* global joint: false */
+	        /* eslint-enable no-undef */
 	        return Cell;
 	    }
 	});
@@ -13157,7 +13941,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		flattenDeep: flattenDeep,
 		without: without,
 		difference: difference,
-		intersection: intersection,
+		intersection: intersection$1,
 		union: union,
 		has: has$2,
 		result: result,
@@ -14295,11 +15079,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var portElement;
 	        var labelElement;
+	        var labelSelectors;
+	        var portSelectors;
 
 	        var portContainerElement = V(this.portContainerMarkup).addClass('joint-port');
 
 	        var portMarkup = this._getPortMarkup(port);
-	        var portSelectors;
 	        if (Array.isArray(portMarkup)) {
 	            var portDoc = this.parseDOMJSON(portMarkup, portContainerElement.node);
 	            var portFragment = portDoc.fragment;
@@ -14325,26 +15110,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            'port-group': port.group
 	        });
 
-	        var labelMarkup = this._getPortLabelMarkup(port.label);
-	        var labelSelectors;
-	        if (Array.isArray(labelMarkup)) {
-	            var labelDoc = this.parseDOMJSON(labelMarkup, portContainerElement.node);
-	            var labelFragment = labelDoc.fragment;
-	            if (labelFragment.childNodes.length > 1) {
-	                labelElement = V('g').append(labelFragment);
-	            } else {
-	                labelElement = V(labelFragment.firstChild);
+	        var labelMarkupDef = this._getPortLabelMarkup(port.label);
+	        if (Array.isArray(labelMarkupDef)) {
+	            // JSON Markup
+	            var ref = this.parseDOMJSON(labelMarkupDef, portContainerElement.node);
+	            var fragment = ref.fragment;
+	            var selectors = ref.selectors;
+	            var childCount = fragment.childNodes.length;
+	            if (childCount > 0) {
+	                labelSelectors = selectors;
+	                labelElement = (childCount === 1) ? V(fragment.firstChild) : V('g').append(fragment);
 	            }
-	            labelSelectors = labelDoc.selectors;
 	        } else {
-	            labelElement = V(labelMarkup);
+	            // String Markup
+	            labelElement = V(labelMarkupDef);
 	            if (Array.isArray(labelElement)) {
 	                labelElement = V('g').append(labelElement);
 	            }
-	        }
-
-	        if (!labelElement) {
-	            throw new Error('ElementView: Invalid port label markup.');
 	        }
 
 	        var portContainerSelectors;
@@ -14357,10 +15139,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            portContainerSelectors = portSelectors || labelSelectors;
 	        }
 
-	        portContainerElement.append([
-	            portElement.addClass('joint-port-body'),
-	            labelElement.addClass('joint-port-label')
-	        ]);
+	        portContainerElement.append(portElement.addClass('joint-port-body'));
+	        if (labelElement) {
+	            portContainerElement.append(labelElement.addClass('joint-port-label'));
+	        }
 
 	        this._portElementsCache[port.id] = {
 	            portElement: portContainerElement,
@@ -14395,7 +15177,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            });
 
 	            var labelTransformation = metrics.labelTransformation;
-	            if (labelTransformation) {
+	            if (labelTransformation && cached.portLabelElement) {
 	                this.applyPortTransform(cached.portLabelElement, labelTransformation, (-portTransformation.angle || 0));
 	                this.updateDOMSubtreeAttributes(cached.portLabelElement.node, labelTransformation.attrs, {
 	                    rootBBox: new Rect(metrics.labelSize),
@@ -14478,32 +15260,38 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    position: function(x, y, opt) {
 
 	        var isSetter = isNumber(y);
-
 	        opt = (isSetter ? opt : x) || {};
+	        var parentRelative = opt.parentRelative;
+	        var deep = opt.deep;
+	        var restrictedArea = opt.restrictedArea;
+
 
 	        // option `parentRelative` for setting the position relative to the element's parent.
-	        if (opt.parentRelative) {
+	        var parentPosition;
+	        if (parentRelative) {
 
 	            // Getting the parent's position requires the collection.
 	            // Cell.parent() holds cell id only.
 	            if (!this.graph) { throw new Error('Element must be part of a graph.'); }
 
 	            var parent = this.getParentCell();
-	            var parentPosition = parent && !parent.isLink()
-	                ? parent.get('position')
-	                : { x: 0, y: 0 };
+	            if (parent && !parent.isLink()) {
+	                parentPosition = parent.get('position');
+	            }
 	        }
 
 	        if (isSetter) {
 
-	            if (opt.parentRelative) {
+	            if (parentPosition) {
 	                x += parentPosition.x;
 	                y += parentPosition.y;
 	            }
 
-	            if (opt.deep) {
-	                var currentPosition = this.get('position');
-	                this.translate(x - currentPosition.x, y - currentPosition.y, opt);
+	            if (deep || restrictedArea) {
+	                var ref = this.get('position');
+	                var x0 = ref.x;
+	                var y0 = ref.y;
+	                this.translate(x - x0, y - y0, opt);
 	            } else {
 	                this.set('position', { x: x, y: y }, opt);
 	            }
@@ -14513,8 +15301,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        } else { // Getter returns a geometry point.
 
 	            var elementPosition = Point(this.get('position'));
-
-	            return opt.parentRelative
+	            return parentRelative
 	                ? elementPosition.difference(parentPosition)
 	                : elementPosition;
 	        }
@@ -14851,24 +15638,37 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    getBBox: function(opt) {
+	        if ( opt === void 0 ) opt = {};
 
-	        opt = opt || {};
 
-	        if (opt.deep && this.graph) {
+	        var ref = this;
+	        var graph = ref.graph;
+	        var attributes = ref.attributes;
+	        var deep = opt.deep;
+	        var rotate = opt.rotate;
 
-	            // Get all the embedded elements using breadth first algorithm,
-	            // that doesn't use recursion.
+	        if (deep && graph) {
+	            // Get all the embedded elements using breadth first algorithm.
 	            var elements = this.getEmbeddedCells({ deep: true, breadthFirst: true });
 	            // Add the model itself.
 	            elements.push(this);
-
-	            return this.graph.getCellsBBox(elements);
+	            // Note: the default of getCellsBBox() is rotate=true and can't be
+	            // changed without a breaking change
+	            return graph.getCellsBBox(elements, opt);
 	        }
 
-	        var position = this.get('position');
-	        var size = this.get('size');
-
-	        return new Rect(position.x, position.y, size.width, size.height);
+	        var angle = attributes.angle; if ( angle === void 0 ) angle = 0;
+	        var attributes_position = attributes.position;
+	        var x = attributes_position.x;
+	        var y = attributes_position.y;
+	        var attributes_size = attributes.size;
+	        var width = attributes_size.width;
+	        var height = attributes_size.height;
+	        var bbox = new Rect(x, y, width, height);
+	        if (rotate) {
+	            bbox.rotateAroundCenter(angle);
+	        }
+	        return bbox;
 	    },
 
 	    getPointFromConnectedLink: function(link, endType) {
@@ -15056,6 +15856,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    addThemeClassName: function(theme) {
 
 	        theme = theme || this.theme;
+	        if (!theme) { return this; }
 
 	        var className = this.themeClassNamePrefix + theme;
 
@@ -15202,6 +16003,35 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
+	var DoubleTapEventName = 'dbltap';
+	if ($.event && !(DoubleTapEventName in $.event.special)) {
+	    var maxDelay = config.doubleTapInterval;
+	    var minDelay = 30;
+	    $.event.special[DoubleTapEventName] = {
+	        bindType: 'touchend',
+	        delegateType: 'touchend',
+	        handle: function(event) {
+	            var ref;
+
+	            var args = [], len = arguments.length - 1;
+	            while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+	            var handleObj = event.handleObj;
+	            var target = event.target;
+	            var targetData  = $.data(target);
+	            var now = new Date().getTime();
+	            var delta = 'lastTouch' in targetData ? now - targetData.lastTouch : 0;
+	            if (delta < maxDelay && delta > minDelay) {
+	                targetData.lastTouch = null;
+	                event.type = handleObj.origType;
+	                // let jQuery handle the triggering of "dbltap" event handlers
+	                (ref = handleObj.handler).call.apply(ref, [ this, event ].concat( args ));
+	            } else {
+	                targetData.lastTouch = now;
+	            }
+	        }
+	    };
+	}
+
 	var index$1 = ({
 		views: views,
 		View: View
@@ -15294,10 +16124,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var paper = cellView.paper;
 	        var layerName = options.layer;
 	        if (layerName) {
-	            this.transformGroup = V('g')
-	                .addClass('highlight-transform')
-	                .append(el)
-	                .appendTo(paper.getLayerNode(layerName));
+	            var vGroup = this.transformGroup = V('g').addClass('highlight-transform').append(el);
+	            paper.getLayerView(layerName).insertSortedNode(vGroup.node, options.z);
 	        } else {
 	            // TODO: prepend vs append
 	            if (!el.parentNode || el.nextSibling) {
@@ -15612,6 +16440,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        this.$el.data('view', this);
 
 	        this.startListening();
+	    },
+
+	    onMount: function onMount() {
+	        // To be overridden
 	    },
 
 	    startListening: function() {
@@ -17047,25 +17879,32 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    },
 
-	    processEmbedding: function(data) {
+	    processEmbedding: function(data, evt, x, y) {
+	        if ( data === void 0 ) data = {};
 
-	        data || (data = {});
 
 	        var model = data.model || this.model;
 	        var paper = data.paper || this.paper;
-	        var paperOptions = paper.options;
+	        var graph = paper.model;
+	        var ref = paper.options;
+	        var findParentBy = ref.findParentBy;
+	        var frontParentOnly = ref.frontParentOnly;
+	        var validateEmbedding = ref.validateEmbedding;
 
-	        var candidates = [];
-	        if (isFunction(paperOptions.findParentBy)) {
-	            var parents = toArray(paperOptions.findParentBy.call(paper.model, this));
-	            candidates = parents.filter(function(el) {
-	                return el instanceof Cell && this.model.id !== el.id && !el.isEmbeddedIn(this.model);
-	            }.bind(this));
+	        var candidates;
+	        if (isFunction(findParentBy)) {
+	            candidates = toArray(findParentBy.call(graph, this, evt, x, y));
+	        } else if (findParentBy === 'pointer') {
+	            candidates = toArray(graph.findModelsFromPoint({ x: x, y: y }));
 	        } else {
-	            candidates = paper.model.findModelsUnderElement(model, { searchBy: paperOptions.findParentBy });
+	            candidates = graph.findModelsUnderElement(model, { searchBy: findParentBy });
 	        }
 
-	        if (paperOptions.frontParentOnly) {
+	        candidates = candidates.filter(function (el) {
+	            return (el instanceof Cell) && (model.id !== el.id) && !el.isEmbeddedIn(model);
+	        });
+
+	        if (frontParentOnly) {
 	            // pick the element with the highest `z` index
 	            candidates = candidates.slice(-1);
 	        }
@@ -17075,20 +17914,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // iterate over all candidates starting from the last one (has the highest z-index).
 	        for (var i = candidates.length - 1; i >= 0; i--) {
-
 	            var candidate = candidates[i];
-
 	            if (prevCandidateView && prevCandidateView.model.id == candidate.id) {
-
 	                // candidate remains the same
 	                newCandidateView = prevCandidateView;
 	                break;
-
 	            } else {
-
 	                var view = candidate.findView(paper);
-	                if (paperOptions.validateEmbedding.call(paper, this, view)) {
-
+	                if (!isFunction(validateEmbedding) || validateEmbedding.call(paper, this, view)) {
 	                    // flip to the new candidate
 	                    newCandidateView = view;
 	                    break;
@@ -17440,7 +18273,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                this.prepareEmbedding(data);
 	                embedding = true;
 	            }
-	            this.processEmbedding(data);
+	            this.processEmbedding(data, evt, x, y);
 	        }
 
 	        this.eventData(evt, {
@@ -17630,7 +18463,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    markup: '<g class="rotatable"><g class="scalable"><ellipse/></g><text/></g>',
 	});
 
-	var Polygon = Generic.define('basic.Polygon', {
+	var Polygon$1 = Generic.define('basic.Polygon', {
 	    size: { width: 60, height: 40 },
 	    attrs: {
 	        'polygon': {
@@ -17895,7 +18728,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Text: Text,
 		Circle: Circle,
 		Ellipse: Ellipse$1,
-		Polygon: Polygon,
+		Polygon: Polygon$1,
 		Polyline: Polyline$1,
 		Image: Image,
 		Path: Path$1,
@@ -18180,6 +19013,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // setter
 	        if (!Array.isArray(labels)) { labels = []; }
 	        return this.set('labels', labels, opt);
+	    },
+
+	    hasLabels: function() {
+	        var ref = this.attributes;
+	        var labels = ref.labels;
+	        return Array.isArray(labels) && labels.length > 0;
 	    },
 
 	    insertLabel: function(idx, label, opt) {
@@ -18634,7 +19473,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }]
 	});
 
-	var Polygon$1 = Element$1.define('standard.Polygon', {
+	var Polygon$2 = Element$1.define('standard.Polygon', {
 	    attrs: {
 	        body: {
 	            refPoints: '0 0 10 0 10 10 0 10',
@@ -19236,7 +20075,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Circle: Circle$1,
 		Ellipse: Ellipse$2,
 		Path: Path$2,
-		Polygon: Polygon$1,
+		Polygon: Polygon$2,
 		Polyline: Polyline$2,
 		Image: Image$1,
 		BorderedImage: BorderedImage,
@@ -19761,13 +20600,467 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    return (raw) ? path : path.serialize();
 	};
 
+	var Directions = {
+	    AUTO: 'auto',
+	    HORIZONTAL: 'horizontal',
+	    VERTICAL: 'vertical',
+	    CLOSEST_POINT: 'closest-point',
+	    OUTWARDS: 'outwards'
+	};
+
+	var TangentDirections = {
+	    UP: 'up',
+	    DOWN: 'down',
+	    LEFT: 'left',
+	    RIGHT: 'right',
+	    AUTO: 'auto',
+	    CLOSEST_POINT: 'closest-point',
+	    OUTWARDS: 'outwards'
+	};
+
+	var curve = function(sourcePoint, targetPoint, route, opt, linkView) {
+	    if ( route === void 0 ) route = [];
+	    if ( opt === void 0 ) opt = {};
+
+	    var raw = Boolean(opt.raw);
+	    // distanceCoefficient - a coefficient of the tangent vector length relative to the distance between points.
+	    // angleTangentCoefficient - a coefficient of the end tangents length in the case of angles larger than 45 degrees.
+	    // tension - a Catmull-Rom curve tension parameter.
+	    // sourceTangent - a tangent vector along the curve at the sourcePoint.
+	    // sourceDirection - a unit direction vector along the curve at the sourcePoint.
+	    // targetTangent - a tangent vector along the curve at the targetPoint.
+	    // targetDirection - a unit direction vector along the curve at the targetPoint.
+	    // precision - a rounding precision for path values.
+	    var direction = opt.direction; if ( direction === void 0 ) direction = Directions.AUTO;
+	    var precision = opt.precision; if ( precision === void 0 ) precision = 3;
+	    var options = {
+	        coeff: opt.distanceCoefficient || 0.6,
+	        angleTangentCoefficient: opt.angleTangentCoefficient || 80,
+	        tau: opt.tension || 0.5,
+	        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
+	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null
+	    };
+	    if (typeof opt.sourceDirection === 'string') 
+	        { options.sourceDirection = opt.sourceDirection; }
+	    else if (typeof opt.sourceDirection === 'number')
+	        { options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection); }
+	    else
+	        { options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null; }
+
+	    if (typeof opt.targetDirection === 'string') 
+	        { options.targetDirection = opt.targetDirection; }
+	    else if (typeof opt.targetDirection === 'number')
+	        { options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection); }
+	    else 
+	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
+
+	    var completeRoute = [sourcePoint ].concat( route.map(function (p) { return new Point(p); }), [targetPoint]);
+
+	    // The calculation of a sourceTangent
+	    var sourceTangent;
+	    if (options.sourceTangent) {
+	        sourceTangent = options.sourceTangent;
+	    } else {
+	        var sourceDirection = getSourceTangentDirection(linkView, completeRoute, direction, options);
+	        var tangentLength = completeRoute[0].distance(completeRoute[1]) * options.coeff;
+	        var pointsVector = completeRoute[1].difference(completeRoute[0]).normalize();
+	        var angle = angleBetweenVectors(sourceDirection, pointsVector);
+	        if (angle > Math.PI / 4) {
+	            var updatedLength = tangentLength + (angle - Math.PI / 4) * options.angleTangentCoefficient;
+	            sourceTangent = sourceDirection.clone().scale(updatedLength, updatedLength);
+	        } else {
+	            sourceTangent = sourceDirection.clone().scale(tangentLength, tangentLength);
+	        }
+	    }
+
+	    // The calculation of a targetTangent
+	    var targetTangent;
+	    if (options.targetTangent) {
+	        targetTangent = options.targetTangent;
+	    } else {
+	        var targetDirection = getTargetTangentDirection(linkView, completeRoute, direction, options);
+	        var last = completeRoute.length - 1;
+	        var tangentLength$1 = completeRoute[last - 1].distance(completeRoute[last]) * options.coeff;
+	        var pointsVector$1 = completeRoute[last - 1].difference(completeRoute[last]).normalize();
+	        var angle$1 = angleBetweenVectors(targetDirection, pointsVector$1);
+	        if (angle$1 > Math.PI / 4) {
+	            var updatedLength$1 = tangentLength$1 + (angle$1 - Math.PI / 4) * options.angleTangentCoefficient;
+	            targetTangent = targetDirection.clone().scale(updatedLength$1, updatedLength$1);
+	        } else {
+	            targetTangent = targetDirection.clone().scale(tangentLength$1, tangentLength$1);
+	        }
+	    }
+	    
+	    var catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
+	    var bezierCurves = catmullRomCurves.map(function (curve) { return catmullRomToBezier(curve, options); });
+	    var path = new Path(bezierCurves).round(precision);
+
+	    return (raw) ? path : path.serialize();
+	};
+	curve.Directions = Directions;
+	curve.TangentDirections = TangentDirections;
+
+	function getHorizontalSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    if (!sourceBBox.width || !sourceBBox.height) {
+	        if (sourceBBox.x > route[1].x)
+	            { sourceSide = 'right'; }
+	        else    
+	            { sourceSide = 'left'; }
+	    } else {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	    }
+
+	    switch (sourceSide) {
+	        case 'left': {
+	            return new Point(-1, 0);
+	        }   
+	        case 'right':
+	        default: {
+	            return new Point(1, 0);
+	        }
+	    }
+	}
+
+	function getHorizontalTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    if (!targetBBox.width || !targetBBox.height) {
+	        if (targetBBox.x > route[route.length - 2].x)
+	            { targetSide = 'left'; }
+	        else    
+	            { targetSide = 'right'; }
+	    } else {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	    }
+
+	    switch (targetSide) {
+	        case 'left': {
+	            return new Point(-1, 0);
+	        }   
+	        case 'right':
+	        default: {
+	            return new Point(1, 0);
+	        }
+	    }
+	}
+
+	function getVerticalSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    if (!sourceBBox.width || !sourceBBox.height) {
+	        if (sourceBBox.y > route[1].y)
+	            { sourceSide = 'bottom'; }
+	        else    
+	            { sourceSide = 'top'; }
+	    } else {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	    }
+
+	    switch (sourceSide) {
+	        case 'top': {
+	            return new Point(0, -1);
+	        }   
+	        case 'bottom':
+	        default: {
+	            return new Point(0, 1);
+	        }
+	    }
+	}
+
+	function getVerticalTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+
+	    var targetSide;
+	    if (!targetBBox.width || !targetBBox.height) {
+	        if (targetBBox.y > route[route.length - 2].y)
+	            { targetSide = 'top'; }
+	        else    
+	            { targetSide = 'bottom'; }
+	    } else {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	    }
+
+	    switch (targetSide) {
+	        case 'top': {
+	            return new Point(0, -1);
+	        }   
+	        case 'bottom':
+	        default: {
+	            return new Point(0, 1);
+	        }
+	    }
+	}
+
+	function getAutoSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+
+	    var sourceSide;
+	    if (!sourceBBox.width || !sourceBBox.height) {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[1]);
+	    } else {
+	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+	    }
+
+	    switch (sourceSide) {
+	        case 'top':
+	            return new Point(0, -1);
+	        case 'bottom':
+	            return new Point(0, 1);
+	        case 'right':
+	            return new Point(1, 0);
+	        case 'left':
+	            return new Point(-1, 0);
+	    }
+	}
+
+	function getAutoTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+	    
+	    var targetSide;
+	    if (!targetBBox.width || !targetBBox.height) {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
+	    } else {
+	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+	    }
+
+	    switch (targetSide) {
+	        case 'top':
+	            return new Point(0, -1);
+	        case 'bottom':
+	            return new Point(0, 1);
+	        case 'right':
+	            return new Point(1, 0);
+	        case 'left':
+	            return new Point(-1, 0);
+	    }
+	}
+
+	function getClosestPointSourceDirection(linkView, route, options) {
+	    return route[1].difference(route[0]).normalize();
+	}
+
+	function getClosestPointTargetDirection(linkView, route, options) {
+	    var last = route.length - 1;
+	    return route[last - 1].difference(route[last]).normalize();
+	}
+
+	function getOutwardsSourceDirection(linkView, route, options) {
+	    var sourceBBox = linkView.sourceBBox;
+	    var sourceCenter = sourceBBox.center();
+	    return route[0].difference(sourceCenter).normalize();
+	}
+
+	function getOutwardsTargetDirection(linkView, route, options) {
+	    var targetBBox = linkView.targetBBox;
+	    var targetCenter = targetBBox.center();
+	    return route[route.length - 1].difference(targetCenter).normalize();
+	}
+
+	function getSourceTangentDirection(linkView, route, direction, options) {
+	    if (options.sourceDirection) {
+	        switch(options.sourceDirection) {
+	            case TangentDirections.UP:
+	                return new Point(0, -1);
+	            case TangentDirections.DOWN:
+	                return new Point(0, 1);
+	            case TangentDirections.LEFT:
+	                return new Point(-1, 0);
+	            case TangentDirections.RIGHT:
+	                return new Point(0, 1);
+	            case TangentDirections.AUTO:
+	                return getAutoSourceDirection(linkView, route);    
+	            case TangentDirections.CLOSEST_POINT:
+	                return getClosestPointSourceDirection(linkView, route);
+	            case TangentDirections.OUTWARDS: {
+	                return getOutwardsSourceDirection(linkView, route);
+	            }
+	            default:
+	                return options.sourceDirection;
+	        }
+	    }
+	    
+	    switch (direction) {
+	        case Directions.HORIZONTAL:
+	            return getHorizontalSourceDirection(linkView, route);
+	        case Directions.VERTICAL:
+	            return getVerticalSourceDirection(linkView, route);
+	        case Directions.CLOSEST_POINT:
+	            return getClosestPointSourceDirection(linkView, route);
+	        case Directions.OUTWARDS:
+	            return getOutwardsSourceDirection(linkView, route);            
+	        case Directions.AUTO:
+	        default:
+	            return getAutoSourceDirection(linkView, route);            
+	    }   
+	}
+
+	function getTargetTangentDirection(linkView, route, direction, options) {
+	    if (options.targetDirection) {
+	        switch(options.targetDirection) {
+	            case TangentDirections.UP:
+	                return new Point(0, -1);
+	            case TangentDirections.DOWN:
+	                return new Point(0, 1);
+	            case TangentDirections.LEFT:
+	                return new Point(-1, 0);
+	            case TangentDirections.RIGHT:
+	                return new Point(0, 1);
+	            case TangentDirections.AUTO:
+	                return getAutoTargetDirection(linkView, route);    
+	            case TangentDirections.CLOSEST_POINT:
+	                return getClosestPointTargetDirection(linkView, route);
+	            case TangentDirections.OUTWARDS: {
+	                return getOutwardsTargetDirection(linkView, route);
+	            }
+	            default:
+	                return options.targetDirection;
+	        }
+	    }
+	    
+	    switch (direction) {
+	        case Directions.HORIZONTAL:
+	            return getHorizontalTargetDirection(linkView, route);            
+	        case Directions.VERTICAL:
+	            return getVerticalTargetDirection(linkView, route);
+	        case Directions.CLOSEST_POINT:
+	            return getClosestPointTargetDirection(linkView, route);
+	        case Directions.OUTWARDS:
+	            return getOutwardsTargetDirection(linkView, route);            
+	        case Directions.AUTO:
+	        default:
+	            return getAutoTargetDirection(linkView, route);            
+	    }   
+	}
+
+	function rotateVector(vector, angle) {
+	    var cos = Math.cos(angle);
+	    var sin = Math.sin(angle);
+	    var x = cos * vector.x - sin * vector.y;
+	    var y = sin * vector.x + cos * vector.y;
+	    vector.x = x;
+	    vector.y = y;
+	}
+
+	function angleBetweenVectors(v1, v2) {
+	    var cos = v1.dot(v2) / (v1.magnitude() * v2.magnitude());
+	    if (cos < -1) { cos = -1; }
+	    if (cos > 1) { cos = 1; }
+	    return Math.acos(cos);
+	}
+
+	function determinant(v1, v2) {
+	    return v1.x * v2.y - v1.y * v2.x;
+	}
+
+	function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
+	    var tau = options.tau;
+	    var coeff = options.coeff;
+	    var distances = [];
+	    var tangents = [];
+	    var catmullRomCurves = [];    
+	    var n = points.length - 1;
+
+	    for (var i = 0; i < n; i++) {
+	        distances[i] = points[i].distance(points[i + 1]);
+	    }
+
+	    tangents[0] = sourceTangent;
+	    tangents[n] = targetTangent;      
+
+	    // The calculation of tangents of vertices
+	    for (var i$1 = 1; i$1 < n; i$1++) {
+	        var tpPrev = (void 0);
+	        var tpNext = (void 0);
+	        if (i$1 === 1) {
+	            tpPrev = points[i$1 - 1].clone().offset(tangents[i$1 - 1].x, tangents[i$1 - 1].y);
+	        } else {
+	            tpPrev = points[i$1 - 1].clone();
+	        }
+	        if (i$1 === n - 1) {
+	            tpNext = points[i$1 + 1].clone().offset(tangents[i$1 + 1].x, tangents[i$1 + 1].y); 
+	        } else {
+	            tpNext = points[i$1 + 1].clone();
+	        }
+	        var v1 = tpPrev.difference(points[i$1]).normalize();
+	        var v2 = tpNext.difference(points[i$1]).normalize();
+	        var vAngle = angleBetweenVectors(v1, v2); 
+
+	        var rot = (Math.PI - vAngle) / 2;
+	        var t = (void 0);
+	        var vectorDeterminant = determinant(v1, v2);
+	        var pointsDeterminant = (void 0);
+	        pointsDeterminant = determinant(points[i$1].difference(points[i$1 + 1]), points[i$1].difference(points[i$1 - 1]));
+	        if (vectorDeterminant < 0) {
+	            rot = -rot;
+	        }
+	        if ((vAngle < Math.PI / 2) && ((rot < 0 && pointsDeterminant < 0) || (rot > 0 && pointsDeterminant > 0))) {
+	            rot = rot - Math.PI;
+	        }
+	        t = v2.clone();
+	        rotateVector(t, rot);
+	    
+	        var t1 = t.clone();
+	        var t2 = t.clone();
+	        var scaleFactor1 = distances[i$1 - 1] * coeff;
+	        var scaleFactor2 = distances[i$1] * coeff;
+	        t1.scale(scaleFactor1, scaleFactor1);
+	        t2.scale(scaleFactor2, scaleFactor2);
+
+	        tangents[i$1] = [t1, t2];
+	    }
+
+	    // The building of a Catmull-Rom curve based of tangents of points
+	    for (var i$2 = 0; i$2 < n; i$2++) {
+	        var p0 = (void 0);
+	        var p3 = (void 0);
+	        if (i$2 === 0) {
+	            p0 = points[i$2 + 1].difference(tangents[i$2].x / tau, tangents[i$2].y / tau); 
+	        } else {
+	            p0 = points[i$2 + 1].difference(tangents[i$2][1].x / tau, tangents[i$2][1].y / tau);
+	        }
+	        if (i$2 === n - 1) {
+	            p3 = points[i$2].clone().offset(tangents[i$2 + 1].x / tau, tangents[i$2 + 1].y / tau);
+	        } else {
+	            p3 = points[i$2].difference(tangents[i$2 + 1][0].x / tau, tangents[i$2 + 1][0].y / tau);
+	        }
+
+	        catmullRomCurves[i$2] = [p0, points[i$2], points[i$2 + 1], p3];
+	    }
+	    return catmullRomCurves;
+	}
+
+	// The function to convert Catmull-Rom curve to Bezier curve using the tension (tau)
+	function catmullRomToBezier(points, options) {
+	    var tau = options.tau;
+
+	    var bcp1 = new Point();
+	    bcp1.x = points[1].x + (points[2].x - points[0].x) / (6 * tau);
+	    bcp1.y = points[1].y + (points[2].y - points[0].y) / (6 * tau);
+
+	    var bcp2 = new Point();
+	    bcp2.x = points[2].x + (points[3].x - points[1].x) / (6 * tau);
+	    bcp2.y = points[2].y + (points[3].y - points[1].y) / (6 * tau);
+	    return new Curve(
+	        points[1],
+	        bcp1,
+	        bcp2,
+	        points[2]
+	    );
+	}
+
 
 
 	var connectors = ({
 		jumpover: jumpover,
 		normal: normal,
 		rounded: rounded,
-		smooth: smooth
+		smooth: smooth,
+		curve: curve
 	});
 
 	var stroke = HighlighterView.extend({
@@ -21998,9 +23291,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (opt.cellNamespace) {
 	            this.cellNamespace = opt.cellNamespace;
 	        } else {
-	            /* global joint: true */
+	            /* eslint-disable no-undef */
 	            this.cellNamespace = typeof joint !== 'undefined' && has$2(joint, 'shapes') ? joint.shapes : null;
-	            /* global joint: false */
+	            /* eslint-enable no-undef */
 	        }
 
 
@@ -22965,41 +24258,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // Find all elements at given point
 	    findModelsFromPoint: function(p) {
-
-	        return this.getElements().filter(function(el) {
-	            return el.getBBox().containsPoint(p);
-	        });
+	        return this.getElements().filter(function (el) { return el.getBBox({ rotate: true }).containsPoint(p); });
 	    },
 
 	    // Find all elements in given area
-	    findModelsInArea: function(rect$1, opt) {
+	    findModelsInArea: function(rect, opt) {
+	        if ( opt === void 0 ) opt = {};
 
-	        rect$1 = rect(rect$1);
-	        opt = defaults(opt || {}, { strict: false });
-
-	        var method = opt.strict ? 'containsRect' : 'intersect';
-
-	        return this.getElements().filter(function(el) {
-	            return rect$1[method](el.getBBox());
-	        });
+	        var r = new Rect(rect);
+	        var strict = opt.strict; if ( strict === void 0 ) strict = false;
+	        var method = strict ? 'containsRect' : 'intersect';
+	        return this.getElements().filter(function (el) { return r[method](el.getBBox({ rotate: true })); });
 	    },
 
 	    // Find all elements under the given element.
 	    findModelsUnderElement: function(element, opt) {
+	        if ( opt === void 0 ) opt = {};
 
-	        opt = defaults(opt || {}, { searchBy: 'bbox' });
-
-	        var bbox = element.getBBox();
-	        var elements = (opt.searchBy === 'bbox')
+	        var searchBy = opt.searchBy; if ( searchBy === void 0 ) searchBy = 'bbox';
+	        var bbox = element.getBBox().rotateAroundCenter(element.angle());
+	        var elements = (searchBy === 'bbox')
 	            ? this.findModelsInArea(bbox)
-	            : this.findModelsFromPoint(bbox[opt.searchBy]());
-
+	            : this.findModelsFromPoint(bbox[searchBy]());
 	        // don't account element itself or any of its descendants
-	        return elements.filter(function(el) {
-	            return element.id !== el.id && !el.isEmbeddedIn(element);
-	        });
+	        return elements.filter(function (el) { return element.id !== el.id && !el.isEmbeddedIn(element); });
 	    },
-
 
 	    // Return bounding box of all elements.
 	    getBBox: function() {
@@ -23009,12 +24292,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    // Return the bounding box of all cells in array provided.
 	    getCellsBBox: function(cells, opt) {
-	        opt || (opt = {});
+	        if ( opt === void 0 ) opt = {};
+
+	        var rotate = opt.rotate; if ( rotate === void 0 ) rotate = true;
 	        return toArray(cells).reduce(function(memo, cell) {
-	            var rect = cell.getBBox(opt);
+	            var rect = cell.getBBox({ rotate: rotate });
 	            if (!rect) { return memo; }
-	            var angle = cell.angle();
-	            if (angle) { rect = rect.bbox(angle); }
 	            if (memo) {
 	                return memo.union(rect);
 	            }
@@ -23134,6 +24417,83 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	});
 
 	wrapWith(Graph.prototype, ['resetCells', 'addCells', 'removeCells'], wrappers.cells);
+
+	var LayersNames = {
+	    CELLS: 'cells',
+	    BACK: 'back',
+	    FRONT: 'front',
+	    TOOLS: 'tools',
+	    LABELS: 'labels'
+	};
+
+	var PaperLayer = View.extend({
+
+	    tagName: 'g',
+	    svgElement: true,
+	    pivotNodes: null,
+	    defaultTheme: null,
+
+	    options: {
+	        name: ''
+	    },
+
+	    className: function() {
+	        return addClassNamePrefix(((this.options.name) + "-layer"));
+	    },
+
+	    init: function() {
+	        this.pivotNodes = {};
+	    },
+
+	    insertSortedNode: function(node, z) {
+	        this.el.insertBefore(node, this.insertPivot(z));
+	    },
+
+	    insertNode: function(node) {
+	        var ref = this;
+	        var el = ref.el;
+	        if (node.parentNode !== el) {
+	            el.appendChild(node);
+	        }
+	    },
+
+	    insertPivot: function(z) {
+	        var ref = this;
+	        var el = ref.el;
+	        var pivotNodes = ref.pivotNodes;
+	        z = +z;
+	        z || (z = 0);
+	        var pivotNode = pivotNodes[z];
+	        if (pivotNode) { return pivotNode; }
+	        pivotNode = pivotNodes[z] = document.createComment('z-index:' + (z + 1));
+	        var neighborZ = -Infinity;
+	        for (var currentZ in pivotNodes) {
+	            currentZ = +currentZ;
+	            if (currentZ < z && currentZ > neighborZ) {
+	                neighborZ = currentZ;
+	                if (neighborZ === z - 1) { continue; }
+	            }
+	        }
+	        if (neighborZ !== -Infinity) {
+	            var neighborPivot = pivotNodes[neighborZ];
+	            // Insert After
+	            el.insertBefore(pivotNode, neighborPivot.nextSibling);
+	        } else {
+	            // First Child
+	            el.insertBefore(pivotNode, el.firstChild);
+	        }
+	        return pivotNode;
+	    },
+
+	    removePivots: function() {
+	        var ref = this;
+	        var el = ref.el;
+	        var pivotNodes = ref.pivotNodes;
+	        for (var z in pivotNodes) { el.removeChild(pivotNodes[z]); }
+	        this.pivotNodes = {};
+	    }
+
+	});
 
 	var Flags$1 = {
 	    RENDER: 'RENDER',
@@ -23371,6 +24731,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    render: function() {
 
 	        this.vel.empty();
+	        this.unmountLabels();
 	        this._V = {};
 	        this.renderMarkup();
 	        // rendering labels has to be run after the link is appended to DOM tree. (otherwise <Text> bbox
@@ -23501,9 +24862,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // there is no label container in the markup but some labels are defined
 	            // add a <g class="labels" /> container
 	            vLabels = cache.labels = V('g').addClass('labels');
+	            if (this.options.labelsLayer) {
+	                vLabels.addClass(addClassNamePrefix(result(this, 'className')));
+	                vLabels.attr('model-id', model.id);
+	            }
 	        }
-
-	        var container = vLabels.node;
 
 	        for (var i = 0; i < labelsCount; i++) {
 
@@ -23529,7 +24892,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }
 
 	            labelNode.setAttribute('label-idx', i); // assign label-idx
-	            container.appendChild(labelNode);
+	            vLabels.append(labelNode);
 	            labelCache[i] = labelNode; // cache node for `updateLabels()` so it can just update label node positions
 
 	            var rootSelector = this.selector;
@@ -23538,14 +24901,51 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            labelSelectors[i] = selectors; // cache label selectors for `updateLabels()`
 	        }
-
-	        if (!container.parentNode) {
-	            this.el.appendChild(container);
+	        if (!vLabels.parent()) {
+	            this.mountLabels();
 	        }
 
 	        this.updateLabels();
 
 	        return this;
+	    },
+
+	    mountLabels: function() {
+	        var ref = this;
+	        var el = ref.el;
+	        var paper = ref.paper;
+	        var model = ref.model;
+	        var _V = ref._V;
+	        var options = ref.options;
+	        var vLabels = _V.labels;
+	        if (!vLabels || !model.hasLabels()) { return; }
+	        var node = vLabels.node;
+	        if (options.labelsLayer) {
+	            paper.getLayerView(options.labelsLayer).insertSortedNode(node, model.get('z'));
+	        } else {
+	            if (node.parentNode !== el) {
+	                el.appendChild(node);
+	            }
+	        }
+	    },
+
+	    unmountLabels: function() {
+	        var ref = this;
+	        var options = ref.options;
+	        var _V = ref._V;
+	        var vLabels = _V.labels;
+	        if (vLabels && options.labelsLayer) {
+	            vLabels.remove();
+	        }
+	    },
+
+	    onMount: function() {
+	        this.mountLabels();
+	    },
+
+	    unmount: function() {
+	        CellView.prototype.unmount.apply(this, arguments);
+	        this.unmountLabels();
 	    },
 
 	    findLabelNode: function(labelIndex, selector) {
@@ -25194,11 +26594,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    _snapArrowhead: function(evt, x, y) {
 
+	        var ref = this;
+	        var paper = ref.paper;
+	        var ref$1 = paper.options;
+	        var snapLinks = ref$1.snapLinks;
+	        var connectionStrategy = ref$1.connectionStrategy;
 	        var data = this.eventData(evt);
 	        // checking view in close area of the pointer
 
-	        var r = this.paper.options.snapLinks.radius || 50;
-	        var viewsInArea = this.paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
+	        var r = snapLinks.radius || 50;
+	        var viewsInArea = paper.findViewsInArea({ x: x - r, y: y - r, width: 2 * r, height: 2 * r });
 
 	        var prevClosestView = data.closestView || null;
 	        var prevClosestMagnet = data.closestMagnet || null;
@@ -25208,7 +26613,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var minDistance = Number.MAX_VALUE;
 	        var pointer = new Point(x, y);
-	        var paper = this.paper;
 
 	        viewsInArea.forEach(function(view) {
 	            var candidates = [];
@@ -25264,14 +26668,33 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        if (closestView) {
+	            var prevEnd = data.prevEnd;
+	            var prevX = data.prevX;
+	            var prevY = data.prevY;
+	            data.prevX = x;
+	            data.prevY = y;
 
-	            if (!newClosestMagnet) { return; }
+	            if (!newClosestMagnet)  {
+	                if (typeof connectionStrategy !== 'function' || (prevX === x && prevY === y)) {
+	                    // the magnet has not changed and the link's end does not depend on the x and y
+	                    return;
+	                }
+	            }
 
-	            closestView.highlight(magnetProxy, {
-	                connecting: true,
-	                snapping: true
-	            });
 	            end = closestView.getLinkEnd(closestMagnet, x, y, this.model, endType);
+	            if (!newClosestMagnet && isEqual(prevEnd, end)) {
+	                // the source/target json has not changed
+	                return;
+	            }
+
+	            data.prevEnd = end;
+
+	            if (newClosestMagnet) {
+	                closestView.highlight(magnetProxy, {
+	                    connecting: true,
+	                    snapping: true
+	                });
+	            }
 
 	        } else {
 
@@ -25527,7 +26950,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        return data;
+	    },
+
+	    onRemove: function() {
+	        CellView.prototype.onRemove.apply(this, arguments);
+	        this.unmountLabels();
 	    }
+
 	}, {
 
 	    Flags: Flags$1,
@@ -25576,13 +27005,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    EXACT: 'sorting-exact'
 	};
 
-	var LayersNames = {
-	    CELLS: 'cells',
-	    BACK: 'back',
-	    FRONT: 'front',
-	    TOOLS: 'tools'
-	};
-
 	var MOUNT_BATCH_SIZE = 1000;
 	var UPDATE_BATCH_SIZE = Infinity;
 	var MIN_PRIORITY = 9007199254740991; // Number.MAX_SAFE_INTEGER
@@ -25609,6 +27031,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	    };
 
+	var defaultLayers = [{
+	    name: LayersNames.BACK,
+	}, {
+	    name: LayersNames.CELLS,
+	}, {
+	    name: LayersNames.LABELS,
+	}, {
+	    name: LayersNames.FRONT
+	}, {
+	    name: LayersNames.TOOLS
+	}];
+
 	var Paper = View.extend({
 
 	    className: 'paper',
@@ -25633,6 +27067,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        linkView: LinkView,
 	        snapLabels: false, // false, true
 	        snapLinks: false, // false, true, { radius: value }
+
+	        // Should the link labels be rendered into its own layer?
+	        // `false` - the labels are part of the links
+	        // `true` - the labels are appended to LayersName.LABELS
+	        // [LayersName] - the labels are appended to the layer specified
+	        labelsLayer: false,
 
 	        // When set to FALSE, an element may not have more than 1 link with the same source and target element.
 	        multiLinks: true,
@@ -25767,7 +27207,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // 1. the view was just inserted (added to the graph and rendered)
 	            // 2. the view was just mounted (added back to the paper by viewport function)
 	            // 3. the change was marked as `isolate`.
-	            if ((flag & view.FLAG_INSERT) || opt.mounting || opt.isolate) { return; }
+	            // 4. the view model was just removed from the graph
+	            if ((flag & (view.FLAG_INSERT | view.FLAG_REMOVE)) || opt.mounting || opt.isolate) { return; }
 	            paper.requestConnectedLinksUpdate(view, priority, opt);
 	        },
 
@@ -25808,8 +27249,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        'mouseout': 'mouseout',
 	        'mouseenter': 'mouseenter',
 	        'mouseleave': 'mouseleave',
-	        'mousewheel': 'mousewheel',
-	        'DOMMouseScroll': 'mousewheel',
+	        'wheel': 'mousewheel',
 	        'mouseenter .joint-cell': 'mouseenter',
 	        'mouseleave .joint-cell': 'mouseleave',
 	        'mouseenter .joint-tools': 'mouseenter',
@@ -25842,7 +27282,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    $grid: null,
 	    $document: null,
 
-	    _zPivots: null,
 	    // For storing the current transformation matrix (CTM) of the paper's viewport.
 	    _viewportMatrix: null,
 	    // For verifying whether the CTM is up-to-date. The viewport transform attribute
@@ -25863,27 +27302,25 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var options = ref.options;
 	        var el = ref.el;
 	        if (!options.cellViewNamespace) {
-	            /* global joint: true */
+	            /* eslint-disable no-undef */
 	            options.cellViewNamespace = typeof joint !== 'undefined' && has$2(joint, 'shapes') ? joint.shapes : null;
-	            /* global joint: false */
+	            /* eslint-enable no-undef */
 	        }
 
 	        var model = this.model = options.model || new Graph;
 
 	        // Layers (SVGGroups)
-	        // TODO: layer classes
 	        this._layers = {};
 
 	        this.setGrid(options.drawGrid);
 	        this.cloneOptions();
 	        this.render();
-	        this.setDimensions();
+	        this._setDimensions();
 	        this.startListening();
 
 	        // Hash of all cell views.
 	        this._views = {};
-	        // z-index pivots
-	        this._zPivots = {};
+
 	        // Reference to the paper owner document
 	        this.$document = $(el.ownerDocument);
 	        // Render existing cells in the graph
@@ -25945,7 +27382,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    onGraphReset: function(collection, opt) {
-	        this.removeZPivots();
+	        this.resetLayers();
 	        this.resetViews(collection.models, opt);
 	    },
 
@@ -25985,11 +27422,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var interactive = options.interactive;
 
 	        // Default cellView namespace for ES5
-	        /* global joint: true */
+	        /* eslint-disable no-undef */
 	        if (!cellViewNamespace && typeof joint !== 'undefined' && has$2(joint, 'shapes')) {
 	            options.cellViewNamespace = joint.shapes;
 	        }
-	        /* global joint: false */
+	        /* eslint-enable no-undef */
 
 	        // Here if a function was provided, we can not clone it, as this would result in loosing the function.
 	        // If the default is used, the cloning is necessary in order to prevent modifying the options on prototype.
@@ -26047,67 +27484,47 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            }, {
 	                tagName: 'g',
 	                className: addClassNamePrefix('layers'),
-	                selector: 'layers',
-	                children: [{
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('back-layer'),
-	                    selector: 'back',
-	                }, {
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('cells-layer viewport'),
-	                    selector: 'cells',
-	                }, {
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('front-layer'),
-	                    selector: 'front',
-	                }, {
-	                    tagName: 'g',
-	                    className: addClassNamePrefix('tools-layer'),
-	                    selector: 'tools'
-	                }]
+	                selector: 'layers'
 	            }]
 	        }];
 	    },
 
-	    getLayerNode: function getLayerNode(layerName) {
+	    hasLayerView: function hasLayerView(layerName) {
+	        return  (layerName in this._layers);
+	    },
+
+	    getLayerView: function getLayerView(layerName) {
 	        var ref = this;
 	        var _layers = ref._layers;
 	        if (layerName in _layers) { return _layers[layerName]; }
 	        throw new Error(("dia.Paper: Unknown layer \"" + layerName + "\""));
 	    },
 
-	    render: function() {
-	        var obj;
+	    getLayerNode: function getLayerNode(layerName) {
+	        return this.getLayerView(layerName).el;
+	    },
 
+	    render: function() {
 
 	        this.renderChildren();
 	        var ref = this;
 	        var childNodes = ref.childNodes;
 	        var options = ref.options;
 	        var svg = childNodes.svg;
-	        var cells = childNodes.cells;
 	        var defs = childNodes.defs;
-	        var tools = childNodes.tools;
 	        var layers = childNodes.layers;
-	        var back = childNodes.back;
-	        var front = childNodes.front;
 	        var background = childNodes.background;
 	        var grid = childNodes.grid;
 
 	        this.svg = svg;
 	        this.defs = defs;
-	        this.tools = tools;
-	        this.cells = cells;
 	        this.layers = layers;
 	        this.$background = $(background);
 	        this.$grid = $(grid);
 
-	        assign(this._layers, ( obj = {}, obj[LayersNames.BACK] = back, obj[LayersNames.CELLS] = cells, obj[LayersNames.FRONT] = front, obj[LayersNames.TOOLS] = tools, obj ));
+	        this.renderLayers();
 
 	        V.ensureId(svg);
-
-	        // backwards compatibility
-	        this.viewport = cells;
 
 	        if (options.background) {
 	            this.drawBackground(options.background);
@@ -26118,6 +27535,42 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 
 	        return this;
+	    },
+
+	    renderLayers: function(layers) {
+	        var this$1 = this;
+	        if ( layers === void 0 ) layers = defaultLayers;
+
+	        this.removeLayers();
+	        // TODO: Layers to be read from the graph `layers` attribute
+	        layers.forEach(function (ref) {
+	            var name = ref.name;
+	            var sorted = ref.sorted;
+
+	            var layerView = new PaperLayer({ name: name });
+	            this$1.layers.appendChild(layerView.el);
+	            this$1._layers[name] = layerView;
+	        });
+	        // Throws an exception if doesn't exist
+	        var cellsLayerView = this.getLayerView(LayersNames.CELLS);
+	        var toolsLayerView = this.getLayerView(LayersNames.TOOLS);
+	        var labelsLayerView = this.getLayerView(LayersNames.LABELS);
+	        // backwards compatibility
+	        this.tools = toolsLayerView.el;
+	        this.cells = this.viewport = cellsLayerView.el;
+	        // user-select: none;
+	        cellsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+	        labelsLayerView.vel.addClass(addClassNamePrefix('viewport'));
+	    },
+
+	    removeLayers: function() {
+	        var ref = this;
+	        var _layers = ref._layers;
+	    },
+
+	    resetLayers: function() {
+	        var ref = this;
+	        var _layers = ref._layers;
 	    },
 
 	    update: function() {
@@ -26404,6 +27857,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                    stats.priority = data.priority;
 	                    this.notifyAfterRender(stats, opt);
 	                    data.processed = 0;
+	                    data.priority = MIN_PRIORITY;
 	                    updates.count = 0;
 	                } else {
 	                    data.processed = processed;
@@ -26462,7 +27916,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        if (typeof postponeViewFn !== 'function') { postponeViewFn = null; }
 	        var priorityIndexes = Object.keys(priorities); // convert priorities to a dense array
 	        main: for (var i = 0, n = priorityIndexes.length; i < n; i++) {
-	            var priority = priorityIndexes[i];
+	            var priority = +priorityIndexes[i];
 	            var priorityUpdates = priorities[priority];
 	            for (var cid in priorityUpdates) {
 	                if (updateCount >= batchSize) {
@@ -26674,6 +28128,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        this.freeze();
 	        //clean up all DOM elements/views to prevent memory leaks
+	        this.removeLayers();
 	        this.removeViews();
 	    },
 
@@ -26688,49 +28143,73 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    setDimensions: function(width, height) {
+	        var ref = this;
+	        var options = ref.options;
+	        var currentWidth = options.width;
+	        var currentHeight = options.height;
+	        var w = (width === undefined) ? currentWidth : width;
+	        var h = (height === undefined) ? currentHeight : height;
+	        if (currentWidth === w && currentHeight === h) { return; }
+	        options.width = w;
+	        options.height = h;
+	        this._setDimensions();
+	        var computedSize = this.getComputedSize();
+	        this.trigger('resize', computedSize.width, computedSize.height);
+	    },
 
-	        var options = this.options;
-	        var w = (width === undefined) ? options.width : width;
-	        var h = (height === undefined) ? options.height : height;
-	        this.options.width = w;
-	        this.options.height = h;
+	    _setDimensions: function() {
+	        var ref = this;
+	        var options = ref.options;
+	        var w = options.width;
+	        var h = options.height;
 	        if (isNumber(w)) { w = Math.round(w); }
 	        if (isNumber(h)) { h = Math.round(h); }
 	        this.$el.css({
 	            width: (w === null) ? '' : w,
 	            height: (h === null) ? '' : h
 	        });
-	        var computedSize = this.getComputedSize();
-	        this.trigger('resize', computedSize.width, computedSize.height);
 	    },
 
 	    setOrigin: function(ox, oy) {
-
-	        return this.translate(ox || 0, oy || 0, { absolute: true });
+	        return this.translate(ox || 0, oy || 0);
 	    },
 
-	    // Expand/shrink the paper to fit the content. Snap the width/height to the grid
-	    // defined in `gridWidth`, `gridHeight`. `padding` adds to the resulting width/height of the paper.
-	    // When options { fitNegative: true } it also translates the viewport in order to make all
-	    // the content visible.
-	    fitToContent: function(gridWidth, gridHeight, padding, opt) { // alternatively function(opt)
+	    // Expand/shrink the paper to fit the content.
+	    // Alternatively signature function(opt)
+	    fitToContent: function(gridWidth, gridHeight, padding, opt) {
 
 	        if (isObject$1(gridWidth)) {
 	            // first parameter is an option object
 	            opt = gridWidth;
-	            gridWidth = opt.gridWidth || 1;
-	            gridHeight = opt.gridHeight || 1;
-	            padding = opt.padding || 0;
-
 	        } else {
-
-	            opt || (opt = {});
-	            gridWidth = gridWidth || 1;
-	            gridHeight = gridHeight || 1;
-	            padding = padding || 0;
+	            // Support for a deprecated signature
+	            opt = assign({ gridWidth: gridWidth, gridHeight: gridHeight, padding: padding }, opt);
 	        }
 
+	        var ref = this.getFitToContentArea(opt);
+	        var x = ref.x;
+	        var y = ref.y;
+	        var width = ref.width;
+	        var height = ref.height;
+	        var ref$1 = this.scale();
+	        var sx = ref$1.sx;
+	        var sy = ref$1.sy;
+
+	        this.setOrigin(-x * sx, -y * sy);
+	        this.setDimensions(width * sx, height * sy);
+
+	        return new Rect(x, y, width, height);
+	    },
+
+	    getFitToContentArea: function(opt) {
+	        if ( opt === void 0 ) opt = {};
+
+
 	        // Calculate the paper size to accommodate all the graph's elements.
+
+	        var gridWidth = opt.gridWidth || 1;
+	        var gridHeight = opt.gridHeight || 1;
+	        var padding = normalizeSides(opt.padding || 0);
 
 	        var minWidth = Math.max(opt.minWidth || 0, gridWidth);
 	        var minHeight = Math.max(opt.minHeight || 0, gridHeight);
@@ -26738,15 +28217,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var maxHeight = opt.maxHeight || Number.MAX_VALUE;
 	        var newOrigin = opt.allowNewOrigin;
 
-	        padding = normalizeSides(padding);
-
 	        var area = ('contentArea' in opt) ? new Rect(opt.contentArea) : this.getContentArea(opt);
-
-	        var currentScale = this.scale();
-	        var currentTranslate = this.translate();
-	        var sx = currentScale.sx;
-	        var sy = currentScale.sy;
-
+	        var ref = this.scale();
+	        var sx = ref.sx;
+	        var sy = ref.sy;
 	        area.x *= sx;
 	        area.y *= sy;
 	        area.width *= sx;
@@ -26762,14 +28236,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        calcHeight *= gridHeight;
 
 	        var tx = 0;
-	        var ty = 0;
-
 	        if ((newOrigin === 'negative' && area.x < 0) || (newOrigin === 'positive' && area.x >= 0) || newOrigin === 'any') {
 	            tx = Math.ceil(-area.x / gridWidth) * gridWidth;
 	            tx += padding.left;
 	            calcWidth += tx;
 	        }
 
+	        var ty = 0;
 	        if ((newOrigin === 'negative' && area.y < 0) || (newOrigin === 'positive' && area.y >= 0) || newOrigin === 'any') {
 	            ty = Math.ceil(-area.y / gridHeight) * gridHeight;
 	            ty += padding.top;
@@ -26786,18 +28259,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        // Make sure the resulting width and height are lesser than maximum.
 	        calcWidth = Math.min(calcWidth, maxWidth);
 	        calcHeight = Math.min(calcHeight, maxHeight);
-
-	        var computedSize = this.getComputedSize();
-	        var dimensionChange = calcWidth != computedSize.width || calcHeight != computedSize.height;
-	        var originChange = tx != currentTranslate.tx || ty != currentTranslate.ty;
-
-	        // Change the dimensions only if there is a size discrepancy or an origin change
-	        if (originChange) {
-	            this.translate(tx, ty);
-	        }
-	        if (dimensionChange) {
-	            this.setDimensions(calcWidth, calcHeight);
-	        }
 
 	        return new Rect(-tx / sx, -ty / sy, calcWidth / sx, calcHeight / sy);
 	    },
@@ -26941,6 +28402,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    createViewForModel: function(cell) {
 
+	        var ref = this;
+	        var options = ref.options;
 	        // A class taken from the paper options.
 	        var optionalViewClass;
 
@@ -26949,15 +28412,15 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        // A special class defined for this model in the corresponding namespace.
 	        // e.g. joint.shapes.basic.Rect searches for joint.shapes.basic.RectView
-	        var namespace = this.options.cellViewNamespace;
+	        var namespace = options.cellViewNamespace;
 	        var type = cell.get('type') + 'View';
 	        var namespaceViewClass = getByPath(namespace, type, '.');
 
 	        if (cell.isLink()) {
-	            optionalViewClass = this.options.linkView;
+	            optionalViewClass = options.linkView;
 	            defaultViewClass = LinkView;
 	        } else {
-	            optionalViewClass = this.options.elementView;
+	            optionalViewClass = options.elementView;
 	            defaultViewClass = ElementView;
 	        }
 
@@ -26974,7 +28437,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        return new ViewClass({
 	            model: cell,
-	            interactive: this.options.interactive
+	            interactive: options.interactive,
+	            labelsLayer: options.labelsLayer === true ? LayersNames.LABELS : options.labelsLayer
 	        });
 	    },
 
@@ -27002,11 +28466,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var id = cell.id;
 	        var views = this._views;
 	        var view, flag;
+	        var create = true;
 	        if (id in views) {
 	            view = views[id];
-	            flag = view.FLAG_INSERT;
-	        } else {
-	            view = views[cell.id] = this.createViewForModel(cell);
+	            if (view.model === cell) {
+	                flag = view.FLAG_INSERT;
+	                create = false;
+	            } else {
+	                // The view for this `id` already exist.
+	                // The cell is a new instance of the model with identical id
+	                // We simply remove the existing view and create a new one
+	                this.removeView(cell);
+	            }
+	        }
+	        if (create) {
+	            view = views[id] = this.createViewForModel(cell);
 	            view.paper = this;
 	            flag = this.registerUnmountedView(view) | view.getFlag(result(view, 'initFlag'));
 	        }
@@ -27073,55 +28547,20 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        });
 	    },
 
-
 	    insertView: function(view) {
-	        var layer = this.cells;
+	        var layerView = this.getLayerView(LayersNames.CELLS);
+	        var el = view.el;
+	        var model = view.model;
 	        switch (this.options.sorting) {
 	            case sortingTypes.APPROX:
-	                var z = view.model.get('z');
-	                var pivot = this.addZPivot(z);
-	                layer.insertBefore(view.el, pivot);
+	                layerView.insertSortedNode(el, model.get('z'));
 	                break;
 	            case sortingTypes.EXACT:
 	            default:
-	                layer.appendChild(view.el);
+	                layerView.insertNode(el);
 	                break;
 	        }
-	    },
-
-	    addZPivot: function(z) {
-	        z = +z;
-	        z || (z = 0);
-	        var pivots = this._zPivots;
-	        var pivot = pivots[z];
-	        if (pivot) { return pivot; }
-	        pivot = pivots[z] = document.createComment('z-index:' + (z + 1));
-	        var neighborZ = -Infinity;
-	        for (var currentZ in pivots) {
-	            currentZ = +currentZ;
-	            if (currentZ < z && currentZ > neighborZ) {
-	                neighborZ = currentZ;
-	                if (neighborZ === z - 1) { continue; }
-	            }
-	        }
-	        var layer = this.cells;
-	        if (neighborZ !== -Infinity) {
-	            var neighborPivot = pivots[neighborZ];
-	            // Insert After
-	            layer.insertBefore(pivot, neighborPivot.nextSibling);
-	        } else {
-	            // First Child
-	            layer.insertBefore(pivot, layer.firstChild);
-	        }
-	        return pivot;
-	    },
-
-	    removeZPivots: function() {
-	        var ref = this;
-	        var pivots = ref._zPivots;
-	        var viewport = ref.viewport;
-	        for (var z in pivots) { viewport.removeChild(pivots[z]); }
-	        this._zPivots = {};
+	        view.onMount();
 	    },
 
 	    scale: function(sx, sy, ox, oy) {
@@ -27194,22 +28633,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return V.matrixToTranslate(this.matrix());
 	        }
 
+	        var ref = this;
+	        var options = ref.options;
+	        var origin = options.origin;
+	        var drawGrid = options.drawGrid;
+
 	        // setter
+	        tx || (tx = 0);
+	        ty || (ty = 0);
 
 	        var ctm = this.matrix();
-	        ctm.e = tx || 0;
-	        ctm.f = ty || 0;
+	        if (ctm.e === tx && ctm.f === ty) { return this; }
+	        ctm.e = tx;
+	        ctm.f = ty;
 
 	        this.matrix(ctm);
 
-	        var newTranslate = this.translate();
-	        var origin = this.options.origin;
-	        origin.x = newTranslate.tx;
-	        origin.y = newTranslate.ty;
+	        var ref$1 = this.translate();
+	        var ox = ref$1.tx;
+	        var oy = ref$1.ty;
+	        origin.x = ox;
+	        origin.y = oy;
 
-	        this.trigger('translate', newTranslate.tx, newTranslate.ty);
+	        this.trigger('translate', ox, oy);
 
-	        if (this.options.drawGrid) {
+	        if (drawGrid) {
 	            this.drawGrid();
 	        }
 
@@ -27716,18 +29164,31 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        evt = normalizeEvent(evt);
 
-	        var view = this.findView(evt.target);
+	        var target = evt.target;
+	        var relatedTarget = evt.relatedTarget;
+	        var view = this.findView(target);
 	        if (this.guard(evt, view)) { return; }
-	        var relatedView = this.findView(evt.relatedTarget);
+	        var relatedView = this.findView(relatedTarget);
 	        if (view) {
-	            // mouse moved from view over tool?
-	            if (relatedView === view) { return; }
+	            if (relatedView === view) {
+	                // Mouse entered a cell tool
+	                return;
+	            }
+	            // prevent double `mouseleave` event if the `relatedTarget` is outside the paper
+	            // (mouseleave method would be fired twice)
+	            evt.stopPropagation();
 	            view.mouseleave(evt);
-	        } else {
-	            if (relatedView) { return; }
-	            // `paper` (more descriptive), not `blank`
-	            this.trigger('paper:mouseleave', evt);
+	            if (this.el.contains(relatedTarget)) {
+	                // The pointer has exited a cellView. The pointer is still inside of the paper.
+	                return;
+	            }
 	        }
+	        if (relatedView) {
+	            // The pointer has entered a new cellView
+	            return;
+	        }
+	        // There is no cellView under the pointer, nor the blank area of the paper
+	        this.trigger('paper:mouseleave', evt);
 	    },
 
 	    mousewheel: function(evt) {
@@ -27739,7 +29200,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var originalEvent = evt.originalEvent;
 	        var localPoint = this.snapToGrid(originalEvent.clientX, originalEvent.clientY);
-	        var delta = Math.max(-1, Math.min(1, (originalEvent.wheelDelta || -originalEvent.detail)));
+	        var delta = Math.max(-1, Math.min(1, originalEvent.wheelDelta));
 
 	        if (view) {
 	            view.mousewheel(evt, localPoint.x, localPoint.y, delta);
@@ -28049,6 +29510,11 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            return;
 	        }
 
+	        if (!this._background || this._background.id !== opt.id) {
+	            // Draw only the last image requested (see drawBackground())
+	            return;
+	        }
+
 	        opt = opt || {};
 
 	        var backgroundImage;
@@ -28115,6 +29581,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        if (opt.image) {
 	            opt = this._background = cloneDeep(opt);
+	            guid(opt);
 	            var img = document.createElement('img');
 	            img.onload = this.drawBackgroundImage.bind(this, img, opt);
 	            img.src = opt.image;
@@ -28184,77 +29651,108 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    defineGradient: function(gradient) {
-
 	        if (!isObject$1(gradient)) {
 	            throw new TypeError('dia.Paper: defineGradient() requires 1. argument to be an object.');
 	        }
-
-	        var gradientId = gradient.id;
+	        var ref = this;
+	        var svg = ref.svg;
+	        var defs = ref.defs;
 	        var type = gradient.type;
+	        var id = gradient.id; if ( id === void 0 ) id = type + svg.id + hashCode(JSON.stringify(gradient));
 	        var stops = gradient.stops;
-	        // Generate a hash code from the stringified filter definition. This gives us
-	        // a unique filter ID for different definitions.
-	        if (!gradientId) {
-	            gradientId = type + this.svg.id + hashCode(JSON.stringify(gradient));
+	        var attrs = gradient.attrs; if ( attrs === void 0 ) attrs = {};
+	        // If the gradient already exists in the document,
+	        // we're done and we can just use it (reference it using `url()`).
+	        if (this.isDefined(id)) { return id; }
+	        // If not, create one.
+	        var stopVEls = toArray(stops).map(function (ref) {
+	            var offset = ref.offset;
+	            var color = ref.color;
+	            var opacity = ref.opacity;
+
+	            return V('stop').attr({
+	                'offset': offset,
+	                'stop-color': color,
+	                'stop-opacity': Number.isFinite(opacity) ? opacity : 1
+	            });
+	        });
+	        var gradientVEl = V(type, attrs, stopVEls);
+	        gradientVEl.id = id;
+	        gradientVEl.appendTo(defs);
+	        return id;
+	    },
+
+	    definePattern: function(pattern) {
+	        if (!isObject$1(pattern)) {
+	            throw new TypeError('dia.Paper: definePattern() requires 1. argument to be an object.');
+	        }
+	        var ref = this;
+	        var svg = ref.svg;
+	        var defs = ref.defs;
+	        var id = pattern.id; if ( id === void 0 ) id = svg.id + hashCode(JSON.stringify(pattern));
+	        var markup = pattern.markup;
+	        var attrs = pattern.attrs; if ( attrs === void 0 ) attrs = {};
+	        if (!markup) {
+	            throw new TypeError('dia.Paper: definePattern() requires markup.');
 	        }
 	        // If the gradient already exists in the document,
 	        // we're done and we can just use it (reference it using `url()`).
+	        if (this.isDefined(id)) { return id; }
 	        // If not, create one.
-	        if (!this.isDefined(gradientId)) {
-
-	            var stopTemplate = template('<stop offset="${offset}" stop-color="${color}" stop-opacity="${opacity}"/>');
-	            var gradientStopsStrings = toArray(stops).map(function(stop) {
-	                return stopTemplate({
-	                    offset: stop.offset,
-	                    color: stop.color,
-	                    opacity: Number.isFinite(stop.opacity) ? stop.opacity : 1
-	                });
-	            });
-
-	            var gradientSVGString = [
-	                '<' + type + '>',
-	                gradientStopsStrings.join(''),
-	                '</' + type + '>'
-	            ].join('');
-
-	            var gradientAttrs = assign({ id: gradientId }, gradient.attrs);
-
-	            V(gradientSVGString, gradientAttrs).appendTo(this.defs);
+	        var patternVEl = V('pattern', {
+	            patternUnits: 'userSpaceOnUse'
+	        });
+	        patternVEl.id = id;
+	        patternVEl.attr(attrs);
+	        if (typeof markup === 'string') {
+	            patternVEl.append(V(markup));
+	        } else {
+	            var ref$1 = parseDOMJSON(markup);
+	            var fragment = ref$1.fragment;
+	            patternVEl.append(fragment);
 	        }
-
-	        return gradientId;
+	        patternVEl.appendTo(defs);
+	        return id;
 	    },
 
 	    defineMarker: function(marker) {
-
 	        if (!isObject$1(marker)) {
 	            throw new TypeError('dia.Paper: defineMarker() requires 1. argument to be an object.');
 	        }
-
-	        var markerId = marker.id;
-
-	        // Generate a hash code from the stringified filter definition. This gives us
-	        // a unique filter ID for different definitions.
-	        if (!markerId) {
-	            markerId = this.svg.id + hashCode(JSON.stringify(marker));
+	        var ref = this;
+	        var svg = ref.svg;
+	        var defs = ref.defs;
+	        var id = marker.id; if ( id === void 0 ) id = svg.id + hashCode(JSON.stringify(marker));
+	        var markup = marker.markup;
+	        var attrs = marker.attrs; if ( attrs === void 0 ) attrs = {};
+	        var markerUnits = marker.markerUnits; if ( markerUnits === void 0 ) markerUnits = 'userSpaceOnUse';
+	        // If the marker already exists in the document,
+	        // we're done and we can just use it (reference it using `url()`).
+	        if (this.isDefined(id)) { return id; }
+	        // If not, create one.
+	        var markerVEl = V('marker', {
+	            orient: 'auto',
+	            overflow: 'visible',
+	            markerUnits: markerUnits
+	        });
+	        markerVEl.id = id;
+	        markerVEl.attr(attrs);
+	        if (markup) {
+	            if (typeof markup === 'string') {
+	                markerVEl.append(V(markup));
+	            } else {
+	                var ref$1 = parseDOMJSON(markup);
+	                var fragment = ref$1.fragment;
+	                markerVEl.append(fragment);
+	            }
+	        } else {
+	            // marker object is a flat structure
+	            var type = marker.type; if ( type === void 0 ) type = 'path';
+	            var markerContentVEl = V(type, omit(marker, 'type', 'id', 'markup', 'attrs', 'markerUnits'));
+	            markerVEl.append(markerContentVEl);
 	        }
-
-	        if (!this.isDefined(markerId)) {
-
-	            var attrs = omit(marker, 'type', 'userSpaceOnUse');
-	            var pathMarker = V('marker', {
-	                id: markerId,
-	                orient: 'auto',
-	                overflow: 'visible',
-	                markerUnits: marker.markerUnits || 'userSpaceOnUse'
-	            }, [
-	                V(marker.type || 'path', attrs)
-	            ]);
-
-	            pathMarker.appendTo(this.defs);
-	        }
-
-	        return markerId;
+	        markerVEl.appendTo(defs);
+	        return id;
 	    }
 
 	}, {
@@ -28534,7 +30032,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        tools: null,
 	        relatedView: null,
 	        name: null,
-	        component: false
+	        // layer?: LayersNames.TOOLS
+	        // z?: number
 	    },
 
 	    configure: function(options) {
@@ -28630,11 +30129,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    mount: function() {
-	        var options = this.options;
+	        var ref = this;
+	        var options = ref.options;
+	        var el = ref.el;
 	        var relatedView = options.relatedView;
+	        var layer = options.layer; if ( layer === void 0 ) layer = LayersNames.TOOLS;
+	        var z = options.z;
 	        if (relatedView) {
-	            var container = (options.component) ? relatedView.el : relatedView.paper.tools;
-	            container.appendChild(this.el);
+	            if (layer) {
+	                relatedView.paper.getLayerView(layer).insertSortedNode(el, z);
+	            } else {
+	                relatedView.el.appendChild(el);
+	            }
 	        }
 	        return this;
 	    }
@@ -28646,6 +30152,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var index$3 = ({
 		Graph: Graph,
 		attributes: attributes,
+		LayersNames: LayersNames,
+		PaperLayer: PaperLayer,
 		Cell: Cell,
 		CellView: CellView,
 		Element: Element$1,
@@ -28698,7 +30206,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    events: {
 	        mousedown: 'onPointerDown',
 	        touchstart: 'onPointerDown',
-	        dblclick: 'onDoubleClick'
+	        dblclick: 'onDoubleClick',
+	        dbltap: 'onDoubleClick'
 	    },
 	    documentEvents: {
 	        mousemove: 'onPointerMove',
@@ -28929,7 +30438,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var index$1 = relatedView.getVertexIndex(vertex.x, vertex.y);
 	        this.snapVertex(vertex, index$1);
 	        relatedView.model.insertVertex(index$1, vertex, { ui: true, tool: this.cid });
-	        this.render();
+	        this.update();
 	        var handle = this.handles[index$1];
 	        this.eventData(normalizedEvent, { vertexAdded: true });
 	        handle.onPointerDown(normalizedEvent);
@@ -29505,6 +31014,106 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 	});
 
+	var Connect = Button.extend({
+	    name: 'connect',
+	    documentEvents: {
+	        mousemove: 'drag',
+	        touchmove: 'drag',
+	        mouseup: 'dragend',
+	        touchend: 'dragend',
+	        touchcancel: 'dragend'
+	    },
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'button',
+	        attributes: {
+	            'r': 7,
+	            'fill': '#333333',
+	            'cursor': 'pointer'
+	        }
+	    }, {
+	        tagName: 'path',
+	        selector: 'icon',
+	        attributes: {
+	            'd': 'M -4 -1 L 0 -1 L 0 -4 L 4 0 L 0 4 0 1 -4 1 z',
+	            'fill': '#FFFFFF',
+	            'stroke': 'none',
+	            'stroke-width': 2,
+	            'pointer-events': 'none'
+	        }
+	    }],
+	    options: {
+	        distance: 80,
+	        offset: 0,
+	        magnet: function (view) { return view.el; },
+	        action: function (evt, _view, tool) { return tool.dragstart(evt); },
+	    },
+	    getMagnetNode: function() {
+	        var assign;
+
+	        var ref = this;
+	        var options = ref.options;
+	        var relatedView = ref.relatedView;
+	        var magnet = options.magnet;
+	        var magnetNode;
+	        switch (typeof magnet) {
+	            case 'function': {
+	                magnetNode = magnet.call(this, relatedView, this);
+	                break;
+	            }
+	            case 'string': {
+	                (assign = relatedView.findBySelector(magnet), magnetNode = assign[0]);
+	                break;
+	            }
+	            default: {
+	                magnetNode = magnet;
+	                break;
+	            }
+	        }
+	        if (!magnetNode) { magnetNode = relatedView.el; }
+	        if (magnetNode instanceof SVGElement) { return magnetNode; }
+	        throw new Error('Connect: magnet must be an SVGElement');
+	    },
+	    dragstart: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.clientToLocalPoint(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLinkStart(normalizedEvent, this.getMagnetNode(), x, y);
+	        paper.undelegateEvents();
+	        this.delegateDocumentEvents(null, evt.data);
+	        this.focus();
+	    },
+	    drag: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLink(normalizedEvent, x, y);
+	    },
+	    dragend: function(evt) {
+	        var ref = this;
+	        var paper = ref.paper;
+	        var relatedView = ref.relatedView;
+	        var normalizedEvent = normalizeEvent(evt);
+	        var ref$1 = paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY);
+	        var x = ref$1.x;
+	        var y = ref$1.y;
+	        relatedView.dragLinkEnd(normalizedEvent, x, y);
+	        this.undelegateDocumentEvents();
+	        paper.delegateEvents();
+	        this.blur();
+	        relatedView.checkMouseleave(normalizedEvent);
+	    }
+	});
+
+
 	var Boundary = ToolView.extend({
 	    name: 'boundary',
 	    tagName: 'rect',
@@ -29577,7 +31186,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    events: {
 	        mousedown: 'onPointerDown',
 	        touchstart: 'onPointerDown',
-	        dblclick: 'onPointerDblClick'
+	        dblclick: 'onPointerDblClick',
+	        dbltap: 'onPointerDblClick'
 	    },
 	    documentEvents: {
 	        mousemove: 'onPointerMove',
@@ -29781,7 +31391,172 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		TargetAnchor: TargetAnchor,
 		Button: Button,
 		Remove: Remove,
+		Connect: Connect,
 		Boundary: Boundary
+	});
+
+	var Control = ToolView.extend({
+	    tagName: 'g',
+	    children: [{
+	        tagName: 'circle',
+	        selector: 'handle',
+	        attributes: {
+	            'cursor': 'pointer',
+	            'stroke-width': 2,
+	            'stroke': '#FFFFFF',
+	            'fill': '#33334F',
+	            'r': 6
+	        }
+	    }, {
+	        tagName: 'rect',
+	        selector: 'extras',
+	        attributes: {
+	            'pointer-events': 'none',
+	            'fill': 'none',
+	            'stroke': '#33334F',
+	            'stroke-dasharray': '2,4',
+	            'rx': 5,
+	            'ry': 5
+	        }
+	    }],
+	    events: {
+	        mousedown: 'onPointerDown',
+	        touchstart: 'onPointerDown',
+	        dblclick: 'onPointerDblClick',
+	        dbltap: 'onPointerDblClick'
+	    },
+	    documentEvents: {
+	        mousemove: 'onPointerMove',
+	        touchmove: 'onPointerMove',
+	        mouseup: 'onPointerUp',
+	        touchend: 'onPointerUp',
+	        touchcancel: 'onPointerUp'
+	    },
+	    options: {
+	        handleAttributes: null,
+	        selector: 'root',
+	        padding: 6,
+	    },
+
+	    getPosition: function() {
+	        // To be overridden
+	    },
+	    setPosition: function() {
+	        // To be overridden
+	    },
+	    resetPosition: function() {
+	        // To be overridden
+	    },
+	    onRender: function() {
+	        this.renderChildren();
+	        this.toggleExtras(false);
+	        this.update();
+	    },
+	    update: function() {
+	        var ref = this.childNodes;
+	        var handle = ref.handle;
+	        var extras = ref.extras;
+	        if (handle) {
+	            this.updateHandle(handle);
+	        } else {
+	            throw new Error('Control: markup selector `handle` is required');
+	        }
+	        if (extras) {
+	            this.updateExtras(extras);
+	        }
+	        return this;
+	    },
+	    updateHandle: function(handleNode) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var options = ref.options;
+	        var model = relatedView.model;
+	        var relativePos = this.getPosition(relatedView, this);
+	        var absolutePos = model.getAbsolutePointFromRelative(relativePos);
+	        handleNode.setAttribute('transform', ("translate(" + (absolutePos.x) + "," + (absolutePos.y) + ")"));
+	        var handleAttributes = options.handleAttributes;
+	        if (handleAttributes) {
+	            for (var attrName in handleAttributes) {
+	                handleNode.setAttribute(attrName, handleAttributes[attrName]);
+	            }
+	        }
+	    },
+	    updateExtras: function(extrasNode) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var options = ref.options;
+	        var ref$1 = this.options;
+	        var selector = ref$1.selector;
+	        if (!selector) {
+	            this.toggleExtras(false);
+	            return;
+	        }
+	        var ref$2 = relatedView.findBySelector(selector);
+	        var magnet = ref$2[0];
+	        if (!magnet) { throw new Error('Control: invalid selector.'); }
+	        var padding = options.padding;
+	        if (!isFinite(padding)) { padding = 0; }
+	        var bbox = relatedView.getNodeUnrotatedBBox(magnet);
+	        var model = relatedView.model;
+	        var angle = model.angle();
+	        var center = bbox.center();
+	        if (angle) { center.rotate(model.getBBox().center(), -angle); }
+	        bbox.inflate(padding);
+	        extrasNode.setAttribute('x', -bbox.width / 2);
+	        extrasNode.setAttribute('y', -bbox.height / 2);
+	        extrasNode.setAttribute('width', bbox.width);
+	        extrasNode.setAttribute('height', bbox.height);
+	        extrasNode.setAttribute('transform', ("translate(" + (center.x) + "," + (center.y) + ") rotate(" + angle + ")"));
+	    },
+	    toggleExtras: function(visible) {
+	        var ref = this.childNodes;
+	        var extras = ref.extras;
+	        if (!extras) { return; }
+	        extras.style.display = (visible) ? '' : 'none';
+	    },
+	    onPointerDown: function(evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var paper = ref.paper;
+	        if (this.guard(evt)) { return; }
+	        evt.stopPropagation();
+	        evt.preventDefault();
+	        paper.undelegateEvents();
+	        this.delegateDocumentEvents();
+	        this.focus();
+	        this.toggleExtras(true);
+	        relatedView.model.startBatch('control-move', { ui: true, tool: this.cid });
+	    },
+	    onPointerMove: function(evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var paper = ref.paper;
+	        var model = relatedView.model;
+	        var ref$1 = normalizeEvent(evt);
+	        var clientX = ref$1.clientX;
+	        var clientY = ref$1.clientY;
+	        var coords = paper.clientToLocalPoint(clientX, clientY);
+	        var relativeCoords = model.getRelativePointFromAbsolute(coords);
+	        this.setPosition(relatedView, relativeCoords, this);
+	        this.update();
+	    },
+	    onPointerUp: function(_evt) {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        var paper = ref.paper;
+	        paper.delegateEvents();
+	        this.undelegateDocumentEvents();
+	        this.blur();
+	        this.toggleExtras(false);
+	        relatedView.model.stopBatch('control-move', { ui: true, tool: this.cid });
+	    },
+	    onPointerDblClick: function() {
+	        var ref = this;
+	        var relatedView = ref.relatedView;
+	        this.resetPosition(relatedView, this);
+	        this.update();
+	    }
+
 	});
 
 
@@ -29789,10 +31564,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	var index$5 = ({
 		Button: Button,
 		Remove: Remove,
-		Boundary: Boundary
+		Connect: Connect,
+		Boundary: Boundary,
+		Control: Control
 	});
 
-	var version = "3.4.4";
+	var version = "3.5.0";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
