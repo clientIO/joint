@@ -20,13 +20,13 @@ const TangentDirections = {
 
 export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, linkView) {
     const raw = Boolean(opt.raw);
-    // distanceCoefficient - ratio of a distance between points to tangents length.
-    // angleTangentCoefficient - coefficient of the end tangents length in case of angles larger than 45 degrees.
-    // tension - Catmull-Rom curve tension parameter.
-    // sourceTangent - tangent vector along the curve at sourcePoint.
-    // sourceDirection - unit direction vector alongside the curve at sourcePoint.
-    // targetTangent - tangent vector along the curve at targetPoint.
-    // targetDirection - unit direction vector alongside the curve at targetPoint.
+    // distanceCoefficient - a coefficient of the tangent vector length relative to the distance between points.
+    // angleTangentCoefficient - a coefficient of the end tangents length in the case of angles larger than 45 degrees.
+    // tension - a Catmull-Rom curve tension parameter.
+    // sourceTangent - a tangent vector along the curve at the sourcePoint.
+    // sourceDirection - a unit direction vector along the curve at the sourcePoint.
+    // targetTangent - a tangent vector along the curve at the targetPoint.
+    // targetDirection - a unit direction vector along the curve at the targetPoint.
     const { direction = Directions.AUTO } = opt;
     const options = {
         coeff: opt.distanceCoefficient || 0.6,
@@ -40,16 +40,18 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
     else if (typeof opt.sourceDirection === 'number')
         options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection);
     else
-        options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection) : null;
+        options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null;
 
     if (typeof opt.targetDirection === 'string') 
         options.targetDirection = opt.targetDirection;
     else if (typeof opt.targetDirection === 'number')
         options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection);
     else 
-        options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection) : null;
+        options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null;
 
     const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
+
+    // The calculation of a sourceTangent
     let sourceTangent;
     if (options.sourceTangent) {
         sourceTangent = options.sourceTangent;
@@ -66,6 +68,7 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
         }
     }
 
+    // The calculation of a targetTangent
     let targetTangent;
     if (options.targetTangent) {
         targetTangent = options.targetTangent;
@@ -363,6 +366,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
     tangents[0] = sourceTangent;
     tangents[n] = targetTangent;      
 
+    // The calculation of tangents of vertices
     for (let i = 1; i < n; i++) {
         let tpPrev;
         let tpNext;
@@ -404,6 +408,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
         tangents[i] = [t1, t2];
     }
 
+    // The building of a Catmull-Rom curve based of tangents of points
     for (let i = 0; i < n; i++) {
         let p0;
         let p3;
@@ -423,6 +428,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
     return catmullRomCurves;
 }
 
+// The function to convert Catmull-Rom curve to Bezier curve using the tension (tau)
 function catmullRomToBezier(points, options) {
     const { tau } = options;
 

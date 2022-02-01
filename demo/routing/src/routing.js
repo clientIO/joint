@@ -97,18 +97,12 @@ $('.router-switch').on('click', function(evt) {
 
     var router = $(evt.target).data('router');
     var connector = $(evt.target).data('connector');
-    var direction = $(evt.target).data('direction');
-    
+
     if (router) {
         link.set('router', { name: router });
     } else {
         link.unset('router');
     }
 
-    var args = {};
-    if (direction) {
-        args.direction = direction;
-    }
-        
-    link.set('connector', { name: connector, args: args });
+    link.set('connector', { name: connector });
 });

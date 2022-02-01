@@ -5,7 +5,7 @@
     <tr>
         <th>direction</th>
         <td><i><a href="#connectors.curve.Directions">curve.Directions</a></i></td>
-        <td>The overall direction of the curve. Defaults to <code>curve.Directions.AUTO</code></td>
+        <td>The overall direction of the curve. The default is <code>curve.Directions.AUTO</code>.</td>
     </tr>
     <tr>
         <th>sourceDirection</th>
@@ -34,11 +34,12 @@
     <tr>
         <th>distanceCoefficient</th>
         <td>number</td>
-        <td>Coefficient of the tangent vector length relative to the distance between points.</td>
+        <td>Coefficient of the tangent vector length relative to the distance between points. The default is <code>0.6</code>.</td>
     </tr>
 </table>
 
-<p>Example:</p>
+<p>The example of how to make the source point tangent always horizontal and target point tangent always go upwards:</p>
 <pre><code>link.connector('curve', {
-    direction: curve.Directions.HORIZONTAL // 'horizontal',
+    direction: curve.Directions.HORIZONTAL,
+    targetDirection: curve.TangentDirections.UP
 });</code></pre>
