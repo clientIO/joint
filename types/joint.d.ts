@@ -3368,13 +3368,48 @@ export namespace connectors {
         radius?: number;
     }
 
+    namespace Curve {
+
+        enum Directions {
+            AUTO = 'auto',
+            HORIZONTAL = 'horizontal',
+            VERTICAL = 'vertical',
+            CLOSEST_POINT = 'closest-point',
+            OUTWARDS = 'outwards'
+        }
+
+        enum TangentDirections {
+            UP = 'up',
+            DOWN = 'down',
+            LEFT = 'left',
+            RIGHT = 'right',
+            AUTO = 'auto',
+            CLOSEST_POINT = 'closest-point',
+            OUTWARDS = 'outwards'
+        }
+    }
+
+    interface CurveConnectorArguments {
+        raw?: boolean;
+        direction?: Curve.Directions;
+        sourceDirection?: Curve.TangentDirections | dia.Point | number;
+        targetDirection?: Curve.TangentDirections | dia.Point | number;
+        sourceTangent?: dia.Point;
+        targetTangent?: dia.Point; 
+        distanceCoefficient?: number;
+        angleTangentCoefficient?: number;
+        tension?: number;
+        precision?: number;
+    }
+
     interface ConnectorArgumentsMap {
         'normal': NormalConnectorArguments;
         'rounded': RoundedConnectorArguments;
         'smooth': SmoothConnectorArguments;
         'jumpover': JumpOverConnectorArguments;
+        'curve': CurveConnectorArguments;
         [key: string]: { [key: string]: any };
-    }
+    }    
 
     type ConnectorType = keyof ConnectorArgumentsMap;
 
@@ -3405,6 +3440,7 @@ export namespace connectors {
     export var rounded: GenericConnector<'rounded'>;
     export var smooth: GenericConnector<'smooth'>;
     export var jumpover: GenericConnector<'jumpover'>;
+    export var curve: GenericConnector<'curve'>;
 }
 
 // anchors
