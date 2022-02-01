@@ -1,5 +1,6 @@
 DD-MM-2022 (v3.5.0)
   * Add Curves Demo
+  * Add Fills Demo
   * dia.Paper - add `labelsLayer` option
   * dia.Paper - add `getFitToContentArea()`
   * dia.Paper - fix embedding mode with rotated elements
@@ -9,24 +10,29 @@ DD-MM-2022 (v3.5.0)
   * dia.Paper - migrate mousewheel/DOMMouseScroll to wheel
   * dia.Paper - fix update priority stats
   * dia.Paper - improve `connectionStrategy` with `snapLinks` enabled
+  * dia.Paper - make sure `paper:mouseleave` event is always triggered
   * dia.Element - `position()` allows `restrictedArea` to be used without `deep` option
-  * dia.Cell - `embed()` and `umbed()` to accept an array of cells
+  * dia.Cell - `embed()` and `unembed()` to accept an array of cells
   * dia.Cell - fix stopTransitions() without path argument
   * dia.Cell - stopping the transition does not require waiting for the transition to start
+  * dia.Link - add hasLabels() method
   * elementTools.Connect - a new tool to create links from an element
   * elementTools.Control - a new tool to modify an arbitrary attribute
   * linkTools.Connect -  a new tool to create links from a link
   * linkTools.Vertices - allow vertex removal on touch devices
   * linkTools.Anchor - allow anchor reset on touch devices
   * linkTools.Vertices - fix creation and immediate dragging of a vertex on touch devices
-  * connectors.curve - add new smooth connector
+  * connectors.curve - add new curved connector
   * dia.attributes - add `x` and `y` properties to `calc()` expression
   * dia.attributes - support negative number addition/subtraction in `calc()` expression
   * dia.attributes - support nested `calc()` functions
+  * dia.HighlighterView - add `z` option to control the stacking order of the highlighters
+  * dia.ToolsView - add `z` option to control the stacking order of the tools
   * mvc.View - support double tap event on touch devices
+  * mvc.View - allow views to have no theme
   * Vectorizer - allow whitespace and line terminator characters in the constructor
   * Geometry - implement intersection between all objects
-  * Geometry - add Polygon
+  * Geometry - add Polygon object
 
 27-09-2021 (v3.4.4)
   * dia.Graph - prevent attribute type inference from the constructor
