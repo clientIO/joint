@@ -1,5 +1,5 @@
 const { dia, shapes, linkTools, connectors } = joint;
-const { Point, Polygon, Ellipse, Rect, toDeg } = g;
+const { Polygon, Ellipse, Rect, toDeg } = g;
 
 // Theme
 
@@ -95,9 +95,8 @@ const paper = new dia.Paper({
         const options = {
             targetDirection: targetElement ? targetElement.getCurveDirection(targetPoint) : 'auto',
             sourceDirection:  sourceElement ? sourceElement.getCurveDirection(sourcePoint) : 'auto',
-            algorithm: 'new'
         };
-        return connectors.smooth.call(linkView, sourcePoint, targetPoint, route, options, linkView);
+        return connectors.curve(sourcePoint, targetPoint, route, options, linkView);
     },
     defaultLink: () => new Link()
 });
@@ -233,8 +232,7 @@ const RhombusShape = BaseShape.define(ShapeTypes.RHOMBUS, {
         if ((angle % 180) < 90) {
             ratio = 1 / ratio;
         }
-        const directionAngle = 360 - Math.floor(angle / 90) * 90 + toDeg(Math.atan(ratio));
-        return Point(1,0).rotate(Point(0,0), directionAngle);
+        return 360 - Math.floor(angle / 90) * 90 + toDeg(Math.atan(ratio));
     },
 
     getClosestBoundaryPoint(bbox, point) {
