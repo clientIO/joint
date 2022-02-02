@@ -1,3 +1,6 @@
+02-02-2022 (v3.5.1)
+  * dia.Paper - fix `mvc.View` import
+
 01-02-2022 (v3.5.0)
   * Add Curves Demo
   * Add Fills Demo

@@ -1,4 +1,4 @@
-/*! JointJS v3.5.0 (2022-02-01) - JavaScript diagramming library
+/*! JointJS v3.5.1 (2022-02-02) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -31569,7 +31569,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.5.0";
+	var version = "3.5.1";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };
