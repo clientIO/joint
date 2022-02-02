@@ -1,4 +1,4 @@
-import { mvc } from '../core.mjs';
+import { View } from '../mvc/index.mjs';
 import { addClassNamePrefix } from '../util/util.mjs';
 
 export const LayersNames = {
@@ -9,7 +9,7 @@ export const LayersNames = {
     LABELS: 'labels'
 };
 
-export const PaperLayer = mvc.View.extend({
+export const PaperLayer = View.extend({
 
     tagName: 'g',
     svgElement: true,
