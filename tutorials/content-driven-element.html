@@ -35,31 +35,29 @@
             <h2>Content Driven Elements</h2>
 
             <p>
-                JointJS provides its users flexibility when it comes to creating custom shapes. You may have already taken
-                advantage of this flexibility by using traditional JointJS mechanisms such as markup and attributes. That is 
-                a well-established method of creating custom elements, but it's not the only approach that you could utilize.
+                JointJS provides its users with a lot of flexibility when it comes to creating custom shapes. You may have already taken
+                advantage of this flexibility by using traditional JointJS mechanisms such as <code>markup</code> and <code>attrs</code>. 
+                This is a well-established method for creating custom elements, but it's not the only approach that you could utilize.
             </p>
 
             <p>
-                Another way to create custom elements is to allow the content to drive the appearance of the element itself.
-                This means we don't set the element sizing explicitly, but allow the element dimensions to be derived from the 
-                content.
+                Another approach to creating custom elements is to allow the content to drive the size of the element. That means we don't 
+                set the element sizing explicitly, but allow the element dimensions to be derived from the content itself.
             </p>
 
             <p>
-                Depending on your use case, a content driven element may not be essential for your workflow, so you may ask why
-                would I need to use one?
+                Depending on your use case, a content driven element may not be essential for your workflow, so your next question might be, 
+                why would I need to use one?
             </p>
 
             <p>
-                Imagine you are working with a lot of data points, what if each one has a label of different length, and you
-                want to make sure the label doesn't extend beyond its element bounds? In this instance, it might not be desirable
-                to set the element's size in retrospect. It is possible a more efficient workflow would be to allow the label
-                content to drive element sizing instead.
+                Imagine working with a lot of data points, what if each one has a label of different length, and you want to make sure the 
+                label doesn't extend beyond its element bounds? In this instance, it might not be desirable to set the element's size in 
+                retrospect. It's possible a more efficient workflow might be to allow the label content to drive element sizing instead.
             </p>
 
             <p>
-                With content driven elements, you are not limited to what content drives the element appearance, but as the most common
+                With content driven elements, you are not limited to what content drives the element sizing, but as the most common
                 types of content are probably text and images, we will focus on those in this tutorial.
             </p>
 
@@ -71,14 +69,15 @@
 
             <p>
                 The first step towards content driven elements is to define our shape. We start by creating a <code>Shape</code>
-                class which inherits from <code>joint.dia.Element</code>. Since we aren't using traditional <code>markup</code>, 
-                or presentation <code>attrs</code>, we simply provide just a few default properties we want to work with.
+                class which inherits from <code>joint.dia.Element</code>. Since we aren't using traditional <code>markup</code> 
+                or <code>attrs</code>, we just provide a few default properties we want to work with in our shape.
             </p>
 
             <p>
-                <code>type</code> defines the namespace where JointJS looks for our shape. As <code>joint.shapes</code> is implied,
-                the full path will be <code>joint.shapes.custom.Shape</code>. The remaining default attributes on our model are related to 
-                the visual aspects of our shape. As these attributes are updated on our model, we would like the view to update too.
+                <code>type</code> is a unique path identifier where JointJS looks for our shape. As <code>joint.shapes</code> is implied,
+                the full path is <code>joint.shapes.custom.Shape</code>. The remaining default attributes on our model are related to 
+                the visual aspects of our shape. As we update these attributes on our model, we would like the view to update itself
+                too.
             </p>
 
 <pre><code>class Shape extends joint.dia.Element {
@@ -100,6 +99,11 @@
                certain model properties during calculation, we should <code>preinitialize()</code> our instances with those properties.
             </p>
 
+            <p>
+                <code>preinitialize()</code> is a specialized method for use with models as ES classes. If we define it, it is invoked
+                when the model is first created, before any instantiation logic is run for the model.
+            </p>
+
 <pre><code>preinitialize() {
     this.spacing = 10;
     this.labelAttributes = {
@@ -118,17 +122,17 @@
             <p>
                 When we <code>initialize()</code> our shape instance, we accomplish a number of things. We add an event
                 listener to detect any attribute changes in our model, and we also set the size of our element based on 
-                the layout calculation.
+                the values returned from our layout calculation.
             </p>
 
             <p>
-                The <code>onAttributeChange()</code> method checks if attributes that affect the size of our model have
+                The <code>onAttributeChange()</code> method checks if attributes that affect the size of our element have
                 changed. If there is no label present in the changes, that means we don't need to recalculate the label 
                 size, and can use the dimensions stored in the <code>cache</code>.
             </p>
 
             <p>
-                If either the image or label are present in the changes, we then need to recalculate the size of our model.
+                If either the image or label are present in the changes, we then need to recalculate the size of our element.
                 We achieve this in the <code>setSizeFromContent()</code> method which derives the <code>width</code> and 
                 <code>height</code> from our layout.
             </p>
@@ -166,13 +170,13 @@ setSizeFromContent() {
 
             <p>
                 As we mentioned earlier, most of the action relating to the dimensions of our content driven element happens 
-                in the layout. In the following code, you will see how we utilize properties created in the <code>preinitialize()</code>
-                method to create our layout.
+                in the layout. In the following code, you will see how we utilize properties introduced in the <code>preinitialize()</code>
+                method to create a flexible layout.
             </p>
 
             <p>
-                The <code>layout()</code> method checks if there are layout metrics already present in the <code>cache</code>, and if not,
-                calls the <code>calcLayout()</code> method to create them.
+                The <code>layout()</code> method first determines if there are any layout metrics already present in the <code>cache</code>, 
+                and if not, calls the <code>calcLayout()</code> method to create them.
             </p>
 
 <pre><code>layout() {
@@ -265,6 +269,21 @@ calcLayout() {
 }
 </code></pre>
 
+        <p>
+            When calculating the label dimensions, if no label is present in the <code>cache</code>, we use a helper function <code>measureText()</code> to get the dimensions for us. While a little unorthodox, we need to temporarily render a <code>text</code> element in the DOM to get the correct measurement, and it proves to work nicely.
+        </p>
+
+<pre><code>const svg = paper.svg;
+      
+function measureText(svgDocument, text, attrs) {
+    const vText = V('text').attr(attrs).text(text);
+    vText.appendTo(svgDocument);
+    const bbox = vText.getBBox();
+    vText.remove();
+    return bbox;
+}
+</code></pre>
+
         <h3>Custom Shape View</h3>
 
         <p>
@@ -274,9 +293,9 @@ calcLayout() {
         </p>
 
         <p>
-            The first thing you notice in our view is <code>presentationAttributes</code>. The <code>attributes</code> property of
-            our model contains the presentationAttributes. You can see we are extending the existing presentation attributes, while
-            making sure the original cellView attributes are preserved.
+            The first thing we notice in our view is the <code>presentationAttributes</code>. The <code>attributes</code> property of
+            our model contains the <code>presentationAttributes</code>. You can see we are extending the existing presentation attributes, while
+            making sure the original CellView attributes are preserved.
         </p>
 
         <p>
@@ -425,14 +444,14 @@ updateLabel: function($label) {
 </code></pre>
 
             <p>
-                That's it for configuration, and finally it's time to see our content driven element on screen.
-                We do this by creating an instance of our shape, and setting some property values with techniques
+                That's it for configuration, and now it's finally time to see our content driven element on screen.
+                We do this by creating an instance of our shape, and setting some attribute values with techniques
                 you are already familiar with.
             </p>
 
             <p>
-                Once we add our element to the <code>graph</code>, you'll notice that our content, including some
-                rather long labels, doesn't extend beyond the bounds of our element. A content driven approach
+                Once we add our element to the <code>graph</code>, you'll notice that our content, including a
+                rather long label, doesn't extend beyond the bounds of its element. A content driven approach
                 may not be required for your use case, but I'm sure you'll agree it has its advantages after seeing
                 it in action.
             </p>
