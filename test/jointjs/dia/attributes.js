@@ -78,17 +78,53 @@ QUnit.module('Attributes', function() {
                 assert.equal(node.textContent, 'text');
 
                 // width & height absolute
-                bbox = refBBox.clone();
+                spy.resetHistory();
                 ns.textWrap.set.call(cellView, { text: 'text', width: -20, height: -30 }, bbox, node, {});
-                assert.ok(new g.Rect(0, 0, WIDTH - 20, HEIGHT - 30).equals(bbox));
-                bbox = refBBox.clone();
+                assert.ok(!spy.called || spy.calledWith('', sinon.match(function(obj) {
+                    return obj.width === WIDTH - 20 && obj.height === HEIGHT - 30;
+                })));
 
                 // width & height relative
-                bbox = refBBox.clone();
+                spy.resetHistory();
                 ns.textWrap.set.call(cellView, { text: 'text', width: '50%', height: '200%' }, bbox, node, {});
-                assert.ok(new g.Rect(0, 0, WIDTH / 2, HEIGHT * 2).equals(bbox));
-
+                assert.ok(!spy.called || spy.calledWith('', sinon.match(function(obj) {
+                    return obj.width === WIDTH / 2 && obj.height === HEIGHT * 2;
+                })));
             });
+
+            QUnit.test('x', function(assert) {
+                var TestElement = joint.dia.Element.define('Test', {
+                    size: {
+                        width: 100,
+                        height: 100
+                    },
+                    attrs: {
+                        text: {
+                            text: 'a b c d e f g h c d f g h',
+                            x: 'calc(0.5*w+1)',
+                            textWrap: {
+                                width: -20,
+                                maxLineCount: 2
+                            }
+                        }
+                    }
+                }, {
+                    markup: [{
+                        tagName: 'text',
+                        selector: 'text'
+                    }]
+                });
+
+                var el = new TestElement();
+                el.addTo(graph);
+                var view = el.findView(paper);
+                var text = view.findBySelector('text')[0];
+                var tspans = text.childNodes;
+                assert.equal(text.getAttribute('x'), '51');
+                assert.equal(tspans[0].getAttribute('x'), null);
+                assert.equal(tspans[1].getAttribute('x'), '51');
+            });
+
         });
     });
 
