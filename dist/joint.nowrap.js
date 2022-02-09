@@ -1,4 +1,4 @@
-/*! JointJS v3.5.1 (2022-02-02) - JavaScript diagramming library
+/*! JointJS v3.5.2 (2022-02-09) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12803,28 +12803,29 @@ var joint = (function (exports, Backbone, _, $) {
 	        set: function(value, refBBox, node, attrs) {
 	            // option `width`
 	            var width = value.width || 0;
+	            var size = {};
 	            if (isPercentage(width)) {
-	                refBBox.width *= parseFloat(width) / 100;
+	                size.width = refBBox.width * parseFloat(width) / 100;
 	            } else if (width <= 0) {
-	                refBBox.width += width;
+	                size.width = refBBox.width + width;
 	            } else {
-	                refBBox.width = width;
+	                size.width = width;
 	            }
 	            // option `height`
 	            var height = value.height || 0;
 	            if (isPercentage(height)) {
-	                refBBox.height *= parseFloat(height) / 100;
+	                size.height = refBBox.height * parseFloat(height) / 100;
 	            } else if (height <= 0) {
-	                refBBox.height += height;
+	                size.height = refBBox.height + height;
 	            } else {
-	                refBBox.height = height;
+	                size.height = height;
 	            }
 	            // option `text`
 	            var wrappedText;
 	            var text = value.text;
 	            if (text === undefined) { text = attrs.text; }
 	            if (text !== undefined) {
-	                wrappedText = breakText('' + text, refBBox, {
+	                wrappedText = breakText('' + text, size, {
 	                    'font-weight': attrs['font-weight'] || attrs.fontWeight,
 	                    'font-size': attrs['font-size'] || attrs.fontSize,
 	                    'font-family': attrs['font-family'] || attrs.fontFamily,
@@ -23029,6 +23030,7 @@ var joint = (function (exports, Backbone, _, $) {
 	        var ref = this;
 	        var options = ref.options;
 	        var _V = ref._V;
+	        if (!_V) { return; }
 	        var vLabels = _V.labels;
 	        if (vLabels && options.labelsLayer) {
 	            vLabels.remove();
@@ -33142,7 +33144,7 @@ var joint = (function (exports, Backbone, _, $) {
 		Control: Control
 	});
 
-	var version = "3.5.1";
+	var version = "3.5.2";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

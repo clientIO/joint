@@ -1,3 +1,7 @@
+09-02-2022 (v3.5.2)
+  * dia.LinkView - backwards compatible extensibility
+  * dia.attributes - fix `x` attribute for multiline text wrap when `calc()` in use
+
 02-02-2022 (v3.5.1)
   * dia.Paper - fix `mvc.View` import
 
