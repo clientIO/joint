@@ -38,6 +38,21 @@ QUnit.module('linkView', function(hooks) {
         paper = null;
     });
 
+    QUnit.module('extensibility', function() {
+
+        QUnit.test('noop', function(assert) {
+            var graph = paper.model;
+            paper.options.linkView = joint.dia.LinkView.extend({
+                initialize: joint.util.noop,
+                render: joint.util.noop,
+                update: joint.util.noop
+            });
+            graph.fromJSON(graph.toJSON());
+            assert.equal(link.findView(paper).el.childNodes.length, 0);
+            assert.equal(link.findView(paper).el.parentNode, null);
+        });
+    });
+
     QUnit.module('labels', function() {
 
         QUnit.test('SVGGroup container', function(assert) {

@@ -432,6 +432,7 @@ export const LinkView = CellView.extend({
 
     unmountLabels: function() {
         const { options, _V } = this;
+        if (!_V) return;
         const { labels: vLabels } = _V;
         if (vLabels && options.labelsLayer) {
             vLabels.remove();
