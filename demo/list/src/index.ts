@@ -215,7 +215,7 @@ class ListElement extends dia.Element {
             ...super.defaults,
             ...headerAttributes,
             type: 'ListElement',
-            size: { width: LIST_ITEM_WIDTH },
+            size: { width: LIST_ITEM_WIDTH, height: 0 },
             ports: {
                 groups: {
                     [LIST_GROUP_NAME]: {
