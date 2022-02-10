@@ -152,6 +152,14 @@ function atConnectionWrapper(method, opt) {
     };
 }
 
+function setIfChangedWrapper(attribute) {
+    return function setIfChanged(value, _, node) {
+        const vel = V(node);
+        if (vel.attr(attribute) === value) return;
+        vel.attr(attribute, value);
+    };
+}
+
 function isTextInUse(_value, _node, attrs) {
     return (attrs.text !== undefined);
 }
@@ -191,10 +199,6 @@ function setPaintURL(def) {
 }
 
 const attributesNS = {
-
-    xlinkHref: {
-        set: 'xlink:href'
-    },
 
     xlinkShow: {
         set: 'xlink:show'
@@ -250,6 +254,14 @@ const attributesNS = {
 
     externalResourcesRequired: {
         set: 'externalResourceRequired'
+    },
+
+    href: {
+        set: setIfChangedWrapper('href')
+    },
+
+    xlinkHref: {
+        set: setIfChangedWrapper('xlink:href')
     },
 
     filter: {
@@ -624,6 +636,8 @@ const attributesNS = {
         set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
     }
 };
+
+attributesNS['xlink:href'] = attributesNS.xlinkHref;
 
 // Support `calc()` with the following SVG attributes
 [
