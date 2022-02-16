@@ -1489,6 +1489,8 @@ export namespace dia {
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
 
+        setGrid(opt?: boolean | string | Paper.GridOptions | Paper.GridOptions[]): this;
+
         setGridSize(gridSize: number): this;
 
         setInteractivity(value: any): void;
