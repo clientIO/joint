@@ -163,7 +163,7 @@ const Bandwidth = dia.Element.define('Bandwidth', {
 
     updateFrequencyLabel(opt) {
         const { x } = this.getBBox().center();
-        this.attr('bottomLabel/text', `${x} MHz`, opt);
+        this.attr('bottomLabel/text', `${Math.round(x)} MHz`, opt);
         return this;
     }
 });
