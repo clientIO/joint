@@ -1,0 +1,10 @@
+<pre class="docs-method-signature"><code>paper.setGrid(gridOption)</code></pre>
+<p>Set the type of visual grid on the paper. Note, you still have to call <code>paper.drawGrid()</code> afterwards to draw the grid.</p>
+
+<pre><code>paper.setGrid(); // default pattern (dot) with default settings
+paper.setGrid(true); // default pattern (dot) with default settings
+
+paper.setGrid('mesh'); // pre-defined pattern with default settings
+
+paper.setGrid({ name: 'dot', args: { color: 'hsla(212, 7%, 75%, 0.5)' }});
+</code></pre>
