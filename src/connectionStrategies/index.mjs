@@ -1,10 +1,11 @@
 import * as util from '../util/index.mjs';
 
-function abs2rel(abs, max) {
+function abs2rel(absolute, max) {
 
     if (max === 0) return '0%';
     // round to 3 decimal places
-    const relative = Math.round(abs / max * 100000) / 1000;
+    const dp = 1000;
+    const relative = Math.round(absolute / max * 100 * dp) / dp;
     return `${relative}%`;
 }
 
