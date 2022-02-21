@@ -1,4 +1,4 @@
-/*! JointJS v3.5.2 (2022-02-09) - JavaScript diagramming library
+/*! JointJS v3.5.3 (2022-02-21) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -12619,6 +12619,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    };
 	}
 
+	function setIfChangedWrapper(attribute) {
+	    return function setIfChanged(value, _, node) {
+	        var vel = V(node);
+	        if (vel.attr(attribute) === value) { return; }
+	        vel.attr(attribute, value);
+	    };
+	}
+
 	function isTextInUse(_value, _node, attrs) {
 	    return (attrs.text !== undefined);
 	}
@@ -12659,10 +12667,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	}
 
 	var attributesNS = {
-
-	    xlinkHref: {
-	        set: 'xlink:href'
-	    },
 
 	    xlinkShow: {
 	        set: 'xlink:show'
@@ -12718,6 +12722,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    externalResourcesRequired: {
 	        set: 'externalResourceRequired'
+	    },
+
+	    href: {
+	        set: setIfChangedWrapper('href')
+	    },
+
+	    xlinkHref: {
+	        set: setIfChangedWrapper('xlink:href')
 	    },
 
 	    filter: {
@@ -13094,6 +13106,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        set: atConnectionWrapper('getTangentAtRatio', { rotate: false })
 	    }
 	};
+
+	attributesNS['xlink:href'] = attributesNS.xlinkHref;
 
 	// Support `calc()` with the following SVG attributes
 	[
@@ -31670,10 +31684,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		uml: uml
 	});
 
-	function abs2rel(value, max) {
+	function abs2rel(absolute, max) {
 
 	    if (max === 0) { return '0%'; }
-	    return Math.round(value / max * 100) + '%';
+	    // round to 3 decimal places
+	    var dp = 1000;
+	    var relative = Math.round(absolute / max * 100 * dp) / dp;
+	    return (relative + "%");
 	}
 
 	function pin(relative) {
@@ -33147,7 +33164,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.5.2";
+	var version = "3.5.3";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

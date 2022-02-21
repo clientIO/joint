@@ -1,3 +1,7 @@
+21-02-2022 (v3.5.3)
+  * dia.attributes - prevent redundant network requests when `href` in use
+  * connectionStrategies.pinRelative - reduce rounding errors
+
 09-02-2022 (v3.5.2)
   * dia.LinkView - backwards compatible extensibility
   * dia.attributes - fix `x` attribute for multiline text wrap when `calc()` in use
