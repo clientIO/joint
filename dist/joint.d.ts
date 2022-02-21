@@ -1,4 +1,4 @@
-/*! JointJS v3.5.2 (2022-02-09) - JavaScript diagramming library
+/*! JointJS v3.5.3 (2022-02-21) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1099,7 +1099,7 @@ interface VStatic {
 
     isSVGGraphicsElement(value: any): boolean;
 
-    createSVGMatrix(matrix: SVGMatrix | Partial<Vectorizer.Matrix>): SVGMatrix;
+    createSVGMatrix(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGMatrix;
 
     createSVGTransform(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGTransform;
 
@@ -2642,6 +2642,8 @@ export namespace dia {
         getModelById(id: Cell.ID | Cell): Cell;
 
         setDimensions(width: Paper.Dimension, height: Paper.Dimension): void;
+
+        setGrid(opt?: boolean | string | Paper.GridOptions | Paper.GridOptions[]): this;
 
         setGridSize(gridSize: number): this;
 
