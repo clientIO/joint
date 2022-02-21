@@ -1164,6 +1164,41 @@ QUnit.module('linkView', function(hooks) {
             assert.equal(linkView.model.attributes.target.test, true);
         });
 
+        QUnit.test('pinRelative', function(assert) {
+
+            r1.size(100, 45);
+
+            var size = r1.size();
+            var end;
+
+            end = {};
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: 0, y: 0 }));
+            assert.equal(end.anchor.args.dx, '0%');
+            assert.equal(end.anchor.args.dy, '0%');
+
+            end = {};
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: size.width, y: size.height }));
+            assert.equal(end.anchor.args.dx, '100%');
+            assert.equal(end.anchor.args.dy, '100%');
+
+            end = {};
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: size.width / 2, y: size.height / 2 }));
+            assert.equal(end.anchor.args.dx, '50%');
+            assert.equal(end.anchor.args.dy, '50%');
+
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: 13.1 }));
+            assert.equal(end.anchor.args.dx, '13.1%');
+
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: 13.12 }));
+            assert.equal(end.anchor.args.dx, '13.12%');
+
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: 13.123 }));
+            assert.equal(end.anchor.args.dx, '13.123%');
+
+            joint.connectionStrategies.pinRelative(end, rv1, rv1.el, new g.Point({ x: 13.1234 }));
+            assert.equal(end.anchor.args.dx, '13.123%');
+        });
+
         QUnit.test('with snapLinks=true', function(assert) {
 
             var data;

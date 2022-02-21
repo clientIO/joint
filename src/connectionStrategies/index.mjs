@@ -1,9 +1,12 @@
 import * as util from '../util/index.mjs';
 
-function abs2rel(value, max) {
+function abs2rel(absolute, max) {
 
     if (max === 0) return '0%';
-    return Math.round(value / max * 100) + '%';
+    // round to 3 decimal places
+    const dp = 1000;
+    const relative = Math.round(absolute / max * 100 * dp) / dp;
+    return `${relative}%`;
 }
 
 function pin(relative) {
