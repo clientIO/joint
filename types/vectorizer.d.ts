@@ -267,7 +267,7 @@ interface VStatic {
 
     isSVGGraphicsElement(value: any): boolean;
 
-    createSVGMatrix(matrix: SVGMatrix | Partial<Vectorizer.Matrix>): SVGMatrix;
+    createSVGMatrix(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGMatrix;
 
     createSVGTransform(matrix?: SVGMatrix | Partial<Vectorizer.Matrix>): SVGTransform;
 
