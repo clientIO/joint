@@ -48,7 +48,7 @@
     "joint.mjs"
   ],
   "dependencies": {
-    "backbone": "~1.4.0",
+    "backbone": "~1.4.1",
     "dagre": "~0.8.5",
     "graphlib": "~2.1.8",
     "jquery": "~3.6.0",
