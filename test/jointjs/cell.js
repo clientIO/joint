@@ -54,6 +54,39 @@ QUnit.module('cell', function(hooks) {
         });
     });
 
+    QUnit.module('backbone attributes', function() {
+        QUnit.test('idAttribute', function(assert) {
+            var graph = this.graph;
+            var paper = this.paper;
+            var id = '123';
+            var TestElement = joint.dia.Element.extend({
+                idAttribute: 'myId'
+            });
+            var el = new TestElement({ myId: id, type: 'testType', markup: [] });
+            // graph
+            el.addTo(graph);
+            assert.equal(el.id, id);
+            assert.equal(el.get('myId'), id);
+            assert.equal(el.get('id'), undefined);
+            assert.equal(graph.getCell(id), el);
+            var clone = el.clone();
+            assert.ok(clone.id);
+            assert.notEqual(clone.id, id);
+            clone.addTo(graph);
+            assert.equal(clone.get('myId'), clone.id);
+            assert.equal(clone.get('id'), undefined);
+            assert.equal(graph.getCell(clone.id), clone);
+            // paper
+            var elView = paper.findViewByModel(id);
+            assert.ok(elView);
+            assert.equal(elView.model, el);
+            // change id
+            var newId = '456';
+            clone.set('myId', newId);
+            assert.equal(graph.getCell(newId), clone);
+        });
+    });
+
     QUnit.module('lifecycle methods', function() {
         QUnit.test('sanity', function(assert) {
             var spyPreinitilize = sinon.spy(joint.dia.Cell.prototype, 'preinitialize');

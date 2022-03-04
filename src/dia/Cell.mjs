@@ -113,9 +113,9 @@ export const Cell = Backbone.Model.extend({
 
     initialize: function(options) {
 
-        if (!options || !options.id) {
-
-            this.set('id', this.generateId(), { silent: true });
+        const idAttribute = this.getIdAttribute();
+        if (!options || !(idAttribute in options)) {
+            this.set(idAttribute, this.generateId(), { silent: true });
         }
 
         this._transitionIds = {};
@@ -124,6 +124,10 @@ export const Cell = Backbone.Model.extend({
         // Collect ports defined in `attrs` and keep collecting whenever `attrs` object changes.
         this.processPorts();
         this.on('change:attrs', this.processPorts, this);
+    },
+
+    getIdAttribute: function() {
+        return this.idAttribute || 'id';
     },
 
     generateId: function() {
@@ -475,7 +479,7 @@ export const Cell = Backbone.Model.extend({
 
             var clone = Backbone.Model.prototype.clone.apply(this, arguments);
             // We don't want the clone to have the same ID as the original.
-            clone.set('id', this.generateId());
+            clone.set(this.getIdAttribute(), this.generateId());
             // A shallow cloned element does not carry over the original embeds.
             clone.unset('embeds');
             // And can not be embedded in any cell
