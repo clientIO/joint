@@ -1,6 +1,7 @@
 import Backbone from 'backbone';
 import {
     uniqueId,
+    union,
     result,
     merge,
     forIn,
@@ -118,6 +119,7 @@ export const Cell = Backbone.Model.extend({
         }
 
         this._transitionIds = {};
+        this._scheduledTransitionIds = {};
 
         // Collect ports defined in `attrs` and keep collecting whenever `attrs` object changes.
         this.processPorts();
@@ -675,9 +677,19 @@ export const Cell = Backbone.Model.extend({
 
         }.bind(this);
 
-        var initiator = function(callback) {
+        const { _scheduledTransitionIds } = this;
+        let initialId;
 
-            this.stopTransitions(path);
+        var initiator = (callback) => {
+
+            if (_scheduledTransitionIds[path]) {
+                _scheduledTransitionIds[path] = without(_scheduledTransitionIds[path], initialId);
+                if (_scheduledTransitionIds[path].length === 0) {
+                    delete _scheduledTransitionIds[path];
+                }
+            }
+
+            this.stopPendingTransitions(path, delim);
 
             interpolatingFunction = opt.valueFunction(getByPath(this.attributes, path, delim), value);
 
@@ -685,40 +697,63 @@ export const Cell = Backbone.Model.extend({
 
             this.trigger('transition:start', this, path);
 
-        }.bind(this);
+        };
 
-        var initialId = setTimeout(initiator, opt.delay, setter);
-        this._transitionIds[path] = initialId;
+        initialId = setTimeout(initiator, opt.delay, setter);
+
+        _scheduledTransitionIds[path] || (_scheduledTransitionIds[path] = []);
+        _scheduledTransitionIds[path].push(initialId);
+
         return initialId;
     },
 
     getTransitions: function() {
-
-        return Object.keys(this._transitionIds);
+        return union(
+            Object.keys(this._transitionIds),
+            Object.keys(this._scheduledTransitionIds)
+        );
     },
 
-    stopTransitions: function(path, delim = '/') {
-
-        const { _transitionIds } = this;
-        let transitions = Object.keys(_transitionIds);
-
+    stopScheduledTransitions: function(path, delim = '/') {
+        const { _scheduledTransitionIds = {}} = this;
+        let transitions = Object.keys(_scheduledTransitionIds);
         if (path) {
             const pathArray = path.split(delim);
             transitions = transitions.filter((key) => {
                 return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
             });
         }
+        transitions.forEach((key) => {
+            const transitionIds = _scheduledTransitionIds[key];
+            // stop the initiator
+            transitionIds.forEach(transitionId => clearTimeout(transitionId));
+            delete _scheduledTransitionIds[key];
+            // Note: we could trigger transition:cancel` event here
+        });
+        return this;
+    },
 
+    stopPendingTransitions(path, delim = '/') {
+        const { _transitionIds = {}} = this;
+        let transitions = Object.keys(_transitionIds);
+        if (path) {
+            const pathArray = path.split(delim);
+            transitions = transitions.filter((key) => {
+                return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+            });
+        }
         transitions.forEach((key) => {
             const transitionId = _transitionIds[key];
             // stop the setter
             cancelFrame(transitionId);
-            // or stop the initiator if the id belongs to it
-            clearTimeout(transitionId);
             delete _transitionIds[key];
-            this.trigger('transition:end', this, transitionId);
+            this.trigger('transition:end', this, key);
         });
+    },
 
+    stopTransitions: function(path, delim = '/') {
+        this.stopScheduledTransitions(path, delim);
+        this.stopPendingTransitions(path, delim);
         return this;
     },
 

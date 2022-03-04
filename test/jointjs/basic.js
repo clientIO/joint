@@ -1633,6 +1633,126 @@ QUnit.module('basic', function(hooks) {
         el.set('property', 2);
     });
 
+    QUnit.test('transition: events', function(assert) {
+
+        var done = assert.async();
+
+        assert.expect(6);
+
+        var el = new joint.shapes.standard.Rectangle({
+            timer: -1
+        });
+
+        el.transition('timer', 100, {
+            delay: 100,
+            duration: 100
+        });
+
+        el.on('transition:start', function(cell, path) {
+            assert.equal(cell, el);
+            assert.equal(path, 'timer');
+            assert.equal(el.get('timer'), -1);
+        });
+
+        el.on('transition:end', function(cell, path) {
+            assert.equal(cell, el);
+            assert.equal(path, 'timer');
+            assert.equal(el.get('timer'), 100);
+            done();
+        });
+    });
+
+    QUnit.test('transition: discrete events', function(assert) {
+
+        var done = assert.async();
+
+        assert.expect(18);
+
+        var el = new joint.shapes.standard.Rectangle({
+            timer: -1
+        });
+
+        el.transition('timer', 100, {
+            delay: 0,
+            duration: 100
+        });
+
+        el.transition('timer', 200, {
+            delay: 200,
+            duration: 100
+        });
+
+        el.transition('timer', 300, {
+            delay: 400,
+            duration: 100
+        });
+
+        var startValues = [200, 100, -1];
+        var endValues = [300, 200, 100];
+
+        el.on('transition:start', function(cell, path) {
+            var start = startValues.pop();
+            assert.ok(el.get('timer') <= start);
+            assert.ok(el.get('timer') > start - 100);
+            assert.deepEqual(cell.getTransitions(), ['timer']);
+        });
+
+        el.on('transition:end', function(cell, path) {
+            var end = endValues.pop();
+            assert.ok(el.get('timer') <= end);
+            assert.ok(el.get('timer') > end - 100);
+            var last = endValues.length === 0;
+            assert.deepEqual(cell.getTransitions(), last ? [] : ['timer']);
+            if (last) done();
+        });
+    });
+
+    QUnit.test('transition: overlapping events', function(assert) {
+
+        var done = assert.async();
+
+        assert.expect(18);
+
+        var el = new joint.shapes.standard.Rectangle({
+            timer: -1
+        });
+
+        el.transition('timer', 100, {
+            delay: 0,
+            duration: 100
+        });
+
+        el.transition('timer', 200, {
+            delay: 50,
+            duration: 100
+        });
+
+        el.transition('timer', 300, {
+            delay: 125,
+            duration: 100
+        });
+
+        var startValues = [200, 100, -1];
+        var endValues = [300, 200, 100];
+
+        el.on('transition:start', function(cell, path) {
+            var start = startValues.pop();
+            assert.ok(el.get('timer') <= start);
+            assert.ok(el.get('timer') > start - 100);
+            assert.deepEqual(cell.getTransitions(), ['timer']);
+        });
+
+        el.on('transition:end', function(cell, path) {
+            var end = endValues.pop();
+            assert.ok(el.get('timer') <= end);
+            assert.ok(el.get('timer') > end - 100);
+            var last = endValues.length === 0;
+            var oneBeforeLast = endValues.length === 1;
+            assert.deepEqual(cell.getTransitions(), (last || oneBeforeLast) ? [] : ['timer']);
+            if (last) done();
+        });
+    });
+
     QUnit.test('transition: primitive value', function(assert) {
 
         var done = assert.async();
