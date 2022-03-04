@@ -319,6 +319,10 @@ export namespace dia {
 
         protected generateId(): string | number;
 
+        protected stopPendingTransitions(path?: string, delim?: string): void;
+
+        protected stopScheduledTransitions(path?: string, delim?: string): void;
+
         toJSON(): Cell.JSON<any, A>;
 
         remove(opt?: Cell.DisconnectableOptions): this;
@@ -3397,7 +3401,7 @@ export namespace connectors {
         sourceDirection?: Curve.TangentDirections | dia.Point | number;
         targetDirection?: Curve.TangentDirections | dia.Point | number;
         sourceTangent?: dia.Point;
-        targetTangent?: dia.Point; 
+        targetTangent?: dia.Point;
         distanceCoefficient?: number;
         angleTangentCoefficient?: number;
         tension?: number;
