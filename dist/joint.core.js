@@ -1,4 +1,4 @@
-/*! JointJS v3.5.3 (2022-02-21) - JavaScript diagramming library
+/*! JointJS v3.5.4 (2022-03-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -13098,16 +13098,21 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	    initialize: function(options) {
 
-	        if (!options || !options.id) {
-
-	            this.set('id', this.generateId(), { silent: true });
+	        var idAttribute = this.getIdAttribute();
+	        if (!options || !(idAttribute in options)) {
+	            this.set(idAttribute, this.generateId(), { silent: true });
 	        }
 
 	        this._transitionIds = {};
+	        this._scheduledTransitionIds = {};
 
 	        // Collect ports defined in `attrs` and keep collecting whenever `attrs` object changes.
 	        this.processPorts();
 	        this.on('change:attrs', this.processPorts, this);
+	    },
+
+	    getIdAttribute: function() {
+	        return this.idAttribute || 'id';
 	    },
 
 	    generateId: function() {
@@ -13467,7 +13472,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	            var clone = Backbone.Model.prototype.clone.apply(this, arguments);
 	            // We don't want the clone to have the same ID as the original.
-	            clone.set('id', this.generateId());
+	            clone.set(this.getIdAttribute(), this.generateId());
 	            // A shallow cloned element does not carry over the original embeds.
 	            clone.unset('embeds');
 	            // And can not be embedded in any cell
@@ -13629,6 +13634,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    },
 
 	    transition: function(path, value, opt, delim) {
+	        var this$1 = this;
+
 
 	        delim = delim || '/';
 
@@ -13669,54 +13676,93 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        }.bind(this);
 
-	        var initiator = function(callback) {
+	        var ref = this;
+	        var _scheduledTransitionIds = ref._scheduledTransitionIds;
+	        var initialId;
 
-	            this.stopTransitions(path);
+	        var initiator = function (callback) {
 
-	            interpolatingFunction = opt.valueFunction(getByPath(this.attributes, path, delim), value);
+	            if (_scheduledTransitionIds[path]) {
+	                _scheduledTransitionIds[path] = without(_scheduledTransitionIds[path], initialId);
+	                if (_scheduledTransitionIds[path].length === 0) {
+	                    delete _scheduledTransitionIds[path];
+	                }
+	            }
 
-	            this._transitionIds[path] = nextFrame(callback);
+	            this$1.stopPendingTransitions(path, delim);
 
-	            this.trigger('transition:start', this, path);
+	            interpolatingFunction = opt.valueFunction(getByPath(this$1.attributes, path, delim), value);
 
-	        }.bind(this);
+	            this$1._transitionIds[path] = nextFrame(callback);
 
-	        var initialId = setTimeout(initiator, opt.delay, setter);
-	        this._transitionIds[path] = initialId;
+	            this$1.trigger('transition:start', this$1, path);
+
+	        };
+
+	        initialId = setTimeout(initiator, opt.delay, setter);
+
+	        _scheduledTransitionIds[path] || (_scheduledTransitionIds[path] = []);
+	        _scheduledTransitionIds[path].push(initialId);
+
 	        return initialId;
 	    },
 
 	    getTransitions: function() {
-
-	        return Object.keys(this._transitionIds);
+	        return union(
+	            Object.keys(this._transitionIds),
+	            Object.keys(this._scheduledTransitionIds)
+	        );
 	    },
 
-	    stopTransitions: function(path, delim) {
-	        var this$1 = this;
+	    stopScheduledTransitions: function(path, delim) {
 	        if ( delim === void 0 ) delim = '/';
 
-
 	        var ref = this;
-	        var _transitionIds = ref._transitionIds;
-	        var transitions = Object.keys(_transitionIds);
-
+	        var _scheduledTransitionIds = ref._scheduledTransitionIds; if ( _scheduledTransitionIds === void 0 ) _scheduledTransitionIds = {};
+	        var transitions = Object.keys(_scheduledTransitionIds);
 	        if (path) {
 	            var pathArray = path.split(delim);
 	            transitions = transitions.filter(function (key) {
 	                return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
 	            });
 	        }
+	        transitions.forEach(function (key) {
+	            var transitionIds = _scheduledTransitionIds[key];
+	            // stop the initiator
+	            transitionIds.forEach(function (transitionId) { return clearTimeout(transitionId); });
+	            delete _scheduledTransitionIds[key];
+	            // Note: we could trigger transition:cancel` event here
+	        });
+	        return this;
+	    },
 
+	    stopPendingTransitions: function stopPendingTransitions(path, delim) {
+	        var this$1 = this;
+	        if ( delim === void 0 ) delim = '/';
+
+	        var ref = this;
+	        var _transitionIds = ref._transitionIds; if ( _transitionIds === void 0 ) _transitionIds = {};
+	        var transitions = Object.keys(_transitionIds);
+	        if (path) {
+	            var pathArray = path.split(delim);
+	            transitions = transitions.filter(function (key) {
+	                return isEqual(pathArray, key.split(delim).slice(0, pathArray.length));
+	            });
+	        }
 	        transitions.forEach(function (key) {
 	            var transitionId = _transitionIds[key];
 	            // stop the setter
 	            cancelFrame(transitionId);
-	            // or stop the initiator if the id belongs to it
-	            clearTimeout(transitionId);
 	            delete _transitionIds[key];
-	            this$1.trigger('transition:end', this$1, transitionId);
+	            this$1.trigger('transition:end', this$1, key);
 	        });
+	    },
 
+	    stopTransitions: function(path, delim) {
+	        if ( delim === void 0 ) delim = '/';
+
+	        this.stopScheduledTransitions(path, delim);
+	        this.stopPendingTransitions(path, delim);
 	        return this;
 	    },
 
@@ -31588,7 +31634,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.5.3";
+	var version = "3.5.4";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

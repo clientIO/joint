@@ -297,7 +297,7 @@ const shapeNamespace = {
     ...shapes,
     ListElement,
     ListLink
-}
+};
 
 const graph = new dia.Graph({}, { cellNamespace: shapeNamespace });
 

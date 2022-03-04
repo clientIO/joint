@@ -1,4 +1,4 @@
-/*! JointJS v3.5.3 (2022-02-21) - JavaScript diagramming library
+/*! JointJS v3.5.4 (2022-03-04) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -1472,6 +1472,10 @@ export namespace dia {
         markup: string | MarkupJSON;
 
         protected generateId(): string | number;
+
+        protected stopPendingTransitions(path?: string, delim?: string): void;
+
+        protected stopScheduledTransitions(path?: string, delim?: string): void;
 
         toJSON(): Cell.JSON<any, A>;
 
@@ -4551,7 +4555,7 @@ export namespace connectors {
         sourceDirection?: Curve.TangentDirections | dia.Point | number;
         targetDirection?: Curve.TangentDirections | dia.Point | number;
         sourceTangent?: dia.Point;
-        targetTangent?: dia.Point; 
+        targetTangent?: dia.Point;
         distanceCoefficient?: number;
         angleTangentCoefficient?: number;
         tension?: number;

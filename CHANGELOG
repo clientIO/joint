@@ -1,3 +1,7 @@
+04-03-2022 (v3.5.4)
+  * dia.Cell - fix `transition` events order
+  * dia.Cell - support custom `idAttribute`
+
 21-02-2022 (v3.5.3)
   * dia.attributes - prevent redundant network requests when `href` in use
   * connectionStrategies.pinRelative - reduce rounding errors

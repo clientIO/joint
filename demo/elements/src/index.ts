@@ -9,7 +9,7 @@ const namespace = {
     Input,
     Mark,
     Actor,
-}
+};
 
 const graph = new dia.Graph({}, { cellNamespace: namespace });
 
@@ -29,7 +29,7 @@ const paper = new dia.Paper({
     }
 });
 
-paper.el.style.border = `1px solid #e2e2e2`;
+paper.el.style.border = '1px solid #e2e2e2';
 
 const MARGIN = 10;
 const COLUMNS_COUNT = 4;
