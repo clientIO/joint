@@ -36,18 +36,18 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
         sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
         targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null
     };
-    if (typeof opt.sourceDirection === 'string') 
+    if (typeof opt.sourceDirection === 'string')
         options.sourceDirection = opt.sourceDirection;
     else if (typeof opt.sourceDirection === 'number')
         options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection);
     else
         options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null;
 
-    if (typeof opt.targetDirection === 'string') 
+    if (typeof opt.targetDirection === 'string')
         options.targetDirection = opt.targetDirection;
     else if (typeof opt.targetDirection === 'number')
         options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection);
-    else 
+    else
         options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null;
 
     const completeRoute = [sourcePoint, ...route.map(p => new Point(p)), targetPoint];
@@ -86,7 +86,7 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
             targetTangent = targetDirection.clone().scale(tangentLength, tangentLength);
         }
     }
-    
+
     const catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
     const bezierCurves = catmullRomCurves.map(curve => catmullRomToBezier(curve, options));
     const path = new Path(bezierCurves).round(precision);
@@ -103,20 +103,18 @@ function getHorizontalSourceDirection(linkView, route, options) {
     if (!sourceBBox.width || !sourceBBox.height) {
         if (sourceBBox.x > route[1].x)
             sourceSide = 'right';
-        else    
+        else
             sourceSide = 'left';
     } else {
         sourceSide = sourceBBox.sideNearestToPoint(route[0]);
     }
 
     switch (sourceSide) {
-        case 'left': {
+        case 'left':
             return new Point(-1, 0);
-        }   
         case 'right':
-        default: {
+        default:
             return new Point(1, 0);
-        }
     }
 }
 
@@ -127,20 +125,18 @@ function getHorizontalTargetDirection(linkView, route, options) {
     if (!targetBBox.width || !targetBBox.height) {
         if (targetBBox.x > route[route.length - 2].x)
             targetSide = 'left';
-        else    
+        else
             targetSide = 'right';
     } else {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
     }
 
     switch (targetSide) {
-        case 'left': {
+        case 'left':
             return new Point(-1, 0);
-        }   
         case 'right':
-        default: {
+        default:
             return new Point(1, 0);
-        }
     }
 }
 
@@ -151,20 +147,18 @@ function getVerticalSourceDirection(linkView, route, options) {
     if (!sourceBBox.width || !sourceBBox.height) {
         if (sourceBBox.y > route[1].y)
             sourceSide = 'bottom';
-        else    
+        else
             sourceSide = 'top';
     } else {
         sourceSide = sourceBBox.sideNearestToPoint(route[0]);
     }
 
     switch (sourceSide) {
-        case 'top': {
+        case 'top':
             return new Point(0, -1);
-        }   
         case 'bottom':
-        default: {
+        default:
             return new Point(0, 1);
-        }
     }
 }
 
@@ -175,20 +169,18 @@ function getVerticalTargetDirection(linkView, route, options) {
     if (!targetBBox.width || !targetBBox.height) {
         if (targetBBox.y > route[route.length - 2].y)
             targetSide = 'top';
-        else    
+        else
             targetSide = 'bottom';
     } else {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
     }
 
     switch (targetSide) {
-        case 'top': {
+        case 'top':
             return new Point(0, -1);
-        }   
         case 'bottom':
-        default: {
+        default:
             return new Point(0, 1);
-        }
     }
 }
 
@@ -216,7 +208,7 @@ function getAutoSourceDirection(linkView, route, options) {
 
 function getAutoTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
-    
+
     let targetSide;
     if (!targetBBox.width || !targetBBox.height) {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
@@ -259,7 +251,7 @@ function getOutwardsTargetDirection(linkView, route, options) {
 
 function getSourceTangentDirection(linkView, route, direction, options) {
     if (options.sourceDirection) {
-        switch(options.sourceDirection) {
+        switch (options.sourceDirection) {
             case TangentDirections.UP:
                 return new Point(0, -1);
             case TangentDirections.DOWN:
@@ -267,19 +259,18 @@ function getSourceTangentDirection(linkView, route, direction, options) {
             case TangentDirections.LEFT:
                 return new Point(-1, 0);
             case TangentDirections.RIGHT:
-                return new Point(0, 1);
+                return new Point(1, 0);
             case TangentDirections.AUTO:
-                return getAutoSourceDirection(linkView, route, options);    
+                return getAutoSourceDirection(linkView, route, options);
             case TangentDirections.CLOSEST_POINT:
                 return getClosestPointSourceDirection(linkView, route, options);
-            case TangentDirections.OUTWARDS: {
+            case TangentDirections.OUTWARDS:
                 return getOutwardsSourceDirection(linkView, route, options);
-            }
             default:
                 return options.sourceDirection;
         }
     }
-    
+
     switch (direction) {
         case Directions.HORIZONTAL:
             return getHorizontalSourceDirection(linkView, route, options);
@@ -288,16 +279,16 @@ function getSourceTangentDirection(linkView, route, direction, options) {
         case Directions.CLOSEST_POINT:
             return getClosestPointSourceDirection(linkView, route, options);
         case Directions.OUTWARDS:
-            return getOutwardsSourceDirection(linkView, route, options);            
+            return getOutwardsSourceDirection(linkView, route, options);
         case Directions.AUTO:
         default:
-            return getAutoSourceDirection(linkView, route, options);            
-    }   
+            return getAutoSourceDirection(linkView, route, options);
+    }
 }
 
 function getTargetTangentDirection(linkView, route, direction, options) {
     if (options.targetDirection) {
-        switch(options.targetDirection) {
+        switch (options.targetDirection) {
             case TangentDirections.UP:
                 return new Point(0, -1);
             case TangentDirections.DOWN:
@@ -307,30 +298,29 @@ function getTargetTangentDirection(linkView, route, direction, options) {
             case TangentDirections.RIGHT:
                 return new Point(0, 1);
             case TangentDirections.AUTO:
-                return getAutoTargetDirection(linkView, route, options);    
+                return getAutoTargetDirection(linkView, route, options);
             case TangentDirections.CLOSEST_POINT:
                 return getClosestPointTargetDirection(linkView, route, options);
-            case TangentDirections.OUTWARDS: {
+            case TangentDirections.OUTWARDS:
                 return getOutwardsTargetDirection(linkView, route, options);
-            }
             default:
                 return options.targetDirection;
         }
     }
-    
+
     switch (direction) {
         case Directions.HORIZONTAL:
-            return getHorizontalTargetDirection(linkView, route, options);            
+            return getHorizontalTargetDirection(linkView, route, options);
         case Directions.VERTICAL:
             return getVerticalTargetDirection(linkView, route, options);
         case Directions.CLOSEST_POINT:
             return getClosestPointTargetDirection(linkView, route, options);
         case Directions.OUTWARDS:
-            return getOutwardsTargetDirection(linkView, route, options);            
+            return getOutwardsTargetDirection(linkView, route, options);
         case Directions.AUTO:
         default:
-            return getAutoTargetDirection(linkView, route, options);            
-    }   
+            return getAutoTargetDirection(linkView, route, options);
+    }
 }
 
 function rotateVector(vector, angle) {
@@ -357,7 +347,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
     const { tau, coeff } = options;
     const distances = [];
     const tangents = [];
-    const catmullRomCurves = [];    
+    const catmullRomCurves = [];
     const n = points.length - 1;
 
     for (let i = 0; i < n; i++) {
@@ -365,7 +355,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
     }
 
     tangents[0] = sourceTangent;
-    tangents[n] = targetTangent;      
+    tangents[n] = targetTangent;
 
     // The calculation of tangents of vertices
     for (let i = 1; i < n; i++) {
@@ -377,13 +367,13 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
             tpPrev = points[i - 1].clone();
         }
         if (i === n - 1) {
-            tpNext = points[i + 1].clone().offset(tangents[i + 1].x, tangents[i + 1].y); 
+            tpNext = points[i + 1].clone().offset(tangents[i + 1].x, tangents[i + 1].y);
         } else {
             tpNext = points[i + 1].clone();
         }
         const v1 = tpPrev.difference(points[i]).normalize();
         const v2 = tpNext.difference(points[i]).normalize();
-        const vAngle = angleBetweenVectors(v1, v2); 
+        const vAngle = angleBetweenVectors(v1, v2);
 
         let rot = (Math.PI - vAngle) / 2;
         let t;
@@ -398,7 +388,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
         }
         t = v2.clone();
         rotateVector(t, rot);
-    
+
         const t1 = t.clone();
         const t2 = t.clone();
         const scaleFactor1 = distances[i - 1] * coeff;
@@ -414,7 +404,7 @@ function createCatmullRomCurves(points, sourceTangent, targetTangent, options) {
         let p0;
         let p3;
         if (i === 0) {
-            p0 = points[i + 1].difference(tangents[i].x / tau, tangents[i].y / tau); 
+            p0 = points[i + 1].difference(tangents[i].x / tau, tangents[i].y / tau);
         } else {
             p0 = points[i + 1].difference(tangents[i][1].x / tau, tangents[i][1].y / tau);
         }
