@@ -38,6 +38,7 @@
 
         var prototypeSection = document.querySelector('[href="#prototype"]');
         var gSection = document.querySelector('[href="#g"]');
+        var vSection = document.querySelector('[href="#V"]');
 
         if (prototypeSection) {
             addClassToEl(prototypeSection.parentNode, 'open');
@@ -45,6 +46,10 @@
 
         if (gSection) {
             addClassToEl(gSection.parentNode, 'open');
+        }
+
+        if (vSection) {
+            addClassToEl(vSection.parentNode, 'open');
         }
     }
 
