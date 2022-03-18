@@ -166,8 +166,11 @@
         function search() {
 
             if (input.value === '') {
-                return ;
+                closeAll();
+                showAllItems();
+                return;
             }
+
             hideAllItems();
             closeAll();
             showItemsThatMatch(input.value);
