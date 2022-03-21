@@ -3,7 +3,7 @@ module.exports = {
         '../.eslintrc.js',
     ],
     'parserOptions': {
-        'ecmaVersion': 'es2022'
+        'ecmaVersion': '2022'
     },
     'globals': {
         'joint': true,
