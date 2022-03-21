@@ -460,7 +460,7 @@ function zoomByRange(range, ctm = V.createSVGMatrix({})) {
     let min = V.transformPoint({ x: range[0], y: 0 }, ctm).x;
     let max = V.transformPoint({ x: range[1], y: 0 }, ctm).x;
     if (min > max) {
-        // Trains are going through the midnight
+        // Trains are going through midnight
         min = MIN_TIME;
         max = MAX_TIME;
     }
@@ -489,7 +489,7 @@ function zoomByRange(range, ctm = V.createSVGMatrix({})) {
 
     const back = paper.getLayerNode(dia.Paper.Layers.BACK);
     const front = paper.getLayerNode(dia.Paper.Layers.FRONT);
-    // move the front layer to above tools
+    // move the front layer above tools
     front.parentNode.append(front);
 
     back.append(drawLines({
