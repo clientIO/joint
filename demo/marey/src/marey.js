@@ -604,5 +604,3 @@ function zoomByRange(range, ctm = V.createSVGMatrix({})) {
     toggleEditMode(false);
 
 })();
-
-
