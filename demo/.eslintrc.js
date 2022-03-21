@@ -3,8 +3,7 @@ module.exports = {
         '../.eslintrc.js',
     ],
     'parserOptions': {
-        // 2018 allows use of async and spread syntax
-        'ecmaVersion': '2018'
+        'ecmaVersion': 'latest'
     },
     'globals': {
         'joint': true,
@@ -12,7 +11,8 @@ module.exports = {
         'V': true,
         '$': true,
         'Backbone': true,
-        'Vue': true
+        'Vue': true,
+        'd3': true
     },
     'ignorePatterns': ['/ts-demo/vendor/**'],
     'overrides': [{
