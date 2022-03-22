@@ -1,0 +1,12 @@
+* {
+    user-select: none;  
+}
+
+#paper {
+    position: absolute;  
+}
+
+#description {
+    position: absolute;
+    bottom: 5px;
+}
