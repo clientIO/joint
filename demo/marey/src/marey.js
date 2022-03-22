@@ -530,13 +530,13 @@ function zoomByRange(range, ctm = V.createSVGMatrix({})) {
     graph.addCells(trainsCells);
     paper.unfreeze({ batchSize: 100 });
 
-    paper.on('blank:mousewheel', (...[evt,,,delta]) => {
+    paper.on('blank:mousewheel', (evt, x, y, delta) => {
         evt.preventDefault();
         zoomByDelta(delta);
         update();
     });
 
-    paper.on('cell:mousewheel', (...[,evt,,,delta]) => {
+    paper.on('cell:mousewheel', (cellView, evt, x, y, delta) => {
         evt.preventDefault();
         zoomByDelta(delta);
         update();
