@@ -542,7 +542,7 @@ function zoomByRange(range, ctm = V.createSVGMatrix({})) {
         update();
     });
 
-    paper.on('blank:pointerdown', async(evt) => {
+    paper.on('blank:pointerdown', (evt) => {
         evt.data = { pan: true, x0: evt.clientX, t0: TIME };
     });
 
