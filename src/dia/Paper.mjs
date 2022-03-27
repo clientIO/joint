@@ -2136,18 +2136,32 @@ export const Paper = View.extend({
 
         evt = normalizeEvent(evt);
 
-        var view = this.findView(evt.target);
+        const {
+            target, // The EventTarget the pointing device entered to
+            relatedTarget // The EventTarget the pointing device exited from
+        } = evt;
+        const view = this.findView(target);
         if (this.guard(evt, view)) return;
-        var relatedView = this.findView(evt.relatedTarget);
+        const relatedView = this.findView(relatedTarget);
         if (view) {
-            // mouse moved from tool over view?
-            if (relatedView === view) return;
+            if (relatedView === view) {
+                // Mouse left a cell tool
+                return;
+            }
+            // prevent double `mouseenter` event if the `relatedTarget` is outside the paper
+            // (mouseenter method would be fired twice)
+            evt.stopPropagation();
             view.mouseenter(evt);
-        } else {
-            if (relatedView) return;
-            // `paper` (more descriptive), not `blank`
-            this.trigger('paper:mouseenter', evt);
+            if (this.el.contains(relatedTarget)) {
+                // The pointer remains inside the paper.
+                return;
+            }
         }
+        if (relatedView) {
+            return;
+        }
+        // `paper` (more descriptive), not `blank`
+        this.trigger('paper:mouseenter', evt);
     },
 
     mouseleave: function(evt) {
