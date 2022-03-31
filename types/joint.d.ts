@@ -3505,8 +3505,8 @@ export namespace anchors {
             endMagnet: SVGElement,
             anchorReference: g.Point | SVGElement,
             opt: AnchorArgumentsMap[K],
-            //endType: string,
-            //linkView: dia.LinkView
+            endType: string,
+            linkView: dia.LinkView
         ): g.Point;
     }
 
