@@ -12,7 +12,7 @@ const pathfinder = new Pathfinder(graph, {
     endDirections: ['top', 'right', 'bottom', 'left'],
     gridBounds: {
         lo: { x: 0, y: 0 },
-        hi: { x: 200, y: 200 }
+        hi: { x: 80, y: 60 }
     },
     directionChangePenalty: 10,
     isGridNodeObstacle: (cells = [], linkView) => {
@@ -22,9 +22,9 @@ const pathfinder = new Pathfinder(graph, {
 });
 const paper = new joint.dia.Paper({
     el: document.getElementById('paper'),
-    width: 2000,
-    height: 2000,
-    gridSize: 20,
+    width: 800,
+    height: 600,
+    gridSize: 10,
     async: true,
     model: graph,
     defaultRouter: pathfinder.search.bind(pathfinder)
@@ -88,7 +88,7 @@ const link = new joint.shapes.standard.Link({
         }
     }
 });
-const obstacle = source.clone().position(0,0).attr({
+const obstacle = source.clone().position(0, 0).attr({
     label: {
         text: 'obstacle',
         fill: '#eee'
@@ -101,7 +101,7 @@ const obstacle = source.clone().position(0,0).attr({
 });
 
 // ======= Obstacles
-const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 20;
+const { width, height } = paper.getComputedSize(), obstacles = [], obsCount = 5;
 for (let i = 0; i < obsCount; i++) {
     const obs = obstacle.clone();
     obs.set('obstacle', true);
@@ -118,7 +118,8 @@ for (let i = 0; i < obsCount; i++) {
 }
 
 // ======= More source/target pairs
-const pairsCount = Math.floor(height / source.size().height / 2), stPairs = [];
+const pairsCount = 5, //Math.floor(height / source.size().height / 2),
+    stPairs = [];
 for (let i = 0; i < pairsCount; i++) {
     const s = source.clone();
     s.translate(50, i * (s.size().height * 2) + 50);
@@ -134,4 +135,3 @@ for (let i = 0; i < pairsCount; i++) {
 }
 
 graph.addCells([...stPairs, ...obstacles]);
-
