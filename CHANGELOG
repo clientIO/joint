@@ -1,3 +1,10 @@
+08-04-2022 (v3.5.5)
+  * Add Marey Chart Demo
+  * dia.Paper - prevent `mouseout` being stopped on `mouseleave`
+  * dia.Paper - make sure `paper:mouseenter` event is always triggered
+  * connectors.Curve - fix TangentDirections.RIGHT
+  * fix various typescript issues
+
 04-03-2022 (v3.5.4)
   * dia.Cell - fix `transition` events order
   * dia.Cell - support custom `idAttribute`
