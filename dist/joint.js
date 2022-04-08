@@ -1,4 +1,4 @@
-/*! JointJS v3.5.4 (2022-03-04) - JavaScript diagramming library
+/*! JointJS v3.5.5 (2022-04-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -22232,18 +22232,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
 	        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null
 	    };
-	    if (typeof opt.sourceDirection === 'string') 
+	    if (typeof opt.sourceDirection === 'string')
 	        { options.sourceDirection = opt.sourceDirection; }
 	    else if (typeof opt.sourceDirection === 'number')
 	        { options.sourceDirection = new Point(1, 0).rotate(null, opt.sourceDirection); }
 	    else
 	        { options.sourceDirection = opt.sourceDirection ? new Point(opt.sourceDirection).normalize() : null; }
 
-	    if (typeof opt.targetDirection === 'string') 
+	    if (typeof opt.targetDirection === 'string')
 	        { options.targetDirection = opt.targetDirection; }
 	    else if (typeof opt.targetDirection === 'number')
 	        { options.targetDirection = new Point(1, 0).rotate(null, opt.targetDirection); }
-	    else 
+	    else
 	        { options.targetDirection = opt.targetDirection ? new Point(opt.targetDirection).normalize() : null; }
 
 	    var completeRoute = [sourcePoint ].concat( route.map(function (p) { return new Point(p); }), [targetPoint]);
@@ -22282,7 +22282,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            targetTangent = targetDirection.clone().scale(tangentLength$1, tangentLength$1);
 	        }
 	    }
-	    
+
 	    var catmullRomCurves = createCatmullRomCurves(completeRoute, sourceTangent, targetTangent, options);
 	    var bezierCurves = catmullRomCurves.map(function (curve) { return catmullRomToBezier(curve, options); });
 	    var path = new Path(bezierCurves).round(precision);
@@ -22299,20 +22299,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    if (!sourceBBox.width || !sourceBBox.height) {
 	        if (sourceBBox.x > route[1].x)
 	            { sourceSide = 'right'; }
-	        else    
+	        else
 	            { sourceSide = 'left'; }
 	    } else {
 	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
 	    }
 
 	    switch (sourceSide) {
-	        case 'left': {
+	        case 'left':
 	            return new Point(-1, 0);
-	        }   
 	        case 'right':
-	        default: {
+	        default:
 	            return new Point(1, 0);
-	        }
 	    }
 	}
 
@@ -22323,20 +22321,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    if (!targetBBox.width || !targetBBox.height) {
 	        if (targetBBox.x > route[route.length - 2].x)
 	            { targetSide = 'left'; }
-	        else    
+	        else
 	            { targetSide = 'right'; }
 	    } else {
 	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
 	    }
 
 	    switch (targetSide) {
-	        case 'left': {
+	        case 'left':
 	            return new Point(-1, 0);
-	        }   
 	        case 'right':
-	        default: {
+	        default:
 	            return new Point(1, 0);
-	        }
 	    }
 	}
 
@@ -22347,20 +22343,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    if (!sourceBBox.width || !sourceBBox.height) {
 	        if (sourceBBox.y > route[1].y)
 	            { sourceSide = 'bottom'; }
-	        else    
+	        else
 	            { sourceSide = 'top'; }
 	    } else {
 	        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
 	    }
 
 	    switch (sourceSide) {
-	        case 'top': {
+	        case 'top':
 	            return new Point(0, -1);
-	        }   
 	        case 'bottom':
-	        default: {
+	        default:
 	            return new Point(0, 1);
-	        }
 	    }
 	}
 
@@ -22371,20 +22365,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    if (!targetBBox.width || !targetBBox.height) {
 	        if (targetBBox.y > route[route.length - 2].y)
 	            { targetSide = 'top'; }
-	        else    
+	        else
 	            { targetSide = 'bottom'; }
 	    } else {
 	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
 	    }
 
 	    switch (targetSide) {
-	        case 'top': {
+	        case 'top':
 	            return new Point(0, -1);
-	        }   
 	        case 'bottom':
-	        default: {
+	        default:
 	            return new Point(0, 1);
-	        }
 	    }
 	}
 
@@ -22412,7 +22404,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	function getAutoTargetDirection(linkView, route, options) {
 	    var targetBBox = linkView.targetBBox;
-	    
+
 	    var targetSide;
 	    if (!targetBBox.width || !targetBBox.height) {
 	        targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
@@ -22455,7 +22447,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	function getSourceTangentDirection(linkView, route, direction, options) {
 	    if (options.sourceDirection) {
-	        switch(options.sourceDirection) {
+	        switch (options.sourceDirection) {
 	            case TangentDirections.UP:
 	                return new Point(0, -1);
 	            case TangentDirections.DOWN:
@@ -22463,19 +22455,18 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            case TangentDirections.LEFT:
 	                return new Point(-1, 0);
 	            case TangentDirections.RIGHT:
-	                return new Point(0, 1);
+	                return new Point(1, 0);
 	            case TangentDirections.AUTO:
-	                return getAutoSourceDirection(linkView, route, options);    
+	                return getAutoSourceDirection(linkView, route, options);
 	            case TangentDirections.CLOSEST_POINT:
 	                return getClosestPointSourceDirection(linkView, route, options);
-	            case TangentDirections.OUTWARDS: {
+	            case TangentDirections.OUTWARDS:
 	                return getOutwardsSourceDirection(linkView, route, options);
-	            }
 	            default:
 	                return options.sourceDirection;
 	        }
 	    }
-	    
+
 	    switch (direction) {
 	        case Directions.HORIZONTAL:
 	            return getHorizontalSourceDirection(linkView, route, options);
@@ -22484,16 +22475,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        case Directions.CLOSEST_POINT:
 	            return getClosestPointSourceDirection(linkView, route, options);
 	        case Directions.OUTWARDS:
-	            return getOutwardsSourceDirection(linkView, route, options);            
+	            return getOutwardsSourceDirection(linkView, route, options);
 	        case Directions.AUTO:
 	        default:
-	            return getAutoSourceDirection(linkView, route, options);            
-	    }   
+	            return getAutoSourceDirection(linkView, route, options);
+	    }
 	}
 
 	function getTargetTangentDirection(linkView, route, direction, options) {
 	    if (options.targetDirection) {
-	        switch(options.targetDirection) {
+	        switch (options.targetDirection) {
 	            case TangentDirections.UP:
 	                return new Point(0, -1);
 	            case TangentDirections.DOWN:
@@ -22503,30 +22494,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            case TangentDirections.RIGHT:
 	                return new Point(0, 1);
 	            case TangentDirections.AUTO:
-	                return getAutoTargetDirection(linkView, route, options);    
+	                return getAutoTargetDirection(linkView, route, options);
 	            case TangentDirections.CLOSEST_POINT:
 	                return getClosestPointTargetDirection(linkView, route, options);
-	            case TangentDirections.OUTWARDS: {
+	            case TangentDirections.OUTWARDS:
 	                return getOutwardsTargetDirection(linkView, route, options);
-	            }
 	            default:
 	                return options.targetDirection;
 	        }
 	    }
-	    
+
 	    switch (direction) {
 	        case Directions.HORIZONTAL:
-	            return getHorizontalTargetDirection(linkView, route, options);            
+	            return getHorizontalTargetDirection(linkView, route, options);
 	        case Directions.VERTICAL:
 	            return getVerticalTargetDirection(linkView, route, options);
 	        case Directions.CLOSEST_POINT:
 	            return getClosestPointTargetDirection(linkView, route, options);
 	        case Directions.OUTWARDS:
-	            return getOutwardsTargetDirection(linkView, route, options);            
+	            return getOutwardsTargetDirection(linkView, route, options);
 	        case Directions.AUTO:
 	        default:
-	            return getAutoTargetDirection(linkView, route, options);            
-	    }   
+	            return getAutoTargetDirection(linkView, route, options);
+	    }
 	}
 
 	function rotateVector(vector, angle) {
@@ -22554,7 +22544,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    var coeff = options.coeff;
 	    var distances = [];
 	    var tangents = [];
-	    var catmullRomCurves = [];    
+	    var catmullRomCurves = [];
 	    var n = points.length - 1;
 
 	    for (var i = 0; i < n; i++) {
@@ -22562,7 +22552,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	    }
 
 	    tangents[0] = sourceTangent;
-	    tangents[n] = targetTangent;      
+	    tangents[n] = targetTangent;
 
 	    // The calculation of tangents of vertices
 	    for (var i$1 = 1; i$1 < n; i$1++) {
@@ -22574,13 +22564,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            tpPrev = points[i$1 - 1].clone();
 	        }
 	        if (i$1 === n - 1) {
-	            tpNext = points[i$1 + 1].clone().offset(tangents[i$1 + 1].x, tangents[i$1 + 1].y); 
+	            tpNext = points[i$1 + 1].clone().offset(tangents[i$1 + 1].x, tangents[i$1 + 1].y);
 	        } else {
 	            tpNext = points[i$1 + 1].clone();
 	        }
 	        var v1 = tpPrev.difference(points[i$1]).normalize();
 	        var v2 = tpNext.difference(points[i$1]).normalize();
-	        var vAngle = angleBetweenVectors(v1, v2); 
+	        var vAngle = angleBetweenVectors(v1, v2);
 
 	        var rot = (Math.PI - vAngle) / 2;
 	        var t = (void 0);
@@ -22595,7 +22585,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        }
 	        t = v2.clone();
 	        rotateVector(t, rot);
-	    
+
 	        var t1 = t.clone();
 	        var t2 = t.clone();
 	        var scaleFactor1 = distances[i$1 - 1] * coeff;
@@ -22611,7 +22601,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	        var p0 = (void 0);
 	        var p3 = (void 0);
 	        if (i$2 === 0) {
-	            p0 = points[i$2 + 1].difference(tangents[i$2].x / tau, tangents[i$2].y / tau); 
+	            p0 = points[i$2 + 1].difference(tangents[i$2].x / tau, tangents[i$2].y / tau);
 	        } else {
 	            p0 = points[i$2 + 1].difference(tangents[i$2][1].x / tau, tangents[i$2][1].y / tau);
 	        }
@@ -28123,15 +28113,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        evt = normalizeEvent(evt);
 
-	        var view = this.findView(evt.target);
+	        var target = evt.target;
+	        var relatedTarget = evt.relatedTarget;
+	        var currentTarget = evt.currentTarget;
+	        var view = this.findView(target);
 	        if (this.guard(evt, view)) { return; }
-	        var relatedView = this.findView(evt.relatedTarget);
+	        var relatedView = this.findView(relatedTarget);
 	        if (view) {
-	            // mouse moved from tool over view?
-	            if (relatedView === view) { return; }
+	            if (relatedView === view) {
+	                // Mouse left a cell tool
+	                return;
+	            }
 	            view.mouseenter(evt);
-	        } else {
-	            if (relatedView) { return; }
+	            if (this.el.contains(relatedTarget)) {
+	                // The pointer remains inside the paper.
+	                return;
+	            }
+	        }
+	        if (relatedView) {
+	            return;
+	        }
+	        // prevent double `mouseenter` event if the `relatedTarget` is outside the paper
+	        // (mouseenter method would be fired twice)
+	        if (currentTarget === this.el) {
 	            // `paper` (more descriptive), not `blank`
 	            this.trigger('paper:mouseenter', evt);
 	        }
@@ -28143,6 +28147,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 	        var target = evt.target;
 	        var relatedTarget = evt.relatedTarget;
+	        var currentTarget = evt.currentTarget;
 	        var view = this.findView(target);
 	        if (this.guard(evt, view)) { return; }
 	        var relatedView = this.findView(relatedTarget);
@@ -28151,9 +28156,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	                // Mouse entered a cell tool
 	                return;
 	            }
-	            // prevent double `mouseleave` event if the `relatedTarget` is outside the paper
-	            // (mouseleave method would be fired twice)
-	            evt.stopPropagation();
 	            view.mouseleave(evt);
 	            if (this.el.contains(relatedTarget)) {
 	                // The pointer has exited a cellView. The pointer is still inside of the paper.
@@ -28164,8 +28166,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	            // The pointer has entered a new cellView
 	            return;
 	        }
-	        // There is no cellView under the pointer, nor the blank area of the paper
-	        this.trigger('paper:mouseleave', evt);
+	        // prevent double `mouseleave` event if the `relatedTarget` is outside the paper
+	        // (mouseleave method would be fired twice)
+	        if (currentTarget === this.el) {
+	            // There is no cellView under the pointer, nor the blank area of the paper
+	            this.trigger('paper:mouseleave', evt);
+	        }
 	    },
 
 	    mousewheel: function(evt) {
@@ -33210,7 +33216,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 		Control: Control
 	});
 
-	var version = "3.5.4";
+	var version = "3.5.5";
 
 	var Vectorizer = V;
 	var layout = { PortLabel: PortLabel, Port: Port };

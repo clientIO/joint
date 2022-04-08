@@ -1,4 +1,4 @@
-/*! JointJS v3.5.4 (2022-03-04) - JavaScript diagramming library
+/*! JointJS v3.5.5 (2022-04-08) - JavaScript diagramming library
 
 
 This Source Code Form is subject to the terms of the Mozilla Public
@@ -2540,7 +2540,7 @@ export namespace dia {
 
         options: Paper.Options;
 
-        svg: SVGElement;
+        svg: SVGSVGElement;
         defs: SVGDefsElement;
         cells: SVGGElement;
         tools: SVGGElement;
@@ -4151,7 +4151,7 @@ export namespace util {
     export function supplement(destinationObject: object, ...sourceObjects: object[]): object;
 
     /** @deprecated use joint.util.defaultsDeep */
-    export function deepSupplement(destionationObject: object, ...sourceObjects: object[]): object;
+    export function deepSupplement(destinationObject: object, ...sourceObjects: object[]): object;
 
     export function defaults(destinationObject: object, ...sourceObjects: object[]): object;
 
@@ -4581,7 +4581,7 @@ export namespace connectors {
             targetPoint: dia.Point,
             routePoints: dia.Point[],
             args?: GenericConnectorArguments<K>,
-            //linkView?: dia.LinkView
+            linkView?: dia.LinkView
         ): string | g.Path;
     }
 
@@ -4659,8 +4659,8 @@ export namespace anchors {
             endMagnet: SVGElement,
             anchorReference: g.Point | SVGElement,
             opt: AnchorArgumentsMap[K],
-            //endType: string,
-            //linkView: dia.LinkView
+            endType: string,
+            linkView: dia.LinkView
         ): g.Point;
     }
 
@@ -5040,7 +5040,7 @@ export namespace attributes {
         textLength?: number;
         lengthAdjust?: string;
         'text-anchor'?: string;
-        'text-lenght'?: number;
+        'text-length'?: number;
         'length-adjust'?: string;
     }
 
