@@ -10,14 +10,14 @@
     <tr>
         <th>sourceDirection</th>
         <td><a href="#connectors.curve.TangentDirections">curve.TangentDirections</a>|object|number</td>
-        <td>The unit vector direction of the tangent at the source point. If the option is an object it must have x and y properties. 
+        <td>The unit vector direction of the tangent at the source point. If the option is an object it must have x and y properties.
             If the option is a number, it represents an angle relative to the x-axis in the positive direction (counterclockwise).
         </td>
     </tr>
     <tr>
         <th>targetDirection</th>
         <td><a href="#connectors.curve.TangentDirections">curve.TangentDirections</a>|object|number</td>
-        <td>The unit vector direction of the tangent at the target point. If the option is an object it must have x and y properties. 
+        <td>The unit vector direction of the tangent at the target point. If the option is an object it must have x and y properties.
             If the option is a number, it represents an angle relative to the x-axis in the positive direction (counterclockwise).
         </td>
     </tr>
@@ -35,6 +35,11 @@
         <th>distanceCoefficient</th>
         <td>number</td>
         <td>Coefficient of the tangent vector length relative to the distance between points. The default is <code>0.6</code>.</td>
+    </tr>
+    <tr>
+        <th>rotate</th>
+        <td>boolean</td>
+        <td>Whether the rotation of the source or target element should be taken into account. Only works for AUTO, HORIZONTAL and VERTICAL directions. The default is <code>false</code>.</td>
     </tr>
 </table>
 

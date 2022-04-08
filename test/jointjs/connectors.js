@@ -288,4 +288,27 @@ QUnit.module('connectors', function(hooks) {
 
         assert.checkDataPath(pathData, 'M 340 216.15 C 364 209.69 378.299 187.884 400 200 C 472.884 240.691 435.742 320 459.57 400');
     });
+
+    QUnit.test('curve connector rotate', function(assert) {
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }, angle: 30 });
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }, angle: 60 });
+
+        var link = new joint.shapes.standard.Link({
+            source: { id: r1.id },
+            target: { id: r2.id },
+            connector: {
+                name: 'curve',
+                args: {
+                    rotate: true
+                }
+            }
+        });
+
+        this.graph.addCells([r1, r2, link]);
+
+        var linkView = this.paper.findViewByModel(link);
+        var pathData = linkView.metrics.data;
+
+        assert.checkDataPath(pathData, 'M 335.31 300.31 C 369.299 319.934 385.066 335.701 404.69 369.69', 'curve link with rotate was correctly rendered');
+    });
 });
