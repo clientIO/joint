@@ -1,6 +1,6 @@
-import BinaryHeap from '../structures/BinaryHeap.mjs';
-import GridNode from '../models/GridNode.mjs';
-import { quadrant } from '../models/Grid.mjs';
+import BinaryHeap from '../models/binaryHeap.mjs';
+import GridNode from '../models/gridNode.mjs';
+import { quadrant } from '../models/grid.mjs';
 
 export class JumpPointFinder {
 
@@ -34,7 +34,9 @@ export class JumpPointFinder {
         const waypoints = vertices.map(vertex => pointToLocalGrid(vertex, this.grid.step));
 
         // used to adjust path as the last operation
-        let from, to, segments = [], prevEndDir = null, startPaperPoint, endPaperPoint, retryLastSegment = false;
+        let from, to, segments = [],
+            prevEndDir = null,
+            startPaperPoint, endPaperPoint, retryLastSegment = false;
         for (let i = 0; i < waypoints.length + 1; i++) {
             // don't reassign tested points when retrying segment pathfinding
             if (!retryLastSegment) {
@@ -42,7 +44,8 @@ export class JumpPointFinder {
                 to = waypoints[i] ? [waypoints[i]] : endPoints;
             }
 
-            let minCost = Infinity, segment;
+            let minCost = Infinity,
+                segment;
             to.forEach(toPoint => {
                 // get node of current target
                 const endNode = this.endNode = this._getNodeAt(toPoint.x, toPoint.y);
@@ -190,12 +193,13 @@ export class JumpPointFinder {
             endY = this.endNode.y;
         let neighbors, neighbor,
             jumpPoint, i, l,
-            x = node.x, y = node.y,
+            x = node.x,
+            y = node.y,
             jx, jy, d, ng, jumpNode,
             abs = Math.abs;
 
         neighbors = this._findNeighbors(node);
-        for(i = 0, l = neighbors.length; i < l; ++i) {
+        for (i = 0, l = neighbors.length; i < l; ++i) {
             neighbor = neighbors[i];
             jumpPoint = this._jump(neighbor.x, neighbor.y, x, y);
             if (jumpPoint) {
@@ -231,7 +235,8 @@ export class JumpPointFinder {
 
     _findNeighbors(node) {
         const parent = node.parent,
-            x = node.x, y = node.y;
+            x = node.x,
+            y = node.y;
         let px, py, dx, dy,
             neighbors = [];
 
@@ -263,7 +268,8 @@ export class JumpPointFinder {
     };
     // x,y - checked neighbour, px,py - current node
     _jump(x, y, px, py) {
-        const dx = x - px, dy = y - py;
+        const dx = x - px,
+            dy = y - py;
 
         // node is obstructed
         if (!this._isWalkable(x, y)) {
@@ -327,8 +333,8 @@ export class JumpPointFinder {
         const index = Math.abs(y) * this.grid.opt.quadrantSize + Math.abs(x);
         return this.nodes[quadrant(x, y)].get(index) ||
             this.nodes[quadrant(x, y)]
-                .set(index, new GridNode(x, y, this._isWalkable(x, y)))
-                .get(index);
+            .set(index, new GridNode(x, y, this._isWalkable(x, y)))
+            .get(index);
     }
 
     _isWalkable(x, y) {
@@ -336,7 +342,9 @@ export class JumpPointFinder {
     }
 
     _getNeighbors(node) {
-        const x = node.x, y = node.y, neighbors = [];
+        const x = node.x,
+            y = node.y,
+            neighbors = [];
 
         // up
         if (this._isWalkable(x, y - 1)) {
@@ -463,9 +471,10 @@ const adjust = function(segments, start, end) {
                 p1 = p0;
             }
 
-            const startAxis = p0.x === p1.x ? 'x': 'y';
+            const startAxis = p0.x === p1.x ? 'x' : 'y';
             const startVal = p0[startAxis];
-            let si = 0, sv = segment[si];
+            let si = 0,
+                sv = segment[si];
             while (sv && sv[startAxis] === startVal) {
                 segment[si][startAxis] = start[startAxis];
                 si += 1;
@@ -491,9 +500,12 @@ const adjust = function(segments, start, end) {
 
             const isLine = segment.filter(point => point[endAxis] === endVal).length === segment.length;
             if (isLine && !isFirstSegment) {
-                segment.push(Object.assign({}, pLast, { [endAxis]: end[endAxis] }));
+                segment.push(Object.assign({}, pLast, {
+                    [endAxis]: end[endAxis]
+                }));
             } else {
-                let ei = segment.length - 1, ev = segment[ei];
+                let ei = segment.length - 1,
+                    ev = segment[ei];
                 while (ev && ev[endAxis] === endVal) {
                     segment[ei][endAxis] = end[endAxis];
                     ei -= 1;
@@ -561,7 +573,7 @@ const getBearing = (p1, p2) => {
     // TODO: else throw?
 }
 
-const pointToLocalGrid = function (point, step) {
+const pointToLocalGrid = function(point, step) {
     return {
         x: Math.floor(point.x / step),
         y: Math.floor(point.y / step)

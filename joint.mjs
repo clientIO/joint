@@ -15,6 +15,7 @@ export {
     highlighters,
     mvc,
     routers,
+    pathfinder,
     util,
     linkTools,
     elementTools,
@@ -22,6 +23,7 @@ export {
     V,
     version,
     g
-} from './src/core.mjs';
+}
+from './src/core.mjs';
 
 export { layout, shapes };

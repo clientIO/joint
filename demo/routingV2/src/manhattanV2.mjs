@@ -1,12 +1,11 @@
 import * as joint from '../../../joint.mjs';
-import Pathfinder from './models/Pathfinder.mjs';
 import { debugConf, debugStore } from './debug.mjs';
 
 // ===============================================================================
 // JointJS - Core + Pathfinder
 // ===============================================================================
 const graph = new joint.dia.Graph();
-const pathfinder = new Pathfinder(graph, {
+const pathfinder = new joint.pathfinder.Pathfinder(graph, {
     step: 10,
     startDirections: ['top', 'right', 'bottom', 'left'],
     endDirections: ['top', 'right', 'bottom', 'left'],

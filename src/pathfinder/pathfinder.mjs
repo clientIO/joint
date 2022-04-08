@@ -1,8 +1,8 @@
-import { util, g } from '../../../../joint.mjs';
-import { debugConf, debugLog, debugStore } from '../debug.mjs';
+import { util, g } from '../core.mjs';
+import { debugConf, debugLog, debugStore } from './debug.mjs';
 
-import Grid from './Grid.mjs';
-import { CardinalDirections, JumpPointFinder } from '../finders/index.mjs';
+import Grid from './models/grid.mjs';
+import { CardinalDirections, JumpPointFinder } from './finders/jps.mjs';
 
 const config = {
     step: 10,
@@ -22,7 +22,7 @@ const config = {
     directionChangePenalty: 1,
 }
 
-export default class Pathfinder {
+export class Pathfinder {
 
     constructor(graph, opt = {}) {
         if (!graph) {

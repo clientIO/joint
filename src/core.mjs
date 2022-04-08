@@ -11,6 +11,7 @@ import * as elementTools from './elementTools/index.mjs';
 import * as util from './util/index.mjs';
 import * as mvc from './mvc/index.mjs';
 import * as g from './g/index.mjs';
+import * as pathfinder from './pathfinder/index.mjs';
 import { config } from './config/index.mjs';
 import V from './V/index.mjs';
 import * as Port from './layout/ports/port.mjs';
@@ -34,6 +35,7 @@ export {
     util,
     linkTools,
     elementTools,
+    pathfinder,
     V,
     g
 };

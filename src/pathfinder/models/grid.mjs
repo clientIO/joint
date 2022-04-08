@@ -1,7 +1,7 @@
 import ndarray from 'ndarray';
-import HashStore from '../structures/HashStore.mjs';
-import Obstacle from './Obstacle.mjs';
-import * as util from '../../../../src/util/index.mjs';
+import HashStore from './hashStore.mjs';
+import Obstacle from './obstacle.mjs';
+import { util } from '../../core.mjs';
 import { debugConf, debugStore } from '../debug.mjs';
 
 // Grid approximates Paper coordinates using opt.step.
@@ -45,7 +45,8 @@ export default class Grid {
         }
 
         const chunk = this._quadrants[quadrant(x, y)];
-        const ax = Math.abs(x), ay = Math.abs(y);
+        const ax = Math.abs(x),
+            ay = Math.abs(y);
 
         return chunk.data.item(chunk.index(ax, ay));
     }
@@ -56,13 +57,15 @@ export default class Grid {
         }
 
         const chunk = this._quadrants[quadrant(x, y)];
-        const ax = Math.abs(x), ay = Math.abs(y);
+        const ax = Math.abs(x),
+            ay = Math.abs(y);
         return chunk.data.set(chunk.index(ax, ay), v);
     }
 
     remove(x, y) {
         const chunk = this._quadrants[quadrant(x, y)];
-        const ax = Math.abs(x), ay = Math.abs(y);
+        const ax = Math.abs(x),
+            ay = Math.abs(y);
         return chunk.data.remove(chunk.index(ax, ay));
     }
 
@@ -76,7 +79,8 @@ export default class Grid {
         }
 
         const chunk = this._quadrants[quadrant(x, y)];
-        const ax = Math.abs(x), ay = Math.abs(y);
+        const ax = Math.abs(x),
+            ay = Math.abs(y);
 
         const gridCell = chunk.data.item(chunk.index(ax, ay));
 
@@ -112,7 +116,7 @@ export default class Grid {
         return rest.length === 0;
     }
 
-    in(x, y) {
+    in (x, y) {
         const { lo, hi } = this.opt.gridBounds;
         return x > lo.x && y > lo.y && x < hi.x && y < hi.y;
     }

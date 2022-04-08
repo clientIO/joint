@@ -1,4 +1,4 @@
-import { util } from '../../../../joint.mjs';
+import { util } from '../../core.mjs';
 
 export default class Obstacle {
     constructor(element, grid) {
@@ -18,8 +18,8 @@ export default class Obstacle {
         const lo = this._bounds.lo;
         const hi = this._bounds.hi;
 
-        for(let x = lo.x; x < hi.x; ++x) {
-            for(let y = lo.y; y < hi.y; ++y) {
+        for (let x = lo.x; x < hi.x; ++x) {
+            for (let y = lo.y; y < hi.y; ++y) {
                 const node = this._grid.get(x, y) || new Map();
                 node.set(this.id, this._cell);
                 this._grid.set(x, y, node);
