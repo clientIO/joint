@@ -4,7 +4,7 @@ var path = process.cwd() + '/dist';
 module.exports = {
     entry: './index.js',
     mode: 'development',
-    target: 'es5',
+    target: 'web',
     output: {
         path: path,
         filename: 'bundle.js'

@@ -1,7 +1,6 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
-import '../../build/joint.css';
 import './styles.scss';
-import { init } from './src/app';
+import { runDemo } from './src/app';
 
-init();
+runDemo();

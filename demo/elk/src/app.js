@@ -1,13 +1,103 @@
-import * as joint from '../../../build/joint';
+import * as joint from 'jointjs';
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorker from 'elkjs/lib/elk-worker.js';
 import { Child, Label, Edge } from './shapes';
-import elkGraph from '../elkGraph.json';
+import jointGraphJSON from '../jointGraph.json';
 
-export const init = () => {
+const readJointGraph = (jointJSON) => {
+    const SIDES = {
+        top: 'NORTH',
+        right: 'EAST',
+        bottom: 'SOUTH',
+        left: 'WEST'
+    };
+
+    const getChildren = (children, start) => {
+        const result = {
+            children: [],
+            edges: []
+        };
+
+        if (start) {
+            result.id = 'root';
+        }
+
+        for (const child of children) {
+            const bBox = child.getBBox();
+            const portsPositons = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') };
+
+            Object.keys(portsPositons).forEach((portId) => {
+                portsPositons[portId].x += bBox.x;
+                portsPositons[portId].y += bBox.y;
+            });
+
+            const connections = links.filter(link => link.target.id === child.id || link.source.id === child.id);
+
+            let newElement = {
+                id: child.id,
+                width: child.get('size').width,
+                height: child.get('size').height,
+                ports: child.getPorts().map((port) => {
+                    const { x, y } = portsPositons[port.id] ?? {};
+
+                    return {
+                        id: `${child.id}_${port.id}`,
+                        width: 7,
+                        height: 7,
+                        layoutOptions: {
+                            'port.side': SIDES[bBox.sideNearestToPoint({ x, y })],
+                            'port.index': child.getPortIndex(port.id),
+                        },
+                    };
+                }),
+                'layoutOptions': {
+                    portConstraints: 'FIXED_ORDER',
+                    portAlignment: 'CENTER',
+                },
+            };
+
+            if (connections.length) {
+                result.edges.push(...connections.map(link => {
+                    return {
+                        id: link.id,
+                        sources: [`${link.source.id}_${link.source.port}`],
+                        targets: [`${link.target.id}_${link.target.port}`],
+                    };
+                }));
+            }
+
+            const embeddedCells = child.getEmbeddedCells();
+
+            if (embeddedCells.length > 0) {
+                const { children, edges } = getChildren(embeddedCells.filter((cell) => !cell.get('type').toLowerCase().includes('link')));
+                newElement.children = children;
+                newElement.edges = edges;
+            }
+
+
+            result.children.push(newElement);
+        }
+
+        return result;
+    };
+
+    const originalGraph = new joint.dia.Graph().fromJSON(jointJSON);
+
+    let elements = originalGraph.getElements().filter((cell) => !cell.getAncestors().length && !cell.get('type').toLowerCase().includes('link'));
+    let links = originalGraph.getElements().filter((cell) => cell.get('type').toLowerCase().includes('link')).map((link) => {
+        return {
+            id: link.id,
+            source: link.get('source'),
+            target: link.get('target'),
+        };
+    });
+
+    return getChildren(elements, true);
+};
+
+export const runDemo = async () => {
     const canvas = document.getElementById('canvas');
-
-    const graph = new joint.dia.Graph();
+    const graph = await init(jointGraphJSON);
 
     const paper = new joint.dia.Paper({
         model: graph,
@@ -20,6 +110,16 @@ export const init = () => {
         sorting: joint.dia.Paper.sorting.APPROX,
         background: { color: '#F3F7F6' }
     });
+
+    paper.unfreeze();
+    paper.fitToContent({ useModelGeometry: true, padding: 100, allowNewOrigin: 'any' });
+
+    canvas.appendChild(paper.el);
+    addZoomListeners(paper);
+};
+
+export const init = async (jointGraphJSON) => {
+    const graph = new joint.dia.Graph();
 
     const elk = new ELK({
         workerFactory: url => new elkWorker.Worker(url)
@@ -82,7 +182,9 @@ export const init = () => {
     };
 
     const addEdges = (edges, parent) => {
-        edges.forEach((link) => {
+        for (const link of edges) {
+            if (!link.sections) continue;
+
             const { bendPoints = [] } = link.sections[0];
             const junctionPoints = link.junctionPoints || [];
 
@@ -131,23 +233,18 @@ export const init = () => {
             });
 
             shape.addTo(graph);
-        });
+        }
     };
 
-    elk.layout(elkGraph).then(res => {
-        const children = res.children || [];
-        const edges = res.edges || [];
+    const res = await elk.layout(readJointGraph(jointGraphJSON)).catch(e => console.error(e));
 
-        addChildren(children);
-        addEdges(edges);
+    const children = res.children || [];
+    const edges = res.edges || [];
 
-        paper.unfreeze();
-        paper.fitToContent({ useModelGeometry: true, padding: 100, allowNewOrigin: 'any' });
-    });
+    addChildren(children);
+    addEdges(edges);
 
-    canvas.appendChild(paper.el);
-
-    addZoomListeners(paper);
+    return graph;
 };
 
 const addZoomListeners = paper => {
@@ -204,3 +301,5 @@ const getLabelPlacement = label => {
 
     return placement;
 };
+
+export default init;
