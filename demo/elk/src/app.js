@@ -95,9 +95,9 @@ const readJointGraph = (jointJSON) => {
     return getChildren(elements, true);
 };
 
-export const runDemo = async () => {
+export const runDemo = async() => {
     const canvas = document.getElementById('canvas');
-    const graph = await init(jointGraphJSON);
+    const graph = await convertJointToElk(jointGraphJSON);
 
     const paper = new joint.dia.Paper({
         model: graph,
@@ -118,7 +118,7 @@ export const runDemo = async () => {
     addZoomListeners(paper);
 };
 
-export const init = async (jointGraphJSON) => {
+export const convertJointToElk = async(jointGraphJSON) => {
     const graph = new joint.dia.Graph();
 
     const elk = new ELK({
@@ -302,4 +302,4 @@ const getLabelPlacement = label => {
     return placement;
 };
 
-export default init;
+export default convertJointToElk;
