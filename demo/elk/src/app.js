@@ -1,10 +1,11 @@
 import * as joint from 'jointjs';
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorker from 'elkjs/lib/elk-worker.js';
-import { Child, Label, Edge } from './shapes';
 import jointGraphJSON from '../jointGraph.json';
 
-const readJointGraph = (jointJSON) => {
+const readJointGraph = (graph) => {
+    const SPACE_BETWEEN_LAYERS = 40;
+
     const SIDES = {
         top: 'NORTH',
         right: 'EAST',
@@ -20,15 +21,18 @@ const readJointGraph = (jointJSON) => {
 
         if (start) {
             result.id = 'root';
+            result.layoutOptions = {
+                'spacing.nodeNodeBetweenLayers': SPACE_BETWEEN_LAYERS,
+            };
         }
 
         for (const child of children) {
             const bBox = child.getBBox();
-            const portsPositons = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') };
+            const portsPositions = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') };
 
-            Object.keys(portsPositons).forEach((portId) => {
-                portsPositons[portId].x += bBox.x;
-                portsPositons[portId].y += bBox.y;
+            Object.keys(portsPositions).forEach((portId) => {
+                portsPositions[portId].x += bBox.x;
+                portsPositions[portId].y += bBox.y;
             });
 
             const connections = links.filter(link => link.target.id === child.id || link.source.id === child.id);
@@ -38,21 +42,23 @@ const readJointGraph = (jointJSON) => {
                 width: child.get('size').width,
                 height: child.get('size').height,
                 ports: child.getPorts().map((port) => {
-                    const { x, y } = portsPositons[port.id] ?? {};
+                    const { x, y } = portsPositions[port.id] ?? {};
 
                     return {
                         id: `${child.id}_${port.id}`,
-                        width: 7,
-                        height: 7,
+                        width: 10,
+                        height: 10,
                         layoutOptions: {
                             'port.side': SIDES[bBox.sideNearestToPoint({ x, y })],
                             'port.index': child.getPortIndex(port.id),
-                        },
+                        }
                     };
                 }),
                 'layoutOptions': {
                     portConstraints: 'FIXED_ORDER',
                     portAlignment: 'CENTER',
+                    'spacing.portPort': 20,
+                    'spacing.nodeNodeBetweenLayers': SPACE_BETWEEN_LAYERS,
                 },
             };
 
@@ -69,11 +75,10 @@ const readJointGraph = (jointJSON) => {
             const embeddedCells = child.getEmbeddedCells();
 
             if (embeddedCells.length > 0) {
-                const { children, edges } = getChildren(embeddedCells.filter((cell) => !cell.get('type').toLowerCase().includes('link')));
+                const { children, edges } = getChildren(embeddedCells.filter((cell) => cell.isElement()));
                 newElement.children = children;
                 newElement.edges = edges;
             }
-
 
             result.children.push(newElement);
         }
@@ -81,10 +86,8 @@ const readJointGraph = (jointJSON) => {
         return result;
     };
 
-    const originalGraph = new joint.dia.Graph().fromJSON(jointJSON);
-
-    let elements = originalGraph.getElements().filter((cell) => !cell.getAncestors().length && !cell.get('type').toLowerCase().includes('link'));
-    let links = originalGraph.getElements().filter((cell) => cell.get('type').toLowerCase().includes('link')).map((link) => {
+    let elements = graph.getElements().filter((cell) => !cell.getAncestors().length);
+    let links = graph.getLinks().map((link) => {
         return {
             id: link.id,
             source: link.get('source'),
@@ -97,10 +100,13 @@ const readJointGraph = (jointJSON) => {
 
 export const runDemo = async() => {
     const canvas = document.getElementById('canvas');
-    const graph = await convertJointToElk(jointGraphJSON);
+    const graph = new joint.dia.Graph({}, { cellNamespace: joint.shapes }).fromJSON(jointGraphJSON);
+
+    await elkLayout(graph);
 
     const paper = new joint.dia.Paper({
         model: graph,
+        cellViewNamespace: joint.shapes,
         width: 1000,
         height: 600,
         gridSize: 1,
@@ -118,66 +124,32 @@ export const runDemo = async() => {
     addZoomListeners(paper);
 };
 
-export const convertJointToElk = async(jointGraphJSON) => {
-    const graph = new joint.dia.Graph();
-
+export const elkLayout = async(graph) => {
     const elk = new ELK({
         workerFactory: url => new elkWorker.Worker(url)
     });
-    const mapPortIdToShapeId = {};
 
     const addChildren = (children, parent) => {
-        children.forEach(child => {
-            const shape = new Child({
-                id: child.id,
-                position: { x: child.x, y: child.y },
-                size: { width: child.width, height: child.height },
+        children.forEach((child) => {
+            const element = graph.getElements().find(el => el.id === child.id);
+
+            element.position(child.x, child.y, { parentRelative: true });
+            element.resize(child.width, child.height);
+
+            child.ports.forEach((port) => {
+                const { x, y } = port;
+                const [, portId] = port.id.split('_');
+
+                element.portProp(portId, 'args', { x: x + port.height / 2, y: y + port.width / 2 });
             });
-
-            const ports = child.ports || [];
-            ports.forEach(port => {
-                const portToAdd = {
-                    group: 'port',
-                    args: { x: port.x, y: port.y },
-                    id: port.id,
-                    size: { height: port.height || 0, width: port.width || 0 }
-                };
-                shape.addPort(portToAdd);
-                mapPortIdToShapeId[port.id] = shape.id;
-            });
-
-            shape.addTo(graph);
-
-            if (parent) {
-                parent.embed(shape);
-                shape.position(child.x, child.y, { parentRelative: true });
-            }
 
             if (child.children) {
-                addChildren(child.children, shape);
+                addChildren(child.children, element);
             }
 
             if (child.edges) {
-                addEdges(child.edges, shape);
+                addEdges(child.edges, element);
             }
-
-            const labels = child.labels || [];
-            labels.forEach(label => {
-
-                const labelElement = new Label({
-                    attrs: {
-                        label: {
-                            fontSize: label.height,
-                            text: label.text,
-                            ...getLabelPlacement(label)
-                        }
-                    }
-                });
-
-                labelElement.addTo(graph);
-                shape.embed(labelElement);
-                labelElement.position(label.x, label.y, { parentRelative: true });
-            });
         });
     };
 
@@ -215,36 +187,17 @@ export const convertJointToElk = async(jointGraphJSON) => {
                 junctionPoint.position(position.x, position.y);
             });
 
-            const sourcePortId = link.sources[0];
-            const targetPortId = link.targets[0];
-            const sourceElementId = mapPortIdToShapeId[sourcePortId];
-            const targetElementId = mapPortIdToShapeId[targetPortId];
-
-            const shape = new Edge({
-                source: {
-                    id: sourceElementId,
-                    port: sourcePortId
-                },
-                target: {
-                    id: targetElementId,
-                    port: targetPortId,
-                },
-                vertices: bendPoints
-            });
-
-            shape.addTo(graph);
+            graph.getLinks().find(jointLink => jointLink.id === link.id)?.vertices(bendPoints);
         }
     };
 
-    const res = await elk.layout(readJointGraph(jointGraphJSON)).catch(e => console.error(e));
+    const res = await elk.layout(readJointGraph(graph));
 
     const children = res.children || [];
     const edges = res.edges || [];
 
     addChildren(children);
     addEdges(edges);
-
-    return graph;
 };
 
 const addZoomListeners = paper => {
@@ -302,4 +255,4 @@ const getLabelPlacement = label => {
     return placement;
 };
 
-export default convertJointToElk;
+export default elkLayout;

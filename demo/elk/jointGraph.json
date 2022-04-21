@@ -1,7 +1,7 @@
 {
     "cells": [
         {
-            "type": "app.RectangularModel",
+            "type": "standard.Rectangle",
             "ports": {
                 "groups": {
                     "in": {
@@ -130,7 +130,7 @@
             }
         },
         {
-            "type": "app.RectangularModel",
+            "type": "standard.Rectangle",
             "ports": {
                 "groups": {
                     "in": {
@@ -265,7 +265,7 @@
             }
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
@@ -297,7 +297,7 @@
             "attrs": {}
         },
         {
-            "type": "app.RectangularModel",
+            "type": "standard.Rectangle",
             "ports": {
                 "groups": {
                     "in": {
@@ -435,7 +435,7 @@
             }
         },
         {
-            "type": "app.RectangularModel",
+            "type": "standard.Rectangle",
             "ports": {
                 "groups": {
                     "in": {
@@ -563,7 +563,7 @@
             }
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
@@ -586,7 +586,7 @@
             "attrs": {}
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
@@ -609,7 +609,7 @@
             "attrs": {}
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
@@ -633,7 +633,7 @@
             "attrs": {}
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
@@ -657,7 +657,7 @@
             "attrs": {}
         },
         {
-            "type": "app.RectangularModel",
+            "type": "standard.Rectangle",
             "ports": {
                 "groups": {
                     "in": {
@@ -781,7 +781,7 @@
             }
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
@@ -805,7 +805,7 @@
             "attrs": {}
         },
         {
-            "type": "app.RectangularModel",
+            "type": "standard.Rectangle",
             "ports": {
                 "groups": {
                     "in": {
@@ -925,7 +925,7 @@
             }
         },
         {
-            "type": "app.Link",
+            "type": "standard.Link",
             "router": {
                 "name": "normal"
             },
