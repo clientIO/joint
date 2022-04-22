@@ -4,7 +4,9 @@ import elkWorker from 'elkjs/lib/elk-worker.js';
 import jointGraphJSON from '../jointGraph.json';
 
 const readJointGraph = (graph) => {
-    const SPACE_BETWEEN_LAYERS = 40;
+    const SPACE = 60;
+    const SPACE_BETWEEN_EDGE_NODE = 20;
+    const PORT_SPACE = 20;
 
     const SIDES = {
         top: 'NORTH',
@@ -22,7 +24,9 @@ const readJointGraph = (graph) => {
         if (start) {
             result.id = 'root';
             result.layoutOptions = {
-                'spacing.nodeNodeBetweenLayers': SPACE_BETWEEN_LAYERS,
+                algorithm: 'layered',
+                'hierarchyHandling': 'INCLUDE_CHILDREN',
+                'layered.spacing.baseValue': SPACE
             };
         }
 
@@ -35,30 +39,49 @@ const readJointGraph = (graph) => {
                 portsPositions[portId].y += bBox.y;
             });
 
-            const connections = links.filter(link => link.target.id === child.id || link.source.id === child.id);
+            const connections = links.filter(link =>  link.source.id === child.id);
+            const label = child.get('attrs').label;
 
+            // TODO get port size, custom label position
             let newElement = {
                 id: child.id,
                 width: child.get('size').width,
                 height: child.get('size').height,
                 ports: child.getPorts().map((port) => {
                     const { x, y } = portsPositions[port.id] ?? {};
+                    const { x: relativeX, y: relativeY } = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') }[port.id];
 
                     return {
                         id: `${child.id}_${port.id}`,
+                        x: relativeX,
+                        y: relativeY,
                         width: 10,
                         height: 10,
                         layoutOptions: {
                             'port.side': SIDES[bBox.sideNearestToPoint({ x, y })],
                             'port.index': child.getPortIndex(port.id),
+                            'port.borderOffset': -5,
                         }
                     };
                 }),
+                labels: [
+                    {
+                        text: label.text,
+                        layoutOptions: {
+                            'nodeLabels.placement': '[H_LEFT, V_TOP, OUTSIDE]',
+                            'font.size': label.fontSize,
+                        },
+                    }
+                ],
                 'layoutOptions': {
                     portConstraints: 'FIXED_ORDER',
                     portAlignment: 'CENTER',
-                    'spacing.portPort': 20,
-                    'spacing.nodeNodeBetweenLayers': SPACE_BETWEEN_LAYERS,
+                    'spacing.portPort': PORT_SPACE,
+                    'spacing.nodeNodeBetweenLayers': SPACE,
+                    'spacing.edgeNode': SPACE_BETWEEN_EDGE_NODE,
+                    'layered.spacing.baseValue': SPACE,
+                    'spacing.labelNode': 15,
+                    'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
                 },
             };
 
@@ -66,8 +89,8 @@ const readJointGraph = (graph) => {
                 result.edges.push(...connections.map(link => {
                     return {
                         id: link.id,
-                        sources: [`${link.source.id}_${link.source.port}`],
-                        targets: [`${link.target.id}_${link.target.port}`],
+                        sources: [link.source.port ? `${link.source.id}_${link.source.port}` : link.source.id],
+                        targets: [link.target.port ? `${link.target.id}_${link.target.port}` : link.target.id],
                     };
                 }));
             }
@@ -114,7 +137,7 @@ export const runDemo = async() => {
         async: true,
         frozen: true,
         sorting: joint.dia.Paper.sorting.APPROX,
-        background: { color: '#F3F7F6' }
+        background: { color: '#F3F7F6' },
     });
 
     paper.unfreeze();
@@ -122,6 +145,18 @@ export const runDemo = async() => {
 
     canvas.appendChild(paper.el);
     addZoomListeners(paper);
+
+    const textArea = document.querySelector('#textarea');
+    textArea.addEventListener('keydown', async(event) => {
+        if (event.key !== 'Enter' || textArea.value.trim() === '') return;
+        event.preventDefault();
+
+        paper.freeze();
+        graph.fromJSON(JSON.parse(textArea.value));
+        await elkLayout(graph);
+        paper.unfreeze();
+        paper.fitToContent({ useModelGeometry: true, padding: 100, allowNewOrigin: 'any' });
+    });
 };
 
 export const elkLayout = async(graph) => {
@@ -136,11 +171,20 @@ export const elkLayout = async(graph) => {
             element.position(child.x, child.y, { parentRelative: true });
             element.resize(child.width, child.height);
 
+            if (Array.isArray(child.labels)) {
+                element.attr({
+                    label: {
+                        ...element.get('attrs').label,
+                        ...getLabelPlacement(child.labels[0])
+                    }
+                });
+            }
+
             child.ports.forEach((port) => {
                 const { x, y } = port;
                 const [, portId] = port.id.split('_');
 
-                element.portProp(portId, 'args', { x: x + port.height / 2, y: y + port.width / 2 });
+                element.portProp(portId, 'args', { x: x + port.width / 2, y: y + port.height / 2 });
             });
 
             if (child.children) {
@@ -229,27 +273,24 @@ const placementsOptions = {
 };
 
 const getLabelPlacement = label => {
-    const placement = {};
+    const placement = {
+        refX: label.x,
+        refY: label.y
+    };
 
     const nodeLabelPlacements = label.layoutOptions['nodeLabels.placement'];
     if (nodeLabelPlacements.includes(placementsOptions.H_RIGHT)) {
-        placement.textAnchor = 'end';
-        placement.refX = label.width;
+        placement.textAnchor = 'right';
     } else if (nodeLabelPlacements.includes(placementsOptions.H_LEFT)) {
-        placement.textAnchor = 'start';
-    } else if (nodeLabelPlacements.includes(placementsOptions.H_CENTER)) {
-        placement.textAnchor = 'middle';
-        placement.refX = label.width / 2;
+        placement.textAnchor = 'left';
     }
 
     if (nodeLabelPlacements.includes(placementsOptions.V_TOP)) {
         placement.textVerticalAnchor = 'top';
     } else if (nodeLabelPlacements.includes(placementsOptions.V_BOTTOM)) {
         placement.textVerticalAnchor = 'bottom';
-        placement.refY = label.height;
     } else if (nodeLabelPlacements.includes(placementsOptions.V_CENTER)) {
         placement.textVerticalAnchor = 'middle';
-        placement.refY = label.height / 2;
     }
 
     return placement;

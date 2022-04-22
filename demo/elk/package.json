@@ -23,7 +23,7 @@
     "copy-webpack-plugin": "5.0.4",
     "core-js": "3.6.1",
     "css-loader": "3.5.3",
-    "elkjs": "0.6.2",
+    "elkjs": "0.7.1",
     "file-loader": "6.0.0",
     "regenerator-runtime": "0.13.5",
     "sass": "1.26.8",
