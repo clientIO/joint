@@ -32,7 +32,7 @@ var viewportTemplate = new Rectangle({
 var viewport = null;
 var viewportBBox;
 function setViewportBBox() {
-    viewportBBox = viewport.getBBox();
+    viewportBBox = viewport.getBBox().inflate(padding);
 }
 
 var paper = new Paper({
@@ -49,10 +49,10 @@ var paper = new Paper({
         if (leaveDraggedInViewport && view.cid === draggedCid) return true;
         if (leaveRenderedInViewport && isInViewport) return true;
         if (viewportRect) {
-            return g.intersection.exists(viewportBBox, view.model.getBBox().inflate(padding));
+            return g.intersection.exists(viewportBBox, view.model.getBBox());
         } else {
             if (view.model === viewport) return false;
-            return g.intersection.exists(windowBBox, view.model.getBBox().inflate(padding));
+            return g.intersection.exists(windowBBox, view.model.getBBox());
         }
     }
 });
@@ -140,6 +140,7 @@ var paddingInput = document.getElementById('padding');
 var padding = viewportInput.checked ? 100 : 1;
 paddingInput.addEventListener('click', function(evt) {
     padding = evt.target.checked ? 100 : 1;
+    setViewportBBox();
 }, false);
 
 var batchSizeInput = document.getElementById('batch-size');
