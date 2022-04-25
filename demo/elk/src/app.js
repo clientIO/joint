@@ -3,7 +3,7 @@ import ELK from 'elkjs/lib/elk-api.js';
 import elkWorker from 'elkjs/lib/elk-worker.js';
 import jointGraphJSON from '../jointGraph.json';
 
-const readJointGraph = (graph) => {
+const readJointGraph = (graph, opt) => {
     const SPACE = 60;
     const SPACE_BETWEEN_EDGE_NODE = 20;
     const PORT_SPACE = 20;
@@ -42,6 +42,8 @@ const readJointGraph = (graph) => {
             const connections = links.filter(link =>  link.source.id === child.id);
             const label = child.get('attrs').label;
 
+            const embeddedCells = child.getEmbeddedCells();
+
             // TODO get port size, custom label position
             let newElement = {
                 id: child.id,
@@ -52,7 +54,7 @@ const readJointGraph = (graph) => {
                     const { x: relativeX, y: relativeY } = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') }[port.id];
 
                     return {
-                        id: `${child.id}_${port.id}`,
+                        id: `${child.id}${opt.idSplitChar}${port.id}`,
                         x: relativeX,
                         y: relativeY,
                         width: 10,
@@ -81,7 +83,6 @@ const readJointGraph = (graph) => {
                     'spacing.edgeNode': SPACE_BETWEEN_EDGE_NODE,
                     'layered.spacing.baseValue': SPACE,
                     'spacing.labelNode': 15,
-                    'elk.hierarchyHandling': 'INCLUDE_CHILDREN'
                 },
             };
 
@@ -89,13 +90,11 @@ const readJointGraph = (graph) => {
                 result.edges.push(...connections.map(link => {
                     return {
                         id: link.id,
-                        sources: [link.source.port ? `${link.source.id}_${link.source.port}` : link.source.id],
-                        targets: [link.target.port ? `${link.target.id}_${link.target.port}` : link.target.id],
+                        sources: [link.source.port ? `${link.source.id}${opt.idSplitChar}${link.source.port}` : link.source.id],
+                        targets: [link.target.port ? `${link.target.id}${opt.idSplitChar}${link.target.port}` : link.target.id],
                     };
                 }));
             }
-
-            const embeddedCells = child.getEmbeddedCells();
 
             if (embeddedCells.length > 0) {
                 const { children, edges } = getChildren(embeddedCells.filter((cell) => cell.isElement()));
@@ -159,7 +158,7 @@ export const runDemo = async() => {
     });
 };
 
-export const elkLayout = async(graph) => {
+export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
     const elk = new ELK({
         workerFactory: url => new elkWorker.Worker(url)
     });
@@ -182,7 +181,7 @@ export const elkLayout = async(graph) => {
 
             child.ports.forEach((port) => {
                 const { x, y } = port;
-                const [, portId] = port.id.split('_');
+                const [, portId] = port.id.split(opt.idSplitChar);
 
                 element.portProp(portId, 'args', { x: x + port.width / 2, y: y + port.height / 2 });
             });
@@ -198,11 +197,11 @@ export const elkLayout = async(graph) => {
     };
 
     const addEdges = (edges, parent) => {
-        for (const link of edges) {
-            if (!link.sections) continue;
+        for (const edge of edges) {
+            if (!edge.sections) continue;
 
-            const { bendPoints = [] } = link.sections[0];
-            const junctionPoints = link.junctionPoints || [];
+            const { bendPoints = [] } = edge.sections[0];
+            const junctionPoints = edge.junctionPoints || [];
 
             if (parent) {
                 bendPoints.map(bendPoint => {
@@ -231,11 +230,39 @@ export const elkLayout = async(graph) => {
                 junctionPoint.position(position.x, position.y);
             });
 
-            graph.getLinks().find(jointLink => jointLink.id === link.id)?.vertices(bendPoints);
+            const link = graph.getLinks().find(jointLink => jointLink.id === edge.id);
+
+            link?.vertices(bendPoints);
+
+            if (!link.get('source').port) {
+                const sourceEl = link.getSourceElement();
+
+                link.source(sourceEl, {
+                    anchor: {
+                        name: 'topRight',
+                        args: {
+                            dy: edge.sections[0].startPoint.y - (sourceEl.position().y - (parent?.position().y ?? 0))
+                        }
+                    }
+                });
+            }
+
+            if (!link.get('target').port) {
+                const targetEl = link.getTargetElement();
+
+                link.target(targetEl, {
+                    anchor: {
+                        name: 'topLeft',
+                        args: {
+                            dy: edge.sections[0].endPoint.y - (targetEl.position().y - (parent?.position().y ?? 0))
+                        }
+                    }
+                });
+            }
         }
     };
 
-    const res = await elk.layout(readJointGraph(graph));
+    const res = await elk.layout(readJointGraph(graph, opt));
 
     const children = res.children || [];
     const edges = res.edges || [];
