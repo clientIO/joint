@@ -1,3 +1,4 @@
+/*eslint-env es6 */
 export default class BinaryHeap {
 
     constructor(compare = defaultCompare) {
@@ -70,7 +71,7 @@ const defaultCompare = function(x, y) {
     if (x < y) { return -1; }
     if (x > y) { return 1; }
     return 0;
-}
+};
 
 /*const inSort = function(a, x, lo, hi, compare) {
     let mid;
@@ -120,7 +121,7 @@ const _siftDown = function(array, startPos, pos, compare) {
         break;
     }
     return array[pos] = newItem;
-}
+};
 
 const _siftUp = function(array, pos, compare) {
     let childPos, endPos, newItem, rightPos, startPos;
@@ -145,7 +146,7 @@ const _siftUp = function(array, pos, compare) {
     }
     array[pos] = newItem;
     return _siftDown(array, startPos, pos, compare);
-}
+};
 
 const heapPush = function(array, item, compare) {
     if (compare === null) {
@@ -154,7 +155,7 @@ const heapPush = function(array, item, compare) {
 
     array.push(item);
     return _siftDown(array, 0, array.length - 1, compare);
-}
+};
 
 const heapPop = function(array, compare) {
     let lastEl, returnItem;
@@ -172,7 +173,7 @@ const heapPop = function(array, compare) {
     }
 
     return returnItem;
-}
+};
 
 const heapReplace = function(array, item, compare) {
     let returnItem;
@@ -185,7 +186,7 @@ const heapReplace = function(array, item, compare) {
     _siftUp(array, 0, compare);
 
     return returnItem;
-}
+};
 
 const heapPushPop = function(array, item, compare) {
     let _ref;
@@ -200,7 +201,7 @@ const heapPushPop = function(array, item, compare) {
     }
 
     return item;
-}
+};
 
 const heapify = function(array, compare) {
     let i, _i, _j, _len, _ref, _ref1, _results, _results1;
@@ -223,7 +224,7 @@ const heapify = function(array, compare) {
     }
 
     return _results;
-}
+};
 
 const updateItem = function(array, item, compare) {
     let pos;
@@ -238,7 +239,7 @@ const updateItem = function(array, item, compare) {
 
     _siftDown(array, 0, pos, compare);
     return _siftUp(array, pos, compare);
-}
+};
 
 /*const nLargest = function(array, n, compare) {
     let el, result, _i, _len, _ref;

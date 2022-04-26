@@ -1,3 +1,4 @@
+/*eslint-env es6 */
 export default class GridNode {
     constructor(x, y, walkable) {
         this.x = x;

@@ -1,3 +1,4 @@
+/*eslint-env es6 */
 import BinaryHeap from '../models/binaryHeap.mjs';
 import GridNode from '../models/gridNode.mjs';
 import { quadrant } from '../models/grid.mjs';
@@ -231,7 +232,7 @@ export class JumpPointFinder {
                 }
             }
         }
-    };
+    }
 
     _findNeighbors(node) {
         const parent = node.parent,
@@ -265,7 +266,7 @@ export class JumpPointFinder {
             this._addWhenWalkable(x + 1, y, neighbors);
         }
         return neighbors;
-    };
+    }
     // x,y - checked neighbour, px,py - current node
     _jump(x, y, px, py) {
         const dx = x - px,
@@ -317,7 +318,7 @@ export class JumpPointFinder {
                 return [x, y];
             }
         } else {
-            throw new Error("Only horizontal and vertical movements are allowed");
+            throw new Error('Only horizontal and vertical movements are allowed');
         }
 
         return this._jump(x + dx, y + dy, x, y);
@@ -333,8 +334,8 @@ export class JumpPointFinder {
         const index = Math.abs(y) * this.grid.opt.quadrantSize + Math.abs(x);
         return this.nodes[quadrant(x, y)].get(index) ||
             this.nodes[quadrant(x, y)]
-            .set(index, new GridNode(x, y, this._isWalkable(x, y)))
-            .get(index);
+                .set(index, new GridNode(x, y, this._isWalkable(x, y)))
+                .get(index);
     }
 
     _isWalkable(x, y) {
@@ -375,7 +376,7 @@ const backtrace = function(node) {
     }
 
     return path.reverse();
-}
+};
 
 // const removeElbows = function(path) {
 //     let i = 0;
@@ -456,7 +457,7 @@ const backtrace = function(node) {
 
 const scale = function(path, step) {
     return path.map(point => point.getScaledCoordinates(step));
-}
+};
 
 const adjust = function(segments, start, end) {
     return segments.reduce((acc, segment, index) => {
@@ -523,7 +524,7 @@ const adjust = function(segments, start, end) {
         acc.push(...segment);
         return acc;
     }, []);
-}
+};
 
 const cost = function(jx, jy, x, y, node, jumpNode, endNode, bendCost) {
     let prev = node.parent;
@@ -545,11 +546,11 @@ const cost = function(jx, jy, x, y, node, jumpNode, endNode, bendCost) {
     }
 
     return Math.abs(jx - x) + Math.abs(jy - y) + addedCost;
-}
+};
 
 const isBend = function(prev, node, next) {
     return (prev.x === node.x && node.x !== next.x) || (prev.y === node.y && node.y !== next.y);
-}
+};
 
 export const CardinalDirections = {
     N: { x: 0, y: 1 },
@@ -564,18 +565,18 @@ const getOppositeCardinal = (dir) => {
     return {
         x: dir.x === -1 ? 1 : dir.x === 1 ? -1 : 0,
         y: dir.y === -1 ? 1 : dir.y === 1 ? -1 : 0
-    }
-}
+    };
+};
 
 const getBearing = (p1, p2) => {
     if (p1.x === p2.x) return (p1.y > p2.y) ? Bearings.N : Bearings.S;
     if (p1.y === p2.y) return (p1.x > p2.x) ? Bearings.W : Bearings.E;
     // TODO: else throw?
-}
+};
 
 const pointToLocalGrid = function(point, step) {
     return {
         x: Math.floor(point.x / step),
         y: Math.floor(point.y / step)
-    }
-}
+    };
+};

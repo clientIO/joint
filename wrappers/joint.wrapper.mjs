@@ -29,6 +29,7 @@ export {
     util,
     linkTools,
     elementTools,
+    pathfinder,
     Vectorizer,
     V,
     version,

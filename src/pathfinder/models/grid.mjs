@@ -1,7 +1,8 @@
+/*eslint-env es6 */
 import ndarray from 'ndarray';
 import HashStore from './hashStore.mjs';
 import Obstacle from './obstacle.mjs';
-import { util } from '../../core.mjs';
+import * as util from '../../util/index.mjs';
 import { debugConf, debugStore } from '../debug.mjs';
 
 // Grid approximates Paper coordinates using opt.step.
@@ -94,10 +95,10 @@ export default class Grid {
             const { excludeEnds, excludeTypes } = this.opt;
 
             const excludedEnds = util.toArray(excludeEnds).reduce(function(res, item) {
-                const end = linkView.model.get(item);
-                if (end && end.id === cell.id) {
-                    res.push(cell);
-                }
+                //const end = linkView.model.get(item);
+                //if (end && end.id === cell.id) {
+                //    res.push(cell);
+                // }
                 return res;
             }, []);
 
@@ -116,7 +117,7 @@ export default class Grid {
         return rest.length === 0;
     }
 
-    in (x, y) {
+    in(x, y) {
         const { lo, hi } = this.opt.gridBounds;
         return x > lo.x && y > lo.y && x < hi.x && y < hi.y;
     }
@@ -165,6 +166,16 @@ export default class Grid {
         return Array.from(obstacles.values());
     }
 
+    isPointObstacle(point) {
+        let gridCoords = {
+            x: Math.floor(point.x / this.opt.step),
+            y: Math.floor(point.y / this.opt.step)
+        };
+        if (!this.in(gridCoords.x, gridCoords.y))
+            return false;
+        return !this.traversable(gridCoords.x, gridCoords.y);
+    }
+
     _initEvents(graph) {
         // ======= Events
         graph.on('add', (cell) => {
@@ -187,6 +198,7 @@ export default class Grid {
                 obstacle.update();
                 const end = window.performance.now();
                 if (debugConf.gridUpdateBenchmark) {
+                    // eslint-disable-next-line no-console
                     console.info('Took ' + (end - start).toFixed(2) + 'ms to update Grid.');
                 }
             }

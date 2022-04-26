@@ -1,4 +1,5 @@
-import { util } from '../../core.mjs';
+/*eslint-env es6 */
+import * as util from '../../util/index.mjs';
 
 export default class Obstacle {
     constructor(element, grid) {

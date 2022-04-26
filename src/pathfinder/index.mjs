@@ -1,1 +1,1 @@
-export { Pathfinder } from './pathfinder.mjs';
+export * from './pathfinder.mjs';

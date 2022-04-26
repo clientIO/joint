@@ -5,12 +5,12 @@ export const debugConf = {
     fullGridUpdateBenchmark: true,
     routerBenchmark: true,
     fullRouterBenchmark: true,
-}
+};
 export const debugStore = {
     gridPrinted: false,
     fullRouterTimeDone: false,
     fullRouterTime: 0,
     fullGridTimeDone: false,
     fullGridTime: 0,
-}
+};
 export const debugLog = function() {};

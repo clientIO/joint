@@ -1,3 +1,4 @@
+/*eslint-env es6 */
 export default class HashStore {
     constructor() {
         this._hash = new Map();

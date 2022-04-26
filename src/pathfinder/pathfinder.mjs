@@ -1,4 +1,6 @@
-import { util, g } from '../core.mjs';
+/*eslint-env es6 */
+import * as g from '../g/index.mjs';
+import * as util from '../util/index.mjs';
 import { debugConf, debugLog, debugStore } from './debug.mjs';
 
 import Grid from './models/grid.mjs';
@@ -20,7 +22,7 @@ const config = {
     excludeTypes: ['basic.Text'],
     excludeEnds: [],
     directionChangePenalty: 1,
-}
+};
 
 export class Pathfinder {
 
@@ -39,8 +41,8 @@ export class Pathfinder {
         const { opt } = this;
         const finder = new JumpPointFinder({ grid: this.grid });
 
-        const from = this._getRectPoints(linkView.sourceBBox, opt.startDirections, 'source', opt);
-        const to = this._getRectPoints(linkView.targetBBox, opt.endDirections, 'target', opt);
+        const from = this.getRectPoints(linkView.sourceBBox, opt.startDirections, 'source');
+        const to = this.getRectPoints(linkView.targetBBox, opt.endDirections, 'target');
 
         const s = window.performance.now();
         const path = finder.findPath(from, to, vertices, linkView, { bendCost: opt.directionChangePenalty });
@@ -59,6 +61,7 @@ export class Pathfinder {
 
 
         if (debugConf.routerBenchmark) {
+            // eslint-disable-next-line no-console
             console.info('Took ' + (e - s).toFixed(2) + ' ms to calculate route');
         }
         debugStore.fullRouterTime += (e - s);
@@ -66,7 +69,8 @@ export class Pathfinder {
         return path;
     }
 
-    _getRectPoints(rect, directions, endpoint, opt) {
+    getRectPoints(rect, directions, endpoint) {
+        let opt = this.opt;
         const transform = new g.Rect(opt.paddingBox)
             .moveAndExpand({ x: -opt.step, y: -opt.step, width: 2 * opt.step, height: 2 * opt.step });
         const bbox = rect.clone().moveAndExpand(transform);
