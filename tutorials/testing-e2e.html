@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+        <link rel="canonical" href="http://www.jointjs.com/" />
+        <meta name="description" content="Create interactive diagrams in JavaScript easily. JointJS plugins for ERD, Org chart, FSA, UML, PN, DEVS, LDM diagrams are ready to use." />
+        <meta name="keywords" content="JointJS, JavaScript, diagrams, diagramming library, UML, charts" />
+
+        <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="../node_modules/prismjs/themes/prism.css">
+
+
+        <!-- Dependencies: -->
+        <script src="../node_modules/jquery/dist/jquery.js"></script>
+        <script src="../node_modules/lodash/lodash.js"></script>
+        <script src="../node_modules/backbone/backbone.js"></script>
+
+
+        <link rel="stylesheet" type="text/css" href="../build/joint.min.css" />
+        <link rel="stylesheet" href="css/ports.css">
+        <script type="text/javascript" src="../build/joint.min.js"></script>
+
+        <title>JointJS - JavaScript diagramming library - Getting started.</title>
+
+    </head>
+    <body class="language-javascript tutorial-page">
+
+
+        <div id="ports" class="tutorial">
+
+            <p>
+                e2e testing checklist.
+            </p>
+
+            <ul>
+                <li>playwright/cypress</li>
+                <li>drag components</li>
+                <li>link components</li>
+                <li>edit properties of component in inspector</li>
+                <li>drag & drop</li>
+                <li>output diagram reference image/comparison</li>
+                <li>visual regression</li>
+                <li>verify app is setup</li>
+                <li>touch events</li>
+                <li>experimental role selectors</li>
+            </ul>
+
+            <h2>E2E Testing</h2>
+
+            <p>
+                We often get asked how to perform end-to-end testing for a JointJS application, so in the following tutorial we 
+                will create our testing setup, and cover some common questions regarding testing the UI of our app.
+            </p>
+
+            <p>
+                Firstly, a bit about the testing framework of our choice, <a href="https://playwright.dev/" target="_blank">Playwright</a>. 
+                Playwright is a microsoft project, that supports all modern rendering engines, Chromium, Webkit, and Firefox. It's great 
+                to have this functionality right out of the box, and powerful tooling to back it up.
+            </p>
+
+            <p>
+                Playwright can be used as a library, but we will be using it as part of the Playwright Test test runner. It was created
+                specifically to accommodate the needs of end-to-end testing. In the root of our project, we will install the dependency and
+                the default browsers. This tutorial uses version <code>"@playwright/test": "1.21.1"</code>.
+            </p>
+
+    <pre><code>npm i -D @playwright/test@1.21.1
+// install supported browsers
+npx playwright install
+</code></pre>
+
+            <p>
+                As we want to enjoy all the features playwright has to offer, we will also create a config file <code>playwright.config.js</code> 
+                in the project root. The following config will run every test in Chromium, Firefox, and WebKit by creating a "project" for each 
+                browser configuration.
+            </p>
+
+    <pre><code>const { devices } = require('@playwright/test');
+
+const config = {
+    projects: [
+        {
+            name: 'chromium',
+            use: { ...devices['Desktop Chrome'] },
+        },
+        {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+        },
+        {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+        },
+    ],
+};
+
+module.exports = config;
+        
+</code></pre>
+
+        <p>
+            As you can see, it's a very simple and painless setup, and now we are ready to write our first test.
+            In the root of our project, we create a <code>tests</code> directory which contains our test file
+            <code>example.spec.js</code>.
+        </p>
+
+        <p>
+            Our first test simply checks that our app is being served. As we are working locally, our url is our
+            localhost, but of course you can insert your own url in this test example. Playwright Test provides a 
+            <code>test</code> function to declare tests, and an <code>expect</code> function to write assertions.
+            The <code>Page</code> argument is a test fixture, it provides methods which allow you to interact with 
+            the browser.
+        </p>
+
+    <pre><code>const { test } = require('@playwright/test');
+
+test('App isServed', async ({ page }) => {
+  await page.goto('http://localhost:3000/');
+});
+</code></pre>
+
+        <p>
+            After saving our test, we make sure our app is running, and we simply run <code>npx playwright test</code>
+            from our project root to see if our test passes. You might notice that the test runs in headless browsers, 
+            and if successful you should see something similar to the following output:
+        </p>
+
+        <pre><code>Running 3 tests using 2 workers
+
+✓  [firefox] › tests/example.spec.js:4:1 › App isServed (7s)
+✓  [chromium] › tests/example.spec.js:4:1 › App isServed (3s)
+✓  [webkit] › tests/example.spec.js:4:1 › App isServed (2s)
+
+3 passed (8s)
+</code></pre>
+
+        <p>
+            If you don't want to run the test in a headless browser, you can use <code>npx playwright test --headed</code>. 
+            As we are just checking if our app is being served, the test shows us the respective browsers for a very short time,
+            and this is the expected behaviour. We will look at an interface in more detail later.
+        </p>
+
+        <p>
+            After performing a test to check if your app is served correctly, you my want to perform some other simple sanity checks.
+            A good example could be checking if the text in your application is displayed correctly. Playwright provides some nice 
+            <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to target elements. As we want our testing to 
+            be as robust and reliable as possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
+        </p>
+
+        <p>
+            We are going to target our primary app heading as we know it is content that rarely changes, and isn't impacted by DOM structure
+            changes. In the following example, our CSS selector is used by a 
+            <a href="https://playwright.dev/docs/locators" target="_blank"><code>Locator</code></a>. Locators allow us to perform actions on 
+            elements such as a click for example. A nice feature of Locators is that they are strict by design, that means operations on locators 
+            will throw an exception if more than one element matches a given selector. This is great for our primary heading as we know it is 
+            a unique piece of content on our page.
+        </p>
+
+        <p>
+            You'll also notice, we have added a test hook <code>test.beforeAll</code>. As we want our app to be served for all our tests,
+            the hook provides this nice functionality for us.
+        </p>
+
+        <pre><code>const { test, expect } = require('@playwright/test');
+            
+test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000/');
+});
+          
+test('Primary heading isDisplayed', async ({ page }) => {
+    const heading = page.locator('.heading__primary');
+    await expect(heading).toHaveText('JointJS App');
+});
+</code></pre>
+
+        <p>
+            To make our lives a little easier, we will also configure an npm script to run our tests. Playwright Test will
+            automatically pick up a <code>playwright.config.js</code> file in your project root. In your <code>package.json</code>
+            file, you can add the following script which allows you to use <code>npm run test</code> to run your e2e tests in headless
+            browsers.
+        </p>
+
+        <pre><code>{
+    "scripts": {
+        "test": "playwright test"
+    }
+}
+</code></pre>
+
+       <p>
+           With JointJS, there are some common testing scenarios you might like to test. We will look at some of those situations in 
+           the following section.
+       </p>
+
+        <h3 id="dragging-elements">
+            Dragging Elements
+        </h3>
+
+        <p>
+            An important part of any diagramming library is the ability to drag elements. What if we wanted to automate the testing 
+            of dragging an element from one area of our application to another? Playwright provides an API which makes this easy to
+            implement in a few different ways. In the following example, we use the <code>locator.dragTo()</code> method. Similar 
+            techniques might be used in JointJS+ for dragging an element from the 
+            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Stencil.html" target="_blank">ui.Stencil</a>
+            plugin to the JointJS <code>paper</code>.
+        </p>
+
+        <pre><code>test('Drag element to target area', async ({ page }) => {
+    const source = page.locator('text=source');
+    const target = page.locator('text=area');
+    await source.dragTo(target)
+});
+</code></pre>
+
+        <h3 id="link-elements">
+            Link Elements
+        </h3>
+
+        <h3 id="drag-and-drop">
+            Drag & Drop
+        </h3>
+
+        <h3 id="user-input-and-dynamic-attributes">
+            User Input and dynamic attributes
+        </h3>
+
+        <p>
+            Dynamic content is central to most modern applications, and if you are using JointJS, you probably want to test this scenario too.
+            In the following situation, the user fills a text input field, and the value of this input, will also be the value of our element label.
+            If you are a user of JointJS+, you might have a similar situation you would like to test using our 
+            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Inspector.html" target="_blank">ui.Inspector</a> plugin.
+        </p>
+
+        <pre><code>test('User input changes element attribute', async ({ page }) => {
+    await page.fill('input', 'Hi');
+
+    const rect = page.locator('.joint-type-standard-rectangle');
+    await expect(rect).toHaveText('Hi');
+});
+</code></pre>
+
+        <script src="../node_modules/prismjs/prism.js"></script>
+
+    </body>
+</html>
