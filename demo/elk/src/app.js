@@ -39,7 +39,7 @@ const readJointGraph = (graph, opt) => {
                 portsPositions[portId].y += bBox.y;
             });
 
-            const connections = links.filter(link =>  link.source.id === child.id);
+            const connections = graph.getConnectedLinks(child, { outbound: true });
             const label = child.get('attrs').label;
 
             const embeddedCells = child.getEmbeddedCells();
@@ -51,7 +51,10 @@ const readJointGraph = (graph, opt) => {
                 height: child.get('size').height,
                 ports: child.getPorts().map((port) => {
                     const { x, y } = portsPositions[port.id] ?? {};
-                    const { x: relativeX, y: relativeY } = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') }[port.id];
+                    const groupNames = Object.keys(child.prop('ports/groups'));
+                    
+                    const mappedPorts = groupNames.reduce((acc, groupName) => ({ ...acc, ...child.getPortsPositions(groupName) }), {});
+                    const { x: relativeX, y: relativeY } = mappedPorts[port.id];
 
                     return {
                         id: `${child.id}${opt.idSplitChar}${port.id}`,
@@ -90,8 +93,8 @@ const readJointGraph = (graph, opt) => {
                 result.edges.push(...connections.map(link => {
                     return {
                         id: link.id,
-                        sources: [link.source.port ? `${link.source.id}${opt.idSplitChar}${link.source.port}` : link.source.id],
-                        targets: [link.target.port ? `${link.target.id}${opt.idSplitChar}${link.target.port}` : link.target.id],
+                        sources: [link.source().port ? `${link.source().id}${opt.idSplitChar}${link.source().port}` : link.source().id],
+                        targets: [link.target().port ? `${link.target().id}${opt.idSplitChar}${link.target().port}` : link.target().id],
                     };
                 }));
             }
@@ -109,13 +112,6 @@ const readJointGraph = (graph, opt) => {
     };
 
     let elements = graph.getElements().filter((cell) => !cell.getAncestors().length);
-    let links = graph.getLinks().map((link) => {
-        return {
-            id: link.id,
-            source: link.get('source'),
-            target: link.get('target'),
-        };
-    });
 
     return getChildren(elements, true);
 };
@@ -230,18 +226,20 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
                 junctionPoint.position(position.x, position.y);
             });
 
-            const link = graph.getLinks().find(jointLink => jointLink.id === edge.id);
+            const link = graph.getCell(edge.id);
 
             link?.vertices(bendPoints);
 
             if (!link.get('source').port) {
                 const sourceEl = link.getSourceElement();
 
+                const relativeY = sourceEl.get('attrs').label.refY < 0 ? Math.abs(sourceEl.get('attrs').label.refY) : 0;
+
                 link.source(sourceEl, {
                     anchor: {
                         name: 'topRight',
                         args: {
-                            dy: edge.sections[0].startPoint.y - (sourceEl.position().y - (parent?.position().y ?? 0))
+                            dy: edge.sections[0].startPoint.y - (sourceEl.position().y - (parent?.position().y ?? 0)) + relativeY
                         }
                     }
                 });
@@ -250,11 +248,13 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
             if (!link.get('target').port) {
                 const targetEl = link.getTargetElement();
 
+                const relativeY = targetEl.get('attrs').label.refY < 0 ? Math.abs(targetEl.get('attrs').label.refY) : 0;
+
                 link.target(targetEl, {
                     anchor: {
                         name: 'topLeft',
                         args: {
-                            dy: edge.sections[0].endPoint.y - (targetEl.position().y - (parent?.position().y ?? 0))
+                            dy: edge.sections[0].endPoint.y - (targetEl.position().y - (parent?.position().y ?? 0)) + relativeY
                         }
                     }
                 });
