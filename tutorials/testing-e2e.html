@@ -211,7 +211,7 @@ test('Primary heading isDisplayed', async ({ page }) => {
         <pre><code>test('Drag element to target area', async ({ page }) => {
     const source = page.locator('text=source');
     const target = page.locator('text=area');
-    await source.dragTo(target)
+    await source.dragTo(target);
 });
 </code></pre>
 
@@ -219,9 +219,38 @@ test('Primary heading isDisplayed', async ({ page }) => {
             Link Elements
         </h3>
 
+        <p>
+            Another common pattern you may want to test is the linking of Elements in JointJS. In the following example we take advantage
+            of the Playwright mouse API to draw a link from the port of one element to another.
+        </p>
+
+        <pre><code>test('Link Elements', async ({ page }) => {
+    const source = page.locator('.joint-port-body');
+    const sourceBbox = await source.boundingBox();
+
+    const target = page.locator('text=label');
+    const targetBbox = await target.boundingBox();
+
+    await page.mouse.move(sourceBbox.x, sourceBbox.y);
+    await page.mouse.down();
+    await page.mouse.move(targetBbox.x, targetBbox.y);
+    await page.mouse.up();
+});
+</code></pre>
+
         <h3 id="drag-and-drop">
             Drag & Drop
         </h3>
+
+        <p>
+            Playwright provides nice functionality to test Drag & Drop right out of the box. We simply use the <code>page.dragAndDrop()</code> method,
+            and provide our source and target as arguments.
+        </p>
+
+        <pre><code>test('Drag and Drop', async ({ page }) => {
+    await page.dragAndDrop('text=source', 'text=area');
+});
+</code></pre>
 
         <h3 id="user-input-and-dynamic-attributes">
             User Input and dynamic attributes
@@ -240,6 +269,39 @@ test('Primary heading isDisplayed', async ({ page }) => {
     const rect = page.locator('.joint-type-standard-rectangle');
     await expect(rect).toHaveText('Hi');
 });
+</code></pre>
+
+        <h3 id="visual-regression">
+            Visual Regression
+        </h3>
+
+        <p>
+            As we want to maintain a consistent visual state for our JointJS application, we will also perform a test to see if our app has regressed 
+            visually in some manner. Playwright Test allows us to produce and visually compare screenshots. Let's create a new file in our tests folder 
+            <code>visual-regression.spec.js</code>, and add the following test.
+        </p>
+
+        <pre><code>const { test, expect } = require('@playwright/test');
+
+test.beforeEach(async ({ page }) => {
+    await page.goto('http://localhost:3000/');
+});
+
+test('visual regression', async ({ page }) => {
+    expect(await page.screenshot()).toMatchSnapshot();
+});
+</code></pre>
+
+        <p>
+            On the first test run, it will generate reference screenshots, and subsequent test runs will compare against the reference. On the first run, 
+            you should see some output similar to the following error, but don't worry, that's expected because there isn't any "golden" file for comparison
+            yet.
+        </p>
+
+        <pre><code>// Error: example.spec.ts-snapshots/example-test-1-chromium-darwin.png is missing in snapshots, writing actual.
+</code></pre>
+
+        <pre><code>
 </code></pre>
 
         <script src="../node_modules/prismjs/prism.js"></script>
