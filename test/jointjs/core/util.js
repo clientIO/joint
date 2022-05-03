@@ -1216,4 +1216,44 @@ QUnit.module('util', function(hooks) {
             });
         });
     });
+
+    QUnit.test('getRectPoint', function(assert) {
+
+        var x = 7;
+        var y = 11;
+        var width = 13;
+        var height = 17;
+        var rect = new g.Rect(x, y, width, height);
+        var util = joint.util;
+
+        assert.throws(function() {
+            util.getRectPoint(rect);
+        }, /Location required/);
+
+        assert.throws(function() {
+            util.getRectPoint(rect, 'unknown');
+        }, /Unknown location: unknown/);
+
+        assert.equal(util.getRectPoint(rect, 'center').toString(), '13.5@19.5');
+        assert.equal(util.getRectPoint(rect, 'top').toString(), '13.5@11');
+        assert.equal(util.getRectPoint(rect, 'left').toString(), '7@19.5');
+        assert.equal(util.getRectPoint(rect, 'right').toString(), '20@19.5');
+        assert.equal(util.getRectPoint(rect, 'bottom').toString(), '13.5@28');
+        assert.equal(util.getRectPoint(rect, 'top-left').toString(), '7@11');
+        assert.equal(util.getRectPoint(rect, 'top-right').toString(), '20@11');
+        assert.equal(util.getRectPoint(rect, 'bottom-left').toString(), '7@28');
+        assert.equal(util.getRectPoint(rect, 'bottom-right').toString(), '20@28');
+
+        // Legacy keywords
+        assert.equal(util.getRectPoint(rect, 'topLeft').toString(), '7@11');
+        assert.equal(util.getRectPoint(rect, 'topRight').toString(), '20@11');
+        assert.equal(util.getRectPoint(rect, 'bottomLeft').toString(), '7@28');
+        assert.equal(util.getRectPoint(rect, 'bottomRight').toString(), '20@28');
+        assert.equal(util.getRectPoint(rect, 'origin').toString(), '7@11');
+        assert.equal(util.getRectPoint(rect, 'corner').toString(), '20@28');
+        assert.equal(util.getRectPoint(rect, 'topMiddle').toString(), '13.5@11');
+        assert.equal(util.getRectPoint(rect, 'leftMiddle').toString(), '7@19.5');
+        assert.equal(util.getRectPoint(rect, 'rightMiddle').toString(), '20@19.5');
+        assert.equal(util.getRectPoint(rect, 'bottomMiddle').toString(), '13.5@28');
+    });
 });

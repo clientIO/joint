@@ -35,6 +35,14 @@ export namespace dia {
         vertical?: number;
     };
 
+    type LegacyLocation = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' |
+                    'topMiddle' | 'bottomMiddle' | 'leftMiddle' | 'rightMiddle' |
+                    'corner' | 'origin';
+
+    type Location = 'top' | 'left' | 'bottom' | 'right' | 'center' |
+                    'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' |
+                    LegacyLocation;
+
     type Sides = number | SidesJSON;
 
     type OrthogonalDirection =
@@ -223,11 +231,7 @@ export namespace dia {
 
         findModelsInArea(rect: BBox, opt?: { strict?: boolean }): Element[];
 
-        findModelsUnderElement(element: Element, opt?: {
-            searchBy?: 'bottomLeft' | 'bottomMiddle' | 'center' |
-                'corner' | 'leftMiddle' | 'origin' | 'rightMiddle' |
-                'topMiddle' | 'topRight' | 'bbox';
-        }): Element[];
+        findModelsUnderElement(element: Element, opt?: { searchBy?: 'bbox' | Location }): Element[];
 
         getBBox(): g.Rect | null;
 
@@ -1205,7 +1209,7 @@ export namespace dia {
 
         type PointConstraintCallback = (x: number, y: number, opt: any) => Point;
         type RestrictTranslateCallback = (elementView: ElementView, x0: number, y0: number) => BBox | boolean | PointConstraintCallback;
-        type FindParentByType =  'bbox' | 'center' | 'origin' | 'corner' | 'topRight' | 'bottomLeft' | 'pointer';
+        type FindParentByType =  'bbox' | 'pointer' | Location;
         type FindParentByCallback = ((this: dia.Graph, elementView: ElementView, evt: dia.Event, x: number, y: number) => Cell[]);
 
         interface Options extends mvc.ViewOptions<Graph> {
@@ -3055,6 +3059,8 @@ export namespace util {
     export function camelCase(string: string): string;
 
     export function uniqueId(prefix?: string): string;
+
+    export function getRectPoint(rect: dia.BBox, location: dia.Location): g.Point;
 
     // `merge` has a weird signature
     // typescript cannot express "any number of objects optionally followed by CustomizerFunction"
