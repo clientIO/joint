@@ -31,7 +31,7 @@
 
         <div id="ports" class="tutorial">
 
-            <p>
+            <!-- <p>
                 e2e testing checklist.
             </p>
 
@@ -46,25 +46,38 @@
                 <li>verify app is setup</li>
                 <li>touch events</li>
                 <li>experimental role selectors</li>
-            </ul>
+            </ul> -->
 
-            <h2>E2E Testing</h2>
+            <h2>E2E Testing with Playwright</h2>
 
             <p>
-                We often get asked how to perform end-to-end testing for a JointJS application, so in the following tutorial we 
-                will create our testing setup, and cover some common questions regarding testing the UI of our app.
+                E2E testing is an integral part of ensuring your application behaves as expected. As we often get asked how to perform
+                end-to-end testing for JointJS applications, in the following tutorial, we will cover some core concepts, and hopefully
+                give you some inspiration for whatever testing technology you choose to use.
             </p>
 
             <p>
-                Firstly, a bit about the testing framework of our choice, <a href="https://playwright.dev/" target="_blank">Playwright</a>. 
-                Playwright is a microsoft project, that supports all modern rendering engines, Chromium, Webkit, and Firefox. It's great 
-                to have this functionality right out of the box, and powerful tooling to back it up.
+                To start with, let's introduce <a href="https://playwright.dev/" target="_blank">Playwright</a>, the testing framework of
+                our choice. Playwright is a microsoft project, that supports all modern rendering engines, Chromium, Webkit, and Firefox. 
+                It also has cross-language support, so if your application uses TypeScript, Playwright has you covered. Playwright provides 
+                you with a lot of functionality right out of the box, and a very nice API to test your user interface.
             </p>
 
             <p>
                 Playwright can be used as a library, but we will be using it as part of the Playwright Test test runner. It was created
-                specifically to accommodate the needs of end-to-end testing. In the root of our project, we will install the dependency and
-                the default browsers. This tutorial uses version <code>"@playwright/test": "1.21.1"</code>.
+                specifically to accommodate the needs of end-to-end testing.
+            </p>
+
+            <h3 id="installation">
+                Installation
+            </h3>
+
+            <p>
+                Playwright requires Node.js version 12 or above. Run <code>node -v</code> from the command line to make sure you have a 
+                compatible version of Node.js. If you have a suitable version, we are ready begin. As we know our application and tests
+                directories will live in the root folder of our project, that's where we will install the dependency and default browsers.
+                This tutorial uses version <code>"@playwright/test": "1.21.1"</code>, and to install, we run the following commands from 
+                the terminal.
             </p>
 
     <pre><code>npm i -D @playwright/test@1.21.1
@@ -73,9 +86,9 @@ npx playwright install
 </code></pre>
 
             <p>
-                As we want to enjoy all the features playwright has to offer, we will also create a config file <code>playwright.config.js</code> 
-                in the project root. The following config will run every test in Chromium, Firefox, and WebKit by creating a "project" for each 
-                browser configuration.
+                As we want to enjoy all the features Playwright has to offer, we will also create a configuration file 
+                <code>playwright.config.js</code> in our project root. The following config will run every test in Chromium, Firefox, and 
+                WebKit by creating a "project" for each browser configuration.
             </p>
 
     <pre><code>const { devices } = require('@playwright/test');
@@ -102,46 +115,99 @@ module.exports = config;
 </code></pre>
 
         <p>
-            As you can see, it's a very simple and painless setup, and now we are ready to write our first test.
-            In the root of our project, we create a <code>tests</code> directory which contains our test file
+            Now that our minimal testing setup is complete, we are ready to write our first test. Our test files
+            will be placed in the <code>tests</code> directory located in the project root, and each test spec will 
+            have the suffix <code>.spec.js</code>. Let's create our first spec file, and name it 
             <code>example.spec.js</code>.
         </p>
 
+        <h3 id="basic-testing">
+            Basic Testing
+        </h3>
+
         <p>
-            Our first test simply checks that our app is being served. As we are working locally, our url is our
+            Our first test simply visits a specific page. As we are working locally, our url is our
             localhost, but of course you can insert your own url in this test example. Playwright Test provides a 
             <code>test</code> function to declare tests, and an <code>expect</code> function to write assertions.
-            The <code>Page</code> argument is a test fixture, it provides methods which allow you to interact with 
+            The <code>page</code> argument is a test fixture, it provides methods which allow you to interact with 
             the browser.
         </p>
 
-    <pre><code>const { test } = require('@playwright/test');
+    <pre><code>const { test, expect } = require('@playwright/test');
 
-test('App isServed', async ({ page }) => {
+test('Visit Page', async ({ page }) => {
   await page.goto('http://localhost:3000/');
+  const pageTitle = await page.title();
+  expect(pageTitle).toBe('JointJS App');
 });
 </code></pre>
 
         <p>
-            After saving our test, we make sure our app is running, and we simply run <code>npx playwright test</code>
-            from our project root to see if our test passes. You might notice that the test runs in headless browsers, 
-            and if successful you should see something similar to the following output:
+            When we are satisfied with our first test, and have checked our application is up and running (in our case,
+            on <i>localhost:3000</i>), we simply run <code>npx playwright test</code> from our project root. The test 
+            will run in headless browsers, and if successful, you should see something similar to the following output:
         </p>
 
-        <pre><code>Running 3 tests using 2 workers
-
-✓  [firefox] › tests/example.spec.js:4:1 › App isServed (7s)
-✓  [chromium] › tests/example.spec.js:4:1 › App isServed (3s)
-✓  [webkit] › tests/example.spec.js:4:1 › App isServed (2s)
+<pre><code>Running 3 tests using 2 workers
+    
+✓  [firefox] › tests/example.spec.js:4:1 › Visit Page (7s)
+✓  [chromium] › tests/example.spec.js:4:1 › Visit Page (3s)
+✓  [webkit] › tests/example.spec.js:4:1 › Visit Page (2s)
 
 3 passed (8s)
 </code></pre>
 
         <p>
-            If you don't want to run the test in a headless browser, you can use <code>npx playwright test --headed</code>. 
-            As we are just checking if our app is being served, the test shows us the respective browsers for a very short time,
-            and this is the expected behaviour. We will look at an interface in more detail later.
+            Running tests in all rendering engines is certainly definitive, but what if we want to test something a little 
+            quicker, and are satisfied with just use one? To run just one of our "projects" from the config file we created, 
+            you can run <code>npx playwright test --project=chromium</code>.
         </p>
+
+        <p>
+            Let's provide an incorrect page title to our test expectation in order to see what happens if our test fails.
+            In the following output, Playwright provides some meaningful output such as expected/received values, and 
+            a call log for debugging purposes.
+        </p>
+
+        <pre><code>1) [chromium] › tests/example.spec.js:8:1 › Visit Page ===========================
+
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: "JointJS Ap"
+Received: "JointJS App"
+
+    14 |     });
+    15 |     const pageTitle = await page.title();
+  > 16 |     expect(pageTitle).toBe('JointJS Ap');
+       |                       ^
+    17 | });
+</code></pre>
+
+        <p>
+            Running this test in a headed browser may not be too beneficial, but let's see how we can achieve that.
+            <code>npx playwright test --headed</code> will run our test for each of our "projects". As the test just visits a page, that
+            means Playwright will show us the respective browsers for a very short time, and that's to be expected.
+        </p>
+
+        <p>
+            As we want to make our lives as easy as possible, we will also configure a few npm scripts for testing. Playwright Test will 
+            automatically pick up a <code>playwright.config.js</code> file located in our project root. In our <code>package.json</code> file, 
+            <code>npm run test</code> will run each of our projects for each test spec in headless browsers, and 
+            <code>npm run test:chromium</code> will just run tests using the chromium rendering engine. This isn't anything special,
+            and just covers the commands we have already used so far. 
+        </p>
+
+        <pre><code>{
+    "scripts": {
+        "test": "playwright test",
+        "test:chromium": "playwright test --project=chromium"
+    }
+}
+</code></pre>
+
+        <h3 id="heading">
+            Heading
+        </h3>
 
         <p>
             After performing a test to check if your app is served correctly, you my want to perform some other simple sanity checks.
@@ -176,19 +242,7 @@ test('Primary heading isDisplayed', async ({ page }) => {
 });
 </code></pre>
 
-        <p>
-            To make our lives a little easier, we will also configure an npm script to run our tests. Playwright Test will
-            automatically pick up a <code>playwright.config.js</code> file in your project root. In your <code>package.json</code>
-            file, you can add the following script which allows you to use <code>npm run test</code> to run your e2e tests in headless
-            browsers.
-        </p>
 
-        <pre><code>{
-    "scripts": {
-        "test": "playwright test"
-    }
-}
-</code></pre>
 
        <p>
            With JointJS, there are some common testing scenarios you might like to test. We will look at some of those situations in 
@@ -231,10 +285,18 @@ test('Primary heading isDisplayed', async ({ page }) => {
     const target = page.locator('text=label');
     const targetBbox = await target.boundingBox();
 
-    await page.mouse.move(sourceBbox.x, sourceBbox.y);
+    // Check if 0 links are in the graph
+    const link = page.locator('.joint-type-standard-link');
+    await expect(link).not.toBeVisible();
+
+    // Mousemove to center of element
+    await page.mouse.move(sourceBbox.x + sourceBbox.width / 2, sourceBbox.y + sourceBbox.height / 2);
     await page.mouse.down();
     await page.mouse.move(targetBbox.x, targetBbox.y);
     await page.mouse.up();
+
+    // Check if a link is in the graph after mousemove
+    await expect(link).toHaveCount(1);
 });
 </code></pre>
 
@@ -301,7 +363,13 @@ test('visual regression', async ({ page }) => {
         <pre><code>// Error: example.spec.ts-snapshots/example-test-1-chromium-darwin.png is missing in snapshots, writing actual.
 </code></pre>
 
-        <pre><code>
+        <p>
+            After comparing your "golden" snapshot with the current state of your application, it's only natural that you may need to make further changes
+            to visual aspects of your project. In this case, you will need to update your snapshots in order for visual regression tests to run successfully
+            again. To update snapshots, you can run the following command:
+        </p>
+
+        <pre><code>npx playwright test --update-snapshots
 </code></pre>
 
         <script src="../node_modules/prismjs/prism.js"></script>
