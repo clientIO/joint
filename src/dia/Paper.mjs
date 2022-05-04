@@ -289,6 +289,7 @@ export const Paper = View.extend({
 
     events: {
         'dblclick': 'pointerdblclick',
+        'dbltap': 'pointerdblclick',
         'contextmenu': 'contextmenu',
         'mousedown': 'pointerdown',
         'touchstart': 'pointerdown',
@@ -2058,7 +2059,15 @@ export const Paper = View.extend({
 
         // mouse moved counter
         var data = this.eventData(evt);
-        data.mousemoved || (data.mousemoved = 0);
+        if (!data.mousemoved) {
+            data.mousemoved = 0;
+            // Make sure that events like `mouseenter` and `mouseleave` are
+            // not triggered while the user is dragging a cellView.
+            this.undelegateEvents();
+            // Note: the events are undelegated after the first `pointermove` event.
+            // Not on `pointerdown` to make sure that `dbltap` is recognized.
+        }
+
         var mousemoved = ++data.mousemoved;
 
         if (mousemoved <= this.options.moveThreshold) return;
@@ -2300,7 +2309,6 @@ export const Paper = View.extend({
         data || (data = {});
         this.eventData({ data: data }, { sourceView: view || null, mousemoved: 0 });
         this.delegateDocumentEvents(null, data);
-        this.undelegateEvents();
     },
 
     // Guard the specified event. If the event is not interesting, guard returns `true`.
