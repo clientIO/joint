@@ -1228,11 +1228,11 @@ QUnit.module('util', function(hooks) {
 
         assert.throws(function() {
             util.getRectPoint(rect);
-        }, /Location required/);
+        }, /Position required/);
 
         assert.throws(function() {
             util.getRectPoint(rect, 'unknown');
-        }, /Unknown location: unknown/);
+        }, /Unknown position: unknown/);
 
         assert.equal(util.getRectPoint(rect, 'center').toString(), '13.5@19.5');
         assert.equal(util.getRectPoint(rect, 'top').toString(), '13.5@11');

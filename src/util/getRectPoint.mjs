@@ -1,6 +1,6 @@
 import * as g from '../g/index.mjs';
 
-const Locations = {
+const Positions = {
     TOP: 'top',
     RIGHT: 'right',
     BOTTOM: 'bottom',
@@ -12,54 +12,54 @@ const Locations = {
     CENTER: 'center',
 };
 
-export function getRectPoint(rect, keyword) {
+export function getRectPoint(rect, position) {
     const r = new g.Rect(rect);
-    switch (keyword) {
+    switch (position) {
         case undefined:
-            throw new Error('Location required');
+            throw new Error('Position required');
 
         // Middle Points
-        case Locations.LEFT:
+        case Positions.LEFT:
         case 'leftMiddle':
             return r.leftMiddle();
 
-        case Locations.RIGHT:
+        case Positions.RIGHT:
         case 'rightMiddle':
             return r.rightMiddle();
 
-        case Locations.TOP:
+        case Positions.TOP:
         case 'topMiddle':
             return r.topMiddle();
 
-        case Locations.BOTTOM:
+        case Positions.BOTTOM:
         case 'bottomMiddle':
             return r.bottomMiddle();
 
         // Corners
-        case Locations.TOP_LEFT:
+        case Positions.TOP_LEFT:
         case 'topLeft':
         case 'origin':
             return r.topLeft();
 
-        case Locations.TOP_RIGHT:
+        case Positions.TOP_RIGHT:
         case 'topRight':
             return r.topRight();
 
-        case Locations.BOTTOM_LEFT:
+        case Positions.BOTTOM_LEFT:
         case 'bottomLeft':
             return r.bottomLeft();
 
-        case Locations.BOTTOM_RIGHT:
+        case Positions.BOTTOM_RIGHT:
         case 'bottomRight':
         case 'corner':
             return r.bottomRight();
 
         // Center
-        case Locations.CENTER:
+        case Positions.CENTER:
             return r.center();
 
         // TODO: calc(), percentage etc.
         default:
-            throw new Error(`Unknown location: ${keyword}`);
+            throw new Error(`Unknown position: ${position}`);
     }
 }
