@@ -979,7 +979,7 @@ export const Graph = Backbone.Model.extend({
         const bbox = element.getBBox().rotateAroundCenter(element.angle());
         const elements = (searchBy === 'bbox')
             ? this.findModelsInArea(bbox)
-            : this.findModelsFromPoint(bbox[searchBy]());
+            : this.findModelsFromPoint(util.getRectPoint(bbox, searchBy));
         // don't account element itself or any of its descendants
         return elements.filter(el => element.id !== el.id && !el.isEmbeddedIn(element));
     },
