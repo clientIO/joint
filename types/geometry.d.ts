@@ -1,5 +1,5 @@
-import joint = require('./index');
-declare module "./index" {
+import joint = require('../index');
+declare module '../index' {
 
     export interface g {}
     export namespace g {

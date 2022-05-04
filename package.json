@@ -18,7 +18,7 @@
   "main": "dist/joint.min.js",
   "module": "joint.mjs",
   "style": "./dist/joint.min.css",
-  "types": "./types/index.d.ts",
+  "types": "./index.d.ts",
   "homepage": "http://jointjs.com",
   "author": {
     "name": "client IO",
@@ -44,6 +44,7 @@
     "src",
     "types",
     "index.js",
+    "index.d.ts",
     "joint.mjs"
   ],
   "dependencies": {
@@ -112,7 +113,7 @@
     "should": "13.2.3",
     "sinon": "7.2.2",
     "time-grunt": "2.0.0",
-    "typescript": "3.8.3",
+    "typescript": "4.6.4",
     "webdriverio": "4.13.2",
     "webpack": "4.28.3",
     "webpack-dev-server": "3.1.14"

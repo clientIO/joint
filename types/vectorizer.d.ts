@@ -1,7 +1,7 @@
 
-import joint = require('./index');
+import joint = require('../index');
 type g = joint.g;
-declare module "./index" {
+declare module '../index' {
 
     export function V(
         svg: SVGElement | Vectorizer | string,
