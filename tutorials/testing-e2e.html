@@ -110,8 +110,7 @@ const config = {
     ],
 };
 
-module.exports = config;
-        
+module.exports = config;       
 </code></pre>
 
         <p>
@@ -121,8 +120,8 @@ module.exports = config;
             <code>example.spec.js</code>.
         </p>
 
-        <h3 id="basic-testing">
-            Basic Testing
+        <h3 id="first-test">
+            First Test
         </h3>
 
         <p>
@@ -205,20 +204,21 @@ Received: "JointJS App"
 }
 </code></pre>
 
-        <h3 id="heading">
-            Heading
+        <h3 id="testing-ui">
+            Testing UI
         </h3>
 
         <p>
-            After performing a test to check if your app is served correctly, you my want to perform some other simple sanity checks.
-            A good example could be checking if the text in your application is displayed correctly. Playwright provides some nice 
-            <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to target elements. As we want our testing to 
-            be as robust and reliable as possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
+            After visiting your application, you may want to perform some simple sanity checks in order to check if the state corresponds
+            to your expectations. A tried and tested way of doing this is to determine if the text is displayed correctly. Playwright 
+            provides some nice <a href="https://playwright.dev/docs/selectors" target="_blank"><code>Selectors</code></a> to target 
+            elements which we expect to be present in the normal flow of our app. As we want our testing to be as robust and reliable as 
+            possible, we will prioritize user-facing attributes, that means we will use mainly text or CSS selectors.
         </p>
 
         <p>
-            We are going to target our primary app heading as we know it is content that rarely changes, and isn't impacted by DOM structure
-            changes. In the following example, our CSS selector is used by a 
+            In our JointJS app, we are going to target our primary heading as we know it's content that rarely changes, and isn't impacted 
+            by DOM structure changes. In the following example, our text selector is used to create a 
             <a href="https://playwright.dev/docs/locators" target="_blank"><code>Locator</code></a>. Locators allow us to perform actions on 
             elements such as a click for example. A nice feature of Locators is that they are strict by design, that means operations on locators 
             will throw an exception if more than one element matches a given selector. This is great for our primary heading as we know it is 
@@ -226,8 +226,9 @@ Received: "JointJS App"
         </p>
 
         <p>
-            You'll also notice, we have added a test hook <code>test.beforeAll</code>. As we want our app to be served for all our tests,
-            the hook provides this nice functionality for us.
+            To set up shared resources between tests, you can utilize test hooks. As we want to visit our application before each test,
+            the <a href="https://playwright.dev/docs/api/class-test#test-before-all" target="_blank"><code>test.beforeAll</code></a> 
+            hook can provide this nice functionality for us.
         </p>
 
         <pre><code>const { test, expect } = require('@playwright/test');
@@ -236,31 +237,64 @@ test.beforeEach(async ({ page }) => {
     await page.goto('http://localhost:3000/');
 });
           
-test('Primary heading isDisplayed', async ({ page }) => {
-    const heading = page.locator('.heading__primary');
-    await expect(heading).toHaveText('JointJS App');
+test('Primary heading isVisible', async ({ page }) => {
+    const heading = page.locator('text=JointJS App');
+    await expect(heading).toBeVisible();
 });
 </code></pre>
 
+        <p>
+            In any JointJS application, there are common actions or scenarios you might like to test. In the following section,
+            we will look at some of those situations, and hopefully give you some inspiration for your own testing suite.
+        </p>
 
+        <h3 id="user-input-and-dynamic-attributes">
+            User Input & Dynamic Attributes
+        </h3>
 
-       <p>
-           With JointJS, there are some common testing scenarios you might like to test. We will look at some of those situations in 
-           the following section.
-       </p>
+        <p>
+            Dynamic content is central to most modern applications, and if you are using JointJS, you probably want to test this 
+            scenario too. In the following case, a user fills an input field with text, and the text value of this input will also 
+            be the value of an element label.
+        </p>
+
+        <p>
+            To approach this user story, we take advantage of the page fixture once more. We use the 
+            <a href="https://playwright.dev/docs/api/class-page#page-fill" target="_blank">page.fill()</a> method which accepts a 
+            selector as its first parameter, and the value to be filled as the second. After targeting our input, it's just a matter 
+            of locating our element on the page, and confirming it has the text we provided to our method.
+        </p>
+
+        <p>
+            If you are a user of JointJS+, you might use similar techniques when testing our
+            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Inspector.html" target="_blank">ui.Inspector</a> plugin.
+        </p>
+
+        <pre><code>test('User input changes attribute', async ({ page }) => {
+    await page.fill('input', 'Hi');
+
+    const rect = page.locator('.joint-type-standard-rectangle');
+    await expect(rect).toHaveText('Hi');
+});
+</code></pre>
 
         <h3 id="dragging-elements">
             Dragging Elements
         </h3>
 
         <p>
+            An important part of any diagramming library is the ability to drag elements. What if we needed to automate the testing
+            of dragging an element from one area of our application to another?
+        </p>
+
+        <!-- <p>
             An important part of any diagramming library is the ability to drag elements. What if we wanted to automate the testing 
             of dragging an element from one area of our application to another? Playwright provides an API which makes this easy to
             implement in a few different ways. In the following example, we use the <code>locator.dragTo()</code> method. Similar 
             techniques might be used in JointJS+ for dragging an element from the 
             <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Stencil.html" target="_blank">ui.Stencil</a>
             plugin to the JointJS <code>paper</code>.
-        </p>
+        </p> -->
 
         <pre><code>test('Drag element to target area', async ({ page }) => {
     const source = page.locator('text=source');
@@ -314,24 +348,7 @@ test('Primary heading isDisplayed', async ({ page }) => {
 });
 </code></pre>
 
-        <h3 id="user-input-and-dynamic-attributes">
-            User Input and dynamic attributes
-        </h3>
 
-        <p>
-            Dynamic content is central to most modern applications, and if you are using JointJS, you probably want to test this scenario too.
-            In the following situation, the user fills a text input field, and the value of this input, will also be the value of our element label.
-            If you are a user of JointJS+, you might have a similar situation you would like to test using our 
-            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Inspector.html" target="_blank">ui.Inspector</a> plugin.
-        </p>
-
-        <pre><code>test('User input changes element attribute', async ({ page }) => {
-    await page.fill('input', 'Hi');
-
-    const rect = page.locator('.joint-type-standard-rectangle');
-    await expect(rect).toHaveText('Hi');
-});
-</code></pre>
 
         <h3 id="visual-regression">
             Visual Regression
