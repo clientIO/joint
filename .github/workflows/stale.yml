@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       issues: write
+      pull-requests: write
 
     steps:
     - uses: actions/stale@v5
@@ -24,4 +25,5 @@ jobs:
         stale-issue-label: 'stale'
         days-before-stale: 60
         days-before-close: 14
-        exempt-issue-labels: 'bug' 
+        exempt-issue-labels: 'bug'
+        exempt-draft-pr: true
