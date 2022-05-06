@@ -3,9 +3,10 @@
 # You can adjust the behavior by modifying this file.
 # For more information, see:
 # https://github.com/actions/stale
-name: Mark stale issues
+name: Mark stale issues/PR
 
 on:
+  workflow_dispatch:
   schedule:
   - cron: '0 0 * * *'
 
@@ -27,5 +28,6 @@ jobs:
         stale-pr-label: 'stale'
         days-before-stale: 60
         days-before-close: 14
-        exempt-issue-labels: 'bug'
+        exempt-issue-labels: 'bug,new feature,enhancement,technical dept'
         exempt-draft-pr: true
+        operations-per-run: 999
