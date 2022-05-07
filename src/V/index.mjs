@@ -581,7 +581,27 @@ const V = (function() {
                 var lineNodeStyle = lineNode.style;
                 lineNodeStyle.fillOpacity = 0;
                 lineNodeStyle.strokeOpacity = 0;
-                if (annotations) lineMetrics = {};
+                if (annotations) {
+                    // Empty line with annotations.
+                    lineMetrics = {};
+                    lineAnnotations = V.findAnnotationsBetweenIndexes(annotations, offset, offset);
+                    var lineFontSize = lineAnnotations.reduce((maxFs, annotation) => {
+                        // Check for max font size
+                        var fs = parseFloat(annotation.attrs['font-size']);
+                        return (!isFinite(fs)) ? maxFs : Math.max(maxFs, fs);
+                    }, -1);
+                    if (lineFontSize < 0) lineFontSize = fontSize;
+                    if (autoLineHeight) {
+                        if (i > 0) {
+                            dy = lineFontSize * 1.2;
+                        } else {
+                            annotatedY = lineFontSize * 0.8;
+                        }
+                    }
+                    // The font size is important for the native selection box height.
+                    lineNode.setAttribute('font-size', lineFontSize);
+                    lineMetrics.maxFontSize = lineFontSize;
+                }
             }
             if (lineMetrics) linesMetrics.push(lineMetrics);
             if (i > 0) lineNode.setAttribute('dy', dy);

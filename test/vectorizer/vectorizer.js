@@ -300,6 +300,86 @@ QUnit.module('vectorizer', function(hooks) {
             assert.deepEqual(linesDy, ['0', '36']); // max font-size * 1.2
         });
 
+        QUnit.test('empty line height', function(assert) {
+
+            var fontSize = 20;
+            var annotationFontSize = 30;
+
+            var t = V('text', { 'font-size': fontSize });
+            var linesDy;
+            var linesFontSize;
+            var text = '\na\n\nb\n\n';
+            var annotations = [
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }}
+            ];
+
+            // Line Height 'Auto'
+
+            t.text(text, {
+                lineHeight: 'auto',
+                annotations: annotations
+            });
+
+            linesDy = t.children().map(function(vTSpan) {
+                return vTSpan.attr('dy');
+            });
+
+            assert.deepEqual(linesDy,  [
+                '0',
+                String(annotationFontSize * 1.2),
+                String(annotationFontSize * 1.2),
+                String(annotationFontSize * 1.2),
+                String(annotationFontSize * 1.2),
+                String(fontSize * 1.2),
+            ]);
+
+            linesFontSize = t.children().map(function(vTSpan) {
+                return vTSpan.attr('font-size');
+            });
+
+            assert.deepEqual(linesFontSize,  [
+                String(annotationFontSize),
+                null,
+                String(annotationFontSize),
+                null,
+                String(annotationFontSize),
+                String(fontSize),
+            ]);
+
+            // Line Height '2em'
+
+            t.text(text, {
+                lineHeight: '2em',
+                annotations: annotations
+            });
+
+            linesDy = t.children().map(function(vTSpan) {
+                return vTSpan.attr('dy');
+            });
+
+            assert.deepEqual(linesDy,  [
+                '0',
+                '2em',
+                '2em',
+                '2em',
+                '2em',
+                '2em',
+            ]);
+
+            linesFontSize = t.children().map(function(vTSpan) {
+                return vTSpan.attr('font-size');
+            });
+
+            assert.deepEqual(linesFontSize,  [
+                String(annotationFontSize),
+                null,
+                String(annotationFontSize),
+                null,
+                String(annotationFontSize),
+                String(fontSize),
+            ]);
+        });
+
         QUnit.test('custom EOL', function(assert) {
 
             var svg = getSvg();
