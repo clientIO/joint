@@ -585,12 +585,17 @@ const V = (function() {
                     // Empty line with annotations.
                     lineMetrics = {};
                     lineAnnotations = V.findAnnotationsBetweenIndexes(annotations, offset, offset);
-                    var lineFontSize = lineAnnotations.reduce((maxFs, annotation) => {
-                        // Check for max font size
-                        var fs = parseFloat(annotation.attrs['font-size']);
-                        return (!isFinite(fs)) ? maxFs : Math.max(maxFs, fs);
-                    }, -1);
-                    if (lineFontSize < 0) lineFontSize = fontSize;
+                    let lineFontSize = fontSize;
+                    // Check if any of the annotations overrides the font size.
+                    for (let j = lineAnnotations.length; j > 0; j--) {
+                        const attrs = lineAnnotations[j - 1].attrs;
+                        if (!attrs || !('font-size' in attrs)) continue;
+                        const fs = parseFloat(attrs['font-size']);
+                        if (isFinite(fs)) {
+                            lineFontSize = fs;
+                            break;
+                        }
+                    }
                     if (autoLineHeight) {
                         if (i > 0) {
                             dy = lineFontSize * 1.2;

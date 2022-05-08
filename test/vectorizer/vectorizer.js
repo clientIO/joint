@@ -306,77 +306,114 @@ QUnit.module('vectorizer', function(hooks) {
             var annotationFontSize = 30;
 
             var t = V('text', { 'font-size': fontSize });
-            var linesDy;
-            var linesFontSize;
             var text = '\na\n\nb\n\n';
-            var annotations = [
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }}
-            ];
 
             // Line Height 'Auto'
+            function testLineHeightAuto(annotations) {
 
-            t.text(text, {
-                lineHeight: 'auto',
-                annotations: annotations
-            });
+                t.text(text, {
+                    lineHeight: 'auto',
+                    annotations: annotations
+                });
 
-            linesDy = t.children().map(function(vTSpan) {
-                return vTSpan.attr('dy');
-            });
+                var linesDy = t.children().map(function(vTSpan) {
+                    return vTSpan.attr('dy');
+                });
 
-            assert.deepEqual(linesDy,  [
-                '0',
-                String(annotationFontSize * 1.2),
-                String(annotationFontSize * 1.2),
-                String(annotationFontSize * 1.2),
-                String(annotationFontSize * 1.2),
-                String(fontSize * 1.2),
+                assert.deepEqual(linesDy,  [
+                    '0',
+                    String(annotationFontSize * 1.2),
+                    String(annotationFontSize * 1.2),
+                    String(annotationFontSize * 1.2),
+                    String(annotationFontSize * 1.2),
+                    String(fontSize * 1.2),
+                ]);
+
+                var linesFontSize = t.children().map(function(vTSpan) {
+                    return vTSpan.attr('font-size');
+                });
+
+                assert.deepEqual(linesFontSize,  [
+                    String(annotationFontSize),
+                    null,
+                    String(annotationFontSize),
+                    null,
+                    String(annotationFontSize),
+                    String(fontSize),
+                ]);
+            }
+
+            testLineHeightAuto([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
-            linesFontSize = t.children().map(function(vTSpan) {
-                return vTSpan.attr('font-size');
-            });
+            testLineHeightAuto([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize - 1 }},
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+            ]);
 
-            assert.deepEqual(linesFontSize,  [
-                String(annotationFontSize),
-                null,
-                String(annotationFontSize),
-                null,
-                String(annotationFontSize),
-                String(fontSize),
+            testLineHeightAuto([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize + 1 }},
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+            ]);
+
+            testLineHeightAuto([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: 0, end: 6, attrs: { 'no-font-size': true }},
             ]);
 
             // Line Height '2em'
+            function testLineHeight2em(annotations) {
 
-            t.text(text, {
-                lineHeight: '2em',
-                annotations: annotations
-            });
+                t.text(text, {
+                    lineHeight: '2em',
+                    annotations: annotations
+                });
 
-            linesDy = t.children().map(function(vTSpan) {
-                return vTSpan.attr('dy');
-            });
+                var linesDy = t.children().map(function(vTSpan) {
+                    return vTSpan.attr('dy');
+                });
 
-            assert.deepEqual(linesDy,  [
-                '0',
-                '2em',
-                '2em',
-                '2em',
-                '2em',
-                '2em',
+                assert.deepEqual(linesDy,  [
+                    '0',
+                    '2em',
+                    '2em',
+                    '2em',
+                    '2em',
+                    '2em',
+                ]);
+
+                var linesFontSize = t.children().map(function(vTSpan) {
+                    return vTSpan.attr('font-size');
+                });
+
+                assert.deepEqual(linesFontSize,  [
+                    String(annotationFontSize),
+                    null,
+                    String(annotationFontSize),
+                    null,
+                    String(annotationFontSize),
+                    String(fontSize),
+                ]);
+            }
+
+            testLineHeight2em([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
-            linesFontSize = t.children().map(function(vTSpan) {
-                return vTSpan.attr('font-size');
-            });
+            testLineHeight2em([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize - 1 }},
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+            ]);
 
-            assert.deepEqual(linesFontSize,  [
-                String(annotationFontSize),
-                null,
-                String(annotationFontSize),
-                null,
-                String(annotationFontSize),
-                String(fontSize),
+            testLineHeight2em([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize + 1 }},
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+            ]);
+
+            testLineHeight2em,([
+                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: 0, end: 6, attrs: { 'no-font-size': true }},
             ]);
         });
 
