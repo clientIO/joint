@@ -31,23 +31,6 @@
 
         <div id="ports" class="tutorial">
 
-            <!-- <p>
-                e2e testing checklist.
-            </p>
-
-            <ul>
-                <li>playwright/cypress</li>
-                <li>drag components</li>
-                <li>link components</li>
-                <li>edit properties of component in inspector</li>
-                <li>drag & drop</li>
-                <li>output diagram reference image/comparison</li>
-                <li>visual regression</li>
-                <li>verify app is setup</li>
-                <li>touch events</li>
-                <li>experimental role selectors</li>
-            </ul> -->
-
             <h2>E2E Testing with Playwright</h2>
 
             <p>
@@ -302,9 +285,20 @@ test('Primary heading isVisible', async ({ page }) => {
         </p>
 
         <pre><code>test('Drag element to target area', async ({ page }) => {
-    const source = page.locator('text=source');
-    const target = page.locator('text=target');
+    const source = page.locator('.joint-type-standard-ellipse');
+    const target = page.locator('.joint-type-standard-rectangle');
     await source.dragTo(target);
+
+    const sourcebbox = await source.boundingBox();
+    const targetbbox = await target.boundingBox();
+
+    // If top-left inner box corner is inside the outer box
+    expect(targetbbox.x).toBeLessThan(sourcebbox.x);
+    expect(targetbbox.y).toBeLessThan(sourcebbox.y);
+
+    // If bottom-right inner box corner is inside the outer box
+    expect(sourcebbox.x + sourcebbox.width).toBeLessThan(targetbbox.x + targetbbox.width);
+    expect(sourcebbox.y + sourcebbox.height).toBeLessThan(targetbbox.y + targetbbox.height);
 });
 </code></pre>
 
@@ -321,12 +315,10 @@ test('Primary heading isVisible', async ({ page }) => {
 
         <p>
             Mouse will help use automate a click on one element's port, and subsequently draw a link that connects to another element.
+            After drawing our link, we can ensure our Locator resolves to an exact number of DOM nodes by using the following assertion
+            <a href="https://playwright.dev/docs/test-assertions#locator-assertions-to-have-count" target="_blank">
+            expect(locator).toHaveCount()</a>.
         </p>
-
-        <!-- <p>
-            Another common pattern you may want to test is the linking of Elements in JointJS. In the following example we take advantage
-            of the Playwright mouse API to draw a link from the port of one element to another.
-        </p> -->
 
         <pre><code>test('Link Elements', async ({ page }) => {
     const source = page.locator('.joint-port-body');
@@ -335,9 +327,9 @@ test('Primary heading isVisible', async ({ page }) => {
     const target = page.locator('text=label');
     const targetbbox = await target.boundingBox();
 
-    // No links should be visible
+    // No link should be present in DOM
     const link = page.locator('.joint-type-standard-link');
-    await expect(link).not.toBeVisible();
+    await expect(link).toHaveCount(0);
 
     // Mousemove to center of element
     await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
@@ -355,12 +347,21 @@ test('Primary heading isVisible', async ({ page }) => {
         </h3>
 
         <p>
-            Playwright provides nice functionality to test Drag & Drop right out of the box. We simply use the <code>page.dragAndDrop()</code> method,
-            and provide our source and target as arguments.
+            Playwright also provides the ability to test drag & drop right out of the box.
+            <a href="https://playwright.dev/docs/api/class-page#page-drag-and-drop" target="_blank">page.dragAndDrop()</a> combines some of
+            the functionality we have looked at already into one concise method. We simply need to provide our source and target selectors
+            as arguments, and it will take care of the rest.
+        </p>
+
+        <p>
+            As with our previous example of dragging elements, you could provide a similar assertion here, or create one that works for
+            your testing scenario.
         </p>
 
         <pre><code>test('Drag and Drop', async ({ page }) => {
-    await page.dragAndDrop('text=source', 'text=area');
+    await page.dragAndDrop('text=source', 'text=target');
+
+    // Your assertion
 });
 </code></pre>
 
@@ -395,6 +396,12 @@ test('visual regression', async ({ page }) => {
 
         <pre><code>// Error: example.spec.ts-snapshots/example-test-1-chromium-darwin.png is missing in snapshots, writing actual.
 </code></pre>
+
+        <p>
+            "Golden" snapshots will be located in the tests directory, and placed within a folder that corresponds to the name of your test file.
+            In our case it will be <code>tests/visual-regression.spec.js-snapshots</code>. As we have a project set up for each rendering engine, 
+            the folder will contain will a snapshot for each one respectively.
+        </p>
 
         <p>
             After comparing your "golden" snapshot with the current state of your application, it's only natural that you may need to make further changes
