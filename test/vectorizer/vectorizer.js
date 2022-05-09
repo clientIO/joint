@@ -344,22 +344,22 @@ QUnit.module('vectorizer', function(hooks) {
             }
 
             testLineHeightAuto([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start:-1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
             testLineHeightAuto([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize - 1 }},
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize - 1 }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
             testLineHeightAuto([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize + 1 }},
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize + 1 }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
             testLineHeightAuto([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
-                { start: 0, end: 6, attrs: { 'no-font-size': true }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'no-font-size': true }},
             ]);
 
             // Line Height '2em'
@@ -398,22 +398,22 @@ QUnit.module('vectorizer', function(hooks) {
             }
 
             testLineHeight2em([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
             testLineHeight2em([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize - 1 }},
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize - 1 }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
             testLineHeight2em([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize + 1 }},
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize + 1 }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
             testLineHeight2em,([
-                { start: 0, end: 6, attrs: { 'font-size': annotationFontSize }},
-                { start: 0, end: 6, attrs: { 'no-font-size': true }},
+                { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
+                { start: -1, end: 6, attrs: { 'no-font-size': true }},
             ]);
         });
 

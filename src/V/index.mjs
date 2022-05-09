@@ -584,7 +584,7 @@ const V = (function() {
                 if (annotations) {
                     // Empty line with annotations.
                     lineMetrics = {};
-                    lineAnnotations = V.findAnnotationsBetweenIndexes(annotations, offset, offset);
+                    lineAnnotations = V.findAnnotationsAtIndex(annotations, offset);
                     let lineFontSize = fontSize;
                     // Check if any of the annotations overrides the font size.
                     for (let j = lineAnnotations.length; j > 0; j--) {
