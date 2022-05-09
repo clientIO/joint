@@ -411,7 +411,7 @@ QUnit.module('vectorizer', function(hooks) {
                 { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
             ]);
 
-            testLineHeight2em,([
+            testLineHeight2em([
                 { start: -1, end: 6, attrs: { 'font-size': annotationFontSize }},
                 { start: -1, end: 6, attrs: { 'no-font-size': true }},
             ]);
