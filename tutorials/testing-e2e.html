@@ -216,7 +216,7 @@ Received: "JointJS App"
 
         <pre><code>const { test, expect } = require('@playwright/test');
             
-test.beforeEach(async ({ page }) => {
+test.beforeAll(async ({ page }) => {
     await page.goto('http://localhost:3000/');
 });
           
@@ -231,9 +231,9 @@ test('Primary heading isVisible', async ({ page }) => {
             we will look at some of those situations, and hopefully give you some inspiration for your own testing suite.
         </p>
 
-        <h3 id="user-input-and-dynamic-attributes">
+        <h4 id="user-input-and-dynamic-attributes">
             User Input & Dynamic Attributes
-        </h3>
+        </h4>
 
         <p>
             Dynamic content is central to most modern applications, and if you are using JointJS, you probably want to test this 
@@ -261,9 +261,9 @@ test('Primary heading isVisible', async ({ page }) => {
 });
 </code></pre>
 
-        <h3 id="dragging-elements">
+        <h4 id="dragging-elements">
             Dragging Elements
-        </h3>
+        </h4>
 
         <p>
             An important part of any diagramming library is the ability to drag elements. What if we needed to automate the testing
@@ -302,9 +302,9 @@ test('Primary heading isVisible', async ({ page }) => {
 });
 </code></pre>
 
-        <h3 id="linking-elements">
+        <h4 id="linking-elements">
             Linking Elements
-        </h3>
+        </h4>
 
         <p>
             Testing the linking of elements is another common pattern you may want to examine in JointJS. We have already looked at most
@@ -342,9 +342,9 @@ test('Primary heading isVisible', async ({ page }) => {
 });
 </code></pre>
 
-        <h3 id="drag-and-drop">
+        <h4 id="drag-and-drop">
             Drag & Drop
-        </h3>
+        </h4>
 
         <p>
             Playwright also provides the ability to test drag & drop right out of the box.
@@ -365,16 +365,14 @@ test('Primary heading isVisible', async ({ page }) => {
 });
 </code></pre>
 
-
-
-        <h3 id="visual-regression">
+        <h4 id="visual-regression">
             Visual Regression
-        </h3>
+        </h4>
 
         <p>
-            As we want to maintain a consistent visual state for our JointJS application, we will also perform a test to see if our app has regressed 
-            visually in some manner. Playwright Test allows us to produce and visually compare screenshots. Let's create a new file in our tests folder 
-            <code>visual-regression.spec.js</code>, and add the following test.
+            As we want to maintain a consistent visual state for our JointJS application, we will also perform a test to see if our app has
+            regressed visually in some manner. Playwright Test allows us to produce and visually compare screenshots. Let's create a new file 
+            in our tests folder <code>visual-regression.spec.js</code>, and add the following test.
         </p>
 
         <pre><code>const { test, expect } = require('@playwright/test');
@@ -384,14 +382,17 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('visual regression', async ({ page }) => {
+
+    // Your actions to manipulate application state
+
     expect(await page.screenshot()).toMatchSnapshot();
 });
 </code></pre>
 
         <p>
-            On the first test run, it will generate reference screenshots, and subsequent test runs will compare against the reference. On the first run, 
-            you should see some output similar to the following error, but don't worry, that's expected because there isn't any "golden" file for comparison
-            yet.
+            On the first test run, it will generate reference screenshots, and subsequent test runs will compare against the reference. On the 
+            first run, you should see some output similar to the following error, but don't worry, that's expected because there isn't any 
+            "golden" file for comparison yet.
         </p>
 
         <pre><code>// Error: example.spec.ts-snapshots/example-test-1-chromium-darwin.png is missing in snapshots, writing actual.
@@ -404,13 +405,70 @@ test('visual regression', async ({ page }) => {
         </p>
 
         <p>
-            After comparing your "golden" snapshot with the current state of your application, it's only natural that you may need to make further changes
-            to visual aspects of your project. In this case, you will need to update your snapshots in order for visual regression tests to run successfully
-            again. To update snapshots, you can run the following command:
+            After comparing your "golden" snapshot with the current state of your application, it's only natural that you may need to make 
+            further changes to visual aspects of your project. In this case, you will need to update your snapshots in order for visual regression 
+            tests to run successfully again. To update snapshots, you can run the following command:
         </p>
 
         <pre><code>npx playwright test --update-snapshots
 </code></pre>
+
+        <h3 id="debugging-tools">
+            Debugging Tools
+        </h3>
+
+        <p>
+            An important part of any testing implementation is debugging. As we have now covered some typical UI testing flows with JointJS,
+            let's look at how we can debug in Playwright should any of our tests fail.
+        </p>
+
+        <p>
+            The first tool we will look at is the Playwright <a href="https://playwright.dev/docs/inspector" target="_blank">Inspector</a>.
+            Inspector is a GUI tool that helps authoring and debugging Playwright scripts. To launch the inspector, we need to set the
+            <code>PWDEBUG</code> environment variable to run our scripts in debug mode. This configures Playwright for debugging and opens 
+            the inspector.
+        </p>
+
+        <p>
+            In Bash, we can run the following command:
+        </p>
+
+        <pre><code>PWDEBUG=1 npm run test
+</code></pre>
+
+        <p>
+            As we don't want to type this every time, we will set up an npm script in our <code>package.json</code> for this too. We 
+            will take advantage of our previous scripts, and just set up debugging in chrome, as we only want to use chrome dev tools
+            for debugging.
+        </p>
+
+        <pre><code>"test": "playwright test",
+"test:chromium": "playwright test --project=chromium",
+"test:debug": "PWDEBUG=1 npm run test:chromium"
+</code></pre>
+
+        <p>
+            Running <code>npm run test:debug</code> will open our inspector, and because we configured <code>PWDEBUG=1</code>, a few 
+            useful additional defaults are configured for us. Firstly, the browsers launch in headed mode giving us easy access to 
+            chrome dev tools. Secondly, the default timeout is set to 0, this means our tests won't exit with an exception after a certain
+            amount of time.
+        </p>
+
+        <p>
+            When the Inspector window opens, it will be paused on the first Playwright statement. As we set up a <code>beforeAll</code>
+            test hook earlier, our first statement is <code>await page.goto('http://localhost:3000/');</code>. Using the provided 
+            control tools in the Inspector, we can step over each Playwright action, or resume the script without further pauses.
+        </p>
+
+        <p>
+            In the illustration photo of our inspector, you can see the Playwright actions from our Linking Elements test earlier.
+        </p>
+
+        <img src="./images/testing-e2e-playwright-inspector.png" alt="Playwright Testing Inspector GUI" width="500">
+
+        <p>
+            As the inspector has launched chrome in headed mode, we can also access the chrome dev tools for further debugging.
+        </p>
 
         <script src="../node_modules/prismjs/prism.js"></script>
 
