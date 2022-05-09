@@ -287,49 +287,65 @@ test('Primary heading isVisible', async ({ page }) => {
             of dragging an element from one area of our application to another?
         </p>
 
-        <!-- <p>
-            An important part of any diagramming library is the ability to drag elements. What if we wanted to automate the testing 
-            of dragging an element from one area of our application to another? Playwright provides an API which makes this easy to
-            implement in a few different ways. In the following example, we use the <code>locator.dragTo()</code> method. Similar 
-            techniques might be used in JointJS+ for dragging an element from the 
-            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Stencil.html" target="_blank">ui.Stencil</a>
-            plugin to the JointJS <code>paper</code>.
-        </p> -->
+        <p>
+            Playwright Locators provide a 
+            <a href="https://playwright.dev/docs/api/class-locator#locator-drag-to" target="_blank">locator.dragTo()</a> method which
+            will help us implement this action without the need to write a lot of code. We simply need to create a Locator for our source 
+            and target, call the method on our source, and pass the target Locator as the first argument.
+        </p>
+
+        <p>
+            If your application has many moving parts, you can likely take advantage of this method to test the dragging of elements
+            in a way that makes sense for your situation. Similar techniques might be used in JointJS+ for dragging an element from the 
+            <a href="https://resources.jointjs.com/docs/rappid/v3.5/ui.Stencil.html" target="_blank">ui.Stencil</a> plugin to the 
+            JointJS <code>paper</code>.
+        </p>
 
         <pre><code>test('Drag element to target area', async ({ page }) => {
     const source = page.locator('text=source');
-    const target = page.locator('text=area');
+    const target = page.locator('text=target');
     await source.dragTo(target);
 });
 </code></pre>
 
-        <h3 id="link-elements">
-            Link Elements
+        <h3 id="linking-elements">
+            Linking Elements
         </h3>
 
         <p>
+            Testing the linking of elements is another common pattern you may want to examine in JointJS. We have already looked at most
+            of the Playwright features in the following example, one additional class we will work with is 
+            <a href="https://playwright.dev/docs/api/class-mouse" target="_blank" rel="noopener noreferrer">Mouse</a>. Every 
+            <i>page</i> object has its own mouse accessible with <code>page.mouse</code>.
+        </p>
+
+        <p>
+            Mouse will help use automate a click on one element's port, and subsequently draw a link that connects to another element.
+        </p>
+
+        <!-- <p>
             Another common pattern you may want to test is the linking of Elements in JointJS. In the following example we take advantage
             of the Playwright mouse API to draw a link from the port of one element to another.
-        </p>
+        </p> -->
 
         <pre><code>test('Link Elements', async ({ page }) => {
     const source = page.locator('.joint-port-body');
-    const sourceBbox = await source.boundingBox();
+    const sourcebbox = await source.boundingBox();
 
     const target = page.locator('text=label');
-    const targetBbox = await target.boundingBox();
+    const targetbbox = await target.boundingBox();
 
-    // Check if 0 links are in the graph
+    // No links should be visible
     const link = page.locator('.joint-type-standard-link');
     await expect(link).not.toBeVisible();
 
     // Mousemove to center of element
-    await page.mouse.move(sourceBbox.x + sourceBbox.width / 2, sourceBbox.y + sourceBbox.height / 2);
+    await page.mouse.move(sourcebbox.x + sourcebbox.width / 2, sourcebbox.y + sourcebbox.height / 2);
     await page.mouse.down();
-    await page.mouse.move(targetBbox.x, targetBbox.y);
+    await page.mouse.move(targetbbox.x, targetbbox.y);
     await page.mouse.up();
 
-    // Check if a link is in the graph after mousemove
+    // A link should exist after mousemove
     await expect(link).toHaveCount(1);
 });
 </code></pre>
