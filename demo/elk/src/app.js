@@ -2,18 +2,12 @@ import * as joint from 'jointjs';
 import ELK from 'elkjs/lib/elk-api.js';
 import elkWorker from 'elkjs/lib/elk-worker.js';
 import jointGraphJSON from '../jointGraph.json';
+import { appendElementLabel, getLinkLabels, appendPorts } from './helpers';
 
 const readJointGraph = (graph, opt) => {
     const SPACE = 60;
     const SPACE_BETWEEN_EDGE_NODE = 20;
     const PORT_SPACE = 20;
-
-    const SIDES = {
-        top: 'NORTH',
-        right: 'EAST',
-        bottom: 'SOUTH',
-        left: 'WEST'
-    };
 
     const getChildren = (children, start) => {
         const result = {
@@ -31,53 +25,10 @@ const readJointGraph = (graph, opt) => {
         }
 
         for (const child of children) {
-            const bBox = child.getBBox();
-            const portsPositions = { ...child.getPortsPositions('in'), ...child.getPortsPositions('out') };
-
-            Object.keys(portsPositions).forEach((portId) => {
-                portsPositions[portId].x += bBox.x;
-                portsPositions[portId].y += bBox.y;
-            });
-
-            const connections = graph.getConnectedLinks(child, { outbound: true });
-            const label = child.get('attrs').label;
-
-            const embeddedCells = child.getEmbeddedCells();
-
-            // TODO get port size, custom label position
             let newElement = {
                 id: child.id,
                 width: child.get('size').width,
                 height: child.get('size').height,
-                ports: child.getPorts().map((port) => {
-                    const { x, y } = portsPositions[port.id] ?? {};
-                    const groupNames = Object.keys(child.prop('ports/groups'));
-                    
-                    const mappedPorts = groupNames.reduce((acc, groupName) => ({ ...acc, ...child.getPortsPositions(groupName) }), {});
-                    const { x: relativeX, y: relativeY } = mappedPorts[port.id];
-
-                    return {
-                        id: `${child.id}${opt.idSplitChar}${port.id}`,
-                        x: relativeX,
-                        y: relativeY,
-                        width: 10,
-                        height: 10,
-                        layoutOptions: {
-                            'port.side': SIDES[bBox.sideNearestToPoint({ x, y })],
-                            'port.index': child.getPortIndex(port.id),
-                            'port.borderOffset': -5,
-                        }
-                    };
-                }),
-                labels: [
-                    {
-                        text: label.text,
-                        layoutOptions: {
-                            'nodeLabels.placement': '[H_LEFT, V_TOP, OUTSIDE]',
-                            'font.size': label.fontSize,
-                        },
-                    }
-                ],
                 'layoutOptions': {
                     portConstraints: 'FIXED_ORDER',
                     portAlignment: 'CENTER',
@@ -89,15 +40,23 @@ const readJointGraph = (graph, opt) => {
                 },
             };
 
+            const label = child.get('attrs').label;
+            if (label) appendElementLabel(newElement, label);
+
+            appendPorts(newElement, child, opt.idSplitChar);
+
+            const connections = graph.getConnectedLinks(child, { outbound: true });
+
             if (connections.length) {
-                result.edges.push(...connections.map(link => {
-                    return {
-                        id: link.id,
-                        sources: [link.source().port ? `${link.source().id}${opt.idSplitChar}${link.source().port}` : link.source().id],
-                        targets: [link.target().port ? `${link.target().id}${opt.idSplitChar}${link.target().port}` : link.target().id],
-                    };
-                }));
+                result.edges.push(...connections.map(link => ({
+                    id: link.id,
+                    sources: [link.source().port ? `${link.source().id}${opt.idSplitChar}${link.source().port}` : link.source().id],
+                    targets: [link.target().port ? `${link.target().id}${opt.idSplitChar}${link.target().port}` : link.target().id],
+                    labels: getLinkLabels(link.get('labels')),
+                })));
             }
+
+            const embeddedCells = child.getEmbeddedCells();
 
             if (embeddedCells.length > 0) {
                 const { children, edges } = getChildren(embeddedCells.filter((cell) => cell.isElement()));
@@ -175,7 +134,7 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
                 });
             }
 
-            child.ports.forEach((port) => {
+            child.ports?.forEach((port) => {
                 const { x, y } = port;
                 const [, portId] = port.id.split(opt.idSplitChar);
 
@@ -232,8 +191,9 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
 
             if (!link.get('source').port) {
                 const sourceEl = link.getSourceElement();
+                const label = sourceEl.get('attrs').label;
 
-                const relativeY = sourceEl.get('attrs').label.refY < 0 ? Math.abs(sourceEl.get('attrs').label.refY) : 0;
+                const relativeY = label && label.refY < 0 ? Math.abs(label.refY) : 0;
 
                 link.source(sourceEl, {
                     anchor: {
@@ -247,8 +207,9 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
 
             if (!link.get('target').port) {
                 const targetEl = link.getTargetElement();
+                const label = targetEl.get('attrs').label;
 
-                const relativeY = targetEl.get('attrs').label.refY < 0 ? Math.abs(targetEl.get('attrs').label.refY) : 0;
+                const relativeY = label && label.refY < 0 ? Math.abs(label.refY) : 0;
 
                 link.target(targetEl, {
                     anchor: {
@@ -310,14 +271,19 @@ const getLabelPlacement = label => {
         placement.textAnchor = 'right';
     } else if (nodeLabelPlacements.includes(placementsOptions.H_LEFT)) {
         placement.textAnchor = 'left';
+    } else if (nodeLabelPlacements.includes(placementsOptions.H_CENTER)) {
+        placement.textAnchor = 'middle';
+        placement.refX = '50%';
     }
 
     if (nodeLabelPlacements.includes(placementsOptions.V_TOP)) {
         placement.textVerticalAnchor = 'top';
     } else if (nodeLabelPlacements.includes(placementsOptions.V_BOTTOM)) {
         placement.textVerticalAnchor = 'bottom';
+        placement.refY += label.height;
     } else if (nodeLabelPlacements.includes(placementsOptions.V_CENTER)) {
         placement.textVerticalAnchor = 'middle';
+        placement.refY = '50%';
     }
 
     return placement;
