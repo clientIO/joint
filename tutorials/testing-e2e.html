@@ -401,7 +401,7 @@ test('visual regression', async ({ page }) => {
         <p>
             "Golden" snapshots will be located in the tests directory, and placed within a folder that corresponds to the name of your test file.
             In our case it will be <code>tests/visual-regression.spec.js-snapshots</code>. As we have a project set up for each rendering engine, 
-            the folder will contain will a snapshot for each one respectively.
+            the folder will contain a snapshot for each one respectively.
         </p>
 
         <p>
@@ -426,7 +426,7 @@ test('visual regression', async ({ page }) => {
             The first tool we will look at is the Playwright <a href="https://playwright.dev/docs/inspector" target="_blank">Inspector</a>.
             Inspector is a GUI tool that helps authoring and debugging Playwright scripts. To launch the inspector, we need to set the
             <code>PWDEBUG</code> environment variable to run our scripts in debug mode. This configures Playwright for debugging and opens 
-            the inspector.
+            the Inspector.
         </p>
 
         <p>
@@ -448,28 +448,45 @@ test('visual regression', async ({ page }) => {
 </code></pre>
 
         <p>
-            Running <code>npm run test:debug</code> will open our inspector, and because we configured <code>PWDEBUG=1</code>, a few 
+            Running <code>npm run test:debug</code> will open our Inspector, and because we configured <code>PWDEBUG=1</code>, some 
             useful additional defaults are configured for us. Firstly, the browsers launch in headed mode giving us easy access to 
             chrome dev tools. Secondly, the default timeout is set to 0, this means our tests won't exit with an exception after a certain
-            amount of time.
+            amount of time. Lastly, it also configures a <code>playwright</code> object in the browser to generate, and highlight
+            Playwright Selectors. 
         </p>
 
         <p>
             When the Inspector window opens, it will be paused on the first Playwright statement. As we set up a <code>beforeAll</code>
-            test hook earlier, our first statement is <code>await page.goto('http://localhost:3000/');</code>. Using the provided 
+            test hook earlier, our first statement is <code>await page.goto('http://localhost:3000/')</code>. Using the provided 
             control tools in the Inspector, we can step over each Playwright action, or resume the script without further pauses.
         </p>
 
         <p>
-            In the illustration photo of our inspector, you can see the Playwright actions from our Linking Elements test earlier.
+            Clicking the <i>Explore</i> button allows us to hover over elements on screen, and click them to automatically generate
+            selectors for those elements. Similarly, typing a Selector in the input field will highlight any matching element on 
+            screen.
         </p>
-
-        <img src="./images/testing-e2e-playwright-inspector.png" alt="Playwright Testing Inspector GUI" width="500">
 
         <p>
-            As the inspector has launched chrome in headed mode, we can also access the chrome dev tools for further debugging.
+            In the illustration photo of our Inspector, the bottom half shows you the Playwright actions from our Linking Elements 
+            test earlier. You can view the log of each Playwright action via the dropdown arrow. In our photo, we can see our assertion
+            <code>await expect(link).toHaveCount(1)</code> has resolved to 1 element giving us confidence a link has been drawn, and 
+            our test is working as we intended. If actionability can't be reached, or there are some test related errors, it will
+            also be shown in the Inspector logs.
         </p>
 
+        <img src="./images/testing-e2e-playwright-inspector.png" alt="Playwright Testing Inspector GUI" width="650">
+
+        <p>
+            As the Inspector has also launched chrome in headed mode, we also have access to all of the usual dev tools we are 
+            accustomed to as we step through our testing scripts. Using the <code>playwright</code> object in dev tools, also
+            gives us access to an API which may also be useful for you depending on your situation.
+        </p>
+
+        <p>
+            <code>playwright.$(selector)</code> highlights the first occurrence of a selector, while 
+            <code>playwright.$$(selector)</code> highlights all occurrences.
+        </p>
         <script src="../node_modules/prismjs/prism.js"></script>
 
     </body>
