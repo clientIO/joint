@@ -20,7 +20,8 @@ const readJointGraph = (graph, opt) => {
             result.layoutOptions = {
                 algorithm: 'layered',
                 'hierarchyHandling': 'INCLUDE_CHILDREN',
-                'layered.spacing.baseValue': SPACE
+                'layered.spacing.baseValue': SPACE,
+                'spacing.labelNode': 0,
             };
         }
 
@@ -36,7 +37,7 @@ const readJointGraph = (graph, opt) => {
                     'spacing.nodeNodeBetweenLayers': SPACE,
                     'spacing.edgeNode': SPACE_BETWEEN_EDGE_NODE,
                     'layered.spacing.baseValue': SPACE,
-                    'spacing.labelNode': 15
+                    'spacing.labelNode': 0,
                 },
             };
 
@@ -151,38 +152,20 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
         });
     };
 
+    const getRelativeY = (label) => {
+        return label && label.refY < 0 ? Math.abs(label.refY) + 1 : 0;
+    };
+
     const addEdges = (edges, parent) => {
         for (const edge of edges) {
             if (!edge.sections) continue;
 
             const { bendPoints = [] } = edge.sections[0];
-            const junctionPoints = edge.junctionPoints || [];
 
-            if (parent) {
-                bendPoints.map(bendPoint => {
-                    const parentPosition = parent.position();
-                    bendPoint.x += parentPosition.x;
-                    bendPoint.y += parentPosition.y;
-                });
-            }
-
-            junctionPoints.forEach(point => {
-                const SIZE = 4;
-                const position = {
-                    x: point.x - SIZE / 2 + (parent ? parent.get('position').x : 0),
-                    y: point.y - SIZE / 2 + (parent ? parent.get('position').y : 0)
-                };
-                const junctionPoint = new joint.shapes.standard.Circle({
-                    size: { height: SIZE, width: SIZE },
-                    attrs: {
-                        body: {
-                            fill: '#464454',
-                            stroke: '#464454',
-                        }
-                    }
-                });
-                junctionPoint.addTo(graph);
-                junctionPoint.position(position.x, position.y);
+            bendPoints.map(bendPoint => {
+                const parentPosition = parent?.position() ?? { x: 0, y: 0 };
+                bendPoint.x += parentPosition.x;
+                bendPoint.y += parentPosition.y;
             });
 
             const link = graph.getCell(edge.id);
@@ -193,7 +176,7 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
                 const sourceEl = link.getSourceElement();
                 const label = sourceEl.get('attrs').label;
 
-                const relativeY = label && label.refY < 0 ? Math.abs(label.refY) : 0;
+                const relativeY = getRelativeY(label);
 
                 link.source(sourceEl, {
                     anchor: {
@@ -209,7 +192,7 @@ export const elkLayout = async(graph, opt = { idSplitChar: '_' }) => {
                 const targetEl = link.getTargetElement();
                 const label = targetEl.get('attrs').label;
 
-                const relativeY = label && label.refY < 0 ? Math.abs(label.refY) : 0;
+                const relativeY = getRelativeY(label);
 
                 link.target(targetEl, {
                     anchor: {

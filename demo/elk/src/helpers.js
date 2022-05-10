@@ -9,8 +9,6 @@ const SIDES = {
 const appendElementLabel = (element, label) => {
     const { width, height } = getLabelDimensions(label);
 
-    console.log(label);
-
     element.labels = [
         {
             text: label.text,
@@ -62,7 +60,7 @@ const appendPorts = (element, child, idSplitChar) => {
             height: 10,
             layoutOptions: {
                 'port.side': SIDES[bBox.sideNearestToPoint({ x, y })],
-                'port.index': child.getPortIndex(port.id),
+                // 'port.index': child.getPortIndex(port.id),
                 'port.borderOffset': -5,
             }
         };
@@ -80,7 +78,7 @@ const getLabelDimensions = (label) => {
 
     return { 
         width: Math.round(metrics.width), 
-        height: Math.round(metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent),
+        height: Math.round(metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent),
         fontSize
     };
 };
