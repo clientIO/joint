@@ -7,7 +7,9 @@ const SIDES = {
 
 // TODO custom label position
 const appendElementLabel = (element, label) => {
-    const { width, height } = getLabelWidth(label);
+    const { width, height } = getLabelDimensions(label);
+
+    console.log(label);
 
     element.labels = [
         {
@@ -25,7 +27,7 @@ const appendElementLabel = (element, label) => {
 const getLinkLabels = (labels) => {
     return labels.map(labelRaw => {
         const { attrs: { text }} = labelRaw;
-        const { width, height, fontSize } = getLabelWidth(text);
+        const { width, height, fontSize } = getLabelDimensions(text);
 
         return {
             text: text.text,
@@ -67,11 +69,11 @@ const appendPorts = (element, child, idSplitChar) => {
     });
 };
 
-const getLabelWidth = (label) => {
+const getLabelDimensions = (label) => {
     const { text, fontSize = 12, fontFamily = 'sans-serif', fontWeight = 'Normal' } = label;
 
     const font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-    const canvas = getLabelWidth.canvas || (getLabelWidth.canvas = document.createElement('canvas'));
+    const canvas = getLabelDimensions.canvas || (getLabelDimensions.canvas = document.createElement('canvas'));
     const context = canvas.getContext('2d');
     context.font = font;
     const metrics = context.measureText(text);

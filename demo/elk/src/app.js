@@ -36,7 +36,7 @@ const readJointGraph = (graph, opt) => {
                     'spacing.nodeNodeBetweenLayers': SPACE,
                     'spacing.edgeNode': SPACE_BETWEEN_EDGE_NODE,
                     'layered.spacing.baseValue': SPACE,
-                    'spacing.labelNode': 15,
+                    'spacing.labelNode': 15
                 },
             };
 
@@ -52,7 +52,7 @@ const readJointGraph = (graph, opt) => {
                     id: link.id,
                     sources: [link.source().port ? `${link.source().id}${opt.idSplitChar}${link.source().port}` : link.source().id],
                     targets: [link.target().port ? `${link.target().id}${opt.idSplitChar}${link.target().port}` : link.target().id],
-                    labels: getLinkLabels(link.get('labels')),
+                    labels: getLinkLabels(link.get('labels') ?? []),
                 })));
             }
 
