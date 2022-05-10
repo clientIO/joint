@@ -54,7 +54,8 @@ module.exports = {
     },
     plugins: [
         new CopyPlugin([
-            { from: './index.html', to: './' }
-        ])
+            { from: './index.html', to: './' },
+            { from: './node_modules/jointjs/dist/joint.min.css', to: './joint.min.css' }
+        ]),
     ]
 };
