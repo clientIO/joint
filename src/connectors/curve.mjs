@@ -102,7 +102,7 @@ function getHorizontalSourceDirection(linkView, route, options) {
 
     let sourceSide;
     let rotation;
-    if (!sourceBBox.width || !sourceBBox.height) {
+    if (!linkView.sourceView) {
         if (sourceBBox.x > route[1].x)
             sourceSide = 'right';
         else
@@ -142,7 +142,7 @@ function getHorizontalTargetDirection(linkView, route, options) {
 
     let targetSide;
     let rotation;
-    if (!targetBBox.width || !targetBBox.height) {
+    if (!linkView.targetView) {
         if (targetBBox.x > route[route.length - 2].x)
             targetSide = 'left';
         else
@@ -182,7 +182,7 @@ function getVerticalSourceDirection(linkView, route, options) {
 
     let sourceSide;
     let rotation;
-    if (!sourceBBox.width || !sourceBBox.height) {
+    if (!linkView.sourceView) {
         if (sourceBBox.y > route[1].y)
             sourceSide = 'bottom';
         else
@@ -222,7 +222,7 @@ function getVerticalTargetDirection(linkView, route, options) {
 
     let targetSide;
     let rotation;
-    if (!targetBBox.width || !targetBBox.height) {
+    if (!linkView.targetView) {
         if (targetBBox.y > route[route.length - 2].y)
             targetSide = 'top';
         else
@@ -263,7 +263,7 @@ function getAutoSourceDirection(linkView, route, options) {
 
     let sourceSide;
     let rotation;
-    if (!sourceBBox.width || !sourceBBox.height) {
+    if (!linkView.sourceView) {
         sourceSide = sourceBBox.sideNearestToPoint(route[1]);
     } else {
         rotation = linkView.sourceView.model.angle();
@@ -305,7 +305,7 @@ function getAutoTargetDirection(linkView, route, options) {
 
     let targetSide;
     let rotation;
-    if (!targetBBox.width || !targetBBox.height) {
+    if (!linkView.targetView) {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
     } else {
         rotation = linkView.targetView.model.angle();
