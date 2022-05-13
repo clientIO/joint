@@ -109,11 +109,13 @@ function getHorizontalSourceDirection(linkView, route, options) {
             sourceSide = 'left';
     } else {
         if (options.rotate) {
-            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el)
-            const sourcePoint = route[0].clone();
             rotation = linkView.sourceView.model.angle();
-            sourcePoint.rotate(sourceBBox.center(), rotation);
-            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+            if (rotation) {
+                const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+                const sourcePoint = route[0].clone();
+                sourcePoint.rotate(sourceBBox.center(), rotation);
+                sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+            }
         } else {
             sourceSide = sourceBBox.sideNearestToPoint(route[0]);
         }
@@ -130,7 +132,7 @@ function getHorizontalSourceDirection(linkView, route, options) {
             break;
     }
 
-    if (options.rotate) {
+    if (options.rotate && rotation) {
         direction.rotate(null, -rotation);
     }
 
@@ -149,11 +151,13 @@ function getHorizontalTargetDirection(linkView, route, options) {
             targetSide = 'right';
     } else {
         if (options.rotate) {
-            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el)
-            const targetPoint = route[route.length - 1].clone();
             rotation = linkView.targetView.model.angle();
-            targetPoint.rotate(targetBBox.center(), rotation);
-            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+            if (rotation) {
+                const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+                const targetPoint = route[route.length - 1].clone();
+                targetPoint.rotate(targetBBox.center(), rotation);
+                targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+            }
         } else {
             targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
         }
@@ -170,7 +174,7 @@ function getHorizontalTargetDirection(linkView, route, options) {
             break;
     }
 
-    if (options.rotate) {
+    if (options.rotate && rotation) {
         direction.rotate(null, -rotation);
     }
 
@@ -189,11 +193,13 @@ function getVerticalSourceDirection(linkView, route, options) {
             sourceSide = 'top';
     } else {
         if (options.rotate) {
-            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el)
-            const sourcePoint = route[0].clone();
             rotation = linkView.sourceView.model.angle();
-            sourcePoint.rotate(sourceBBox.center(), rotation);
-            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+            if (rotation) {
+                const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+                const sourcePoint = route[0].clone();
+                sourcePoint.rotate(sourceBBox.center(), rotation);
+                sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+            }
         } else {
             sourceSide = sourceBBox.sideNearestToPoint(route[0]);
         }
@@ -210,7 +216,7 @@ function getVerticalSourceDirection(linkView, route, options) {
             break;
     }
 
-    if (options.rotate) {
+    if (options.rotate && rotation) {
         direction.rotate(null, -rotation);
     }
 
@@ -229,11 +235,13 @@ function getVerticalTargetDirection(linkView, route, options) {
             targetSide = 'bottom';
     } else {
         if (options.rotate) {
-            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el)
-            const targetPoint = route[route.length - 1].clone();
             rotation = linkView.targetView.model.angle();
-            targetPoint.rotate(targetBBox.center(), rotation);
-            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+            if (rotation) {
+                const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+                const targetPoint = route[route.length - 1].clone();
+                targetPoint.rotate(targetBBox.center(), rotation);
+                targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+            }
         } else {
             targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
         }
@@ -251,7 +259,7 @@ function getVerticalTargetDirection(linkView, route, options) {
             break;
     }
 
-    if (options.rotate) {
+    if (options.rotate && rotation) {
         direction.rotate(null, -rotation);
     }
 
@@ -267,11 +275,13 @@ function getAutoSourceDirection(linkView, route, options) {
         sourceSide = sourceBBox.sideNearestToPoint(route[1]);
     } else {
         if (options.rotate) {
-            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el)
-            const sourcePoint = route[0].clone();
             rotation = linkView.sourceView.model.angle();
-            sourcePoint.rotate(sourceBBox.center(), rotation);
-            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+            if (rotation) {
+                const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+                const sourcePoint = route[0].clone();
+                sourcePoint.rotate(sourceBBox.center(), rotation);
+                sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+            }
         } else {
             sourceSide = sourceBBox.sideNearestToPoint(route[0]);
         }
@@ -293,7 +303,7 @@ function getAutoSourceDirection(linkView, route, options) {
             break;
     }
 
-    if (options.rotate) {
+    if (options.rotate && rotation) {
         direction.rotate(null, -rotation);
     }
 
@@ -309,11 +319,13 @@ function getAutoTargetDirection(linkView, route, options) {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
     } else {
         if (options.rotate) {
-            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el)
-            const targetPoint = route[route.length - 1].clone();
             rotation = linkView.targetView.model.angle();
-            targetPoint.rotate(targetBBox.center(), rotation);
-            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+            if (rotation) {
+                const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+                const targetPoint = route[route.length - 1].clone();
+                targetPoint.rotate(targetBBox.center(), rotation);
+                targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+            }
         } else {
             targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
         }
@@ -335,7 +347,7 @@ function getAutoTargetDirection(linkView, route, options) {
             break;
     }
 
-    if (options.rotate) {
+    if (options.rotate && rotation) {
         direction.rotate(null, -rotation);
     }
 
