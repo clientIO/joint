@@ -108,14 +108,12 @@ function getHorizontalSourceDirection(linkView, route, options) {
         else
             sourceSide = 'left';
     } else {
-        if (options.rotate) {
-            rotation = linkView.sourceView.model.angle();
-            if (rotation) {
-                const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
-                const sourcePoint = route[0].clone();
-                sourcePoint.rotate(sourceBBox.center(), rotation);
-                sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
-            }
+        rotation = linkView.sourceView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+            const sourcePoint = route[0].clone();
+            sourcePoint.rotate(sourceBBox.center(), rotation);
+            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
         } else {
             sourceSide = sourceBBox.sideNearestToPoint(route[0]);
         }
@@ -150,14 +148,12 @@ function getHorizontalTargetDirection(linkView, route, options) {
         else
             targetSide = 'right';
     } else {
-        if (options.rotate) {
-            rotation = linkView.targetView.model.angle();
-            if (rotation) {
-                const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
-                const targetPoint = route[route.length - 1].clone();
-                targetPoint.rotate(targetBBox.center(), rotation);
-                targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
-            }
+        rotation = linkView.targetView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+            const targetPoint = route[route.length - 1].clone();
+            targetPoint.rotate(targetBBox.center(), rotation);
+            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
         } else {
             targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
         }
@@ -192,14 +188,12 @@ function getVerticalSourceDirection(linkView, route, options) {
         else
             sourceSide = 'top';
     } else {
-        if (options.rotate) {
-            rotation = linkView.sourceView.model.angle();
-            if (rotation) {
-                const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
-                const sourcePoint = route[0].clone();
-                sourcePoint.rotate(sourceBBox.center(), rotation);
-                sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
-            }
+        rotation = linkView.sourceView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+            const sourcePoint = route[0].clone();
+            sourcePoint.rotate(sourceBBox.center(), rotation);
+            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
         } else {
             sourceSide = sourceBBox.sideNearestToPoint(route[0]);
         }
@@ -234,14 +228,12 @@ function getVerticalTargetDirection(linkView, route, options) {
         else
             targetSide = 'bottom';
     } else {
-        if (options.rotate) {
-            rotation = linkView.targetView.model.angle();
-            if (rotation) {
-                const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
-                const targetPoint = route[route.length - 1].clone();
-                targetPoint.rotate(targetBBox.center(), rotation);
-                targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
-            }
+        rotation = linkView.targetView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+            const targetPoint = route[route.length - 1].clone();
+            targetPoint.rotate(targetBBox.center(), rotation);
+            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
         } else {
             targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
         }
@@ -274,14 +266,12 @@ function getAutoSourceDirection(linkView, route, options) {
     if (!sourceBBox.width || !sourceBBox.height) {
         sourceSide = sourceBBox.sideNearestToPoint(route[1]);
     } else {
-        if (options.rotate) {
-            rotation = linkView.sourceView.model.angle();
-            if (rotation) {
-                const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
-                const sourcePoint = route[0].clone();
-                sourcePoint.rotate(sourceBBox.center(), rotation);
-                sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
-            }
+        rotation = linkView.sourceView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+            const sourcePoint = route[0].clone();
+            sourcePoint.rotate(sourceBBox.center(), rotation);
+            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
         } else {
             sourceSide = sourceBBox.sideNearestToPoint(route[0]);
         }
@@ -318,14 +308,12 @@ function getAutoTargetDirection(linkView, route, options) {
     if (!targetBBox.width || !targetBBox.height) {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
     } else {
-        if (options.rotate) {
-            rotation = linkView.targetView.model.angle();
-            if (rotation) {
-                const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
-                const targetPoint = route[route.length - 1].clone();
-                targetPoint.rotate(targetBBox.center(), rotation);
-                targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
-            }
+        rotation = linkView.targetView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+            const targetPoint = route[route.length - 1].clone();
+            targetPoint.rotate(targetBBox.center(), rotation);
+            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
         } else {
             targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
         }
