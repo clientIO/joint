@@ -24,7 +24,7 @@ QUnit.module('connectors', function(hooks) {
 
     QUnit.test('construction', function(assert) {
 
-        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 } });
+        var r1 = new joint.shapes.basic.Rect({ position: { x: 20, y: 30 }, size: { width: 120, height: 80 }});
         var r2 = r1.clone().translate(300);
 
         this.graph.addCell([r1, r2]);
@@ -77,8 +77,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector direction auto', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -95,8 +95,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector direction auto with vertex', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -172,8 +172,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector with enum directions (left/right)', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -196,8 +196,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector with horizontal direction', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -219,8 +219,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector with vertical direction', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -242,8 +242,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector with closest point direction', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -265,8 +265,8 @@ QUnit.module('connectors', function(hooks) {
     });
 
     QUnit.test('curve connector with outwards direction', function(assert) {
-        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 } });
-        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 } });
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }});
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
 
         var link = new joint.shapes.standard.Link({
             source: { id: r1.id },
@@ -287,5 +287,51 @@ QUnit.module('connectors', function(hooks) {
         var pathData = linkView.metrics.data;
 
         assert.checkDataPath(pathData, 'M 340 216.15 C 364 209.69 378.299 187.884 400 200 C 472.884 240.691 435.742 320 459.57 400');
+    });
+
+    QUnit.test('curve connector rotate', function(assert) {
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }, angle: 30 });
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }, angle: 60 });
+
+        var link = new joint.shapes.standard.Link({
+            source: { id: r1.id },
+            target: { id: r2.id },
+            connector: {
+                name: 'curve',
+                args: {
+                    rotate: true
+                }
+            }
+        });
+
+        this.graph.addCells([r1, r2, link]);
+
+        var linkView = this.paper.findViewByModel(link);
+        var pathData = linkView.metrics.data;
+
+        assert.checkDataPath(pathData, 'M 335.31 300.31 C 369.299 319.934 385.066 335.701 404.69 369.69', 'curve link with rotate was correctly rendered');
+    });
+
+    QUnit.test('curve connector rotate (target is nonrotated)', function(assert) {
+        var r1 = new joint.shapes.standard.Rectangle({ position: { x: 200, y: 200 }, size: { width: 140, height: 70 }, angle: 30 });
+        var r2 = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 400 }, size: { width: 140, height: 70 }});
+
+        var link = new joint.shapes.standard.Link({
+            source: { id: r1.id },
+            target: { id: r2.id },
+            connector: {
+                name: 'curve',
+                args: {
+                    rotate: true
+                }
+            }
+        });
+
+        this.graph.addCells([r1, r2, link]);
+
+        var linkView = this.paper.findViewByModel(link);
+        var pathData = linkView.metrics.data;
+
+        assert.checkDataPath(pathData, 'M 335.31 300.31 C 384.148 328.507 435 343.607 435 400', 'curve link with rotate was correctly rendered');
     });
 });

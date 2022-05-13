@@ -34,7 +34,8 @@ export const curve = function(sourcePoint, targetPoint, route = [], opt = {}, li
         angleTangentCoefficient: opt.angleTangentCoefficient || 80,
         tau: opt.tension || 0.5,
         sourceTangent: opt.sourceTangent ? new Point(opt.sourceTangent) : null,
-        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null
+        targetTangent: opt.targetTangent ? new Point(opt.targetTangent) : null,
+        rotate: Boolean(opt.rotate)
     };
     if (typeof opt.sourceDirection === 'string')
         options.sourceDirection = opt.sourceDirection;
@@ -100,132 +101,245 @@ function getHorizontalSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
 
     let sourceSide;
-    if (!sourceBBox.width || !sourceBBox.height) {
+    let rotation;
+    if (!linkView.sourceView) {
         if (sourceBBox.x > route[1].x)
             sourceSide = 'right';
         else
             sourceSide = 'left';
     } else {
-        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+        rotation = linkView.sourceView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+            const sourcePoint = route[0].clone();
+            sourcePoint.rotate(sourceBBox.center(), rotation);
+            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+        } else {
+            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+        }
     }
 
+    let direction;
     switch (sourceSide) {
         case 'left':
-            return new Point(-1, 0);
+            direction = new Point(-1, 0);
+            break;
         case 'right':
         default:
-            return new Point(1, 0);
+            direction = new Point(1, 0);
+            break;
     }
+
+    if (options.rotate && rotation) {
+        direction.rotate(null, -rotation);
+    }
+
+    return direction;
 }
 
 function getHorizontalTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
 
     let targetSide;
-    if (!targetBBox.width || !targetBBox.height) {
+    let rotation;
+    if (!linkView.targetView) {
         if (targetBBox.x > route[route.length - 2].x)
             targetSide = 'left';
         else
             targetSide = 'right';
     } else {
-        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+        rotation = linkView.targetView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+            const targetPoint = route[route.length - 1].clone();
+            targetPoint.rotate(targetBBox.center(), rotation);
+            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+        } else {
+            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+        }
     }
 
+    let direction;
     switch (targetSide) {
         case 'left':
-            return new Point(-1, 0);
+            direction = new Point(-1, 0);
+            break;
         case 'right':
         default:
-            return new Point(1, 0);
+            direction = new Point(1, 0);
+            break;
     }
+
+    if (options.rotate && rotation) {
+        direction.rotate(null, -rotation);
+    }
+
+    return direction;
 }
 
 function getVerticalSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
 
     let sourceSide;
-    if (!sourceBBox.width || !sourceBBox.height) {
+    let rotation;
+    if (!linkView.sourceView) {
         if (sourceBBox.y > route[1].y)
             sourceSide = 'bottom';
         else
             sourceSide = 'top';
     } else {
-        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+        rotation = linkView.sourceView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+            const sourcePoint = route[0].clone();
+            sourcePoint.rotate(sourceBBox.center(), rotation);
+            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+        } else {
+            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+        }
     }
 
+    let direction;
     switch (sourceSide) {
         case 'top':
-            return new Point(0, -1);
+            direction = new Point(0, -1);
+            break;
         case 'bottom':
         default:
-            return new Point(0, 1);
+            direction = new Point(0, 1);
+            break;
     }
+
+    if (options.rotate && rotation) {
+        direction.rotate(null, -rotation);
+    }
+
+    return direction;
 }
 
 function getVerticalTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
 
     let targetSide;
-    if (!targetBBox.width || !targetBBox.height) {
+    let rotation;
+    if (!linkView.targetView) {
         if (targetBBox.y > route[route.length - 2].y)
             targetSide = 'top';
         else
             targetSide = 'bottom';
     } else {
-        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+        rotation = linkView.targetView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+            const targetPoint = route[route.length - 1].clone();
+            targetPoint.rotate(targetBBox.center(), rotation);
+            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+        } else {
+            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+        }
     }
 
+
+    let direction;
     switch (targetSide) {
         case 'top':
-            return new Point(0, -1);
+            direction = new Point(0, -1);
+            break;
         case 'bottom':
         default:
-            return new Point(0, 1);
+            direction = new Point(0, 1);
+            break;
     }
+
+    if (options.rotate && rotation) {
+        direction.rotate(null, -rotation);
+    }
+
+    return direction;
 }
 
 function getAutoSourceDirection(linkView, route, options) {
     const { sourceBBox } = linkView;
 
     let sourceSide;
-    if (!sourceBBox.width || !sourceBBox.height) {
+    let rotation;
+    if (!linkView.sourceView) {
         sourceSide = sourceBBox.sideNearestToPoint(route[1]);
     } else {
-        sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+        rotation = linkView.sourceView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.sourceView.getNodeUnrotatedBBox(linkView.sourceView.el);
+            const sourcePoint = route[0].clone();
+            sourcePoint.rotate(sourceBBox.center(), rotation);
+            sourceSide = unrotatedBBox.sideNearestToPoint(sourcePoint);
+        } else {
+            sourceSide = sourceBBox.sideNearestToPoint(route[0]);
+        }
     }
 
+    let direction;
     switch (sourceSide) {
         case 'top':
-            return new Point(0, -1);
+            direction = new Point(0, -1);
+            break;
         case 'bottom':
-            return new Point(0, 1);
+            direction = new Point(0, 1);
+            break;
         case 'right':
-            return new Point(1, 0);
+            direction = new Point(1, 0);
+            break;
         case 'left':
-            return new Point(-1, 0);
+            direction = new Point(-1, 0);
+            break;
     }
+
+    if (options.rotate && rotation) {
+        direction.rotate(null, -rotation);
+    }
+
+    return direction;
 }
 
 function getAutoTargetDirection(linkView, route, options) {
     const { targetBBox } = linkView;
 
     let targetSide;
-    if (!targetBBox.width || !targetBBox.height) {
+    let rotation;
+    if (!linkView.targetView) {
         targetSide = targetBBox.sideNearestToPoint(route[route.length - 2]);
     } else {
-        targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+        rotation = linkView.targetView.model.angle();
+        if (options.rotate && rotation) {
+            const unrotatedBBox = linkView.targetView.getNodeUnrotatedBBox(linkView.targetView.el);
+            const targetPoint = route[route.length - 1].clone();
+            targetPoint.rotate(targetBBox.center(), rotation);
+            targetSide = unrotatedBBox.sideNearestToPoint(targetPoint);
+        } else {
+            targetSide = targetBBox.sideNearestToPoint(route[route.length - 1]);
+        }
     }
 
+    let direction;
     switch (targetSide) {
         case 'top':
-            return new Point(0, -1);
+            direction = new Point(0, -1);
+            break;
         case 'bottom':
-            return new Point(0, 1);
+            direction = new Point(0, 1);
+            break;
         case 'right':
-            return new Point(1, 0);
+            direction = new Point(1, 0);
+            break;
         case 'left':
-            return new Point(-1, 0);
+            direction = new Point(-1, 0);
+            break;
     }
+
+    if (options.rotate && rotation) {
+        direction.rotate(null, -rotation);
+    }
+
+    return direction;
 }
 
 function getClosestPointSourceDirection(linkView, route, options) {
